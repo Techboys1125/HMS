@@ -9,9 +9,7 @@ export * from "./permissions/appointment.permissions";
 export {
   AppointmentManagementCenterScreen,
   AppointmentManagementCenterScreen as AppointmentManagementScreen,
+  ReceptionBookAppointmentScreen,
+  PatientCheckInScreen,
+  ReceptionQueueManagementScreen,
 } from "./pages/AppointmentManagementScreen";
-
-// Backwards compatibility aliases for App.tsx and VitalsManagementScreen
-export { AppointmentManagementCenterScreen as ReceptionBookAppointmentScreen } from "./pages/AppointmentManagementScreen";
-export { AppointmentManagementCenterScreen as PatientCheckInScreen } from "./pages/AppointmentManagementScreen";
-export { AppointmentManagementCenterScreen as ReceptionQueueManagementScreen } from "./pages/AppointmentManagementScreen";

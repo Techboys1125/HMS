@@ -1,5 +1,5 @@
 import { X, AlertTriangle } from "lucide-react";
-import type { BackendPatient } from "../types/patient.types";
+import type { Patient as BackendPatient } from "../types/patient.types";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -60,10 +60,10 @@ export function DuplicateWarningDialog({
               className="w-full text-left p-3 rounded-xl border border-gray-200 hover:border-[#0D47A1] hover:bg-blue-50/50 transition-colors"
             >
               <div className="text-xs font-bold text-[#111827]" style={{ fontFamily: PP }}>
-                {c.firstName} {c.lastName}
+                {c.patientName || c.name}
               </div>
               <div className="text-[11px] text-slate-500 font-mono mt-0.5">
-                MRN: {c.mrn} · {c.mobile}
+                MRN: {c.mrn} · {c.phone}
               </div>
             </button>
           ))}

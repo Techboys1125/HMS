@@ -13,24 +13,16 @@ export interface EmergencyContact {
 }
 
 export interface Patient {
+  id: number;
+  name: string;
+  patientId: string;
   mrn: string;
-  firstName: string;
-  lastName: string;
-  dob: string | null;
-  ageBasis: AgeBasis;
-  approximateAge?: number;
-  gender: "Male" | "Female" | "Other";
-  mobile: string;
-  email?: string;
-  address: string;
-  status: PatientStatus;
-  emergencyContact: EmergencyContact;
-  language?: string;
-  communicationPreference?: string;
-  consentIndicators?: Record<string, boolean>;
-  version: number;
-  createdAt: string;
-  updatedAt: string;
+  patientName: string;
+  age: number;
+  gender: string;
+  phone: string;
+  assignedDoctor: string;
+  registrationDate: string;
 }
 
 export interface PatientStatistics {
@@ -43,12 +35,11 @@ export interface PatientStatistics {
 }
 
 export interface DuplicateCheckRequest {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   dob: string | null;
   mobile: string;
   email?: string;
-  gender: "Male" | "Female" | "Other";
+  gender: string;
 }
 
 export interface DuplicateOverrideRequest {
@@ -62,19 +53,16 @@ export interface MergePatientsRequest {
 }
 
 export interface CreatePatientRequest {
-  firstName: string;
-  lastName: string;
-  dob: string | null;
-  ageBasis: AgeBasis;
-  approximateAge?: number;
-  gender: "Male" | "Female" | "Other";
-  mobile: string;
-  email?: string;
-  address: string;
-  emergencyContact: EmergencyContact;
-  language?: string;
-  communicationPreference?: string;
-  consentIndicators?: Record<string, boolean>;
+  relationship: string;
+  fullName: string;
+  gender: string; // MALE, FEMALE, OTHER
+  dateOfBirth: string | null;
+  bloodGroup: string;
+  phone: string;
+  email: string;
+  address: {
+    value: string;
+  };
 }
 
 export interface UpdatePatientRequest extends Partial<CreatePatientRequest> {

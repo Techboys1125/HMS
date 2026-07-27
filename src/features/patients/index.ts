@@ -1,21 +1,13 @@
 // Pages
-export { PatientListPage } from "./pages/PatientListPage";
-export { PatientProfilePage } from "./pages/PatientProfilePage";
-export { PatientRegistrationPage } from "./pages/PatientRegistrationPage";
+export * from "./pages/PatientsScreen";
 
 // Components
 export { PatientTable } from "./components/PatientTable";
 export { PatientFilters } from "./components/PatientFilters";
-export { PatientQuickDetailsDrawer } from "./components/PatientQuickDetailsDrawer";
-export { RegisterPatientDrawer } from "./components/RegisterPatientDrawer";
-export { EditPatientInformationDrawer } from "./components/EditPatientInformationDrawer";
-export {
-  PatientStatusBadge,
-  StatusBadge,
-} from "./components/PatientStatusBadge";
 export { DuplicateWarningDialog } from "./components/DuplicateWarningDialog";
 export { DuplicateOverrideDialog } from "./components/DuplicateOverrideDialog";
-export { PatientHistoryTabs } from "./components/PatientHistoryTabs";
+export { PatientHistoryTabs } from "./components/PatientHistoryTable";
+export { PatientStatusBadge, StatusBadge } from "./components/PatientStatusBadge";
 
 // Hooks
 export {
@@ -24,7 +16,8 @@ export {
   usePatientStats,
 } from "./hooks/usePatients";
 export { usePatient } from "./hooks/usePatient";
-export { useCreatePatient, useDuplicateCheck } from "./hooks/useCreatePatient";
+export { useCreatePatient } from "./hooks/useCreatePatient";
+export { useDuplicateCheck } from "./hooks/useDuplicateCheck";
 export { useUpdatePatient } from "./hooks/useUpdatePatient";
 
 // Services
@@ -39,8 +32,7 @@ export { patientSchema } from "./validation/patient.schema";
 // Types
 export type {
   Patient,
-  BackendPatient,
   CreatePatientRequest,
-  PatientStats,
+  PatientStatistics,
   PatientSearchResult,
 } from "./types/patient.types";

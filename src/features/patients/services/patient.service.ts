@@ -1,4 +1,4 @@
-import { apiClient, axios } from "../../../lib/axios";
+import { apiClient, axios, ApiError } from "../../../lib/axios";
 import type {
   CreatePatientRequest,
   DuplicateCheckRequest,
@@ -76,10 +76,10 @@ export const patientService = {
     }
   },
 
-  async createPatient(payload: CreatePatientRequest): Promise<Patient> {
+  async createPatient(payload: CreatePatientRequest): Promise<{ MRNId: string; message: string; }> {
     try {
       const res = await apiClient.post<any>("/api/v1/patients", payload);
-      return unwrapData<Patient>(res) as Patient;
+      return res.data || res;
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.data?.message) {
         throw new Error(error.response.data.message);
@@ -181,8 +181,13 @@ export const patientService = {
       const res = await apiClient.get<any>("/api/v1/patients/statistics");
       return unwrapData<PatientStatistics>(res) as PatientStatistics;
     } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
+      if (axios.isAxiosError(error) && (error.response?.status === 403 || error.response?.status === 404)) {
+        console.warn("Statistics endpoint not available, returning mock data");
+        return { totalPatients: 0, activePatients: 0, inactivePatients: 0, duplicateCandidates: 0, deceasedPatients: 0, newRegistrationsToday: 0 };
+      }
+      if (error instanceof ApiError && (error.response?.status === 403 || error.response?.status === 404)) {
+         console.warn("Statistics endpoint not available, returning mock data");
+         return { totalPatients: 0, activePatients: 0, inactivePatients: 0, duplicateCandidates: 0, deceasedPatients: 0, newRegistrationsToday: 0 };
       }
       throw error;
     }

@@ -14,6 +14,7 @@ export function ReceptionDashboard({
   onNavigateNav,
   onPatientSelect,
   onEditPatient,
+  onCreateInvoiceClick,
 }: { 
   onRegisterPatient?: () => void
   onPatientSearch?: () => void
@@ -22,6 +23,7 @@ export function ReceptionDashboard({
   onNavigateNav?: (nav: string) => void
   onPatientSelect?: (uhid: string) => void
   onEditPatient?: (uhid: string) => void
+  onCreateInvoiceClick?: () => void
 }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDate, setSelectedDate] = useState('Today (2026-07-24)')
@@ -245,7 +247,7 @@ export function ReceptionDashboard({
                 <Stethoscope size={15} className="text-[#0D47A1]" />
                 Doctor Management
               </button>
-              <button onClick={() => onNavigateNav?.('billing')} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-semibold text-[#009688] hover:border-[#009688] hover:bg-teal-50/50 transition-all shadow-sm" style={{ fontFamily: PP }}>
+              <button onClick={() => onCreateInvoiceClick ? onCreateInvoiceClick() : onNavigateNav?.('billing')} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-semibold text-[#009688] hover:border-[#009688] hover:bg-teal-50/50 transition-all shadow-sm" style={{ fontFamily: PP }}>
                 <CreditCard size={15} className="text-[#009688]" />
                 Billing
               </button>

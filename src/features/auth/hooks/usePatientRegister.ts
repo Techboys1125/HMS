@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { authService } from "../services/auth.service";
 import { patientRegisterSchema } from "../validation/login.schema";
-import type { PatientRegistrationData, PatientRegistrationResponse } from "../types/auth.types";
+import type { PatientRegistrationData, PatientLinkData, PatientRegistrationResponse } from "../types/auth.types";
 
 export function usePatientRegister(onSuccess?: (res: PatientRegistrationResponse) => void) {
   const [loading, setLoading] = useState(false);
@@ -38,5 +38,35 @@ export function usePatientRegister(onSuccess?: (res: PatientRegistrationResponse
     }
   };
 
-  return { register, loading, error, errors, setError, setErrors };
+  const linkExisting = async (
+    data: PatientLinkData
+  ): Promise<PatientRegistrationResponse | null> => {
+    if (!data.mrn || !data.mobile || !data.password || data.password !== data.confirmPassword) {
+      const msg = "Please fill all fields and ensure passwords match.";
+      setError(msg);
+      setErrors({ form: msg });
+      return null;
+    }
+
+    setLoading(true);
+    setError(null);
+    setErrors({});
+
+    try {
+      const res = await authService.linkPatient(data);
+      if (res && onSuccess) {
+        onSuccess(res);
+      }
+      return res;
+    } catch (err: any) {
+      const msg = err.message || "Failed to link patient account";
+      setError(msg);
+      setErrors({ form: msg });
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { register, linkExisting, loading, error, errors, setError, setErrors };
 }

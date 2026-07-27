@@ -9,6 +9,7 @@ import {
   Loader2,
   ShieldCheck,
   AlertCircle,
+  Link,
 } from "lucide-react";
 import { TextField } from "./TextField";
 import { usePatientRegister } from "../hooks/usePatientRegister";
@@ -24,6 +25,8 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
   onSuccess,
   onGoToLogin,
 }) => {
+  const [mode, setMode] = useState<"new" | "link">("new");
+  const [mrn, setMrn] = useState("");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
@@ -31,17 +34,26 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const { register, loading, errors } = usePatientRegister(onSuccess);
+  const { register, linkExisting, loading, errors } = usePatientRegister(onSuccess);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    register({
-      fullName,
-      email,
-      mobile,
-      password,
-      confirmPassword,
-    });
+    if (mode === "new") {
+      register({
+        fullName,
+        email,
+        mobile,
+        password,
+        confirmPassword,
+      });
+    } else {
+      linkExisting({
+        mrn,
+        mobile,
+        password,
+        confirmPassword,
+      });
+    }
   };
 
   return (
@@ -69,11 +81,38 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
       <div className="space-y-6 my-auto">
         <div>
           <h2 className="text-3xl sm:text-2xl lg:text-4xl font-heading font-extrabold text-[#1E293B] tracking-tight">
-            Create Account
+            {mode === "new" ? "Create Account" : "Link Account"}
           </h2>
           <p className="text-base sm:text-lg text-text-muted font-body mt-2">
-            Register to access medical records &amp; book appointments
+            {mode === "new"
+              ? "Register to access medical records & book appointments"
+              : "Link your existing hospital record to a web account"}
           </p>
+
+          <div className="flex bg-slate-100 p-1 rounded-xl mt-6">
+            <button
+              type="button"
+              onClick={() => setMode("new")}
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
+                mode === "new"
+                  ? "bg-white text-[#0D47A1] shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              New Patient
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("link")}
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
+                mode === "link"
+                  ? "bg-white text-[#0D47A1] shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Existing Patient
+            </button>
+          </div>
 
           {/* Form Errors */}
           {errors.form && (
@@ -86,40 +125,68 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
 
         {/* Registration Form Grid */}
         <form onSubmit={handleSubmit} className="space-y-4.5 pt-1">
-          {/* Full Name (Full Width) */}
-          <TextField
-            label="Full Name"
-            type="text"
-            value={fullName}
-            onChange={setFullName}
-            placeholder="Enter your full name"
-            Icon={UserIcon}
-            error={errors.fullName}
-            autoFocus
-          />
+          {mode === "new" ? (
+            <>
+              {/* Full Name (Full Width) */}
+              <TextField
+                label="Full Name"
+                type="text"
+                value={fullName}
+                onChange={setFullName}
+                placeholder="Enter your full name"
+                Icon={UserIcon}
+                error={errors.fullName}
+                autoFocus
+              />
 
-          {/* Email & Mobile Grid (2-Column) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <TextField
-              label="Email Address"
-              type="email"
-              value={email}
-              onChange={setEmail}
-              placeholder="Enter your Email"
-              Icon={Mail}
-              error={errors.email}
-            />
+              {/* Email & Mobile Grid (2-Column) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <TextField
+                  label="Email Address"
+                  type="email"
+                  value={email}
+                  onChange={setEmail}
+                  placeholder="Enter your Email"
+                  Icon={Mail}
+                  error={errors.email}
+                />
 
-            <TextField
-              label="Mobile Number"
-              type="tel"
-              value={mobile}
-              onChange={setMobile}
-              placeholder="10-digit mobile number"
-              Icon={Phone}
-              error={errors.mobile}
-            />
-          </div>
+                <TextField
+                  label="Mobile Number"
+                  type="tel"
+                  value={mobile}
+                  onChange={setMobile}
+                  placeholder="10-digit mobile number"
+                  Icon={Phone}
+                  error={errors.mobile}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Link Patient Fields */}
+              <TextField
+                label="Medical Record Number (MRN)"
+                type="text"
+                value={mrn}
+                onChange={setMrn}
+                placeholder="e.g. MRN-123456"
+                Icon={Link}
+                error={errors.mrn}
+                autoFocus
+              />
+
+              <TextField
+                label="Registered Mobile Number"
+                type="tel"
+                value={mobile}
+                onChange={setMobile}
+                placeholder="10-digit mobile number"
+                Icon={Phone}
+                error={errors.mobile}
+              />
+            </>
+          )}
 
           {/* Password & Confirm Password Grid (2-Column) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -162,10 +229,10 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
             {loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Creating Account...
+                {mode === "new" ? "Creating Account..." : "Linking Account..."}
               </>
             ) : (
-              "Register Account"
+              mode === "new" ? "Register Account" : "Link Existing Patient"
             )}
           </button>
         </form>

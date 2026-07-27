@@ -44,24 +44,14 @@ import {
   Check,
   AlertCircle,
 } from "lucide-react";
-import { calculateAge } from "../utils/calculateAge";
+
 import { useCreatePatient } from "../hooks/useCreatePatient";
-import { useDuplicateCheck } from "../hooks/useDuplicateCheck";
 import {
   usePatientSearch,
   usePatients,
   usePatientStats,
 } from "../hooks/usePatients";
-import { patientService } from "../services/patient.service";
-import { usePatientPermissions } from "../permissions/patient.permissions";
-import { DuplicateWarningDialog } from "../components/DuplicateWarningDialog";
-import { DuplicateOverrideDialog } from "../components/DuplicateOverrideDialog";
-import type {
-  CreatePatientRequest,
-  Patient as BackendPatient,
-} from "../types/patient.types";
-import { patientSchema } from "../validation/patient.schema";
-
+import type { CreatePatientRequest } from "../types/patient.types";
 // --- Shared Types & Data ---
 export type Patient = {
   id: string;
@@ -142,755 +132,6 @@ function StatusBadge({ status }: { status: string }) {
       <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
       {status}
     </span>
-  );
-}
-
-function toLegacyPatient(patient: BackendPatient): Patient {
-  const fullName = `${patient.firstName} ${patient.lastName}`.trim();
-  return {
-    id: patient.mrn,
-    name: fullName,
-    age:
-      patient.ageBasis === "APPROXIMATE"
-        ? patient.approximateAge || 0
-        : patient.dob
-          ? calculateAge(patient.dob)
-          : 0,
-    gender:
-      patient.gender === "Male"
-        ? "M"
-        : patient.gender === "Female"
-          ? "F"
-          : "Other",
-    mobile: patient.mobile,
-    doctor: patient.communicationPreference || "",
-    department: "",
-    visitType: "OPD",
-    regDate: patient.createdAt.split("T")[0],
-    status:
-      patient.status === "ACTIVE"
-        ? "Active"
-        : patient.status === "INACTIVE"
-          ? "Inactive"
-          : patient.status === "DECEASED"
-            ? "Inactive"
-            : "Inactive",
-    emergencyContact: {
-      name: patient.emergencyContact?.name || "",
-      relationship: patient.emergencyContact?.relationship || "",
-      phone: patient.emergencyContact?.mobile || "",
-    },
-    lastVisit: {
-      date: patient.updatedAt.split("T")[0],
-      doctor: "",
-      reason: "",
-    },
-  };
-}
-
-export function RegisterPatientDrawer({
-  isOpen,
-  onClose,
-  onSaveSuccess,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onSaveSuccess?: (patient: Patient) => void;
-}) {
-  const [formData, setFormData] = useState({
-    patientId: "PT-2024-009",
-    firstName: "",
-    lastName: "",
-    dob: "",
-    gender: "" as "Male" | "Female" | "Other" | "",
-    bloodGroup: "O+",
-    phone: "",
-    email: "",
-    address: "",
-    emergencyName: "",
-    emergencyNumber: "",
-    relationship: "Spouse",
-    knownAllergies: "",
-    existingConditions: "",
-    assignedDoctor: "Dr. A. Mehta",
-    regDate: new Date().toISOString().split("T")[0],
-    status: "Active" as "Active" | "Inactive" | "Admitted" | "Discharged",
-  });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [duplicateCandidates, setDuplicateCandidates] = useState<
-    BackendPatient[]
-  >([]);
-  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
-  const [showOverrideDialog, setShowOverrideDialog] = useState(false);
-  const [pendingPayload, setPendingPayload] =
-    useState<CreatePatientRequest | null>(null);
-  const duplicateCheck = useDuplicateCheck();
-  const createPatient = useCreatePatient();
-  const { canOverrideDuplicates } = usePatientPermissions();
-
-  if (!isOpen) return null;
-
-  const validate = (data = formData) => {
-    const result = patientSchema.safeParse({
-      firstName: data.firstName.trim(),
-      lastName: data.lastName.trim(),
-      dob: data.dob || null,
-      ageBasis: data.dob ? "EXACT" : "APPROXIMATE",
-      approximateAge: data.dob ? calculateAge(data.dob) : undefined,
-      gender: data.gender || "Other",
-      mobile: data.phone.trim(),
-      email: data.email.trim(),
-      address: data.address.trim(),
-      emergencyContact: {
-        name: data.emergencyName.trim(),
-        relationship: data.relationship.trim(),
-        mobile: data.emergencyNumber.trim(),
-      },
-    });
-
-    if (result.success) return {};
-    const errs: Record<string, string> = {};
-    result.error.issues.forEach((issue) => {
-      const key = issue.path.join(".");
-      errs[key] = issue.message;
-    });
-    return errs;
-  };
-
-  const handleChange = (field: string, value: string) => {
-    const updated = { ...formData, [field]: value };
-    setFormData(updated);
-    if (touched[field]) {
-      setErrors(validate(updated));
-    }
-  };
-
-  const handleBlur = (field: string) => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-    setErrors(validate());
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const allTouched = {
-      firstName: true,
-      lastName: true,
-      dob: true,
-      gender: true,
-      phone: true,
-      emergencyName: true,
-      emergencyNumber: true,
-      relationship: true,
-    };
-    setTouched(allTouched);
-    const errs = validate();
-    setErrors(errs);
-
-    if (Object.keys(errs).length > 0) {
-      return;
-    }
-
-    const payload: CreatePatientRequest = {
-      firstName: formData.firstName.trim(),
-      lastName: formData.lastName.trim(),
-      dob: formData.dob || null,
-      ageBasis: formData.dob ? "EXACT" : "APPROXIMATE",
-      approximateAge: formData.dob ? calculateAge(formData.dob) : undefined,
-      gender: formData.gender || "Other",
-      mobile: formData.phone.trim(),
-      email: formData.email.trim() || undefined,
-      address: formData.address.trim(),
-      emergencyContact: {
-        name: formData.emergencyName.trim(),
-        relationship: formData.relationship.trim(),
-        mobile: formData.emergencyNumber.trim(),
-      },
-    };
-
-    setPendingPayload(payload);
-
-    try {
-      const duplicates = await duplicateCheck.mutateAsync({
-        firstName: payload.firstName,
-        lastName: payload.lastName,
-        dob: payload.dob,
-        mobile: payload.mobile,
-        email: payload.email,
-        gender: payload.gender,
-      });
-
-      if (duplicates.length > 0) {
-        setDuplicateCandidates(duplicates);
-        setShowDuplicateDialog(true);
-        return;
-      }
-
-      const created = await createPatient.mutateAsync(payload);
-      const legacyPatient = toLegacyPatient(created);
-      setSuccessMessage(
-        `Patient ${legacyPatient.name} registered successfully! (MRN: ${created.mrn})`,
-      );
-      setTimeout(() => {
-        setSuccessMessage(null);
-        if (onSaveSuccess) onSaveSuccess(legacyPatient);
-        onClose();
-      }, 1400);
-    } catch (err: any) {
-      setErrors((prev) => ({
-        ...prev,
-        submit:
-          err?.message ||
-          "Patient registration could not be completed. Please try again.",
-      }));
-    }
-  };
-
-  const handleSelectExisting = (mrn: string) => {
-    const existing = duplicateCandidates.find((patient) => patient.mrn === mrn);
-    if (existing && onSaveSuccess) {
-      onSaveSuccess(toLegacyPatient(existing));
-    }
-    setShowDuplicateDialog(false);
-    setDuplicateCandidates([]);
-    setPendingPayload(null);
-    onClose();
-  };
-
-  const handleRequestOverride = () => {
-    setShowDuplicateDialog(false);
-    setShowOverrideDialog(true);
-  };
-
-  const handleOverrideConfirm = async (reason: string) => {
-    if (!pendingPayload) return;
-    try {
-      const created = await patientService.createPatientWithOverride(
-        pendingPayload,
-        reason,
-      );
-      const legacyPatient = toLegacyPatient(created);
-      setSuccessMessage(
-        `Patient ${legacyPatient.name} registered successfully! (MRN: ${created.mrn})`,
-      );
-      setShowOverrideDialog(false);
-      setTimeout(() => {
-        setSuccessMessage(null);
-        if (onSaveSuccess) onSaveSuccess(legacyPatient);
-        onClose();
-      }, 1400);
-    } catch (err: any) {
-      setErrors((prev) => ({
-        ...prev,
-        submit:
-          err?.message ||
-          "Patient registration could not be completed. Please try again.",
-      }));
-    }
-  };
-
-  return (
-    <>
-      {showDuplicateDialog && (
-        <DuplicateWarningDialog
-          candidates={duplicateCandidates}
-          onSelectExisting={handleSelectExisting}
-          onCancel={() => {
-            setShowDuplicateDialog(false);
-            setDuplicateCandidates([]);
-          }}
-          onRequestOverride={handleRequestOverride}
-          canOverride={canOverrideDuplicates}
-        />
-      )}
-      {showOverrideDialog && (
-        <DuplicateOverrideDialog
-          onConfirm={handleOverrideConfirm}
-          onCancel={() => setShowOverrideDialog(false)}
-        />
-      )}
-      <div className="fixed inset-0 z-50 overflow-hidden">
-        {/* Backdrop */}
-        <div
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
-          onClick={onClose}
-        />
-
-        <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-          <div className="w-screen max-w-xl bg-white shadow-2xl flex flex-col border-l border-gray-100 animate-in slide-in-from-right duration-200">
-            {/* Header */}
-            <div className="px-6 py-4 bg-[#0D47A1] text-white flex items-center justify-between shadow-sm shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center">
-                  <UserPlus size={20} className="text-blue-100" />
-                </div>
-                <div>
-                  <h2
-                    className="text-base font-bold leading-tight"
-                    style={{ fontFamily: PP }}
-                  >
-                    Register Patient
-                  </h2>
-                  <p
-                    className="text-xs text-blue-200"
-                    style={{ fontFamily: RB }}
-                  >
-                    Hospital Admin • Patient Management
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Body Form */}
-            <form
-              onSubmit={handleSubmit}
-              className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9]/40"
-              style={{ fontFamily: RB }}
-              noValidate
-            >
-              {/* SUCCESS BANNER NOTIFICATION */}
-              {successMessage && (
-                <div className="bg-[#111827] text-white text-xs px-4 py-3 rounded-2xl shadow-lg flex items-center gap-2.5 animate-in fade-in slide-in-from-top-2 border border-slate-700">
-                  <CheckCircle2 size={18} className="text-[#66BB6A] shrink-0" />
-                  <span className="font-medium flex-1">{successMessage}</span>
-                </div>
-              )}
-
-              {/* SECTION 1: BASIC INFORMATION */}
-              <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
-                <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                  <h3
-                    className="text-xs font-bold uppercase tracking-wider text-[#0D47A1]"
-                    style={{ fontFamily: PP }}
-                  >
-                    Basic Information
-                  </h3>
-                  <span className="text-[10px] text-slate-400 font-medium">
-                    * Required fields
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                  {/* Patient ID (Auto Generated) */}
-                  <div className="md:col-span-2">
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Patient ID{" "}
-                      <span className="text-slate-400 font-normal">
-                        (Auto Generated)
-                      </span>
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={formData.patientId}
-                        readOnly
-                        disabled
-                        className="w-full px-3 py-2 text-xs bg-slate-50 border border-gray-200 rounded-xl text-[#0D47A1] font-mono font-bold outline-none cursor-not-allowed"
-                      />
-                      <span className="text-[10px] text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg font-semibold shrink-0">
-                        Auto Generated
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* First Name */}
-                  <div>
-                    <label className="block font-medium text-slate-700 mb-1">
-                      First Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.firstName}
-                      onChange={(e) =>
-                        handleChange("firstName", e.target.value)
-                      }
-                      onBlur={() => handleBlur("firstName")}
-                      placeholder="Enter first name"
-                      className={`w-full px-3 py-2 text-xs bg-white border rounded-xl text-[#111827] outline-none transition-all ${
-                        touched.firstName && errors.firstName
-                          ? "border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]"
-                          : "border-gray-200 focus:border-[#0D47A1]"
-                      }`}
-                    />
-                    {touched.firstName && errors.firstName && (
-                      <span className="text-[11px] text-[#EF4444] mt-1 block">
-                        {errors.firstName}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Last Name */}
-                  <div>
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Last Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.lastName}
-                      onChange={(e) => handleChange("lastName", e.target.value)}
-                      onBlur={() => handleBlur("lastName")}
-                      placeholder="Enter last name"
-                      className={`w-full px-3 py-2 text-xs bg-white border rounded-xl text-[#111827] outline-none transition-all ${
-                        touched.lastName && errors.lastName
-                          ? "border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]"
-                          : "border-gray-200 focus:border-[#0D47A1]"
-                      }`}
-                    />
-                    {touched.lastName && errors.lastName && (
-                      <span className="text-[11px] text-[#EF4444] mt-1 block">
-                        {errors.lastName}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Date of Birth */}
-                  <div>
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Date of Birth <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.dob}
-                      onChange={(e) => handleChange("dob", e.target.value)}
-                      onBlur={() => handleBlur("dob")}
-                      className={`w-full px-3 py-2 text-xs bg-white border rounded-xl text-[#111827] outline-none transition-all ${
-                        touched.dob && errors.dob
-                          ? "border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]"
-                          : "border-gray-200 focus:border-[#0D47A1]"
-                      }`}
-                    />
-                    {touched.dob && errors.dob && (
-                      <span className="text-[11px] text-[#EF4444] mt-1 block">
-                        {errors.dob}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Gender */}
-                  <div>
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Gender <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={formData.gender}
-                      onChange={(e) => handleChange("gender", e.target.value)}
-                      onBlur={() => handleBlur("gender")}
-                      className={`w-full px-3 py-2 text-xs bg-white border rounded-xl text-[#111827] outline-none transition-all ${
-                        touched.gender && errors.gender
-                          ? "border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]"
-                          : "border-gray-200 focus:border-[#0D47A1]"
-                      }`}
-                    >
-                      <option value="">Select Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                    {touched.gender && errors.gender && (
-                      <span className="text-[11px] text-[#EF4444] mt-1 block">
-                        {errors.gender}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Blood Group */}
-                  <div>
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Blood Group
-                    </label>
-                    <select
-                      value={formData.bloodGroup}
-                      onChange={(e) =>
-                        handleChange("bloodGroup", e.target.value)
-                      }
-                      className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                    >
-                      <option value="A+">A+</option>
-                      <option value="A-">A-</option>
-                      <option value="B+">B+</option>
-                      <option value="B-">B-</option>
-                      <option value="O+">O+</option>
-                      <option value="O-">O-</option>
-                      <option value="AB+">AB+</option>
-                      <option value="AB-">AB-</option>
-                    </select>
-                  </div>
-
-                  {/* Phone Number */}
-                  <div>
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Phone Number <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => handleChange("phone", e.target.value)}
-                      onBlur={() => handleBlur("phone")}
-                      placeholder="e.g. +1 (555) 234-5678"
-                      className={`w-full px-3 py-2 text-xs bg-white border rounded-xl text-[#111827] outline-none transition-all ${
-                        touched.phone && errors.phone
-                          ? "border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]"
-                          : "border-gray-200 focus:border-[#0D47A1]"
-                      }`}
-                    />
-                    {touched.phone && errors.phone && (
-                      <span className="text-[11px] text-[#EF4444] mt-1 block">
-                        {errors.phone}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Email */}
-                  <div className="md:col-span-2">
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleChange("email", e.target.value)}
-                      placeholder="e.g. patient@email.com"
-                      className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                    />
-                  </div>
-
-                  {/* Address */}
-                  <div className="md:col-span-2">
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Address
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={formData.address}
-                      onChange={(e) => handleChange("address", e.target.value)}
-                      placeholder="Enter street address, city, state, zip..."
-                      className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] resize-none"
-                    />
-                  </div>
-
-                  {/* Emergency Contact Name */}
-                  <div>
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Emergency Contact Name{" "}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.emergencyName}
-                      onChange={(e) =>
-                        handleChange("emergencyName", e.target.value)
-                      }
-                      onBlur={() => handleBlur("emergencyName")}
-                      placeholder="e.g. David Mitchell"
-                      className={`w-full px-3 py-2 text-xs bg-white border rounded-xl text-[#111827] outline-none transition-all ${
-                        touched.emergencyName && errors.emergencyName
-                          ? "border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]"
-                          : "border-gray-200 focus:border-[#0D47A1]"
-                      }`}
-                    />
-                    {touched.emergencyName && errors.emergencyName && (
-                      <span className="text-[11px] text-[#EF4444] mt-1 block">
-                        {errors.emergencyName}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Emergency Contact Number */}
-                  <div>
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Emergency Contact Number{" "}
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.emergencyNumber}
-                      onChange={(e) =>
-                        handleChange("emergencyNumber", e.target.value)
-                      }
-                      onBlur={() => handleBlur("emergencyNumber")}
-                      placeholder="e.g. +1 (555) 345-6789"
-                      className={`w-full px-3 py-2 text-xs bg-white border rounded-xl text-[#111827] outline-none transition-all ${
-                        touched.emergencyNumber && errors.emergencyNumber
-                          ? "border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]"
-                          : "border-gray-200 focus:border-[#0D47A1]"
-                      }`}
-                    />
-                    {touched.emergencyNumber && errors.emergencyNumber && (
-                      <span className="text-[11px] text-[#EF4444] mt-1 block">
-                        {errors.emergencyNumber}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Relationship */}
-                  <div className="md:col-span-2">
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Relationship <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={formData.relationship}
-                      onChange={(e) =>
-                        handleChange("relationship", e.target.value)
-                      }
-                      onBlur={() => handleBlur("relationship")}
-                      className={`w-full px-3 py-2 text-xs bg-white border rounded-xl text-[#111827] outline-none transition-all ${
-                        touched.relationship && errors.relationship
-                          ? "border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]"
-                          : "border-gray-200 focus:border-[#0D47A1]"
-                      }`}
-                    >
-                      <option value="Spouse">Spouse</option>
-                      <option value="Parent">Parent</option>
-                      <option value="Child">Child</option>
-                      <option value="Sibling">Sibling</option>
-                      <option value="Guardian">Guardian</option>
-                      <option value="Other">Other</option>
-                    </select>
-                    {touched.relationship && errors.relationship && (
-                      <span className="text-[11px] text-[#EF4444] mt-1 block">
-                        {errors.relationship}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* SECTION 2: MEDICAL INFORMATION */}
-              <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
-                <div className="border-b border-gray-100 pb-2">
-                  <h3
-                    className="text-xs font-bold uppercase tracking-wider text-[#009688]"
-                    style={{ fontFamily: PP }}
-                  >
-                    Medical Information
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                  {/* Known Allergies */}
-                  <div>
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Known Allergies
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.knownAllergies}
-                      onChange={(e) =>
-                        handleChange("knownAllergies", e.target.value)
-                      }
-                      placeholder="e.g. Penicillin, Peanuts, Latex, None"
-                      className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-                    />
-                  </div>
-
-                  {/* Existing Medical Conditions */}
-                  <div>
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Existing Medical Conditions
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.existingConditions}
-                      onChange={(e) =>
-                        handleChange("existingConditions", e.target.value)
-                      }
-                      placeholder="e.g. Hypertension, Diabetes, Asthma, None"
-                      className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-                    />
-                  </div>
-
-                  {/* Assigned Doctor */}
-                  <div>
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Assigned Doctor
-                    </label>
-                    <select
-                      value={formData.assignedDoctor}
-                      onChange={(e) =>
-                        handleChange("assignedDoctor", e.target.value)
-                      }
-                      className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-                    >
-                      <option value="Dr. A. Mehta">
-                        Dr. A. Mehta (Cardiology)
-                      </option>
-                      <option value="Dr. P. Sharma">
-                        Dr. P. Sharma (General Medicine)
-                      </option>
-                      <option value="Dr. S. Patel">
-                        Dr. S. Patel (Gynecology)
-                      </option>
-                      <option value="Dr. R. Kapoor">
-                        Dr. R. Kapoor (Neurology)
-                      </option>
-                    </select>
-                  </div>
-
-                  {/* Registration Date (Auto) */}
-                  <div>
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Registration Date{" "}
-                      <span className="text-slate-400 font-normal">(Auto)</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.regDate}
-                      readOnly
-                      disabled
-                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-gray-200 rounded-xl text-slate-500 outline-none cursor-not-allowed font-medium"
-                    />
-                  </div>
-
-                  {/* Status */}
-                  <div className="md:col-span-2">
-                    <label className="block font-medium text-slate-700 mb-1">
-                      Status
-                    </label>
-                    <select
-                      value={formData.status}
-                      onChange={(e) => handleChange("status", e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                    >
-                      <option value="Active">Active</option>
-                      <option value="Inactive">Inactive</option>
-                      <option value="Admitted">Admitted</option>
-                      <option value="Discharged">Discharged</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* BUTTONS FOOTER */}
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 py-3 rounded-xl border border-[#E5E7EB] bg-white text-slate-700 font-semibold text-xs hover:bg-slate-50 transition-colors"
-                  style={{ fontFamily: PP }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-[2] py-3 rounded-xl bg-[#0D47A1] text-white font-bold text-xs hover:bg-[#0c3d8a] transition-colors shadow-sm flex items-center justify-center gap-2"
-                  style={{ fontFamily: PP }}
-                >
-                  <UserPlus size={16} /> Register Patient
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </>
   );
 }
 
@@ -1247,6 +488,7 @@ export function PatientListScreen({
   onViewMedicalHistory,
   onViewAppointments,
   onGenerateBill,
+  onRegisterClick,
 }: {
   onRegisterClick: () => void;
   onPatientSelect: (id: string) => void;
@@ -1261,26 +503,28 @@ export function PatientListScreen({
   const [doctorFilter, setDoctorFilter] = useState("All");
   const [regDateFilter, setRegDateFilter] = useState("All");
 
-  const { data: serverPatients = [], isLoading } = usePatients();
-  const { data: searchPatients = [] } = usePatientSearch(searchQuery);
+  const { data: serverPatients, isLoading } = usePatients();
+  const { data: searchPatients } = usePatientSearch(searchQuery);
   const { data: stats } = usePatientStats();
   const [patientsList, setPatientsList] = useState<Patient[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null,
   );
   const [drawerPatient, setDrawerPatient] = useState<Patient | null>(null);
-  const [isRegisterDrawerOpen, setIsRegisterDrawerOpen] = useState(false);
+
   const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(
     null,
   );
 
   useEffect(() => {
-    setPatientsList(serverPatients as unknown as Patient[]);
+    if (serverPatients) {
+      setPatientsList(serverPatients as unknown as Patient[]);
+    }
   }, [serverPatients]);
 
   // Filtered Patients computation
   const sourcePatients =
-    searchQuery.trim().length >= 2
+    searchQuery.trim().length >= 2 && searchPatients
       ? (searchPatients as unknown as Patient[])
       : patientsList;
   const filteredPatients = sourcePatients.filter((p) => {
@@ -1336,8 +580,9 @@ export function PatientListScreen({
   };
 
   const handleRegisterOpen = () => {
-    if (searchQuery.trim().length >= 2 && filteredPatients.length > 0) return;
-    setIsRegisterDrawerOpen(true);
+    if (onRegisterClick) {
+      onRegisterClick();
+    }
   };
 
   return (
@@ -1350,14 +595,6 @@ export function PatientListScreen({
         onViewTimeline={onViewTimeline}
       />
 
-      {/* Reusable Register Patient Slide-Over Drawer */}
-      <RegisterPatientDrawer
-        isOpen={isRegisterDrawerOpen}
-        onClose={() => setIsRegisterDrawerOpen(false)}
-        onSaveSuccess={(newPt) => {
-          setPatientsList([newPt, ...patientsList]);
-        }}
-      />
 
       <div className="flex-1 overflow-y-auto p-6 flex flex-col space-y-6">
         {/* HEADER SECTION */}
@@ -1384,9 +621,6 @@ export function PatientListScreen({
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleRegisterOpen}
-              disabled={
-                searchQuery.trim().length < 2 || filteredPatients.length > 0
-              }
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm"
               style={{ fontFamily: PP }}
             >
@@ -1628,6 +862,16 @@ export function PatientListScreen({
 
         {/* MAIN TABLE & CONTENT WORKSPACE */}
         <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden">
+          {/* Table Header Section */}
+          <div className="px-6 py-4 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50/50">
+            <h2 className="text-sm font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2" style={{ fontFamily: PP }}>
+              <Users size={18} className="text-[#0D47A1]" /> All Patients
+            </h2>
+            <div className="text-xs font-semibold text-[#64748B] bg-white px-2.5 py-1 rounded-lg border border-[#E5E7EB] shadow-sm">
+              Showing {filteredPatients.length} result{filteredPatients.length === 1 ? "" : "s"}
+            </div>
+          </div>
+          
           {isLoading ? (
             /* SKELETON TABLE LOADING STATE */
             <div className="p-6 space-y-4 animate-pulse">
@@ -1674,13 +918,7 @@ export function PatientListScreen({
                     Reset Search &amp; Filters
                   </button>
                 )}
-                <button
-                  onClick={handleRegisterOpen}
-                  className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm flex items-center gap-1.5"
-                  style={{ fontFamily: PP }}
-                >
-                  <Plus size={14} /> Register Patient
-                </button>
+
               </div>
             </div>
           ) : (
@@ -1697,7 +935,6 @@ export function PatientListScreen({
                       "Phone",
                       "Assigned Doctor",
                       "Registration Date",
-                      "Status",
                       "Actions",
                     ].map((h) => (
                       <th
@@ -1779,12 +1016,7 @@ export function PatientListScreen({
                         {p.regDate}
                       </td>
 
-                      {/* 8. Status */}
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        <StatusBadge status={p.status} />
-                      </td>
-
-                      {/* 9. Actions (5 row actions menu) */}
+                      {/* 8. Actions (5 row actions menu) */}
                       <td
                         className="px-4 py-3.5 whitespace-nowrap relative"
                         onClick={(e) => e.stopPropagation()}
@@ -2221,7 +1453,7 @@ export function RegisterPatientScreen({ onBack }: { onBack: () => void }) {
   );
 }
 
-export function EditPatientScreen({ onBack }: { onBack: () => void }) {
+export function EditPatientScreen({ onBack, patientMrn: _patientMrn }: { onBack: () => void; patientMrn?: string }) {
   return (
     <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center">
       <div className="w-full max-w-5xl">
@@ -3192,12 +2424,12 @@ export function PatientProfileScreen({
   onRecordVitals?: () => void;
   onCheckIn?: () => void;
   patientData?: any;
+  patientMrn?: string;
 }) {
   const [activeTab, setActiveTab] = useState<string>("overview");
 
   // Slide-over Drawers State
   const [isBookDrawerOpen, setIsBookDrawerOpen] = useState(false);
-  const [isRegisterDrawerOpen, setIsRegisterDrawerOpen] = useState(false);
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
   const [selectedAppt, setSelectedAppt] = useState<any | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
@@ -3505,13 +2737,7 @@ export function PatientProfileScreen({
         patientName="Sarah Mitchell"
         onSuccess={triggerToast}
       />
-      <RegisterPatientDrawer
-        isOpen={isRegisterDrawerOpen}
-        onClose={() => setIsRegisterDrawerOpen(false)}
-        onSaveSuccess={() =>
-          triggerToast("New patient registered successfully.")
-        }
-      />
+
       <EditPatientInformationDrawer
         isOpen={isEditDrawerOpen}
         onClose={() => setIsEditDrawerOpen(false)}
@@ -3665,13 +2891,6 @@ export function PatientProfileScreen({
             {/* Receptionist Actions */}
             {role === "receptionist" && (
               <>
-                <button
-                  onClick={() => setIsRegisterDrawerOpen(true)}
-                  className="px-3.5 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm flex items-center gap-1.5"
-                  style={{ fontFamily: PP }}
-                >
-                  <UserPlus size={14} /> Register Patient
-                </button>
                 <button
                   onClick={() => setIsEditDrawerOpen(true)}
                   className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
@@ -12927,45 +12146,43 @@ export function ReceptionPatientRegistrationScreen({
 }) {
   // Form State
   const [formData, setFormData] = useState({
+    // Essential (Required)
+    relationship: "SELF",
     fullName: "",
     gender: "",
     dob: "",
     age: "",
-    mobile: "",
+    phone: "",
     email: "",
     bloodGroup: "",
+    address: "",
+
+    // Personal (Optional)
     maritalStatus: "",
     aadhaar: "",
+    patientCategory: "",
     photo: null as string | null,
-    address1: "",
-    address2: "",
-    city: "",
-    state: "",
-    pincode: "",
-    country: "India",
+
+    // Other (Optional)
     emergencyName: "",
-    relationship: "",
     emergencyMobile: "",
     altContact: "",
-    registrationType: "New Patient",
-    patientCategory: "General",
     allergies: "",
     chronicDiseases: "",
     specialNotes: "",
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
-  const [generatedMrn, setGeneratedMrn] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [generatedMrn, setGeneratedMrn] = useState("");
 
-  // Recent Registrations Mock Data
-  const recentRegistrations = [
-    { name: 'Aisha Kumar', mrn: 'MRN-892105', time: '10:11 AM' },
-    { name: 'Michael Vance', mrn: 'MRN-892109', time: '10:05 AM' },
-    { name: 'Diana Prince', mrn: 'MRN-892110', time: '09:48 AM' },
-  ]
+  const handleChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
 
-  // Automatically calculate age from DOB
   const handleDobChange = (dobValue: string) => {
     let calculatedAge = "";
     if (dobValue) {
@@ -12982,15 +12199,6 @@ export function ReceptionPatientRegistrationScreen({
     if (errors.dob) setErrors((prev) => ({ ...prev, dob: "" }));
   };
 
-  // Handle Input Changes
-  const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
-    }
-  };
-
-  // Handle Photo Upload Mock
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -13002,43 +12210,52 @@ export function ReceptionPatientRegistrationScreen({
     }
   };
 
-  // Form Validation
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.fullName.trim()) newErrors.fullName = "Full Name is required";
-    if (!formData.gender) newErrors.gender = "Gender selection is required";
-    if (!formData.mobile.trim()) {
-      newErrors.mobile = "Mobile Number is required";
-    } else if (
-      !/^\+?[0-9]{10,14}$/.test(formData.mobile.replace(/[\s-]/g, ""))
-    ) {
-      newErrors.mobile = "Enter a valid mobile number";
-    }
-    if (!formData.registrationType)
-      newErrors.registrationType = "Registration Type is required";
-    if (!formData.patientCategory)
-      newErrors.patientCategory = "Patient Category is required";
-
-    // Duplicate Check Mock Validation
-    if (
-      formData.mobile === "9876543210" ||
-      formData.mobile === "+91 9876543210"
-    ) {
-      newErrors.mobile = "Patient already registered with this mobile number";
+    if (!formData.gender) newErrors.gender = "Gender is required";
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Mobile Number is required";
+    } else if (!/^\+?[0-9]{10,14}$/.test(formData.phone.replace(/[\s-]/g, ""))) {
+      newErrors.phone = "Enter a valid mobile number";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Submit Handler
-  const handleSubmit = (e: React.FormEvent) => {
+  const createPatient = useCreatePatient();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      const newMrn = `MRN-${Math.floor(100000 + Math.random() * 900000)}`
-      setGeneratedMrn(newMrn)
-      setShowSuccessDialog(true)
+    if (!validateForm()) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const payload: CreatePatientRequest = {
+      relationship: formData.relationship.trim() || "SELF",
+      fullName: formData.fullName.trim(),
+      gender: formData.gender ? formData.gender.toUpperCase() : "OTHER",
+      dateOfBirth: formData.dob || null,
+      bloodGroup: formData.bloodGroup || "UNKNOWN",
+      phone: formData.phone.trim(),
+      email: formData.email.trim(),
+      address: {
+        value: formData.address.trim()
+      }
+    };
+
+    try {
+      const created = await createPatient.mutateAsync(payload);
+      setGeneratedMrn(created.MRNId || "Unknown");
+      setShowSuccessDialog(true);
+    } catch (err: any) {
+      setErrors((prev) => ({
+        ...prev,
+        submit: err?.message || "Patient registration failed."
+      }));
     }
   };
 
@@ -13047,681 +12264,226 @@ export function ReceptionPatientRegistrationScreen({
       className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9] relative flex flex-col min-h-screen pb-24"
       style={{ fontFamily: RB }}
     >
-      {/* ── HEADER & BREADCRUMBS ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm mb-6">
-        <div>
-          <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
-            <button
-              onClick={onBack}
-              className="hover:text-[#0D47A1] transition-colors"
-            >
-              Reception Management
-            </button>
-            <ChevronRight size={12} />
-            <span className="font-semibold text-[#0D47A1]">
-              Patient Registration
-            </span>
-          </div>
-          <h1
-            className="text-2xl font-bold text-[#111827]"
-            style={{ fontFamily: PP }}
+      {/* TOP HEADER */}
+      <div className="max-w-4xl w-full mx-auto mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onBack}
+            className="w-10 h-10 bg-white border border-[#E5E7EB] shadow-sm rounded-xl flex items-center justify-center text-slate-600 hover:text-[#0D47A1] hover:border-blue-200 transition-colors"
+            title="Go Back"
           >
-            Register New Patient
-          </h1>
-          <p className="text-xs text-[#64748B] mt-0.5">
-            Create a new patient record for hospital services.
-          </p>
+            <ChevronLeft size={20} />
+          </button>
+          <div>
+            <div className="flex items-center gap-2 text-xs text-[#64748B] mb-0.5" style={{ fontFamily: RB }}>
+              <span className="hover:text-[#0D47A1] cursor-pointer transition-colors" onClick={onBack}>
+                Patient Management
+              </span>
+              <ChevronRight size={12} />
+              <span className="font-semibold text-[#0D47A1]">Patient Registration</span>
+            </div>
+            <h1 className="text-2xl font-bold text-[#111827]" style={{ fontFamily: PP }}>
+              Register New Patient
+            </h1>
+          </div>
         </div>
-
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 border border-[#E5E7EB] text-[#111827] text-xs font-semibold hover:bg-slate-200 transition-all"
-          style={{ fontFamily: PP }}
-        >
-          <ChevronLeft size={16} /> Back to Dashboard
-        </button>
       </div>
 
-      {/* ── TWO-COLUMN ENTERPRISE WORKSPACE ── */}
-      <form
-        onSubmit={handleSubmit}
-        className="grid grid-cols-1 xl:grid-cols-12 gap-6"
-      >
-        {/* LEFT COLUMN: REGISTRATION FORM (8 COLS) */}
-        <div className="xl:col-span-8 space-y-6">
-          {/* SECTION 01: Personal Information */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6 space-y-5">
-            <h2
-              className="text-sm font-bold text-[#0D47A1] uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2"
-              style={{ fontFamily: PP }}
-            >
-              <User size={16} className="text-[#0D47A1]" /> Personal Information
-            </h2>
+      <div className="max-w-4xl w-full mx-auto space-y-6">
+        {errors.submit && (
+          <div className="p-4 bg-red-50 border border-red-100 rounded-xl flex items-start gap-3">
+            <AlertCircle size={18} className="text-red-500 mt-0.5" />
+            <div className="text-sm text-red-800">{errors.submit}</div>
+          </div>
+        )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {/* Full Name */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Full Name <span className="text-[#EF4444]">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.fullName}
-                  onChange={(e) => handleChange("fullName", e.target.value)}
-                  placeholder="e.g. Eleanor Vance"
-                  className={`w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border ${errors.fullName ? "border-[#EF4444]" : "border-[#E5E7EB]"} text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all`}
-                />
-                {errors.fullName && (
-                  <p className="text-[11px] text-[#EF4444] mt-1 font-medium">
-                    {errors.fullName}
-                  </p>
-                )}
-              </div>
-
-              {/* Gender */}
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Gender <span className="text-[#EF4444]">*</span>
-                </label>
-                <select
-                  value={formData.gender}
-                  onChange={(e) => handleChange("gender", e.target.value)}
-                  className={`w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border ${errors.gender ? "border-[#EF4444]" : "border-[#E5E7EB]"} text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all`}
-                >
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-                {errors.gender && (
-                  <p className="text-[11px] text-[#EF4444] mt-1 font-medium">
-                    {errors.gender}
-                  </p>
-                )}
-              </div>
-
-              {/* Date of Birth */}
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Date of Birth
-                </label>
-                <input
-                  type="date"
-                  value={formData.dob}
-                  onChange={(e) => handleDobChange(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                />
-              </div>
-
-              {/* Age (Auto calculated) */}
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Age{" "}
-                  <span className="text-slate-400 font-normal">
-                    (Auto calculated)
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.age}
-                  readOnly
-                  placeholder="Auto-calculated from DOB"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-xs text-[#64748B] font-mono focus:outline-none cursor-not-allowed"
-                />
-              </div>
-
-              {/* Mobile Number */}
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Mobile Number <span className="text-[#EF4444]">*</span>
-                </label>
-                <input
-                  type="tel"
-                  value={formData.mobile}
-                  onChange={(e) => handleChange("mobile", e.target.value)}
-                  placeholder="+91 98765 43210"
-                  className={`w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border ${errors.mobile ? "border-[#EF4444]" : "border-[#E5E7EB]"} text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all`}
-                />
-                {errors.mobile && (
-                  <p className="text-[11px] text-[#EF4444] mt-1 font-medium">
-                    {errors.mobile}
-                  </p>
-                )}
-              </div>
-
-              {/* Email Address */}
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleChange("email", e.target.value)}
-                  placeholder="patient@example.com"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                />
-              </div>
-
-              {/* Blood Group */}
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Blood Group
-                </label>
-                <select
-                  value={formData.bloodGroup}
-                  onChange={(e) => handleChange("bloodGroup", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                >
-                  <option value="">Select Blood Group</option>
-                  <option value="A+">A+</option>
-                  <option value="A-">A-</option>
-                  <option value="B+">B+</option>
-                  <option value="B-">B-</option>
-                  <option value="O+">O+</option>
-                  <option value="O-">O-</option>
-                  <option value="AB+">AB+</option>
-                  <option value="AB-">AB-</option>
-                </select>
-              </div>
-
-              {/* Marital Status */}
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Marital Status
-                </label>
-                <select
-                  value={formData.maritalStatus}
-                  onChange={(e) =>
-                    handleChange("maritalStatus", e.target.value)
-                  }
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                >
-                  <option value="">Select Status</option>
-                  <option value="Single">Single</option>
-                  <option value="Married">Married</option>
-                  <option value="Divorced">Divorced</option>
-                  <option value="Widowed">Widowed</option>
-                </select>
-              </div>
-
-              {/* Aadhaar / National ID */}
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Aadhaar / National ID{" "}
-                  <span className="text-slate-400 font-normal">(Optional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.aadhaar}
-                  onChange={(e) => handleChange("aadhaar", e.target.value)}
-                  placeholder="12-digit Aadhaar Number"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] font-mono focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                />
-              </div>
-
-              {/* Photo Upload */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Patient Photograph Upload{" "}
-                  <span className="text-slate-400 font-normal">(Optional)</span>
-                </label>
-                <div className="flex items-center gap-4">
-                  {formData.photo ? (
-                    <img
-                      src={formData.photo}
-                      alt="Preview"
-                      className="w-12 h-12 rounded-xl object-cover border border-[#E5E7EB]"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-xl bg-slate-100 border border-[#E5E7EB] flex items-center justify-center text-slate-400">
-                      <User size={20} />
-                    </div>
-                  )}
-                  <label className="cursor-pointer px-4 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs font-semibold text-[#0D47A1] hover:bg-blue-50 transition-all">
-                    Upload Photo
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoUpload}
-                      className="hidden"
-                    />
-                  </label>
-                  {formData.photo && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFormData((prev) => ({ ...prev, photo: null }))
-                      }
-                      className="text-xs text-[#EF4444] font-semibold hover:underline"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+          {/* SECTION 1: ESSENTIAL INFORMATION (REQUIRED) */}
+          <div className="bg-white rounded-2xl shadow-sm border border-[#E5E7EB] overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-slate-50">
+              <h3 className="text-sm font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2" style={{ fontFamily: PP }}>
+                <UserPlus size={18} className="text-[#0D47A1]" /> Essential Information
+              </h3>
+              <span className="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded font-bold uppercase tracking-wide">
+                Primary / Required
+              </span>
             </div>
-          </div>
-
-          {/* SECTION 02: Address Information */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6 space-y-5">
-            <h2
-              className="text-sm font-bold text-[#0D47A1] uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2"
-              style={{ fontFamily: PP }}
-            >
-              <MapPin size={16} className="text-[#0D47A1]" /> Address
-              Information
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Address Line 1
-                </label>
-                <input
-                  type="text"
-                  value={formData.address1}
-                  onChange={(e) => handleChange("address1", e.target.value)}
-                  placeholder="House/Flat No., Building, Street Name"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Address Line 2{" "}
-                  <span className="text-slate-400 font-normal">(Optional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.address2}
-                  onChange={(e) => handleChange("address2", e.target.value)}
-                  placeholder="Locality, Landmark"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  City
-                </label>
-                <input
-                  type="text"
-                  value={formData.city}
-                  onChange={(e) => handleChange("city", e.target.value)}
-                  placeholder="City Name"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  State
-                </label>
-                <input
-                  type="text"
-                  value={formData.state}
-                  onChange={(e) => handleChange("state", e.target.value)}
-                  placeholder="State Name"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Pincode
-                </label>
-                <input
-                  type="text"
-                  value={formData.pincode}
-                  onChange={(e) => handleChange("pincode", e.target.value)}
-                  placeholder="6-digit Pincode"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] font-mono focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Country
-                </label>
-                <input
-                  type="text"
-                  value={formData.country}
-                  onChange={(e) => handleChange("country", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 03: Emergency Contact */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6 space-y-5">
-            <h2
-              className="text-sm font-bold text-[#0D47A1] uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2"
-              style={{ fontFamily: PP }}
-            >
-              <Phone size={16} className="text-[#0D47A1]" /> Emergency Contact
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Emergency Contact Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.emergencyName}
-                  onChange={(e) =>
-                    handleChange("emergencyName", e.target.value)
-                  }
-                  placeholder="Full name of emergency contact"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Relationship
-                </label>
-                <select
-                  value={formData.relationship}
-                  onChange={(e) => handleChange("relationship", e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                >
-                  <option value="">Select Relationship</option>
-                  <option value="Spouse">Spouse</option>
-                  <option value="Parent">Parent</option>
-                  <option value="Child">Child</option>
-                  <option value="Sibling">Sibling</option>
-                  <option value="Friend">Friend</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Mobile Number
-                </label>
-                <input
-                  type="tel"
-                  value={formData.emergencyMobile}
-                  onChange={(e) =>
-                    handleChange("emergencyMobile", e.target.value)
-                  }
-                  placeholder="+91 98765 00000"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Alternative Contact Number{" "}
-                  <span className="text-slate-400 font-normal">(Optional)</span>
-                </label>
-                <input
-                  type="tel"
-                  value={formData.altContact}
-                  onChange={(e) => handleChange("altContact", e.target.value)}
-                  placeholder="Landline or Secondary Mobile"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 04: Registration Details */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6 space-y-5">
-            <h2
-              className="text-sm font-bold text-[#0D47A1] uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2"
-              style={{ fontFamily: PP }}
-            >
-              <FileText size={16} className="text-[#0D47A1]" /> Registration
-              Details
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* MRN Read Only */}
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">MRN (Auto-generated)</label>
-                <input
-                  type="text"
-                  value="MRN-892112 (Will be generated on submit)"
-                  readOnly
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-xs text-[#0D47A1] font-mono font-bold cursor-not-allowed"
-                />
-              </div>
-
-              {/* Registration Date */}
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Registration Date
-                </label>
-                <input
-                  type="text"
-                  value="2026-07-24 (Today)"
-                  readOnly
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-xs text-[#64748B] font-mono cursor-not-allowed"
-                />
-              </div>
-
-              {/* Registered By */}
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Registered By
-                </label>
-                <input
-                  type="text"
-                  value="Front Desk Receptionist (Current User)"
-                  readOnly
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-xs text-[#64748B] font-semibold cursor-not-allowed"
-                />
-              </div>
-
-              {/* Patient Category Dropdown */}
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Patient Category <span className="text-[#EF4444]">*</span>
-                </label>
-                <select
-                  value={formData.patientCategory}
-                  onChange={(e) =>
-                    handleChange("patientCategory", e.target.value)
-                  }
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all font-semibold"
-                >
-                  <option value="General">General</option>
-                  <option value="VIP">VIP</option>
-                  <option value="Corporate">Corporate</option>
-                  <option value="Staff">Staff</option>
-                </select>
-              </div>
-
-              {/* Registration Type Radio Buttons */}
-              <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-[#111827] mb-2">
-                  Registration Type <span className="text-[#EF4444]">*</span>
-                </label>
-                <div className="flex items-center gap-6">
-                  <label className="flex items-center gap-2 text-xs text-[#111827] cursor-pointer font-medium">
-                    <input
-                      type="radio"
-                      name="registrationType"
-                      value="New Patient"
-                      checked={formData.registrationType === "New Patient"}
-                      onChange={(e) =>
-                        handleChange("registrationType", e.target.value)
-                      }
-                      className="w-4 h-4 text-[#0D47A1] focus:ring-[#0D47A1]"
-                    />
-                    New Patient Registration
-                  </label>
-
-                  <label className="flex items-center gap-2 text-xs text-[#111827] cursor-pointer font-medium">
-                    <input
-                      type="radio"
-                      name="registrationType"
-                      value="Existing Patient Update"
-                      checked={
-                        formData.registrationType === "Existing Patient Update"
-                      }
-                      onChange={(e) =>
-                        handleChange("registrationType", e.target.value)
-                      }
-                      className="w-4 h-4 text-[#0D47A1] focus:ring-[#0D47A1]"
-                    />
-                    Existing Patient Re-registration / Update
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 05: Medical Alerts */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6 space-y-5">
-            <h2
-              className="text-sm font-bold text-[#0D47A1] uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2"
-              style={{ fontFamily: PP }}
-            >
-              <AlertTriangle size={16} className="text-[#F59E0B]" /> Medical
-              Alerts & Notes
-            </h2>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Known Allergies
-                </label>
-                <textarea
-                  rows={2}
-                  value={formData.allergies}
-                  onChange={(e) => handleChange("allergies", e.target.value)}
-                  placeholder="e.g. Penicillin, Peanuts, Latex"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Chronic Diseases
-                </label>
-                <textarea
-                  rows={2}
-                  value={formData.chronicDiseases}
-                  onChange={(e) =>
-                    handleChange("chronicDiseases", e.target.value)
-                  }
-                  placeholder="e.g. Type 2 Diabetes, Hypertension, Asthma"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  Special Notes{" "}
-                  <span className="text-slate-400 font-normal">(Optional)</span>
-                </label>
-                <textarea
-                  rows={2}
-                  value={formData.specialNotes}
-                  onChange={(e) => handleChange("specialNotes", e.target.value)}
-                  placeholder="e.g. Requires wheelchair assistance, prefers afternoon slots"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all resize-none"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN: CONTEXT PANEL (4 COLS) */}
-        <div className="xl:col-span-4 space-y-6">
-          {/* CARD 01: Registration Summary */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <h3
-              className="text-sm font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2"
-              style={{ fontFamily: PP }}
-            >
-              Registration Summary
-            </h3>
-            <div className="space-y-3 text-xs">
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-[#64748B]">Patient Name</span>
-                <span className="font-bold text-[#111827]">
-                  {formData.fullName || "—"}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-[#64748B]">MRN</span>
-                <span className="font-mono font-bold text-[#0D47A1]">Auto-generated</span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-[#64748B]">Registration Date</span>
-                <span className="font-mono text-[#111827]">2026-07-24</span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-[#64748B]">Registration Type</span>
-                <span className="font-semibold text-[#009688]">
-                  {formData.registrationType}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-[#64748B]">Patient Category</span>
-                <span className="font-semibold text-[#111827]">
-                  {formData.patientCategory}
-                </span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-[#64748B]">Status</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-[#66BB6A]">
-                  Active Draft
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* CARD 02: Hospital Registration Guidelines */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-            <h3
-              className="text-sm font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-              style={{ fontFamily: PP }}
-            >
-              <Info size={15} className="text-[#0D47A1]" /> Registration
-              Guidelines
-            </h3>
-            <ul className="space-y-2 text-xs text-[#64748B] list-disc list-inside leading-relaxed">
-              <li>Verify patient identity with government ID.</li>
-              <li>Verify mobile number to avoid duplicate entries.</li>
-              <li>Ensure mandatory fields (*) are completed.</li>
-              <li>MRN is generated automatically upon submission.</li>
-            </ul>
-          </div>
-
-          {/* CARD 03: Recent Registrations */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-            <h3
-              className="text-sm font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2"
-              style={{ fontFamily: PP }}
-            >
-              Recent Registrations
-            </h3>
-            <div className="divide-y divide-gray-100">
-              {recentRegistrations.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="py-2.5 flex items-center justify-between"
-                >
-                  <div>
-                    <div className="text-xs font-bold text-[#111827]">{item.name}</div>
-                    <div className="text-[10px] font-mono text-[#0D47A1]">{item.mrn}</div>
+            
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 text-sm">
+              <div className="md:col-span-2 flex items-center gap-4 pb-4 border-b border-gray-100">
+                <div className="relative group cursor-pointer">
+                  <div className="w-20 h-20 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden transition-all group-hover:border-[#0D47A1] group-hover:bg-blue-50">
+                    {formData.photo ? (
+                      <img src={formData.photo} alt="Patient" className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={30} className="text-slate-400 group-hover:text-[#0D47A1]" />
+                    )}
                   </div>
-                  <span className="text-[10px] font-mono text-slate-400">{item.time}</span>
+                  <input type="file" accept="image/*" onChange={handlePhotoUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
                 </div>
-              ))}
+                <div>
+                  <h4 className="font-semibold text-slate-800">Patient Photo</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">Upload a clear facial photo (Optional)</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Relationship <span className="text-red-500">*</span></label>
+                <select value={formData.relationship} onChange={(e) => handleChange("relationship", e.target.value)} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-slate-800 outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50 transition-all">
+                  <option value="SELF">Self</option>
+                  <option value="SPOUSE">Spouse</option>
+                  <option value="CHILD">Child</option>
+                  <option value="PARENT">Parent</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Full Name <span className="text-red-500">*</span></label>
+                <input type="text" value={formData.fullName} onChange={(e) => handleChange("fullName", e.target.value)} placeholder="e.g. John Doe" className={`w-full px-4 py-2.5 bg-white border rounded-xl text-slate-800 outline-none transition-all ${errors.fullName ? "border-red-400 focus:ring-2 focus:ring-red-50" : "border-gray-200 focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50"}`} />
+                {errors.fullName && <p className="text-[11px] text-red-500 mt-1">{errors.fullName}</p>}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Gender <span className="text-red-500">*</span></label>
+                <select value={formData.gender} onChange={(e) => handleChange("gender", e.target.value)} className={`w-full px-4 py-2.5 bg-white border rounded-xl text-slate-800 outline-none transition-all ${errors.gender ? "border-red-400 focus:ring-2 focus:ring-red-50" : "border-gray-200 focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50"}`}>
+                  <option value="">Select Gender</option>
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="OTHER">Other</option>
+                </select>
+                {errors.gender && <p className="text-[11px] text-red-500 mt-1">{errors.gender}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Date of Birth</label>
+                  <input type="date" value={formData.dob} onChange={(e) => handleDobChange(e.target.value)} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-slate-800 outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50 transition-all" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Age</label>
+                  <div className="flex items-center gap-2">
+                    <input type="text" value={formData.age} onChange={(e) => handleChange("age", e.target.value)} placeholder="0" className="w-full px-4 py-2.5 bg-slate-50 border border-gray-200 rounded-xl text-slate-800 outline-none font-mono" />
+                    <span className="text-xs text-slate-500 font-semibold">YRS</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Mobile Number <span className="text-red-500">*</span></label>
+                <input type="tel" value={formData.phone} onChange={(e) => handleChange("phone", e.target.value)} placeholder="+91 XXXXX XXXXX" className={`w-full px-4 py-2.5 bg-white border rounded-xl text-slate-800 outline-none transition-all ${errors.phone ? "border-red-400 focus:ring-2 focus:ring-red-50" : "border-gray-200 focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50"}`} />
+                {errors.phone && <p className="text-[11px] text-red-500 mt-1">{errors.phone}</p>}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Email Address</label>
+                <input type="email" value={formData.email} onChange={(e) => handleChange("email", e.target.value)} placeholder="patient@example.com" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-slate-800 outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50 transition-all" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Blood Group</label>
+                <select value={formData.bloodGroup} onChange={(e) => handleChange("bloodGroup", e.target.value)} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-slate-800 outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50 transition-all">
+                  <option value="">Select Group</option>
+                  <option value="A_POSITIVE">A+</option>
+                  <option value="A_NEGATIVE">A-</option>
+                  <option value="B_POSITIVE">B+</option>
+                  <option value="B_NEGATIVE">B-</option>
+                  <option value="O_POSITIVE">O+</option>
+                  <option value="O_NEGATIVE">O-</option>
+                  <option value="AB_POSITIVE">AB+</option>
+                  <option value="AB_NEGATIVE">AB-</option>
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Full Address</label>
+                <textarea rows={2} value={formData.address} onChange={(e) => handleChange("address", e.target.value)} placeholder="Enter complete residential address..." className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-slate-800 outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50 transition-all resize-none"></textarea>
+              </div>
             </div>
           </div>
-        </div>
-      </form>
 
-      {/* ── STICKY FOOTER ACTION BAR ── */}
+          {/* SECTION 2: PERSONAL INFORMATION (OPTIONAL) */}
+          <div className="bg-white rounded-2xl shadow-sm border border-[#E5E7EB] overflow-hidden opacity-90 hover:opacity-100 transition-opacity">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2" style={{ fontFamily: PP }}>
+                Personal Information
+              </h3>
+              <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold uppercase tracking-wide">
+                Optional
+              </span>
+            </div>
+            
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 text-sm">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Marital Status</label>
+                <select value={formData.maritalStatus} onChange={(e) => handleChange("maritalStatus", e.target.value)} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-slate-800 outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50 transition-all">
+                  <option value="">Select</option>
+                  <option value="SINGLE">Single</option>
+                  <option value="MARRIED">Married</option>
+                  <option value="DIVORCED">Divorced</option>
+                  <option value="WIDOWED">Widowed</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Aadhaar / National ID</label>
+                <input type="text" value={formData.aadhaar} onChange={(e) => handleChange("aadhaar", e.target.value)} placeholder="XXXX-XXXX-XXXX" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-slate-800 outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50 transition-all" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Patient Category</label>
+                <select value={formData.patientCategory} onChange={(e) => handleChange("patientCategory", e.target.value)} className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-slate-800 outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50 transition-all">
+                  <option value="">Select Category</option>
+                  <option value="GENERAL">General</option>
+                  <option value="VIP">VIP</option>
+                  <option value="CORPORATE">Corporate</option>
+                  <option value="STAFF">Staff / Dependent</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* SECTION 3: OTHER INFORMATION (OPTIONAL) */}
+          <div className="bg-white rounded-2xl shadow-sm border border-[#E5E7EB] overflow-hidden opacity-90 hover:opacity-100 transition-opacity">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2" style={{ fontFamily: PP }}>
+                Other Information
+              </h3>
+              <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold uppercase tracking-wide">
+                Optional
+              </span>
+            </div>
+            
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 text-sm">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Emergency Contact Name</label>
+                <input type="text" value={formData.emergencyName} onChange={(e) => handleChange("emergencyName", e.target.value)} placeholder="Contact Person Name" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-slate-800 outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50 transition-all" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Emergency Mobile</label>
+                <input type="tel" value={formData.emergencyMobile} onChange={(e) => handleChange("emergencyMobile", e.target.value)} placeholder="+91 XXXXX XXXXX" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-slate-800 outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50 transition-all" />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Known Allergies</label>
+                <input type="text" value={formData.allergies} onChange={(e) => handleChange("allergies", e.target.value)} placeholder="e.g. Penicillin, Peanuts (or type 'None')" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-slate-800 outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50 transition-all" />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Chronic Diseases</label>
+                <input type="text" value={formData.chronicDiseases} onChange={(e) => handleChange("chronicDiseases", e.target.value)} placeholder="e.g. Diabetes, Hypertension (or type 'None')" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-slate-800 outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50 transition-all" />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Special Notes / Remarks</label>
+                <textarea rows={2} value={formData.specialNotes} onChange={(e) => handleChange("specialNotes", e.target.value)} placeholder="Any other important information..." className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-slate-800 outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50 transition-all resize-none"></textarea>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] p-4 shadow-lg z-30 flex items-center justify-end gap-3 px-8">
         <button
           type="button"
@@ -13741,7 +12503,6 @@ export function ReceptionPatientRegistrationScreen({
         </button>
       </div>
 
-      {/* ── SUCCESS DIALOG MODAL ── */}
       {showSuccessDialog && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
@@ -13749,10 +12510,7 @@ export function ReceptionPatientRegistrationScreen({
               <div className="w-14 h-14 rounded-full bg-green-50 text-[#66BB6A] flex items-center justify-center mb-1">
                 <CheckCircle2 size={36} />
               </div>
-              <h3
-                className="text-xl font-bold text-[#111827]"
-                style={{ fontFamily: PP }}
-              >
+              <h3 className="text-xl font-bold text-[#111827]" style={{ fontFamily: PP }}>
                 Patient Registered Successfully
               </h3>
               <p className="text-xs text-[#64748B]">
@@ -13760,7 +12518,6 @@ export function ReceptionPatientRegistrationScreen({
               </p>
             </div>
 
-            {/* Generated Details Card */}
             <div className="p-4 rounded-xl bg-slate-50 border border-[#E5E7EB] space-y-2.5 text-xs">
               <div className="flex justify-between items-center pb-2 border-b border-slate-200">
                 <span className="text-[#64748B]">Generated MRN</span>
@@ -13768,23 +12525,18 @@ export function ReceptionPatientRegistrationScreen({
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Patient Name</span>
-                <span className="font-bold text-[#111827]">
-                  {formData.fullName}
-                </span>
+                <span className="font-bold text-[#111827]">{formData.fullName}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Registration Date</span>
-                <span className="font-mono text-[#111827]">2026-07-24</span>
+                <span className="font-mono text-[#111827]">2026-07-27</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Status</span>
-                <span className="font-bold text-[#66BB6A]">
-                  Active Master Profile
-                </span>
+                <span className="font-bold text-[#66BB6A]">Active Master Profile</span>
               </div>
             </div>
 
-            {/* Modal Buttons */}
             <div className="space-y-2 pt-1">
               <button
                 onClick={() => {
@@ -13808,41 +12560,6 @@ export function ReceptionPatientRegistrationScreen({
               >
                 View Patient Profile
               </button>
-              <button
-                onClick={() => {
-                  setShowSuccessDialog(false);
-                  setFormData({
-                    fullName: "",
-                    gender: "",
-                    dob: "",
-                    age: "",
-                    mobile: "",
-                    email: "",
-                    bloodGroup: "",
-                    maritalStatus: "",
-                    aadhaar: "",
-                    photo: null,
-                    address1: "",
-                    address2: "",
-                    city: "",
-                    state: "",
-                    pincode: "",
-                    country: "India",
-                    emergencyName: "",
-                    relationship: "",
-                    emergencyMobile: "",
-                    altContact: "",
-                    registrationType: "New Patient",
-                    patientCategory: "General",
-                    allergies: "",
-                    chronicDiseases: "",
-                    specialNotes: "",
-                  });
-                }}
-                className="w-full py-2 rounded-xl text-xs text-[#64748B] font-medium hover:bg-slate-50 transition-all"
-              >
-                Register Another Patient
-              </button>
             </div>
           </div>
         </div>
@@ -13851,7 +12568,7 @@ export function ReceptionPatientRegistrationScreen({
   );
 }
 
-// ─── RECEPTION PATIENT SEARCH SCREEN ───
+
 export type PatientSearchResult = {
   mrn: string
   name: string

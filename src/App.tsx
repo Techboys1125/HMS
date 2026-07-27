@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import safeHandsLogo from './assets/safehandshospital_logo.webp'
-import AuthApp from './Auth'
-import { PatientListScreen, PatientProfileScreen, EditPatientScreen, MedicalHistoryScreen, PatientVisitHistoryScreen, PatientSearchScreen, PatientTimelineScreen, PatientAppointmentsScreen, PatientMedicalRecordsScreen, PatientPrescriptionsScreen, PatientPrescriptionDetailsScreen, PatientProfileCenterScreen, ReceptionPatientRegistrationScreen, ReceptionPatientProfileScreen } from './Patients'
-import { UserManagementCenterScreen } from './UserManagement'
-import { DoctorManagementCenterScreen } from './DoctorManagement'
-import { AppointmentManagementCenterScreen, ReceptionBookAppointmentScreen, PatientCheckInScreen, ReceptionQueueManagementScreen } from './AppointmentManagement'
+import { LoginPage, useAuthStore } from './features/auth'
+import { PatientListScreen, PatientProfileScreen, EditPatientScreen, MedicalHistoryScreen, PatientVisitHistoryScreen, PatientSearchScreen, PatientTimelineScreen, PatientAppointmentsScreen, PatientMedicalRecordsScreen, PatientPrescriptionsScreen, PatientPrescriptionDetailsScreen, PatientProfileCenterScreen, ReceptionPatientRegistrationScreen, ReceptionPatientProfileScreen } from './features/patients'
+import { UserManagementCenterScreen } from './features/users'
+import { DoctorManagementCenterScreen } from './features/doctors'
+import { AppointmentManagementCenterScreen, ReceptionBookAppointmentScreen, PatientCheckInScreen, ReceptionQueueManagementScreen } from './features/appointments'
 import {
   DoctorAppointmentsScreen,
   DoctorPrescriptionsScreen,
@@ -12,15 +12,17 @@ import {
   DoctorEditPrescriptionScreen,
   DoctorPrescriptionPrintPreviewScreen,
   DoctorPrescriptionHistoryScreen,
-} from './DoctorScreens'
-import { OpdConsultationCenterScreen } from './OpdConsultationCenter'
-import { StartOpdConsultationWorkspaceScreen } from './StartOpdConsultationWorkspace'
-import { ConsultationDetailsScreen } from './ConsultationDetailsScreen'
-import { EditConsultationScreen } from './EditConsultationScreen'
-import { ConsultationHistoryScreen } from './ConsultationHistoryScreen'
-import { OpdConsultationMonitoringCenterScreen } from './OpdConsultationMonitoringCenter'
-import { AdminConsultationDetailsScreen } from './AdminConsultationDetailsScreen'
-import { RecordPatientVitalsScreen } from './VitalsManagement'
+} from './features/doctors'
+import {
+  OpdConsultationCenterScreen,
+  StartOpdConsultationWorkspaceScreen,
+  ConsultationDetailsScreen,
+  EditConsultationScreen,
+  ConsultationHistoryScreen,
+  OpdConsultationMonitoringCenterScreen,
+  AdminConsultationDetailsScreen,
+} from './features/opd'
+import { RecordPatientVitalsScreen } from './features/vitals'
 import { BillingDashboardScreen, CreateInvoiceWorkspaceScreen, CollectPaymentWorkspaceScreen, InvoiceDetailsScreen, InvoicePrintPreviewScreen, PaymentHistoryScreen, DailyBillingReportScreen, ReceptionistPaymentCollectionScreen, PatientMyBillsScreen } from './BillingManagement'
 import { ReportsDashboardScreen, DailyAppointmentReportScreen, DailyRevenueReportScreen, PatientReportScreen, DoctorReportScreen, BillingReportScreen, DashboardKpiDetailScreen, DoctorReportsDashboardScreen, DoctorDailyAppointmentReportScreen, DoctorPatientReportScreen, DoctorDoctorReportScreen, DoctorDashboardKpiDetailScreen, ReceptionistReportsDashboardScreen, ReceptionistDailyAppointmentReportScreen, ReceptionistPatientReportScreen, ReceptionistDashboardKpiDetailScreen, AccountantReportsDashboardScreen, AccountantDailyRevenueReportScreen, AccountantBillingReportScreen, AccountantDashboardKpiDetailScreen } from './ReportsManagement'
 import AuditLogsManagementScreen from './AuditLogsManagement'
@@ -43,7 +45,7 @@ import {
   Receipt, Clock, Activity,
   ChevronRight, User, Check,
   Building2, ChevronDown, LogOut,
-  ClipboardList, Shield,
+  ClipboardList, 
   TrendingUp, TrendingDown, RefreshCw,
   Zap, Download,
   UserCheck, LogIn, BarChart2, DollarSign, MessageSquare
@@ -414,15 +416,6 @@ const ALL_NAV_ITEMS: NavItem[] = Object.values(ROLE_NAV_GROUPS)
   .flatMap((groups) => groups.flatMap((g) => g.items))
   .filter((item, i, arr) => arr.findIndex((x) => x.id === item.id) === i);
 
-const ROLES: Role[] = [
-  "super-admin",
-  "admin",
-  "doctor",
-  "nurse",
-  "receptionist",
-  "accountant",
-  "patient",
-];
 
 
 
@@ -738,7 +731,6 @@ function NavRail({ active, onSelect, role, theme = 'light', onThemeToggle }: {
 // ─── Header ────────────────────────────────────────────────────────────────
 function Header({
   role,
-  onRoleChange,
   onLogout,
   onNavigateNav,
   activePatient,
@@ -747,23 +739,24 @@ function Header({
 }: {
   activeNav: NavId;
   role: Role;
-  onRoleChange: (r: Role) => void;
   onLogout: () => void;
   onNavigateNav: (id: NavId) => void;
   activePatient?: FamilyMember;
   familyMembers?: FamilyMember[];
   onSwitchActivePatient?: (member: FamilyMember) => void;
 }) {
-  const [showRoles, setShowRoles] = useState(false)
+  const user = useAuthStore((s) => s.user);
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [showPatientSelector, setShowPatientSelector] = useState(false)
+  const currentActive = activePatient || familyMembers[0]
+  const displayName = role === 'patient' ? currentActive.patientName : (user?.fullName || "Staff User");
+  const displayEmail = user?.email || (role === 'patient' ? 'patient.portal@safehands.org' : 'staff@safehands.org');
   const [pendingSwitchMember, setPendingSwitchMember] = useState<FamilyMember | null>(null)
   const [isSwitching, setIsSwitching] = useState(false)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
   const roleLabel = ROLE_LABEL
-  const currentActive = activePatient || familyMembers[0]
 
   const confirmSwitch = (member: FamilyMember) => {
     setIsSwitching(true)
@@ -820,7 +813,7 @@ function Header({
         {role === 'patient' && (
           <div className="relative">
             <button
-              onClick={() => { setShowPatientSelector(v => !v); setShowRoles(false); setShowProfileMenu(false) }}
+              onClick={() => { setShowPatientSelector(v => !v); setShowProfileMenu(false) }}
               className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-blue-50/70 border border-blue-200/80 hover:bg-blue-100/60 transition-all outline-none"
             >
               <div className="w-7 h-7 rounded-full bg-[#0D47A1] text-white flex items-center justify-center font-bold text-xs shrink-0">
@@ -932,46 +925,16 @@ function Header({
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#EF4444] rounded-full ring-2 ring-white" />
         </button>
 
-        {/* Role Selector */}
-        <div className="relative">
-          <button
-            onClick={() => { setShowRoles(v => !v); setShowProfileMenu(false); setShowPatientSelector(false) }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
-          >
-            <Shield size={13} className="text-[#0D47A1]" />
-            <span className="font-medium text-xs">{roleLabel[role]}</span>
-            <ChevronDown size={12} className="text-slate-400" />
-          </button>
-          {showRoles && (
-            <div className="absolute right-0 top-full mt-1.5 bg-white border border-gray-100 rounded-xl shadow-lg shadow-slate-100 overflow-hidden z-50 w-44">
-              {ROLES.map((r) => (
-                <button
-                  key={r}
-                  onClick={() => {
-                    onRoleChange(r);
-                    setShowRoles(false);
-                  }}
-                  className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors ${role === r ? "text-[#0D47A1] font-medium" : "text-slate-700"}`}
-                >
-                  {role === r && <Check size={13} />}
-                  {role !== r && <span className="w-3.5" />}
-                  {roleLabel[r]}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
         {/* PROFILE DROPDOWN TRIGGER AT RIGHT CORNER FOR ALL ROLES */}
         <div className="relative pl-3 border-l border-gray-100">
           <button
-            onClick={() => { setShowProfileMenu(v => !v); setShowRoles(false); setShowPatientSelector(false) }}
+            onClick={() => { setShowProfileMenu(v => !v); setShowPatientSelector(false) }}
             className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-slate-50 transition-colors outline-none"
           >
-            <Avatar name={role === 'patient' ? currentActive.patientName : "Dr. Arjun Mehta"} size="sm" />
+            <Avatar name={displayName} size="sm" />
             <div className="hidden xl:block text-left">
               <div className="text-xs font-semibold text-[#111827] leading-tight" style={{ fontFamily: PP }}>
-                {role === 'patient' ? currentActive.patientName : "Dr. Arjun Mehta"}
+                {displayName}
               </div>
               <div className="text-[10px] text-slate-400" style={{ fontFamily: RB }}>{roleLabel[role]}</div>
             </div>
@@ -983,14 +946,14 @@ function Header({
             <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl border border-gray-200 shadow-xl shadow-slate-200/50 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
               {/* User Summary */}
               <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl mb-1 border border-slate-100">
-                <Avatar name={role === 'patient' ? currentActive.patientName : "Dr. Arjun Mehta"} size="md" />
+                <Avatar name={displayName} size="md" />
                 <div className="min-w-0 flex-1">
                   <div className="text-xs font-bold text-[#111827] truncate" style={{ fontFamily: PP }}>
-                    {role === 'patient' ? currentActive.patientName : "Dr. Arjun Mehta"}
+                    {displayName}
                   </div>
                   <div className="text-[11px] text-[#64748B] truncate" style={{ fontFamily: RB }}>{roleLabel[role]}</div>
                   <div className="text-[10px] text-[#0D47A1] font-medium truncate mt-0.5">
-                    {role === 'patient' ? 'patient.portal@safehands.org' : 'arjun.mehta@safehands.org'}
+                    {displayEmail}
                   </div>
                 </div>
               </div>
@@ -1020,6 +983,8 @@ function Header({
                   </button>
                 )}
               </div>
+
+
 
               {/* Destructive Sign Out */}
               <button
@@ -1883,7 +1848,7 @@ function PlaceholderScreen({ nav }: { nav: NavId }) {
   );
 }
 
-function mapUserRoleToAppRole(userRole?: string | null): Role {
+export function mapUserRoleToAppRole(userRole?: string | null): Role {
   if (!userRole) return "admin";
   const r = String(userRole).toUpperCase();
   if (r === "SUPER_ADMIN") return "super-admin";
@@ -1898,9 +1863,16 @@ function mapUserRoleToAppRole(userRole?: string | null): Role {
 
 // ─── HMS Shell ─────────────────────────────────────────────────────────────
 function HMS({ onLogout }: { onLogout: () => void }) {
+  const user = useAuthStore((s) => s.user);
   const [activeNav, setActiveNav] = useState<NavId>('dashboard')
   const [previousNav, setPreviousNav] = useState<NavId | null>(null)
-  const [role, setRole] = useState<Role>('admin')
+  const [role, setRole] = useState<Role>(() => mapUserRoleToAppRole(user?.role))
+
+  useEffect(() => {
+    if (user?.role) {
+      setRole(mapUserRoleToAppRole(user.role));
+    }
+  }, [user]);
   const [selectedPatient, setSelectedPatient] = useState<number | string | null>(null)
   const [sidebarTheme, setSidebarTheme] = useState<'light' | 'dark'>('light')
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(INITIAL_FAMILY_MEMBERS)
@@ -1969,7 +1941,6 @@ function HMS({ onLogout }: { onLogout: () => void }) {
       <Header
         activeNav={activeNav}
         role={role}
-        onRoleChange={setRole}
         onLogout={onLogout}
         onNavigateNav={(nav) => setActiveNav(nav)}
         activePatient={activePatient}
@@ -2047,6 +2018,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
             {showPatientWorkspace && !showEditPatient && role !== 'receptionist' && (
               <PatientProfileScreen 
                 role={role}
+                patientMrn={selectedPatient ? String(selectedPatient) : undefined}
                 onBack={() => {
                   setSelectedPatient(null)
                   if (previousNav && previousNav !== 'patients') {
@@ -2062,7 +2034,10 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               />
             )}
             {activeNav === 'patients' && showPatientWorkspace && showEditPatient && (
-              <EditPatientScreen onBack={() => setShowEditPatient(false)} />
+              <EditPatientScreen 
+                patientMrn={selectedPatient ? String(selectedPatient) : undefined}
+                onBack={() => setShowEditPatient(false)} 
+              />
             )}
             {activeNav === 'patients' && !showPatientWorkspace && !showRegisterPatient && role === 'receptionist' && (
               <PatientSearchScreen 

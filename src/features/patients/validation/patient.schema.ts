@@ -1,8 +1,7 @@
 import { z } from "zod";
 
 export const patientSchema = z.object({
-  firstName: z.string().min(1, "First name is required."),
-  lastName: z.string().min(1, "Last name is required."),
+  fullName: z.string().min(1, "Full name is required."),
   dob: z
     .string()
     .nullable()
@@ -10,9 +9,7 @@ export const patientSchema = z.object({
       (val) => !val || new Date(val) <= new Date(),
       "Date of birth cannot be in the future.",
     ),
-  ageBasis: z.enum(["EXACT", "APPROXIMATE"]),
-  approximateAge: z.number().min(0).max(150).optional(),
-  gender: z.enum(["Male", "Female", "Other"]),
+  gender: z.enum(["MALE", "FEMALE", "OTHER"]),
   mobile: z
     .string()
     .regex(/^[+\d\s()-]{7,15}$/, "Invalid mobile number format."),
@@ -22,13 +19,8 @@ export const patientSchema = z.object({
     .optional()
     .or(z.literal("")),
   address: z.string().min(1, "Address is required."),
-  emergencyContact: z.object({
-    name: z.string().min(1, "Emergency contact name is required."),
-    relationship: z.string().min(1),
-    mobile: z
-      .string()
-      .regex(/^[+\d\s()-]{7,15}$/, "Invalid mobile number format."),
-  }),
+  bloodGroup: z.string().optional(),
+  relationship: z.string().optional(),
 });
 
 export type PatientFormInput = z.infer<typeof patientSchema>;

@@ -5598,7 +5598,7 @@ export function ReceptionBookAppointmentScreen({
   const [patientQuery, setPatientQuery] = useState(initialMrn || '')
   const [selectedPatient, setSelectedPatient] = useState<PatientSummary | null>(() => {
     if (initialMrn) {
-      return PATIENT_DATABASE.find(p => p.mrn.toLowerCase() === initialMrn.toLowerCase() || p.id.toLowerCase() === initialMrn.toLowerCase()) || PATIENT_DATABASE[0]
+      return PATIENT_DATABASE.find(p => p.mrn?.toLowerCase() === initialMrn.toLowerCase() || String(p.id).toLowerCase() === initialMrn.toLowerCase()) || PATIENT_DATABASE[0]
     }
     return PATIENT_DATABASE[0] // default pre-selected patient for smooth demo
   })

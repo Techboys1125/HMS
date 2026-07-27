@@ -53,6 +53,13 @@ export interface PatientRegistrationData {
   confirmPassword: string;
 }
 
+export interface PatientLinkData {
+  mrn: string;
+  mobile: string;
+  password: string;
+  confirmPassword: string;
+}
+
 export interface PatientRegistrationResponse {
   success: boolean;
   message: string;

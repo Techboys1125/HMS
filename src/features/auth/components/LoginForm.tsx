@@ -6,18 +6,10 @@ import {
   EyeOff,
   ShieldCheck,
   Loader2,
-  AlertCircle,
-  Shield,
-  Building2,
-  Stethoscope,
-  UserCheck,
-  User,
-  Receipt,
-  Sparkles,
+  AlertCircle
 } from "lucide-react";
 import { TextField } from "./TextField";
 import { useLogin } from "../hooks/useLogin";
-import { authService } from "../services/auth.service";
 import type { LoginResponse } from "../types/auth.types";
 import logoImage from "../../../assets/safehandshospital_logo.webp";
 
@@ -155,45 +147,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           </button>
         </form>
 
-        {/* Quick Demo Login Options Grid */}
-        <div className="pt-4 border-t border-slate-100">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#0D47A1]">
-              <Sparkles className="w-4 h-4 text-amber-500" />
-              <span>Quick Demo Login</span>
-            </div>
-            <span className="text-[11px] text-slate-400 font-medium">Click role to log in directly</span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {[
-              { key: "SUPER_ADMIN", label: "Super Admin", sub: "IT & Systems", Icon: Shield, color: "bg-purple-50 hover:bg-purple-100 text-purple-700 border-purple-200" },
-              { key: "ADMIN", label: "Hospital Admin", sub: "Administration", Icon: Building2, color: "bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200" },
-              { key: "DOCTOR", label: "Doctor", sub: "Cardiology", Icon: Stethoscope, color: "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200" },
-              { key: "NURSE", label: "Nurse", sub: "Outpatient Care", Icon: UserCheck, color: "bg-teal-50 hover:bg-teal-100 text-teal-700 border-teal-200" },
-              { key: "RECEPTIONIST", label: "Receptionist", sub: "OPD Desk", Icon: User, color: "bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200" },
-              { key: "ACCOUNTANT", label: "Accountant", sub: "Accounts & Billing", Icon: Receipt, color: "bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200" },
-              { key: "PATIENT", label: "Patient", sub: "Patient Portal", Icon: User, color: "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200" },
-            ].map((demo) => (
-              <button
-                key={demo.key}
-                type="button"
-                disabled={loading}
-                onClick={async () => {
-                  const res = await authService.demoLogin(demo.key);
-                  onSuccess(res);
-                }}
-                className={`flex flex-col items-start p-2.5 rounded-xl border text-left transition-all duration-150 active:scale-[0.98] shadow-2xs hover:shadow-sm cursor-pointer disabled:opacity-50 ${demo.color}`}
-              >
-                <div className="flex items-center gap-1.5 w-full">
-                  <demo.Icon size={14} className="shrink-0" />
-                  <span className="text-xs font-bold truncate leading-none">{demo.label}</span>
-                </div>
-                <span className="text-[10px] opacity-75 mt-1 truncate">{demo.sub}</span>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Bottom Footer Section */}

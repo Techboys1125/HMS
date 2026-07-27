@@ -7,11 +7,10 @@ import {
   Calendar,
   Receipt,
   Users,
-  Plus,
   UserCheck,
 } from "lucide-react";
 import type { Patient } from "../types/patient.types";
-import { PatientStatusBadge as StatusBadge } from "./PatientStatusBadge";
+import { PatientStatusBadge as StatusBadge } from "./PatientStatusBadge.tsx";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -70,7 +69,6 @@ export function PatientTable({
   onViewMedicalHistory,
   onViewAppointments,
   onGenerateBill,
-  onRegisterClick,
   onResetFilters,
 }: {
   patients: Patient[];
@@ -92,6 +90,15 @@ export function PatientTable({
 }) {
   return (
     <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden">
+      {/* Table Header Section */}
+      <div className="px-6 py-4 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50/50">
+        <h2 className="text-sm font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2" style={{ fontFamily: PP }}>
+          <Users size={18} className="text-[#0D47A1]" /> All Patients
+        </h2>
+        <div className="text-xs font-semibold text-[#64748B] bg-white px-2.5 py-1 rounded-lg border border-[#E5E7EB] shadow-sm">
+          Showing {patients.length} of {totalCount} {totalCount === 1 ? 'entity' : 'entities'}
+        </div>
+      </div>
       {isLoading ? (
         /* SKELETON TABLE LOADING STATE */
         <div className="p-6 space-y-4 animate-pulse">
@@ -138,13 +145,7 @@ export function PatientTable({
                 Reset Search &amp; Filters
               </button>
             )}
-            <button
-              onClick={onRegisterClick}
-              className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm flex items-center gap-1.5"
-              style={{ fontFamily: PP }}
-            >
-              <Plus size={14} /> Register Patient
-            </button>
+
           </div>
         </div>
       ) : (
@@ -161,7 +162,6 @@ export function PatientTable({
                   "Phone",
                   "Assigned Doctor",
                   "Registration Date",
-                  "Status",
                   "Actions",
                 ].map((h) => (
                   <th
@@ -177,57 +177,50 @@ export function PatientTable({
             <tbody className="divide-y divide-gray-100">
               {patients.map((p) => (
                 <tr
-                  key={p.id}
-                  className={`hover:bg-blue-50/40 transition-colors cursor-pointer group ${selectedPatientId === p.id ? "bg-blue-50/60" : ""}`}
+                  key={p.mrn}
+                  className={`hover:bg-blue-50/40 transition-colors cursor-pointer group ${selectedPatientId === p.mrn ? "bg-blue-50/60" : ""}`}
                   onClick={() => onSelectRow(p)}
                 >
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     <span className="font-mono text-xs font-semibold text-[#0D47A1] bg-blue-50 px-2 py-1 rounded-lg border border-blue-100">
-                      {p.id}
+                      {p.mrn}
                     </span>
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <Avatar name={p.name} size="sm" />
+                      <Avatar name={(p.patientName || p.name || "").trim()} size="sm" />
                       <div>
                         <span
                           className="text-xs font-bold text-[#111827] block"
                           style={{ fontFamily: PP }}
                         >
-                          {p.name}
+                          {(p.patientName || p.name || "").trim()}
                         </span>
                         <span className="text-[11px] text-[#64748B] block">
-                          {p.visitType} Intake
+                          OPD Intake
                         </span>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-medium">
-                    {p.age} Y
+                    {p.age || 0} Y
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-medium">
-                    {p.gender === "F"
-                      ? "Female"
-                      : p.gender === "M"
-                        ? "Male"
-                        : "Other"}
+                    {p.gender === "MALE" || p.gender === "M" ? "Male" : "Female"}
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-mono">
-                    {p.mobile}
+                    {p.phone}
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
                     <div className="flex items-center gap-1.5">
                       <UserCheck size={14} className="text-[#009688]" />
                       <span className="font-medium text-[#111827]">
-                        {p.doctor}
+                        {p.assignedDoctor || "Unassigned"}
                       </span>
                     </div>
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-600">
-                    {p.regDate}
-                  </td>
-                  <td className="px-4 py-3.5 whitespace-nowrap">
-                    <StatusBadge status={p.status} />
+                    {p.registrationDate ? p.registrationDate.split("T")[0] : ""}
                   </td>
                   <td
                     className="px-4 py-3.5 whitespace-nowrap relative"
@@ -245,7 +238,7 @@ export function PatientTable({
                         <button
                           onClick={() =>
                             onToggleActionMenu(
-                              activeActionMenuId === p.id ? null : p.id,
+                              activeActionMenuId === p.mrn ? null : p.mrn,
                             )
                           }
                           className="p-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
@@ -253,12 +246,12 @@ export function PatientTable({
                         >
                           <MoreVertical size={15} />
                         </button>
-                        {activeActionMenuId === p.id && (
+                        {activeActionMenuId === p.mrn && (
                           <div className="absolute right-0 top-8 z-30 w-48 bg-white border border-[#E5E7EB] rounded-xl shadow-xl py-1.5 animate-in fade-in zoom-in-95 duration-150">
                             <button
                               onClick={() => {
                                 onToggleActionMenu(null);
-                                onViewProfile(p.id);
+                                onViewProfile(p.mrn);
                               }}
                               className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
                             >
@@ -280,7 +273,7 @@ export function PatientTable({
                                 onToggleActionMenu(null);
                                 if (onViewMedicalHistory)
                                   onViewMedicalHistory();
-                                else onViewProfile(p.id);
+                                else onViewProfile(p.mrn);
                               }}
                               className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
                             >
