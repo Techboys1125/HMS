@@ -81,12 +81,14 @@ export function StartOpdConsultationWorkspaceScreen({
   patientId: _patientId = 'PAT-2001',
   onBack,
   onCompleteSuccess,
-  onViewHistory
+  onViewHistory,
+  onViewPatientProfile
 }: {
   patientId?: string
   onBack?: () => void
   onCompleteSuccess?: () => void
   onViewHistory?: (patientId?: string) => void
+  onViewPatientProfile?: (mrn?: string) => void
 }) {
   // Collapsible section card states
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
@@ -319,7 +321,11 @@ export function StartOpdConsultationWorkspaceScreen({
 
           {/* Quick Buttons */}
           <div className="flex items-center gap-2 shrink-0">
-            <button className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-xs font-semibold text-[#111827] hover:bg-slate-50 transition-colors" style={{ fontFamily: PP }}>
+            <button
+              onClick={() => onViewPatientProfile?.('MRN-2024-001')}
+              className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-xs font-semibold text-[#111827] hover:bg-slate-50 transition-colors"
+              style={{ fontFamily: PP }}
+            >
               View Patient Profile
             </button>
             <button

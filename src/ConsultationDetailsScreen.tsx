@@ -19,7 +19,7 @@ export function ConsultationDetailsScreen({
   onBack?: () => void
   onEditConsultation?: (id: string) => void
   onViewHistory?: (patientId?: string) => void
-  onViewPatientProfile?: (uhid: string) => void
+  onViewPatientProfile?: (mrn: string) => void
 }) {
   // Collapsible sections
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
@@ -43,7 +43,7 @@ export function ConsultationDetailsScreen({
     visitDate: '24 Jul 2026',
     completionTime: '09:42 AM',
     patientName: 'Sarah Mitchell',
-    uhid: 'MRN-2024-001',
+    mrn: 'MRN-2024-001',
     age: 34,
     gender: 'Female',
     bloodGroup: 'A+',
@@ -174,7 +174,7 @@ export function ConsultationDetailsScreen({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm text-[#111827]" style={{ fontFamily: PP }}>{record.patientName}</span>
-                <span className="font-mono text-[10px] bg-blue-50 text-[#0D47A1] px-2 py-0.5 rounded font-bold">{record.uhid}</span>
+                <span className="font-mono text-[10px] bg-blue-50 text-[#0D47A1] px-2 py-0.5 rounded font-bold">{record.mrn}</span>
                 <span className="font-mono text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold">{record.id}</span>
               </div>
               <div className="flex items-center gap-3 text-xs text-[#64748B] mt-0.5" style={{ fontFamily: RB }}>
@@ -198,14 +198,14 @@ export function ConsultationDetailsScreen({
           {/* Quick Buttons */}
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={() => onViewPatientProfile?.(record.uhid)}
+              onClick={() => onViewPatientProfile?.(record.mrn)}
               className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-xs font-semibold text-[#111827] hover:bg-slate-50 transition-colors"
               style={{ fontFamily: PP }}
             >
               View Patient Profile
             </button>
             <button
-              onClick={() => onViewHistory?.(record.uhid)}
+              onClick={() => onViewHistory?.(record.mrn)}
               className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-xs font-semibold text-[#0D47A1] hover:bg-blue-50 transition-colors"
               style={{ fontFamily: PP }}
             >
@@ -540,7 +540,7 @@ export function ConsultationDetailsScreen({
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold" style={{ fontFamily: PP }}>Patient</span>
                   <p className="font-bold text-[#111827]">{record.patientName}</p>
-                  <p className="text-[11px] text-slate-500">{record.uhid}</p>
+                  <p className="text-[11px] text-slate-500">{record.mrn}</p>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold" style={{ fontFamily: PP }}>Doctor</span>

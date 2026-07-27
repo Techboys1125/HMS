@@ -18,7 +18,7 @@ export interface ConsultationRecord {
   id: string
   tokenNo: string
   patientName: string
-  uhid: string
+  mrn: string
   age: number
   gender: 'Male' | 'Female' | 'Other'
   phone: string
@@ -44,7 +44,7 @@ const INITIAL_CONSULTATIONS: ConsultationRecord[] = [
     id: 'CNS-1001',
     tokenNo: 'TK-01',
     patientName: 'Sarah Mitchell',
-    uhid: 'MRN-2024-001',
+    mrn: 'MRN-2024-001',
     age: 34,
     gender: 'Female',
     phone: '+1 (555) 234-5678',
@@ -62,7 +62,7 @@ const INITIAL_CONSULTATIONS: ConsultationRecord[] = [
     id: 'CNS-1002',
     tokenNo: 'TK-02',
     patientName: 'James Thornton',
-    uhid: 'MRN-2024-002',
+    mrn: 'MRN-2024-002',
     age: 67,
     gender: 'Male',
     phone: '+1 (555) 345-6789',
@@ -80,7 +80,7 @@ const INITIAL_CONSULTATIONS: ConsultationRecord[] = [
     id: 'CNS-1003',
     tokenNo: 'TK-03',
     patientName: 'Emma Reyes',
-    uhid: 'MRN-2024-003',
+    mrn: 'MRN-2024-003',
     age: 28,
     gender: 'Female',
     phone: '+1 (555) 456-7890',
@@ -98,7 +98,7 @@ const INITIAL_CONSULTATIONS: ConsultationRecord[] = [
     id: 'CNS-1004',
     tokenNo: 'TK-04',
     patientName: 'Robert Chen',
-    uhid: 'MRN-2024-004',
+    mrn: 'MRN-2024-004',
     age: 52,
     gender: 'Male',
     phone: '+1 (555) 567-8901',
@@ -116,7 +116,7 @@ const INITIAL_CONSULTATIONS: ConsultationRecord[] = [
     id: 'CNS-1005',
     tokenNo: 'TK-05',
     patientName: 'Aisha Kumar',
-    uhid: 'MRN-2024-005',
+    mrn: 'MRN-2024-005',
     age: 41,
     gender: 'Female',
     phone: '+1 (555) 678-9012',
@@ -134,7 +134,7 @@ const INITIAL_CONSULTATIONS: ConsultationRecord[] = [
     id: 'CNS-1006',
     tokenNo: 'TK-06',
     patientName: 'David Walsh',
-    uhid: 'MRN-2024-006',
+    mrn: 'MRN-2024-006',
     age: 38,
     gender: 'Male',
     phone: '+1 (555) 789-0123',
@@ -152,7 +152,7 @@ const INITIAL_CONSULTATIONS: ConsultationRecord[] = [
     id: 'CNS-1007',
     tokenNo: 'TK-07',
     patientName: 'Nina Patel',
-    uhid: 'MRN-2024-007',
+    mrn: 'MRN-2024-007',
     age: 29,
     gender: 'Female',
     phone: '+1 (555) 890-1234',
@@ -169,7 +169,7 @@ const INITIAL_CONSULTATIONS: ConsultationRecord[] = [
     id: 'CNS-1008',
     tokenNo: 'TK-08',
     patientName: 'Carlos Mendez',
-    uhid: 'MRN-2024-008',
+    mrn: 'MRN-2024-008',
     age: 63,
     gender: 'Male',
     phone: '+1 (555) 901-2345',
@@ -263,10 +263,10 @@ export function OpdConsultationCenterScreen({
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim()
         const matchName = item.patientName.toLowerCase().includes(q)
-        const matchUhid = item.uhid.toLowerCase().includes(q)
+        const matchMrn = item.mrn.toLowerCase().includes(q)
         const matchId = item.id.toLowerCase().includes(q)
         const matchPhone = item.phone.toLowerCase().includes(q)
-        if (!matchName && !matchUhid && !matchId && !matchPhone) return false
+        if (!matchName && !matchMrn && !matchId && !matchPhone) return false
       }
 
       return true
@@ -449,7 +449,7 @@ export function OpdConsultationCenterScreen({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by Patient Name, UHID, Consultation ID or Mobile Number..."
+                  placeholder="Search by Patient Name, MRN, Consultation ID or Mobile Number..."
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/20 focus:border-[#0D47A1] transition-all"
                   style={{ fontFamily: RB }}
                 />
@@ -642,7 +642,7 @@ export function OpdConsultationCenterScreen({
                         <tr className="bg-slate-50 border-b border-[#E5E7EB] text-[11px] font-bold text-[#64748B] uppercase tracking-wider" style={{ fontFamily: PP }}>
                           <th className="py-3.5 px-4">Consultation ID</th>
                           <th className="py-3.5 px-4">Patient</th>
-                          <th className="py-3.5 px-4">UHID</th>
+                          <th className="py-3.5 px-4">MRN</th>
                           <th className="py-3.5 px-4">Age / Gender</th>
                           <th className="py-3.5 px-4">Doctor</th>
                           <th className="py-3.5 px-4">Department</th>
@@ -674,8 +674,8 @@ export function OpdConsultationCenterScreen({
                               </div>
                             </td>
 
-                            {/* UHID */}
-                            <td className="py-3.5 px-4 font-mono text-slate-700">{item.uhid}</td>
+                            {/* MRN */}
+                            <td className="py-3.5 px-4 font-mono text-slate-700">{item.mrn}</td>
 
                             {/* Age / Gender */}
                             <td className="py-3.5 px-4 text-slate-700">{item.age} yrs / {item.gender}</td>
@@ -743,7 +743,7 @@ export function OpdConsultationCenterScreen({
                                       <button
                                         onClick={() => {
                                           if (onViewHistory) {
-                                            onViewHistory(item.uhid)
+                                            onViewHistory(item.mrn)
                                           } else {
                                             setSelectedRecord(item)
                                             setActiveModal('history')
@@ -823,7 +823,7 @@ export function OpdConsultationCenterScreen({
                       <span className="font-bold text-xs text-[#111827]" style={{ fontFamily: PP }}>{currentPatient.patientName}</span>
                       <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 bg-teal-100 text-teal-800 rounded">{currentPatient.tokenNo}</span>
                     </div>
-                    <div className="text-[11px] text-slate-600">{currentPatient.uhid} · {currentPatient.age}y / {currentPatient.gender}</div>
+                    <div className="text-[11px] text-slate-600">{currentPatient.mrn} · {currentPatient.age}y / {currentPatient.gender}</div>
                     <div className="text-[11px] text-slate-700 italic bg-white/70 p-2 rounded-lg border border-teal-100/50">
                       "{currentPatient.chiefComplaint}"
                     </div>
@@ -842,7 +842,7 @@ export function OpdConsultationCenterScreen({
                       <span className="font-bold text-xs text-[#111827]" style={{ fontFamily: PP }}>{nextPatient.patientName}</span>
                       <span className="text-[10px] font-mono text-slate-500">{nextPatient.appointmentTime}</span>
                     </div>
-                    <div className="text-[11px] text-slate-600">{nextPatient.uhid} · {nextPatient.visitType}</div>
+                    <div className="text-[11px] text-slate-600">{nextPatient.mrn} · {nextPatient.visitType}</div>
                   </div>
                 ) : (
                   <div className="text-xs text-slate-400 italic">No patient in waiting queue</div>
@@ -947,7 +947,7 @@ export function OpdConsultationCenterScreen({
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold" style={{ fontFamily: PP }}>Patient Name</span>
                   <p className="font-bold text-slate-800 text-sm">{selectedRecord.patientName}</p>
-                  <p className="text-slate-500">{selectedRecord.uhid} ({selectedRecord.age}y / {selectedRecord.gender})</p>
+                  <p className="text-slate-500">{selectedRecord.mrn} ({selectedRecord.age}y / {selectedRecord.gender})</p>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold" style={{ fontFamily: PP }}>Status</span>
@@ -1015,7 +1015,7 @@ export function OpdConsultationCenterScreen({
             <div className="flex items-center justify-between border-b border-gray-100 pb-4">
               <div>
                 <h3 className="text-lg font-bold text-[#111827]" style={{ fontFamily: PP }}>Consultation History</h3>
-                <p className="text-xs text-slate-500">{selectedRecord.patientName} · {selectedRecord.uhid}</p>
+                <p className="text-xs text-slate-500">{selectedRecord.patientName} · {selectedRecord.mrn}</p>
               </div>
               <button onClick={() => setActiveModal(null)} className="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
                 <X size={18} />
@@ -1064,7 +1064,7 @@ export function OpdConsultationCenterScreen({
 
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-2 text-slate-700">
               <p className="font-bold text-[#0D47A1]">Hospital Management System — OPD Visit Summary</p>
-              <p>Patient: {selectedRecord.patientName} ({selectedRecord.uhid})</p>
+              <p>Patient: {selectedRecord.patientName} ({selectedRecord.mrn})</p>
               <p>Consultation ID: {selectedRecord.id}</p>
               <p>Doctor: {selectedRecord.doctor} ({selectedRecord.department})</p>
               <p>Date: {selectedRecord.date}</p>

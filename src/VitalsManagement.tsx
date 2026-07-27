@@ -222,7 +222,7 @@ export function VitalsDetailsScreen({
               </h3>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between"><span className="text-slate-400">Patient Name</span><strong className="text-slate-700">{activeApt.patientName}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-400">UHID / MRN</span><strong className="text-slate-700 font-mono">{activeApt.mrn}</strong></div>
+                <div className="flex justify-between"><span className="text-slate-400">MRN</span><strong className="text-slate-700 font-mono">{activeApt.mrn}</strong></div>
                 <div className="flex justify-between"><span className="text-slate-400">Age / Gender</span><strong className="text-slate-700">{activeApt.patientAge}y / {activeApt.patientGender}</strong></div>
                 <div className="flex justify-between"><span className="text-slate-400">Blood Group</span><strong className="text-slate-700">{patientInfo?.bloodGroup || 'O+'}</strong></div>
                 <div className="flex justify-between"><span className="text-slate-400">Mobile Number</span><strong className="text-slate-700 font-mono">{activeApt.patientPhone}</strong></div>
@@ -733,7 +733,7 @@ export function RecordPatientVitalsForm({
               </h3>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between"><span className="text-slate-400">Full Name</span><strong className="text-slate-700">{activeApt.patientName}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-400">UHID / MRN</span><strong className="text-slate-700 font-mono">{activeApt.mrn}</strong></div>
+                <div className="flex justify-between"><span className="text-slate-400">MRN</span><strong className="text-slate-700 font-mono">{activeApt.mrn}</strong></div>
                 <div className="flex justify-between"><span className="text-slate-400">Age / Gender</span><strong className="text-slate-700">{activeApt.patientAge}y / {activeApt.patientGender}</strong></div>
                 <div className="flex justify-between"><span className="text-slate-400">Blood Group</span><strong className="text-slate-700">{patientInfo?.bloodGroup || 'O+'}</strong></div>
                 <div className="flex justify-between"><span className="text-slate-400">Mobile Number</span><strong className="text-slate-700 font-mono">{activeApt.patientPhone}</strong></div>
@@ -1369,7 +1369,7 @@ export function RecordPatientVitalsScreen({ onPatientSelect, onViewAppointmentDe
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search by Patient Name, UHID, Appointment ID, or Token Number..."
+                  placeholder="Search by Patient Name, MRN, Appointment ID, or Token Number..."
                   className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
                 />
               </div>
@@ -1511,7 +1511,7 @@ export function RecordPatientVitalsScreen({ onPatientSelect, onViewAppointmentDe
                   <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
                     <th className="px-4 py-3.5">Token Number</th>
                     <th className="px-4 py-3.5">Patient</th>
-                    <th className="px-4 py-3.5">UHID</th>
+                    <th className="px-4 py-3.5">MRN</th>
                     <th className="px-4 py-3.5">Doctor</th>
                     <th className="px-4 py-3.5">Department</th>
                     <th className="px-4 py-3.5">Appt Time</th>
