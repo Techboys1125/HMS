@@ -527,7 +527,7 @@ export type RxStatus = 'Draft' | 'Issued' | 'Completed' | 'Cancelled' | 'Archive
 export interface PrescriptionRecord {
   id: string
   patientName: string
-  uhid: string
+  mrn: string
   consultationId: string
   department: string
   consultationDate: string
@@ -544,7 +544,7 @@ const MY_PRESCRIPTIONS_DATA: PrescriptionRecord[] = [
   {
     id: 'RX-2026-0891',
     patientName: 'Sarah Mitchell',
-    uhid: 'UHID-892101',
+    mrn: 'MRN-892101',
     consultationId: 'CNS-1001',
     department: 'Cardiology',
     consultationDate: '24 Jul 2026',
@@ -564,7 +564,7 @@ const MY_PRESCRIPTIONS_DATA: PrescriptionRecord[] = [
   {
     id: 'RX-2026-0888',
     patientName: 'James Thornton',
-    uhid: 'UHID-772102',
+    mrn: 'MRN-772102',
     consultationId: 'CNS-1004',
     department: 'Cardiology',
     consultationDate: '24 Jul 2026',
@@ -582,7 +582,7 @@ const MY_PRESCRIPTIONS_DATA: PrescriptionRecord[] = [
   {
     id: 'RX-2026-0872',
     patientName: 'Marcus Brown',
-    uhid: 'UHID-551980',
+    mrn: 'MRN-551980',
     consultationId: 'CNS-0988',
     department: 'Cardiology',
     consultationDate: '23 Jul 2026',
@@ -600,7 +600,7 @@ const MY_PRESCRIPTIONS_DATA: PrescriptionRecord[] = [
   {
     id: 'RX-2026-0865',
     patientName: 'Robert Chen',
-    uhid: 'UHID-442890',
+    mrn: 'MRN-442890',
     consultationId: 'CNS-0975',
     department: 'Cardiology',
     consultationDate: '22 Jul 2026',
@@ -618,7 +618,7 @@ const MY_PRESCRIPTIONS_DATA: PrescriptionRecord[] = [
   {
     id: 'RX-2026-0850',
     patientName: 'Emma Reyes',
-    uhid: 'UHID-331002',
+    mrn: 'MRN-331002',
     consultationId: 'CNS-0960',
     department: 'Cardiology',
     consultationDate: '21 Jul 2026',
@@ -635,7 +635,7 @@ const MY_PRESCRIPTIONS_DATA: PrescriptionRecord[] = [
   {
     id: 'RX-2026-0812',
     patientName: 'David Walsh',
-    uhid: 'UHID-112093',
+    mrn: 'MRN-112093',
     consultationId: 'CNS-0910',
     department: 'Cardiology',
     consultationDate: '18 Jul 2026',
@@ -662,7 +662,7 @@ export function DoctorPrescriptionsScreen({
   onViewPrescription?: (rxId: string) => void
   onEditPrescription?: (rxId: string) => void
   onPrintPreview?: (rxId: string) => void
-  onViewHistory?: (uhid: string) => void
+  onViewHistory?: (mrn: string) => void
   onViewConsultation?: (consultId: string) => void
 }) {
   // Search & Filters State
@@ -695,7 +695,7 @@ export function DoctorPrescriptionsScreen({
     const matchesSearch =
       item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.uhid.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.mrn.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.consultationId.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesDept = selectedDept === 'All' || item.department === selectedDept
@@ -765,7 +765,7 @@ export function DoctorPrescriptionsScreen({
               type="text"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              placeholder="Search by Prescription ID, Patient Name, UHID, or Consultation ID…"
+              placeholder="Search by Prescription ID, Patient Name, MRN, or Consultation ID…"
               className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-[#111827]"
               style={{ fontFamily: RB }}
             />
@@ -885,7 +885,7 @@ export function DoctorPrescriptionsScreen({
               <tr className="bg-slate-50/80 border-b border-gray-100 text-slate-500 text-[11px] font-bold uppercase tracking-wider sticky top-0" style={{ fontFamily: PP }}>
                 <th className="px-5 py-3.5">Prescription ID</th>
                 <th className="px-5 py-3.5">Patient Name</th>
-                <th className="px-5 py-3.5">UHID</th>
+                <th className="px-5 py-3.5">MRN</th>
                 <th className="px-5 py-3.5">Consultation ID</th>
                 <th className="px-5 py-3.5">Department</th>
                 <th className="px-5 py-3.5">Consultation Date</th>
@@ -942,7 +942,7 @@ export function DoctorPrescriptionsScreen({
                       </div>
                     </td>
                     <td className="px-5 py-3.5 font-mono text-slate-600 whitespace-nowrap">
-                      {rx.uhid}
+                      {rx.mrn}
                     </td>
                     <td className="px-5 py-3.5 font-mono text-slate-600 whitespace-nowrap">
                       <button
@@ -1056,7 +1056,7 @@ export function DoctorPrescriptionsScreen({
                               <button
                                 onClick={() => {
                                   setOpenMoreMenuId(null)
-                                  onViewHistory?.(rx.uhid)
+                                  onViewHistory?.(rx.mrn)
                                 }}
                                 className="w-full px-3 py-2 text-xs text-[#0D47A1] hover:bg-blue-50 flex items-center gap-2 font-medium"
                               >
@@ -1121,8 +1121,8 @@ export function DoctorPrescriptionsScreen({
                   <span className="text-xs font-bold text-[#111827]" style={{ fontFamily: PP }}>{selectedRow.patientName}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500 font-medium" style={{ fontFamily: RB }}>UHID</span>
-                  <span className="text-xs font-mono font-semibold text-[#0D47A1]" style={{ fontFamily: RB }}>{selectedRow.uhid}</span>
+                  <span className="text-xs text-slate-500 font-medium" style={{ fontFamily: RB }}>MRN</span>
+                  <span className="text-xs font-mono font-semibold text-[#0D47A1]" style={{ fontFamily: RB }}>{selectedRow.mrn}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-slate-500 font-medium" style={{ fontFamily: RB }}>Attending Doctor</span>
@@ -1225,7 +1225,7 @@ export function DoctorPrescriptionsScreen({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div><strong>Patient:</strong> {printModalRx.patientName}</div>
-                <div><strong>UHID:</strong> {printModalRx.uhid}</div>
+                <div><strong>MRN:</strong> {printModalRx.mrn}</div>
                 <div><strong>Doctor:</strong> {printModalRx.doctorName}</div>
                 <div><strong>Date:</strong> {printModalRx.consultationDate}</div>
               </div>
@@ -1386,9 +1386,9 @@ export function DoctorPrescriptionDetailsScreen({
   onBack?: () => void
   onEditPrescription?: (rxId: string) => void
   onPrintPreview?: (rxId: string) => void
-  onViewHistory?: (uhid: string) => void
+  onViewHistory?: (mrn: string) => void
   onViewConsultation?: (consultId: string) => void
-  onViewPatientProfile?: (uhid: string) => void
+  onViewPatientProfile?: (mrn: string) => void
 }) {
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const [printModalOpen, setPrintModalOpen] = useState(false)
@@ -1403,7 +1403,7 @@ export function DoctorPrescriptionDetailsScreen({
     id: prescriptionId,
     consultationId: 'CNS-1001',
     patientName: 'Sarah Mitchell',
-    uhid: 'UHID-892101',
+    mrn: 'MRN-892101',
     age: 34,
     gender: 'Female',
     bloodGroup: 'A+',
@@ -1560,7 +1560,7 @@ export function DoctorPrescriptionDetailsScreen({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm text-[#111827]" style={{ fontFamily: PP }}>{rxRecord.patientName}</span>
-                <span className="font-mono text-[10px] bg-blue-50 text-[#0D47A1] px-2 py-0.5 rounded font-bold">{rxRecord.uhid}</span>
+                <span className="font-mono text-[10px] bg-blue-50 text-[#0D47A1] px-2 py-0.5 rounded font-bold">{rxRecord.mrn}</span>
                 <span className="font-mono text-[10px] bg-emerald-50 text-[#009688] px-2 py-0.5 rounded font-bold">{rxRecord.id}</span>
                 <span className="font-mono text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold">{rxRecord.consultationId}</span>
               </div>
@@ -1582,7 +1582,7 @@ export function DoctorPrescriptionDetailsScreen({
 
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={() => onViewPatientProfile?.(rxRecord.uhid)}
+              onClick={() => onViewPatientProfile?.(rxRecord.mrn)}
               className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-xs font-semibold text-[#111827] hover:bg-slate-50 transition-colors"
               style={{ fontFamily: PP }}
             >
@@ -1613,8 +1613,8 @@ export function DoctorPrescriptionDetailsScreen({
 
               <div className="space-y-3 text-xs" style={{ fontFamily: RB }}>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>UHID</span>
-                  <span className="font-mono font-bold text-[#0D47A1] text-sm">{rxRecord.uhid}</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>MRN</span>
+                  <span className="font-mono font-bold text-[#0D47A1] text-sm">{rxRecord.mrn}</span>
                 </div>
 
                 <div>
@@ -1899,7 +1899,7 @@ export function DoctorPrescriptionDetailsScreen({
                 </button>
 
                 <button
-                  onClick={() => onViewHistory?.(rxRecord.uhid)}
+                  onClick={() => onViewHistory?.(rxRecord.mrn)}
                   className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold transition-colors"
                   style={{ fontFamily: PP }}
                 >
@@ -2000,7 +2000,7 @@ export function DoctorPrescriptionDetailsScreen({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div><strong>Patient:</strong> {rxRecord.patientName}</div>
-                <div><strong>UHID:</strong> {rxRecord.uhid}</div>
+                <div><strong>MRN:</strong> {rxRecord.mrn}</div>
                 <div><strong>Doctor:</strong> {rxRecord.doctorName}</div>
                 <div><strong>Date:</strong> {rxRecord.consultationDate}</div>
               </div>
@@ -2096,7 +2096,7 @@ export function DoctorEditPrescriptionScreen({
   onSaveSuccess?: () => void
   onIssueSuccess?: () => void
   onViewConsultation?: (consultId: string) => void
-  onViewPatientProfile?: (uhid: string) => void
+  onViewPatientProfile?: (mrn: string) => void
 }) {
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const [printModalOpen, setPrintModalOpen] = useState(false)
@@ -2110,7 +2110,7 @@ export function DoctorEditPrescriptionScreen({
   // Patient & Clinical Record
   const patientData = {
     patientName: 'James Thornton',
-    uhid: 'UHID-772102',
+    mrn: 'MRN-772102',
     age: 67,
     gender: 'Male',
     bloodGroup: 'O+',
@@ -2334,7 +2334,7 @@ export function DoctorEditPrescriptionScreen({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm text-[#111827]" style={{ fontFamily: PP }}>{patientData.patientName}</span>
-                <span className="font-mono text-[10px] bg-blue-50 text-[#0D47A1] px-2 py-0.5 rounded font-bold">{patientData.uhid}</span>
+                <span className="font-mono text-[10px] bg-blue-50 text-[#0D47A1] px-2 py-0.5 rounded font-bold">{patientData.mrn}</span>
                 <span className="font-mono text-[10px] bg-emerald-50 text-[#009688] px-2 py-0.5 rounded font-bold">{patientData.prescriptionId}</span>
                 <span className="font-mono text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold">{patientData.consultationId}</span>
               </div>
@@ -2356,7 +2356,7 @@ export function DoctorEditPrescriptionScreen({
 
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={() => onViewPatientProfile?.(patientData.uhid)}
+              onClick={() => onViewPatientProfile?.(patientData.mrn)}
               className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] bg-white text-xs font-semibold text-[#111827] hover:bg-slate-50 transition-colors"
               style={{ fontFamily: PP }}
             >
@@ -2387,8 +2387,8 @@ export function DoctorEditPrescriptionScreen({
 
               <div className="space-y-3 text-xs" style={{ fontFamily: RB }}>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>UHID</span>
-                  <span className="font-mono font-bold text-[#0D47A1] text-sm">{patientData.uhid}</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>MRN</span>
+                  <span className="font-mono font-bold text-[#0D47A1] text-sm">{patientData.mrn}</span>
                 </div>
 
                 <div>
@@ -2982,7 +2982,7 @@ export function DoctorEditPrescriptionScreen({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div><strong>Patient:</strong> {patientData.patientName}</div>
-                <div><strong>UHID:</strong> {patientData.uhid}</div>
+                <div><strong>MRN:</strong> {patientData.mrn}</div>
                 <div><strong>Doctor:</strong> {patientData.doctorName}</div>
                 <div><strong>Date:</strong> {patientData.consultationDate}</div>
               </div>
@@ -3066,7 +3066,7 @@ export function DoctorPrescriptionPrintPreviewScreen({
 
     // Patient Info
     patientName: 'Sarah Mitchell',
-    uhid: 'UHID-892101',
+    mrn: 'MRN-892101',
     age: 34,
     gender: 'Female',
     bloodGroup: 'A+',
@@ -3253,8 +3253,8 @@ export function DoctorPrescriptionPrintPreviewScreen({
                     <span className="font-bold text-[#111827] text-sm">{docData.patientName}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>UHID</span>
-                    <span className="font-mono font-bold text-[#0D47A1]">{docData.uhid}</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>MRN</span>
+                    <span className="font-mono font-bold text-[#0D47A1]">{docData.mrn}</span>
                   </div>
                   <div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>Age / Gender</span>
@@ -3577,17 +3577,17 @@ export function DoctorPrescriptionPrintPreviewScreen({
 // SCREEN 8 — Doctor Prescription History Screen (Read-Only 3-Column Workspace)
 // ═══════════════════════════════════════════════════════════════════════════════
 export function DoctorPrescriptionHistoryScreen({
-  patientUhid = 'UHID-892101',
+  patientMrn = 'MRN-892101',
   onBack,
   onViewPrescription,
   onPrintPreview,
   onViewPatientProfile
 }: {
-  patientUhid?: string
+  patientMrn?: string
   onBack?: () => void
   onViewPrescription?: (rxId: string) => void
   onPrintPreview?: (rxId: string) => void
-  onViewPatientProfile?: (uhid: string) => void
+  onViewPatientProfile?: (mrn: string) => void
 }) {
   const [toastMsg, setToastMsg] = useState<string | null>(null)
   const [isLoading] = useState(false)
@@ -3618,7 +3618,7 @@ export function DoctorPrescriptionHistoryScreen({
   // Mock Patient Profile
   const patientData = {
     patientName: 'Sarah Mitchell',
-    uhid: patientUhid,
+    mrn: patientMrn,
     age: 34,
     gender: 'Female',
     bloodGroup: 'A+',
@@ -3796,7 +3796,7 @@ export function DoctorPrescriptionHistoryScreen({
               </button>
             )}
             <button
-              onClick={() => showToast(`Exported full history PDF for ${patientUhid}`)}
+              onClick={() => showToast(`Exported full history PDF for ${patientMrn}`)}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#0D47A1] bg-white text-[#0D47A1] hover:bg-blue-50 text-xs font-semibold transition-all shadow-sm"
               style={{ fontFamily: PP }}
             >
@@ -3804,7 +3804,7 @@ export function DoctorPrescriptionHistoryScreen({
               Download History PDF
             </button>
             <button
-              onClick={() => showToast(`Sent full prescription history for ${patientUhid} to printer`)}
+              onClick={() => showToast(`Sent full prescription history for ${patientMrn} to printer`)}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-semibold transition-all shadow-sm"
               style={{ fontFamily: PP }}
             >
@@ -3823,7 +3823,7 @@ export function DoctorPrescriptionHistoryScreen({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm text-[#111827]" style={{ fontFamily: PP }}>{patientData.patientName}</span>
-                <span className="font-mono text-[10px] bg-blue-50 text-[#0D47A1] px-2 py-0.5 rounded font-bold">{patientData.uhid}</span>
+                <span className="font-mono text-[10px] bg-blue-50 text-[#0D47A1] px-2 py-0.5 rounded font-bold">{patientData.mrn}</span>
                 <span className="font-mono text-[10px] bg-emerald-50 text-[#009688] px-2 py-0.5 rounded font-bold">{patientData.status}</span>
               </div>
               <div className="flex items-center gap-3 text-xs text-[#64748B] mt-0.5" style={{ fontFamily: RB }}>
@@ -3846,7 +3846,7 @@ export function DoctorPrescriptionHistoryScreen({
 
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={() => onViewPatientProfile?.(patientData.uhid)}
+              onClick={() => onViewPatientProfile?.(patientData.mrn)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E7EB] bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700"
               style={{ fontFamily: PP }}
             >
@@ -3870,8 +3870,8 @@ export function DoctorPrescriptionHistoryScreen({
 
               <div className="space-y-3 text-xs" style={{ fontFamily: RB }}>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5" style={{ fontFamily: PP }}>UHID</span>
-                  <span className="font-mono font-bold text-[#0D47A1] text-sm">{patientData.uhid}</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5" style={{ fontFamily: PP }}>MRN</span>
+                  <span className="font-mono font-bold text-[#0D47A1] text-sm">{patientData.mrn}</span>
                 </div>
 
                 <div>
@@ -4311,7 +4311,7 @@ export function DoctorPrescriptionHistoryScreen({
                 </button>
 
                 <button
-                  onClick={() => showToast(`Sent full prescription history for ${patientUhid} to printer`)}
+                  onClick={() => showToast(`Sent full prescription history for ${patientMrn} to printer`)}
                   className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-[#009688] text-xs font-semibold transition-colors"
                   style={{ fontFamily: PP }}
                 >
@@ -4320,7 +4320,7 @@ export function DoctorPrescriptionHistoryScreen({
                 </button>
 
                 <button
-                  onClick={() => showToast(`Downloaded PDF for ${patientUhid}`)}
+                  onClick={() => showToast(`Downloaded PDF for ${patientMrn}`)}
                   className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0D47A1] text-xs font-semibold transition-colors"
                   style={{ fontFamily: PP }}
                 >
@@ -4329,7 +4329,7 @@ export function DoctorPrescriptionHistoryScreen({
                 </button>
 
                 <button
-                  onClick={() => onViewPatientProfile?.(patientUhid)}
+                  onClick={() => onViewPatientProfile?.(patientMrn)}
                   className="w-full flex items-center justify-between px-3 py-2 rounded-xl border border-gray-200 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors"
                   style={{ fontFamily: RB }}
                 >

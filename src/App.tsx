@@ -1,30 +1,10 @@
-import { useState, useEffect } from "react";
-import { LoginPage, useAuthStore } from "./features/auth";
-import {
-  PatientListScreen,
-  PatientProfileScreen,
-  EditPatientScreen,
-  MedicalHistoryScreen,
-  PatientVisitHistoryScreen,
-  PatientSearchScreen,
-  PatientTimelineScreen,
-  PatientAppointmentsScreen,
-  PatientMedicalRecordsScreen,
-  PatientPrescriptionsScreen,
-  PatientPrescriptionDetailsScreen,
-  PatientBillingScreen,
-  PatientProfileCenterScreen,
-  ReceptionPatientRegistrationScreen,
-  ReceptionPatientProfileScreen,
-} from "./features/patients";
-import { UserManagementCenterScreen } from "./features/users";
-import { DoctorManagementCenterScreen } from "./features/doctors";
-import {
-  AppointmentManagementCenterScreen,
-  ReceptionBookAppointmentScreen,
-  PatientCheckInScreen,
-  ReceptionQueueManagementScreen,
-} from "./features/appointments";
+import { useState } from 'react'
+import safeHandsLogo from './assets/safehandshospital_logo.webp'
+import AuthApp from './Auth'
+import { PatientListScreen, PatientProfileScreen, EditPatientScreen, MedicalHistoryScreen, PatientVisitHistoryScreen, PatientSearchScreen, PatientTimelineScreen, PatientAppointmentsScreen, PatientMedicalRecordsScreen, PatientPrescriptionsScreen, PatientPrescriptionDetailsScreen, PatientProfileCenterScreen, ReceptionPatientRegistrationScreen, ReceptionPatientProfileScreen } from './Patients'
+import { UserManagementCenterScreen } from './UserManagement'
+import { DoctorManagementCenterScreen } from './DoctorManagement'
+import { AppointmentManagementCenterScreen, ReceptionBookAppointmentScreen, PatientCheckInScreen, ReceptionQueueManagementScreen } from './AppointmentManagement'
 import {
   DoctorAppointmentsScreen,
   DoctorPrescriptionsScreen,
@@ -32,18 +12,22 @@ import {
   DoctorEditPrescriptionScreen,
   DoctorPrescriptionPrintPreviewScreen,
   DoctorPrescriptionHistoryScreen,
-  DoctorReportsScreen,
-} from "./features/doctors";
-import {
-  OpdConsultationCenterScreen,
-  StartOpdConsultationWorkspaceScreen,
-  ConsultationDetailsScreen,
-  EditConsultationScreen,
-  ConsultationHistoryScreen,
-  OpdConsultationMonitoringCenterScreen,
-  AdminConsultationDetailsScreen,
-} from "./features/opd";
-import { RecordPatientVitalsScreen } from "./features/vitals";
+} from './DoctorScreens'
+import { OpdConsultationCenterScreen } from './OpdConsultationCenter'
+import { StartOpdConsultationWorkspaceScreen } from './StartOpdConsultationWorkspace'
+import { ConsultationDetailsScreen } from './ConsultationDetailsScreen'
+import { EditConsultationScreen } from './EditConsultationScreen'
+import { ConsultationHistoryScreen } from './ConsultationHistoryScreen'
+import { OpdConsultationMonitoringCenterScreen } from './OpdConsultationMonitoringCenter'
+import { AdminConsultationDetailsScreen } from './AdminConsultationDetailsScreen'
+import { RecordPatientVitalsScreen } from './VitalsManagement'
+import { BillingDashboardScreen, CreateInvoiceWorkspaceScreen, CollectPaymentWorkspaceScreen, InvoiceDetailsScreen, InvoicePrintPreviewScreen, PaymentHistoryScreen, DailyBillingReportScreen, ReceptionistPaymentCollectionScreen, PatientMyBillsScreen } from './BillingManagement'
+import { ReportsDashboardScreen, DailyAppointmentReportScreen, DailyRevenueReportScreen, PatientReportScreen, DoctorReportScreen, BillingReportScreen, DashboardKpiDetailScreen, DoctorReportsDashboardScreen, DoctorDailyAppointmentReportScreen, DoctorPatientReportScreen, DoctorDoctorReportScreen, DoctorDashboardKpiDetailScreen, ReceptionistReportsDashboardScreen, ReceptionistDailyAppointmentReportScreen, ReceptionistPatientReportScreen, ReceptionistDashboardKpiDetailScreen, AccountantReportsDashboardScreen, AccountantDailyRevenueReportScreen, AccountantBillingReportScreen, AccountantDashboardKpiDetailScreen } from './ReportsManagement'
+import AuditLogsManagementScreen from './AuditLogsManagement'
+import { NotificationCenterManagement } from './NotificationCenterManagement'
+import { MyProfileManagement } from './MyProfileManagement'
+import { SettingsWorkspace } from './SettingsWorkspace'
+import { FamilyMembersManagement, INITIAL_FAMILY_MEMBERS, type FamilyMember } from './FamilyMembersManagement'
 import {
   SuperAdminDashboard,
   HospitalAdminDashboard,
@@ -54,85 +38,29 @@ import {
   PatientDashboard,
 } from "./features/dashboard";
 import {
-  LayoutDashboard,
-  Users,
-  Calendar,
-  Stethoscope,
-  FileText,
-  Pill,
-  CreditCard,
-  Settings,
-  Bell,
-  Search,
-  UserPlus,
-  CheckSquare,
-  Receipt,
-  Clock,
-  Activity,
-  ChevronRight,
-  User,
-  Check,
-  Building2,
-  ChevronDown,
-  LogOut,
-  ClipboardList,
-  Shield,
-  TrendingUp,
-  TrendingDown,
-  RefreshCw,
-  Zap,
-  Download,
-  UserCheck,
-  LogIn,
-  BarChart2,
-  DollarSign,
-  MessageSquare,
-} from "lucide-react";
-import { AreaChart, Area, ResponsiveContainer } from "recharts";
+  LayoutDashboard, Users, Calendar, Stethoscope, FileText,
+  Pill, CreditCard, Settings, Bell, Search,
+  Receipt, Clock, Activity,
+  ChevronRight, User, Check,
+  Building2, ChevronDown, LogOut,
+  ClipboardList, Shield,
+  TrendingUp, TrendingDown, RefreshCw,
+  Zap, Download,
+  UserCheck, LogIn, BarChart2, DollarSign, MessageSquare
+} from 'lucide-react'
+import { AreaChart, Area, ResponsiveContainer } from 'recharts'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 type NavId =
-  | "dashboard"
-  | "patients"
-  | "doctors"
-  | "appointments"
-  | "checkin"
-  | "consultation"
-  | "vitals"
-  | "prescriptions"
-  | "billing"
-  | "operational-reports"
-  | "financial-reports"
-  | "audit-logs"
-  | "notifications"
-  | "settings"
-  | "profile"
-  | "hospital-management"
-  | "user-management"
-  | "roles-permissions"
-  | "medical-history"
-  | "visit-history"
-  | "patient-timeline"
-  | "patient-search"
-  | "bills-payments"
-  | "reports"
-  | "reception"
-  | "opd";
-type Role =
-  | "super-admin"
-  | "admin"
-  | "doctor"
-  | "nurse"
-  | "receptionist"
-  | "accountant"
-  | "patient";
-type AppStatus =
-  | "scheduled"
-  | "checked-in"
-  | "in-progress"
-  | "waiting"
-  | "completed"
-  | "cancelled";
+  | 'dashboard' | 'patients' | 'doctors' | 'appointments' | 'checkin'
+  | 'consultation' | 'vitals' | 'prescriptions'
+  | 'billing' | 'payments' | 'payment-history' | 'daily-billing-report' | 'operational-reports' | 'financial-reports'
+  | 'audit-logs' | 'notifications' | 'settings' | 'profile'
+  | 'hospital-management' | 'user-management' | 'roles-permissions'
+  | 'medical-history' | 'visit-history' | 'patient-timeline' | 'patient-search' | 'bills-payments' | 'reports' | 'family-members'
+  | 'reception' | 'opd'
+type Role = 'super-admin' | 'admin' | 'doctor' | 'nurse' | 'receptionist' | 'accountant' | 'patient'
+type AppStatus = 'scheduled' | 'checked-in' | 'in-progress' | 'waiting' | 'completed' | 'cancelled'
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -369,22 +297,9 @@ const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
       id: "administration",
       label: "Administration",
       items: [
-        {
-          id: "hospital-management",
-          Icon: Building2,
-          label: "Hospital Management",
-        },
-        { id: "user-management", Icon: Users, label: "User & Role Management" },
-        { id: "audit-logs", Icon: FileText, label: "Audit Logs" },
-        { id: "settings", Icon: Settings, label: "Settings" },
-      ],
-    },
-    {
-      id: "account",
-      label: "Account",
-      items: [
-        { id: "notifications", Icon: Bell, label: "Notifications", badge: 5 },
-        { id: "profile", Icon: User, label: "My Profile" },
+        { id: 'hospital-management', Icon: Building2, label: 'Hospital Management' },
+        { id: 'user-management', Icon: Users, label: 'User & Role Management' },
+        { id: 'audit-logs', Icon: FileText, label: 'Audit Logs' },
       ],
     },
   ],
@@ -420,17 +335,8 @@ const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
       id: "administration",
       label: "Administration",
       items: [
-        { id: "user-management", Icon: Users, label: "User & Role Management" },
-        { id: "audit-logs", Icon: FileText, label: "Audit Logs" },
-        { id: "settings", Icon: Settings, label: "Settings" },
-      ],
-    },
-    {
-      id: "account",
-      label: "Account",
-      items: [
-        { id: "notifications", Icon: Bell, label: "Notifications", badge: 4 },
-        { id: "profile", Icon: User, label: "My Profile" },
+        { id: 'user-management', Icon: Users, label: 'User & Role Management' },
+        { id: 'audit-logs', Icon: FileText, label: 'Audit Logs' },
       ],
     },
   ],
@@ -450,14 +356,6 @@ const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
       label: "Reports",
       items: [{ id: "reports", Icon: BarChart2, label: "Reports" }],
     },
-    {
-      id: "account",
-      label: "Account",
-      items: [
-        { id: "notifications", Icon: Bell, label: "Notifications", badge: 3 },
-        { id: "profile", Icon: User, label: "My Profile" },
-      ],
-    },
   ],
   nurse: [
     {
@@ -470,32 +368,17 @@ const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "vitals", Icon: Activity, label: "Vitals" },
       ],
     },
-    {
-      id: "account",
-      label: "Account",
-      items: [
-        { id: "notifications", Icon: Bell, label: "Notifications", badge: 2 },
-        { id: "profile", Icon: User, label: "My Profile" },
-      ],
-    },
   ],
   receptionist: [
     {
       id: "front-desk",
       label: "Front Desk",
       items: [
-        { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard" },
-        { id: "patients", Icon: Users, label: "Patients" },
-        { id: "appointments", Icon: Calendar, label: "Appointments" },
-        { id: "reports", Icon: BarChart2, label: "Reports" },
-      ],
-    },
-    {
-      id: "account",
-      label: "Account",
-      items: [
-        { id: "notifications", Icon: Bell, label: "Notifications", badge: 4 },
-        { id: "profile", Icon: User, label: "My Profile" },
+        { id: 'dashboard', Icon: LayoutDashboard, label: 'Dashboard' },
+        { id: 'patients', Icon: Users, label: 'Patients' },
+        { id: 'appointments', Icon: Calendar, label: 'Appointments' },
+        { id: 'billing', Icon: CreditCard, label: 'Billing' },
+        { id: 'reports', Icon: BarChart2, label: 'Reports' },
       ],
     },
   ],
@@ -509,38 +392,19 @@ const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "reports", Icon: BarChart2, label: "Reports" },
       ],
     },
-    {
-      id: "account",
-      label: "Account",
-      items: [
-        { id: "notifications", Icon: Bell, label: "Notifications", badge: 1 },
-        { id: "profile", Icon: User, label: "My Profile" },
-      ],
-    },
   ],
   patient: [
     {
       id: "my-health",
       label: "My Health",
       items: [
-        { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard" },
-        { id: "appointments", Icon: Calendar, label: "Appointments" },
-        {
-          id: "medical-history",
-          Icon: ClipboardList,
-          label: "Medical Records",
-        },
-        { id: "prescriptions", Icon: Pill, label: "Prescriptions" },
-        { id: "bills-payments", Icon: Receipt, label: "Billing & Payments" },
-        { id: "reports", Icon: BarChart2, label: "Reports" },
-      ],
-    },
-    {
-      id: "account",
-      label: "Account",
-      items: [
-        { id: "notifications", Icon: Bell, label: "Notifications", badge: 2 },
-        { id: "profile", Icon: User, label: "Profile" },
+        { id: 'dashboard', Icon: LayoutDashboard, label: 'Dashboard' },
+        { id: 'family-members', Icon: Users, label: 'Family Members' },
+        { id: 'appointments', Icon: Calendar, label: 'Appointments' },
+        { id: 'medical-history', Icon: ClipboardList, label: 'Medical Records' },
+        { id: 'prescriptions', Icon: Pill, label: 'Prescriptions' },
+        { id: 'bills-payments', Icon: Receipt, label: 'Billing & Payments' },
+        { id: 'reports', Icon: BarChart2, label: 'Reports' },
       ],
     },
   ],
@@ -560,59 +424,7 @@ const ROLES: Role[] = [
   "patient",
 ];
 
-type QA = { label: string; Icon: React.ElementType; color: string };
-const ROLE_ACTIONS: Record<Role, QA[]> = {
-  "super-admin": [
-    { label: "Add Hospital", Icon: Building2, color: "#0D47A1" },
-    { label: "Manage Users", Icon: Users, color: "#009688" },
-    { label: "Assign Roles", Icon: Shield, color: "#0D47A1" },
-    { label: "View Audit Logs", Icon: FileText, color: "#009688" },
-    { label: "System Settings", Icon: Settings, color: "#64748B" },
-  ],
-  admin: [
-    { label: "Register Patient", Icon: UserPlus, color: "#0D47A1" },
-    { label: "Book Appointment", Icon: Calendar, color: "#009688" },
-    { label: "Generate Bill", Icon: Receipt, color: "#0D47A1" },
-    { label: "View Reports", Icon: FileText, color: "#009688" },
-    { label: "Manage Staff", Icon: Users, color: "#64748B" },
-  ],
-  doctor: [
-    { label: "Start Consultation", Icon: Stethoscope, color: "#0D47A1" },
-    { label: "View Patient History", Icon: FileText, color: "#009688" },
-    { label: "Create Prescription", Icon: Pill, color: "#0D47A1" },
-    { label: "Add Clinical Note", Icon: ClipboardList, color: "#009688" },
-    { label: "View Appointments", Icon: Calendar, color: "#64748B" },
-  ],
-  nurse: [
-    { label: "Update Vitals", Icon: Activity, color: "#0D47A1" },
-    { label: "Record Vitals", Icon: CheckSquare, color: "#009688" },
-    { label: "Patient Notes", Icon: ClipboardList, color: "#0D47A1" },
-    { label: "View Appointments", Icon: Calendar, color: "#009688" },
-    { label: "Clinical Alert", Icon: Bell, color: "#EF4444" },
-  ],
-  receptionist: [
-    { label: "Register Patient", Icon: UserPlus, color: "#0D47A1" },
-    { label: "New Appointment", Icon: Calendar, color: "#009688" },
-    { label: "Check-In", Icon: CheckSquare, color: "#0D47A1" },
-    { label: "Generate Token", Icon: Zap, color: "#009688" },
-    { label: "Generate Bill", Icon: Receipt, color: "#64748B" },
-    { label: "Discharge Patient", Icon: LogOut, color: "#64748B" },
-  ],
-  accountant: [
-    { label: "Generate Invoice", Icon: Receipt, color: "#0D47A1" },
-    { label: "Collect Payment", Icon: CreditCard, color: "#009688" },
-    { label: "Process Refund", Icon: Download, color: "#0D47A1" },
-    { label: "Financial Reports", Icon: BarChart2, color: "#009688" },
-    { label: "Export Data", Icon: FileText, color: "#64748B" },
-  ],
-  patient: [
-    { label: "Book Appointment", Icon: Calendar, color: "#0D47A1" },
-    { label: "Download Prescription", Icon: Pill, color: "#009688" },
-    { label: "Pay Bills", Icon: CreditCard, color: "#0D47A1" },
-    { label: "Update Profile", Icon: User, color: "#64748B" },
-    { label: "Medical Records", Icon: FileText, color: "#009688" },
-  ],
-};
+
 
 // ─── Shared UI Components ──────────────────────────────────────────────────
 const STATUS_CONFIG: Record<
@@ -736,38 +548,26 @@ function Sparkline({
 }
 
 // ─── NavRail ───────────────────────────────────────────────────────────────
-function NavRail({
-  active,
-  onSelect,
-  role,
-  onLogout,
-  theme = "light",
-  onThemeToggle,
-}: {
-  active: NavId;
-  onSelect: (id: NavId) => void;
-  role: Role;
-  onLogout: () => void;
-  theme?: "light" | "dark";
-  onThemeToggle?: () => void;
+function NavRail({ active, onSelect, role, theme = 'light', onThemeToggle }: {
+  active: NavId; onSelect: (id: NavId) => void; role: Role
+  theme?: 'light' | 'dark'; onThemeToggle?: () => void
 }) {
   const [expanded, setExpanded] = useState(false);
   const dk = theme === "dark";
 
   // Theme tokens
-  const bg = dk ? "#0F172A" : "#FFFFFF";
-  const border = dk ? "#1E293B" : "#E5E7EB";
-  const textPri = dk ? "#F1F5F9" : "#111827";
-  const textSec = dk ? "#94A3B8" : "#64748B";
-  const groupLbl = dk ? "#475569" : "#94A3B8";
-  const hoverBg = dk ? "rgba(255,255,255,0.06)" : "#F8FAFC";
-  const hoverText = dk ? "#F1F5F9" : "#111827";
-  const activeBg = "#0D47A1";
-  const activeText = "#FFFFFF";
-  const divider = dk ? "#1E293B" : "#E5E7EB";
-  const rolePill = dk ? "rgba(13,71,161,0.35)" : "rgba(219,234,254,0.9)";
-  const roleTxt = dk ? "#93C5FD" : "#0D47A1";
-  const themeBtnBg = dk ? "rgba(255,255,255,0.08)" : "#F1F5F9";
+  const bg = dk ? '#0F172A' : '#FFFFFF'
+  const border = dk ? '#1E293B' : '#E5E7EB'
+  const textSec = dk ? '#94A3B8' : '#64748B'
+  const groupLbl = dk ? '#475569' : '#94A3B8'
+  const hoverBg = dk ? 'rgba(255,255,255,0.06)' : '#F8FAFC'
+  const hoverText = dk ? '#F1F5F9' : '#111827'
+  const activeBg = '#0D47A1'
+  const activeText = '#FFFFFF'
+  const divider = dk ? '#1E293B' : '#E5E7EB'
+  const rolePill = dk ? 'rgba(13,71,161,0.35)' : 'rgba(219,234,254,0.9)'
+  const roleTxt = dk ? '#93C5FD' : '#0D47A1'
+  const themeBtnBg = dk ? 'rgba(255,255,255,0.08)' : '#F1F5F9'
 
   return (
     <nav
@@ -781,69 +581,26 @@ function NavRail({
         borderRight: `1px solid ${border}`,
       }}
     >
-      {/* ── Logo ── */}
-      <div
-        className="flex items-center gap-3 shrink-0 overflow-hidden"
+      {/* ── Role Selector Header ── */}
+      <div className="shrink-0 overflow-hidden"
         style={{
-          padding: "14px 16px",
+          padding: expanded ? '14px 16px' : '14px 12px',
           minHeight: 64,
           borderBottom: `1px solid ${border}`,
-        }}
-      >
-        <div
-          className="w-9 h-9 rounded-xl bg-[#0D47A1] flex items-center justify-center shrink-0 shadow-sm"
-          style={{ boxShadow: "0 2px 8px rgba(13,71,161,0.30)" }}
-        >
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-            <rect x="7" y="1" width="4" height="16" rx="2" fill="white" />
-            <rect x="1" y="7" width="16" height="4" rx="2" fill="white" />
-          </svg>
-        </div>
-        <div
-          className="overflow-hidden whitespace-nowrap"
-          style={{
-            opacity: expanded ? 1 : 0,
-            transition: "opacity 180ms 40ms",
-          }}
-        >
-          <div
-            className="text-sm font-bold leading-tight"
-            style={{ fontFamily: PP, color: textPri }}
-          >
-            Safe Hands
-          </div>
-          <div
-            className="text-[10px]"
-            style={{ fontFamily: RB, color: textSec }}
-          >
-            Hospital Management
-          </div>
-        </div>
-      </div>
-
-      {/* ── Role Badge (expanded) ── */}
-      <div
-        className="shrink-0 overflow-hidden"
-        style={{
-          maxHeight: expanded ? 52 : 0,
-          opacity: expanded ? 1 : 0,
-          transition:
-            "max-height 220ms cubic-bezier(0.4,0,0.2,1), opacity 180ms",
-          borderBottom: `1px solid ${border}`,
-        }}
-      >
-        <div className="px-4 py-2.5">
-          <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
-            style={{ background: rolePill }}
-          >
+          display: 'flex',
+          alignItems: 'center',
+        }}>
+        <div className="w-full">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: rolePill, justifyContent: expanded ? 'flex-start' : 'center' }}>
+            <span className="w-2 h-2 rounded-full shrink-0 animate-pulse" style={{ background: roleTxt }} />
             <span
-              className="w-1.5 h-1.5 rounded-full shrink-0 animate-pulse"
-              style={{ background: roleTxt }}
-            />
-            <span
-              className="text-xs font-semibold whitespace-nowrap"
-              style={{ fontFamily: PP, color: roleTxt }}
+              className="text-xs font-semibold whitespace-nowrap overflow-hidden transition-all duration-200"
+              style={{
+                fontFamily: PP,
+                color: roleTxt,
+                opacity: expanded ? 1 : 0,
+                width: expanded ? 'auto' : 0,
+              }}
             >
               {ROLE_LABEL[role]}
             </span>
@@ -885,9 +642,9 @@ function NavRail({
                   className="relative flex items-center rounded-xl w-full transition-all duration-150 mb-0.5 group/navitem"
                   style={{
                     gap: expanded ? 10 : 0,
-                    padding: expanded ? "9px 12px" : "11px 0",
-                    justifyContent: expanded ? "flex-start" : "center",
-                    background: isActive ? activeBg : "transparent",
+                    padding: expanded ? '9px 12px' : '9px 0',
+                    justifyContent: expanded ? 'flex-start' : 'center',
+                    background: isActive ? activeBg : 'transparent',
                     color: isActive ? activeText : textSec,
                     boxShadow: isActive
                       ? "0 1px 4px rgba(13,71,161,0.25)"
@@ -912,41 +669,28 @@ function NavRail({
                 >
                   {/* Active left bar (collapsed) */}
                   {isActive && !expanded && (
-                    <span
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full"
-                      style={{
-                        background: "#0D47A1",
-                        transform: "translateX(-2px) translateY(-50%)",
-                      }}
-                    />
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-white rounded-r-full" />
                   )}
 
-                  {/* Icon + badge dot (collapsed) */}
-                  <div className="relative shrink-0">
-                    <Icon size={17} />
+                  {/* Icon + badge dot */}
+                  <div className="relative shrink-0 flex items-center justify-center w-8 h-8">
+                    <Icon size={18} />
                     {!!badge && !expanded && (
-                      <span
-                        className="absolute -top-1 -right-1.5 w-[14px] h-[14px] bg-[#EF4444] text-white text-[8px] font-bold rounded-full flex items-center justify-center leading-none"
-                        style={{ fontFamily: PP }}
-                      >
+                      <span className="absolute top-0 right-0 w-[14px] h-[14px] bg-[#EF4444] text-white text-[8px] font-bold rounded-full flex items-center justify-center leading-none" style={{ fontFamily: PP }}>
                         {badge}
                       </span>
                     )}
                   </div>
 
                   {/* Label */}
-                  <span
-                    className="text-[13px] font-medium whitespace-nowrap flex-1 text-left"
-                    style={{
-                      opacity: expanded ? 1 : 0,
-                      width: expanded ? "auto" : 0,
-                      overflow: "hidden",
-                      transition: "opacity 160ms",
-                      fontFamily: RB,
-                    }}
-                  >
-                    {label}
-                  </span>
+                  {expanded && (
+                    <span
+                      className="text-[13px] font-medium whitespace-nowrap flex-1 text-left truncate"
+                      style={{ fontFamily: RB }}
+                    >
+                      {label}
+                    </span>
+                  )}
 
                   {/* Badge pill (expanded) */}
                   {!!badge && expanded && (
@@ -972,123 +716,20 @@ function NavRail({
         ))}
       </div>
 
-      {/* ── Profile Footer ── */}
-      <div
-        className="shrink-0 p-3"
-        style={{ borderTop: `1px solid ${border}` }}
-      >
-        {/* Theme toggle (expanded) */}
-        <div
-          className="overflow-hidden mb-2"
-          style={{
-            maxHeight: expanded ? 36 : 0,
-            opacity: expanded ? 1 : 0,
-            transition: "max-height 200ms ease, opacity 160ms",
-          }}
+      {/* ── Theme Toggle Footer ── */}
+      <div className="shrink-0 p-3" style={{ borderTop: `1px solid ${border}` }}>
+        <button
+          onClick={onThemeToggle}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl transition-colors text-left"
+          style={{ background: themeBtnBg, color: textSec, fontFamily: RB, fontSize: 11, justifyContent: expanded ? 'flex-start' : 'center' }}
+          title={dk ? 'Switch to Light' : 'Switch to Dark'}
         >
-          <button
-            onClick={onThemeToggle}
-            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors text-left"
-            style={{
-              background: themeBtnBg,
-              color: textSec,
-              fontFamily: RB,
-              fontSize: 11,
-            }}
-            title={dk ? "Switch to Light" : "Switch to Dark"}
-          >
-            {dk ? (
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="23" />
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                <line x1="1" y1="12" x2="3" y2="12" />
-                <line x1="21" y1="12" x2="23" y2="12" />
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-              </svg>
-            ) : (
-              <svg
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            )}
-            <span>{dk ? "Light Mode" : "Dark Mode"}</span>
-          </button>
-        </div>
-
-        <div
-          className="flex items-center rounded-xl overflow-hidden"
-          style={{
-            gap: expanded ? 10 : 0,
-            justifyContent: expanded ? "flex-start" : "center",
-          }}
-        >
-          <Avatar name="Dr. Arjun Mehta" size="sm" />
-
-          {/* Name + role */}
-          <div
-            className="flex-1 min-w-0 overflow-hidden"
-            style={{
-              opacity: expanded ? 1 : 0,
-              maxWidth: expanded ? 140 : 0,
-              transition: "opacity 150ms, max-width 200ms",
-            }}
-          >
-            <div
-              className="text-xs font-semibold truncate leading-tight"
-              style={{ fontFamily: PP, color: textPri }}
-            >
-              Dr. Arjun Mehta
-            </div>
-            <div
-              className="text-[10px] truncate"
-              style={{ fontFamily: RB, color: textSec }}
-            >
-              {ROLE_LABEL[role]}
-            </div>
-          </div>
-
-          {/* Logout */}
-          <button
-            onClick={onLogout}
-            title="Sign out"
-            className="w-7 h-7 flex items-center justify-center rounded-lg transition-colors shrink-0"
-            style={{
-              opacity: expanded ? 1 : 0,
-              pointerEvents: expanded ? "auto" : "none",
-              transition: "opacity 150ms",
-              color: textSec,
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background =
-                "rgba(239,68,68,0.12)";
-              (e.currentTarget as HTMLButtonElement).style.color = "#EF4444";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background =
-                "transparent";
-              (e.currentTarget as HTMLButtonElement).style.color = textSec;
-            }}
-          >
-            <LogOut size={14} />
-          </button>
-        </div>
+          {dk
+            ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" /></svg>
+            : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+          }
+          {expanded && <span>{dk ? 'Light Mode' : 'Dark Mode'}</span>}
+        </button>
       </div>
     </nav>
   );
@@ -1096,39 +737,69 @@ function NavRail({
 
 // ─── Header ────────────────────────────────────────────────────────────────
 function Header({
-  activeNav,
   role,
   onRoleChange,
   onLogout,
+  onNavigateNav,
+  activePatient,
+  familyMembers = INITIAL_FAMILY_MEMBERS,
+  onSwitchActivePatient,
 }: {
   activeNav: NavId;
   role: Role;
   onRoleChange: (r: Role) => void;
   onLogout: () => void;
+  onNavigateNav: (id: NavId) => void;
+  activePatient?: FamilyMember;
+  familyMembers?: FamilyMember[];
+  onSwitchActivePatient?: (member: FamilyMember) => void;
 }) {
-  const [showRoles, setShowRoles] = useState(false);
-  const today = new Date().toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-  const breadcrumb =
-    ALL_NAV_ITEMS.find((n) => n.id === activeNav)?.label ?? "Dashboard";
-  const roleLabel = ROLE_LABEL;
+  const [showRoles, setShowRoles] = useState(false)
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const [showPatientSelector, setShowPatientSelector] = useState(false)
+  const [pendingSwitchMember, setPendingSwitchMember] = useState<FamilyMember | null>(null)
+  const [isSwitching, setIsSwitching] = useState(false)
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+  const roleLabel = ROLE_LABEL
+  const currentActive = activePatient || familyMembers[0]
+
+  const confirmSwitch = (member: FamilyMember) => {
+    setIsSwitching(true)
+    setTimeout(() => {
+      onSwitchActivePatient?.(member)
+      setIsSwitching(false)
+      setPendingSwitchMember(null)
+      setShowPatientSelector(false)
+      setToastMsg(`Active patient changed successfully to ${member.patientName}`)
+      setTimeout(() => setToastMsg(null), 3500)
+    }, 400)
+  }
 
   return (
-    <header className="h-16 bg-white border-b border-gray-100 flex items-center px-5 gap-5 shrink-0 z-30">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 text-sm text-slate-500 min-w-0">
-        <span className="text-slate-400">Hospital</span>
-        <ChevronRight size={14} className="text-slate-300 shrink-0" />
-        <span className="font-medium text-[#111827] truncate">
-          {breadcrumb}
-        </span>
-      </div>
+    <header className="h-16 bg-white border-b border-gray-100 flex items-center px-5 gap-5 shrink-0 z-30 relative">
+      {/* Branding Left */}
+      <button 
+        onClick={() => onNavigateNav('dashboard')} 
+        className="flex items-center gap-3 text-left outline-none shrink-0 group focus:outline-none"
+      >
+        <img 
+          src={safeHandsLogo} 
+          alt="Safe Hands Hospital Logo" 
+          className="h-9 w-auto object-contain transition-transform group-hover:scale-105" 
+        />
+        <div className="flex flex-col">
+          <span className="text-sm font-bold text-[#111827] leading-tight" style={{ fontFamily: PP }}>
+            Safe Hands
+          </span>
+          <span className="text-[10px] text-[#64748B] hidden sm:inline" style={{ fontFamily: RB }}>
+            Hospital Management
+          </span>
+        </div>
+      </button>
 
-      {/* Search */}
+      {/* Global Search Center */}
       <div className="flex-1 max-w-96">
         <div className="relative">
           <Search
@@ -1143,7 +814,108 @@ function Header({
         </div>
       </div>
 
+      {/* Header Right */}
       <div className="flex items-center gap-3 ml-auto">
+        {/* ACTIVE PATIENT SELECTOR FOR PATIENT ROLE (Positioned before Date) */}
+        {role === 'patient' && (
+          <div className="relative">
+            <button
+              onClick={() => { setShowPatientSelector(v => !v); setShowRoles(false); setShowProfileMenu(false) }}
+              className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-blue-50/70 border border-blue-200/80 hover:bg-blue-100/60 transition-all outline-none"
+            >
+              <div className="w-7 h-7 rounded-full bg-[#0D47A1] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                {currentActive.patientName[0]}
+              </div>
+              <div className="text-left hidden sm:block">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-[#111827] leading-tight" style={{ fontFamily: PP }}>
+                    {currentActive.patientName}
+                  </span>
+                  <span className="px-1.5 py-0.2 bg-blue-100 text-[#0D47A1] text-[9px] font-bold rounded-full">
+                    {currentActive.relationship}
+                  </span>
+                </div>
+                <div className="text-[10px] text-[#64748B] font-mono leading-tight">
+                  {currentActive.mrn}
+                </div>
+              </div>
+              <ChevronDown size={14} className="text-[#0D47A1] ml-0.5" />
+            </button>
+
+            {/* ACTIVE PATIENT DROPDOWN PANEL */}
+            {showPatientSelector && (
+              <div className="absolute left-0 sm:right-0 top-full mt-2 w-80 bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="border-b border-[#E5E7EB] pb-2.5 mb-2 px-1">
+                  <div className="text-xs font-bold text-[#111827]" style={{ fontFamily: PP }}>Select Active Patient</div>
+                  <div className="text-[11px] text-[#64748B]" style={{ fontFamily: RB }}>Choose whose medical records you want to view.</div>
+                </div>
+
+                <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+                  {familyMembers.map((member) => {
+                    const isActive = currentActive.id === member.id
+                    const isVerified = member.verificationStatus === 'Verified'
+
+                    return (
+                      <button
+                        key={member.id}
+                        disabled={!isVerified}
+                        onClick={() => {
+                          if (!isVerified) return
+                          if (isActive) {
+                            setShowPatientSelector(false)
+                            return
+                          }
+                          setPendingSwitchMember(member)
+                        }}
+                        className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-all ${
+                          isActive
+                            ? 'bg-blue-50/90 border-[#0D47A1] shadow-sm'
+                            : isVerified
+                            ? 'bg-white border-[#E5E7EB] hover:bg-slate-50'
+                            : 'bg-slate-50 border-[#E5E7EB] opacity-60 cursor-not-allowed'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${isActive ? 'bg-[#0D47A1] text-white' : 'bg-slate-200 text-slate-700'}`}>
+                            {member.patientName[0]}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-bold text-[#111827] truncate" style={{ fontFamily: PP }}>
+                                {member.patientName}
+                              </span>
+                              <span className="px-1.5 py-0.2 bg-slate-100 text-[#64748B] text-[9px] font-bold rounded-full">
+                                {member.relationship}
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-[#64748B] font-mono truncate">{member.mrn}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-end shrink-0 ml-2">
+                          {isActive ? (
+                            <span className="px-2 py-0.5 bg-[#0D47A1] text-white rounded-full text-[9px] font-bold" style={{ fontFamily: PP }}>
+                              Currently Active
+                            </span>
+                          ) : isVerified ? (
+                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[9px] font-bold">
+                              Verified
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[9px] font-bold">
+                              Pending
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Date */}
         <div className="hidden lg:flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-gray-100">
           <Clock size={12} className="text-slate-400" />
@@ -1151,7 +923,11 @@ function Header({
         </div>
 
         {/* Notifications */}
-        <button className="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-50 text-slate-500 transition-colors">
+        <button 
+          onClick={() => onNavigateNav('notifications')}
+          className="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-50 text-slate-500 transition-colors"
+          title="Notification Center"
+        >
           <Bell size={17} />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#EF4444] rounded-full ring-2 ring-white" />
         </button>
@@ -1159,7 +935,7 @@ function Header({
         {/* Role Selector */}
         <div className="relative">
           <button
-            onClick={() => setShowRoles((v) => !v)}
+            onClick={() => { setShowRoles(v => !v); setShowProfileMenu(false); setShowPatientSelector(false) }}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
           >
             <Shield size={13} className="text-[#0D47A1]" />
@@ -1186,45 +962,175 @@ function Header({
           )}
         </div>
 
-        {/* Profile */}
-        <div className="flex items-center gap-2.5 pl-3 border-l border-gray-100">
-          <Avatar name="Dr. Arjun Mehta" size="sm" />
-          <div className="hidden xl:block">
-            <div className="text-xs font-semibold text-[#111827] leading-tight">
-              Dr. Arjun Mehta
-            </div>
-            <div className="text-[10px] text-slate-400">Cardiologist</div>
-          </div>
+        {/* PROFILE DROPDOWN TRIGGER AT RIGHT CORNER FOR ALL ROLES */}
+        <div className="relative pl-3 border-l border-gray-100">
           <button
-            onClick={onLogout}
-            className="ml-1 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-            title="Sign out"
+            onClick={() => { setShowProfileMenu(v => !v); setShowRoles(false); setShowPatientSelector(false) }}
+            className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-slate-50 transition-colors outline-none"
           >
-            <LogOut size={15} />
+            <Avatar name={role === 'patient' ? currentActive.patientName : "Dr. Arjun Mehta"} size="sm" />
+            <div className="hidden xl:block text-left">
+              <div className="text-xs font-semibold text-[#111827] leading-tight" style={{ fontFamily: PP }}>
+                {role === 'patient' ? currentActive.patientName : "Dr. Arjun Mehta"}
+              </div>
+              <div className="text-[10px] text-slate-400" style={{ fontFamily: RB }}>{roleLabel[role]}</div>
+            </div>
+            <ChevronDown size={14} className="text-slate-400 hidden xl:block" />
           </button>
+
+          {/* Profile Dropdown */}
+          {showProfileMenu && (
+            <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl border border-gray-200 shadow-xl shadow-slate-200/50 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+              {/* User Summary */}
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl mb-1 border border-slate-100">
+                <Avatar name={role === 'patient' ? currentActive.patientName : "Dr. Arjun Mehta"} size="md" />
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold text-[#111827] truncate" style={{ fontFamily: PP }}>
+                    {role === 'patient' ? currentActive.patientName : "Dr. Arjun Mehta"}
+                  </div>
+                  <div className="text-[11px] text-[#64748B] truncate" style={{ fontFamily: RB }}>{roleLabel[role]}</div>
+                  <div className="text-[10px] text-[#0D47A1] font-medium truncate mt-0.5">
+                    {role === 'patient' ? 'patient.portal@safehands.org' : 'arjun.mehta@safehands.org'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation Items */}
+              <div className="py-1 border-y border-slate-100 my-1 space-y-0.5">
+                <button
+                  onClick={() => {
+                    setShowProfileMenu(false)
+                    onNavigateNav('profile')
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                >
+                  <User size={15} className="text-[#0D47A1]" />
+                  <span>My Profile & Settings</span>
+                </button>
+                {(role === 'admin' || role === 'super-admin') && (
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false)
+                      onNavigateNav('settings')
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                  >
+                    <Settings size={15} className="text-slate-500" />
+                    <span>System Settings</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Destructive Sign Out */}
+              <button
+                onClick={() => {
+                  setShowProfileMenu(false)
+                  onLogout()
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#EF4444] hover:bg-red-50 transition-colors text-left"
+              >
+                <LogOut size={15} className="text-[#EF4444]" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* CONFIRMATION DIALOG: SWITCH ACTIVE PATIENT */}
+      {pendingSwitchMember && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 max-w-md w-full shadow-2xl space-y-4">
+            
+            {/* HEADER */}
+            <div className="flex items-center gap-3 border-b border-[#E5E7EB] pb-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0D47A1] flex items-center justify-center font-bold shrink-0">
+                <Users size={20} />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                  Switch Active Patient
+                </h3>
+                <p className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>
+                  Select active viewing profile context
+                </p>
+              </div>
+            </div>
+
+            {/* BODY: CURRENT PROFILE -> ARROW -> NEW ACTIVE PROFILE */}
+            <div className="space-y-2">
+              {/* Current Profile Section */}
+              <div className="p-3 bg-slate-50 border border-[#E5E7EB] rounded-2xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-[#0D47A1] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                    {currentActive.patientName[0]}
+                  </div>
+                  <div>
+                    <div className="text-[11px] text-[#64748B] font-semibold" style={{ fontFamily: PP }}>Current Profile</div>
+                    <div className="text-xs font-bold text-[#111827]" style={{ fontFamily: PP }}>{currentActive.patientName}</div>
+                    <div className="text-[10px] text-[#64748B] font-mono">{currentActive.mrn} · {currentActive.relationship}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* New Active Profile Section */}
+              <div className="p-3 bg-blue-50/80 border border-[#0D47A1]/30 rounded-2xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                    {pendingSwitchMember.patientName[0]}
+                  </div>
+                  <div>
+                    <div className="text-[11px] text-[#0D47A1] font-bold" style={{ fontFamily: PP }}>New Active Profile</div>
+                    <div className="text-xs font-bold text-[#111827]" style={{ fontFamily: PP }}>{pendingSwitchMember.patientName}</div>
+                    <div className="text-[10px] text-[#64748B] font-mono">{pendingSwitchMember.mrn} · {pendingSwitchMember.relationship}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* FOOTER ACTIONS */}
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#E5E7EB]">
+              <button
+                onClick={() => setPendingSwitchMember(null)}
+                className="px-4 py-2 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-50 transition-colors"
+                style={{ fontFamily: PP }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => confirmSwitch(pendingSwitchMember)}
+                disabled={isSwitching}
+                className="px-5 py-2 bg-[#0D47A1] text-white rounded-xl text-xs font-semibold hover:bg-blue-800 transition-all shadow-sm flex items-center gap-2"
+                style={{ fontFamily: PP }}
+              >
+                {isSwitching ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Switching...</span>
+                  </>
+                ) : (
+                  <span>Switch Patient Profile</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TOAST NOTIFICATION */}
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-[#111827] text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 animate-in slide-in-from-bottom-4 duration-200">
+          <Check className="w-5 h-5 text-[#66BB6A] shrink-0" />
+          <span className="text-xs font-semibold" style={{ fontFamily: PP }}>
+            {toastMsg}
+          </span>
+        </div>
+      )}
     </header>
-  );
+  )
 }
 
-// ─── Quick Action Ribbon ───────────────────────────────────────────────────
-function QuickActionRibbon({ role }: { role: Role }) {
-  const actions = ROLE_ACTIONS[role] ?? [];
-  return (
-    <div className="flex items-center gap-2 px-5 py-2 bg-white border-b border-gray-100 flex-wrap shrink-0">
-      {actions.map(({ label, Icon, color }) => (
-        <button
-          key={label}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 border border-gray-100 text-xs font-medium text-slate-600 hover:bg-blue-50 hover:border-[#0D47A1]/20 hover:text-[#0D47A1] transition-all"
-        >
-          <Icon size={12} style={{ color }} />
-          {label}
-        </button>
-      ))}
-    </div>
-  );
-}
+
 
 // ─── KPI Card ──────────────────────────────────────────────────────────────
 function KPICard({
@@ -1347,44 +1253,20 @@ function DeptStatus() {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm shadow-slate-50">
       <div className="flex items-center justify-between mb-4">
-        <div className="text-sm font-semibold text-[#111827]">
-          Department Status
+        <div>
+          <div className="text-sm font-semibold text-[#111827]">Department Occupancy</div>
+          <div className="text-xs text-slate-400 mt-0.5">Real-time OPD active load</div>
         </div>
-        <span className="text-xs text-slate-400">Live</span>
+        <span className="text-xs font-semibold text-[#0D47A1] bg-blue-50 px-2.5 py-1 rounded-full">5 Active</span>
       </div>
       <div className="flex flex-col gap-3">
         {DEPARTMENTS.map((d) => (
           <div key={d.name}>
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-2">
-                <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ background: d.color }}
-                />
-                <span className="text-xs font-medium text-[#111827]">
-                  {d.name}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500">
-                  {d.active}/{d.total} pts
-                </span>
-                <span
-                  className="font-mono text-xs font-semibold"
-                  style={{
-                    color:
-                      d.capacity >= 90
-                        ? "#EF4444"
-                        : d.capacity >= 70
-                          ? "#F59E0B"
-                          : "#009688",
-                  }}
-                >
-                  {d.capacity}%
-                </span>
-              </div>
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className="font-medium text-slate-700">{d.name}</span>
+              <span className="text-slate-500 font-mono">{d.active}/{d.total} ({d.capacity}%)</span>
             </div>
-            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all"
                 style={{ width: `${d.capacity}%`, background: d.color }}
@@ -2016,74 +1898,60 @@ function mapUserRoleToAppRole(userRole?: string | null): Role {
 
 // ─── HMS Shell ─────────────────────────────────────────────────────────────
 function HMS({ onLogout }: { onLogout: () => void }) {
-  const currentUser = useAuthStore((s) => s.user);
-  const [activeNav, setActiveNav] = useState<NavId>("dashboard");
-  const [previousNav, setPreviousNav] = useState<NavId | null>(null);
-  const [role, setRole] = useState<Role>(() =>
-    mapUserRoleToAppRole(currentUser?.role),
-  );
+  const [activeNav, setActiveNav] = useState<NavId>('dashboard')
+  const [previousNav, setPreviousNav] = useState<NavId | null>(null)
+  const [role, setRole] = useState<Role>('admin')
+  const [selectedPatient, setSelectedPatient] = useState<number | string | null>(null)
+  const [sidebarTheme, setSidebarTheme] = useState<'light' | 'dark'>('light')
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(INITIAL_FAMILY_MEMBERS)
+  const [activePatient, setActivePatient] = useState<FamilyMember>(INITIAL_FAMILY_MEMBERS[0])
+  const [showRegisterPatient, setShowRegisterPatient] = useState(false)
+  const [showEditPatient, setShowEditPatient] = useState(false)
+  const [activeConsultationId, setActiveConsultationId] = useState<string | null>(null)
+  const [viewDetailsConsultationId, setViewDetailsConsultationId] = useState<string | null>(null)
+  const [editConsultationId, setEditConsultationId] = useState<string | null>(null)
+  const [showConsultationHistory, setShowConsultationHistory] = useState(false)
+  const [showBookAppointmentScreen, setShowBookAppointmentScreen] = useState(false)
+  const [showCheckInScreen, setShowCheckInScreen] = useState(false)
+  const [showQueueManagement, setShowQueueManagement] = useState(false)
+  const [checkInUhid, setCheckInUhid] = useState<string | null>(null)
+  const [checkInAptId, setCheckInAptId] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (currentUser?.role) {
-      setRole(mapUserRoleToAppRole(currentUser.role));
-    }
-  }, [currentUser?.role]);
-  const [selectedPatient, setSelectedPatient] = useState<
-    number | string | null
-  >(null);
-  const [sidebarTheme, setSidebarTheme] = useState<"light" | "dark">("light");
-  const [showRegisterPatient, setShowRegisterPatient] = useState(false);
-  const [showEditPatient, setShowEditPatient] = useState(false);
-  const [activeConsultationId, setActiveConsultationId] = useState<
-    string | null
-  >(null);
-  const [viewDetailsConsultationId, setViewDetailsConsultationId] = useState<
-    string | null
-  >(null);
-  const [editConsultationId, setEditConsultationId] = useState<string | null>(
-    null,
-  );
-  const [showConsultationHistory, setShowConsultationHistory] = useState(false);
-  const [showBookAppointmentScreen, setShowBookAppointmentScreen] =
-    useState(false);
-  const [showCheckInScreen, setShowCheckInScreen] = useState(false);
-  const [showQueueManagement, setShowQueueManagement] = useState(false);
-  const [checkInUhid, setCheckInUhid] = useState<string | null>(null);
-  const [checkInAptId, setCheckInAptId] = useState<string | null>(null);
-
-  const [viewDetailsPrescriptionId, setViewDetailsPrescriptionId] = useState<
-    string | null
-  >(null);
-  const [editPrescriptionId, setEditPrescriptionId] = useState<string | null>(
-    null,
-  );
-  const [printPreviewPrescriptionId, setPrintPreviewPrescriptionId] = useState<
-    string | null
-  >(null);
-  const [historyPrescriptionUhid, setHistoryPrescriptionUhid] = useState<
-    string | null
-  >(null);
+  const [viewDetailsPrescriptionId, setViewDetailsPrescriptionId] = useState<string | null>(null)
+  const [editPrescriptionId, setEditPrescriptionId] = useState<string | null>(null)
+  const [printPreviewPrescriptionId, setPrintPreviewPrescriptionId] = useState<string | null>(null)
+  const [historyPrescriptionUhid, setHistoryPrescriptionUhid] = useState<string | null>(null)
+  const [showCreateInvoiceWorkspace, setShowCreateInvoiceWorkspace] = useState(false)
+  const [collectPaymentInvoiceId, setCollectPaymentInvoiceId] = useState<string | null>(null)
+  const [viewDetailsInvoiceId, setViewDetailsInvoiceId] = useState<string | null>(null)
+  const [printPreviewInvoiceId, setPrintPreviewInvoiceId] = useState<string | null>(null)
+  const [activeReportView, setActiveReportView] = useState<'dashboard' | 'daily-appointments' | 'daily-revenue' | 'patient-report' | 'doctor-report' | 'billing-report' | 'kpi-detail'>('dashboard')
 
   const handleNavSelect = (id: NavId) => {
-    setActiveNav(id);
-    setPreviousNav(null);
-    setSelectedPatient(null);
-    setShowRegisterPatient(false);
-    setShowEditPatient(false);
-    setShowBookAppointmentScreen(false);
-    setShowCheckInScreen(false);
-    setShowQueueManagement(false);
-    setCheckInUhid(null);
-    setCheckInAptId(null);
-    setActiveConsultationId(null);
-    setViewDetailsConsultationId(null);
-    setEditConsultationId(null);
-    setShowConsultationHistory(false);
-    setViewDetailsPrescriptionId(null);
-    setEditPrescriptionId(null);
-    setPrintPreviewPrescriptionId(null);
-    setHistoryPrescriptionUhid(null);
-  };
+    setActiveNav(id)
+    setPreviousNav(null)
+    setSelectedPatient(null)
+    setShowRegisterPatient(false)
+    setShowEditPatient(false)
+    setShowBookAppointmentScreen(false)
+    setShowCheckInScreen(false)
+    setShowQueueManagement(false)
+    setCheckInUhid(null)
+    setCheckInAptId(null)
+    setActiveConsultationId(null)
+    setViewDetailsConsultationId(null)
+    setEditConsultationId(null)
+    setShowConsultationHistory(false)
+    setViewDetailsPrescriptionId(null)
+    setEditPrescriptionId(null)
+    setPrintPreviewPrescriptionId(null)
+    setHistoryPrescriptionUhid(null)
+    setShowCreateInvoiceWorkspace(false)
+    setCollectPaymentInvoiceId(null)
+    setViewDetailsInvoiceId(null)
+    setPrintPreviewInvoiceId(null)
+    setActiveReportView('dashboard')
+  }
 
   const handlePatientSelect = (id: number | string) => {
     if (activeNav !== "patients") {
@@ -2103,35 +1971,22 @@ function HMS({ onLogout }: { onLogout: () => void }) {
         role={role}
         onRoleChange={setRole}
         onLogout={onLogout}
+        onNavigateNav={(nav) => setActiveNav(nav)}
+        activePatient={activePatient}
+        familyMembers={familyMembers}
+        onSwitchActivePatient={(member) => setActivePatient(member)}
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <NavRail
-          active={activeNav}
-          onSelect={handleNavSelect}
-          role={role}
-          onLogout={onLogout}
-          theme={sidebarTheme}
-          onThemeToggle={() =>
-            setSidebarTheme((t) => (t === "light" ? "dark" : "light"))
-          }
-        />
+        <NavRail active={activeNav} onSelect={handleNavSelect} role={role} theme={sidebarTheme} onThemeToggle={() => setSidebarTheme(t => t === 'light' ? 'dark' : 'light')} />
 
         <div className="flex flex-col flex-1 overflow-hidden">
-          <QuickActionRibbon role={role} />
-
-          <div className="flex flex-1 overflow-hidden">
-            {activeNav === "dashboard" && role === "super-admin" && (
-              <SuperAdminDashboard />
-            )}
-            {activeNav === "dashboard" && role === "admin" && (
-              <HospitalAdminDashboard />
-            )}
-            {activeNav === "dashboard" && role === "doctor" && (
-              <DoctorDashboard />
-            )}
-            {activeNav === "dashboard" && role === "receptionist" && (
-              <ReceptionDashboard
+          <div className="flex flex-1 overflow-y-auto">
+            {activeNav === 'dashboard' && role === 'super-admin' && <SuperAdminDashboard />}
+            {activeNav === 'dashboard' && role === 'admin' && <HospitalAdminDashboard />}
+            {activeNav === 'dashboard' && role === 'doctor' && <DoctorDashboard />}
+            {activeNav === 'dashboard' && role === 'receptionist' && (
+              <ReceptionDashboard 
                 userRole={role}
                 onNavigateNav={(nav) => setActiveNav(nav as NavId)}
                 onRegisterPatient={() => {
@@ -2149,237 +2004,194 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                 }}
                 onPatientSelect={(uhid) => handlePatientSelect(uhid)}
                 onEditPatient={(uhid) => {
-                  handlePatientSelect(uhid);
-                  setShowEditPatient(true);
+                  handlePatientSelect(uhid)
+                  setShowEditPatient(true)
+                }}
+                onCreateInvoiceClick={() => {
+                  setActiveNav('billing')
+                  setShowCreateInvoiceWorkspace(true)
                 }}
               />
             )}
-            {activeNav === "dashboard" && role === "nurse" && (
-              <NurseDashboard />
+            {activeNav === 'dashboard' && role === 'nurse' && <NurseDashboard />}
+            {activeNav === 'dashboard' && role === 'accountant' && <AccountantDashboard />}
+            {activeNav === 'dashboard' && role === 'patient' && <PatientDashboard />}
+            {activeNav === 'dashboard' && !['super-admin', 'admin', 'doctor', 'receptionist', 'nurse', 'accountant', 'patient'].includes(role) && (
+              <Dashboard onPatientSelect={handlePatientSelect} />
             )}
-            {activeNav === "dashboard" && role === "accountant" && (
-              <AccountantDashboard />
-            )}
-            {activeNav === "dashboard" && role === "patient" && (
-              <PatientDashboard />
-            )}
-            {activeNav === "dashboard" &&
-              ![
-                "super-admin",
-                "admin",
-                "doctor",
-                "receptionist",
-                "nurse",
-                "accountant",
-                "patient",
-              ].includes(role) && (
-                <Dashboard onPatientSelect={handlePatientSelect} />
-              )}
-            {showPatientWorkspace &&
-              !showEditPatient &&
-              role === "receptionist" && (
-                <ReceptionPatientProfileScreen
-                  onBack={() => {
-                    setSelectedPatient(null);
-                    if (previousNav && previousNav !== "patients") {
-                      setActiveNav(previousNav);
-                      setPreviousNav(null);
-                    }
-                  }}
-                  onEditPatient={() => setShowEditPatient(true)}
-                  onBookAppointment={(uhid) => {
-                    if (uhid) setCheckInUhid(uhid);
-                    setActiveNav("appointments");
-                    setShowBookAppointmentScreen(true);
-                  }}
-                  onCheckInClick={(token, uhid) => {
-                    if (uhid) setCheckInUhid(uhid);
-                    if (token) setCheckInAptId(token);
-                    setActiveNav("appointments");
-                    setShowCheckInScreen(true);
-                  }}
-                  patientUhid={
-                    typeof selectedPatient === "string"
-                      ? selectedPatient
-                      : "UHID-892101"
+            {showPatientWorkspace && !showEditPatient && role === 'receptionist' && (
+              <ReceptionPatientProfileScreen 
+                onBack={() => {
+                  setSelectedPatient(null)
+                  if (previousNav && previousNav !== 'patients') {
+                    setActiveNav(previousNav)
+                    setPreviousNav(null)
                   }
-                  userRole={role}
-                />
-              )}
-            {showPatientWorkspace &&
-              !showEditPatient &&
-              role !== "receptionist" && (
-                <PatientProfileScreen
-                  role={role}
-                  onBack={() => {
-                    setSelectedPatient(null);
-                    if (previousNav && previousNav !== "patients") {
-                      setActiveNav(previousNav);
-                      setPreviousNav(null);
-                    } else if (role === "doctor") {
-                      setActiveNav("consultation");
-                    }
-                  }}
-                  onEdit={() => setShowEditPatient(true)}
-                  onStartConsultation={() => setActiveNav("consultation")}
-                  onRecordVitals={() => setActiveNav("vitals")}
-                />
-              )}
-            {activeNav === "patients" &&
-              showPatientWorkspace &&
-              showEditPatient && (
-                <EditPatientScreen onBack={() => setShowEditPatient(false)} />
-              )}
-            {activeNav === "patients" &&
-              !showPatientWorkspace &&
-              !showRegisterPatient &&
-              role === "receptionist" && (
-                <PatientSearchScreen
-                  userRole={role}
-                  onBack={() => setActiveNav("dashboard")}
-                  onPatientSelect={(id) => handlePatientSelect(id)}
-                  onRegisterClick={() => {
-                    setShowRegisterPatient(true);
-                  }}
-                  onBookAppointmentClick={(uhid) => {
-                    if (uhid) setCheckInUhid(uhid);
-                    setActiveNav("appointments");
-                    setShowBookAppointmentScreen(true);
-                  }}
-                  onCheckInClick={(uhid) => {
-                    if (uhid) setCheckInUhid(uhid);
-                    setActiveNav("appointments");
-                    setShowCheckInScreen(true);
-                  }}
-                />
-              )}
-            {activeNav === "patients" &&
-              !showPatientWorkspace &&
-              !showRegisterPatient &&
-              role !== "receptionist" && (
-                <PatientListScreen
-                  onRegisterClick={() => setShowRegisterPatient(true)}
-                  onPatientSelect={(id) => handlePatientSelect(id)}
-                />
-              )}
-            {activeNav === "patients" &&
-              !showPatientWorkspace &&
-              showRegisterPatient && (
-                <ReceptionPatientRegistrationScreen
-                  onBack={() => setShowRegisterPatient(false)}
-                  onBookAppointment={(uhid) => {
-                    setShowRegisterPatient(false);
-                    if (uhid) setCheckInUhid(uhid);
-                    setActiveNav("appointments");
-                    setShowBookAppointmentScreen(true);
-                  }}
-                  onViewProfile={(uhid) => {
-                    setShowRegisterPatient(false);
-                    handlePatientSelect(uhid);
-                  }}
-                />
-              )}
-            {activeNav === "appointments" && role === "patient" && (
+                }} 
+                onEditPatient={() => setShowEditPatient(true)}
+                onBookAppointment={(uhid) => {
+                  if (uhid) setCheckInUhid(uhid)
+                  setActiveNav('appointments')
+                  setShowBookAppointmentScreen(true)
+                }}
+                onCheckInClick={(token, uhid) => {
+                  if (uhid) setCheckInUhid(uhid)
+                  if (token) setCheckInAptId(token)
+                  setActiveNav('appointments')
+                  setShowCheckInScreen(true)
+                }}
+                patientMrn={typeof selectedPatient === 'string' ? selectedPatient : 'UHID-892101'}
+                userRole={role}
+              />
+            )}
+            {showPatientWorkspace && !showEditPatient && role !== 'receptionist' && (
+              <PatientProfileScreen 
+                role={role}
+                onBack={() => {
+                  setSelectedPatient(null)
+                  if (previousNav && previousNav !== 'patients') {
+                    setActiveNav(previousNav)
+                    setPreviousNav(null)
+                  } else if (role === 'doctor') {
+                    setActiveNav('consultation')
+                  }
+                }} 
+                onEdit={() => setShowEditPatient(true)}
+                onStartConsultation={() => setActiveNav('consultation')}
+                onRecordVitals={() => setActiveNav('vitals')}
+              />
+            )}
+            {activeNav === 'patients' && showPatientWorkspace && showEditPatient && (
+              <EditPatientScreen onBack={() => setShowEditPatient(false)} />
+            )}
+            {activeNav === 'patients' && !showPatientWorkspace && !showRegisterPatient && role === 'receptionist' && (
+              <PatientSearchScreen 
+                userRole={role}
+                onBack={() => setActiveNav('dashboard')} 
+                onPatientSelect={(id) => handlePatientSelect(id)} 
+                onRegisterClick={() => {
+                  setShowRegisterPatient(true)
+                }}
+                onBookAppointmentClick={(uhid) => {
+                  if (uhid) setCheckInUhid(uhid)
+                  setActiveNav('appointments')
+                  setShowBookAppointmentScreen(true)
+                }}
+                onCheckInClick={(uhid) => {
+                  if (uhid) setCheckInUhid(uhid)
+                  setActiveNav('appointments')
+                  setShowCheckInScreen(true)
+                }}
+              />
+            )}
+            {activeNav === 'patients' && !showPatientWorkspace && !showRegisterPatient && role !== 'receptionist' && (
+              <PatientListScreen 
+                onRegisterClick={() => setShowRegisterPatient(true)} 
+                onPatientSelect={(id) => handlePatientSelect(id)}
+              />
+            )}
+            {activeNav === 'patients' && !showPatientWorkspace && showRegisterPatient && (
+              <ReceptionPatientRegistrationScreen 
+                onBack={() => setShowRegisterPatient(false)} 
+                onBookAppointment={(uhid) => {
+                  setShowRegisterPatient(false)
+                  if (uhid) setCheckInUhid(uhid)
+                  setActiveNav('appointments')
+                  setShowBookAppointmentScreen(true)
+                }}
+                onViewProfile={(uhid) => {
+                  setShowRegisterPatient(false)
+                  handlePatientSelect(uhid)
+                }}
+              />
+            )}
+            {activeNav === 'appointments' && role === 'patient' && (
               <PatientAppointmentsScreen />
             )}
-            {activeNav === "appointments" &&
-              role === "receptionist" &&
-              showBookAppointmentScreen && (
-                <ReceptionBookAppointmentScreen
-                  onBack={() => setShowBookAppointmentScreen(false)}
-                  onConfirmSuccess={(uhid: any) => {
-                    setShowBookAppointmentScreen(false);
-                    handlePatientSelect(uhid || checkInUhid || "UHID-892101");
-                  }}
-                  onRegisterNewPatientClick={() => {
-                    setActiveNav("patients");
-                    setShowRegisterPatient(true);
-                  }}
-                  onViewPatientProfileClick={(uhid: any) =>
-                    handlePatientSelect(uhid)
-                  }
-                />
-              )}
-            {activeNav === "appointments" &&
-              role === "receptionist" &&
-              showCheckInScreen && (
-                <PatientCheckInScreen
-                  initialUhid={checkInUhid || undefined}
-                  initialAptId={checkInAptId || undefined}
-                  onBack={() => {
-                    setShowCheckInScreen(false);
-                    setCheckInUhid(null);
-                    setCheckInAptId(null);
-                  }}
-                  onCheckInSuccess={(uhid: any) => {
-                    setShowCheckInScreen(false);
-                    handlePatientSelect(uhid || checkInUhid || "UHID-892101");
-                    setCheckInUhid(null);
-                    setCheckInAptId(null);
-                  }}
-                  onViewQueueClick={() => {
-                    setShowCheckInScreen(false);
-                    setCheckInUhid(null);
-                    setCheckInAptId(null);
-                    setShowQueueManagement(true);
-                  }}
-                  onViewPatientProfileClick={(uhid: any) =>
-                    handlePatientSelect(uhid)
-                  }
-                />
-              )}
-            {activeNav === "appointments" &&
-              role === "receptionist" &&
-              showQueueManagement && (
-                <ReceptionQueueManagementScreen
-                  onBack={() => setShowQueueManagement(false)}
-                  onCheckInClick={(token: any, uhid: any) => {
-                    if (uhid) setCheckInUhid(uhid);
-                    if (token) setCheckInAptId(token);
-                    setShowQueueManagement(false);
-                    setShowCheckInScreen(true);
-                  }}
-                  onPatientSearchClick={() => setActiveNav("patient-search")}
-                  onPatientSelect={handlePatientSelect}
-                  onRegisterPatientClick={() => {
-                    setActiveNav("patients");
-                    setShowRegisterPatient(true);
-                  }}
-                  onBookAppointmentClick={() => {
-                    setShowQueueManagement(false);
-                    setShowBookAppointmentScreen(true);
-                  }}
-                />
-              )}
-            {activeNav === "appointments" &&
-              role === "receptionist" &&
-              !showBookAppointmentScreen &&
-              !showCheckInScreen &&
-              !showQueueManagement && (
-                <AppointmentManagementCenterScreen
-                  onPatientSelect={handlePatientSelect}
-                  onBookAppointmentClick={() =>
-                    setShowBookAppointmentScreen(true)
-                  }
-                  onReceptionQueueClick={() => {
-                    setShowQueueManagement(true);
-                  }}
-                  userRole="Receptionist"
-                />
-              )}
-            {activeNav === "appointments" &&
-              role !== "doctor" &&
-              role !== "patient" &&
-              role !== "receptionist" && (
-                <AppointmentManagementCenterScreen
-                  onPatientSelect={handlePatientSelect}
-                  userRole={role === "admin" ? "Hospital Admin" : "Super Admin"}
-                />
-              )}
-            {activeNav === "appointments" && role === "doctor" && (
-              <DoctorAppointmentsScreen
-                onStartConsultation={() => setActiveNav("consultation")}
+            {activeNav === 'appointments' && role === 'receptionist' && showBookAppointmentScreen && (
+              <ReceptionBookAppointmentScreen
+                initialMrn={checkInUhid || undefined}
+                onBack={() => {
+                  setShowBookAppointmentScreen(false)
+                  setCheckInUhid(null)
+                }}
+                onConfirmSuccess={(uhid) => {
+                  setShowBookAppointmentScreen(false)
+                  setCheckInUhid(null)
+                  handlePatientSelect(uhid || 'UHID-892101')
+                }}
+                onRegisterNewPatientClick={() => {
+                  setShowBookAppointmentScreen(false)
+                  setCheckInUhid(null)
+                  setActiveNav('patients')
+                  setShowRegisterPatient(true)
+                }}
+                onViewPatientProfileClick={(uhid) => handlePatientSelect(uhid)}
               />
+            )}
+            {activeNav === 'appointments' && role === 'receptionist' && showCheckInScreen && (
+              <PatientCheckInScreen
+                initialMrn={checkInUhid || undefined}
+                initialAptId={checkInAptId || undefined}
+                onBack={() => {
+                  setShowCheckInScreen(false)
+                  setCheckInUhid(null)
+                  setCheckInAptId(null)
+                }}
+                onCheckInSuccess={(uhid) => {
+                  setShowCheckInScreen(false)
+                  handlePatientSelect(uhid || checkInUhid || 'UHID-892101')
+                  setCheckInUhid(null)
+                  setCheckInAptId(null)
+                }}
+                onViewQueueClick={() => {
+                  setShowCheckInScreen(false)
+                  setCheckInUhid(null)
+                  setCheckInAptId(null)
+                  setShowQueueManagement(true)
+                }}
+                onViewPatientProfileClick={(uhid) => handlePatientSelect(uhid)}
+              />
+            )}
+            {activeNav === 'appointments' && role === 'receptionist' && showQueueManagement && (
+              <ReceptionQueueManagementScreen 
+                onBack={() => setShowQueueManagement(false)}
+                onCheckInClick={(token, uhid) => {
+                  if (uhid) setCheckInUhid(uhid)
+                  if (token) setCheckInAptId(token)
+                  setShowQueueManagement(false)
+                  setShowCheckInScreen(true)
+                }}
+                onPatientSearchClick={() => setActiveNav('patient-search')}
+                onPatientSelect={handlePatientSelect}
+                onRegisterPatientClick={() => {
+                  setActiveNav('patients')
+                  setShowRegisterPatient(true)
+                }}
+                onBookAppointmentClick={() => {
+                  setShowQueueManagement(false)
+                  setShowBookAppointmentScreen(true)
+                }}
+              />
+            )}
+            {activeNav === 'appointments' && role === 'receptionist' && !showBookAppointmentScreen && !showCheckInScreen && !showQueueManagement && (
+              <AppointmentManagementCenterScreen 
+                onPatientSelect={handlePatientSelect}
+                onBookAppointmentClick={() => setShowBookAppointmentScreen(true)}
+                onReceptionQueueClick={() => {
+                  setShowQueueManagement(true)
+                }}
+                userRole="Receptionist"
+              />
+            )}
+            {activeNav === 'appointments' && role !== 'doctor' && role !== 'patient' && role !== 'receptionist' && (
+              <AppointmentManagementCenterScreen 
+                onPatientSelect={handlePatientSelect} 
+                userRole={role === 'admin' ? 'Hospital Admin' : 'Super Admin'} 
+              />
+            )}
+            {activeNav === 'appointments' && role === 'doctor' && (
+              <DoctorAppointmentsScreen onStartConsultation={() => setActiveNav('consultation')} />
             )}
             {activeNav === "consultation" && showConsultationHistory && (
               <ConsultationHistoryScreen
@@ -2398,199 +2210,298 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                 }}
               />
             )}
-            {activeNav === "consultation" &&
-              editConsultationId &&
-              !showConsultationHistory && (
-                <EditConsultationScreen
-                  consultationId={editConsultationId}
-                  onBack={() => setEditConsultationId(null)}
-                  onViewHistory={() => setShowConsultationHistory(true)}
-                  onUpdateSuccess={() => setEditConsultationId(null)}
-                />
-              )}
-            {activeNav === "consultation" &&
-              (role === "admin" || role === "nurse") &&
-              !viewDetailsConsultationId &&
-              !showConsultationHistory && (
-                <OpdConsultationMonitoringCenterScreen
-                  onViewDetails={(id) => setViewDetailsConsultationId(id)}
-                  onViewHistory={() => setShowConsultationHistory(true)}
-                  onPatientSelect={(id) => handlePatientSelect(id)}
-                  onNavigateReports={() => setActiveNav("reports")}
-                />
-              )}
-            {activeNav === "consultation" &&
-              role !== "admin" &&
-              role !== "nurse" &&
-              !activeConsultationId &&
-              !viewDetailsConsultationId &&
-              !editConsultationId &&
-              !showConsultationHistory && (
-                <OpdConsultationCenterScreen
-                  onStartConsultation={(id) =>
-                    setActiveConsultationId(id || "CNS-1001")
+            {activeNav === 'consultation' && editConsultationId && !showConsultationHistory && (
+              <EditConsultationScreen
+                consultationId={editConsultationId}
+                onBack={() => setEditConsultationId(null)}
+                onViewHistory={() => setShowConsultationHistory(true)}
+                onUpdateSuccess={() => setEditConsultationId(null)}
+              />
+            )}
+            {activeNav === 'consultation' && (role === 'admin' || role === 'nurse') && !viewDetailsConsultationId && !showConsultationHistory && (
+              <OpdConsultationMonitoringCenterScreen
+                onViewDetails={(id) => setViewDetailsConsultationId(id)}
+                onViewHistory={() => setShowConsultationHistory(true)}
+                onPatientSelect={(id) => handlePatientSelect(id)}
+                onNavigateReports={() => setActiveNav('reports')}
+              />
+            )}
+            {activeNav === 'consultation' && role !== 'admin' && role !== 'nurse' && !activeConsultationId && !viewDetailsConsultationId && !editConsultationId && !showConsultationHistory && (
+              <OpdConsultationCenterScreen
+                onStartConsultation={(id) => setActiveConsultationId(id || 'CNS-1001')}
+                onViewDetails={(id) => setViewDetailsConsultationId(id)}
+                onViewHistory={() => setShowConsultationHistory(true)}
+                onNavigateAppointments={() => setActiveNav('appointments')}
+              />
+            )}
+            {activeNav === 'consultation' && viewDetailsConsultationId && (role === 'admin' || role === 'nurse') && !showConsultationHistory && (
+              <AdminConsultationDetailsScreen
+                consultationId={viewDetailsConsultationId}
+                onBack={() => setViewDetailsConsultationId(null)}
+                onPatientSelect={(id) => handlePatientSelect(id)}
+                onViewHistory={() => setShowConsultationHistory(true)}
+              />
+            )}
+            {activeNav === 'consultation' && viewDetailsConsultationId && role !== 'admin' && role !== 'nurse' && !editConsultationId && !showConsultationHistory && (
+              <ConsultationDetailsScreen
+                consultationId={viewDetailsConsultationId}
+                onBack={() => setViewDetailsConsultationId(null)}
+                onViewHistory={() => setShowConsultationHistory(true)}
+                onEditConsultation={(id) => {
+                  setViewDetailsConsultationId(null)
+                  setEditConsultationId(id)
+                }}
+                onViewPatientProfile={(uhid) => handlePatientSelect(uhid)}
+              />
+            )}
+            {activeNav === 'consultation' && activeConsultationId && !viewDetailsConsultationId && !editConsultationId && !showConsultationHistory && (
+              <StartOpdConsultationWorkspaceScreen
+                onBack={() => setActiveConsultationId(null)}
+                onViewHistory={() => setShowConsultationHistory(true)}
+                onViewPatientProfile={(uhid) => handlePatientSelect(uhid || '')}
+              />
+            )}
+            {activeNav === 'prescriptions' && role === 'doctor' && historyPrescriptionUhid && (
+              <DoctorPrescriptionHistoryScreen
+                patientMrn={historyPrescriptionUhid}
+                onBack={() => setHistoryPrescriptionUhid(null)}
+                onViewPrescription={(rxId) => {
+                  setHistoryPrescriptionUhid(null)
+                  setViewDetailsPrescriptionId(rxId)
+                }}
+                onPrintPreview={(rxId) => {
+                  setHistoryPrescriptionUhid(null)
+                  setPrintPreviewPrescriptionId(rxId)
+                }}
+                onViewPatientProfile={(uhid) => {
+                  setHistoryPrescriptionUhid(null)
+                  handlePatientSelect(uhid)
+                }}
+              />
+            )}
+            {activeNav === 'prescriptions' && role === 'doctor' && printPreviewPrescriptionId && !historyPrescriptionUhid && (
+              <DoctorPrescriptionPrintPreviewScreen
+                prescriptionId={printPreviewPrescriptionId}
+                onBack={() => setPrintPreviewPrescriptionId(null)}
+                onViewConsultation={(consultId) => {
+                  setPrintPreviewPrescriptionId(null)
+                  setActiveNav('consultation')
+                  setViewDetailsConsultationId(consultId)
+                }}
+              />
+            )}
+            {activeNav === 'prescriptions' && role === 'doctor' && editPrescriptionId && !printPreviewPrescriptionId && !historyPrescriptionUhid && (
+              <DoctorEditPrescriptionScreen
+                prescriptionId={editPrescriptionId}
+                onBack={() => setEditPrescriptionId(null)}
+                onSaveSuccess={() => setEditPrescriptionId(null)}
+                onIssueSuccess={() => setEditPrescriptionId(null)}
+                onViewConsultation={(consultId) => {
+                  setEditPrescriptionId(null)
+                  setActiveNav('consultation')
+                  setViewDetailsConsultationId(consultId)
+                }}
+                onViewPatientProfile={(uhid) => {
+                  setEditPrescriptionId(null)
+                  handlePatientSelect(uhid)
+                }}
+              />
+            )}
+            {activeNav === 'prescriptions' && role === 'doctor' && viewDetailsPrescriptionId && !editPrescriptionId && !printPreviewPrescriptionId && !historyPrescriptionUhid && (
+              <DoctorPrescriptionDetailsScreen
+                prescriptionId={viewDetailsPrescriptionId}
+                onBack={() => setViewDetailsPrescriptionId(null)}
+                onEditPrescription={(rxId) => {
+                  setViewDetailsPrescriptionId(null)
+                  setEditPrescriptionId(rxId)
+                }}
+                onPrintPreview={(rxId) => {
+                  setPrintPreviewPrescriptionId(rxId)
+                }}
+                onViewHistory={(uhid) => {
+                  setViewDetailsPrescriptionId(null)
+                  setHistoryPrescriptionUhid(uhid)
+                }}
+                onViewConsultation={(consultId) => {
+                  setViewDetailsPrescriptionId(null)
+                  setActiveNav('consultation')
+                  setViewDetailsConsultationId(consultId)
+                }}
+                onViewPatientProfile={(uhid) => {
+                  setViewDetailsPrescriptionId(null)
+                  handlePatientSelect(uhid)
+                }}
+              />
+            )}
+            {activeNav === 'prescriptions' && role === 'doctor' && !viewDetailsPrescriptionId && !editPrescriptionId && !printPreviewPrescriptionId && !historyPrescriptionUhid && (
+              <DoctorPrescriptionsScreen
+                onNewPrescription={() => {
+                  setActiveNav('consultation')
+                  setActiveConsultationId('CNS-1001')
+                }}
+                onViewPrescription={(rxId) => {
+                  setViewDetailsPrescriptionId(rxId)
+                }}
+                onEditPrescription={(rxId) => {
+                  setEditPrescriptionId(rxId)
+                }}
+                onPrintPreview={(rxId) => {
+                  setPrintPreviewPrescriptionId(rxId)
+                }}
+                onViewHistory={(uhid) => {
+                  setHistoryPrescriptionUhid(uhid)
+                }}
+                onViewConsultation={(consultId) => {
+                  setActiveNav('consultation')
+                  setViewDetailsConsultationId(consultId)
+                }}
+              />
+            )}
+            {activeNav === 'reports' && role === 'doctor' && activeReportView === 'dashboard' && (
+              <DoctorReportsDashboardScreen
+                onOpenReport={(reportId) => {
+                  if (reportId === 'REP-001') {
+                    setActiveReportView('daily-appointments')
+                  } else if (reportId === 'REP-003') {
+                    setActiveReportView('patient-report')
+                  } else if (reportId === 'REP-004') {
+                    setActiveReportView('doctor-report')
                   }
-                  onViewDetails={(id) => setViewDetailsConsultationId(id)}
-                  onViewHistory={() => setShowConsultationHistory(true)}
-                  onNavigateAppointments={() => setActiveNav("appointments")}
-                />
-              )}
-            {activeNav === "consultation" &&
-              viewDetailsConsultationId &&
-              (role === "admin" || role === "nurse") &&
-              !showConsultationHistory && (
-                <AdminConsultationDetailsScreen
-                  consultationId={viewDetailsConsultationId}
-                  onBack={() => setViewDetailsConsultationId(null)}
-                  onPatientSelect={(id) => handlePatientSelect(id)}
-                  onViewHistory={() => setShowConsultationHistory(true)}
-                />
-              )}
-            {activeNav === "consultation" &&
-              viewDetailsConsultationId &&
-              role !== "admin" &&
-              role !== "nurse" &&
-              !editConsultationId &&
-              !showConsultationHistory && (
-                <ConsultationDetailsScreen
-                  consultationId={viewDetailsConsultationId}
-                  onBack={() => setViewDetailsConsultationId(null)}
-                  onViewHistory={() => setShowConsultationHistory(true)}
-                  onEditConsultation={(id) => {
-                    setViewDetailsConsultationId(null);
-                    setEditConsultationId(id);
-                  }}
-                  onViewPatientProfile={(uhid) => handlePatientSelect(uhid)}
-                />
-              )}
-            {activeNav === "consultation" &&
-              activeConsultationId &&
-              !viewDetailsConsultationId &&
-              !editConsultationId &&
-              !showConsultationHistory && (
-                <StartOpdConsultationWorkspaceScreen
-                  onBack={() => setActiveConsultationId(null)}
-                  onViewHistory={() => setShowConsultationHistory(true)}
-                  onViewPatientProfile={(uhid) => handlePatientSelect(uhid)}
-                />
-              )}
-            {activeNav === "prescriptions" &&
-              role === "doctor" &&
-              historyPrescriptionUhid && (
-                <DoctorPrescriptionHistoryScreen
-                  patientUhid={historyPrescriptionUhid}
-                  onBack={() => setHistoryPrescriptionUhid(null)}
-                  onViewPrescription={(rxId) => {
-                    setHistoryPrescriptionUhid(null);
-                    setViewDetailsPrescriptionId(rxId);
-                  }}
-                  onPrintPreview={(rxId) => {
-                    setHistoryPrescriptionUhid(null);
-                    setPrintPreviewPrescriptionId(rxId);
-                  }}
-                  onViewPatientProfile={(uhid) => {
-                    setHistoryPrescriptionUhid(null);
-                    handlePatientSelect(uhid);
-                  }}
-                />
-              )}
-            {activeNav === "prescriptions" &&
-              role === "doctor" &&
-              printPreviewPrescriptionId &&
-              !historyPrescriptionUhid && (
-                <DoctorPrescriptionPrintPreviewScreen
-                  prescriptionId={printPreviewPrescriptionId}
-                  onBack={() => setPrintPreviewPrescriptionId(null)}
-                  onViewConsultation={(consultId) => {
-                    setPrintPreviewPrescriptionId(null);
-                    setActiveNav("consultation");
-                    setViewDetailsConsultationId(consultId);
-                  }}
-                />
-              )}
-            {activeNav === "prescriptions" &&
-              role === "doctor" &&
-              editPrescriptionId &&
-              !printPreviewPrescriptionId &&
-              !historyPrescriptionUhid && (
-                <DoctorEditPrescriptionScreen
-                  prescriptionId={editPrescriptionId}
-                  onBack={() => setEditPrescriptionId(null)}
-                  onSaveSuccess={() => setEditPrescriptionId(null)}
-                  onIssueSuccess={() => setEditPrescriptionId(null)}
-                  onViewConsultation={(consultId) => {
-                    setEditPrescriptionId(null);
-                    setActiveNav("consultation");
-                    setViewDetailsConsultationId(consultId);
-                  }}
-                  onViewPatientProfile={(uhid) => {
-                    setEditPrescriptionId(null);
-                    handlePatientSelect(uhid);
-                  }}
-                />
-              )}
-            {activeNav === "prescriptions" &&
-              role === "doctor" &&
-              viewDetailsPrescriptionId &&
-              !editPrescriptionId &&
-              !printPreviewPrescriptionId &&
-              !historyPrescriptionUhid && (
-                <DoctorPrescriptionDetailsScreen
-                  prescriptionId={viewDetailsPrescriptionId}
-                  onBack={() => setViewDetailsPrescriptionId(null)}
-                  onEditPrescription={(rxId) => {
-                    setViewDetailsPrescriptionId(null);
-                    setEditPrescriptionId(rxId);
-                  }}
-                  onPrintPreview={(rxId) => {
-                    setPrintPreviewPrescriptionId(rxId);
-                  }}
-                  onViewHistory={(uhid) => {
-                    setViewDetailsPrescriptionId(null);
-                    setHistoryPrescriptionUhid(uhid);
-                  }}
-                  onViewConsultation={(consultId) => {
-                    setViewDetailsPrescriptionId(null);
-                    setActiveNav("consultation");
-                    setViewDetailsConsultationId(consultId);
-                  }}
-                  onViewPatientProfile={(uhid) => {
-                    setViewDetailsPrescriptionId(null);
-                    handlePatientSelect(uhid);
-                  }}
-                />
-              )}
-            {activeNav === "prescriptions" &&
-              role === "doctor" &&
-              !viewDetailsPrescriptionId &&
-              !editPrescriptionId &&
-              !printPreviewPrescriptionId &&
-              !historyPrescriptionUhid && (
-                <DoctorPrescriptionsScreen
-                  onNewPrescription={() => {
-                    setActiveNav("consultation");
-                    setActiveConsultationId("CNS-1001");
-                  }}
-                  onViewPrescription={(rxId) => {
-                    setViewDetailsPrescriptionId(rxId);
-                  }}
-                  onEditPrescription={(rxId) => {
-                    setEditPrescriptionId(rxId);
-                  }}
-                  onPrintPreview={(rxId) => {
-                    setPrintPreviewPrescriptionId(rxId);
-                  }}
-                  onViewHistory={(uhid) => {
-                    setHistoryPrescriptionUhid(uhid);
-                  }}
-                  onViewConsultation={(consultId) => {
-                    setActiveNav("consultation");
-                    setViewDetailsConsultationId(consultId);
-                  }}
-                />
-              )}
-            {activeNav === "reports" && role === "doctor" && (
-              <DoctorReportsScreen />
+                }}
+                onOpenKpiDetail={() => setActiveReportView('kpi-detail')}
+              />
+            )}
+            {activeNav === 'reports' && role === 'receptionist' && activeReportView === 'dashboard' && (
+              <ReceptionistReportsDashboardScreen
+                onOpenDailyAppointments={() => setActiveReportView('daily-appointments')}
+                onOpenPatientReport={() => setActiveReportView('patient-report')}
+              />
+            )}
+            {activeNav === 'reports' && (role === 'admin' || role === 'super-admin') && activeReportView === 'dashboard' && (
+              <ReportsDashboardScreen
+                onOpenReport={(reportId) => {
+                  if (reportId === 'REP-001') {
+                    setActiveReportView('daily-appointments')
+                  } else if (reportId === 'REP-002') {
+                    setActiveReportView('daily-revenue')
+                  } else if (reportId === 'REP-003') {
+                    setActiveReportView('patient-report')
+                  } else if (reportId === 'REP-004') {
+                    setActiveReportView('doctor-report')
+                  } else if (reportId === 'REP-005') {
+                    setActiveReportView('billing-report')
+                  }
+                }}
+                onOpenKpiDetail={() => {
+                  setActiveReportView('kpi-detail')
+                }}
+              />
+            )}
+            {activeNav === 'reports' && (role === 'admin' || role === 'super-admin') && activeReportView === 'daily-appointments' && (
+              <DailyAppointmentReportScreen
+                onBack={() => setActiveReportView('dashboard')}
+              />
+            )}
+            {activeNav === 'reports' && role === 'doctor' && activeReportView === 'daily-appointments' && (
+              <DoctorDailyAppointmentReportScreen
+                onBack={() => setActiveReportView('dashboard')}
+                onOpenPatientReport={() => setActiveReportView('patient-report')}
+                onOpenDoctorReport={() => setActiveReportView('doctor-report')}
+              />
+            )}
+            {activeNav === 'reports' && role === 'receptionist' && activeReportView === 'daily-appointments' && (
+              <ReceptionistDailyAppointmentReportScreen
+                onBack={() => setActiveReportView('dashboard')}
+                onOpenPatientReport={() => setActiveReportView('patient-report')}
+              />
+            )}
+            {activeNav === 'reports' && (role === 'admin' || role === 'super-admin') && activeReportView === 'daily-revenue' && (
+              <DailyRevenueReportScreen
+                onBack={() => setActiveReportView('dashboard')}
+              />
+            )}
+            {activeNav === 'reports' && (role === 'admin' || role === 'super-admin') && activeReportView === 'patient-report' && (
+              <PatientReportScreen
+                onBack={() => setActiveReportView('dashboard')}
+                onOpenAppointmentReport={() => setActiveReportView('daily-appointments')}
+                onOpenDoctorReport={() => setActiveReportView('doctor-report')}
+              />
+            )}
+            {activeNav === 'reports' && role === 'receptionist' && activeReportView === 'patient-report' && (
+              <ReceptionistPatientReportScreen
+                onBack={() => setActiveReportView('dashboard')}
+                onOpenDailyAppointments={() => setActiveReportView('daily-appointments')}
+              />
+            )}
+            {activeNav === 'reports' && role === 'doctor' && activeReportView === 'patient-report' && (
+              <DoctorPatientReportScreen
+                onBack={() => setActiveReportView('dashboard')}
+                onOpenAppointmentReport={() => setActiveReportView('daily-appointments')}
+                onOpenDoctorReport={() => setActiveReportView('doctor-report')}
+              />
+            )}
+            {activeNav === 'reports' && (role === 'admin' || role === 'super-admin') && activeReportView === 'doctor-report' && (
+              <DoctorReportScreen
+                onBack={() => setActiveReportView('dashboard')}
+                onOpenAppointmentReport={() => setActiveReportView('daily-appointments')}
+                onOpenPatientReport={() => setActiveReportView('patient-report')}
+              />
+            )}
+            {activeNav === 'reports' && role === 'doctor' && activeReportView === 'doctor-report' && (
+              <DoctorDoctorReportScreen
+                onBack={() => setActiveReportView('dashboard')}
+                onOpenAppointmentReport={() => setActiveReportView('daily-appointments')}
+                onOpenPatientReport={() => setActiveReportView('patient-report')}
+              />
+            )}
+            {activeNav === 'reports' && (role === 'admin' || role === 'super-admin') && activeReportView === 'billing-report' && (
+              <BillingReportScreen
+                onBack={() => setActiveReportView('dashboard')}
+                onOpenRevenueReport={() => setActiveReportView('daily-revenue')}
+              />
+            )}
+            {activeNav === 'reports' && (role === 'admin' || role === 'super-admin') && activeReportView === 'kpi-detail' && (
+              <DashboardKpiDetailScreen
+                onBack={() => setActiveReportView('dashboard')}
+                onOpenRelatedReport={() => setActiveReportView('daily-appointments')}
+              />
+            )}
+            {activeNav === 'reports' && role === 'doctor' && activeReportView === 'kpi-detail' && (
+              <DoctorDashboardKpiDetailScreen
+                onBack={() => setActiveReportView('dashboard')}
+                onOpenReport={(v) => setActiveReportView(v as any)}
+              />
+            )}
+            {activeNav === 'reports' && role === 'receptionist' && activeReportView === 'kpi-detail' && (
+              <ReceptionistDashboardKpiDetailScreen
+                onBack={() => setActiveReportView('dashboard')}
+                onOpenReport={(v) => setActiveReportView(v as any)}
+              />
+            )}
+            {activeNav === 'reports' && role === 'accountant' && activeReportView === 'dashboard' && (
+              <AccountantReportsDashboardScreen
+                onOpenDailyRevenue={() => setActiveReportView('daily-revenue')}
+                onOpenBillingReport={() => setActiveReportView('billing-report')}
+                onOpenKpiDetail={() => setActiveReportView('kpi-detail')}
+              />
+            )}
+            {activeNav === 'reports' && role === 'accountant' && activeReportView === 'daily-revenue' && (
+              <AccountantDailyRevenueReportScreen
+                onBack={() => setActiveReportView('dashboard')}
+                onOpenBillingReport={() => setActiveReportView('billing-report')}
+              />
+            )}
+            {activeNav === 'reports' && role === 'accountant' && activeReportView === 'billing-report' && (
+              <AccountantBillingReportScreen
+                onBack={() => setActiveReportView('dashboard')}
+                onOpenDailyRevenue={() => setActiveReportView('daily-revenue')}
+              />
+            )}
+            {activeNav === 'reports' && role === 'accountant' && activeReportView === 'kpi-detail' && (
+              <AccountantDashboardKpiDetailScreen
+                onBack={() => setActiveReportView('dashboard')}
+                onOpenReport={(v) => setActiveReportView(v as any)}
+              />
             )}
             {activeNav === "prescriptions" &&
               role === "patient" &&
@@ -2640,14 +2551,209 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                 }}
               />
             )}
-            {(activeNav === "billing" || activeNav === "bills-payments") && (
-              <PatientBillingScreen />
+            {activeNav === 'billing' && role === 'receptionist' && !collectPaymentInvoiceId && !viewDetailsInvoiceId && !printPreviewInvoiceId && (
+              <CreateInvoiceWorkspaceScreen
+                onBack={() => {
+                  setShowCreateInvoiceWorkspace(false)
+                  setActiveNav('dashboard')
+                }}
+                onInvoiceCreated={() => {
+                  setShowCreateInvoiceWorkspace(false)
+                  setActiveNav('dashboard')
+                }}
+                onCollectPaymentClick={(invId) => {
+                  setCollectPaymentInvoiceId(invId || 'INV-1043')
+                }}
+                onViewInvoiceDetailsClick={(invId) => {
+                  setViewDetailsInvoiceId(invId || 'INV-1542')
+                }}
+                isReceptionist={true}
+              />
             )}
-            {activeNav === "profile" && <PatientProfileCenterScreen />}
-            {activeNav === "user-management" && <UserManagementCenterScreen />}
-            {activeNav === "doctors" && <DoctorManagementCenterScreen />}
-            {activeNav === "reception" && (
-              <ReceptionDashboard
+            {activeNav === 'billing' && role !== 'patient' && role !== 'receptionist' && !showCreateInvoiceWorkspace && !collectPaymentInvoiceId && !viewDetailsInvoiceId && !printPreviewInvoiceId && (
+              <BillingDashboardScreen
+                onGenerateInvoiceClick={() => setShowCreateInvoiceWorkspace(true)}
+                onCollectPaymentClick={(invId) => setCollectPaymentInvoiceId(invId || 'INV-1041')}
+                onViewInvoiceDetailsClick={(invId) => setViewDetailsInvoiceId(invId || 'INV-1042')}
+                onViewPaymentsClick={() => setActiveNav('payments')}
+                onViewDailyReportClick={() => setActiveNav('daily-billing-report')}
+                isAdminReadOnly={role === 'admin'}
+              />
+            )}
+            {activeNav === 'billing' && role !== 'patient' && role !== 'receptionist' && showCreateInvoiceWorkspace && !collectPaymentInvoiceId && !viewDetailsInvoiceId && !printPreviewInvoiceId && (
+              <CreateInvoiceWorkspaceScreen
+                onBack={() => setShowCreateInvoiceWorkspace(false)}
+                onInvoiceCreated={() => setShowCreateInvoiceWorkspace(false)}
+                isReceptionist={false}
+              />
+            )}
+            {activeNav === 'billing' && role === 'receptionist' && collectPaymentInvoiceId && !viewDetailsInvoiceId && !printPreviewInvoiceId && (
+              <ReceptionistPaymentCollectionScreen
+                invoiceId={collectPaymentInvoiceId}
+                onBack={() => setCollectPaymentInvoiceId(null)}
+                onViewInvoiceClick={(invId) => {
+                  setCollectPaymentInvoiceId(null)
+                  setViewDetailsInvoiceId(invId)
+                }}
+                onPaymentCompleted={() => setCollectPaymentInvoiceId(null)}
+              />
+            )}
+            {activeNav === 'billing' && role !== 'patient' && role !== 'receptionist' && collectPaymentInvoiceId && !viewDetailsInvoiceId && !printPreviewInvoiceId && (
+              <CollectPaymentWorkspaceScreen
+                invoiceId={collectPaymentInvoiceId}
+                onBack={() => setCollectPaymentInvoiceId(null)}
+                onPaymentConfirmed={() => setCollectPaymentInvoiceId(null)}
+              />
+            )}
+            {viewDetailsInvoiceId && !printPreviewInvoiceId && (
+              <InvoiceDetailsScreen
+                invoiceId={viewDetailsInvoiceId}
+                onBack={() => setViewDetailsInvoiceId(null)}
+                onCollectPaymentClick={(invId) => {
+                  setViewDetailsInvoiceId(null)
+                  setCollectPaymentInvoiceId(invId)
+                }}
+                onPrintInvoiceClick={(invId) => {
+                  setViewDetailsInvoiceId(null)
+                  setPrintPreviewInvoiceId(invId)
+                }}
+                onViewPatientProfile={(uhid) => handlePatientSelect(uhid)}
+                onViewConsultationDetails={(consultId) => {
+                  setViewDetailsInvoiceId(null)
+                  setActiveNav('consultation')
+                  setViewDetailsConsultationId(consultId)
+                }}
+                isReceptionist={role === 'receptionist'}
+                isAdminReadOnly={role === 'admin'}
+                isPatientView={role === 'patient'}
+              />
+            )}
+            {printPreviewInvoiceId && (
+              <InvoicePrintPreviewScreen
+                invoiceId={printPreviewInvoiceId}
+                onBack={() => setPrintPreviewInvoiceId(null)}
+                onViewPatientProfile={(uhid) => handlePatientSelect(uhid)}
+                onViewConsultationDetails={(consultId) => {
+                  setPrintPreviewInvoiceId(null)
+                  setActiveNav('consultation')
+                  setViewDetailsConsultationId(consultId)
+                }}
+                isReceptionist={role === 'receptionist'}
+                isPatientView={role === 'patient'}
+              />
+            )}
+            {(activeNav === 'payments' || activeNav === 'payment-history') && role !== 'patient' && (
+              <PaymentHistoryScreen
+                onViewInvoiceDetailsClick={(invId) => {
+                  setActiveNav('billing')
+                  setViewDetailsInvoiceId(invId)
+                }}
+                onViewPatientProfile={(uhid) => handlePatientSelect(uhid)}
+                onPrintReceiptClick={(invId) => {
+                  setActiveNav('billing')
+                  setPrintPreviewInvoiceId(invId)
+                }}
+              />
+            )}
+            {(activeNav === 'daily-billing-report' || activeNav === 'financial-reports') && role !== 'patient' && (
+              <DailyBillingReportScreen
+                onBack={() => setActiveNav('billing')}
+                onViewInvoiceDetailsClick={(invId) => {
+                  setActiveNav('billing')
+                  setViewDetailsInvoiceId(invId)
+                }}
+                onViewPatientProfile={(uhid) => handlePatientSelect(uhid)}
+                isAdminReadOnly={role === 'admin'}
+              />
+            )}
+            {(activeNav === 'billing' || activeNav === 'bills-payments') && role === 'patient' && !viewDetailsInvoiceId && !printPreviewInvoiceId && (
+              <PatientMyBillsScreen
+                onBack={() => setActiveNav('dashboard')}
+                onViewInvoiceDetailsClick={(invId) => {
+                  setViewDetailsInvoiceId(invId)
+                }}
+                onPrintInvoiceClick={(invId) => {
+                  setPrintPreviewInvoiceId(invId)
+                }}
+              />
+            )}
+            {activeNav === 'profile' && role === 'patient' && (
+              <PatientProfileCenterScreen />
+            )}
+            {activeNav === 'profile' && role !== 'patient' && (
+              <MyProfileManagement
+                currentRole={
+                  role === 'admin' || role === 'super-admin' ? 'Hospital Admin' :
+                  role === 'doctor' ? 'Doctor' :
+                  role === 'nurse' ? 'Nurse' :
+                  role === 'receptionist' ? 'Receptionist' :
+                  role === 'accountant' ? 'Accountant' : 'Hospital Admin'
+                }
+                onLogout={onLogout}
+                onNavigateToModule={(mod) => {
+                  if (mod === 'Notifications') setActiveNav('notifications')
+                  else if (mod === 'Audit Logs') setActiveNav('audit-logs')
+                  else setActiveNav('dashboard')
+                }}
+              />
+            )}
+            {activeNav === 'user-management' && (
+              <UserManagementCenterScreen />
+            )}
+            {activeNav === 'audit-logs' && (
+              <AuditLogsManagementScreen />
+            )}
+            {activeNav === 'notifications' && (
+              <NotificationCenterManagement
+                currentRole={
+                  role === 'admin' || role === 'super-admin' ? 'Hospital Admin' :
+                  role === 'doctor' ? 'Doctor' :
+                  role === 'nurse' ? 'Nurse' :
+                  role === 'receptionist' ? 'Receptionist' :
+                  role === 'accountant' ? 'Accountant' :
+                  role === 'patient' ? 'Patient Portal' : 'Hospital Admin'
+                }
+                onNavigateToModule={(module, targetId) => {
+                  switch (module) {
+                    case 'Appointments':
+                      setActiveNav('appointments')
+                      break
+                    case 'Patients':
+                      if (targetId) handlePatientSelect(targetId)
+                      else setActiveNav('patients')
+                      break
+                    case 'Doctors':
+                    case 'Doctor':
+                      setActiveNav('doctors')
+                      break
+                    case 'Consultation':
+                      setActiveNav('consultation')
+                      if (targetId) setViewDetailsConsultationId(targetId)
+                      break
+                    case 'Invoice':
+                    case 'Billing':
+                      setActiveNav('billing')
+                      if (targetId) setViewDetailsInvoiceId(targetId)
+                      break
+                    case 'Reports':
+                    case 'Report':
+                      setActiveNav('reports')
+                      break
+                    case 'Audit Logs':
+                    case 'Audit':
+                      setActiveNav('audit-logs')
+                      break
+                    default:
+                      setActiveNav('dashboard')
+                  }
+                }}
+              />
+            )}
+            {activeNav === 'doctors' && (
+              <DoctorManagementCenterScreen />
+            )}
+            {activeNav === 'reception' && (
+              <ReceptionDashboard 
                 onRegisterPatient={() => {
                   setActiveNav("patients");
                   setShowRegisterPatient(true);
@@ -2662,28 +2768,47 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                 onPatientSelect={handlePatientSelect}
               />
             )}
-            {![
-              "dashboard",
-              "patients",
-              "doctors",
-              "appointments",
-              "consultation",
-              "vitals",
-              "reception",
-              "prescriptions",
-              "reports",
-              "medical-history",
-              "visit-history",
-              "patient-search",
-              "billing",
-              "bills-payments",
-              "profile",
-              "user-management",
-            ].includes(activeNav) && <PlaceholderScreen nav={activeNav} />}
-            {["prescriptions", "reports"].includes(activeNav) &&
-              role !== "doctor" &&
-              role !== "patient" && <PlaceholderScreen nav={activeNav} />}
-            {activeNav === "reports" && role === "patient" && (
+            {activeNav === 'settings' && (
+              <div className="w-full flex-1 flex flex-col">
+                <SettingsWorkspace onNavigate={(s) => setActiveNav(s as any)} />
+              </div>
+            )}
+            {activeNav === 'family-members' && (
+              <FamilyMembersManagement
+                familyMembers={familyMembers}
+                activeFamilyMember={activePatient}
+                onSwitchProfile={(member) => {
+                  setActivePatient(member)
+                }}
+                onAddFamilyMember={(newMember) => {
+                  const created: FamilyMember = {
+                    id: `FM-${Date.now().toString().slice(-3)}`,
+                    patientName: newMember.patientName || 'New Member',
+                    mrn: newMember.mrn || `MRN-2026-${Math.floor(100000 + Math.random() * 900000)}`,
+                    relationship: newMember.relationship || 'Mother',
+                    age: newMember.age || 40,
+                    gender: newMember.gender || 'Female',
+                    bloodGroup: newMember.bloodGroup || 'O+',
+                    registeredMobile: newMember.registeredMobile || '+91 98765 00000',
+                    verificationStatus: 'Verified',
+                    patientStatus: 'Active',
+                    lastAppointment: 'Just Added',
+                    upcomingAppointmentsCount: 0,
+                    pendingBillsCount: 0,
+                    pendingBillsAmount: 0,
+                    activePrescriptionsCount: 0,
+                  }
+                  setFamilyMembers(prev => [created, ...prev])
+                }}
+                onRemoveFamilyMember={(id) => {
+                  setFamilyMembers(prev => prev.filter(m => m.id !== id))
+                }}
+                onUpdateRelationship={(id, rel) => {
+                  setFamilyMembers(prev => prev.map(m => m.id === id ? { ...m, relationship: rel } : m))
+                }}
+              />
+            )}
+            {!['dashboard', 'patients', 'doctors', 'appointments', 'consultation', 'vitals', 'reception', 'prescriptions', 'reports', 'medical-history', 'visit-history', 'patient-search', 'billing', 'bills-payments', 'profile', 'user-management', 'audit-logs', 'notifications', 'settings', 'family-members'].includes(activeNav) && (
               <PlaceholderScreen nav={activeNav} />
             )}
           </div>

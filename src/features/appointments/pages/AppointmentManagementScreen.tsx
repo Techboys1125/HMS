@@ -1597,10 +1597,7 @@ export function BookAppointmentDrawer({
 
               <div className="relative">
                 <label className="block text-xs font-bold text-[#111827] mb-1">
-                  Patient Search *{" "}
-                  <span className="text-[10px] text-slate-400 font-normal">
-                    (Name / UHID / Phone)
-                  </span>
+                  Patient Search * <span className="text-[10px] text-slate-400 font-normal">(Name / MRN / Phone)</span>
                 </label>
                 <div className="relative">
                   <Search
@@ -1615,12 +1612,9 @@ export function BookAppointmentDrawer({
                       setIsDropdownOpen(true);
                     }}
                     onFocus={() => setIsDropdownOpen(true)}
-                    placeholder="Type Patient Name, UHID (MRN-2024-001) or Phone..."
-                    className={`w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border rounded-xl text-[#111827] outline-none transition-colors ${
-                      errors.patient
-                        ? "border-[#EF4444] bg-red-50/20"
-                        : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
-                    }`}
+                    placeholder="Type Patient Name, MRN (MRN-2024-001) or Phone..."
+                    className={`w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border rounded-xl text-[#111827] outline-none transition-colors ${errors.patient ? 'border-[#EF4444] bg-red-50/20' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
+                      }`}
                   />
                   {patientSearch && (
                     <button
@@ -2454,10 +2448,7 @@ export function AppointmentDetailsDrawer({
                       {patientInfo.name}
                     </h4>
                     <div className="text-xs text-slate-500 font-mono mt-0.5">
-                      <span className="text-[#0D47A1] font-bold">
-                        {patientInfo.mrn}
-                      </span>{" "}
-                      · UHID: {patientInfo.id}
+                      <span className="text-[#0D47A1] font-bold">{patientInfo.mrn}</span> · MRN: {patientInfo.id}
                     </div>
                   </div>
                 </div>
@@ -3322,8 +3313,8 @@ export function DockableQueueWorkspace({
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by Patient Name, UHID, or Token Number…"
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search by Patient Name, MRN, or Token Number…"
                   className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
                 />
               </div>
@@ -3402,7 +3393,7 @@ export function DockableQueueWorkspace({
                   >
                     <th className="px-4 py-3.5">Token Number</th>
                     <th className="px-4 py-3.5">Patient</th>
-                    <th className="px-4 py-3.5">UHID</th>
+                    <th className="px-4 py-3.5">MRN</th>
                     <th className="px-4 py-3.5">Appointment Time</th>
                     <th className="px-4 py-3.5">Visit Type</th>
                     <th className="px-4 py-3.5">Queue Status</th>
@@ -4545,8 +4536,8 @@ export function AppointmentManagementCenterScreen({
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by Patient Name, UHID (MRN), Appointment ID..."
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search by Patient Name, MRN, Appointment ID..."
                   className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
                 />
                 {searchQuery && (
@@ -4767,17 +4758,10 @@ export function AppointmentManagementCenterScreen({
                               />
                             </div>
                           </th>
-                          <th className="px-4 py-3.5">UHID</th>
-                          {userRole !== "Doctor" && (
-                            <th className="px-4 py-3.5">Doctor</th>
-                          )}
-                          {userRole !== "Doctor" && (
-                            <th className="px-4 py-3.5">Department</th>
-                          )}
-                          <th
-                            onClick={() => handleSort("timeSlot")}
-                            className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
-                          >
+                          <th className="px-4 py-3.5">MRN</th>
+                          {userRole !== 'Doctor' && <th className="px-4 py-3.5">Doctor</th>}
+                          {userRole !== 'Doctor' && <th className="px-4 py-3.5">Department</th>}
+                          <th onClick={() => handleSort('timeSlot')} className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors">
                             <div className="flex items-center gap-1">
                               <span>Appointment Time</span>
                               <ArrowUpDown
@@ -5596,11 +5580,11 @@ export { AppointmentManagementCenterScreen as AppointmentCenterScreen };
 
 // ─── RECEPTIONIST APPOINTMENT BOOKING SCREEN ───
 export interface ReceptionBookAppointmentProps {
-  onBack?: () => void;
-  onConfirmSuccess?: (appointmentId: string) => void;
-  onRegisterNewPatientClick?: () => void;
-  onViewPatientProfileClick?: (uhid: string) => void;
-  initialUhid?: string;
+  onBack?: () => void
+  onConfirmSuccess?: (appointmentId: string) => void
+  onRegisterNewPatientClick?: () => void
+  onViewPatientProfileClick?: (mrn: string) => void
+  initialMrn?: string
 }
 
 export function ReceptionBookAppointmentScreen({
@@ -5608,24 +5592,16 @@ export function ReceptionBookAppointmentScreen({
   onConfirmSuccess,
   onRegisterNewPatientClick,
   onViewPatientProfileClick,
-  initialUhid,
+  initialMrn,
 }: ReceptionBookAppointmentProps) {
   // Section 01: Patient Search state
-  const [patientQuery, setPatientQuery] = useState(initialUhid || "");
-  const [selectedPatient, setSelectedPatient] = useState<PatientSummary | null>(
-    () => {
-      if (initialUhid) {
-        return (
-          PATIENT_DATABASE.find(
-            (p) =>
-              (p.mrn || "").toLowerCase() === initialUhid.toLowerCase() ||
-              String(p.id).toLowerCase() === initialUhid.toLowerCase(),
-          ) || PATIENT_DATABASE[0]
-        );
-      }
-      return PATIENT_DATABASE[0]; // default pre-selected patient for smooth demo
-    },
-  );
+  const [patientQuery, setPatientQuery] = useState(initialMrn || '')
+  const [selectedPatient, setSelectedPatient] = useState<PatientSummary | null>(() => {
+    if (initialMrn) {
+      return PATIENT_DATABASE.find(p => p.mrn.toLowerCase() === initialMrn.toLowerCase() || p.id.toLowerCase() === initialMrn.toLowerCase()) || PATIENT_DATABASE[0]
+    }
+    return PATIENT_DATABASE[0] // default pre-selected patient for smooth demo
+  })
 
   // Patient search dropdown options
   const searchedPatients = useMemo(() => {
@@ -5829,8 +5805,8 @@ export function ReceptionBookAppointmentScreen({
               <input
                 type="text"
                 value={patientQuery}
-                onChange={(e) => setPatientQuery(e.target.value)}
-                placeholder="Search patient by UHID, Patient Name, Mobile Number or Appointment ID..."
+                onChange={e => setPatientQuery(e.target.value)}
+                placeholder="Search patient by MRN, Patient Name, Mobile Number or Appointment ID..."
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
               />
             </div>
@@ -6285,10 +6261,8 @@ export function ReceptionBookAppointmentScreen({
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">UHID</span>
-                  <span className="font-mono font-bold text-[#0D47A1]">
-                    {selectedPatient.mrn}
-                  </span>
+                  <span className="text-[#64748B]">MRN</span>
+                  <span className="font-mono font-bold text-[#0D47A1]">{selectedPatient.mrn}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-50">
                   <span className="text-[#64748B]">Age / Gender</span>
@@ -6550,12 +6524,12 @@ export function ReceptionBookAppointmentScreen({
 
 // ─── RECEPTIONIST PATIENT CHECK-IN SCREEN ───
 export interface PatientCheckInScreenProps {
-  onBack?: () => void;
-  onCheckInSuccess?: (tokenNo: string) => void;
-  onViewQueueClick?: () => void;
-  onViewPatientProfileClick?: (uhid: string) => void;
-  initialUhid?: string;
-  initialAptId?: string;
+  onBack?: () => void
+  onCheckInSuccess?: (tokenNo: string) => void
+  onViewQueueClick?: () => void
+  onViewPatientProfileClick?: (mrn: string) => void
+  initialMrn?: string
+  initialAptId?: string
 }
 
 export function PatientCheckInScreen({
@@ -6563,21 +6537,19 @@ export function PatientCheckInScreen({
   onCheckInSuccess,
   onViewQueueClick,
   onViewPatientProfileClick,
-  initialUhid,
+  initialMrn,
   initialAptId,
 }: PatientCheckInScreenProps) {
   // Appointment lookup state
-  const [aptSearchQuery, setAptSearchQuery] = useState(
-    initialAptId || initialUhid || "",
-  );
-
+  const [aptSearchQuery, setAptSearchQuery] = useState(initialAptId || initialMrn || '')
+  
   // Mock appointments database for lookup
   const [checkInApts] = useState([
     {
-      aptId: "APT-2026-8912",
-      token: "TK-086",
-      uhid: "UHID-892101",
-      patientName: "Sarah Mitchell",
+      aptId: 'APT-2026-8912',
+      token: 'TK-086',
+      mrn: 'MRN-892101',
+      patientName: 'Sarah Mitchell',
       age: 34,
       gender: "Female",
       bloodGroup: "A+",
@@ -6591,10 +6563,10 @@ export function PatientCheckInScreen({
       status: "Scheduled",
     },
     {
-      aptId: "APT-2026-8913",
-      token: "TK-087",
-      uhid: "UHID-892102",
-      patientName: "James Thornton",
+      aptId: 'APT-2026-8913',
+      token: 'TK-087',
+      mrn: 'MRN-892102',
+      patientName: 'James Thornton',
       age: 67,
       gender: "Male",
       bloodGroup: "O+",
@@ -6608,10 +6580,10 @@ export function PatientCheckInScreen({
       status: "Scheduled",
     },
     {
-      aptId: "APT-2026-8914",
-      token: "TK-088",
-      uhid: "UHID-892103",
-      patientName: "Emma Reyes",
+      aptId: 'APT-2026-8914',
+      token: 'TK-088',
+      mrn: 'MRN-892103',
+      patientName: 'Emma Reyes',
       age: 28,
       gender: "Female",
       bloodGroup: "B+",
@@ -6625,10 +6597,10 @@ export function PatientCheckInScreen({
       status: "Checked-In",
     },
     {
-      aptId: "APT-2026-8915",
-      token: "TK-089",
-      uhid: "UHID-892104",
-      patientName: "Robert Chen",
+      aptId: 'APT-2026-8915',
+      token: 'TK-089',
+      mrn: 'MRN-892104',
+      patientName: 'Robert Chen',
       age: 52,
       gender: "Male",
       bloodGroup: "AB+",
@@ -6642,10 +6614,10 @@ export function PatientCheckInScreen({
       status: "Scheduled",
     },
     {
-      aptId: "APT-2026-8916",
-      token: "TK-090",
-      uhid: "UHID-892105",
-      patientName: "Aisha Kumar",
+      aptId: 'APT-2026-8916',
+      token: 'TK-090',
+      mrn: 'MRN-892105',
+      patientName: 'Aisha Kumar',
       age: 41,
       gender: "Female",
       bloodGroup: "O-",
@@ -6659,10 +6631,10 @@ export function PatientCheckInScreen({
       status: "Scheduled",
     },
     {
-      aptId: "APT-2026-8917",
-      token: "TK-091",
-      uhid: "UHID-892106",
-      patientName: "David Walsh",
+      aptId: 'APT-2026-8917',
+      token: 'TK-091',
+      mrn: 'MRN-892106',
+      patientName: 'David Walsh',
       age: 38,
       gender: "Male",
       bloodGroup: "A-",
@@ -6676,10 +6648,10 @@ export function PatientCheckInScreen({
       status: "Scheduled",
     },
     {
-      aptId: "APT-2026-8918",
-      token: "TK-092",
-      uhid: "UHID-892107",
-      patientName: "Nina Patel",
+      aptId: 'APT-2026-8918',
+      token: 'TK-092',
+      mrn: 'MRN-892107',
+      patientName: 'Nina Patel',
       age: 29,
       gender: "Female",
       bloodGroup: "B-",
@@ -6693,10 +6665,10 @@ export function PatientCheckInScreen({
       status: "Scheduled",
     },
     {
-      aptId: "APT-2026-8919",
-      token: "TK-093",
-      uhid: "UHID-892108",
-      patientName: "Carlos Mendez",
+      aptId: 'APT-2026-8919',
+      token: 'TK-093',
+      mrn: 'MRN-892108',
+      patientName: 'Carlos Mendez',
       age: 63,
       gender: "Male",
       bloodGroup: "O+",
@@ -6712,15 +6684,14 @@ export function PatientCheckInScreen({
   ]);
 
   const [selectedApt, setSelectedApt] = useState(() => {
-    if (initialAptId || initialUhid) {
-      const target = (initialAptId || initialUhid || "").toLowerCase().trim();
-      const found = checkInApts.find(
-        (a) =>
-          a.aptId.toLowerCase() === target ||
-          a.uhid.toLowerCase() === target ||
-          (a.token && a.token.toLowerCase() === target),
-      );
-      return found || checkInApts[0];
+    if (initialAptId || initialMrn) {
+      const target = (initialAptId || initialMrn || '').toLowerCase().trim()
+      const found = checkInApts.find(a => 
+        a.aptId.toLowerCase() === target || 
+        a.mrn.toLowerCase() === target ||
+        (a.token && a.token.toLowerCase() === target)
+      )
+      return found || checkInApts[0]
     }
     return checkInApts[0];
   });
@@ -6748,16 +6719,15 @@ export function PatientCheckInScreen({
 
   // Search filter options
   const searchResults = useMemo(() => {
-    if (!aptSearchQuery.trim()) return checkInApts;
-    const q = aptSearchQuery.toLowerCase();
-    return checkInApts.filter(
-      (a) =>
-        a.aptId.toLowerCase().includes(q) ||
-        a.uhid.toLowerCase().includes(q) ||
-        a.patientName.toLowerCase().includes(q) ||
-        a.mobile.includes(q),
-    );
-  }, [aptSearchQuery, checkInApts]);
+    if (!aptSearchQuery.trim()) return checkInApts
+    const q = aptSearchQuery.toLowerCase()
+    return checkInApts.filter(a => 
+      a.aptId.toLowerCase().includes(q) ||
+      a.mrn.toLowerCase().includes(q) ||
+      a.patientName.toLowerCase().includes(q) ||
+      a.mobile.includes(q)
+    )
+  }, [aptSearchQuery, checkInApts])
 
   // Perform Check-In
   const handlePerformCheckIn = () => {
@@ -6865,8 +6835,8 @@ export function PatientCheckInScreen({
               <input
                 type="text"
                 value={aptSearchQuery}
-                onChange={(e) => setAptSearchQuery(e.target.value)}
-                placeholder="Search by Appointment ID, UHID, Patient Name or Mobile..."
+                onChange={e => setAptSearchQuery(e.target.value)}
+                placeholder="Search by Appointment ID, MRN, Patient Name or Mobile..."
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
               />
             </div>
@@ -6885,15 +6855,8 @@ export function PatientCheckInScreen({
                       className="p-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between text-xs transition-colors"
                     >
                       <div>
-                        <p className="font-bold text-[#111827]">
-                          {a.patientName}{" "}
-                          <span className="font-mono text-[11px] font-semibold text-[#0D47A1]">
-                            ({a.uhid})
-                          </span>
-                        </p>
-                        <p className="text-[11px] text-[#64748B]">
-                          {a.doctor} · {a.dept} · {a.timeSlot}
-                        </p>
+                        <p className="font-bold text-[#111827]">{a.patientName} <span className="font-mono text-[11px] font-semibold text-[#0D47A1]">({a.mrn})</span></p>
+                        <p className="text-[11px] text-[#64748B]">{a.doctor} · {a.dept} · {a.timeSlot}</p>
                       </div>
                       <span className="font-mono font-bold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
                         {a.aptId}
@@ -6995,9 +6958,7 @@ export function PatientCheckInScreen({
                   </div>
                   {onViewPatientProfileClick && (
                     <button
-                      onClick={() =>
-                        onViewPatientProfileClick(selectedApt.uhid)
-                      }
+                      onClick={() => onViewPatientProfileClick(selectedApt.mrn)}
                       className="text-xs font-semibold text-[#0D47A1] hover:underline"
                     >
                       View Profile
@@ -7016,12 +6977,8 @@ export function PatientCheckInScreen({
                   </div>
                   <div className="flex-1 space-y-1 text-xs">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-bold text-[#111827]">
-                        {selectedApt.patientName}
-                      </h3>
-                      <span className="font-mono text-xs font-bold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                        {selectedApt.uhid}
-                      </span>
+                      <h3 className="text-sm font-bold text-[#111827]">{selectedApt.patientName}</h3>
+                      <span className="font-mono text-xs font-bold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{selectedApt.mrn}</span>
                     </div>
                     <p className="text-[#64748B]">
                       {selectedApt.age} yrs · {selectedApt.gender} · Blood
@@ -7214,10 +7171,8 @@ export function PatientCheckInScreen({
                     </span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-50">
-                    <span className="text-[#64748B]">UHID</span>
-                    <span className="font-mono font-bold text-[#0D47A1]">
-                      {selectedApt.uhid}
-                    </span>
+                    <span className="text-[#64748B]">MRN</span>
+                    <span className="font-mono font-bold text-[#0D47A1]">{selectedApt.mrn}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-50">
                     <span className="text-[#64748B]">Age / Gender</span>
@@ -7320,10 +7275,7 @@ export function PatientCheckInScreen({
                   Quick Actions
                 </h3>
                 <button
-                  onClick={() =>
-                    onViewPatientProfileClick &&
-                    onViewPatientProfileClick(selectedApt.uhid)
-                  }
+                  onClick={() => onViewPatientProfileClick && onViewPatientProfileClick(selectedApt.mrn)}
                   className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 text-xs font-semibold text-[#0D47A1] transition-colors"
                 >
                   View Patient Profile <ChevronRight size={14} />
@@ -7414,10 +7366,8 @@ export function PatientCheckInScreen({
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[#64748B]">UHID</span>
-                <span className="font-mono text-[#0D47A1]">
-                  {selectedApt.uhid}
-                </span>
+                <span className="text-[#64748B]">MRN</span>
+                <span className="font-mono text-[#0D47A1]">{selectedApt.mrn}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Consulting Doctor</span>
@@ -7483,12 +7433,12 @@ export function PatientCheckInScreen({
 
 // ─── RECEPTION QUEUE MANAGEMENT SCREEN ───
 export interface ReceptionQueueManagementScreenProps {
-  onBack?: () => void;
-  onCheckInClick?: (token?: string, uhid?: string) => void;
-  onPatientSearchClick?: () => void;
-  onPatientSelect?: (uhid: string) => void;
-  onRegisterPatientClick?: () => void;
-  onBookAppointmentClick?: () => void;
+  onBack?: () => void
+  onCheckInClick?: (token?: string, mrn?: string) => void
+  onPatientSearchClick?: () => void
+  onPatientSelect?: (mrn: string) => void
+  onRegisterPatientClick?: () => void
+  onBookAppointmentClick?: () => void
 }
 
 export function ReceptionQueueManagementScreen({
@@ -7518,135 +7468,15 @@ export function ReceptionQueueManagementScreen({
 
   // Queue Data List
   const [queueItems, setQueueItems] = useState([
-    {
-      token: "TK-086",
-      name: "Sarah Mitchell",
-      uhid: "UHID-892101",
-      aptId: "APT-2026-8912",
-      doctor: "Dr. Arjun Mehta",
-      dept: "Cardiology",
-      apptTime: "09:00 AM",
-      arrivalTime: "08:42 AM",
-      waitTime: "18 min",
-      status: "In Consultation",
-      type: "Follow-up",
-      age: 34,
-      gender: "Female",
-      bloodGroup: "A+",
-    },
-    {
-      token: "TK-087",
-      name: "James Thornton",
-      uhid: "UHID-892102",
-      aptId: "APT-2026-8913",
-      doctor: "Dr. Priya Sharma",
-      dept: "General OPD",
-      apptTime: "09:15 AM",
-      arrivalTime: "09:03 AM",
-      waitTime: "12 min",
-      status: "Waiting",
-      type: "Routine",
-      age: 67,
-      gender: "Male",
-      bloodGroup: "O+",
-    },
-    {
-      token: "TK-088",
-      name: "Emma Reyes",
-      uhid: "UHID-892103",
-      aptId: "APT-2026-8914",
-      doctor: "Dr. Sunita Patel",
-      dept: "Gynecology",
-      apptTime: "09:30 AM",
-      arrivalTime: "09:22 AM",
-      waitTime: "08 min",
-      status: "Checked-In",
-      type: "New Visit",
-      age: 28,
-      gender: "Female",
-      bloodGroup: "B+",
-    },
-    {
-      token: "TK-089",
-      name: "Robert Chen",
-      uhid: "UHID-892104",
-      aptId: "APT-2026-8915",
-      doctor: "Dr. Arjun Mehta",
-      dept: "Cardiology",
-      apptTime: "10:00 AM",
-      arrivalTime: "—",
-      waitTime: "00 min",
-      status: "Scheduled",
-      type: "Emergency",
-      age: 52,
-      gender: "Male",
-      bloodGroup: "AB+",
-    },
-    {
-      token: "TK-090",
-      name: "Aisha Kumar",
-      uhid: "UHID-892105",
-      aptId: "APT-2026-8916",
-      doctor: "Dr. Rajesh Kapoor",
-      dept: "Neurology",
-      apptTime: "10:15 AM",
-      arrivalTime: "10:11 AM",
-      waitTime: "04 min",
-      status: "Checked-In",
-      type: "Consultation",
-      age: 41,
-      gender: "Female",
-      bloodGroup: "O-",
-    },
-    {
-      token: "TK-091",
-      name: "David Walsh",
-      uhid: "UHID-892106",
-      aptId: "APT-2026-8917",
-      doctor: "Dr. Priya Sharma",
-      dept: "General OPD",
-      apptTime: "10:30 AM",
-      arrivalTime: "—",
-      waitTime: "00 min",
-      status: "Scheduled",
-      type: "Routine",
-      age: 38,
-      gender: "Male",
-      bloodGroup: "A-",
-    },
-    {
-      token: "TK-092",
-      name: "Nina Patel",
-      uhid: "UHID-892107",
-      aptId: "APT-2026-8918",
-      doctor: "Dr. Rajesh Kapoor",
-      dept: "Dermatology",
-      apptTime: "11:00 AM",
-      arrivalTime: "10:45 AM",
-      waitTime: "00 min",
-      status: "Completed",
-      type: "Follow-up",
-      age: 29,
-      gender: "Female",
-      bloodGroup: "B-",
-    },
-    {
-      token: "TK-093",
-      name: "Carlos Mendez",
-      uhid: "UHID-892108",
-      aptId: "APT-2026-8919",
-      doctor: "Dr. Priya Sharma",
-      dept: "General OPD",
-      apptTime: "11:30 AM",
-      arrivalTime: "—",
-      waitTime: "00 min",
-      status: "No Show",
-      type: "Consultation",
-      age: 63,
-      gender: "Male",
-      bloodGroup: "O+",
-    },
-  ]);
+    { token: 'TK-086', name: 'Sarah Mitchell', mrn: 'MRN-892101', aptId: 'APT-2026-8912', doctor: 'Dr. Arjun Mehta', dept: 'Cardiology', apptTime: '09:00 AM', arrivalTime: '08:42 AM', waitTime: '18 min', status: 'In Consultation', type: 'Follow-up', age: 34, gender: 'Female', bloodGroup: 'A+' },
+    { token: 'TK-087', name: 'James Thornton', mrn: 'MRN-892102', aptId: 'APT-2026-8913', doctor: 'Dr. Priya Sharma', dept: 'General OPD', apptTime: '09:15 AM', arrivalTime: '09:03 AM', waitTime: '12 min', status: 'Waiting', type: 'Routine', age: 67, gender: 'Male', bloodGroup: 'O+' },
+    { token: 'TK-088', name: 'Emma Reyes', mrn: 'MRN-892103', aptId: 'APT-2026-8914', doctor: 'Dr. Sunita Patel', dept: 'Gynecology', apptTime: '09:30 AM', arrivalTime: '09:22 AM', waitTime: '08 min', status: 'Checked-In', type: 'New Visit', age: 28, gender: 'Female', bloodGroup: 'B+' },
+    { token: 'TK-089', name: 'Robert Chen', mrn: 'MRN-892104', aptId: 'APT-2026-8915', doctor: 'Dr. Arjun Mehta', dept: 'Cardiology', apptTime: '10:00 AM', arrivalTime: '—', waitTime: '00 min', status: 'Scheduled', type: 'Emergency', age: 52, gender: 'Male', bloodGroup: 'AB+' },
+    { token: 'TK-090', name: 'Aisha Kumar', mrn: 'MRN-892105', aptId: 'APT-2026-8916', doctor: 'Dr. Rajesh Kapoor', dept: 'Neurology', apptTime: '10:15 AM', arrivalTime: '10:11 AM', waitTime: '04 min', status: 'Checked-In', type: 'Consultation', age: 41, gender: 'Female', bloodGroup: 'O-' },
+    { token: 'TK-091', name: 'David Walsh', mrn: 'MRN-892106', aptId: 'APT-2026-8917', doctor: 'Dr. Priya Sharma', dept: 'General OPD', apptTime: '10:30 AM', arrivalTime: '—', waitTime: '00 min', status: 'Scheduled', type: 'Routine', age: 38, gender: 'Male', bloodGroup: 'A-' },
+    { token: 'TK-092', name: 'Nina Patel', mrn: 'MRN-892107', aptId: 'APT-2026-8918', doctor: 'Dr. Rajesh Kapoor', dept: 'Dermatology', apptTime: '11:00 AM', arrivalTime: '10:45 AM', waitTime: '00 min', status: 'Completed', type: 'Follow-up', age: 29, gender: 'Female', bloodGroup: 'B-' },
+    { token: 'TK-093', name: 'Carlos Mendez', mrn: 'MRN-892108', aptId: 'APT-2026-8919', doctor: 'Dr. Priya Sharma', dept: 'General OPD', apptTime: '11:30 AM', arrivalTime: '—', waitTime: '00 min', status: 'No Show', type: 'Consultation', age: 63, gender: 'Male', bloodGroup: 'O+' },
+  ])
 
   // Filter Logic
   const filteredQueue = useMemo(() => {
@@ -7655,7 +7485,7 @@ export function ReceptionQueueManagementScreen({
       const matchSearch =
         q === "" ||
         item.name.toLowerCase().includes(q) ||
-        item.uhid.toLowerCase().includes(q) ||
+        item.mrn.toLowerCase().includes(q) ||
         item.token.toLowerCase().includes(q) ||
         item.aptId.toLowerCase().includes(q);
 
@@ -7916,8 +7746,8 @@ export function ReceptionQueueManagementScreen({
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search queue by Patient Name, UHID, Token Number or Appointment ID..."
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search queue by Patient Name, MRN, Token Number or Appointment ID..."
             className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
           />
         </div>
@@ -8026,7 +7856,7 @@ export function ReceptionQueueManagementScreen({
                   >
                     <th className="px-4 py-3">Token</th>
                     <th className="px-4 py-3">Patient</th>
-                    <th className="px-4 py-3">UHID</th>
+                    <th className="px-4 py-3">MRN</th>
                     <th className="px-4 py-3">Doctor</th>
                     <th className="px-4 py-3">Department</th>
                     <th className="px-4 py-3">Appt Time</th>
@@ -8046,30 +7876,14 @@ export function ReceptionQueueManagementScreen({
                           onClick={() => setSelectedTokenId(item.token)}
                           className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${isSelected ? "bg-blue-50/60 font-medium" : ""}`}
                         >
-                          <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
-                            {item.token}
-                          </td>
-                          <td className="px-4 py-3.5 font-bold text-[#111827]">
-                            {item.name}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {item.uhid}
-                          </td>
-                          <td className="px-4 py-3.5 font-medium">
-                            {item.doctor}
-                          </td>
-                          <td className="px-4 py-3.5 text-slate-600">
-                            {item.dept}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {item.apptTime}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {item.arrivalTime}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {item.waitTime}
-                          </td>
+                          <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">{item.token}</td>
+                          <td className="px-4 py-3.5 font-bold text-[#111827]">{item.name}</td>
+                          <td className="px-4 py-3.5 font-mono text-slate-500">{item.mrn}</td>
+                          <td className="px-4 py-3.5 font-medium">{item.doctor}</td>
+                          <td className="px-4 py-3.5 text-slate-600">{item.dept}</td>
+                          <td className="px-4 py-3.5 font-mono text-slate-500">{item.apptTime}</td>
+                          <td className="px-4 py-3.5 font-mono text-slate-500">{item.arrivalTime}</td>
+                          <td className="px-4 py-3.5 font-mono text-slate-500">{item.waitTime}</td>
                           <td className="px-4 py-3.5">
                             <Chip
                               label={item.status}
@@ -8084,10 +7898,7 @@ export function ReceptionQueueManagementScreen({
                               {item.status === "Scheduled" ||
                               item.status === "Registered" ? (
                                 <button
-                                  onClick={() =>
-                                    onCheckInClick &&
-                                    onCheckInClick(item.token, item.uhid)
-                                  }
+                                  onClick={() => onCheckInClick && onCheckInClick(item.token, item.mrn)}
                                   className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
                                 >
                                   Check-In
@@ -8095,9 +7906,7 @@ export function ReceptionQueueManagementScreen({
                               ) : null}
 
                               <button
-                                onClick={() =>
-                                  onPatientSelect && onPatientSelect(item.uhid)
-                                }
+                                onClick={() => onPatientSelect && onPatientSelect(item.mrn)}
                                 title="View Patient"
                                 className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
                               >
@@ -8186,10 +7995,8 @@ export function ReceptionQueueManagementScreen({
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">UHID</span>
-                  <span className="font-mono font-bold text-[#0D47A1]">
-                    {selectedItem.uhid}
-                  </span>
+                  <span className="text-[#64748B]">MRN</span>
+                  <span className="font-mono font-bold text-[#0D47A1]">{selectedItem.mrn}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-50">
                   <span className="text-[#64748B]">Assigned Doctor</span>
@@ -8352,17 +8159,9 @@ export function ReceptionQueueManagementScreen({
             </div>
 
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1">
-              <p>
-                <strong>Patient:</strong> {noShowDialogApt.name} (
-                {noShowDialogApt.uhid})
-              </p>
-              <p>
-                <strong>Doctor:</strong> {noShowDialogApt.doctor} (
-                {noShowDialogApt.dept})
-              </p>
-              <p>
-                <strong>Time Slot:</strong> {noShowDialogApt.apptTime}
-              </p>
+              <p><strong>Patient:</strong> {noShowDialogApt.name} ({noShowDialogApt.mrn})</p>
+              <p><strong>Doctor:</strong> {noShowDialogApt.doctor} ({noShowDialogApt.dept})</p>
+              <p><strong>Time Slot:</strong> {noShowDialogApt.apptTime}</p>
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2">

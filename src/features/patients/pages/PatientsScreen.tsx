@@ -986,16 +986,8 @@ export function EditPatientInformationDrawer({
                 <Edit size={18} className="text-blue-100" />
               </div>
               <div>
-                <h2
-                  className="text-base font-bold leading-tight"
-                  style={{ fontFamily: PP }}
-                >
-                  Edit Patient Information
-                </h2>
-                <p className="text-xs text-blue-200" style={{ fontFamily: RB }}>
-                  UHID: {patient?.id || "PT-2024-001"} • Demographic &amp;
-                  Contact Update
-                </p>
+                <h2 className="text-base font-bold leading-tight" style={{ fontFamily: PP }}>Edit Patient Information</h2>
+                <p className="text-xs text-blue-200" style={{ fontFamily: RB }}>MRN: {patient?.id || 'PT-2024-001'} • Demographic &amp; Contact Update</p>
               </div>
             </div>
             <button
@@ -5713,19 +5705,12 @@ export function PatientVisitHistoryScreen({
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="px-6 py-4 bg-[#0D47A1] text-white flex items-center justify-between">
+            <div className="px-6 py-4 bg-[#009688] text-white flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <FileText size={20} />
                 <div>
-                  <h3
-                    className="text-base font-bold"
-                    style={{ fontFamily: PP }}
-                  >
-                    OPD Consultation Summary
-                  </h3>
-                  <div className="text-xs text-blue-200">
-                    Visit Ref: {summaryVisit.id}
-                  </div>
+                  <h3 className="text-base font-bold" style={{ fontFamily: PP }}>OPD Consultation Summary</h3>
+                  <div className="text-xs text-teal-100">Visit Ref: {summaryVisit.id}</div>
                 </div>
               </div>
               <button
@@ -12936,9 +12921,9 @@ export function ReceptionPatientRegistrationScreen({
   onBookAppointment,
   onViewProfile,
 }: {
-  onBack: () => void;
-  onBookAppointment?: (uhid: string) => void;
-  onViewProfile?: (uhid: string) => void;
+  onBack: () => void
+  onBookAppointment?: (mrn: string) => void
+  onViewProfile?: (mrn: string) => void
 }) {
   // Form State
   const [formData, setFormData] = useState({
@@ -12969,16 +12954,16 @@ export function ReceptionPatientRegistrationScreen({
     specialNotes: "",
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [generatedUhid, setGeneratedUhid] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [generatedMrn, setGeneratedMrn] = useState('')
 
   // Recent Registrations Mock Data
   const recentRegistrations = [
-    { name: "Aisha Kumar", uhid: "UHID-892105", time: "10:11 AM" },
-    { name: "Michael Vance", uhid: "UHID-892109", time: "10:05 AM" },
-    { name: "Diana Prince", uhid: "UHID-892110", time: "09:48 AM" },
-  ];
+    { name: 'Aisha Kumar', mrn: 'MRN-892105', time: '10:11 AM' },
+    { name: 'Michael Vance', mrn: 'MRN-892109', time: '10:05 AM' },
+    { name: 'Diana Prince', mrn: 'MRN-892110', time: '09:48 AM' },
+  ]
 
   // Automatically calculate age from DOB
   const handleDobChange = (dobValue: string) => {
@@ -13051,9 +13036,9 @@ export function ReceptionPatientRegistrationScreen({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      const newUhid = `UHID-${Math.floor(100000 + Math.random() * 900000)}`;
-      setGeneratedUhid(newUhid);
-      setShowSuccessDialog(true);
+      const newMrn = `MRN-${Math.floor(100000 + Math.random() * 900000)}`
+      setGeneratedMrn(newMrn)
+      setShowSuccessDialog(true)
     }
   };
 
@@ -13495,14 +13480,12 @@ export function ReceptionPatientRegistrationScreen({
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* UHID Read Only */}
+              {/* MRN Read Only */}
               <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
-                  UHID (Auto-generated)
-                </label>
+                <label className="block text-xs font-semibold text-[#111827] mb-1.5">MRN (Auto-generated)</label>
                 <input
                   type="text"
-                  value="UHID-892112 (Will be generated on submit)"
+                  value="MRN-892112 (Will be generated on submit)"
                   readOnly
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-xs text-[#0D47A1] font-mono font-bold cursor-not-allowed"
                 />
@@ -13667,10 +13650,8 @@ export function ReceptionPatientRegistrationScreen({
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-[#64748B]">UHID</span>
-                <span className="font-mono font-bold text-[#0D47A1]">
-                  Auto-generated
-                </span>
+                <span className="text-[#64748B]">MRN</span>
+                <span className="font-mono font-bold text-[#0D47A1]">Auto-generated</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-50">
                 <span className="text-[#64748B]">Registration Date</span>
@@ -13710,7 +13691,7 @@ export function ReceptionPatientRegistrationScreen({
               <li>Verify patient identity with government ID.</li>
               <li>Verify mobile number to avoid duplicate entries.</li>
               <li>Ensure mandatory fields (*) are completed.</li>
-              <li>UHID is generated automatically upon submission.</li>
+              <li>MRN is generated automatically upon submission.</li>
             </ul>
           </div>
 
@@ -13729,16 +13710,10 @@ export function ReceptionPatientRegistrationScreen({
                   className="py-2.5 flex items-center justify-between"
                 >
                   <div>
-                    <div className="text-xs font-bold text-[#111827]">
-                      {item.name}
-                    </div>
-                    <div className="text-[10px] font-mono text-[#0D47A1]">
-                      {item.uhid}
-                    </div>
+                    <div className="text-xs font-bold text-[#111827]">{item.name}</div>
+                    <div className="text-[10px] font-mono text-[#0D47A1]">{item.mrn}</div>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-400">
-                    {item.time}
-                  </span>
+                  <span className="text-[10px] font-mono text-slate-400">{item.time}</span>
                 </div>
               ))}
             </div>
@@ -13762,7 +13737,7 @@ export function ReceptionPatientRegistrationScreen({
           className="px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-md flex items-center gap-2"
           style={{ fontFamily: PP }}
         >
-          <UserPlus size={16} /> Register Patient & Generate UHID
+          <UserPlus size={16} /> Register Patient & Generate MRN
         </button>
       </div>
 
@@ -13788,10 +13763,8 @@ export function ReceptionPatientRegistrationScreen({
             {/* Generated Details Card */}
             <div className="p-4 rounded-xl bg-slate-50 border border-[#E5E7EB] space-y-2.5 text-xs">
               <div className="flex justify-between items-center pb-2 border-b border-slate-200">
-                <span className="text-[#64748B]">Generated UHID</span>
-                <span className="font-mono text-base font-bold text-[#0D47A1]">
-                  {generatedUhid}
-                </span>
+                <span className="text-[#64748B]">Generated MRN</span>
+                <span className="font-mono text-base font-bold text-[#0D47A1]">{generatedMrn}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Patient Name</span>
@@ -13815,9 +13788,9 @@ export function ReceptionPatientRegistrationScreen({
             <div className="space-y-2 pt-1">
               <button
                 onClick={() => {
-                  setShowSuccessDialog(false);
-                  if (onBookAppointment) onBookAppointment(generatedUhid);
-                  else onBack();
+                  setShowSuccessDialog(false)
+                  if (onBookAppointment) onBookAppointment(generatedMrn)
+                  else onBack()
                 }}
                 className="w-full py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all flex items-center justify-center gap-2"
                 style={{ fontFamily: PP }}
@@ -13826,9 +13799,9 @@ export function ReceptionPatientRegistrationScreen({
               </button>
               <button
                 onClick={() => {
-                  setShowSuccessDialog(false);
-                  if (onViewProfile) onViewProfile(generatedUhid);
-                  else onBack();
+                  setShowSuccessDialog(false)
+                  if (onViewProfile) onViewProfile(generatedMrn)
+                  else onBack()
                 }}
                 className="w-full py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs font-semibold text-[#0D47A1] hover:bg-blue-50 transition-all"
                 style={{ fontFamily: PP }}
@@ -13880,21 +13853,15 @@ export function ReceptionPatientRegistrationScreen({
 
 // ─── RECEPTION PATIENT SEARCH SCREEN ───
 export type PatientSearchResult = {
-  uhid: string;
-  name: string;
-  age: number;
-  gender: "Male" | "Female" | "Other";
-  mobile: string;
-  bloodGroup: string;
-  regDate: string;
-  status:
-    | "Active"
-    | "Inactive"
-    | "Registered"
-    | "Scheduled"
-    | "Checked-In"
-    | "Completed";
-  regType: "New Patient" | "Existing Patient Update";
+  mrn: string
+  name: string
+  age: number
+  gender: 'Male' | 'Female' | 'Other'
+  mobile: string
+  bloodGroup: string
+  regDate: string
+  status: 'Active' | 'Inactive' | 'Registered' | 'Scheduled' | 'Checked-In' | 'Completed'
+  regType: 'New Patient' | 'Existing Patient Update'
   lastVisit?: {
     date: string;
     doctor: string;
@@ -13986,25 +13953,24 @@ export function PatientSearchScreen({
   onCheckInClick,
   userRole = "Receptionist",
 }: {
-  onBack?: () => void;
-  onPatientSelect?: (uhid: string) => void;
-  onRegisterClick?: () => void;
-  onBookAppointmentClick?: (uhid: string) => void;
-  onCheckInClick?: (uhid: string) => void;
-  userRole?: string;
+  onBack?: () => void
+  onPatientSelect?: (mrn: string) => void
+  onRegisterClick?: () => void
+  onBookAppointmentClick?: (mrn: string) => void
+  onCheckInClick?: (mrn: string) => void
+  userRole?: string
 }) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All Statuses");
-  const [regTypeFilter, setRegTypeFilter] = useState("All Types");
-  const [genderFilter, setGenderFilter] = useState("All Genders");
-  const [regDateFilter, setRegDateFilter] = useState("All Dates");
-  const [selectedPatientId, setSelectedPatientId] =
-    useState<string>("UHID-892101");
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState('All Statuses')
+  const [regTypeFilter, setRegTypeFilter] = useState('All Types')
+  const [genderFilter, setGenderFilter] = useState('All Genders')
+  const [regDateFilter, setRegDateFilter] = useState('All Dates')
+  const [selectedPatientId, setSelectedPatientId] = useState<string>('MRN-892101')
 
   const [patients] = useState<PatientSearchResult[]>([
     {
-      uhid: "UHID-892101",
-      name: "Sarah Mitchell",
+      mrn: 'MRN-892101',
+      name: 'Sarah Mitchell',
       age: 34,
       gender: "Female",
       mobile: "+91 98765 43210",
@@ -14027,8 +13993,8 @@ export function PatientSearchScreen({
       },
     },
     {
-      uhid: "UHID-892102",
-      name: "James Thornton",
+      mrn: 'MRN-892102',
+      name: 'James Thornton',
       age: 67,
       gender: "Male",
       mobile: "+91 98765 43211",
@@ -14051,8 +14017,8 @@ export function PatientSearchScreen({
       },
     },
     {
-      uhid: "UHID-892103",
-      name: "Emma Reyes",
+      mrn: 'MRN-892103',
+      name: 'Emma Reyes',
       age: 28,
       gender: "Female",
       mobile: "+91 98765 43212",
@@ -14075,8 +14041,8 @@ export function PatientSearchScreen({
       },
     },
     {
-      uhid: "UHID-892104",
-      name: "Robert Chen",
+      mrn: 'MRN-892104',
+      name: 'Robert Chen',
       age: 52,
       gender: "Male",
       mobile: "+91 98765 43213",
@@ -14092,8 +14058,8 @@ export function PatientSearchScreen({
       },
     },
     {
-      uhid: "UHID-892105",
-      name: "Aisha Kumar",
+      mrn: 'MRN-892105',
+      name: 'Aisha Kumar',
       age: 41,
       gender: "Female",
       mobile: "+91 98765 43214",
@@ -14110,8 +14076,8 @@ export function PatientSearchScreen({
       },
     },
     {
-      uhid: "UHID-892106",
-      name: "David Walsh",
+      mrn: 'MRN-892106',
+      name: 'David Walsh',
       age: 38,
       gender: "Male",
       mobile: "+91 98765 43215",
@@ -14129,11 +14095,10 @@ export function PatientSearchScreen({
   ]);
 
   // Filter Logic
-  const filteredPatients = patients.filter((p) => {
-    const q = searchQuery.toLowerCase().trim();
-    const matchSearch =
-      q === "" ||
-      p.uhid.toLowerCase().includes(q) ||
+  const filteredPatients = patients.filter(p => {
+    const q = searchQuery.toLowerCase().trim()
+    const matchSearch = q === '' ||
+      p.mrn.toLowerCase().includes(q) ||
       p.name.toLowerCase().includes(q) ||
       p.mobile.includes(q);
 
@@ -14150,8 +14115,7 @@ export function PatientSearchScreen({
     return matchSearch && matchStatus && matchType && matchGender && matchDate;
   });
 
-  const selectedPatient =
-    patients.find((p) => p.uhid === selectedPatientId) || filteredPatients[0];
+  const selectedPatient = patients.find(p => p.mrn === selectedPatientId) || filteredPatients[0]
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -14211,25 +14175,19 @@ export function PatientSearchScreen({
 
         {/* Primary Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          {userRole !== "admin" &&
-            userRole !== "Hospital Admin" &&
-            userRole !== "Super Admin" && (
-              <button
-                onClick={onRegisterClick}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <UserPlus size={15} />
-                Register New Patient
-              </button>
-            )}
-          <button
-            onClick={() =>
-              onBookAppointmentClick && selectedPatient
-                ? onBookAppointmentClick(selectedPatient.uhid)
-                : null
-            }
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm"
+          {userRole !== 'admin' && userRole !== 'Hospital Admin' && userRole !== 'Super Admin' && (
+            <button 
+              onClick={onRegisterClick}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm" 
+              style={{ fontFamily: PP }}
+            >
+              <UserPlus size={15} />
+              Register New Patient
+            </button>
+          )}
+          <button 
+            onClick={() => onBookAppointmentClick && selectedPatient ? onBookAppointmentClick(selectedPatient.mrn) : null}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm" 
             style={{ fontFamily: PP }}
           >
             <Calendar size={15} />
@@ -14248,8 +14206,8 @@ export function PatientSearchScreen({
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by UHID, Patient Name, Mobile Number or Appointment ID..."
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search by MRN, Patient Name, Mobile Number or Appointment ID..."
             className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
             style={{ fontFamily: RB }}
           />
@@ -14354,7 +14312,7 @@ export function PatientSearchScreen({
                     style={{ fontFamily: PP }}
                   >
                     <th className="px-4 py-3">Photo</th>
-                    <th className="px-4 py-3">UHID</th>
+                    <th className="px-4 py-3">MRN</th>
                     <th className="px-4 py-3">Patient Name</th>
                     <th className="px-4 py-3">Age / Gender</th>
                     <th className="px-4 py-3">Mobile</th>
@@ -14366,20 +14324,18 @@ export function PatientSearchScreen({
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
                   {filteredPatients.length > 0 ? (
-                    filteredPatients.map((p) => {
-                      const isSelected = selectedPatientId === p.uhid;
+                    filteredPatients.map(p => {
+                      const isSelected = selectedPatientId === p.mrn
                       return (
-                        <tr
-                          key={p.uhid}
-                          onClick={() => setSelectedPatientId(p.uhid)}
-                          className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${isSelected ? "bg-blue-50/60 font-medium" : ""}`}
+                        <tr 
+                          key={p.mrn} 
+                          onClick={() => setSelectedPatientId(p.mrn)}
+                          className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${isSelected ? 'bg-blue-50/60 font-medium' : ''}`}
                         >
                           <td className="px-4 py-3">
                             <Av name={p.name} size="sm" />
                           </td>
-                          <td className="px-4 py-3 font-mono font-bold text-[#0D47A1]">
-                            {p.uhid}
-                          </td>
+                          <td className="px-4 py-3 font-mono font-bold text-[#0D47A1]">{p.mrn}</td>
                           <td className="px-4 py-3">
                             <div className="font-semibold text-[#111827]">
                               {p.name}
@@ -14408,30 +14364,23 @@ export function PatientSearchScreen({
                             onClick={(e) => e.stopPropagation()}
                           >
                             <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() =>
-                                  onPatientSelect && onPatientSelect(p.uhid)
-                                }
+                              <button 
+                                onClick={() => onPatientSelect && onPatientSelect(p.mrn)}
                                 title="View Patient Profile"
                                 className="px-2.5 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
                               >
                                 Profile
                               </button>
-                              <button
-                                onClick={() =>
-                                  onBookAppointmentClick &&
-                                  onBookAppointmentClick(p.uhid)
-                                }
+                              <button 
+                                onClick={() => onBookAppointmentClick && onBookAppointmentClick(p.mrn)}
                                 title="Book Appointment"
                                 className="px-2 py-1 rounded-lg bg-teal-50 text-[#009688] text-[11px] font-semibold hover:bg-teal-100 transition-colors"
                               >
                                 Book
                               </button>
-                              {p.status === "Scheduled" && (
-                                <button
-                                  onClick={() =>
-                                    onCheckInClick && onCheckInClick(p.uhid)
-                                  }
+                              {p.status === 'Scheduled' && (
+                                <button 
+                                  onClick={() => onCheckInClick && onCheckInClick(p.mrn)}
                                   title="Check-In Patient"
                                   className="px-2 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
                                 >
@@ -14448,14 +14397,9 @@ export function PatientSearchScreen({
                       <td colSpan={9} className="px-4 py-12 text-center">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <Users size={32} className="text-slate-300" />
-                          <p className="text-sm font-semibold text-[#111827]">
-                            No patient records match your search.
-                          </p>
-                          <p className="text-xs text-slate-400">
-                            Complete the required patient information to
-                            generate a new UHID.
-                          </p>
-                          <button
+                          <p className="text-sm font-semibold text-[#111827]">No patient records match your search.</p>
+                          <p className="text-xs text-slate-400">Complete the required patient information to generate a new MRN.</p>
+                          <button 
                             onClick={onRegisterClick}
                             className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all flex items-center gap-1.5"
                             style={{ fontFamily: PP }}
@@ -14509,12 +14453,8 @@ export function PatientSearchScreen({
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-50">
                   <Av name={selectedPatient.name} size="lg" />
                   <div>
-                    <h4 className="text-sm font-bold text-[#111827]">
-                      {selectedPatient.name}
-                    </h4>
-                    <span className="font-mono text-xs font-bold text-[#0D47A1]">
-                      {selectedPatient.uhid}
-                    </span>
+                    <h4 className="text-sm font-bold text-[#111827]">{selectedPatient.name}</h4>
+                    <span className="font-mono text-xs font-bold text-[#0D47A1]">{selectedPatient.mrn}</span>
                   </div>
                 </div>
 
@@ -14641,19 +14581,14 @@ export function PatientSearchScreen({
                 >
                   Quick Actions
                 </h3>
-                <button
-                  onClick={() =>
-                    onPatientSelect && onPatientSelect(selectedPatient.uhid)
-                  }
+                <button 
+                  onClick={() => onPatientSelect && onPatientSelect(selectedPatient.mrn)}
                   className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 text-xs font-semibold text-[#0D47A1] transition-colors"
                 >
                   View Profile <ChevronRight size={14} />
                 </button>
-                <button
-                  onClick={() =>
-                    onBookAppointmentClick &&
-                    onBookAppointmentClick(selectedPatient.uhid)
-                  }
+                <button 
+                  onClick={() => onBookAppointmentClick && onBookAppointmentClick(selectedPatient.mrn)}
                   className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 text-xs font-semibold text-[#009688] transition-colors"
                 >
                   Book Appointment <ChevronRight size={14} />
@@ -14680,12 +14615,12 @@ export function PatientSearchScreen({
 
 // ─── RECEPTION PATIENT PROFILE SCREEN (RECEPTIONIST VIEW) ────────────────────
 export interface ReceptionPatientProfileScreenProps {
-  onBack?: () => void;
-  onEditPatient?: () => void;
-  onBookAppointment?: (uhid?: string) => void;
-  onCheckInClick?: (token?: string, uhid?: string) => void;
-  patientUhid?: string;
-  userRole?: string;
+  onBack?: () => void
+  onEditPatient?: () => void
+  onBookAppointment?: (mrn?: string) => void
+  onCheckInClick?: (token?: string, mrn?: string) => void
+  patientMrn?: string
+  userRole?: string
 }
 
 export function ReceptionPatientProfileScreen({
@@ -14693,7 +14628,7 @@ export function ReceptionPatientProfileScreen({
   onEditPatient,
   onBookAppointment,
   onCheckInClick,
-  patientUhid = "UHID-892101",
+  patientMrn = 'MRN-892101',
 }: ReceptionPatientProfileScreenProps) {
   const [activeTab, setActiveTab] = useState<
     | "overview"
@@ -14706,10 +14641,9 @@ export function ReceptionPatientProfileScreen({
 
   // Patient Mock Profile Data
   const patient = {
-    photo:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200",
-    name: "Sarah Mitchell",
-    uhid: patientUhid,
+    photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
+    name: 'Sarah Mitchell',
+    mrn: patientMrn,
     age: 34,
     gender: "Female",
     dob: "1990-06-14",
@@ -14908,15 +14842,8 @@ export function ReceptionPatientProfileScreen({
             <Avatar name={patient.name} size="lg" />
             <div>
               <div className="flex flex-wrap items-center gap-3 mb-1">
-                <h2
-                  className="text-lg font-bold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  {patient.name}
-                </h2>
-                <span className="text-[10px] font-mono font-semibold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
-                  {patient.uhid}
-                </span>
+                <h2 className="text-lg font-bold text-[#111827]" style={{ fontFamily: PP }}>{patient.name}</h2>
+                <span className="text-[10px] font-mono font-semibold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">{patient.mrn}</span>
                 <StatusBadge status={patient.status} />
               </div>
               <div
@@ -14950,14 +14877,14 @@ export function ReceptionPatientProfileScreen({
           {/* RECEPTION-SPECIFIC QUICK ACTION BUTTONS IN HERO */}
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             <button
-              onClick={() => onBookAppointment?.(patient.uhid)}
+              onClick={() => onBookAppointment?.(patient.mrn)}
               className="px-3.5 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm flex items-center gap-1.5"
               style={{ fontFamily: PP }}
             >
               <Calendar size={14} /> Book Appointment
             </button>
             <button
-              onClick={() => onCheckInClick?.(undefined, patient.uhid)}
+              onClick={() => onCheckInClick?.(undefined, patient.mrn)}
               className="px-3.5 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors shadow-sm flex items-center gap-1.5"
               style={{ fontFamily: PP }}
             >
@@ -14971,11 +14898,7 @@ export function ReceptionPatientProfileScreen({
               Information
             </button>
             <button
-              onClick={() =>
-                alert(
-                  `Printing official Patient Card for ${patient.name} (${patient.uhid})...`,
-                )
-              }
+              onClick={() => alert(`Printing official Patient Card for ${patient.name} (${patient.mrn})...`)}
               className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
             >
               <Printer size={14} className="text-slate-500" /> Print Patient
@@ -15055,10 +14978,8 @@ export function ReceptionPatientProfileScreen({
 
               <div className="space-y-3 text-xs">
                 <div>
-                  <span className="text-[#64748B] block text-[11px]">UHID</span>
-                  <span className="font-mono font-bold text-[#0D47A1]">
-                    {patient.uhid}
-                  </span>
+                  <span className="text-[#64748B] block text-[11px]">MRN</span>
+                  <span className="font-mono font-bold text-[#0D47A1]">{patient.mrn}</span>
                 </div>
                 <div>
                   <span className="text-[#64748B] block text-[11px]">
@@ -15278,7 +15199,7 @@ export function ReceptionPatientProfileScreen({
                       Appointment History
                     </h3>
                     <button
-                      onClick={() => onBookAppointment?.(patient.uhid)}
+                      onClick={() => onBookAppointment?.(patient.mrn)}
                       className="px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-all flex items-center gap-1"
                       style={{ fontFamily: PP }}
                     >
@@ -15330,9 +15251,7 @@ export function ReceptionPatientProfileScreen({
                             <td className="px-3 py-3 text-right">
                               {item.status === "Scheduled" ? (
                                 <button
-                                  onClick={() =>
-                                    onCheckInClick?.(item.id, patient.uhid)
-                                  }
+                                  onClick={() => onCheckInClick?.(item.id, patient.mrn)}
                                   className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
                                 >
                                   Check-In
@@ -15532,10 +15451,8 @@ export function ReceptionPatientProfileScreen({
               </h3>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">UHID</span>
-                  <span className="font-mono font-bold text-[#0D47A1]">
-                    {patient.uhid}
-                  </span>
+                  <span className="text-[#64748B]">MRN</span>
+                  <span className="font-mono font-bold text-[#0D47A1]">{patient.mrn}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-50">
                   <span className="text-[#64748B]">Registration Date</span>
@@ -15565,13 +15482,13 @@ export function ReceptionPatientProfileScreen({
                 Quick Actions
               </h3>
               <button
-                onClick={() => onBookAppointment?.(patient.uhid)}
+                onClick={() => onBookAppointment?.(patient.mrn)}
                 className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 text-xs font-semibold text-[#009688] transition-colors"
               >
                 Book Appointment <ChevronRight size={14} />
               </button>
               <button
-                onClick={() => onCheckInClick?.(undefined, patient.uhid)}
+                onClick={() => onCheckInClick?.(undefined, patient.mrn)}
                 className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 text-xs font-semibold text-[#009688] transition-colors"
               >
                 Patient Check-In <ChevronRight size={14} />
@@ -16840,9 +16757,9 @@ export function PatientPrescriptionDetailsScreen({
   // Prescription Record data matching Patient scope
   const rxRecord = {
     id: prescriptionId,
-    consultationId: "CNS-1001",
-    patientName: "Sarah Mitchell",
-    uhid: "UHID-892101",
+    consultationId: 'CNS-1001',
+    patientName: 'Sarah Mitchell',
+    mrn: 'MRN-892101',
     age: 34,
     gender: "Female",
     bloodGroup: "A+",
@@ -17084,18 +17001,9 @@ export function PatientPrescriptionDetailsScreen({
             <Av name={rxRecord.patientName} size="md" />
             <div>
               <div className="flex items-center gap-2">
-                <span
-                  className="font-bold text-sm text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  {rxRecord.patientName}
-                </span>
-                <span className="font-mono text-[10px] bg-blue-50 text-[#0D47A1] px-2 py-0.5 rounded font-bold">
-                  {rxRecord.uhid}
-                </span>
-                <span className="font-mono text-[10px] bg-emerald-50 text-[#009688] px-2 py-0.5 rounded font-bold">
-                  {rxRecord.id}
-                </span>
+                <span className="font-bold text-sm text-[#111827]" style={{ fontFamily: PP }}>{rxRecord.patientName}</span>
+                <span className="font-mono text-[10px] bg-blue-50 text-[#0D47A1] px-2 py-0.5 rounded font-bold">{rxRecord.mrn}</span>
+                <span className="font-mono text-[10px] bg-emerald-50 text-[#009688] px-2 py-0.5 rounded font-bold">{rxRecord.id}</span>
               </div>
               <div
                 className="flex items-center gap-3 text-xs text-[#64748B] mt-0.5"
@@ -17155,15 +17063,8 @@ export function PatientPrescriptionDetailsScreen({
 
               <div className="space-y-3 text-xs" style={{ fontFamily: RB }}>
                 <div>
-                  <span
-                    className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5"
-                    style={{ fontFamily: PP }}
-                  >
-                    UHID
-                  </span>
-                  <span className="font-mono font-bold text-[#0D47A1] text-sm">
-                    {rxRecord.uhid}
-                  </span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5" style={{ fontFamily: PP }}>MRN</span>
+                  <span className="font-mono font-bold text-[#0D47A1] text-sm">{rxRecord.mrn}</span>
                 </div>
 
                 <div>
@@ -17742,22 +17643,12 @@ export function PatientPrescriptionDetailsScreen({
                 <span className="font-mono text-slate-500">{rxRecord.id}</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <strong>Patient:</strong> {rxRecord.patientName}
-                </div>
-                <div>
-                  <strong>UHID:</strong> {rxRecord.uhid}
-                </div>
-                <div>
-                  <strong>Doctor:</strong> {rxRecord.doctorName}
-                </div>
-                <div>
-                  <strong>Date:</strong> {rxRecord.consultationDate}
-                </div>
+                <div><strong>Patient:</strong> {rxRecord.patientName}</div>
+                <div><strong>MRN:</strong> {rxRecord.mrn}</div>
+                <div><strong>Doctor:</strong> {rxRecord.doctorName}</div>
+                <div><strong>Date:</strong> {rxRecord.consultationDate}</div>
               </div>
-              <div>
-                <strong>Diagnosis:</strong> {rxRecord.finalDiagnosis}
-              </div>
+              <div><strong>Diagnosis:</strong> {rxRecord.finalDiagnosis}</div>
               <div className="pt-2 border-t border-gray-200">
                 <div className="font-bold mb-1">
                   Medicines ({rxRecord.medicines.length}):
