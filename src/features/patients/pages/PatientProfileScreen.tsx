@@ -21,58 +21,27 @@ import {
   Pill,
   AlertTriangle,
   FileText,
-  Clock,
-  Mail,
-  MapPin,
   Droplets,
-  Users,
-  UserPlus,
   UserX,
-  User,
   Printer,
   CheckCircle2,
-  XCircle,
-  Building2,
-  CreditCard,
-  Lock,
-  Key,
-  ShieldCheck,
-  Save,
-  TrendingUp,
-  Star,
-  Info,
-  Check,
-  AlertCircle,
 } from "lucide-react";
-import { useCreatePatient } from "../hooks/useCreatePatient";
-import {
-  usePatientSearch,
-  usePatients,
 
-} from "../hooks/usePatients";
-import type { CreatePatientRequest } from "../types/patient.types";
-import type { ScreenPatient as Patient, VisitRecord, PatientAppointment, BookingDoctor, PatientCancelAppointmentDialogProps, PatientRescheduleAppointmentDialogProps, MedicalVisitRecord, PrescriptionRecord, PatientInvoice, PaymentHistoryRecord, ScreenPatientSearchResult as PatientSearchResult, ChipVariant, ReceptionPatientProfileScreenProps, PatientPrescriptionItem } from "../types/patient.types";
-import { PP, RB, MOCK_VISIT_HISTORY, TIMELINE_EVENTS, INITIAL_PATIENT_APPOINTMENTS, MOCK_BOOKING_DOCTORS, MOCK_VISIT_RECORDS, MOCK_PRESCRIPTION_RECORDS, INITIAL_INVOICES, PAYMENT_HISTORY_RECORDS } from "../constants/patient.mock";
-import { Avatar, Av, Chip } from "../components/Avatar";
-import { StatusBadge, TimelineStatusBadge } from "../components/StatusBadges";
-import { EditPatientInformationDrawer, ProfileBookApptDrawer, ProfileApptDetailsDrawer, ProfileInvoiceDrawer, ProfileDocDrawer, ProfileVisitDetailsDrawer, PatientQuickDetailsDrawer } from "../components/PatientDrawers";
-import { PatientCancelAppointmentDialog, PatientRescheduleAppointmentDialog } from "../components/PatientDialogs";
-import { PatientListScreen } from "./PatientListScreen";
-import { RegisterPatientScreen } from "./RegisterPatientScreen";
-import { EditPatientScreen } from "./EditPatientScreen";
-import { MedicalHistoryScreen } from "./MedicalHistoryScreen";
-import { PatientVisitHistoryScreen } from "./PatientVisitHistoryScreen";
-import { PatientTimelineScreen } from "./PatientTimelineScreen";
-import { PatientBookAppointmentScreen } from "./PatientBookAppointmentScreen";
-import { PatientAppointmentsScreen } from "./PatientAppointmentsScreen";
-import { PatientMedicalRecordsScreen } from "./PatientMedicalRecordsScreen";
-import { PatientBillingScreen } from "./PatientBillingScreen";
-import { PatientProfileCenterScreen } from "./PatientProfileCenterScreen";
-import { ReceptionPatientRegistrationScreen } from "./ReceptionPatientRegistrationScreen";
-import { PatientSearchScreen } from "./PatientSearchScreen";
-import { ReceptionPatientProfileScreen } from "./ReceptionPatientProfileScreen";
-import { PatientPrescriptionsScreen } from "./PatientPrescriptionsScreen";
-import { PatientPrescriptionDetailsScreen } from "./PatientPrescriptionDetailsScreen";
+
+import {
+  PP,
+  RB,
+} from "../constants/patient.mock";
+import { Avatar } from "../components/Avatar";
+import { StatusBadge } from "../components/StatusBadges";
+import {
+  EditPatientInformationDrawer,
+  ProfileBookApptDrawer,
+  ProfileApptDetailsDrawer,
+  ProfileInvoiceDrawer,
+  ProfileDocDrawer,
+  ProfileVisitDetailsDrawer,
+} from "../components/PatientDrawers";
 
 export function PatientProfileScreen({
   onBack,

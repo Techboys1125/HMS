@@ -1,5 +1,6 @@
 export const API_BASE_URL =
-  (import.meta.env && import.meta.env.VITE_API_BASE_URL) || "";
+  (import.meta.env && import.meta.env.VITE_API_BASE_URL) ||
+  "http://192.168.1.44:8081";
 
 export interface ApiResponseData<T = any> {
   data: T;
@@ -59,7 +60,6 @@ async function customFetch<T = any>(
     headers.Authorization = `Bearer ${token}`;
   }
 
-
   let response: Response;
   try {
     response = await fetch(fullUrl, {
@@ -67,7 +67,6 @@ async function customFetch<T = any>(
       headers,
     });
   } catch (networkError: any) {
-
     throw new ApiError(
       "Unable to connect to the server. Please check your network connection and try again.",
       0,
@@ -82,7 +81,6 @@ async function customFetch<T = any>(
   } else {
     responseData = await response.text();
   }
-
 
   if (!response.ok) {
     // 401 Token Refresh Logic (exclude login and public auth endpoints)
