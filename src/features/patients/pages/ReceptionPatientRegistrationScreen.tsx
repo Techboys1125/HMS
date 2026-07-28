@@ -10,10 +10,7 @@ import {
 } from "lucide-react";
 import { useCreatePatient } from "../hooks/useCreatePatient";
 import type { CreatePatientRequest } from "../types/patient.types";
-import {
-  PP,
-  RB,
-} from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.mock";
 
 export function ReceptionPatientRegistrationScreen({
   onBack,
@@ -95,6 +92,7 @@ export function ReceptionPatientRegistrationScreen({
 
     if (!formData.fullName.trim()) newErrors.fullName = "Full Name is required";
     if (!formData.gender) newErrors.gender = "Gender is required";
+    if (!formData.dob) newErrors.dob = "Date of Birth is required";
     if (!formData.phone.trim()) {
       newErrors.phone = "Mobile Number is required";
     } else if (
@@ -119,15 +117,17 @@ export function ReceptionPatientRegistrationScreen({
     const payload: CreatePatientRequest = {
       relationship: formData.relationship.trim() || "SELF",
       fullName: formData.fullName.trim(),
-      gender: formData.gender ? formData.gender.toUpperCase() : "OTHER",
-      dateOfBirth: formData.dob || null,
+      gender: formData.gender.toUpperCase() as any,
+      dateOfBirth: formData.dob,
       bloodGroup: formData.bloodGroup || "UNKNOWN",
       phone: formData.phone.trim(),
-      email: formData.email.trim(),
-      address: {
-        value: formData.address.trim(),
-      },
+      email: formData.email.trim() || undefined,
+      address: formData.address.trim() ? { value: formData.address.trim() } : undefined,
     };
+    // Only include bloodGroup if user selected one (empty string crashes backend enum parsing)
+    if (formData.bloodGroup) {
+      (payload as any).bloodGroup = formData.bloodGroup;
+    }
 
     try {
       const created = await createPatient.mutateAsync(payload);

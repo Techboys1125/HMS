@@ -1,4 +1,5 @@
-export const API_BASE_URL = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || "";
+export const API_BASE_URL =
+  (import.meta.env && import.meta.env.VITE_API_BASE_URL) || "";
 
 export interface ApiResponseData<T = any> {
   data: T;
@@ -44,7 +45,7 @@ const processQueue = (error: unknown, token: string | null = null) => {
 
 async function customFetch<T = any>(
   url: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<ApiResponseData<T>> {
   const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
   const token = localStorage.getItem("accessToken");
@@ -58,6 +59,7 @@ async function customFetch<T = any>(
     headers.Authorization = `Bearer ${token}`;
   }
 
+
   let response: Response;
   try {
     response = await fetch(fullUrl, {
@@ -65,10 +67,11 @@ async function customFetch<T = any>(
       headers,
     });
   } catch (networkError: any) {
+
     throw new ApiError(
       "Unable to connect to the server. Please check your network connection and try again.",
       0,
-      { originalError: networkError?.message }
+      { originalError: networkError?.message },
     );
   }
 
@@ -79,6 +82,7 @@ async function customFetch<T = any>(
   } else {
     responseData = await response.text();
   }
+
 
   if (!response.ok) {
     // 401 Token Refresh Logic (exclude login and public auth endpoints)
@@ -143,7 +147,7 @@ async function customFetch<T = any>(
         throw new ApiError(
           "Session expired. Please log in again.",
           401,
-          responseData
+          responseData,
         );
       } finally {
         isRefreshing = false;
