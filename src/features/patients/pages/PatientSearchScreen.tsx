@@ -1,78 +1,22 @@
 import { useEffect, useState } from "react";
 import {
   Search,
-  Plus,
-  Filter,
-  Download,
-  RefreshCw,
-  ChevronLeft,
   ChevronRight,
-  MoreVertical,
-  Eye,
-  Edit,
-  Receipt,
-  X,
-  Phone,
-  UserCheck,
-  ChevronDown,
   Activity,
   Calendar,
-  Stethoscope,
-  Pill,
-  AlertTriangle,
-  FileText,
-  Clock,
-  Mail,
-  MapPin,
-  Droplets,
   Users,
   UserPlus,
-  UserX,
-  User,
-  Printer,
-  CheckCircle2,
-  XCircle,
-  Building2,
-  CreditCard,
-  Lock,
-  Key,
-  ShieldCheck,
-  Save,
-  TrendingUp,
-  Star,
-  Info,
-  Check,
-  AlertCircle,
 } from "lucide-react";
-import { useCreatePatient } from "../hooks/useCreatePatient";
-import {
-  usePatientSearch,
-  usePatients,
+import type {
 
-} from "../hooks/usePatients";
-import type { CreatePatientRequest } from "../types/patient.types";
-import type { ScreenPatient as Patient, VisitRecord, PatientAppointment, BookingDoctor, PatientCancelAppointmentDialogProps, PatientRescheduleAppointmentDialogProps, MedicalVisitRecord, PrescriptionRecord, PatientInvoice, PaymentHistoryRecord, ScreenPatientSearchResult as PatientSearchResult, ChipVariant, ReceptionPatientProfileScreenProps, PatientPrescriptionItem } from "../types/patient.types";
-import { PP, RB, MOCK_VISIT_HISTORY, TIMELINE_EVENTS, INITIAL_PATIENT_APPOINTMENTS, MOCK_BOOKING_DOCTORS, MOCK_VISIT_RECORDS, MOCK_PRESCRIPTION_RECORDS, INITIAL_INVOICES, PAYMENT_HISTORY_RECORDS } from "../constants/patient.mock";
-import { Avatar, Av, Chip } from "../components/Avatar";
-import { StatusBadge, TimelineStatusBadge } from "../components/StatusBadges";
-import { EditPatientInformationDrawer, ProfileBookApptDrawer, ProfileApptDetailsDrawer, ProfileInvoiceDrawer, ProfileDocDrawer, ProfileVisitDetailsDrawer, PatientQuickDetailsDrawer } from "../components/PatientDrawers";
-import { PatientCancelAppointmentDialog, PatientRescheduleAppointmentDialog } from "../components/PatientDialogs";
-import { PatientListScreen } from "./PatientListScreen";
-import { RegisterPatientScreen } from "./RegisterPatientScreen";
-import { EditPatientScreen } from "./EditPatientScreen";
-import { PatientProfileScreen } from "./PatientProfileScreen";
-import { MedicalHistoryScreen } from "./MedicalHistoryScreen";
-import { PatientVisitHistoryScreen } from "./PatientVisitHistoryScreen";
-import { PatientTimelineScreen } from "./PatientTimelineScreen";
-import { PatientBookAppointmentScreen } from "./PatientBookAppointmentScreen";
-import { PatientAppointmentsScreen } from "./PatientAppointmentsScreen";
-import { PatientMedicalRecordsScreen } from "./PatientMedicalRecordsScreen";
-import { PatientBillingScreen } from "./PatientBillingScreen";
-import { PatientProfileCenterScreen } from "./PatientProfileCenterScreen";
-import { ReceptionPatientRegistrationScreen } from "./ReceptionPatientRegistrationScreen";
-import { ReceptionPatientProfileScreen } from "./ReceptionPatientProfileScreen";
-import { PatientPrescriptionsScreen } from "./PatientPrescriptionsScreen";
-import { PatientPrescriptionDetailsScreen } from "./PatientPrescriptionDetailsScreen";
+  ChipVariant
+} from "../types/patient.types";
+import {
+  PP,
+  RB,
+  
+} from "../constants/patient.mock";
+import { Av, Chip } from "../components/Avatar";
 
 export function PatientSearchScreen({
   onBack,
@@ -82,24 +26,25 @@ export function PatientSearchScreen({
   onCheckInClick,
   userRole = "Receptionist",
 }: {
-  onBack?: () => void
-  onPatientSelect?: (mrn: string) => void
-  onRegisterClick?: () => void
-  onBookAppointmentClick?: (mrn: string) => void
-  onCheckInClick?: (mrn: string) => void
-  userRole?: string
+  onBack?: () => void;
+  onPatientSelect?: (mrn: string) => void;
+  onRegisterClick?: () => void;
+  onBookAppointmentClick?: (mrn: string) => void;
+  onCheckInClick?: (mrn: string) => void;
+  userRole?: string;
 }) {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('All Statuses')
-  const [regTypeFilter, setRegTypeFilter] = useState('All Types')
-  const [genderFilter, setGenderFilter] = useState('All Genders')
-  const [regDateFilter, setRegDateFilter] = useState('All Dates')
-  const [selectedPatientId, setSelectedPatientId] = useState<string>('MRN-892101')
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All Statuses");
+  const [regTypeFilter, setRegTypeFilter] = useState("All Types");
+  const [genderFilter, setGenderFilter] = useState("All Genders");
+  const [regDateFilter, setRegDateFilter] = useState("All Dates");
+  const [selectedPatientId, setSelectedPatientId] =
+    useState<string>("MRN-892101");
 
   const [patients] = useState<ScreenPatientSearchResult[]>([
     {
-      mrn: 'MRN-892101',
-      name: 'Sarah Mitchell',
+      mrn: "MRN-892101",
+      name: "Sarah Mitchell",
       age: 34,
       gender: "Female",
       mobile: "+91 98765 43210",
@@ -122,8 +67,8 @@ export function PatientSearchScreen({
       },
     },
     {
-      mrn: 'MRN-892102',
-      name: 'James Thornton',
+      mrn: "MRN-892102",
+      name: "James Thornton",
       age: 67,
       gender: "Male",
       mobile: "+91 98765 43211",
@@ -146,8 +91,8 @@ export function PatientSearchScreen({
       },
     },
     {
-      mrn: 'MRN-892103',
-      name: 'Emma Reyes',
+      mrn: "MRN-892103",
+      name: "Emma Reyes",
       age: 28,
       gender: "Female",
       mobile: "+91 98765 43212",
@@ -170,8 +115,8 @@ export function PatientSearchScreen({
       },
     },
     {
-      mrn: 'MRN-892104',
-      name: 'Robert Chen',
+      mrn: "MRN-892104",
+      name: "Robert Chen",
       age: 52,
       gender: "Male",
       mobile: "+91 98765 43213",
@@ -187,8 +132,8 @@ export function PatientSearchScreen({
       },
     },
     {
-      mrn: 'MRN-892105',
-      name: 'Aisha Kumar',
+      mrn: "MRN-892105",
+      name: "Aisha Kumar",
       age: 41,
       gender: "Female",
       mobile: "+91 98765 43214",
@@ -205,8 +150,8 @@ export function PatientSearchScreen({
       },
     },
     {
-      mrn: 'MRN-892106',
-      name: 'David Walsh',
+      mrn: "MRN-892106",
+      name: "David Walsh",
       age: 38,
       gender: "Male",
       mobile: "+91 98765 43215",
@@ -224,9 +169,10 @@ export function PatientSearchScreen({
   ]);
 
   // Filter Logic
-  const filteredPatients = patients.filter(p => {
-    const q = searchQuery.toLowerCase().trim()
-    const matchSearch = q === '' ||
+  const filteredPatients = patients.filter((p) => {
+    const q = searchQuery.toLowerCase().trim();
+    const matchSearch =
+      q === "" ||
       p.mrn.toLowerCase().includes(q) ||
       p.name.toLowerCase().includes(q) ||
       p.mobile.includes(q);
@@ -244,7 +190,8 @@ export function PatientSearchScreen({
     return matchSearch && matchStatus && matchType && matchGender && matchDate;
   });
 
-  const selectedPatient = patients.find(p => p.mrn === selectedPatientId) || filteredPatients[0]
+  const selectedPatient =
+    patients.find((p) => p.mrn === selectedPatientId) || filteredPatients[0];
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -304,19 +251,25 @@ export function PatientSearchScreen({
 
         {/* Primary Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          {userRole !== 'admin' && userRole !== 'Hospital Admin' && userRole !== 'Super Admin' && (
-            <button 
-              onClick={onRegisterClick}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm" 
-              style={{ fontFamily: PP }}
-            >
-              <UserPlus size={15} />
-              Register New Patient
-            </button>
-          )}
-          <button 
-            onClick={() => onBookAppointmentClick && selectedPatient ? onBookAppointmentClick(selectedPatient.mrn) : null}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm" 
+          {userRole !== "admin" &&
+            userRole !== "Hospital Admin" &&
+            userRole !== "Super Admin" && (
+              <button
+                onClick={onRegisterClick}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
+                style={{ fontFamily: PP }}
+              >
+                <UserPlus size={15} />
+                Register New Patient
+              </button>
+            )}
+          <button
+            onClick={() =>
+              onBookAppointmentClick && selectedPatient
+                ? onBookAppointmentClick(selectedPatient.mrn)
+                : null
+            }
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm"
             style={{ fontFamily: PP }}
           >
             <Calendar size={15} />
@@ -335,7 +288,7 @@ export function PatientSearchScreen({
           <input
             type="text"
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by MRN, Patient Name, Mobile Number or Appointment ID..."
             className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
             style={{ fontFamily: RB }}
@@ -453,18 +406,20 @@ export function PatientSearchScreen({
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
                   {filteredPatients.length > 0 ? (
-                    filteredPatients.map(p => {
-                      const isSelected = selectedPatientId === p.mrn
+                    filteredPatients.map((p) => {
+                      const isSelected = selectedPatientId === p.mrn;
                       return (
-                        <tr 
-                          key={p.mrn} 
+                        <tr
+                          key={p.mrn}
                           onClick={() => setSelectedPatientId(p.mrn)}
-                          className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${isSelected ? 'bg-blue-50/60 font-medium' : ''}`}
+                          className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${isSelected ? "bg-blue-50/60 font-medium" : ""}`}
                         >
                           <td className="px-4 py-3">
                             <Av name={p.name} size="sm" />
                           </td>
-                          <td className="px-4 py-3 font-mono font-bold text-[#0D47A1]">{p.mrn}</td>
+                          <td className="px-4 py-3 font-mono font-bold text-[#0D47A1]">
+                            {p.mrn}
+                          </td>
                           <td className="px-4 py-3">
                             <div className="font-semibold text-[#111827]">
                               {p.name}
@@ -493,23 +448,30 @@ export function PatientSearchScreen({
                             onClick={(e) => e.stopPropagation()}
                           >
                             <div className="flex items-center justify-end gap-1.5">
-                              <button 
-                                onClick={() => onPatientSelect && onPatientSelect(p.mrn)}
+                              <button
+                                onClick={() =>
+                                  onPatientSelect && onPatientSelect(p.mrn)
+                                }
                                 title="View Patient Profile"
                                 className="px-2.5 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
                               >
                                 Profile
                               </button>
-                              <button 
-                                onClick={() => onBookAppointmentClick && onBookAppointmentClick(p.mrn)}
+                              <button
+                                onClick={() =>
+                                  onBookAppointmentClick &&
+                                  onBookAppointmentClick(p.mrn)
+                                }
                                 title="Book Appointment"
                                 className="px-2 py-1 rounded-lg bg-teal-50 text-[#009688] text-[11px] font-semibold hover:bg-teal-100 transition-colors"
                               >
                                 Book
                               </button>
-                              {p.status === 'Scheduled' && (
-                                <button 
-                                  onClick={() => onCheckInClick && onCheckInClick(p.mrn)}
+                              {p.status === "Scheduled" && (
+                                <button
+                                  onClick={() =>
+                                    onCheckInClick && onCheckInClick(p.mrn)
+                                  }
                                   title="Check-In Patient"
                                   className="px-2 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
                                 >
@@ -526,9 +488,14 @@ export function PatientSearchScreen({
                       <td colSpan={9} className="px-4 py-12 text-center">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <Users size={32} className="text-slate-300" />
-                          <p className="text-sm font-semibold text-[#111827]">No patient records match your search.</p>
-                          <p className="text-xs text-slate-400">Complete the required patient information to generate a new MRN.</p>
-                          <button 
+                          <p className="text-sm font-semibold text-[#111827]">
+                            No patient records match your search.
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            Complete the required patient information to
+                            generate a new MRN.
+                          </p>
+                          <button
                             onClick={onRegisterClick}
                             className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all flex items-center gap-1.5"
                             style={{ fontFamily: PP }}
@@ -582,8 +549,12 @@ export function PatientSearchScreen({
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-50">
                   <Av name={selectedPatient.name} size="lg" />
                   <div>
-                    <h4 className="text-sm font-bold text-[#111827]">{selectedPatient.name}</h4>
-                    <span className="font-mono text-xs font-bold text-[#0D47A1]">{selectedPatient.mrn}</span>
+                    <h4 className="text-sm font-bold text-[#111827]">
+                      {selectedPatient.name}
+                    </h4>
+                    <span className="font-mono text-xs font-bold text-[#0D47A1]">
+                      {selectedPatient.mrn}
+                    </span>
                   </div>
                 </div>
 
@@ -710,14 +681,19 @@ export function PatientSearchScreen({
                 >
                   Quick Actions
                 </h3>
-                <button 
-                  onClick={() => onPatientSelect && onPatientSelect(selectedPatient.mrn)}
+                <button
+                  onClick={() =>
+                    onPatientSelect && onPatientSelect(selectedPatient.mrn)
+                  }
                   className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 text-xs font-semibold text-[#0D47A1] transition-colors"
                 >
                   View Profile <ChevronRight size={14} />
                 </button>
-                <button 
-                  onClick={() => onBookAppointmentClick && onBookAppointmentClick(selectedPatient.mrn)}
+                <button
+                  onClick={() =>
+                    onBookAppointmentClick &&
+                    onBookAppointmentClick(selectedPatient.mrn)
+                  }
                   className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 text-xs font-semibold text-[#009688] transition-colors"
                 >
                   Book Appointment <ChevronRight size={14} />

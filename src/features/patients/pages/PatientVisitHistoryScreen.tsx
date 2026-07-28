@@ -14,7 +14,7 @@ import {
   FileText,
   Clock,
   Printer,
-  CheckCircle2
+  CheckCircle2,
 } from "lucide-react";
 import type { VisitRecord } from "../types/patient.types";
 import { PP, RB, MOCK_VISIT_HISTORY } from "../constants/patient.mock";
@@ -569,8 +569,15 @@ export function PatientVisitHistoryScreen({
               <div className="flex items-center gap-3">
                 <FileText size={20} />
                 <div>
-                  <h3 className="text-base font-bold" style={{ fontFamily: PP }}>OPD Consultation Summary</h3>
-                  <div className="text-xs text-teal-100">Visit Ref: {summaryVisit.id}</div>
+                  <h3
+                    className="text-base font-bold"
+                    style={{ fontFamily: PP }}
+                  >
+                    OPD Consultation Summary
+                  </h3>
+                  <div className="text-xs text-teal-100">
+                    Visit Ref: {summaryVisit.id}
+                  </div>
                 </div>
               </div>
               <button

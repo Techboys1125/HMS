@@ -1,85 +1,30 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
-  Search,
-  Plus,
-  Filter,
-  Download,
-  RefreshCw,
   ChevronLeft,
   ChevronRight,
-  MoreVertical,
-  Eye,
-  Edit,
-  Receipt,
-  X,
   Phone,
   UserCheck,
-  ChevronDown,
-  Activity,
   Calendar,
   Stethoscope,
-  Pill,
-  AlertTriangle,
+  Edit,
   FileText,
   Clock,
-  Mail,
-  MapPin,
   Droplets,
-  Users,
-  UserPlus,
-  UserX,
   User,
   Printer,
   CheckCircle2,
-  XCircle,
-  Building2,
-  CreditCard,
-  Lock,
-  Key,
-  ShieldCheck,
-  Save,
-  TrendingUp,
-  Star,
-  Info,
-  Check,
-  AlertCircle,
 } from "lucide-react";
-import { useCreatePatient } from "../hooks/useCreatePatient";
-import {
-  usePatientSearch,
-  usePatients,
-
-} from "../hooks/usePatients";
-import type { CreatePatientRequest } from "../types/patient.types";
-import type { ScreenPatient as Patient, VisitRecord, PatientAppointment, BookingDoctor, PatientCancelAppointmentDialogProps, PatientRescheduleAppointmentDialogProps, MedicalVisitRecord, PrescriptionRecord, PatientInvoice, PaymentHistoryRecord, ScreenPatientSearchResult as PatientSearchResult, ChipVariant, ReceptionPatientProfileScreenProps, PatientPrescriptionItem } from "../types/patient.types";
-import { PP, RB, MOCK_VISIT_HISTORY, TIMELINE_EVENTS, INITIAL_PATIENT_APPOINTMENTS, MOCK_BOOKING_DOCTORS, MOCK_VISIT_RECORDS, MOCK_PRESCRIPTION_RECORDS, INITIAL_INVOICES, PAYMENT_HISTORY_RECORDS } from "../constants/patient.mock";
-import { Avatar, Av, Chip } from "../components/Avatar";
-import { StatusBadge, TimelineStatusBadge } from "../components/StatusBadges";
-import { EditPatientInformationDrawer, ProfileBookApptDrawer, ProfileApptDetailsDrawer, ProfileInvoiceDrawer, ProfileDocDrawer, ProfileVisitDetailsDrawer, PatientQuickDetailsDrawer } from "../components/PatientDrawers";
-import { PatientCancelAppointmentDialog, PatientRescheduleAppointmentDialog } from "../components/PatientDialogs";
-import { PatientListScreen } from "./PatientListScreen";
-import { RegisterPatientScreen } from "./RegisterPatientScreen";
-import { EditPatientScreen } from "./EditPatientScreen";
-import { PatientProfileScreen } from "./PatientProfileScreen";
-import { MedicalHistoryScreen } from "./MedicalHistoryScreen";
-import { PatientVisitHistoryScreen } from "./PatientVisitHistoryScreen";
-import { PatientTimelineScreen } from "./PatientTimelineScreen";
-import { PatientBookAppointmentScreen } from "./PatientBookAppointmentScreen";
-import { PatientAppointmentsScreen } from "./PatientAppointmentsScreen";
-import { PatientMedicalRecordsScreen } from "./PatientMedicalRecordsScreen";
-import { PatientBillingScreen } from "./PatientBillingScreen";
-import { PatientProfileCenterScreen } from "./PatientProfileCenterScreen";
-import { ReceptionPatientRegistrationScreen } from "./ReceptionPatientRegistrationScreen";
-import { PatientSearchScreen } from "./PatientSearchScreen";
-import { PatientPrescriptionsScreen } from "./PatientPrescriptionsScreen";
-import { PatientPrescriptionDetailsScreen } from "./PatientPrescriptionDetailsScreen";
+import type { ReceptionPatientProfileScreenProps } from "../types/patient.types";
+import { PP, RB } from "../constants/patient.mock";
+import { Avatar, Chip } from "../components/Avatar";
+import { StatusBadge } from "../components/StatusBadges";
 
 export function ReceptionPatientProfileScreen({
   onBack,
   onEditPatient,
   onBookAppointment,
   onCheckInClick,
-  patientMrn = 'MRN-892101',
+  patientMrn = "MRN-892101",
 }: ReceptionPatientProfileScreenProps) {
   const [activeTab, setActiveTab] = useState<
     | "overview"
@@ -92,8 +37,9 @@ export function ReceptionPatientProfileScreen({
 
   // Patient Mock Profile Data
   const patient = {
-    photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
-    name: 'Sarah Mitchell',
+    photo:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200",
+    name: "Sarah Mitchell",
     mrn: patientMrn,
     age: 34,
     gender: "Female",
@@ -293,8 +239,15 @@ export function ReceptionPatientProfileScreen({
             <Avatar name={patient.name} size="lg" />
             <div>
               <div className="flex flex-wrap items-center gap-3 mb-1">
-                <h2 className="text-lg font-bold text-[#111827]" style={{ fontFamily: PP }}>{patient.name}</h2>
-                <span className="text-[10px] font-mono font-semibold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">{patient.mrn}</span>
+                <h2
+                  className="text-lg font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  {patient.name}
+                </h2>
+                <span className="text-[10px] font-mono font-semibold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                  {patient.mrn}
+                </span>
                 <StatusBadge status={patient.status} />
               </div>
               <div
@@ -349,7 +302,11 @@ export function ReceptionPatientProfileScreen({
               Information
             </button>
             <button
-              onClick={() => alert(`Printing official Patient Card for ${patient.name} (${patient.mrn})...`)}
+              onClick={() =>
+                alert(
+                  `Printing official Patient Card for ${patient.name} (${patient.mrn})...`,
+                )
+              }
               className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
             >
               <Printer size={14} className="text-slate-500" /> Print Patient
@@ -430,7 +387,9 @@ export function ReceptionPatientProfileScreen({
               <div className="space-y-3 text-xs">
                 <div>
                   <span className="text-[#64748B] block text-[11px]">MRN</span>
-                  <span className="font-mono font-bold text-[#0D47A1]">{patient.mrn}</span>
+                  <span className="font-mono font-bold text-[#0D47A1]">
+                    {patient.mrn}
+                  </span>
                 </div>
                 <div>
                   <span className="text-[#64748B] block text-[11px]">
@@ -702,7 +661,9 @@ export function ReceptionPatientProfileScreen({
                             <td className="px-3 py-3 text-right">
                               {item.status === "Scheduled" ? (
                                 <button
-                                  onClick={() => onCheckInClick?.(item.id, patient.mrn)}
+                                  onClick={() =>
+                                    onCheckInClick?.(item.id, patient.mrn)
+                                  }
                                   className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
                                 >
                                   Check-In
@@ -903,7 +864,9 @@ export function ReceptionPatientProfileScreen({
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between py-1 border-b border-slate-50">
                   <span className="text-[#64748B]">MRN</span>
-                  <span className="font-mono font-bold text-[#0D47A1]">{patient.mrn}</span>
+                  <span className="font-mono font-bold text-[#0D47A1]">
+                    {patient.mrn}
+                  </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-50">
                   <span className="text-[#64748B]">Registration Date</span>
