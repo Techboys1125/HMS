@@ -5267,7 +5267,6 @@ export function InvoicePrintPreviewScreen({
 
   // Print Settings Options
   const [paperSize, setPaperSize] = useState<"A4" | "Letter">("A4");
-  const [_orientation] = useState<"Portrait" | "Landscape">("Portrait");
   const [margins, setMargins] = useState<"Normal" | "Narrow" | "Wide">(
     "Normal",
   );

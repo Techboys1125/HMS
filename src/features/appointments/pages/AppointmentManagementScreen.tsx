@@ -1467,7 +1467,6 @@ export function EditAppointmentDrawer({
   onSaveSuccess,
   onRescheduleClick,
   onCancelClick,
-  onPatientSelect: _onPatientSelect,
 }: {
   apt: AppointmentRecord | null;
   isOpen: boolean;

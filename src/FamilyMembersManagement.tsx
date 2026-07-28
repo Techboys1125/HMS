@@ -318,7 +318,6 @@ interface FamilyMembersManagementProps {
 export function FamilyMembersManagement({
   familyMembers = INITIAL_FAMILY_MEMBERS,
   activeFamilyMember = INITIAL_FAMILY_MEMBERS[0],
-  onSwitchProfile: _onSwitchProfile,
   onAddFamilyMember,
   onRemoveFamilyMember,
   onUpdateRelationship,

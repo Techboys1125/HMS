@@ -110,7 +110,6 @@ const INITIAL_MEDICINES: MedicineItem[] = [
 ];
 
 export function StartOpdConsultationWorkspaceScreen({
-  patientId: _patientId = "PAT-2001",
   onBack,
   onCompleteSuccess,
   onViewHistory,

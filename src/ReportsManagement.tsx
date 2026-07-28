@@ -488,7 +488,6 @@ export function ReportsDashboardScreen({
   const [sortField, setSortField] =
     useState<keyof DoctorSummaryPerformanceRecord>("revenue");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [_currentPage, _setCurrentPage] = useState(1);
 
   // Refresh handler
   const handleRefresh = () => {
@@ -2233,7 +2232,6 @@ export function DailyAppointmentReportScreen({
   const [sortField, setSortField] =
     useState<keyof AppointmentReportRecord>("appointmentTime");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [_currentPage, _setCurrentPage] = useState(1);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
