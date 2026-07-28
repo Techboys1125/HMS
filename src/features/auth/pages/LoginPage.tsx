@@ -19,8 +19,9 @@ export const LoginPage: React.FC = () => {
   let navigate: any = null;
   try {
     navigate = useNavigate();
-  } catch (e) {console.log(e);
-  
+  } catch (e) {
+    console.log(e);
+
   }
   const [currentScreen, setCurrentScreen] = useState<AuthScreen>(() => {
     if (localStorage.getItem("force_change_password") === "true") {

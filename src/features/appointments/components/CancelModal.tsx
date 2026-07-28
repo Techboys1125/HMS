@@ -40,7 +40,7 @@ export const CancelModal: React.FC<CancelModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden">
-        
+
         {/* Header */}
         <div className="bg-rose-700 text-white px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">

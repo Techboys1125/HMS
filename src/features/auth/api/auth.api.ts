@@ -19,12 +19,12 @@ import type {
 export const authApi = {
   // 1. Patient Registration (POST /api/v1/auth/patient/register)
   registerPatient: async (
-    data: PatientRegistrationData
+    data: PatientRegistrationData,
   ): Promise<PatientRegistrationResponse> => {
     try {
       const response = await apiClient.post<PatientRegistrationResponse>(
         "/api/v1/auth/patient/register",
-        data
+        data,
       );
       return response.data;
     } catch (error: any) {
@@ -37,12 +37,12 @@ export const authApi = {
 
   // 2. Resend Verification OTP (POST /api/v1/auth/resend-verification)
   resendVerificationOTP: async (
-    data: ResendVerificationData
+    data: ResendVerificationData,
   ): Promise<ApiResponse> => {
     try {
       const response = await apiClient.post<ApiResponse>(
         "/api/v1/auth/resend-verification",
-        data
+        data,
       );
       return response.data;
     } catch (error: any) {
@@ -61,7 +61,7 @@ export const authApi = {
         {
           email: credentials.email,
           password: credentials.password,
-        }
+        },
       );
       return response.data;
     } catch (error: any) {
@@ -77,7 +77,7 @@ export const authApi = {
     try {
       const response = await apiClient.post<TokenRefreshResponse>(
         "/api/v1/auth/refresh",
-        { refreshToken }
+        { refreshToken },
       );
       return response.data;
     } catch (error: any) {
@@ -120,7 +120,7 @@ export const authApi = {
     try {
       const response = await apiClient.post<ApiResponse>(
         "/api/v1/auth/forgot-password",
-        data
+        data,
       );
       return response.data;
     } catch (error: any) {
@@ -133,12 +133,12 @@ export const authApi = {
 
   // 8. Verify Forgot Password OTP (POST /api/v1/auth/verify-reset-otp)
   verifyResetOTP: async (
-    data: VerifyResetOTPData
+    data: VerifyResetOTPData,
   ): Promise<VerifyResetOTPResponse> => {
     try {
       const response = await apiClient.post<VerifyResetOTPResponse>(
         "/api/v1/auth/verify-reset-otp",
-        data
+        data,
       );
       return response.data;
     } catch (error: any) {
@@ -154,7 +154,7 @@ export const authApi = {
     try {
       const response = await apiClient.post<ApiResponse>(
         "/api/v1/auth/reset-password",
-        data
+        data,
       );
       return response.data;
     } catch (error: any) {
@@ -170,7 +170,7 @@ export const authApi = {
     try {
       const response = await apiClient.post<ApiResponse>(
         "/api/v1/auth/verify-email",
-        data
+        data,
       );
       return response.data;
     } catch (error: any) {
@@ -186,7 +186,7 @@ export const authApi = {
     try {
       const response = await apiClient.post<ApiResponse>(
         "/api/v1/auth/change-password",
-        data
+        data,
       );
       return response.data;
     } catch (error: any) {

@@ -18,10 +18,14 @@ export function useAppointmentSlots(doctorId?: string | number, date?: string) {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await appointmentService.listAvailableSlots(doctorId, date);
+        const data = await appointmentService.listAvailableSlots(
+          doctorId,
+          date,
+        );
         if (mounted) setSlots(data);
       } catch (err: any) {
-        if (mounted) setError(err?.message || "Failed to load available slots.");
+        if (mounted)
+          setError(err?.message || "Failed to load available slots.");
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -35,4 +39,3 @@ export function useAppointmentSlots(doctorId?: string | number, date?: string) {
 
   return { slots, setSlots, isLoading, error };
 }
-

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { appointmentService } from "../services/appointment.service";
-import type { AppointmentRecord, CancelAppointmentRequest } from "../types/appointment.types";
+import type {
+  AppointmentRecord,
+  CancelAppointmentRequest,
+} from "../types/appointment.types";
 
 export function useCancelAppointment() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -8,7 +11,7 @@ export function useCancelAppointment() {
 
   const cancelAppointment = async (
     appointmentId: string | number,
-    payload: CancelAppointmentRequest
+    payload: CancelAppointmentRequest,
   ): Promise<AppointmentRecord> => {
     setIsSubmitting(true);
     setError(null);
@@ -24,4 +27,3 @@ export function useCancelAppointment() {
 
   return { cancelAppointment, isSubmitting, error };
 }
-

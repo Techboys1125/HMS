@@ -24,8 +24,10 @@ export const appointmentsApi = {
   }): Promise<ApiResponse<any>> => {
     try {
       const query = new URLSearchParams();
-      if (params?.doctorId !== undefined) query.append("doctorId", String(params.doctorId));
-      if (params?.patientId !== undefined) query.append("patientId", String(params.patientId));
+      if (params?.doctorId !== undefined)
+        query.append("doctorId", String(params.doctorId));
+      if (params?.patientId !== undefined)
+        query.append("patientId", String(params.patientId));
       if (params?.date) query.append("date", params.date);
       if (params?.fromDate) query.append("fromDate", params.fromDate);
       if (params?.toDate) query.append("toDate", params.toDate);
@@ -46,12 +48,12 @@ export const appointmentsApi = {
   },
 
   createAppointment: async (
-    data: CreateAppointmentRequest
+    data: CreateAppointmentRequest,
   ): Promise<ApiResponse<AppointmentRecord>> => {
     try {
       const response = await apiClient.post<ApiResponse<AppointmentRecord>>(
         "/api/v1/appointments",
-        data
+        data,
       );
       return response.data;
     } catch (error: any) {
@@ -63,11 +65,11 @@ export const appointmentsApi = {
   },
 
   getAppointmentById: async (
-    appointmentId: string | number
+    appointmentId: string | number,
   ): Promise<ApiResponse<AppointmentRecord>> => {
     try {
       const response = await apiClient.get<ApiResponse<AppointmentRecord>>(
-        `/api/v1/appointments/${appointmentId}`
+        `/api/v1/appointments/${appointmentId}`,
       );
       return response.data;
     } catch (error: any) {
@@ -80,12 +82,12 @@ export const appointmentsApi = {
 
   rescheduleAppointment: async (
     appointmentId: string | number,
-    data: RescheduleAppointmentRequest
+    data: RescheduleAppointmentRequest,
   ): Promise<ApiResponse<AppointmentRecord>> => {
     try {
       const response = await apiClient.post<ApiResponse<AppointmentRecord>>(
         `/api/v1/appointments/${appointmentId}/reschedule`,
-        data
+        data,
       );
       return response.data;
     } catch (error: any) {
@@ -98,12 +100,12 @@ export const appointmentsApi = {
 
   cancelAppointment: async (
     appointmentId: string | number,
-    data: CancelAppointmentRequest
+    data: CancelAppointmentRequest,
   ): Promise<ApiResponse<AppointmentRecord>> => {
     try {
       const response = await apiClient.patch<ApiResponse<AppointmentRecord>>(
         `/api/v1/appointments/${appointmentId}/cancel`,
-        data
+        data,
       );
       return response.data;
     } catch (error: any) {
@@ -114,11 +116,11 @@ export const appointmentsApi = {
     }
   },
 
-  getDoctorAppointments: async (
-    date?: string
-  ): Promise<ApiResponse<any>> => {
+  getDoctorAppointments: async (date?: string): Promise<ApiResponse<any>> => {
     try {
-      const url = date ? `/api/v1/doctor/appointments?date=${encodeURIComponent(date)}` : "/api/v1/doctor/appointments";
+      const url = date
+        ? `/api/v1/doctor/appointments?date=${encodeURIComponent(date)}`
+        : "/api/v1/doctor/appointments";
       const response = await apiClient.get<ApiResponse<any>>(url);
       return response.data;
     } catch (error: any) {
@@ -130,11 +132,11 @@ export const appointmentsApi = {
   },
 
   getDoctorAppointmentById: async (
-    appointmentId: string | number
+    appointmentId: string | number,
   ): Promise<ApiResponse<AppointmentRecord>> => {
     try {
       const response = await apiClient.get<ApiResponse<AppointmentRecord>>(
-        `/api/v1/doctor/appointments/${appointmentId}`
+        `/api/v1/doctor/appointments/${appointmentId}`,
       );
       return response.data;
     } catch (error: any) {
@@ -146,11 +148,11 @@ export const appointmentsApi = {
   },
 
   doctorStartConsultation: async (
-    appointmentId: string | number
+    appointmentId: string | number,
   ): Promise<ApiResponse<AppointmentRecord>> => {
     try {
       const response = await apiClient.patch<ApiResponse<AppointmentRecord>>(
-        `/api/v1/doctor/appointments/${appointmentId}/start`
+        `/api/v1/doctor/appointments/${appointmentId}/start`,
       );
       return response.data;
     } catch (error: any) {
@@ -162,11 +164,11 @@ export const appointmentsApi = {
   },
 
   doctorCompleteConsultation: async (
-    appointmentId: string | number
+    appointmentId: string | number,
   ): Promise<ApiResponse<AppointmentRecord>> => {
     try {
       const response = await apiClient.patch<ApiResponse<AppointmentRecord>>(
-        `/api/v1/doctor/appointments/${appointmentId}/complete`
+        `/api/v1/doctor/appointments/${appointmentId}/complete`,
       );
       return response.data;
     } catch (error: any) {
@@ -178,11 +180,11 @@ export const appointmentsApi = {
   },
 
   getPatientAppointments: async (
-    patientId: string | number
+    patientId: string | number,
   ): Promise<ApiResponse<any>> => {
     try {
       const response = await apiClient.get<ApiResponse<any>>(
-        `/api/v1/patients/${patientId}/appointments`
+        `/api/v1/patients/${patientId}/appointments`,
       );
       return response.data;
     } catch (error: any) {
@@ -196,7 +198,7 @@ export const appointmentsApi = {
   getLinkedPatients: async (): Promise<ApiResponse<LinkedPatient[]>> => {
     try {
       const response = await apiClient.get<ApiResponse<LinkedPatient[]>>(
-        "/api/v1/patients/linked"
+        "/api/v1/patients/linked",
       );
       return response.data;
     } catch (error: any) {
@@ -207,11 +209,13 @@ export const appointmentsApi = {
     }
   },
 
-  getOnboardingStatus: async (): Promise<ApiResponse<OnboardingStatusResponse>> => {
+  getOnboardingStatus: async (): Promise<
+    ApiResponse<OnboardingStatusResponse>
+  > => {
     try {
-      const response = await apiClient.get<ApiResponse<OnboardingStatusResponse>>(
-        "/api/v1/patients/onboarding-status"
-      );
+      const response = await apiClient.get<
+        ApiResponse<OnboardingStatusResponse>
+      >("/api/v1/patients/onboarding-status");
       return response.data;
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.data?.message) {
@@ -222,11 +226,11 @@ export const appointmentsApi = {
   },
 
   receptionCheckIn: async (
-    appointmentId: string | number
+    appointmentId: string | number,
   ): Promise<ApiResponse<QueueActionResponse>> => {
     try {
       const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
-        `/api/v1/reception/appointments/${appointmentId}/check-in`
+        `/api/v1/reception/appointments/${appointmentId}/check-in`,
       );
       return response.data;
     } catch (error: any) {
@@ -238,13 +242,14 @@ export const appointmentsApi = {
   },
 
   queueCallNext: async (
-    doctorId?: string | number
+    doctorId?: string | number,
   ): Promise<ApiResponse<QueueActionResponse>> => {
     try {
       const url = doctorId
         ? `/api/v1/doctors/${doctorId}/queue/call-next`
         : "/api/v1/appointments/call-next";
-      const response = await apiClient.post<ApiResponse<QueueActionResponse>>(url);
+      const response =
+        await apiClient.post<ApiResponse<QueueActionResponse>>(url);
       return response.data;
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.data?.message) {
@@ -256,7 +261,9 @@ export const appointmentsApi = {
 
   getDepartments: async (): Promise<ApiResponse<any[]>> => {
     try {
-      const response = await apiClient.get<ApiResponse<any[]>>("/api/v1/departments");
+      const response = await apiClient.get<ApiResponse<any[]>>(
+        "/api/v1/departments",
+      );
       return response.data;
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.data?.message) {
@@ -266,11 +273,14 @@ export const appointmentsApi = {
     }
   },
 
-  getDoctors: async (departmentId?: string | number): Promise<ApiResponse<any[]>> => {
+  getDoctors: async (
+    departmentId?: string | number,
+  ): Promise<ApiResponse<any[]>> => {
     try {
-      const url = departmentId !== undefined && departmentId !== null
-        ? `/api/v1/doctors?departmentId=${encodeURIComponent(String(departmentId))}`
-        : "/api/v1/doctors";
+      const url =
+        departmentId !== undefined && departmentId !== null
+          ? `/api/v1/doctors?departmentId=${encodeURIComponent(String(departmentId))}`
+          : "/api/v1/doctors";
       const response = await apiClient.get<ApiResponse<any[]>>(url);
       return response.data;
     } catch (error: any) {
@@ -283,7 +293,7 @@ export const appointmentsApi = {
 
   getAvailableSlots: async (
     doctorId: string | number,
-    date: string
+    date: string,
   ): Promise<ApiResponse<any[]>> => {
     try {
       const url = `/api/v1/doctors/${doctorId}/slots?date=${encodeURIComponent(date)}`;
