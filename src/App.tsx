@@ -2059,7 +2059,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                 }}
               />
             )}
-            {activeNav === 'patients' && !showPatientWorkspace && !showRegisterPatient && role !== 'receptionist' && (
+            {activeNav === 'patients' && !showPatientWorkspace && !showRegisterPatient && (
               <PatientListScreen 
                 onRegisterClick={() => setShowRegisterPatient(true)} 
                 onPatientSelect={(id) => handlePatientSelect(id)}

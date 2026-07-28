@@ -28,9 +28,3 @@ export function usePatientSearch(query: string) {
   });
 }
 
-export function usePatientStats() {
-  return useQuery({
-    queryKey: patientKeys.stats(),
-    queryFn: () => patientService.getStatistics(),
-  });
-}

@@ -36,12 +36,25 @@ export const LoginPage: React.FC = () => {
     message: string;
   } | null>(null);
 
+  const [pendingUser, setPendingUser] = useState<any>(null);
+  const [pendingTokens, setPendingTokens] = useState<any>(null);
+
   const handleLoginSuccess = (response: LoginResponse) => {
     const resAny = response as unknown as Record<string, unknown>;
+    const authData = (response.data || resAny) as Record<string, unknown>;
     const loggedInUser =
-      response.data?.user ||
-      (resAny.user as typeof response.data.user) ||
+      (authData.user as typeof response.data.user) ||
       useAuthStore.getState().user;
+
+    if (loggedInUser) {
+      setPendingUser(loggedInUser);
+      setPendingTokens({
+        accessToken: authData.accessToken || resAny.accessToken,
+        refreshToken: authData.refreshToken || resAny.refreshToken,
+        tokenType: authData.tokenType || resAny.tokenType || "Bearer",
+        expiresIn: authData.expiresIn || resAny.expiresIn || 86400,
+      });
+    }
 
     if (!loggedInUser) {
       setCurrentScreen("success");
@@ -166,6 +179,11 @@ export const LoginPage: React.FC = () => {
               title={successInfo?.title || "Action Completed!"}
               message={successInfo?.message || "Operation successful."}
               onContinue={() => {
+                if (pendingUser && pendingTokens) {
+                  useAuthStore.login(pendingUser, pendingTokens);
+                  setPendingUser(null);
+                  setPendingTokens(null);
+                }
                 const isAuthenticated = useAuthStore.getState().isAuthenticated;
                 setSuccessInfo(null);
                 if (isAuthenticated) {

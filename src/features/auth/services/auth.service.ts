@@ -39,21 +39,17 @@ export const authService = {
       resAny.accessToken) as string;
     const refreshToken = (authData.refreshToken ||
       resAny.refreshToken) as string;
-    const tokenType = (authData.tokenType ||
-      resAny.tokenType ||
-      "Bearer") as string;
-    const expiresIn = (authData.expiresIn ||
-      resAny.expiresIn ||
-      86400) as number;
     const user = (authData.user || resAny.user) as User;
 
     if (user && accessToken) {
-      useAuthStore.login(user, {
-        accessToken,
-        refreshToken,
-        tokenType,
-        expiresIn,
-      });
+      // We save tokens to localStorage so subsequent API calls (like change-password) work,
+      // but we DO NOT call useAuthStore.login() here.
+      // Calling it here would instantly unmount the LoginPage and bypass the Success/Change Password screens.
+      // LoginPage will call useAuthStore.login() when the user clicks "Continue".
+      localStorage.setItem("accessToken", accessToken);
+      if (refreshToken) {
+        localStorage.setItem("refreshToken", refreshToken);
+      }
     }
 
     return response;

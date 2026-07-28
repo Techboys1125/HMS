@@ -25,30 +25,26 @@ function loadInitialState(): AuthState {
   // Fallback to individual localStorage items if available
   const accessToken = localStorage.getItem("accessToken");
   const refreshToken = localStorage.getItem("refreshToken");
+  const storedUserRaw = localStorage.getItem("hms-user");
 
-  if (accessToken && refreshToken) {
-    return {
-      user: {
-        id: 1,
-        employeeId: "EMP-1001",
-        patientId: null,
-        fullName: "Dr. Arjun Mehta",
-        email: "arjun.mehta@citygeneral.org",
-        mobile: "+1 (555) 234-5678",
-        role: "DOCTOR",
-        hospitalId: 1,
-        mustChangePassword: false,
-      },
-      tokens: {
-        accessToken,
-        refreshToken,
-        tokenType: "Bearer",
-        expiresIn: 86400,
-      },
-      isAuthenticated: true,
-      loading: false,
-      error: null,
-    };
+  if (accessToken && refreshToken && storedUserRaw) {
+    try {
+      const user = JSON.parse(storedUserRaw);
+      return {
+        user,
+        tokens: {
+          accessToken,
+          refreshToken,
+          tokenType: "Bearer",
+          expiresIn: 86400,
+        },
+        isAuthenticated: true,
+        loading: false,
+        error: null,
+      };
+    } catch (e) {
+      console.error("Failed to parse stored user:", e);
+    }
   }
 
   return {
@@ -74,10 +70,12 @@ function saveState(state: AuthState) {
         STORAGE_KEY,
         JSON.stringify({ user: state.user, tokens: state.tokens })
       );
+      localStorage.setItem("hms-user", JSON.stringify(state.user));
       localStorage.setItem("accessToken", state.tokens.accessToken);
       localStorage.setItem("refreshToken", state.tokens.refreshToken);
     } else {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem("hms-user");
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
     }
