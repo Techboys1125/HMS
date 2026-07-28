@@ -116,10 +116,10 @@ export function AppointmentConfigurationWorkspace() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '20px' }}>
-      
+
       {/* MAIN CONTENT SECTIONS */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
-        
+
         {/* SUB-HEADER ACTION BAR */}
         <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <div>
@@ -150,7 +150,7 @@ export function AppointmentConfigurationWorkspace() {
               <Eye size={14} /> Preview Schedule
             </button>
             <button
-              onClick={() => {}}
+              onClick={() => { }}
               style={{
                 display: 'flex',
                 alignItems: 'center',

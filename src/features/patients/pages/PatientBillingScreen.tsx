@@ -1,78 +1,18 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Search,
-  Plus,
   Filter,
   Download,
-  RefreshCw,
-  ChevronLeft,
   ChevronRight,
-  MoreVertical,
   Eye,
-  Edit,
   Receipt,
   X,
-  Phone,
-  UserCheck,
-  ChevronDown,
-  Activity,
-  Calendar,
-  Stethoscope,
-  Pill,
-  AlertTriangle,
-  FileText,
   Clock,
-  Mail,
-  MapPin,
-  Droplets,
-  Users,
-  UserPlus,
-  UserX,
-  User,
-  Printer,
   CheckCircle2,
-  XCircle,
-  Building2,
   CreditCard,
-  Lock,
-  Key,
-  ShieldCheck,
-  Save,
-  TrendingUp,
-  Star,
-  Info,
-  Check,
-  AlertCircle,
 } from "lucide-react";
-import { useCreatePatient } from "../hooks/useCreatePatient";
-import {
-  usePatientSearch,
-  usePatients,
-
-} from "../hooks/usePatients";
-import type { CreatePatientRequest } from "../types/patient.types";
-import type { ScreenPatient as Patient, VisitRecord, PatientAppointment, BookingDoctor, PatientCancelAppointmentDialogProps, PatientRescheduleAppointmentDialogProps, MedicalVisitRecord, PrescriptionRecord, PatientInvoice, PaymentHistoryRecord, ScreenPatientSearchResult as PatientSearchResult, ChipVariant, ReceptionPatientProfileScreenProps, PatientPrescriptionItem } from "../types/patient.types";
-import { PP, RB, MOCK_VISIT_HISTORY, TIMELINE_EVENTS, INITIAL_PATIENT_APPOINTMENTS, MOCK_BOOKING_DOCTORS, MOCK_VISIT_RECORDS, MOCK_PRESCRIPTION_RECORDS, INITIAL_INVOICES, PAYMENT_HISTORY_RECORDS } from "../constants/patient.mock";
-import { Avatar, Av, Chip } from "../components/Avatar";
-import { StatusBadge, TimelineStatusBadge } from "../components/StatusBadges";
-import { EditPatientInformationDrawer, ProfileBookApptDrawer, ProfileApptDetailsDrawer, ProfileInvoiceDrawer, ProfileDocDrawer, ProfileVisitDetailsDrawer, PatientQuickDetailsDrawer } from "../components/PatientDrawers";
-import { PatientCancelAppointmentDialog, PatientRescheduleAppointmentDialog } from "../components/PatientDialogs";
-import { PatientListScreen } from "./PatientListScreen";
-import { RegisterPatientScreen } from "./RegisterPatientScreen";
-import { EditPatientScreen } from "./EditPatientScreen";
-import { PatientProfileScreen } from "./PatientProfileScreen";
-import { MedicalHistoryScreen } from "./MedicalHistoryScreen";
-import { PatientVisitHistoryScreen } from "./PatientVisitHistoryScreen";
-import { PatientTimelineScreen } from "./PatientTimelineScreen";
-import { PatientBookAppointmentScreen } from "./PatientBookAppointmentScreen";
-import { PatientAppointmentsScreen } from "./PatientAppointmentsScreen";
-import { PatientMedicalRecordsScreen } from "./PatientMedicalRecordsScreen";
-import { PatientProfileCenterScreen } from "./PatientProfileCenterScreen";
-import { ReceptionPatientRegistrationScreen } from "./ReceptionPatientRegistrationScreen";
-import { PatientSearchScreen } from "./PatientSearchScreen";
-import { ReceptionPatientProfileScreen } from "./ReceptionPatientProfileScreen";
-import { PatientPrescriptionsScreen } from "./PatientPrescriptionsScreen";
-import { PatientPrescriptionDetailsScreen } from "./PatientPrescriptionDetailsScreen";
+import type { PatientInvoice } from "../types/patient.types";
+import { PP, RB, INITIAL_INVOICES, PAYMENT_HISTORY_RECORDS } from "../constants/patient.mock";
 
 export function PatientBillingScreen() {
   const [invoices, setInvoices] = useState<PatientInvoice[]>(INITIAL_INVOICES);
@@ -125,15 +65,15 @@ export function PatientBillingScreen() {
       prev.map((i) =>
         i.id === inv.id
           ? {
-              ...i,
-              status: "Paid",
-              paymentRef: `TXN-${Math.floor(10000 + Math.random() * 90000)}-ONLINE`,
-              paymentDate: new Date()
-                .toISOString()
-                .replace("T", " ")
-                .substring(0, 16),
-              paymentMethod: "Instant Card Payment",
-            }
+            ...i,
+            status: "Paid",
+            paymentRef: `TXN-${Math.floor(10000 + Math.random() * 90000)}-ONLINE`,
+            paymentDate: new Date()
+              .toISOString()
+              .replace("T", " ")
+              .substring(0, 16),
+            paymentMethod: "Instant Card Payment",
+          }
           : i,
       ),
     );
@@ -148,15 +88,15 @@ export function PatientBillingScreen() {
       prev.map((i) =>
         i.status === "Pending" || i.status === "Overdue"
           ? {
-              ...i,
-              status: "Paid",
-              paymentRef: `TXN-${Math.floor(10000 + Math.random() * 90000)}-ALL`,
-              paymentDate: new Date()
-                .toISOString()
-                .replace("T", " ")
-                .substring(0, 16),
-              paymentMethod: "Instant Online Pay",
-            }
+            ...i,
+            status: "Paid",
+            paymentRef: `TXN-${Math.floor(10000 + Math.random() * 90000)}-ALL`,
+            paymentDate: new Date()
+              .toISOString()
+              .replace("T", " ")
+              .substring(0, 16),
+            paymentMethod: "Instant Online Pay",
+          }
           : i,
       ),
     );
@@ -418,22 +358,20 @@ export function PatientBillingScreen() {
                   {/* Status Badge */}
                   <td className="px-4 py-4">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        inv.status === "Paid"
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${inv.status === "Paid"
                           ? "bg-green-50 text-[#66BB6A]"
                           : inv.status === "Pending"
                             ? "bg-amber-50 text-[#F59E0B]"
                             : "bg-red-50 text-[#EF4444]"
-                      }`}
+                        }`}
                     >
                       <span
-                        className={`w-1.5 h-1.5 rounded-full ${
-                          inv.status === "Paid"
+                        className={`w-1.5 h-1.5 rounded-full ${inv.status === "Paid"
                             ? "bg-[#66BB6A]"
                             : inv.status === "Pending"
                               ? "bg-[#F59E0B]"
                               : "bg-[#EF4444]"
-                        }`}
+                          }`}
                       />
                       {inv.status}
                     </span>
@@ -579,11 +517,10 @@ export function PatientBillingScreen() {
                         Payment Status
                       </span>
                       <span
-                        className={`inline-flex items-center gap-1 text-xs font-bold ${
-                          selectedInvoice.status === "Paid"
+                        className={`inline-flex items-center gap-1 text-xs font-bold ${selectedInvoice.status === "Paid"
                             ? "text-[#66BB6A]"
                             : "text-amber-600"
-                        }`}
+                          }`}
                       >
                         {selectedInvoice.status}
                       </span>
@@ -712,9 +649,8 @@ export function PatientBillingScreen() {
                       `Downloading invoice PDF for ${selectedInvoice.id}...`,
                     )
                   }
-                  className={`py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-xs font-bold text-[#111827] hover:bg-slate-50 ${
-                    selectedInvoice.status === "Pending" ? "px-3" : "flex-1"
-                  }`}
+                  className={`py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-xs font-bold text-[#111827] hover:bg-slate-50 ${selectedInvoice.status === "Pending" ? "px-3" : "flex-1"
+                    }`}
                   style={{ fontFamily: PP }}
                 >
                   Download Invoice

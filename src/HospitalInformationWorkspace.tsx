@@ -111,7 +111,7 @@ export function HospitalInformationWorkspace() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '20px' }}>
-      
+
       {/* MAIN CONTENT SECTIONS */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
 

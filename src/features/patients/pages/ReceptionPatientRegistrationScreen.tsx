@@ -117,7 +117,7 @@ export function ReceptionPatientRegistrationScreen({
     const payload: CreatePatientRequest = {
       relationship: formData.relationship.trim() || "SELF",
       fullName: formData.fullName.trim(),
-      gender: formData.gender.toUpperCase() as any,
+      gender: formData.gender.toUpperCase() as "MALE" | "FEMALE" | "OTHER",
       dateOfBirth: formData.dob,
       bloodGroup: formData.bloodGroup || "UNKNOWN",
       phone: formData.phone.trim(),
@@ -126,17 +126,18 @@ export function ReceptionPatientRegistrationScreen({
     };
     // Only include bloodGroup if user selected one (empty string crashes backend enum parsing)
     if (formData.bloodGroup) {
-      (payload as any).bloodGroup = formData.bloodGroup;
+      payload.bloodGroup = formData.bloodGroup;
     }
 
     try {
       const created = await createPatient.mutateAsync(payload);
       setGeneratedMrn(created.MRNId || "Unknown");
       setShowSuccessDialog(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Patient registration failed.";
       setErrors((prev) => ({
         ...prev,
-        submit: err?.message || "Patient registration failed.",
+        submit: errorMessage,
       }));
     }
   };

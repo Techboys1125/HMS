@@ -28,28 +28,26 @@ export const RoleAccessSection: React.FC<RoleAccessSectionProps> = ({
 
       <div className="space-y-3">
         <label className="block text-xs font-heading font-bold text-text-body">System Access Role *</label>
-        
+
         {/* Radio Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {ROLES_CONFIG.map(role => {
             const Icon = role.icon;
             const isSelected = form.role === role.id;
-            
+
             return (
               <div
                 key={role.id}
                 onClick={() => setFieldValue('role', role.id)}
-                className={`border rounded-2xl p-4 flex flex-col justify-between items-start gap-3 cursor-pointer transition-all duration-200 ${
-                  isSelected
+                className={`border rounded-2xl p-4 flex flex-col justify-between items-start gap-3 cursor-pointer transition-all duration-200 ${isSelected
                     ? 'border-[#0D47A1] bg-blue-50/50 shadow-sm text-text-dark'
                     : 'border-[#E5E7EB] hover:border-slate-300 bg-white hover:bg-slate-50/30'
-                }`}
+                  }`}
               >
-                <div className={`p-2 rounded-xl border ${
-                  isSelected 
-                    ? 'bg-[#0D47A1]/10 border-[#0D47A1]/20 text-[#0D47A1]' 
+                <div className={`p-2 rounded-xl border ${isSelected
+                    ? 'bg-[#0D47A1]/10 border-[#0D47A1]/20 text-[#0D47A1]'
                     : 'bg-slate-50 border-slate-200 text-slate-400'
-                }`}>
+                  }`}>
                   <Icon size={18} />
                 </div>
                 <div>

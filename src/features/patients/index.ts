@@ -23,13 +23,13 @@ export { PatientFilters } from "./components/PatientFilters";
 export { DuplicateWarningDialog } from "./components/DuplicateWarningDialog";
 export { DuplicateOverrideDialog } from "./components/DuplicateOverrideDialog";
 export { PatientHistoryTabs } from "./components/PatientHistoryTable";
-export { PatientStatusBadge, StatusBadge } from "./components/PatientStatusBadge";
+export {
+  PatientStatusBadge,
+  StatusBadge,
+} from "./components/PatientStatusBadge";
 
 // Hooks
-export {
-  usePatients,
-  usePatientSearch,
-} from "./hooks/usePatients";
+export { usePatients, usePatientSearch } from "./hooks/usePatients";
 export { usePatient } from "./hooks/usePatient";
 export { useCreatePatient } from "./hooks/useCreatePatient";
 export { useDuplicateCheck } from "./hooks/useDuplicateCheck";
@@ -51,4 +51,3 @@ export type {
   PatientStatistics,
   PatientSearchResult,
 } from "./types/patient.types";
-

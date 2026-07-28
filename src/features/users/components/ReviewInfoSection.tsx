@@ -23,7 +23,7 @@ export const ReviewInfoSection: React.FC<ReviewInfoSectionProps> = ({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      
+
       {/* Visual Header */}
       <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 flex items-center gap-4">
         <div className="p-3 bg-[#66BB6A]/10 text-[#66BB6A] rounded-2xl border border-[#66BB6A]/20">
@@ -36,25 +36,25 @@ export const ReviewInfoSection: React.FC<ReviewInfoSectionProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
+
         {/* Employment Details Card */}
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 space-y-4 shadow-xs">
           <h4 className="text-slate-800 font-heading font-bold text-xs border-b border-slate-100 pb-2 flex items-center gap-1.5 uppercase tracking-wide">
             <User size={14} className="text-[#0D47A1]" />
             Employment Details
           </h4>
-          
+
           <div className="space-y-3 text-xs">
             <div className="flex justify-between items-start py-0.5">
               <span className="text-slate-400 font-medium">Full Name</span>
               <span className="text-slate-800 font-bold text-right">{form.fullName || '—'}</span>
             </div>
-            
+
             <div className="flex justify-between items-start py-0.5">
               <span className="text-slate-400 font-medium">Email Address</span>
               <span className="text-slate-800 font-bold text-right font-mono text-[11px]">{form.email || '—'}</span>
             </div>
-            
+
             <div className="flex justify-between items-start py-0.5">
               <span className="text-slate-400 font-medium">Phone Number</span>
               <span className="text-slate-800 font-bold text-right">{form.phone || '—'}</span>
@@ -99,7 +99,7 @@ export const ReviewInfoSection: React.FC<ReviewInfoSectionProps> = ({
               <ShieldCheck size={14} className="text-[#0D47A1]" />
               Role & Access Level
             </h4>
-            
+
             <div className="space-y-3 text-xs">
               <div className="flex justify-between items-center py-0.5">
                 <span className="text-slate-400 font-medium">Assigned Role</span>
@@ -154,16 +154,15 @@ export const ReviewInfoSection: React.FC<ReviewInfoSectionProps> = ({
             <Clock size={14} className="text-[#0D47A1]" />
             Confirmed Availability Schedule
           </h4>
-          
+
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 text-[11px]">
             {Object.entries(form.availability).map(([day, sched]) => (
-              <div key={day} className={`border rounded-xl p-3 flex flex-col items-center gap-1.5 text-center ${
-                sched.isAvailable 
-                  ? 'border-emerald-100 bg-emerald-50/30' 
+              <div key={day} className={`border rounded-xl p-3 flex flex-col items-center gap-1.5 text-center ${sched.isAvailable
+                  ? 'border-emerald-100 bg-emerald-50/30'
                   : 'border-slate-100 bg-slate-50/50 text-slate-350'
-              }`}>
+                }`}>
                 <span className="font-heading font-bold text-slate-700">{day.substring(0, 3)}</span>
-                
+
                 {sched.isAvailable ? (
                   <>
                     <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">

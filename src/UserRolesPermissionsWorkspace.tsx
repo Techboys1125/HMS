@@ -244,7 +244,7 @@ export function UserRolesPermissionsWorkspace() {
   // Filter Roles
   const filteredRoles = roles.filter(role => {
     const matchesSearch = role.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          role.description.toLowerCase().includes(searchTerm.toLowerCase())
+      role.description.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = selectedStatus === 'All' || role.status === selectedStatus
     return matchesSearch && matchesStatus
   })
@@ -265,7 +265,7 @@ export function UserRolesPermissionsWorkspace() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      
+
       {/* ─── SECTION: SUB-HEADER ACTIONS ───────────────────────────────── */}
       <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <div>
@@ -278,7 +278,7 @@ export function UserRolesPermissionsWorkspace() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button
-            onClick={() => {}}
+            onClick={() => { }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -296,7 +296,7 @@ export function UserRolesPermissionsWorkspace() {
             <RefreshCw size={14} /> Refresh
           </button>
           <button
-            onClick={() => {}}
+            onClick={() => { }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -414,9 +414,9 @@ export function UserRolesPermissionsWorkspace() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
         {[
           { title: 'Create New Role', desc: 'Define new privilege level & scope', icon: Plus, action: () => setIsCreateModalOpen(true) },
-          { title: 'Permission Matrix', desc: 'Inspect grid-wide access levels', icon: Grid, action: () => {} },
-          { title: 'Clone Role', desc: 'Duplicate existing role permissions', icon: Copy, action: () => {} },
-          { title: 'Export Config', desc: 'Download role rules in JSON/CSV', icon: Download, action: () => {} },
+          { title: 'Permission Matrix', desc: 'Inspect grid-wide access levels', icon: Grid, action: () => { } },
+          { title: 'Clone Role', desc: 'Duplicate existing role permissions', icon: Copy, action: () => { } },
+          { title: 'Export Config', desc: 'Download role rules in JSON/CSV', icon: Download, action: () => { } },
         ].map((qa, i) => {
           const IconC = qa.icon
           return (
@@ -508,258 +508,258 @@ export function UserRolesPermissionsWorkspace() {
 
       {/* ─── MAIN CONTENT SECTIONS ───────────────────────────────────────── */}
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '20px' }}>
-          
-          {/* SECTION 01: ROLES DATA TABLE */}
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h3 style={{ fontFamily: PP, fontSize: '15px', fontWeight: 700, color: '#111827', margin: 0 }}>
-                Role Definitions Roster ({filteredRoles.length})
+
+        {/* SECTION 01: ROLES DATA TABLE */}
+        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3 style={{ fontFamily: PP, fontSize: '15px', fontWeight: 700, color: '#111827', margin: 0 }}>
+              Role Definitions Roster ({filteredRoles.length})
+            </h3>
+            <span style={{ fontSize: '12px', color: '#64748B' }}>RBAC Security Protocol v4.2</span>
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+              <thead>
+                <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E5E7EB', color: '#475569', fontWeight: 600 }}>
+                  <th style={{ padding: '12px 16px' }}>Name</th>
+                  <th style={{ padding: '12px 16px' }}>Description</th>
+                  <th style={{ padding: '12px 16px' }}>Status</th>
+                  <th style={{ padding: '12px 16px' }}>Last Updated</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredRoles.map((r) => (
+                  <tr key={r.id} style={{ borderBottom: '1px solid #F1F5F9', transition: 'background 0.15s ease' }}>
+                    <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0D47A1' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {r.isSystem && <Lock size={12} style={{ color: '#009688' }} />}
+                        {r.name}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>
+                        {r.usersCount.toLocaleString()} Users • {r.permissionLevel}
+                      </div>
+                    </td>
+                    <td style={{ padding: '12px 16px', color: '#64748B', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {r.description}
+                    </td>
+                    <td style={{ padding: '12px 16px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '12px', background: r.status === 'Active' ? '#E8F5E9' : '#FEF3C7', color: r.status === 'Active' ? '#2E7D32' : '#B45309' }}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px 16px', color: '#94A3B8', fontSize: '12px' }}>
+                      {r.lastUpdated}
+                    </td>
+                    <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                      <button
+                        onClick={() => setSelectedRole(r)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid #0D47A1',
+                          background: '#FFFFFF',
+                          color: '#0D47A1',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <Eye size={14} /> View Details
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* SECTION 02: PERMISSION MATRIX GRID */}
+        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div>
+              <h3 style={{ fontFamily: PP, fontSize: '16px', fontWeight: 700, color: '#111827', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Grid size={18} style={{ color: '#0D47A1' }} /> Master Role-Permission Matrix
               </h3>
-              <span style={{ fontSize: '12px', color: '#64748B' }}>RBAC Security Protocol v4.2</span>
+              <p style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 0 0' }}>
+                Configure granular View, Edit, Delete, and Approval permissions per role across all 11 HMS core modules.
+              </p>
             </div>
-
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                <thead>
-                  <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E5E7EB', color: '#475569', fontWeight: 600 }}>
-                    <th style={{ padding: '12px 16px' }}>Name</th>
-                    <th style={{ padding: '12px 16px' }}>Description</th>
-                    <th style={{ padding: '12px 16px' }}>Status</th>
-                    <th style={{ padding: '12px 16px' }}>Last Updated</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredRoles.map((r) => (
-                    <tr key={r.id} style={{ borderBottom: '1px solid #F1F5F9', transition: 'background 0.15s ease' }}>
-                      <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0D47A1' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          {r.isSystem && <Lock size={12} style={{ color: '#009688' }} />}
-                          {r.name}
-                        </div>
-                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>
-                          {r.usersCount.toLocaleString()} Users • {r.permissionLevel}
-                        </div>
-                      </td>
-                      <td style={{ padding: '12px 16px', color: '#64748B', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {r.description}
-                      </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '12px', background: r.status === 'Active' ? '#E8F5E9' : '#FEF3C7', color: r.status === 'Active' ? '#2E7D32' : '#B45309' }}>
-                          {r.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px 16px', color: '#94A3B8', fontSize: '12px' }}>
-                        {r.lastUpdated}
-                      </td>
-                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                        <button
-                          onClick={() => setSelectedRole(r)}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            padding: '6px 12px',
-                            borderRadius: '6px',
-                            border: '1px solid #0D47A1',
-                            background: '#FFFFFF',
-                            color: '#0D47A1',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <Eye size={14} /> View Details
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <span style={{ fontSize: '11px', color: '#009688', fontWeight: 600, background: '#E0F2F1', padding: '4px 10px', borderRadius: '6px' }}>
+              Toggle Interactive
+            </span>
           </div>
 
-          {/* SECTION 02: PERMISSION MATRIX GRID */}
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <div>
-                <h3 style={{ fontFamily: PP, fontSize: '16px', fontWeight: 700, color: '#111827', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Grid size={18} style={{ color: '#0D47A1' }} /> Master Role-Permission Matrix
-                </h3>
-                <p style={{ fontSize: '12px', color: '#64748B', margin: '2px 0 0 0' }}>
-                  Configure granular View, Edit, Delete, and Approval permissions per role across all 11 HMS core modules.
-                </p>
-              </div>
-              <span style={{ fontSize: '11px', color: '#009688', fontWeight: 600, background: '#E0F2F1', padding: '4px 10px', borderRadius: '6px' }}>
-                Toggle Interactive
-              </span>
-            </div>
-
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                <thead>
-                  <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E5E7EB', color: '#475569', fontWeight: 700 }}>
-                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>HMS Module</th>
-                    {matrixRoles.map(role => (
-                      <th key={role} style={{ padding: '10px 8px', textAlign: 'center', minWidth: '100px' }}>
-                        {role}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {matrixModules.map(module => (
-                    <tr key={module} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#111827' }}>
-                        {module}
-                      </td>
-                      {matrixRoles.map(role => {
-                        const perm = permissionState[role]?.[module] || { view: false, edit: false, delete: false, approve: false }
-                        return (
-                          <td key={role} style={{ padding: '8px 4px', textAlign: 'center' }}>
-                            <div style={{ display: 'inline-flex', gap: '4px', background: '#F8FAFC', padding: '4px 6px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                              <button
-                                onClick={() => toggleMatrixPermission(role, module, 'view')}
-                                title="View Permission"
-                                style={{
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  padding: '2px 6px',
-                                  fontSize: '10px',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                  background: perm.view ? '#E8F5E9' : '#FFFFFF',
-                                  color: perm.view ? '#2E7D32' : '#94A3B8',
-                                }}
-                              >
-                                V
-                              </button>
-                              <button
-                                onClick={() => toggleMatrixPermission(role, module, 'edit')}
-                                title="Edit Permission"
-                                style={{
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  padding: '2px 6px',
-                                  fontSize: '10px',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                  background: perm.edit ? '#E3F2FD' : '#FFFFFF',
-                                  color: perm.edit ? '#0D47A1' : '#94A3B8',
-                                }}
-                              >
-                                E
-                              </button>
-                              <button
-                                onClick={() => toggleMatrixPermission(role, module, 'delete')}
-                                title="Delete Permission"
-                                style={{
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  padding: '2px 6px',
-                                  fontSize: '10px',
-                                  fontWeight: 700,
-                                  cursor: 'pointer',
-                                  background: perm.delete ? '#FEE2E2' : '#FFFFFF',
-                                  color: perm.delete ? '#DC2626' : '#94A3B8',
-                                }}
-                              >
-                                D
-                              </button>
-                            </div>
-                          </td>
-                        )
-                      })}
-                    </tr>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+              <thead>
+                <tr style={{ background: '#F8FAFC', borderBottom: '2px solid #E5E7EB', color: '#475569', fontWeight: 700 }}>
+                  <th style={{ padding: '10px 12px', textAlign: 'left' }}>HMS Module</th>
+                  {matrixRoles.map(role => (
+                    <th key={role} style={{ padding: '10px 8px', textAlign: 'center', minWidth: '100px' }}>
+                      {role}
+                    </th>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </tr>
+              </thead>
+              <tbody>
+                {matrixModules.map(module => (
+                  <tr key={module} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                    <td style={{ padding: '10px 12px', fontWeight: 700, color: '#111827' }}>
+                      {module}
+                    </td>
+                    {matrixRoles.map(role => {
+                      const perm = permissionState[role]?.[module] || { view: false, edit: false, delete: false, approve: false }
+                      return (
+                        <td key={role} style={{ padding: '8px 4px', textAlign: 'center' }}>
+                          <div style={{ display: 'inline-flex', gap: '4px', background: '#F8FAFC', padding: '4px 6px', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
+                            <button
+                              onClick={() => toggleMatrixPermission(role, module, 'view')}
+                              title="View Permission"
+                              style={{
+                                border: 'none',
+                                borderRadius: '4px',
+                                padding: '2px 6px',
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                background: perm.view ? '#E8F5E9' : '#FFFFFF',
+                                color: perm.view ? '#2E7D32' : '#94A3B8',
+                              }}
+                            >
+                              V
+                            </button>
+                            <button
+                              onClick={() => toggleMatrixPermission(role, module, 'edit')}
+                              title="Edit Permission"
+                              style={{
+                                border: 'none',
+                                borderRadius: '4px',
+                                padding: '2px 6px',
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                background: perm.edit ? '#E3F2FD' : '#FFFFFF',
+                                color: perm.edit ? '#0D47A1' : '#94A3B8',
+                              }}
+                            >
+                              E
+                            </button>
+                            <button
+                              onClick={() => toggleMatrixPermission(role, module, 'delete')}
+                              title="Delete Permission"
+                              style={{
+                                border: 'none',
+                                borderRadius: '4px',
+                                padding: '2px 6px',
+                                fontSize: '10px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                background: perm.delete ? '#FEE2E2' : '#FFFFFF',
+                                color: perm.delete ? '#DC2626' : '#94A3B8',
+                              }}
+                            >
+                              D
+                            </button>
+                          </div>
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+        </div>
 
-          {/* SECTION 04: MODULE ACCESS OVERVIEW CARDS */}
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ fontFamily: PP, fontSize: '16px', fontWeight: 700, color: '#111827', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Lock size={18} style={{ color: '#009688' }} /> Module Access Matrix Overview
-            </h3>
+        {/* SECTION 04: MODULE ACCESS OVERVIEW CARDS */}
+        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <h3 style={{ fontFamily: PP, fontSize: '16px', fontWeight: 700, color: '#111827', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Lock size={18} style={{ color: '#009688' }} /> Module Access Matrix Overview
+          </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' }}>
-              {[
-                { module: 'Billing & Financials', allowed: ['Hospital Admin', 'Accountant', 'Receptionist (Collect Only)'], blocked: ['Doctor', 'Nurse', 'Patient Portal'], summary: 'Strict financial ledger controls & invoice creation' },
-                { module: 'Clinical Consultations', allowed: ['Hospital Admin', 'Doctor', 'Nurse (Assisting)'], blocked: ['Accountant', 'Receptionist', 'Patient Portal'], summary: 'HIPAA protected EMR & e-prescription entry' },
-                { module: 'Audit Logs & Governance', allowed: ['Super Admin', 'Hospital Admin'], blocked: ['Doctor', 'Nurse', 'Accountant', 'Receptionist'], summary: 'Immutable system access activity tracking' },
-                { module: 'Patient Personal Portal', allowed: ['Patient Portal User', 'Hospital Admin'], blocked: ['Other External Roles'], summary: 'Personal health record view & appointment booking' },
-              ].map((m, idx) => (
-                <div key={idx} style={{ background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '14px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <h4 style={{ fontFamily: PP, fontSize: '14px', fontWeight: 700, color: '#111827', margin: 0 }}>{m.module}</h4>
-                    <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>RBAC Rule</span>
-                  </div>
-                  <p style={{ fontSize: '11px', color: '#64748B', margin: '0 0 10px 0' }}>{m.summary}</p>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px' }}>
-                    <div>
-                      <span style={{ color: '#2E7D32', fontWeight: 700 }}>Allowed Roles: </span>
-                      <span style={{ color: '#111827' }}>{m.allowed.join(', ')}</span>
-                    </div>
-                    <div>
-                      <span style={{ color: '#DC2626', fontWeight: 700 }}>Blocked Roles: </span>
-                      <span style={{ color: '#64748B' }}>{m.blocked.join(', ')}</span>
-                    </div>
-                  </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '14px' }}>
+            {[
+              { module: 'Billing & Financials', allowed: ['Hospital Admin', 'Accountant', 'Receptionist (Collect Only)'], blocked: ['Doctor', 'Nurse', 'Patient Portal'], summary: 'Strict financial ledger controls & invoice creation' },
+              { module: 'Clinical Consultations', allowed: ['Hospital Admin', 'Doctor', 'Nurse (Assisting)'], blocked: ['Accountant', 'Receptionist', 'Patient Portal'], summary: 'HIPAA protected EMR & e-prescription entry' },
+              { module: 'Audit Logs & Governance', allowed: ['Super Admin', 'Hospital Admin'], blocked: ['Doctor', 'Nurse', 'Accountant', 'Receptionist'], summary: 'Immutable system access activity tracking' },
+              { module: 'Patient Personal Portal', allowed: ['Patient Portal User', 'Hospital Admin'], blocked: ['Other External Roles'], summary: 'Personal health record view & appointment booking' },
+            ].map((m, idx) => (
+              <div key={idx} style={{ background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <h4 style={{ fontFamily: PP, fontSize: '14px', fontWeight: 700, color: '#111827', margin: 0 }}>{m.module}</h4>
+                  <span style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>RBAC Rule</span>
                 </div>
-              ))}
-            </div>
-          </div>
+                <p style={{ fontSize: '11px', color: '#64748B', margin: '0 0 10px 0' }}>{m.summary}</p>
 
-          {/* SECTION 05: PERMISSION ANALYTICS CHARTS */}
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ fontFamily: PP, fontSize: '16px', fontWeight: 700, color: '#111827', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <BarChart2 size={18} style={{ color: '#0D47A1' }} /> Role & Permission Analytics
-            </h3>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              {/* Donut Chart Mock: Users by Role */}
-              <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '16px', border: '1px solid #E2E8F0' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#111827', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <PieChartIcon size={14} style={{ color: '#009688' }} /> Active Staff Users by Role
-                </h4>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', height: '120px' }}>
-                  <div style={{ width: '90px', height: '90px', borderRadius: '50%', background: 'conic-gradient(#0D47A1 0% 55%, #009688 55% 80%, #F59E0B 80% 90%, #9C27B0 90% 100%)' }} />
-                  <div style={{ fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={{ color: '#0D47A1', fontWeight: 600 }}>■ Doctors (145)</span>
-                    <span style={{ color: '#009688', fontWeight: 600 }}>■ Nurses (68)</span>
-                    <span style={{ color: '#F59E0B', fontWeight: 600 }}>■ Receptionists (24)</span>
-                    <span style={{ color: '#9C27B0', fontWeight: 600 }}>■ Accountants (12)</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px' }}>
+                  <div>
+                    <span style={{ color: '#2E7D32', fontWeight: 700 }}>Allowed Roles: </span>
+                    <span style={{ color: '#111827' }}>{m.allowed.join(', ')}</span>
+                  </div>
+                  <div>
+                    <span style={{ color: '#DC2626', fontWeight: 700 }}>Blocked Roles: </span>
+                    <span style={{ color: '#64748B' }}>{m.blocked.join(', ')}</span>
                   </div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
 
-              {/* Bar Chart Mock: Module Access Distribution */}
-              <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '16px', border: '1px solid #E2E8F0' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#111827', margin: '0 0 12px 0' }}>Module Privilege Distribution</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {[
-                    { module: 'Patients Module', roles: 6, color: '#0D47A1' },
-                    { module: 'Appointments Module', roles: 6, color: '#009688' },
-                    { module: 'Billing Module', roles: 3, color: '#F59E0B' },
-                    { module: 'Settings Module', roles: 2, color: '#EF4444' },
-                  ].map((b, idx) => (
-                    <div key={idx}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '2px' }}>
-                        <span>{b.module}</span>
-                        <span style={{ fontWeight: 600 }}>{b.roles} Roles Granted</span>
-                      </div>
-                      <div style={{ width: '100%', height: '8px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: `${(b.roles / 6) * 100}%`, height: '100%', background: b.color }} />
-                      </div>
-                    </div>
-                  ))}
+        {/* SECTION 05: PERMISSION ANALYTICS CHARTS */}
+        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <h3 style={{ fontFamily: PP, fontSize: '16px', fontWeight: 700, color: '#111827', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <BarChart2 size={18} style={{ color: '#0D47A1' }} /> Role & Permission Analytics
+          </h3>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            {/* Donut Chart Mock: Users by Role */}
+            <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '16px', border: '1px solid #E2E8F0' }}>
+              <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#111827', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <PieChartIcon size={14} style={{ color: '#009688' }} /> Active Staff Users by Role
+              </h4>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', height: '120px' }}>
+                <div style={{ width: '90px', height: '90px', borderRadius: '50%', background: 'conic-gradient(#0D47A1 0% 55%, #009688 55% 80%, #F59E0B 80% 90%, #9C27B0 90% 100%)' }} />
+                <div style={{ fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ color: '#0D47A1', fontWeight: 600 }}>■ Doctors (145)</span>
+                  <span style={{ color: '#009688', fontWeight: 600 }}>■ Nurses (68)</span>
+                  <span style={{ color: '#F59E0B', fontWeight: 600 }}>■ Receptionists (24)</span>
+                  <span style={{ color: '#9C27B0', fontWeight: 600 }}>■ Accountants (12)</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Bar Chart Mock: Module Access Distribution */}
+            <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '16px', border: '1px solid #E2E8F0' }}>
+              <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#111827', margin: '0 0 12px 0' }}>Module Privilege Distribution</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {[
+                  { module: 'Patients Module', roles: 6, color: '#0D47A1' },
+                  { module: 'Appointments Module', roles: 6, color: '#009688' },
+                  { module: 'Billing Module', roles: 3, color: '#F59E0B' },
+                  { module: 'Settings Module', roles: 2, color: '#EF4444' },
+                ].map((b, idx) => (
+                  <div key={idx}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '2px' }}>
+                      <span>{b.module}</span>
+                      <span style={{ fontWeight: 600 }}>{b.roles} Roles Granted</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ width: `${(b.roles / 6) * 100}%`, height: '100%', background: b.color }} />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
+      </div>
 
       {/* ─── SECTION 03: ROLE DETAILS DRAWER (VIEW & EDIT MODES) ─────────── */}
       {selectedRole && (
@@ -832,7 +832,7 @@ export function UserRolesPermissionsWorkspace() {
 
             {/* DRAWER CONTENT */}
             <div style={{ padding: '24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              
+
               {/* Group 1: General Information */}
               <div style={{ background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '16px' }}>
                 <h4 style={{ fontFamily: PP, fontSize: '13px', fontWeight: 700, color: '#0D47A1', margin: '0 0 12px 0' }}>

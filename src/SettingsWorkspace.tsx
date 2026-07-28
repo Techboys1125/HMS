@@ -169,7 +169,7 @@ export function SettingsWorkspace({ onNavigate }: SettingsWorkspaceProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', flex: 1, background: '#F1F5F9', fontFamily: RB }}>
-      
+
       {/* ─── PAGE HEADER ────────────────────────────────────────────────── */}
       <div style={{ background: '#FFFFFF', borderBottom: '1px solid #E5E7EB', padding: '20px 24px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
         <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -275,12 +275,12 @@ export function SettingsWorkspace({ onNavigate }: SettingsWorkspaceProps) {
 
       {/* ─── SINGLE FULL-WIDTH WORKSPACE CONTENT AREA ───────────────────── */}
       <div style={{ flex: 1, padding: '24px', width: '100%', boxSizing: 'border-box' }}>
-        
+
         {/* Render Active Settings Workspace Full Width */}
         <div style={{ width: '100%', transition: 'opacity 0.2s ease-in-out' }}>
           {activeMenu === 'general' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              
+
               {/* TOP CONFIGURATION HEALTH CARDS (4 Reusable Enterprise KPI Cards) */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
                 <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
@@ -358,7 +358,7 @@ export function SettingsWorkspace({ onNavigate }: SettingsWorkspaceProps) {
 
               {/* CONFIGURATION WORKSPACE (EXPANDABLE ACCORDIONS) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                
+
                 {/* ACCORDION 01: Localization & Regional Preferences */}
                 <div style={{ background: '#FFFFFF', borderRadius: '16px', border: expandedAccordion === 'accordion-1' ? '2px solid #0D47A1' : '1px solid #E5E7EB', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', transition: 'all 0.2s ease' }}>
                   <div

@@ -1,8 +1,5 @@
 export type PatientStatus =
-  | "ACTIVE"
-  | "INACTIVE"
-  | "DECEASED"
-  | "DUPLICATE_CANDIDATE";
+  "ACTIVE" | "INACTIVE" | "DECEASED" | "DUPLICATE_CANDIDATE";
 
 export type AgeBasis = "EXACT" | "APPROXIMATE";
 
@@ -60,13 +57,15 @@ export interface CreatePatientRequest {
   bloodGroup: string;
   phone: string;
   email: string;
-  address: {
-    value?: string;
-    line1?: string;
-    city?: string;
-    state?: string;
-    postalCode?: string;
-  } | string;
+  address:
+    | {
+        value?: string;
+        line1?: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+      }
+    | string;
 }
 
 export interface UpdatePatientRequest extends Partial<CreatePatientRequest> {
@@ -77,7 +76,7 @@ export interface PatientSearchResult extends Patient {
   fullName: string;
 }
 
-export interface PatientFormInput extends CreatePatientRequest {}
+export type PatientFormInput = CreatePatientRequest;
 export type ScreenPatient = {
   id: string;
   name: string;
@@ -264,12 +263,7 @@ export type ScreenPatientSearchResult = {
   };
 };
 export type ChipVariant =
-  | "success"
-  | "warning"
-  | "error"
-  | "info"
-  | "teal"
-  | "default";
+  "success" | "warning" | "error" | "info" | "teal" | "default";
 export interface ReceptionPatientProfileScreenProps {
   onBack?: () => void;
   onEditPatient?: () => void;

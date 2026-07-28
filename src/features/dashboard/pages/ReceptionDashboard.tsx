@@ -6,7 +6,7 @@ import {
   DKpi, Av, Chip, SH, PP, RB, type ChipVariant
 } from '../components/DashboardShared'
 
-export function ReceptionDashboard({ 
+export function ReceptionDashboard({
   onRegisterPatient,
   onPatientSearch,
   onCheckInClick,
@@ -15,7 +15,7 @@ export function ReceptionDashboard({
   onPatientSelect,
   onEditPatient,
   onCreateInvoiceClick,
-}: { 
+}: {
   onRegisterPatient?: () => void
   onPatientSearch?: () => void
   onCheckInClick?: (token?: string, uhid?: string) => void
@@ -75,7 +75,7 @@ export function ReceptionDashboard({
   }
 
   const filteredQueue = queueList.filter(item => {
-    const matchSearch = searchQuery === '' || 
+    const matchSearch = searchQuery === '' ||
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.uhid.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.token.toLowerCase().includes(searchQuery.toLowerCase())
@@ -87,7 +87,7 @@ export function ReceptionDashboard({
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9]" style={{ fontFamily: RB }}>
-      
+
       {/* ── HEADER & BREADCRUMB & PRIMARY ACTIONS ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm">
         <div>
@@ -102,9 +102,9 @@ export function ReceptionDashboard({
 
         {/* Primary Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          <button 
+          <button
             onClick={onRegisterPatient}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm" 
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
             style={{ fontFamily: PP }}
           >
             <UserPlus size={15} />
@@ -114,9 +114,9 @@ export function ReceptionDashboard({
             <Calendar size={15} />
             Book Appointment
           </button>
-          <button 
+          <button
             onClick={onPatientSearch}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-[#111827] text-xs font-semibold hover:bg-slate-200 transition-all" 
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-[#111827] text-xs font-semibold hover:bg-slate-200 transition-all"
             style={{ fontFamily: PP }}
           >
             <Search size={15} />
@@ -142,8 +142,8 @@ export function ReceptionDashboard({
 
         {/* Filter Controls */}
         <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto">
-          <select 
-            value={selectedDate} 
+          <select
+            value={selectedDate}
             onChange={e => setSelectedDate(e.target.value)}
             className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
           >
@@ -152,8 +152,8 @@ export function ReceptionDashboard({
             <option>Yesterday</option>
           </select>
 
-          <select 
-            value={selectedDoctor} 
+          <select
+            value={selectedDoctor}
             onChange={e => setSelectedDoctor(e.target.value)}
             className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
           >
@@ -164,8 +164,8 @@ export function ReceptionDashboard({
             <option>Dr. Rajesh Kapoor</option>
           </select>
 
-          <select 
-            value={selectedDept} 
+          <select
+            value={selectedDept}
             onChange={e => setSelectedDept(e.target.value)}
             className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
           >
@@ -177,8 +177,8 @@ export function ReceptionDashboard({
             <option>Dermatology</option>
           </select>
 
-          <select 
-            value={selectedStatus} 
+          <select
+            value={selectedStatus}
             onChange={e => setSelectedStatus(e.target.value)}
             className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
           >
@@ -193,7 +193,7 @@ export function ReceptionDashboard({
             <option>No Show</option>
           </select>
 
-          <button 
+          <button
             onClick={() => {
               setSearchQuery('')
               setSelectedDate('Today (2026-07-24)')
@@ -324,7 +324,7 @@ export function ReceptionDashboard({
                         <td className="px-4 py-3.5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             {item.status === 'Scheduled' || item.status === 'Registered' ? (
-                              <button 
+                              <button
                                 onClick={() => {
                                   handleCheckIn(item.token)
                                   if (onCheckInClick) onCheckInClick(item.token, item.uhid)
@@ -334,13 +334,13 @@ export function ReceptionDashboard({
                                 Check-In
                               </button>
                             ) : null}
-                            <button 
+                            <button
                               onClick={() => onPatientSelect ? onPatientSelect(item.uhid) : null}
                               className="px-2.5 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
                             >
                               View
                             </button>
-                            <button 
+                            <button
                               onClick={() => onEditPatient ? onEditPatient(item.uhid) : null}
                               className="px-2 py-1 rounded-lg border border-[#E5E7EB] text-slate-600 text-[11px] font-medium hover:bg-slate-50 transition-colors"
                             >

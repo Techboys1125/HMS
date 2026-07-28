@@ -63,67 +63,67 @@ const QUICK_ACTION_CARDS: {
   border: string
   badge: string
 }[] = [
-  {
-    id: 'All Logs',
-    title: 'All Logs',
-    description: 'Comprehensive audit log view across all Phase 1 modules.',
-    icon: Layers,
-    color: 'text-blue-700',
-    bg: 'bg-blue-50',
-    border: 'border-blue-200',
-    badge: '18,964 Records'
-  },
-  {
-    id: 'Login History',
-    title: 'Login History',
-    description: 'Track user authentication, login attempts, & session timeouts.',
-    icon: LogIn,
-    color: 'text-emerald-700',
-    bg: 'bg-emerald-50',
-    border: 'border-emerald-200',
-    badge: '2,845 Events'
-  },
-  {
-    id: 'User Activities',
-    title: 'User Activities',
-    description: 'Monitor clinical, receptionist, & admin operational actions.',
-    icon: Activity,
-    color: 'text-purple-700',
-    bg: 'bg-purple-50',
-    border: 'border-purple-200',
-    badge: '8,326 Actions'
-  },
-  {
-    id: 'Data Changes',
-    title: 'Data Changes',
-    description: 'Field-level before/after diffs for patient & doctor records.',
-    icon: Database,
-    color: 'text-teal-700',
-    bg: 'bg-teal-50',
-    border: 'border-teal-200',
-    badge: '4,281 Changes'
-  },
-  {
-    id: 'Deleted Records',
-    title: 'Deleted Records',
-    description: 'Cancelled invoices & draft booking removals with reasons.',
-    icon: Trash2,
-    color: 'text-amber-700',
-    bg: 'bg-amber-50',
-    border: 'border-amber-200',
-    badge: '842 Deletions'
-  },
-  {
-    id: 'System Logs',
-    title: 'System Logs',
-    description: 'Automated background tasks, security rules, & system events.',
-    icon: Server,
-    color: 'text-indigo-700',
-    bg: 'bg-indigo-50',
-    border: 'border-indigo-200',
-    badge: '2,670 Events'
-  }
-]
+    {
+      id: 'All Logs',
+      title: 'All Logs',
+      description: 'Comprehensive audit log view across all Phase 1 modules.',
+      icon: Layers,
+      color: 'text-blue-700',
+      bg: 'bg-blue-50',
+      border: 'border-blue-200',
+      badge: '18,964 Records'
+    },
+    {
+      id: 'Login History',
+      title: 'Login History',
+      description: 'Track user authentication, login attempts, & session timeouts.',
+      icon: LogIn,
+      color: 'text-emerald-700',
+      bg: 'bg-emerald-50',
+      border: 'border-emerald-200',
+      badge: '2,845 Events'
+    },
+    {
+      id: 'User Activities',
+      title: 'User Activities',
+      description: 'Monitor clinical, receptionist, & admin operational actions.',
+      icon: Activity,
+      color: 'text-purple-700',
+      bg: 'bg-purple-50',
+      border: 'border-purple-200',
+      badge: '8,326 Actions'
+    },
+    {
+      id: 'Data Changes',
+      title: 'Data Changes',
+      description: 'Field-level before/after diffs for patient & doctor records.',
+      icon: Database,
+      color: 'text-teal-700',
+      bg: 'bg-teal-50',
+      border: 'border-teal-200',
+      badge: '4,281 Changes'
+    },
+    {
+      id: 'Deleted Records',
+      title: 'Deleted Records',
+      description: 'Cancelled invoices & draft booking removals with reasons.',
+      icon: Trash2,
+      color: 'text-amber-700',
+      bg: 'bg-amber-50',
+      border: 'border-amber-200',
+      badge: '842 Deletions'
+    },
+    {
+      id: 'System Logs',
+      title: 'System Logs',
+      description: 'Automated background tasks, security rules, & system events.',
+      icon: Server,
+      color: 'text-indigo-700',
+      bg: 'bg-indigo-50',
+      border: 'border-indigo-200',
+      badge: '2,670 Events'
+    }
+  ]
 
 // Mock Audit Logs Dataset (18,964 Total Audit Records Snapshot - Phase 1 Only)
 const MOCK_AUDIT_RECORDS: AuditRecord[] = [
@@ -395,7 +395,7 @@ export default function AuditLogsManagementScreen() {
   const [selectedSeverity, setSelectedSeverity] = useState('All')
   const [selectedStatus, setSelectedStatus] = useState('All')
   const [selectedEventType, setSelectedEventType] = useState('All')
-  
+
   // Full Details Workspace State
   const [activeDetailsRecord, setActiveDetailsRecord] = useState<AuditRecord | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
@@ -593,7 +593,7 @@ export default function AuditLogsManagementScreen() {
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9]" style={{ fontFamily: RB }}>
-      
+
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-16 right-6 z-50 bg-gray-900 text-white px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 border border-gray-700 text-sm animate-bounce">
@@ -795,11 +795,10 @@ export default function AuditLogsManagementScreen() {
                   setCurrentWorkspace(card.id)
                   showToast(`Opened ${card.title} Workspace.`)
                 }}
-                className={`p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between group relative overflow-hidden ${
-                  isActive
+                className={`p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between group relative overflow-hidden ${isActive
                     ? 'bg-blue-900 text-white border-blue-900 shadow-md ring-2 ring-blue-700 ring-offset-1'
                     : 'bg-white text-gray-900 border-gray-200 hover:border-blue-300 hover:shadow-md'
-                }`}
+                  }`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">

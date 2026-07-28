@@ -1,10 +1,5 @@
 export type AuthRole =
-  | "ADMIN"
-  | "DOCTOR"
-  | "PATIENT"
-  | "NURSE"
-  | "RECEPTIONIST"
-  | "SUPER_ADMIN";
+  "ADMIN" | "DOCTOR" | "PATIENT" | "NURSE" | "RECEPTIONIST" | "SUPER_ADMIN";
 
 export type AuthScreen =
   | "login"

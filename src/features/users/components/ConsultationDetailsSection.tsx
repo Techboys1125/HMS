@@ -60,9 +60,8 @@ export const ConsultationDetailsSection: React.FC<ConsultationDetailsSectionProp
             <select
               value={form.primaryDepartment}
               onChange={e => setFieldValue('primaryDepartment', e.target.value)}
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-[#1E293B] cursor-pointer ${
-                errors.primaryDepartment ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
-              }`}
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-[#1E293B] cursor-pointer ${errors.primaryDepartment ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
+                }`}
             >
               {DEPARTMENTS.map(dept => (
                 <option key={dept} value={dept}>{dept}</option>
@@ -100,9 +99,8 @@ export const ConsultationDetailsSection: React.FC<ConsultationDetailsSectionProp
             <select
               value={form.primarySpecialty}
               onChange={e => setFieldValue('primarySpecialty', e.target.value)}
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-[#1E293B] cursor-pointer ${
-                errors.primarySpecialty ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
-              }`}
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-[#1E293B] cursor-pointer ${errors.primarySpecialty ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
+                }`}
             >
               {primarySpecialties.length > 0 ? (
                 primarySpecialties.map(spec => (
@@ -149,9 +147,8 @@ export const ConsultationDetailsSection: React.FC<ConsultationDetailsSectionProp
               value={form.consultationFee}
               onChange={e => setFieldValue('consultationFee', e.target.value)}
               placeholder="500"
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-9 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${
-                errors.consultationFee ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
-              }`}
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-9 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${errors.consultationFee ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
+                }`}
             />
           </div>
           {errors.consultationFee && <p className="text-red-500 text-[10px] font-semibold mt-0.5">{errors.consultationFee}</p>}

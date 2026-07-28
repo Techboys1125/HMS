@@ -187,7 +187,7 @@ type SearchResultType = {
 
 type ValidationError = {
   type: 'mrn-not-found' | 'mobile-not-found' | 'name-not-found' | 'already-linked' | 'cannot-link-self' |
-       'relationship-exists' | 'duplicate-pending' | 'inactive-patient' | 'empty-field'
+  'relationship-exists' | 'duplicate-pending' | 'inactive-patient' | 'empty-field'
   message: string
 }
 
@@ -284,10 +284,10 @@ export function FamilyMembersManagement({
       if (!found) {
         setSearchResult(null)
         const errorType = searchMethod === 'MRN' ? 'mrn-not-found' :
-                          searchMethod === 'Mobile' ? 'mobile-not-found' : 'name-not-found'
+          searchMethod === 'Mobile' ? 'mobile-not-found' : 'name-not-found'
         const errorMsg = searchMethod === 'MRN' ? 'No registered patient found with this MRN.' :
-                         searchMethod === 'Mobile' ? 'No registered patient found with this mobile number.' :
-                         'No registered patient found with this name.'
+          searchMethod === 'Mobile' ? 'No registered patient found with this mobile number.' :
+            'No registered patient found with this name.'
         setValidationError({ type: errorType, message: errorMsg })
         return
       }
@@ -802,10 +802,9 @@ export function FamilyMembersManagement({
                   {act.date} · {act.time}
                 </div>
               </div>
-              <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold shrink-0 ${
-                act.status === 'Completed' ? 'bg-emerald-50 text-[#66BB6A]' :
+              <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold shrink-0 ${act.status === 'Completed' ? 'bg-emerald-50 text-[#66BB6A]' :
                 act.status === 'Pending' ? 'bg-amber-50 text-[#F59E0B]' : 'bg-blue-50 text-[#0D47A1]'
-              }`}>
+                }`}>
                 {act.status}
               </span>
             </div>
@@ -845,11 +844,10 @@ export function FamilyMembersManagement({
                     <span className="text-xs font-semibold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100" style={{ fontFamily: PP }}>
                       {viewDrawerMember.relationship}
                     </span>
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                      viewDrawerMember.verificationStatus === 'Verified' ? 'bg-emerald-50 text-[#66BB6A] border border-emerald-100' :
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${viewDrawerMember.verificationStatus === 'Verified' ? 'bg-emerald-50 text-[#66BB6A] border border-emerald-100' :
                       viewDrawerMember.verificationStatus === 'Pending' ? 'bg-amber-50 text-[#F59E0B] border border-amber-100' :
-                      'bg-slate-100 text-[#64748B] border border-slate-200'
-                    }`}>
+                        'bg-slate-100 text-[#64748B] border border-slate-200'
+                      }`}>
                       {viewDrawerMember.verificationStatus === 'Verified' && <CheckCircle2 size={10} />}
                       {viewDrawerMember.verificationStatus === 'Pending' && <Clock size={10} />}
                       {viewDrawerMember.verificationStatus}
@@ -891,11 +889,10 @@ export function FamilyMembersManagement({
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[#64748B]">Verification Status:</span>
-                    <span className={`px-2 py-0.5 rounded-full font-semibold ${
-                      viewDrawerMember.verificationStatus === 'Verified' ? 'bg-emerald-100 text-[#66BB6A]' :
+                    <span className={`px-2 py-0.5 rounded-full font-semibold ${viewDrawerMember.verificationStatus === 'Verified' ? 'bg-emerald-100 text-[#66BB6A]' :
                       viewDrawerMember.verificationStatus === 'Pending' ? 'bg-amber-100 text-[#F59E0B]' :
-                      'bg-slate-100 text-[#64748B]'
-                    }`}>
+                        'bg-slate-100 text-[#64748B]'
+                      }`}>
                       {viewDrawerMember.verificationStatus}
                     </span>
                   </div>
@@ -1131,11 +1128,10 @@ export function FamilyMembersManagement({
                         setSearchPerformed(false)
                         setValidationError(null)
                       }}
-                      className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                        searchMethod === method
-                          ? 'bg-white text-[#0D47A1] shadow-sm border border-blue-100'
-                          : 'text-[#64748B] hover:text-[#111827]'
-                      }`}
+                      className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${searchMethod === method
+                        ? 'bg-white text-[#0D47A1] shadow-sm border border-blue-100'
+                        : 'text-[#64748B] hover:text-[#111827]'
+                        }`}
                       style={{ fontFamily: PP }}
                     >
                       {method === 'MRN' && <Hash size={13} />}
@@ -1192,11 +1188,10 @@ export function FamilyMembersManagement({
 
               {/* Inline Validation Error */}
               {validationError && (
-                <div className={`flex items-start gap-2.5 p-3 rounded-xl border text-xs ${
-                  validationError.type === 'inactive-patient'
-                    ? 'bg-amber-50 border-amber-200 text-[#F59E0B]'
-                    : 'bg-red-50 border-red-200 text-[#EF4444]'
-                }`}>
+                <div className={`flex items-start gap-2.5 p-3 rounded-xl border text-xs ${validationError.type === 'inactive-patient'
+                  ? 'bg-amber-50 border-amber-200 text-[#F59E0B]'
+                  : 'bg-red-50 border-red-200 text-[#EF4444]'
+                  }`}>
                   <AlertCircle size={16} className="shrink-0 mt-0.5" />
                   <span className="font-medium" style={{ fontFamily: RB }}>{validationError.message}</span>
                 </div>
@@ -1231,15 +1226,13 @@ export function FamilyMembersManagement({
                       </span>
                       <div className="flex items-center gap-2">
                         {/* Patient Status Badge */}
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                          searchResult.patientStatus === 'Active' ? 'bg-emerald-50 text-[#66BB6A] border border-emerald-100' : 'bg-slate-100 text-[#64748B] border border-slate-200'
-                        }`}>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${searchResult.patientStatus === 'Active' ? 'bg-emerald-50 text-[#66BB6A] border border-emerald-100' : 'bg-slate-100 text-[#64748B] border border-slate-200'
+                          }`}>
                           {searchResult.patientStatus}
                         </span>
                         {/* Verification Badge */}
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                          searchResult.verificationStatus === 'Verified' ? 'bg-emerald-50 text-[#66BB6A] border border-emerald-100' : 'bg-amber-50 text-[#F59E0B] border border-amber-100'
-                        }`}>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${searchResult.verificationStatus === 'Verified' ? 'bg-emerald-50 text-[#66BB6A] border border-emerald-100' : 'bg-amber-50 text-[#F59E0B] border border-amber-100'
+                          }`}>
                           {searchResult.verificationStatus === 'Verified' ? <CheckCircle2 size={10} /> : <Clock size={10} />}
                           {searchResult.verificationStatus}
                         </span>
@@ -1376,7 +1369,7 @@ export function FamilyMembersManagement({
 
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
             <div className="w-screen max-w-md bg-white border-l border-[#E5E7EB] shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
-              
+
               {/* Drawer Header */}
               <div className="h-16 px-6 border-b border-[#E5E7EB] flex items-center justify-between bg-white shrink-0">
                 <div>
@@ -1397,7 +1390,7 @@ export function FamilyMembersManagement({
 
               {/* Drawer Body */}
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                
+
                 {/* PROFILE SUMMARY CARD (Read Only) */}
                 <div className="p-4 bg-slate-50 border border-[#E5E7EB] rounded-2xl space-y-3">
                   <div className="flex items-center gap-3">
@@ -1456,9 +1449,8 @@ export function FamilyMembersManagement({
                         setEditFormRel(e.target.value as FamilyMember['relationship'])
                         setRelFormError(null)
                       }}
-                      className={`w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-medium text-[#111827] outline-none transition-colors ${
-                        relFormError ? 'border-red-400 bg-red-50/20' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
-                      }`}
+                      className={`w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-medium text-[#111827] outline-none transition-colors ${relFormError ? 'border-red-400 bg-red-50/20' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
+                        }`}
                       style={{ fontFamily: RB }}
                     >
                       <option value="Mother">Mother</option>
@@ -1508,14 +1500,12 @@ export function FamilyMembersManagement({
                     <button
                       type="button"
                       onClick={() => setIsPrimary(!isPrimary)}
-                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        isPrimary ? 'bg-[#0D47A1]' : 'bg-slate-300'
-                      }`}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isPrimary ? 'bg-[#0D47A1]' : 'bg-slate-300'
+                        }`}
                     >
                       <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                          isPrimary ? 'translate-x-4' : 'translate-x-0'
-                        }`}
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isPrimary ? 'translate-x-4' : 'translate-x-0'
+                          }`}
                       />
                     </button>
                   </div>
@@ -1533,14 +1523,12 @@ export function FamilyMembersManagement({
                     <button
                       type="button"
                       onClick={() => setIsEmergency(!isEmergency)}
-                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        isEmergency ? 'bg-[#009688]' : 'bg-slate-300'
-                      }`}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isEmergency ? 'bg-[#009688]' : 'bg-slate-300'
+                        }`}
                     >
                       <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                          isEmergency ? 'translate-x-4' : 'translate-x-0'
-                        }`}
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isEmergency ? 'translate-x-4' : 'translate-x-0'
+                          }`}
                       />
                     </button>
                   </div>
@@ -1591,7 +1579,7 @@ export function FamilyMembersManagement({
       {removeDialogMember && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 max-w-md w-full shadow-2xl space-y-4">
-            
+
             {/* HEADER */}
             <div className="flex items-center gap-3 border-b border-[#E5E7EB] pb-3">
               <div className="w-10 h-10 rounded-xl bg-red-50 text-[#EF4444] flex items-center justify-center font-bold shrink-0">

@@ -423,7 +423,7 @@ export function EditConsultationScreen({
                       <label className="block text-[11px] font-semibold text-[#64748B] mb-1" style={{ fontFamily: PP }}>Visit Type</label>
                       <select
                         value={formData.visitType}
-                        onChange={(e) => setFormData(prev => ({ ...prev, visitType: e.target.value as any }))}
+                        onChange={(e) => setFormData(prev => ({ ...prev, visitType: e.target.value as 'New Consultation' | 'Follow-up' | 'First Visit' }))}
                         className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
                         style={{ fontFamily: RB }}
                       >
@@ -798,17 +798,19 @@ export function EditConsultationScreen({
                   <div>
                     <label className="block text-[11px] font-semibold text-[#64748B] mb-2" style={{ fontFamily: PP }}>Recommended Investigations</label>
                     <div className="flex flex-wrap gap-4">
-                      {[
-                        { key: 'cbc', label: 'CBC' },
-                        { key: 'ecg', label: 'ECG' },
-                        { key: 'xray', label: 'X-Ray' },
-                        { key: 'ultrasound', label: 'Ultrasound' },
-                        { key: 'other', label: 'Other' },
-                      ].map((item) => (
+                      {(
+                        [
+                          { key: 'cbc', label: 'CBC (Complete Blood Count)' },
+                          { key: 'ecg', label: 'ECG' },
+                          { key: 'xray', label: 'Chest X-Ray' },
+                          { key: 'ultrasound', label: 'Ultrasound' },
+                          { key: 'other', label: 'Other' },
+                        ] as const
+                      ).map((item) => (
                         <label key={item.key} className="flex items-center gap-2 font-medium text-[#111827] cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={(formData.investigations as any)[item.key]}
+                            checked={formData.investigations[item.key]}
                             onChange={(e) => setFormData(prev => ({
                               ...prev,
                               investigations: { ...prev.investigations, [item.key]: e.target.checked }

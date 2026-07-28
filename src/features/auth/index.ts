@@ -1,11 +1,5 @@
-export {
-    default as AuthApp
-}
-from "./pages/AuthApp";
-export {
-    default as LoginPage
-}
-from "./pages/LoginPage";
+export { default as AuthApp } from "./pages/AuthApp";
+export { default as LoginPage } from "./pages/LoginPage";
 export * from "./pages/ForgotPasswordPage";
 export * from "./pages/OTPPage";
 export * from "./pages/ResetPasswordPage";

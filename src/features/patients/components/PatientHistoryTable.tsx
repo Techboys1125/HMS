@@ -24,11 +24,10 @@ export function PatientHistoryTabs({
         <button
           key={tab.id}
           onClick={() => onChange(tab.id)}
-          className={`px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-colors ${
-            activeTab === tab.id
-              ? "bg-[#0D47A1] text-white shadow-sm"
-              : "text-slate-600 hover:bg-slate-50"
-          }`}
+          className={`px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-colors ${activeTab === tab.id
+            ? "bg-[#0D47A1] text-white shadow-sm"
+            : "text-slate-600 hover:bg-slate-50"
+            }`}
           style={{ fontFamily: PP }}
         >
           {tab.label}

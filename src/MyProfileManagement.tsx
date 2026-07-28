@@ -497,9 +497,8 @@ export function MyProfileManagement({
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className={`flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold shadow-sm transition ${
-              isEditing ? 'border-[#0D47A1] bg-blue-50 text-[#0D47A1]' : 'border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50'
-            }`}
+            className={`flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold shadow-sm transition ${isEditing ? 'border-[#0D47A1] bg-blue-50 text-[#0D47A1]' : 'border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50'
+              }`}
           >
             <Edit3 className="w-4 h-4" />
             {isEditing ? 'Editing Profile...' : 'Edit Profile'}

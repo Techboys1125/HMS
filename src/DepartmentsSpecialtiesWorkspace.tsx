@@ -154,15 +154,15 @@ export function DepartmentsSpecialtiesWorkspace() {
   // Filter Logic
   const filteredDepartments = departments.filter(dept => {
     const matchesSearch = dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          dept.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          dept.head.toLowerCase().includes(searchTerm.toLowerCase())
+      dept.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      dept.head.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = selectedStatusFilter === 'All' || dept.status === selectedStatusFilter
     return matchesSearch && matchesStatus
   })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      
+
       {/* ─── SECTION: SUB-HEADER ACTIONS ───────────────────────────────── */}
       <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
         <div>
@@ -175,7 +175,7 @@ export function DepartmentsSpecialtiesWorkspace() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button
-            onClick={() => {}}
+            onClick={() => { }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -193,7 +193,7 @@ export function DepartmentsSpecialtiesWorkspace() {
             <RefreshCw size={14} /> Refresh
           </button>
           <button
-            onClick={() => {}}
+            onClick={() => { }}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -311,9 +311,9 @@ export function DepartmentsSpecialtiesWorkspace() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
         {[
           { title: 'Add Department', desc: 'Create a new medical department unit', icon: Plus, action: () => setIsAddModalOpen(true) },
-          { title: 'Add Specialty', desc: 'Define new specialty consultation branch', icon: Stethoscope, action: () => {} },
-          { title: 'View Structure', desc: 'Inspect hospital organizational hierarchy', icon: Network, action: () => {} },
-          { title: 'Export List', desc: 'Download CSV/Excel department roster', icon: Download, action: () => {} },
+          { title: 'Add Specialty', desc: 'Define new specialty consultation branch', icon: Stethoscope, action: () => { } },
+          { title: 'View Structure', desc: 'Inspect hospital organizational hierarchy', icon: Network, action: () => { } },
+          { title: 'Export List', desc: 'Download CSV/Excel department roster', icon: Download, action: () => { } },
         ].map((qa, i) => {
           const IconC = qa.icon
           return (
@@ -407,215 +407,215 @@ export function DepartmentsSpecialtiesWorkspace() {
 
       {/* ─── MAIN CONTENT SECTIONS ───────────────────────────────────────── */}
       <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '20px' }}>
-        
+
         {/* SECTION 01: DEPARTMENTS DATA TABLE */}
-          
-          {/* SECTION 01: DEPARTMENTS DATA TABLE */}
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h3 style={{ fontFamily: PP, fontSize: '15px', fontWeight: 700, color: '#111827', margin: 0 }}>
-                Hospital Departments Roster ({filteredDepartments.length})
-              </h3>
-              <span style={{ fontSize: '12px', color: '#64748B' }}>Real-time Unit Sync</span>
-            </div>
 
-            {filteredDepartments.length === 0 ? (
-              /* EMPTY STATE */
-              <div style={{ padding: '48px 20px', textAlign: 'center' }}>
-                <Building size={48} style={{ color: '#94A3B8', marginBottom: '12px' }} />
-                <h4 style={{ fontFamily: PP, fontSize: '16px', fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
-                  No departments configured
-                </h4>
-                <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0' }}>
-                  Click "Add Department" to create your first hospital department unit.
-                </p>
-                <button
-                  onClick={() => setIsAddModalOpen(true)}
-                  style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#0D47A1', color: '#FFFFFF', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
-                >
-                  + Add Department
-                </button>
-              </div>
-            ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-                  <thead>
-                    <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E5E7EB', color: '#475569', fontWeight: 600 }}>
-                      <th style={{ padding: '12px 16px' }}>Name</th>
-                      <th style={{ padding: '12px 16px' }}>Description</th>
-                      <th style={{ padding: '12px 16px' }}>Status</th>
-                      <th style={{ padding: '12px 16px' }}>Last Updated</th>
-                      <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredDepartments.map((dept) => (
-                      <tr key={dept.id} style={{ borderBottom: '1px solid #F1F5F9', transition: 'background 0.15s ease' }}>
-                        <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0D47A1' }}>
-                          <div>{dept.name}</div>
-                          <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>{dept.code} • {dept.head}</div>
-                        </td>
-                        <td style={{ padding: '12px 16px', color: '#475569', maxWidth: '300px' }}>
-                          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                            {dept.description}
-                          </div>
-                        </td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '12px', background: dept.status === 'Active' ? '#E8F5E9' : '#FEF3C7', color: dept.status === 'Active' ? '#2E7D32' : '#B45309' }}>
-                            {dept.status}
-                          </span>
-                        </td>
-                        <td style={{ padding: '12px 16px', color: '#94A3B8', fontSize: '12px' }}>{dept.lastUpdated}</td>
-                        <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                          <button
-                            onClick={() => setSelectedDept(dept)}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              padding: '6px 12px',
-                              borderRadius: '6px',
-                              border: '1px solid #0D47A1',
-                              background: '#FFFFFF',
-                              color: '#0D47A1',
-                              fontSize: '12px',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <Eye size={14} /> View Details
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+        {/* SECTION 01: DEPARTMENTS DATA TABLE */}
+        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3 style={{ fontFamily: PP, fontSize: '15px', fontWeight: 700, color: '#111827', margin: 0 }}>
+              Hospital Departments Roster ({filteredDepartments.length})
+            </h3>
+            <span style={{ fontSize: '12px', color: '#64748B' }}>Real-time Unit Sync</span>
           </div>
 
-          {/* SECTION 03: MEDICAL SPECIALTIES CARDS GRID */}
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ fontFamily: PP, fontSize: '16px', fontWeight: 700, color: '#111827', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Stethoscope size={18} style={{ color: '#009688' }} /> Medical Specialties Catalog
-            </h3>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
-              {specialties.map((sp, idx) => {
-                const IconC = sp.icon
-                return (
-                  <div key={idx} style={{ background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                        <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <IconC size={16} style={{ color: sp.color }} />
+          {filteredDepartments.length === 0 ? (
+            /* EMPTY STATE */
+            <div style={{ padding: '48px 20px', textAlign: 'center' }}>
+              <Building size={48} style={{ color: '#94A3B8', marginBottom: '12px' }} />
+              <h4 style={{ fontFamily: PP, fontSize: '16px', fontWeight: 700, color: '#111827', margin: '0 0 6px 0' }}>
+                No departments configured
+              </h4>
+              <p style={{ fontSize: '13px', color: '#64748B', margin: '0 0 16px 0' }}>
+                Click "Add Department" to create your first hospital department unit.
+              </p>
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#0D47A1', color: '#FFFFFF', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                + Add Department
+              </button>
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ background: '#F8FAFC', borderBottom: '1px solid #E5E7EB', color: '#475569', fontWeight: 600 }}>
+                    <th style={{ padding: '12px 16px' }}>Name</th>
+                    <th style={{ padding: '12px 16px' }}>Description</th>
+                    <th style={{ padding: '12px 16px' }}>Status</th>
+                    <th style={{ padding: '12px 16px' }}>Last Updated</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredDepartments.map((dept) => (
+                    <tr key={dept.id} style={{ borderBottom: '1px solid #F1F5F9', transition: 'background 0.15s ease' }}>
+                      <td style={{ padding: '12px 16px', fontWeight: 700, color: '#0D47A1' }}>
+                        <div>{dept.name}</div>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 500 }}>{dept.code} • {dept.head}</div>
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#475569', maxWidth: '300px' }}>
+                        <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {dept.description}
                         </div>
-                        <span style={{ fontSize: '10px', fontWeight: 600, background: '#E8F5E9', color: '#2E7D32', padding: '2px 6px', borderRadius: '4px' }}>
-                          Active
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '12px', background: dept.status === 'Active' ? '#E8F5E9' : '#FEF3C7', color: dept.status === 'Active' ? '#2E7D32' : '#B45309' }}>
+                          {dept.status}
                         </span>
-                      </div>
-                      <h4 style={{ fontFamily: PP, fontSize: '14px', fontWeight: 700, color: '#111827', margin: '0 0 4px 0' }}>
-                        {sp.name}
-                      </h4>
-                      <p style={{ fontSize: '11px', color: '#64748B', margin: 0 }}>
-                        Dept: {sp.department}
-                      </p>
-                    </div>
-
-                    <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 600, color: '#0D47A1' }}>{sp.doctors} Doctors</span>
-                      <button style={{ border: 'none', background: 'transparent', color: '#0D47A1', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
-                        Details →
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* SECTION 04: DEPARTMENT HIERARCHY ORG CHART */}
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ fontFamily: PP, fontSize: '16px', fontWeight: 700, color: '#111827', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Network size={18} style={{ color: '#0D47A1' }} /> Department Organizational Hierarchy
-            </h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', background: '#F8FAFC', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
-              {/* Level 1: Hospital */}
-              <div style={{ background: '#0D47A1', color: '#FFFFFF', padding: '10px 24px', borderRadius: '10px', fontWeight: 700, fontFamily: PP, fontSize: '14px', boxShadow: '0 2px 4px rgba(13,71,161,0.2)' }}>
-                🏥 St. Jude General Hospital (Master Facility Node)
-              </div>
-              <div style={{ width: '2px', height: '16px', background: '#CBD5E1' }} />
-
-              {/* Level 2: Medical Services */}
-              <div style={{ background: '#009688', color: '#FFFFFF', padding: '8px 20px', borderRadius: '8px', fontWeight: 600, fontSize: '13px' }}>
-                Medical & Clinical Services Directorate
-              </div>
-              <div style={{ width: '2px', height: '16px', background: '#CBD5E1' }} />
-
-              {/* Level 3: Department Nodes */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', width: '100%' }}>
-                <div style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
-                  <div style={{ fontWeight: 700, fontSize: '12px', color: '#111827' }}>Clinical OPD & Inpatient</div>
-                  <div style={{ fontSize: '10px', color: '#64748B' }}>Cardiology, Neuro, Ortho</div>
-                </div>
-                <div style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
-                  <div style={{ fontWeight: 700, fontSize: '12px', color: '#111827' }}>Surgical Services</div>
-                  <div style={{ fontSize: '10px', color: '#64748B' }}>OT, Anesthesia, Trauma</div>
-                </div>
-                <div style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
-                  <div style={{ fontWeight: 700, fontSize: '12px', color: '#111827' }}>Diagnostic & Support</div>
-                  <div style={{ fontSize: '10px', color: '#64748B' }}>Radiology, Pathology</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 05: DEPARTMENT STATISTICS CHARTS */}
-          <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <h3 style={{ fontFamily: PP, fontSize: '16px', fontWeight: 700, color: '#111827', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <BarChart2 size={18} style={{ color: '#009688' }} /> Department Operational Statistics
-            </h3>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              {/* Doctor Distribution Bar Mock */}
-              <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '16px', border: '1px solid #E2E8F0' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#111827', margin: '0 0 12px 0' }}>Doctor Allocation per Department</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {[
-                    { dept: 'General Medicine', count: 22, color: '#0D47A1' },
-                    { dept: 'Cardiology', count: 18, color: '#EF4444' },
-                    { dept: 'Gynecology', count: 16, color: '#E91E63' },
-                    { dept: 'Orthopedics', count: 15, color: '#009688' },
-                  ].map((d, i) => (
-                    <div key={i}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '2px' }}>
-                        <span>{d.dept}</span>
-                        <span style={{ fontWeight: 600 }}>{d.count} Docs</span>
-                      </div>
-                      <div style={{ width: '100%', height: '8px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: `${(d.count / 25) * 100}%`, height: '100%', background: d.color }} />
-                      </div>
-                    </div>
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#94A3B8', fontSize: '12px' }}>{dept.lastUpdated}</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                        <button
+                          onClick={() => setSelectedDept(dept)}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            border: '1px solid #0D47A1',
+                            background: '#FFFFFF',
+                            color: '#0D47A1',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <Eye size={14} /> View Details
+                        </button>
+                      </td>
+                    </tr>
                   ))}
-                </div>
-              </div>
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
 
-              {/* Department Utilization Pie Mock */}
-              <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '16px', border: '1px solid #E2E8F0' }}>
-                <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#111827', margin: '0 0 12px 0' }}>OPD Consultation Utilization</h4>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', height: '120px' }}>
-                  <div style={{ width: '90px', height: '90px', borderRadius: '50%', background: 'conic-gradient(#0D47A1 0% 40%, #009688 40% 70%, #F59E0B 70% 90%, #EF4444 90% 100%)' }} />
-                  <div style={{ fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <span style={{ color: '#0D47A1', fontWeight: 600 }}>■ Cardiology (40%)</span>
-                    <span style={{ color: '#009688', fontWeight: 600 }}>■ Gen Medicine (30%)</span>
-                    <span style={{ color: '#F59E0B', fontWeight: 600 }}>■ Pediatrics (20%)</span>
-                    <span style={{ color: '#EF4444', fontWeight: 600 }}>■ Emergency (10%)</span>
+        {/* SECTION 03: MEDICAL SPECIALTIES CARDS GRID */}
+        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <h3 style={{ fontFamily: PP, fontSize: '16px', fontWeight: 700, color: '#111827', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Stethoscope size={18} style={{ color: '#009688' }} /> Medical Specialties Catalog
+          </h3>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
+            {specialties.map((sp, idx) => {
+              const IconC = sp.icon
+              return (
+                <div key={idx} style={{ background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '14px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                      <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: '#FFFFFF', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <IconC size={16} style={{ color: sp.color }} />
+                      </div>
+                      <span style={{ fontSize: '10px', fontWeight: 600, background: '#E8F5E9', color: '#2E7D32', padding: '2px 6px', borderRadius: '4px' }}>
+                        Active
+                      </span>
+                    </div>
+                    <h4 style={{ fontFamily: PP, fontSize: '14px', fontWeight: 700, color: '#111827', margin: '0 0 4px 0' }}>
+                      {sp.name}
+                    </h4>
+                    <p style={{ fontSize: '11px', color: '#64748B', margin: 0 }}>
+                      Dept: {sp.department}
+                    </p>
                   </div>
+
+                  <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#0D47A1' }}>{sp.doctors} Doctors</span>
+                    <button style={{ border: 'none', background: 'transparent', color: '#0D47A1', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>
+                      Details →
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* SECTION 04: DEPARTMENT HIERARCHY ORG CHART */}
+        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <h3 style={{ fontFamily: PP, fontSize: '16px', fontWeight: 700, color: '#111827', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Network size={18} style={{ color: '#0D47A1' }} /> Department Organizational Hierarchy
+          </h3>
+
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', background: '#F8FAFC', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+            {/* Level 1: Hospital */}
+            <div style={{ background: '#0D47A1', color: '#FFFFFF', padding: '10px 24px', borderRadius: '10px', fontWeight: 700, fontFamily: PP, fontSize: '14px', boxShadow: '0 2px 4px rgba(13,71,161,0.2)' }}>
+              🏥 St. Jude General Hospital (Master Facility Node)
+            </div>
+            <div style={{ width: '2px', height: '16px', background: '#CBD5E1' }} />
+
+            {/* Level 2: Medical Services */}
+            <div style={{ background: '#009688', color: '#FFFFFF', padding: '8px 20px', borderRadius: '8px', fontWeight: 600, fontSize: '13px' }}>
+              Medical & Clinical Services Directorate
+            </div>
+            <div style={{ width: '2px', height: '16px', background: '#CBD5E1' }} />
+
+            {/* Level 3: Department Nodes */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', width: '100%' }}>
+              <div style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                <div style={{ fontWeight: 700, fontSize: '12px', color: '#111827' }}>Clinical OPD & Inpatient</div>
+                <div style={{ fontSize: '10px', color: '#64748B' }}>Cardiology, Neuro, Ortho</div>
+              </div>
+              <div style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                <div style={{ fontWeight: 700, fontSize: '12px', color: '#111827' }}>Surgical Services</div>
+                <div style={{ fontSize: '10px', color: '#64748B' }}>OT, Anesthesia, Trauma</div>
+              </div>
+              <div style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', padding: '10px', borderRadius: '8px', textAlign: 'center' }}>
+                <div style={{ fontWeight: 700, fontSize: '12px', color: '#111827' }}>Diagnostic & Support</div>
+                <div style={{ fontSize: '10px', color: '#64748B' }}>Radiology, Pathology</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 05: DEPARTMENT STATISTICS CHARTS */}
+        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '20px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <h3 style={{ fontFamily: PP, fontSize: '16px', fontWeight: 700, color: '#111827', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <BarChart2 size={18} style={{ color: '#009688' }} /> Department Operational Statistics
+          </h3>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            {/* Doctor Distribution Bar Mock */}
+            <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '16px', border: '1px solid #E2E8F0' }}>
+              <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#111827', margin: '0 0 12px 0' }}>Doctor Allocation per Department</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {[
+                  { dept: 'General Medicine', count: 22, color: '#0D47A1' },
+                  { dept: 'Cardiology', count: 18, color: '#EF4444' },
+                  { dept: 'Gynecology', count: 16, color: '#E91E63' },
+                  { dept: 'Orthopedics', count: 15, color: '#009688' },
+                ].map((d, i) => (
+                  <div key={i}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '2px' }}>
+                      <span>{d.dept}</span>
+                      <span style={{ fontWeight: 600 }}>{d.count} Docs</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ width: `${(d.count / 25) * 100}%`, height: '100%', background: d.color }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Department Utilization Pie Mock */}
+            <div style={{ background: '#F8FAFC', borderRadius: '12px', padding: '16px', border: '1px solid #E2E8F0' }}>
+              <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#111827', margin: '0 0 12px 0' }}>OPD Consultation Utilization</h4>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', height: '120px' }}>
+                <div style={{ width: '90px', height: '90px', borderRadius: '50%', background: 'conic-gradient(#0D47A1 0% 40%, #009688 40% 70%, #F59E0B 70% 90%, #EF4444 90% 100%)' }} />
+                <div style={{ fontSize: '11px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ color: '#0D47A1', fontWeight: 600 }}>■ Cardiology (40%)</span>
+                  <span style={{ color: '#009688', fontWeight: 600 }}>■ Gen Medicine (30%)</span>
+                  <span style={{ color: '#F59E0B', fontWeight: 600 }}>■ Pediatrics (20%)</span>
+                  <span style={{ color: '#EF4444', fontWeight: 600 }}>■ Emergency (10%)</span>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
       </div>
 
@@ -690,7 +690,7 @@ export function DepartmentsSpecialtiesWorkspace() {
 
             {/* DRAWER CONTENT */}
             <div style={{ padding: '24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              
+
               {/* Group 1: General Information Card */}
               <div style={{ background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '16px' }}>
                 <h4 style={{ fontFamily: PP, fontSize: '13px', fontWeight: 700, color: '#0D47A1', margin: '0 0 12px 0' }}>

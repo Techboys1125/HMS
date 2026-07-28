@@ -358,7 +358,7 @@ export function ReportsDashboardScreen({
   const [isLoading, setIsLoading] = useState(false)
   const [hasError, setHasError] = useState(false)
   const [selectedReportModal, setSelectedReportModal] = useState<AvailableReportCard | null>(null)
-  
+
   // Table Sorting & Pagination
   const [sortField, setSortField] = useState<keyof DoctorSummaryPerformanceRecord>('revenue')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
@@ -1231,7 +1231,7 @@ export function ReportsDashboardScreen({
             {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm sticky top-20 space-y-6">
-                
+
                 {/* Header */}
                 <div>
                   <h3 className="text-base font-bold text-[#111827] flex items-center gap-2" style={{ fontFamily: PP }}>
@@ -7711,7 +7711,7 @@ export function DoctorReportsDashboardScreen({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                  
+
                   {/* Report 1: Daily Appointment Report */}
                   <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#0D47A1] hover:shadow-md transition-all flex flex-col justify-between group bg-white">
                     <div>

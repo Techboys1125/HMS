@@ -17,8 +17,10 @@ export function useCancelAppointment() {
     setError(null);
     try {
       return await appointmentService.cancelAppointment(appointmentId, payload);
-    } catch (err: any) {
-      setError(err?.message || "Failed to cancel appointment.");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to cancel appointment.";
+      setError(message);
       throw err;
     } finally {
       setIsSubmitting(false);

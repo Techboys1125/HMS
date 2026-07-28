@@ -16,8 +16,10 @@ export function useBookAppointment() {
     setError(null);
     try {
       return await appointmentService.bookAppointment(payload);
-    } catch (err: any) {
-      setError(err?.message || "Failed to book appointment.");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to book appointment.";
+      setError(message);
       throw err;
     } finally {
       setIsSubmitting(false);

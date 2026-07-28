@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Search,
   ChevronRight,
@@ -8,13 +8,13 @@ import {
   UserPlus,
 } from "lucide-react";
 import type {
-
+  ScreenPatientSearchResult,
   ChipVariant
 } from "../types/patient.types";
 import {
   PP,
   RB,
-  
+
 } from "../constants/patient.mock";
 import { Av, Chip } from "../components/Avatar";
 

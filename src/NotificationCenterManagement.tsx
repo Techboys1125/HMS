@@ -1086,18 +1086,16 @@ export function NotificationCenterManagement({
               <button
                 key={item.id}
                 onClick={() => setSelectedCategory(item.id)}
-                className={`flex shrink-0 items-center gap-2.5 rounded-xl border px-3.5 py-2.5 transition text-xs font-semibold shadow-sm ${
-                  isActive
-                    ? 'border-[#0D47A1] bg-[#0D47A1] text-white'
-                    : 'border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50'
-                }`}
+                className={`flex shrink-0 items-center gap-2.5 rounded-xl border px-3.5 py-2.5 transition text-xs font-semibold shadow-sm ${isActive
+                  ? 'border-[#0D47A1] bg-[#0D47A1] text-white'
+                  : 'border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50'
+                  }`}
               >
                 <IconComp className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#0D47A1]'}`} />
                 <span>{item.title}</span>
                 <span
-                  className={`ml-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-[#64748B]'
-                  }`}
+                  className={`ml-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-[#64748B]'
+                    }`}
                 >
                   {count}
                 </span>
@@ -1190,9 +1188,8 @@ export function NotificationCenterManagement({
               return (
                 <div
                   key={item.id}
-                  className={`rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md ${
-                    isUnread ? 'border-[#0D47A1]/30 bg-blue-50/20' : 'border-[#E5E7EB]'
-                  }`}
+                  className={`rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md ${isUnread ? 'border-[#0D47A1]/30 bg-blue-50/20' : 'border-[#E5E7EB]'
+                    }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     {/* Category Icon & Details */}
@@ -1213,13 +1210,12 @@ export function NotificationCenterManagement({
                           )}
                           {/* Read/Unread Status */}
                           <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                              isUnread
-                                ? 'bg-blue-100 text-[#0D47A1]'
-                                : item.status === 'Completed'
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${isUnread
+                              ? 'bg-blue-100 text-[#0D47A1]'
+                              : item.status === 'Completed'
                                 ? 'bg-purple-100 text-purple-700'
                                 : 'bg-slate-100 text-[#64748B]'
-                            }`}
+                              }`}
                           >
                             {item.status}
                           </span>

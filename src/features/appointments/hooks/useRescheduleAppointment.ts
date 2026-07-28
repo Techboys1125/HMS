@@ -20,8 +20,12 @@ export function useRescheduleAppointment() {
         appointmentId,
         payload,
       );
-    } catch (err: any) {
-      setError(err?.message || "Failed to reschedule appointment.");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to reschedule appointment.";
+      setError(message);
       throw err;
     } finally {
       setIsSubmitting(false);
