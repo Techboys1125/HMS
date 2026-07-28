@@ -471,9 +471,8 @@ export function PatientVisitHistoryScreen({
               >
                 {/* Milestone Dot */}
                 <div
-                  className={`absolute -left-6 top-1.5 w-4 h-4 rounded-full border-2 border-white ring-2 ring-[#F1F5F9] ${
-                    index === 0 ? "bg-[#0D47A1]" : "bg-[#009688]"
-                  }`}
+                  className={`absolute -left-6 top-1.5 w-4 h-4 rounded-full border-2 border-white ring-2 ring-[#F1F5F9] ${index === 0 ? "bg-[#0D47A1]" : "bg-[#009688]"
+                    }`}
                 />
 
                 <div className="flex-1 bg-slate-50/70 hover:bg-slate-50 p-4 rounded-xl border border-gray-100 transition-colors">

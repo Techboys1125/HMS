@@ -816,20 +816,18 @@ export function OpdConsultationMonitoringCenterScreen({
                   <button
                     key={t.id}
                     onClick={() => setActiveTab(t.id)}
-                    className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 transition-all shrink-0 ${
-                      isActive
+                    className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 transition-all shrink-0 ${isActive
                         ? "border-[#0D47A1] text-[#0D47A1] bg-white shadow-sm"
                         : "border-transparent text-[#64748B] hover:text-[#111827] hover:bg-white/50"
-                    }`}
+                      }`}
                     style={{ fontFamily: PP }}
                   >
                     <span>{t.label}</span>
                     <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        isActive
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive
                           ? "bg-blue-100 text-[#0D47A1]"
                           : "bg-slate-200 text-slate-600"
-                      }`}
+                        }`}
                     >
                       {t.count}
                     </span>

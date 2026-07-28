@@ -1,79 +1,24 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
-  Search,
-  Plus,
-  Filter,
   Download,
-  RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-  MoreVertical,
   Eye,
   Edit,
   Receipt,
   X,
   Phone,
-  UserCheck,
-  ChevronDown,
-  Activity,
   Calendar,
   Stethoscope,
   Pill,
-  AlertTriangle,
   FileText,
-  Clock,
-  Mail,
-  MapPin,
-  Droplets,
-  Users,
-  UserPlus,
-  UserX,
-  User,
   Printer,
   CheckCircle2,
-  XCircle,
-  Building2,
-  CreditCard,
-  Lock,
-  Key,
-  ShieldCheck,
   Save,
-  TrendingUp,
-  Star,
   Info,
-  Check,
-  AlertCircle,
 } from "lucide-react";
-import { useCreatePatient } from "../hooks/useCreatePatient";
-import {
-  usePatientSearch,
-  usePatients,
-
-} from "../hooks/usePatients";
-import type { CreatePatientRequest } from "../types/patient.types";
-import type { ScreenPatient as Patient, VisitRecord, PatientAppointment, BookingDoctor, PatientCancelAppointmentDialogProps, PatientRescheduleAppointmentDialogProps, MedicalVisitRecord, PrescriptionRecord, PatientInvoice, PaymentHistoryRecord, ScreenPatientSearchResult as PatientSearchResult, ChipVariant, ReceptionPatientProfileScreenProps, PatientPrescriptionItem } from "../types/patient.types";
-import { PP, RB, MOCK_VISIT_HISTORY, TIMELINE_EVENTS, INITIAL_PATIENT_APPOINTMENTS, MOCK_BOOKING_DOCTORS, MOCK_VISIT_RECORDS, MOCK_PRESCRIPTION_RECORDS, INITIAL_INVOICES, PAYMENT_HISTORY_RECORDS } from "../constants/patient.mock";
-import { Avatar, Av, Chip } from "./Avatar";
-import { StatusBadge, TimelineStatusBadge } from "./StatusBadges";
-import { PatientCancelAppointmentDialog, PatientRescheduleAppointmentDialog } from "./PatientDialogs";
-import { PatientListScreen } from "../pages/PatientListScreen";
-import { RegisterPatientScreen } from "../pages/RegisterPatientScreen";
-import { EditPatientScreen } from "../pages/EditPatientScreen";
-import { PatientProfileScreen } from "../pages/PatientProfileScreen";
-import { MedicalHistoryScreen } from "../pages/MedicalHistoryScreen";
-import { PatientVisitHistoryScreen } from "../pages/PatientVisitHistoryScreen";
-import { PatientTimelineScreen } from "../pages/PatientTimelineScreen";
-import { PatientBookAppointmentScreen } from "../pages/PatientBookAppointmentScreen";
-import { PatientAppointmentsScreen } from "../pages/PatientAppointmentsScreen";
-import { PatientMedicalRecordsScreen } from "../pages/PatientMedicalRecordsScreen";
-import { PatientBillingScreen } from "../pages/PatientBillingScreen";
-import { PatientProfileCenterScreen } from "../pages/PatientProfileCenterScreen";
-import { ReceptionPatientRegistrationScreen } from "../pages/ReceptionPatientRegistrationScreen";
-import { PatientSearchScreen } from "../pages/PatientSearchScreen";
-import { ReceptionPatientProfileScreen } from "../pages/ReceptionPatientProfileScreen";
-import { PatientPrescriptionsScreen } from "../pages/PatientPrescriptionsScreen";
-import { PatientPrescriptionDetailsScreen } from "../pages/PatientPrescriptionDetailsScreen";
-
+import { PP, RB } from "../constants/patient.mock";
+import { Avatar } from "./Avatar";
+import { type ScreenPatient } from "../types/patient.types";
+import { StatusBadge } from "./StatusBadges";
 export function EditPatientInformationDrawer({
   isOpen,
   onClose,
@@ -265,7 +210,7 @@ export function EditPatientInformationDrawer({
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        gender: e.target.value as any,
+                        gender: e.target.value as "Male" | "Female" | "Other",
                       })
                     }
                     className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -381,7 +326,12 @@ export function EditPatientInformationDrawer({
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        patientCategory: e.target.value as any,
+                        patientCategory: e.target.value as
+                          | "General"
+                          | "Senior Citizen"
+                          | "Corporate"
+                          | "VIP"
+                          | "Emergency",
                       })
                     }
                     className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -572,7 +522,16 @@ export function ProfileApptDetailsDrawer({
   onClose,
   onAction,
 }: {
-  appt: any | null;
+  appt: {
+    id?: string;
+    status?: string;
+    doctor?: string;
+    department?: string;
+    date?: string;
+    time?: string;
+    type?: string;
+    notes?: string;
+  } | null;
   onClose: () => void;
   onAction: (msg: string) => void;
 }) {
@@ -689,7 +648,7 @@ export function ProfileInvoiceDrawer({
   onClose,
   onPay,
 }: {
-  invoice: any | null;
+  invoice: Record<string, unknown> & { id?: string; date?: string; status?: string; description?: string; amount?: number } | null;
   onClose: () => void;
   onPay: (msg: string) => void;
 }) {
@@ -794,7 +753,7 @@ export function ProfileDocDrawer({
   onClose,
   onDownload,
 }: {
-  doc: any | null;
+  doc: Record<string, unknown> & { title?: string; category?: string; date?: string; size?: string; doctor?: string } | null;
   onClose: () => void;
   onDownload: (msg: string) => void;
 }) {
@@ -897,7 +856,18 @@ export function ProfileVisitDetailsDrawer({
   onClose,
   onPrint,
 }: {
-  visit: any | null;
+  visit: {
+    id?: string;
+    date?: string;
+    time?: string;
+    doctor?: string;
+    department?: string;
+    chiefComplaint?: string;
+    diagnosis?: string;
+    treatmentSummary?: string;
+    rxStatus?: string;
+    billingStatus?: string;
+  } | null;
   onClose: () => void;
   onPrint: (msg: string) => void;
 }) {

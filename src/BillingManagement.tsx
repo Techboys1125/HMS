@@ -2,9 +2,9 @@ import React, { useState, useMemo } from 'react'
 import {
   Wallet, FileText, CheckCircle2, Clock, AlertCircle, ArrowUpRight,
   Search, RotateCcw, Plus, Download, Printer, Eye, DollarSign,
-  ChevronRight, MoreVertical, CreditCard, 
+  ChevronRight, MoreVertical, CreditCard,
   Building2, User, UserCheck, X, FileSpreadsheet,
-  PieChart, Activity,  Copy, Ban, History, Send,
+  PieChart, Activity, Copy, Ban, History, Send,
   Zap,
   TrendingUp,
   BarChart2
@@ -1262,11 +1262,10 @@ export function BillingDashboardScreen({
                         key={m}
                         type="button"
                         onClick={() => setCollectMethod(m)}
-                        className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
-                          collectMethod === m
+                        className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${collectMethod === m
                             ? 'bg-[#009688] text-white border-[#009688] shadow-sm'
                             : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                        }`}
+                          }`}
                       >
                         {m}
                       </button>
@@ -1848,11 +1847,10 @@ export function CreateInvoiceWorkspaceScreen({
                         key={cat}
                         type="button"
                         onClick={() => setPatientCategory(cat)}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                          patientCategory === cat
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${patientCategory === cat
                             ? 'bg-[#0D47A1] text-white shadow-xs'
                             : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-                        }`}
+                          }`}
                       >
                         {cat}
                       </button>
@@ -2519,7 +2517,7 @@ export function CollectPaymentWorkspaceScreen({
   const currentPayment = Number(amountReceived) || 0
   const totalPaidNow = invoiceData.amountAlreadyPaid + currentPayment
   const remainingBalance = Math.max(0, invoiceData.invoiceAmount - totalPaidNow)
-  
+
   // Progress %
   const progressPercent = Math.min(100, Math.round((totalPaidNow / invoiceData.invoiceAmount) * 100))
 
@@ -2793,9 +2791,8 @@ export function CollectPaymentWorkspaceScreen({
                     setAmountReceived(Number(e.target.value))
                     if (errors.amountReceived) setErrors({ ...errors, amountReceived: '' })
                   }}
-                  className={`w-full px-3 py-2.5 rounded-xl border bg-slate-50 font-bold text-sm text-[#111827] focus:bg-white focus:outline-none ${
-                    errors.amountReceived ? 'border-[#EF4444]' : 'border-[#E5E7EB] focus:border-[#0D47A1]'
-                  }`}
+                  className={`w-full px-3 py-2.5 rounded-xl border bg-slate-50 font-bold text-sm text-[#111827] focus:bg-white focus:outline-none ${errors.amountReceived ? 'border-[#EF4444]' : 'border-[#E5E7EB] focus:border-[#0D47A1]'
+                    }`}
                 />
                 {errors.amountReceived && <span className="text-[10px] text-[#EF4444] block mt-0.5">{errors.amountReceived}</span>}
               </div>
@@ -2824,9 +2821,8 @@ export function CollectPaymentWorkspaceScreen({
                     if (errors.referenceNo) setErrors({ ...errors, referenceNo: '' })
                   }}
                   placeholder="e.g. UPI/998120/OKAX or Card Auth Code"
-                  className={`w-full px-3 py-2.5 rounded-xl border bg-slate-50 font-mono text-xs text-[#111827] focus:bg-white focus:outline-none ${
-                    errors.referenceNo ? 'border-[#EF4444]' : 'border-[#E5E7EB] focus:border-[#0D47A1]'
-                  }`}
+                  className={`w-full px-3 py-2.5 rounded-xl border bg-slate-50 font-mono text-xs text-[#111827] focus:bg-white focus:outline-none ${errors.referenceNo ? 'border-[#EF4444]' : 'border-[#E5E7EB] focus:border-[#0D47A1]'
+                    }`}
                 />
                 {errors.referenceNo && <span className="text-[10px] text-[#EF4444] block mt-0.5">{errors.referenceNo}</span>}
               </div>
@@ -3246,10 +3242,10 @@ export function InvoiceDetailsScreen({
             {isPatientView
               ? 'View your invoice details and payment summary.'
               : isAdminReadOnly
-              ? 'View complete invoice information, payment details and billing history.'
-              : isReceptionist
-              ? 'View invoice information, payment status and print invoice.'
-              : 'Review invoice information, payment status, billing items and transaction history.'}
+                ? 'View complete invoice information, payment details and billing history.'
+                : isReceptionist
+                  ? 'View invoice information, payment status and print invoice.'
+                  : 'Review invoice information, payment status, billing items and transaction history.'}
           </p>
         </div>
 
@@ -4064,8 +4060,8 @@ export function InvoicePrintPreviewScreen({
             {isPatientView
               ? 'Preview, print or download your official hospital invoice.'
               : isReceptionist
-              ? 'Preview and print the official patient invoice.'
-              : 'Review the finalized invoice before printing, downloading or sharing with the patient.'}
+                ? 'Preview and print the official patient invoice.'
+                : 'Review the finalized invoice before printing, downloading or sharing with the patient.'}
           </p>
         </div>
 
@@ -4394,9 +4390,8 @@ export function InvoicePrintPreviewScreen({
                       key={s}
                       type="button"
                       onClick={() => setPaperSize(s)}
-                      className={`py-1.5 px-3 rounded-lg border font-semibold ${
-                        paperSize === s ? 'bg-[#0D47A1] text-white border-[#0D47A1]' : 'bg-slate-50 text-slate-700 border-slate-200'
-                      }`}
+                      className={`py-1.5 px-3 rounded-lg border font-semibold ${paperSize === s ? 'bg-[#0D47A1] text-white border-[#0D47A1]' : 'bg-slate-50 text-slate-700 border-slate-200'
+                        }`}
                     >
                       {s}
                     </button>
@@ -5631,9 +5626,8 @@ export function DailyBillingReportScreen({
                       <td className="py-3 px-4 text-center text-slate-500">{c.cancelled}</td>
                       <td className="py-3 px-4 text-center text-slate-600">{c.avgTime}</td>
                       <td className="py-3 px-4 text-center">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                          c.status === 'Excellent' ? 'bg-green-50 text-[#66BB6A]' : 'bg-blue-50 text-[#0D47A1]'
-                        }`}>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${c.status === 'Excellent' ? 'bg-green-50 text-[#66BB6A]' : 'bg-blue-50 text-[#0D47A1]'
+                          }`}>
                           {c.status}
                         </span>
                       </td>
@@ -6641,7 +6635,7 @@ export function PatientMyBillsScreen({
           {/* SEARCH & FILTER BAR */}
           <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs" style={{ fontFamily: RB }}>
-              
+
               {/* Search input */}
               <div className="relative">
                 <label className="block text-slate-600 font-semibold mb-1">Search Invoices</label>

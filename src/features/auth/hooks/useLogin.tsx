@@ -17,8 +17,11 @@ export const useLogin = (onSuccess: (response: LoginResponse) => void) => {
       setLoading(true);
       setErrors({});
 
-      // Validate
-      loginSchema.parse(data);
+      const validationError = loginSchema(data);
+      if (validationError) {
+        setErrors({ form: validationError });
+        return;
+      }
 
       const response = await authService.login(data);
       onSuccess(response);

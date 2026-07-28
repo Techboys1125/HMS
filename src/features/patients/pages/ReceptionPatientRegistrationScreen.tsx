@@ -116,51 +116,27 @@ export function ReceptionPatientRegistrationScreen({
 
     const payload: CreatePatientRequest = {
       fullName: formData.fullName.trim(),
-      gender: formData.gender.toUpperCase() as any,
-      dateOfBirth: formData.dob || null,
-      mobileNumber: formData.phone.trim(),
+      gender: formData.gender.toUpperCase() as "MALE" | "FEMALE" | "OTHER",
+      dateOfBirth: formData.dob,
+      bloodGroup: formData.bloodGroup || "UNKNOWN",
+      phone: formData.phone.trim(),
       email: formData.email.trim() || undefined,
-      bloodGroup: formData.bloodGroup || undefined,
-      maritalStatus: formData.maritalStatus || undefined,
-      nationalId: formData.aadhaar || undefined,
-      photoUrl: formData.photo || undefined,
-      address: formData.address.trim()
-        ? {
-            addressLine1: formData.address.trim(),
-            addressLine2: "",
-            city: "",
-            state: "",
-            pincode: "",
-            country: "",
-          }
-        : undefined,
-      emergencyContact: formData.emergencyName
-        ? {
-            name: formData.emergencyName,
-            relationship: formData.relationship || "SELF",
-            mobileNumber: formData.emergencyMobile || formData.phone,
-            alternativeMobileNumber: formData.altContact || undefined,
-          }
-        : undefined,
-      patientCategory: formData.patientCategory || undefined,
-      registrationType: "WALK_IN",
-      knownAllergies: formData.allergies
-        ? formData.allergies.split(",").map((a) => a.trim()).filter(Boolean)
-        : undefined,
-      chronicDiseases: formData.chronicDiseases
-        ? formData.chronicDiseases.split(",").map((d) => d.trim()).filter(Boolean)
-        : undefined,
-      specialNotes: formData.specialNotes || undefined,
+      address: formData.address.trim() ? { value: formData.address.trim() } : undefined,
     };
+    // Only include bloodGroup if user selected one (empty string crashes backend enum parsing)
+    if (formData.bloodGroup) {
+      payload.bloodGroup = formData.bloodGroup;
+    }
 
     try {
       const created = (await createPatient.mutateAsync(payload)) as any;
       setGeneratedMrn(created.mrn || created.MRNId || "Unknown");
       setShowSuccessDialog(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Patient registration failed.";
       setErrors((prev) => ({
         ...prev,
-        submit: err?.message || "Patient registration failed.",
+        submit: errorMessage,
       }));
     }
   };

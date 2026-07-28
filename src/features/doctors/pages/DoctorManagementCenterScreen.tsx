@@ -407,7 +407,7 @@ export function AddDoctorDrawer({ isOpen, onClose, onSubmit, totalDoctorCount }:
 
   // Section 2: Professional Info
   const autoEmpId = `EMP-${1040 + totalDoctorCount + 1}`
-  const [regNumber, setRegNumber] = useState(`MCI-REG-${Math.floor(100000 + Math.random() * 900000)}`)
+  const [regNumber, setRegNumber] = useState(() => `MCI-REG-${Math.floor(100000 + Math.random() * 900000)}`)
   const [qualification, setQualification] = useState('')
   const [experienceYrs, setExperienceYrs] = useState<number | ''>(5)
   const [department, setDepartment] = useState('Cardiology')
@@ -431,7 +431,7 @@ export function AddDoctorDrawer({ isOpen, onClose, onSubmit, totalDoctorCount }:
   ])
 
   // Section 5: Account & Access
-  const [tempPassword, setTempPassword] = useState(`TempPass#${Math.floor(1000 + Math.random() * 9000)}`)
+  const [tempPassword, setTempPassword] = useState(() => `TempPass#${Math.floor(1000 + Math.random() * 9000)}`)
   const [forcePassChange, setForcePassChange] = useState(true)
   const [sendCredentialsEmail, setSendCredentialsEmail] = useState(true)
 
@@ -604,7 +604,7 @@ export function AddDoctorDrawer({ isOpen, onClose, onSubmit, totalDoctorCount }:
                 </label>
                 <select
                   value={gender}
-                  onChange={e => setGender(e.target.value as any)}
+                  onChange={e => setGender(e.target.value as 'Male' | 'Female' | 'Other')}
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white"
                 >
                   <option value="Male">Male</option>
@@ -1021,13 +1021,6 @@ export function AddDoctorDrawer({ isOpen, onClose, onSubmit, totalDoctorCount }:
         {/* ── DRAWER FOOTER ── */}
         <div className="p-5 border-t border-[#E5E7EB] bg-slate-50 flex items-center justify-end gap-3 shrink-0">
           <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-slate-600 hover:bg-slate-200 text-xs font-semibold transition-colors"
-          >
-            Cancel
-          </button>
-          <button
             type="submit"
             form="add-doctor-form"
             className="px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-2 shadow-sm"
@@ -1055,50 +1048,50 @@ export interface EditDoctorDrawerProps {
 }
 
 export function EditDoctorDrawer({ isOpen, doctor, onClose, onSave, onDeactivateClick, onTriggerToast }: EditDoctorDrawerProps) {
-  if (!isOpen || !doctor) return null
-
   // --- Form State initialized with doctor props ---
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
-  const [fullName, setFullName] = useState(doctor.name)
-  const [gender, setGender] = useState<'Male' | 'Female' | 'Other'>(doctor.gender)
-  const [dob, setDob] = useState(doctor.dob || '1985-05-14')
-  const [phone, setPhone] = useState(doctor.phone)
-  const [email, setEmail] = useState(doctor.email)
-  const [address, setAddress] = useState(doctor.address || '')
+  const [fullName, setFullName] = useState(doctor?.name || '')
+  const [gender, setGender] = useState<'Male' | 'Female' | 'Other'>(doctor?.gender || 'Male')
+  const [dob, setDob] = useState(doctor?.dob || '1985-05-14')
+  const [phone, setPhone] = useState(doctor?.phone || '')
+  const [email, setEmail] = useState(doctor?.email || '')
+  const [address, setAddress] = useState(doctor?.address || '')
 
-  const [regNumber, setRegNumber] = useState(doctor.regNumber)
-  const [qualification, setQualification] = useState(doctor.qualification)
-  const [experienceYrs, setExperienceYrs] = useState<number | ''>(doctor.experienceYrs)
-  const [department, setDepartment] = useState(doctor.department)
-  const [specialty, setSpecialty] = useState(doctor.specialty)
-  const [bio, setBio] = useState(doctor.bio || '')
+  const [regNumber, setRegNumber] = useState(doctor?.regNumber || '')
+  const [qualification, setQualification] = useState(doctor?.qualification || '')
+  const [experienceYrs, setExperienceYrs] = useState<number | ''>(doctor?.experienceYrs || 0)
+  const [department, setDepartment] = useState(doctor?.department || '')
+  const [specialty, setSpecialty] = useState(doctor?.specialty || '')
+  const [bio, setBio] = useState(doctor?.bio || '')
 
-  const [consultationFee, setConsultationFee] = useState<number | ''>(doctor.consultationFee)
-  const [followUpFee, setFollowUpFee] = useState<number | ''>(doctor.followUpFee || 80)
-  const [slotDuration, setSlotDuration] = useState(doctor.slotDuration || '15 Minutes')
+  const [consultationFee, setConsultationFee] = useState<number | ''>(doctor?.consultationFee || 0)
+  const [followUpFee, setFollowUpFee] = useState<number | ''>(doctor?.followUpFee || 80)
+  const [slotDuration, setSlotDuration] = useState(doctor?.slotDuration || '15 Minutes')
 
-  const [accountStatus, setAccountStatus] = useState<DoctorStatus>(doctor.status)
+  const [accountStatus, setAccountStatus] = useState<DoctorStatus>(doctor?.status || 'Active')
   const [forcePassChange, setForcePassChange] = useState(true)
 
   // Availability Weekly Schedule State
   const [schedule, setSchedule] = useState([
-    { day: 'Monday', available: doctor.workingDays.includes('Mon'), startTime: '09:00 AM', endTime: '04:00 PM' },
-    { day: 'Tuesday', available: doctor.workingDays.includes('Tue'), startTime: '09:00 AM', endTime: '04:00 PM' },
-    { day: 'Wednesday', available: doctor.workingDays.includes('Wed'), startTime: '09:00 AM', endTime: '04:00 PM' },
-    { day: 'Thursday', available: doctor.workingDays.includes('Thu'), startTime: '09:00 AM', endTime: '04:00 PM' },
-    { day: 'Friday', available: doctor.workingDays.includes('Fri'), startTime: '09:00 AM', endTime: '04:00 PM' },
-    { day: 'Saturday', available: doctor.workingDays.includes('Sat'), startTime: '09:00 AM', endTime: '01:00 PM' },
-    { day: 'Sunday', available: doctor.workingDays.includes('Sun'), startTime: '09:00 AM', endTime: '01:00 PM' },
+    { day: 'Monday', available: doctor?.workingDays.includes('Mon') ?? true, startTime: '09:00 AM', endTime: '04:00 PM' },
+    { day: 'Tuesday', available: doctor?.workingDays.includes('Tue') ?? true, startTime: '09:00 AM', endTime: '04:00 PM' },
+    { day: 'Wednesday', available: doctor?.workingDays.includes('Wed') ?? true, startTime: '09:00 AM', endTime: '04:00 PM' },
+    { day: 'Thursday', available: doctor?.workingDays.includes('Thu') ?? true, startTime: '09:00 AM', endTime: '04:00 PM' },
+    { day: 'Friday', available: doctor?.workingDays.includes('Fri') ?? true, startTime: '09:00 AM', endTime: '04:00 PM' },
+    { day: 'Saturday', available: doctor?.workingDays.includes('Sat') ?? false, startTime: '09:00 AM', endTime: '01:00 PM' },
+    { day: 'Sunday', available: doctor?.workingDays.includes('Sun') ?? false, startTime: '09:00 AM', endTime: '01:00 PM' },
   ])
 
   // Track modified fields for visual indicator
-  const isFieldModified = (fieldName: keyof DoctorRecord, currentValue: any) => {
-    return doctor[fieldName] !== currentValue
+  const isFieldModified = (fieldName: keyof DoctorRecord, currentValue: unknown) => {
+    return doctor ? doctor[fieldName] !== currentValue : false
   }
 
   // Validation & Error Alert
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [alertMsg, setAlertMsg] = useState<string | null>(null)
+
+  if (!isOpen || !doctor) return null
 
   const derivedUsername = email ? email.split('@')[0] : fullName ? fullName.toLowerCase().replace(/[^a-z0-9]/g, '') : 'doctor.user'
 
@@ -1269,7 +1262,7 @@ export function EditDoctorDrawer({ isOpen, doctor, onClose, onSave, onDeactivate
                 </div>
                 <select
                   value={gender}
-                  onChange={e => setGender(e.target.value as any)}
+                  onChange={e => setGender(e.target.value as 'Male' | 'Female' | 'Other')}
                   className={`w-full px-3 py-2 text-xs border rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white ${isFieldModified('gender', gender) ? 'border-[#009688] bg-teal-50/20' : 'bg-slate-50 border-[#E5E7EB]'
                     }`}
                 >
@@ -1807,7 +1800,7 @@ export function DoctorProfileScreen({ doctor = INITIAL_DOCTORS[0], onBack, onEdi
   const [patientSearch, setPatientSearch] = useState('')
 
   // Modals & Drawers
-  const [selectedApptDetail, setSelectedApptDetail] = useState<any | null>(null)
+  const [selectedApptDetail, setSelectedApptDetail] = useState<Record<string, unknown> | null>(null)
   const [showEditDrawer, setShowEditDrawer] = useState(false)
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -2028,501 +2021,500 @@ export function DoctorProfileScreen({ doctor = INITIAL_DOCTORS[0], onBack, onEdi
         <div className="lg:col-span-2 space-y-6">
 
           {/* TAB STRIP */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-1.5 shadow-sm flex items-center gap-1 overflow-x-auto">
-            {[
+          {(
+            [
               { id: 'overview', label: 'Overview' },
               { id: 'professional', label: 'Professional Info' },
               { id: 'schedule', label: 'Availability Schedule' },
               { id: 'appointments', label: 'Appointments' },
               { id: 'patients', label: 'Assigned Patients' },
               { id: 'timeline', label: 'Activity Timeline' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors shrink-0 ${activeTab === tab.id
-                  ? 'bg-[#0D47A1] text-white shadow-xs'
-                  : 'text-[#64748B] hover:text-[#111827] hover:bg-slate-50'
-                  }`}
-                style={{ fontFamily: PP }}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+            ] as const
+          ).map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors shrink-0 ${activeTab === tab.id
+                ? 'bg-[#0D47A1] text-white shadow-xs'
+                : 'text-[#64748B] hover:text-[#111827] hover:bg-slate-50'
+                }`}
+              style={{ fontFamily: PP }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-          {/* TAB 01: OVERVIEW */}
-          {activeTab === 'overview' && (
-            <div className="space-y-6">
+        {/* TAB 01: OVERVIEW */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
 
-              {/* QUICK STATISTICS CARDS */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-                  <div>
-                    <span className="text-xs text-[#64748B] font-medium block">Today's Appointments</span>
-                    <span className="text-2xl font-bold text-[#111827] mt-0.5 block" style={{ fontFamily: PP }}>8</span>
-                    <span className="text-[11px] text-[#0D47A1] font-medium mt-1 block">3 Completed &bull; 5 Scheduled</span>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#0D47A1]">
-                    <Calendar size={20} />
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-                  <div>
-                    <span className="text-xs text-[#64748B] font-medium block">Total Patients</span>
-                    <span className="text-2xl font-bold text-[#111827] mt-0.5 block" style={{ fontFamily: PP }}>142</span>
-                    <span className="text-[11px] text-[#009688] font-medium mt-1 block">Active clinical cases</span>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-[#009688]">
-                    <User size={20} />
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-                  <div>
-                    <span className="text-xs text-[#64748B] font-medium block">Experience</span>
-                    <span className="text-2xl font-bold text-[#111827] mt-0.5 block" style={{ fontFamily: PP }}>{docState.experienceYrs} Yrs</span>
-                    <span className="text-[11px] text-[#F59E0B] font-medium mt-1 block">{docState.specialty}</span>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-[#F59E0B]">
-                    <Award size={20} />
-                  </div>
-                </div>
-              </div>
-
-              {/* OVERVIEW CONTENT CARDS */}
-              <div className="w-full">
-
-                {/* Card 1: Basic Information */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-                  <h3 className="text-sm font-bold text-[#111827] flex items-center gap-2 border-b border-[#E5E7EB] pb-3" style={{ fontFamily: PP }}>
-                    <User size={16} className="text-[#0D47A1]" /> Basic Information
-                  </h3>
-                  <div className="space-y-2.5 text-xs">
-                    <div className="flex justify-between py-1 border-b border-gray-50">
-                      <span className="text-[#64748B]">Full Name</span>
-                      <span className="font-bold text-[#111827]">{docState.name}</span>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-gray-50">
-                      <span className="text-[#64748B]">Gender</span>
-                      <span className="font-medium text-[#111827]">{docState.gender}</span>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-gray-50">
-                      <span className="text-[#64748B]">Email Address</span>
-                      <span className="font-semibold text-[#0D47A1]">{docState.email}</span>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-gray-50">
-                      <span className="text-[#64748B]">Contact Phone</span>
-                      <span className="font-medium text-[#111827]">{docState.phone}</span>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-gray-50">
-                      <span className="text-[#64748B]">OPD Cabinet Room</span>
-                      <span className="font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">{docState.opdRoom}</span>
-                    </div>
-                    <div className="flex justify-between py-1 border-b border-gray-50">
-                      <span className="text-[#64748B]">Facility Location</span>
-                      <span className="font-semibold text-[#111827]">City General Main Campus</span>
-                    </div>
-                    <div className="flex justify-between py-1">
-                      <span className="text-[#64748B]">Joined HMS</span>
-                      <span className="font-medium text-[#111827]">{docState.joinedDate}</span>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-            </div>
-          )}
-
-          {/* TAB 02: PROFESSIONAL INFORMATION */}
-          {activeTab === 'professional' && (
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
-              <div>
-                <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>Professional Credentials & Attributes</h3>
-                <p className="text-xs text-[#64748B]">Detailed practice specifications and registration metrics.</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Employee ID</span>
-                  <span className="font-mono font-bold text-[#0D47A1] text-sm">{docState.empId}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Medical Registration Number</span>
-                  <span className="font-mono font-bold text-teal-700 text-sm">{docState.regNumber}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Qualification & Degrees</span>
-                  <span className="font-bold text-[#111827] text-sm">{docState.qualification}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Department</span>
-                  <span className="font-bold text-[#111827] text-sm">{docState.department}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Clinical Specialty</span>
-                  <span className="font-bold text-[#0D47A1] text-sm">{docState.specialty}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Years of Experience</span>
-                  <span className="font-bold text-[#111827] text-sm">{docState.experienceYrs} Years</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Consultation Fee</span>
-                  <span className="font-bold text-[#0D47A1] text-sm" style={{ fontFamily: PP }}>${docState.consultationFee}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Appointment Slot Duration</span>
-                  <span className="font-bold text-[#111827] text-sm">{docState.slotDuration || '15 Minutes'}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 md:col-span-2">
-                  <span className="text-[#64748B] block text-[11px]">Account Status</span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border inline-block mt-1 ${docState.status === 'Active' ? 'bg-emerald-50 text-[#66BB6A] border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'
-                    }`}>
-                    {docState.status}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 03: AVAILABILITY SCHEDULE */}
-          {activeTab === 'schedule' && (
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* QUICK STATISTICS CARDS */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>Weekly OPD Practice Schedule</h3>
-                  <p className="text-xs text-[#64748B]">Assigned OPD cabinet: <span className="font-bold text-teal-700">{docState.opdRoom}</span></p>
+                  <span className="text-xs text-[#64748B] font-medium block">Today's Appointments</span>
+                  <span className="text-2xl font-bold text-[#111827] mt-0.5 block" style={{ fontFamily: PP }}>8</span>
+                  <span className="text-[11px] text-[#0D47A1] font-medium mt-1 block">3 Completed &bull; 5 Scheduled</span>
                 </div>
-                <span className="text-xs font-bold text-[#0D47A1] bg-blue-50 px-3 py-1 rounded-xl border border-blue-100 shrink-0">
-                  Shift: {docState.shiftTimings}
+                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#0D47A1]">
+                  <Calendar size={20} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-[#64748B] font-medium block">Total Patients</span>
+                  <span className="text-2xl font-bold text-[#111827] mt-0.5 block" style={{ fontFamily: PP }}>142</span>
+                  <span className="text-[11px] text-[#009688] font-medium mt-1 block">Active clinical cases</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-[#009688]">
+                  <User size={20} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <span className="text-xs text-[#64748B] font-medium block">Experience</span>
+                  <span className="text-2xl font-bold text-[#111827] mt-0.5 block" style={{ fontFamily: PP }}>{docState.experienceYrs} Yrs</span>
+                  <span className="text-[11px] text-[#F59E0B] font-medium mt-1 block">{docState.specialty}</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-[#F59E0B]">
+                  <Award size={20} />
+                </div>
+              </div>
+            </div>
+
+            {/* OVERVIEW CONTENT CARDS */}
+            <div className="w-full">
+
+              {/* Card 1: Basic Information */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
+                <h3 className="text-sm font-bold text-[#111827] flex items-center gap-2 border-b border-[#E5E7EB] pb-3" style={{ fontFamily: PP }}>
+                  <User size={16} className="text-[#0D47A1]" /> Basic Information
+                </h3>
+                <div className="space-y-2.5 text-xs">
+                  <div className="flex justify-between py-1 border-b border-gray-50">
+                    <span className="text-[#64748B]">Full Name</span>
+                    <span className="font-bold text-[#111827]">{docState.name}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-gray-50">
+                    <span className="text-[#64748B]">Gender</span>
+                    <span className="font-medium text-[#111827]">{docState.gender}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-gray-50">
+                    <span className="text-[#64748B]">Email Address</span>
+                    <span className="font-semibold text-[#0D47A1]">{docState.email}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-gray-50">
+                    <span className="text-[#64748B]">Contact Phone</span>
+                    <span className="font-medium text-[#111827]">{docState.phone}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-gray-50">
+                    <span className="text-[#64748B]">OPD Cabinet Room</span>
+                    <span className="font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">{docState.opdRoom}</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-gray-50">
+                    <span className="text-[#64748B]">Facility Location</span>
+                    <span className="font-semibold text-[#111827]">City General Main Campus</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-[#64748B]">Joined HMS</span>
+                    <span className="font-medium text-[#111827]">{docState.joinedDate}</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* TAB 02: PROFESSIONAL INFORMATION */}
+        {activeTab === 'professional' && (
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
+            <div>
+              <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>Professional Credentials & Attributes</h3>
+              <p className="text-xs text-[#64748B]">Detailed practice specifications and registration metrics.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[#64748B] block text-[11px]">Employee ID</span>
+                <span className="font-mono font-bold text-[#0D47A1] text-sm">{docState.empId}</span>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[#64748B] block text-[11px]">Medical Registration Number</span>
+                <span className="font-mono font-bold text-teal-700 text-sm">{docState.regNumber}</span>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[#64748B] block text-[11px]">Qualification & Degrees</span>
+                <span className="font-bold text-[#111827] text-sm">{docState.qualification}</span>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[#64748B] block text-[11px]">Department</span>
+                <span className="font-bold text-[#111827] text-sm">{docState.department}</span>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[#64748B] block text-[11px]">Clinical Specialty</span>
+                <span className="font-bold text-[#0D47A1] text-sm">{docState.specialty}</span>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[#64748B] block text-[11px]">Years of Experience</span>
+                <span className="font-bold text-[#111827] text-sm">{docState.experienceYrs} Years</span>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[#64748B] block text-[11px]">Consultation Fee</span>
+                <span className="font-bold text-[#0D47A1] text-sm" style={{ fontFamily: PP }}>${docState.consultationFee}</span>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[#64748B] block text-[11px]">Appointment Slot Duration</span>
+                <span className="font-bold text-[#111827] text-sm">{docState.slotDuration || '15 Minutes'}</span>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 md:col-span-2">
+                <span className="text-[#64748B] block text-[11px]">Account Status</span>
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border inline-block mt-1 ${docState.status === 'Active' ? 'bg-emerald-50 text-[#66BB6A] border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'
+                  }`}>
+                  {docState.status}
                 </span>
               </div>
-
-              {/* Weekly Schedule Table */}
-              <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead className="bg-slate-50 border-b border-[#E5E7EB]">
-                    <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
-                      <th className="px-4 py-3">Day</th>
-                      <th className="px-4 py-3">Available</th>
-                      <th className="px-4 py-3">Start Time</th>
-                      <th className="px-4 py-3">End Time</th>
-                      <th className="px-4 py-3">Slot Duration</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 text-[#111827]">
-                    {MOCK_WEEKLY_SCHEDULE.map(sched => (
-                      <tr key={sched.day} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-4 py-3 font-bold">{sched.day}</td>
-                        <td className="px-4 py-3">
-                          {sched.available ? (
-                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 text-[#009688] border border-teal-200 inline-flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#009688]" /> Available
-                            </span>
-                          ) : (
-                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200 inline-flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> Not Available
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 font-medium text-slate-700">{sched.startTime}</td>
-                        <td className="px-4 py-3 font-medium text-slate-700">{sched.endTime}</td>
-                        <td className="px-4 py-3 font-semibold text-[#0D47A1]">{sched.slotDuration}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* TAB 04: APPOINTMENTS */}
-          {activeTab === 'appointments' && (
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-4">
-              {/* Toolbar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="relative flex-1 max-w-md">
-                  <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={apptSearch}
-                    onChange={e => setApptSearch(e.target.value)}
-                    placeholder="Search Appointment ID, Patient Name..."
-                    className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                  />
-                  {apptSearch && (
-                    <button onClick={() => setApptSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                      <X size={13} />
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                    <Filter size={13} className="text-slate-400" />
-                    <span className="text-slate-500 font-medium">Filter Date:</span>
-                    <select
-                      value={apptDateFilter}
-                      onChange={e => setApptDateFilter(e.target.value)}
-                      className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
-                    >
-                      <option value="All Dates">All Dates</option>
-                      <option value="Today">Today</option>
-                      <option value="This Week">This Week</option>
-                    </select>
-                  </div>
-                </div>
+        {/* TAB 03: AVAILABILITY SCHEDULE */}
+        {activeTab === 'schedule' && (
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>Weekly OPD Practice Schedule</h3>
+                <p className="text-xs text-[#64748B]">Assigned OPD cabinet: <span className="font-bold text-teal-700">{docState.opdRoom}</span></p>
               </div>
-
-              {/* Appointments Table */}
-              <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB]">
-                    <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
-                      <th className="px-4 py-3">Appointment ID</th>
-                      <th className="px-4 py-3">Patient Name</th>
-                      <th className="px-4 py-3">Date</th>
-                      <th className="px-4 py-3">Time</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 text-[#111827]">
-                    {isLoading ? (
-                      Array.from({ length: 4 }).map((_, idx) => (
-                        <tr key={idx} className="animate-pulse">
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-16" /></td>
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-28" /></td>
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-20" /></td>
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-16" /></td>
-                          <td className="px-4 py-3"><div className="h-5 bg-slate-200 rounded-full w-20" /></td>
-                          <td className="px-4 py-3"><div className="h-5 bg-slate-200 rounded w-16 ml-auto" /></td>
-                        </tr>
-                      ))
-                    ) : filteredAppointments.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
-                          <div className="flex flex-col items-center justify-center space-y-2">
-                            <Calendar size={28} className="text-slate-300" />
-                            <span className="font-bold text-[#111827]" style={{ fontFamily: PP }}>No appointments found.</span>
-                            <span className="text-xs text-[#64748B]">No appointments matching your current search or date filter.</span>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredAppointments.map(apt => (
-                        <tr key={apt.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="px-4 py-3 font-mono font-bold text-[#0D47A1]">{apt.id}</td>
-                          <td className="px-4 py-3 font-bold text-[#111827]" style={{ fontFamily: PP }}>{apt.patientName}</td>
-                          <td className="px-4 py-3 text-slate-600">{apt.date}</td>
-                          <td className="px-4 py-3 text-slate-600">{apt.time}</td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${apt.status === 'Completed'
-                              ? 'bg-emerald-50 text-[#66BB6A] border-emerald-200'
-                              : apt.status === 'In Progress'
-                                ? 'bg-blue-50 text-[#0D47A1] border-blue-200'
-                                : 'bg-amber-50 text-[#F59E0B] border-amber-200'
-                              }`}>
-                              {apt.status}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <button
-                              onClick={() => setSelectedApptDetail(apt)}
-                              className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#0D47A1] font-bold text-xs transition-colors"
-                              style={{ fontFamily: PP }}
-                            >
-                              View Appointment
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              <span className="text-xs font-bold text-[#0D47A1] bg-blue-50 px-3 py-1 rounded-xl border border-blue-100 shrink-0">
+                Shift: {docState.shiftTimings}
+              </span>
             </div>
-          )}
 
-          {/* TAB 05: ASSIGNED PATIENTS */}
-          {activeTab === 'patients' && (
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-4">
-              {/* Toolbar */}
-              <div className="relative max-w-md">
+            {/* Weekly Schedule Table */}
+            <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-50 border-b border-[#E5E7EB]">
+                  <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
+                    <th className="px-4 py-3">Day</th>
+                    <th className="px-4 py-3">Available</th>
+                    <th className="px-4 py-3">Start Time</th>
+                    <th className="px-4 py-3">End Time</th>
+                    <th className="px-4 py-3">Slot Duration</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-[#111827]">
+                  {MOCK_WEEKLY_SCHEDULE.map(sched => (
+                    <tr key={sched.day} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3 font-bold">{sched.day}</td>
+                      <td className="px-4 py-3">
+                        {sched.available ? (
+                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 text-[#009688] border border-teal-200 inline-flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#009688]" /> Available
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200 inline-flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> Not Available
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-slate-700">{sched.startTime}</td>
+                      <td className="px-4 py-3 font-medium text-slate-700">{sched.endTime}</td>
+                      <td className="px-4 py-3 font-semibold text-[#0D47A1]">{sched.slotDuration}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 04: APPOINTMENTS */}
+        {activeTab === 'appointments' && (
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-4">
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="relative flex-1 max-w-md">
                 <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  value={patientSearch}
-                  onChange={e => setPatientSearch(e.target.value)}
-                  placeholder="Search Patient ID, Name, Complaint..."
+                  value={apptSearch}
+                  onChange={e => setApptSearch(e.target.value)}
+                  placeholder="Search Appointment ID, Patient Name..."
                   className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
                 />
-                {patientSearch && (
-                  <button onClick={() => setPatientSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                {apptSearch && (
+                  <button onClick={() => setApptSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                     <X size={13} />
                   </button>
                 )}
               </div>
 
-              {/* Patients Table */}
-              <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB]">
-                    <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
-                      <th className="px-4 py-3">Patient ID</th>
-                      <th className="px-4 py-3">Patient Name</th>
-                      <th className="px-4 py-3">Gender</th>
-                      <th className="px-4 py-3">Age</th>
-                      <th className="px-4 py-3">Last Visit</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 text-right">Action</th>
+              <div className="flex items-center gap-2 text-xs">
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
+                  <Filter size={13} className="text-slate-400" />
+                  <span className="text-slate-500 font-medium">Filter Date:</span>
+                  <select
+                    value={apptDateFilter}
+                    onChange={e => setApptDateFilter(e.target.value)}
+                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
+                  >
+                    <option value="All Dates">All Dates</option>
+                    <option value="Today">Today</option>
+                    <option value="This Week">This Week</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Appointments Table */}
+            <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB]">
+                  <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
+                    <th className="px-4 py-3">Appointment ID</th>
+                    <th className="px-4 py-3">Patient Name</th>
+                    <th className="px-4 py-3">Date</th>
+                    <th className="px-4 py-3">Time</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-[#111827]">
+                  {isLoading ? (
+                    Array.from({ length: 4 }).map((_, idx) => (
+                      <tr key={idx} className="animate-pulse">
+                        <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-16" /></td>
+                        <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-28" /></td>
+                        <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-20" /></td>
+                        <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-16" /></td>
+                        <td className="px-4 py-3"><div className="h-5 bg-slate-200 rounded-full w-20" /></td>
+                        <td className="px-4 py-3"><div className="h-5 bg-slate-200 rounded w-16 ml-auto" /></td>
+                      </tr>
+                    ))
+                  ) : filteredAppointments.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
+                        <div className="flex flex-col items-center justify-center space-y-2">
+                          <Calendar size={28} className="text-slate-300" />
+                          <span className="font-bold text-[#111827]" style={{ fontFamily: PP }}>No appointments found.</span>
+                          <span className="text-xs text-[#64748B]">No appointments matching your current search or date filter.</span>
+                        </div>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 text-[#111827]">
-                    {isLoading ? (
-                      Array.from({ length: 4 }).map((_, idx) => (
-                        <tr key={idx} className="animate-pulse">
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-16" /></td>
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-28" /></td>
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-12" /></td>
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-10" /></td>
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-20" /></td>
-                          <td className="px-4 py-3"><div className="h-5 bg-slate-200 rounded-full w-16" /></td>
-                          <td className="px-4 py-3"><div className="h-5 bg-slate-200 rounded w-20 ml-auto" /></td>
-                        </tr>
-                      ))
-                    ) : filteredPatients.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
-                          <div className="flex flex-col items-center justify-center space-y-2">
-                            <User size={28} className="text-slate-300" />
-                            <span className="font-bold text-[#111827]" style={{ fontFamily: PP }}>No assigned patients.</span>
-                            <span className="text-xs text-[#64748B]">No patient records matching search criteria for this doctor.</span>
-                          </div>
+                  ) : (
+                    filteredAppointments.map(apt => (
+                      <tr key={apt.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="px-4 py-3 font-mono font-bold text-[#0D47A1]">{apt.id}</td>
+                        <td className="px-4 py-3 font-bold text-[#111827]" style={{ fontFamily: PP }}>{apt.patientName}</td>
+                        <td className="px-4 py-3 text-slate-600">{apt.date}</td>
+                        <td className="px-4 py-3 text-slate-600">{apt.time}</td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${apt.status === 'Completed'
+                            ? 'bg-emerald-50 text-[#66BB6A] border-emerald-200'
+                            : apt.status === 'In Progress'
+                              ? 'bg-blue-50 text-[#0D47A1] border-blue-200'
+                              : 'bg-amber-50 text-[#F59E0B] border-amber-200'
+                            }`}>
+                            {apt.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => setSelectedApptDetail(apt)}
+                            className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#0D47A1] font-bold text-xs transition-colors"
+                            style={{ fontFamily: PP }}
+                          >
+                            View Appointment
+                          </button>
                         </td>
                       </tr>
-                    ) : (
-                      filteredPatients.map(pt => (
-                        <tr key={pt.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="px-4 py-3 font-mono font-bold text-[#0D47A1]">{pt.id}</td>
-                          <td className="px-4 py-3 font-bold text-[#111827]" style={{ fontFamily: PP }}>{pt.name}</td>
-                          <td className="px-4 py-3 text-slate-600">{pt.gender}</td>
-                          <td className="px-4 py-3 text-slate-600">{pt.age} Yrs</td>
-                          <td className="px-4 py-3 text-slate-600">{pt.lastVisit}</td>
-                          <td className="px-4 py-3">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${pt.status === 'Active'
-                              ? 'bg-emerald-50 text-[#66BB6A] border-emerald-200'
-                              : pt.status === 'Admitted'
-                                ? 'bg-blue-50 text-[#0D47A1] border-blue-200'
-                                : 'bg-slate-100 text-slate-600 border-slate-200'
-                              }`}>
-                              {pt.status}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <button
-                              onClick={() => triggerToast(`Viewing profile for ${pt.name} (${pt.id})...`)}
-                              className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#0D47A1] font-bold text-xs transition-colors"
-                              style={{ fontFamily: PP }}
-                            >
-                              View Patient Profile
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* TAB 06: ACTIVITY TIMELINE */}
-          {activeTab === 'timeline' && (
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
-              <div>
-                <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>Chronological Activity Log</h3>
-                <p className="text-xs text-[#64748B]">Audit trajectory of consultation events, schedule changes, and registration records.</p>
-              </div>
+        {/* TAB 05: ASSIGNED PATIENTS */}
+        {activeTab === 'patients' && (
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-4">
+            {/* Toolbar */}
+            <div className="relative max-w-md">
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={patientSearch}
+                onChange={e => setPatientSearch(e.target.value)}
+                placeholder="Search Patient ID, Name, Complaint..."
+                className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
+              />
+              {patientSearch && (
+                <button onClick={() => setPatientSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                  <X size={13} />
+                </button>
+              )}
+            </div>
 
-              <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-                {MOCK_DOCTOR_TIMELINE.map((item, idx) => {
-                  const IconComp = item.icon
-                  return (
-                    <div key={idx} className="relative flex items-start gap-4 group">
-                      <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center shrink-0">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#0D47A1]" />
-                      </div>
-                      <div className="bg-slate-50 p-4 rounded-2xl border border-[#E5E7EB] flex-1 space-y-1 hover:border-blue-200 transition-colors">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <span className="font-bold text-[#111827] text-xs flex items-center gap-1.5" style={{ fontFamily: PP }}>
-                            <IconComp size={14} className="text-[#0D47A1]" /> {item.title}
-                          </span>
-                          <span className="text-[11px] text-[#64748B] font-mono">{item.time}</span>
+            {/* Patients Table */}
+            <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB]">
+                  <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
+                    <th className="px-4 py-3">Patient ID</th>
+                    <th className="px-4 py-3">Patient Name</th>
+                    <th className="px-4 py-3">Gender</th>
+                    <th className="px-4 py-3">Age</th>
+                    <th className="px-4 py-3">Last Visit</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-[#111827]">
+                  {isLoading ? (
+                    Array.from({ length: 4 }).map((_, idx) => (
+                      <tr key={idx} className="animate-pulse">
+                        <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-16" /></td>
+                        <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-28" /></td>
+                        <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-12" /></td>
+                        <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-10" /></td>
+                        <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-20" /></td>
+                        <td className="px-4 py-3"><div className="h-5 bg-slate-200 rounded-full w-16" /></td>
+                        <td className="px-4 py-3"><div className="h-5 bg-slate-200 rounded w-20 ml-auto" /></td>
+                      </tr>
+                    ))
+                  ) : filteredPatients.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
+                        <div className="flex flex-col items-center justify-center space-y-2">
+                          <User size={28} className="text-slate-300" />
+                          <span className="font-bold text-[#111827]" style={{ fontFamily: PP }}>No assigned patients.</span>
+                          <span className="text-xs text-[#64748B]">No patient records matching search criteria for this doctor.</span>
                         </div>
-                        <p className="text-xs text-slate-600">{item.desc}</p>
-                      </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredPatients.map(pt => (
+                      <tr key={pt.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="px-4 py-3 font-mono font-bold text-[#0D47A1]">{pt.id}</td>
+                        <td className="px-4 py-3 font-bold text-[#111827]" style={{ fontFamily: PP }}>{pt.name}</td>
+                        <td className="px-4 py-3 text-slate-600">{pt.gender}</td>
+                        <td className="px-4 py-3 text-slate-600">{pt.age} Yrs</td>
+                        <td className="px-4 py-3 text-slate-600">{pt.lastVisit}</td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${pt.status === 'Active'
+                            ? 'bg-emerald-50 text-[#66BB6A] border-emerald-200'
+                            : pt.status === 'Admitted'
+                              ? 'bg-blue-50 text-[#0D47A1] border-blue-200'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                            }`}>
+                            {pt.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => triggerToast(`Viewing profile for ${pt.name} (${pt.id})...`)}
+                            className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#0D47A1] font-bold text-xs transition-colors"
+                            style={{ fontFamily: PP }}
+                          >
+                            View Patient Profile
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 06: ACTIVITY TIMELINE */}
+        {activeTab === 'timeline' && (
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
+            <div>
+              <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>Chronological Activity Log</h3>
+              <p className="text-xs text-[#64748B]">Audit trajectory of consultation events, schedule changes, and registration records.</p>
+            </div>
+
+            <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+              {MOCK_DOCTOR_TIMELINE.map((item, idx) => {
+                const IconComp = item.icon
+                return (
+                  <div key={idx} className="relative flex items-start gap-4 group">
+                    <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center shrink-0">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#0D47A1]" />
                     </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-        </div>
-
-        {/* RIGHT COLUMN: RIGHT CONTEXT PANEL */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
-              <div className="w-12 h-12 rounded-xl bg-[#0D47A1] text-white font-bold text-base flex items-center justify-center shrink-0" style={{ fontFamily: PP }}>
-                {initials}
-              </div>
-              <div className="truncate">
-                <span className="font-bold text-[#111827] text-sm truncate block" style={{ fontFamily: PP }}>{docState.name}</span>
-                <span className="text-xs text-[#0D47A1] font-semibold truncate block">{docState.specialty}</span>
-                <span className="text-[11px] text-[#64748B] truncate block">{docState.department}</span>
-              </div>
-            </div>
-
-            <div className="space-y-2 text-xs border-t border-slate-100 pt-3">
-              <div className="flex justify-between">
-                <span className="text-[#64748B]">OPD Cabinet:</span>
-                <span className="font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">{docState.opdRoom}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#64748B]">Shift Timings:</span>
-                <span className="font-medium text-[#111827]">{docState.shiftTimings}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#64748B]">Consultation Fee:</span>
-                <span className="font-bold text-[#0D47A1]" style={{ fontFamily: PP }}>${docState.consultationFee}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-1.5" style={{ fontFamily: PP }}>
-              <Clock size={14} className="text-[#009688]" /> Today's Upcoming Queue
-            </h3>
-
-            <div className="space-y-2.5 text-xs">
-              {MOCK_DOCTOR_APPOINTMENTS.slice(0, 3).map(apt => (
-                <div key={apt.id} className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1 hover:border-blue-200 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#111827]" style={{ fontFamily: PP }}>{apt.patientName}</span>
-                    <span className="font-mono text-[10px] text-[#0D47A1] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">{apt.time}</span>
+                    <div className="bg-slate-50 p-4 rounded-2xl border border-[#E5E7EB] flex-1 space-y-1 hover:border-blue-200 transition-colors">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <span className="font-bold text-[#111827] text-xs flex items-center gap-1.5" style={{ fontFamily: PP }}>
+                          <IconComp size={14} className="text-[#0D47A1]" /> {item.title}
+                        </span>
+                        <span className="text-[11px] text-[#64748B] font-mono">{item.time}</span>
+                      </div>
+                      <p className="text-xs text-slate-600">{item.desc}</p>
+                    </div>
                   </div>
-                  <p className="text-[11px] text-slate-500 truncate">{apt.complaint}</p>
-                </div>
-              ))}
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* RIGHT COLUMN: RIGHT CONTEXT PANEL */}
+      <div className="space-y-6">
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
+          <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div className="w-12 h-12 rounded-xl bg-[#0D47A1] text-white font-bold text-base flex items-center justify-center shrink-0" style={{ fontFamily: PP }}>
+              {initials}
+            </div>
+            <div className="truncate">
+              <span className="font-bold text-[#111827] text-sm truncate block" style={{ fontFamily: PP }}>{docState.name}</span>
+              <span className="text-xs text-[#0D47A1] font-semibold truncate block">{docState.specialty}</span>
+              <span className="text-[11px] text-[#64748B] truncate block">{docState.department}</span>
+            </div>
+          </div>
+
+          <div className="space-y-2 text-xs border-t border-slate-100 pt-3">
+            <div className="flex justify-between">
+              <span className="text-[#64748B]">OPD Cabinet:</span>
+              <span className="font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">{docState.opdRoom}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#64748B]">Shift Timings:</span>
+              <span className="font-medium text-[#111827]">{docState.shiftTimings}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-[#64748B]">Consultation Fee:</span>
+              <span className="font-bold text-[#0D47A1]" style={{ fontFamily: PP }}>${docState.consultationFee}</span>
             </div>
           </div>
         </div>
 
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
+          <h3 className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-1.5" style={{ fontFamily: PP }}>
+            <Clock size={14} className="text-[#009688]" /> Today's Upcoming Queue
+          </h3>
+
+          <div className="space-y-2.5 text-xs">
+            {MOCK_DOCTOR_APPOINTMENTS.slice(0, 3).map(apt => (
+              <div key={apt.id} className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1 hover:border-blue-200 transition-colors">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#111827]" style={{ fontFamily: PP }}>{apt.patientName}</span>
+                  <span className="font-mono text-[10px] text-[#0D47A1] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">{apt.time}</span>
+                </div>
+                <p className="text-[11px] text-slate-500 truncate">{apt.complaint}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* APPOINTMENT DETAIL MODAL */}
@@ -2542,27 +2534,27 @@ export function DoctorProfileScreen({ doctor = INITIAL_DOCTORS[0], onBack, onEdi
             <div className="space-y-3 text-xs">
               <div className="flex justify-between py-1 border-b border-gray-100">
                 <span className="text-[#64748B]">Appointment ID</span>
-                <span className="font-mono font-bold text-[#0D47A1]">{selectedApptDetail.id}</span>
+                <span className="font-mono font-bold text-[#0D47A1]">{selectedApptDetail.id as string}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100">
                 <span className="text-[#64748B]">Patient Name</span>
-                <span className="font-bold text-[#111827]">{selectedApptDetail.patientName} ({selectedApptDetail.gender}/{selectedApptDetail.age}Y)</span>
+                <span className="font-bold text-[#111827]">{selectedApptDetail.patientName as string} ({selectedApptDetail.gender as string}/{selectedApptDetail.age as number}Y)</span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100">
-                <span className="text-[#64748B]">Date & Time</span>
-                <span className="font-medium text-[#111827]">{selectedApptDetail.date} &bull; {selectedApptDetail.time}</span>
+                <span className="text-[#64748B]">Date &amp; Time</span>
+                <span className="font-medium text-[#111827]">{selectedApptDetail.date as string} &bull; {selectedApptDetail.time as string}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100">
                 <span className="text-[#64748B]">Visit Type</span>
-                <span className="font-medium text-[#111827]">{selectedApptDetail.type}</span>
+                <span className="font-medium text-[#111827]">{selectedApptDetail.type as string}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100">
                 <span className="text-[#64748B]">Status</span>
-                <span className="font-semibold text-[#66BB6A]">{selectedApptDetail.status}</span>
+                <span className="font-semibold text-[#66BB6A]">{selectedApptDetail.status as string}</span>
               </div>
               <div className="py-1">
                 <span className="text-[#64748B] block text-[11px]">Chief Complaint</span>
-                <p className="text-slate-700 font-medium mt-0.5">{selectedApptDetail.complaint}</p>
+                <p className="text-slate-700 font-medium mt-0.5">{selectedApptDetail.complaint as string}</p>
               </div>
             </div>
 
@@ -2596,7 +2588,6 @@ export function DoctorProfileScreen({ doctor = INITIAL_DOCTORS[0], onBack, onEdi
         onClose={() => setDeactivateDialogOpen(false)}
         onConfirm={handleConfirmDeactivate}
       />
-
     </div>
   )
 }

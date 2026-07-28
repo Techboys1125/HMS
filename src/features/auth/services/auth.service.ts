@@ -35,8 +35,7 @@ export const authService = {
     const resAny = response as unknown as Record<string, unknown>;
     const authData = (response.data || resAny) as Record<string, unknown>;
 
-    const accessToken = (authData.accessToken ||
-      resAny.accessToken) as string;
+    const accessToken = (authData.accessToken || resAny.accessToken) as string;
     const refreshToken = (authData.refreshToken ||
       resAny.refreshToken) as string;
     const user = (authData.user || resAny.user) as User;

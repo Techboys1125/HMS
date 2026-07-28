@@ -20,7 +20,7 @@ export function useAppointments(
     page?: number;
     size?: number;
     sort?: string;
-  }
+  },
 ) {
   const [appointments, setAppointments] = useState<AppointmentRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -34,9 +34,14 @@ export function useAppointments(
     try {
       let items: AppointmentRecord[] = [];
       if (userRole === "Doctor") {
-        items = await appointmentService.listDoctorAppointments(todayStr, params?.status);
+        items = await appointmentService.listDoctorAppointments(
+          todayStr,
+          params?.status,
+        );
       } else if (userRole === "Patient" && params?.patientId) {
-        items = await appointmentService.listPatientAppointments(params.patientId);
+        items = await appointmentService.listPatientAppointments(
+          params.patientId,
+        );
       } else {
         items = await appointmentService.listAppointments({
           doctorId: params?.doctorId,
@@ -58,7 +63,18 @@ export function useAppointments(
     } finally {
       setIsLoading(false);
     }
-  }, [userRole, todayStr, params?.doctorId, params?.patientId, params?.status, params?.fromDate, params?.toDate, params?.page, params?.size, params?.sort]);
+  }, [
+    userRole,
+    todayStr,
+    params?.doctorId,
+    params?.patientId,
+    params?.status,
+    params?.fromDate,
+    params?.toDate,
+    params?.page,
+    params?.size,
+    params?.sort,
+  ]);
 
   useEffect(() => {
     fetchAppointments();
@@ -132,10 +148,7 @@ export function useCancelAppointment() {
     setIsSubmitting(true);
     setError(null);
     try {
-      return await appointmentService.cancelAppointment(
-        appointmentId,
-        payload,
-      );
+      return await appointmentService.cancelAppointment(appointmentId, payload);
     } catch (err: any) {
       setError(err?.message || "Failed to cancel appointment.");
       throw err;

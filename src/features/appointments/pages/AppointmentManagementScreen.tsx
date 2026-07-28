@@ -105,417 +105,6 @@ export interface TimelineActivity {
   notes?: string;
 }
 
-/*
-// Initial Mock Patients Database
-export const PATIENT_DATABASE: PatientSummary[] = [
-  {
-    id: "PAT-2001",
-    mrn: "MRN-2024-001",
-    name: "Sarah Mitchell",
-    age: 34,
-    gender: "Female",
-    bloodGroup: "A+",
-    phone: "+1 (555) 234-5678",
-    emergencyContact: "+1 (555) 987-6543 (Spouse)",
-    assignedDoctor: "Dr. Arjun Mehta",
-  },
-  {
-    id: "PAT-2002",
-    mrn: "MRN-2024-002",
-    name: "James Thornton",
-    age: 67,
-    gender: "Male",
-    bloodGroup: "O+",
-    phone: "+1 (555) 345-6789",
-    emergencyContact: "+1 (555) 876-5432 (Daughter)",
-    assignedDoctor: "Dr. Priya Sharma",
-  },
-  {
-    id: "PAT-2003",
-    mrn: "MRN-2024-003",
-    name: "Emma Reyes",
-    age: 28,
-    gender: "Female",
-    bloodGroup: "B+",
-    phone: "+1 (555) 456-7890",
-    emergencyContact: "+1 (555) 765-4321 (Mother)",
-    assignedDoctor: "Dr. Sunita Patel",
-  },
-  {
-    id: "PAT-2004",
-    mrn: "MRN-2024-004",
-    name: "Robert Chen",
-    age: 52,
-    gender: "Male",
-    bloodGroup: "AB+",
-    phone: "+1 (555) 567-8901",
-    emergencyContact: "+1 (555) 654-3210 (Wife)",
-    assignedDoctor: "Dr. Arjun Mehta",
-  },
-  {
-    id: "PAT-2005",
-    mrn: "MRN-2024-005",
-    name: "Aisha Kumar",
-    age: 41,
-    gender: "Female",
-    bloodGroup: "O-",
-    phone: "+1 (555) 678-9012",
-    emergencyContact: "+1 (555) 543-2109 (Brother)",
-    assignedDoctor: "Dr. Rajesh Kapoor",
-  },
-  {
-    id: "PAT-2006",
-    mrn: "MRN-2024-006",
-    name: "David Walsh",
-    age: 38,
-    gender: "Male",
-    bloodGroup: "A-",
-    phone: "+1 (555) 789-0123",
-    emergencyContact: "+1 (555) 432-1098 (Sister)",
-    assignedDoctor: "Dr. Priya Sharma",
-  },
-  {
-    id: "PAT-2007",
-    mrn: "MRN-2024-007",
-    name: "Nina Patel",
-    age: 29,
-    gender: "Female",
-    bloodGroup: "B-",
-    phone: "+1 (555) 890-1234",
-    emergencyContact: "+1 (555) 321-0987 (Father)",
-    assignedDoctor: "Dr. Rajesh Kapoor",
-  },
-  {
-    id: "PAT-2008",
-    mrn: "MRN-2024-008",
-    name: "Carlos Mendez",
-    age: 63,
-    gender: "Male",
-    bloodGroup: "O+",
-    phone: "+1 (555) 901-2345",
-    emergencyContact: "+1 (555) 210-9876 (Wife)",
-    assignedDoctor: "Dr. Priya Sharma",
-  },
-];
-
-// Mock Doctor Database
-export const DOCTOR_DATABASE: Record<string, DoctorSummary> = {
-  "Dr. Arjun Mehta": {
-    id: "DOC-1001",
-    name: "Dr. Arjun Mehta",
-    department: "Cardiology",
-    specialty: "Interventional Cardiology",
-    qualification: "MBBS, MD, DM (Cardiology)",
-    consultationFee: 150,
-    opdRoom: "OPD Room 104",
-  },
-  "Dr. Priya Sharma": {
-    id: "DOC-1002",
-    name: "Dr. Priya Sharma",
-    department: "General Medicine",
-    specialty: "Internal Medicine",
-    qualification: "MBBS, MD (Medicine)",
-    consultationFee: 120,
-    opdRoom: "OPD Room 202",
-  },
-  "Dr. Rajesh Kapoor": {
-    id: "DOC-1003",
-    name: "Dr. Rajesh Kapoor",
-    department: "Neurology",
-    specialty: "Clinical Neurology",
-    qualification: "MBBS, MD, DM (Neurology)",
-    consultationFee: 160,
-    opdRoom: "OPD Room 305",
-  },
-  "Dr. Sunita Patel": {
-    id: "DOC-1004",
-    name: "Dr. Sunita Patel",
-    department: "Gynecology",
-    specialty: "Obstetrics & Gynecology",
-    qualification: "MBBS, MS (OB-GYN)",
-    consultationFee: 140,
-    opdRoom: "OPD Room 108",
-  },
-};
-
-// Doctor Availability Data
-const DOCTOR_AVAILABILITY_DATA: Record<
-  string,
-  {
-    specialty: string;
-    department: string;
-    opdRoom: string;
-    slotDuration: string;
-    slots: { time: string; available: boolean }[];
-  }
-> = {
-  "Dr. Arjun Mehta": {
-    specialty: "Interventional Cardiology",
-    department: "Cardiology",
-    opdRoom: "OPD Room 104",
-    slotDuration: "15 Minutes",
-    slots: [
-      { time: "09:00 AM", available: true },
-      { time: "09:15 AM", available: true },
-      { time: "09:30 AM", available: true },
-      { time: "09:45 AM", available: false },
-      { time: "10:00 AM", available: true },
-      { time: "10:15 AM", available: true },
-      { time: "10:30 AM", available: true },
-      { time: "11:00 AM", available: true },
-      { time: "11:30 AM", available: false },
-      { time: "02:00 PM", available: true },
-      { time: "02:30 PM", available: true },
-      { time: "03:00 PM", available: true },
-    ],
-  },
-  "Dr. Priya Sharma": {
-    specialty: "Internal Medicine",
-    department: "General Medicine",
-    opdRoom: "OPD Room 202",
-    slotDuration: "15 Minutes",
-    slots: [
-      { time: "08:30 AM", available: true },
-      { time: "09:00 AM", available: false },
-      { time: "09:15 AM", available: true },
-      { time: "09:30 AM", available: true },
-      { time: "09:45 AM", available: true },
-      { time: "10:00 AM", available: true },
-      { time: "10:15 AM", available: true },
-      { time: "10:30 AM", available: true },
-      { time: "11:00 AM", available: false },
-      { time: "02:00 PM", available: true },
-      { time: "02:30 PM", available: true },
-    ],
-  },
-  "Dr. Rajesh Kapoor": {
-    specialty: "Neurology",
-    department: "Neurology",
-    opdRoom: "OPD Room 305",
-    slotDuration: "20 Minutes",
-    slots: [
-      { time: "10:00 AM", available: true },
-      { time: "10:20 AM", available: true },
-      { time: "10:40 AM", available: true },
-      { time: "11:00 AM", available: true },
-      { time: "11:20 AM", available: false },
-      { time: "02:00 PM", available: true },
-      { time: "02:20 PM", available: true },
-    ],
-  },
-  "Dr. Sunita Patel": {
-    specialty: "Obstetrics & Gynecology",
-    department: "Gynecology",
-    opdRoom: "OPD Room 108",
-    slotDuration: "15 Minutes",
-    slots: [
-      { time: "09:00 AM", available: true },
-      { time: "09:15 AM", available: true },
-      { time: "09:30 AM", available: true },
-      { time: "09:45 AM", available: true },
-      { time: "10:00 AM", available: true },
-      { time: "10:30 AM", available: false },
-      { time: "11:00 AM", available: true },
-      { time: "02:00 PM", available: true },
-    ],
-  },
-};
-
-// Initial Mock Appointments Dataset
-export const INITIAL_APPOINTMENTS: AppointmentRecord[] = [
-  {
-    id: "APT-1001",
-    tokenNo: "TK-01",
-    patientId: "PAT-2001",
-    patientName: "Sarah Mitchell",
-    patientAge: 34,
-    patientGender: "Female",
-    patientPhone: "+1 (555) 234-5678",
-    mrn: "MRN-2024-001",
-    doctorId: "DOC-1001",
-    doctorName: "Dr. Arjun Mehta",
-    doctorSpecialty: "Interventional Cardiology",
-    department: "Cardiology",
-    appointmentDate: new Date().toISOString().split("T")[0],
-    timeSlot: "09:00 AM",
-    visitType: "First Visit",
-    priority: "High",
-    status: "Waiting",
-    arrivalStatus: "In Lounge",
-    chiefComplaint: "Chest tightness radiating to arm, mild dyspnea",
-    waitingTimeMinutes: 18,
-    opdRoom: "OPD Room 104",
-    createdDate: "2026-07-20",
-    notes: "Patient arrived at reception at 08:42 AM.",
-  },
-  {
-    id: "APT-1002",
-    tokenNo: "TK-02",
-    patientId: "PAT-2002",
-    patientName: "James Thornton",
-    patientAge: 67,
-    patientGender: "Male",
-    patientPhone: "+1 (555) 345-6789",
-    mrn: "MRN-2024-002",
-    doctorId: "DOC-1002",
-    doctorName: "Dr. Priya Sharma",
-    doctorSpecialty: "Internal Medicine",
-    department: "General Medicine",
-    appointmentDate: new Date().toISOString().split("T")[0],
-    timeSlot: "09:30 AM",
-    visitType: "Follow-up",
-    priority: "Normal",
-    status: "In Progress",
-    arrivalStatus: "Called",
-    chiefComplaint: "Routine Type-2 Diabetes quarterly review & HbA1c review",
-    waitingTimeMinutes: 5,
-    opdRoom: "OPD Room 202",
-    createdDate: "2026-07-21",
-  },
-  {
-    id: "APT-1003",
-    tokenNo: "TK-03",
-    patientId: "PAT-2003",
-    patientName: "Emma Reyes",
-    patientAge: 28,
-    patientGender: "Female",
-    patientPhone: "+1 (555) 456-7890",
-    mrn: "MRN-2024-003",
-    doctorId: "DOC-1004",
-    doctorName: "Dr. Sunita Patel",
-    doctorSpecialty: "Obstetrics & Gynecology",
-    department: "Gynecology",
-    appointmentDate: new Date().toISOString().split("T")[0],
-    timeSlot: "10:00 AM",
-    visitType: "Walk-In",
-    priority: "Normal",
-    status: "Checked-In",
-    arrivalStatus: "Arrived",
-    isWalkIn: true,
-    chiefComplaint: "Routine antenatal checkup (2nd trimester)",
-    waitingTimeMinutes: 12,
-    opdRoom: "OPD Room 108",
-    createdDate: new Date().toISOString().split("T")[0],
-  },
-  {
-    id: "APT-1004",
-    tokenNo: "TK-04",
-    patientId: "PAT-2004",
-    patientName: "Robert Chen",
-    patientAge: 52,
-    patientGender: "Male",
-    patientPhone: "+1 (555) 567-8901",
-    mrn: "MRN-2024-004",
-    doctorId: "DOC-1001",
-    doctorName: "Dr. Arjun Mehta",
-    doctorSpecialty: "Interventional Cardiology",
-    department: "Cardiology",
-    appointmentDate: new Date().toISOString().split("T")[0],
-    timeSlot: "10:30 AM",
-    visitType: "Follow-up",
-    priority: "Normal",
-    status: "Scheduled",
-    arrivalStatus: "Not Arrived",
-    chiefComplaint: "Post-angioplasty follow-up consultation",
-    opdRoom: "OPD Room 104",
-    createdDate: "2026-07-21",
-  },
-  {
-    id: "APT-1005",
-    tokenNo: "TK-05",
-    patientId: "PAT-2005",
-    patientName: "Aisha Kumar",
-    patientAge: 41,
-    patientGender: "Female",
-    patientPhone: "+1 (555) 678-9012",
-    mrn: "MRN-2024-005",
-    doctorId: "DOC-1003",
-    doctorName: "Dr. Rajesh Kapoor",
-    doctorSpecialty: "Neurology",
-    department: "Neurology",
-    appointmentDate: new Date().toISOString().split("T")[0],
-    timeSlot: "11:00 AM",
-    visitType: "First Visit",
-    priority: "Normal",
-    status: "Scheduled",
-    arrivalStatus: "Not Arrived",
-    chiefComplaint: "Persistent migraine headaches for 3 weeks",
-    opdRoom: "OPD Room 305",
-    createdDate: "2026-07-22",
-  },
-  {
-    id: "APT-1006",
-    tokenNo: "TK-06",
-    patientId: "PAT-2006",
-    patientName: "David Walsh",
-    patientAge: 38,
-    patientGender: "Male",
-    patientPhone: "+1 (555) 789-0123",
-    mrn: "MRN-2024-006",
-    doctorId: "DOC-1002",
-    doctorName: "Dr. Priya Sharma",
-    doctorSpecialty: "Internal Medicine",
-    department: "General Medicine",
-    appointmentDate: new Date().toISOString().split("T")[0],
-    timeSlot: "11:30 AM",
-    visitType: "Walk-In",
-    priority: "Normal",
-    status: "Checked-In",
-    arrivalStatus: "Arrived",
-    isWalkIn: true,
-    chiefComplaint: "Lower back stiffness and muscle spasm",
-    opdRoom: "OPD Room 202",
-    createdDate: new Date().toISOString().split("T")[0],
-  },
-  {
-    id: "APT-1007",
-    tokenNo: "TK-07",
-    patientId: "PAT-2007",
-    patientName: "Nina Patel",
-    patientAge: 29,
-    patientGender: "Female",
-    patientPhone: "+1 (555) 890-1234",
-    mrn: "MRN-2024-007",
-    doctorId: "DOC-1003",
-    doctorName: "Dr. Rajesh Kapoor",
-    doctorSpecialty: "Neurology",
-    department: "Neurology",
-    appointmentDate: new Date().toISOString().split("T")[0],
-    timeSlot: "08:30 AM",
-    visitType: "Follow-up",
-    priority: "Normal",
-    status: "Completed",
-    arrivalStatus: "Called",
-    chiefComplaint: "Tension headache follow-up",
-    opdRoom: "OPD Room 305",
-    createdDate: "2026-07-19",
-  },
-  {
-    id: "APT-1008",
-    tokenNo: "TK-08",
-    patientId: "PAT-2008",
-    patientName: "Carlos Mendez",
-    patientAge: 63,
-    patientGender: "Male",
-    patientPhone: "+1 (555) 901-2345",
-    mrn: "MRN-2024-008",
-    doctorId: "DOC-1002",
-    doctorName: "Dr. Priya Sharma",
-    doctorSpecialty: "Internal Medicine",
-    department: "General Medicine",
-    appointmentDate: new Date().toISOString().split("T")[0],
-    timeSlot: "08:00 AM",
-    visitType: "First Visit",
-    priority: "Normal",
-    status: "Completed",
-    arrivalStatus: "Called",
-    chiefComplaint: "Bilateral knee joint stiffness",
-    opdRoom: "OPD Room 202",
-    createdDate: "2026-07-18",
-  },
-];
-*/
-
 export const PATIENT_DATABASE: PatientSummary[] = [];
 export const DOCTOR_DATABASE: Record<string, DoctorSummary> = {};
 export const DOCTOR_AVAILABILITY_DATA: Record<
@@ -933,15 +522,14 @@ export function RescheduleAppointmentConfirmationDialog({
                         if (errors.date)
                           setErrors((prev) => ({ ...prev, date: "" }));
                       }}
-                      className={`py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        isSelected
-                          ? "bg-[#009688] text-white font-bold shadow-xs"
-                          : isCurrentAptDate
-                            ? "bg-amber-100 text-amber-800 font-bold border border-amber-300"
-                            : isDisabled
-                              ? "text-slate-300 cursor-not-allowed line-through opacity-50"
-                              : "text-slate-700 bg-white hover:bg-teal-50 hover:text-[#009688] border border-slate-100"
-                      }`}
+                      className={`py-1.5 rounded-lg text-xs font-medium transition-all ${isSelected
+                        ? "bg-[#009688] text-white font-bold shadow-xs"
+                        : isCurrentAptDate
+                          ? "bg-amber-100 text-amber-800 font-bold border border-amber-300"
+                          : isDisabled
+                            ? "text-slate-300 cursor-not-allowed line-through opacity-50"
+                            : "text-slate-700 bg-white hover:bg-teal-50 hover:text-[#009688] border border-slate-100"
+                        }`}
                     >
                       {dayNum}
                     </button>
@@ -988,13 +576,12 @@ export function RescheduleAppointmentConfirmationDialog({
                           setErrors((prev) => ({ ...prev, slot: "" }));
                       }
                     }}
-                    className={`py-2 px-1.5 rounded-xl text-xs font-mono font-semibold transition-all border text-center ${
-                      isSelected
-                        ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
-                        : isAvailable
-                          ? "bg-slate-50 text-slate-700 border-[#E5E7EB] hover:bg-blue-50 hover:text-[#0D47A1]"
-                          : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50 line-through"
-                    }`}
+                    className={`py-2 px-1.5 rounded-xl text-xs font-mono font-semibold transition-all border text-center ${isSelected
+                      ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
+                      : isAvailable
+                        ? "bg-slate-50 text-slate-700 border-[#E5E7EB] hover:bg-blue-50 hover:text-[#0D47A1]"
+                        : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50 line-through"
+                      }`}
                   >
                     {s.time}
                   </button>
@@ -1437,12 +1024,12 @@ export function BookAppointmentDrawer({
     );
     return matched
       ? {
-          specialty: matched.doctorSpecialty || "",
-          department: matched.department || department,
-          opdRoom: matched.opdRoom || "",
-          slotDuration: "15 Minutes",
-          slots: slotOptions,
-        }
+        specialty: matched.doctorSpecialty || "",
+        department: matched.department || department,
+        opdRoom: matched.opdRoom || "",
+        slotDuration: "15 Minutes",
+        slots: slotOptions,
+      }
       : { ...EMPTY_AVAILABILITY, department, slots: slotOptions };
   }, [liveAppointments, doctorName, department, slotOptions]);
 
@@ -1824,13 +1411,12 @@ export function BookAppointmentDrawer({
                     onClick={() => {
                       if (s.available) setTimeSlot(s.time);
                     }}
-                    className={`py-2 px-2 rounded-xl text-xs font-mono font-semibold transition-all border text-center ${
-                      timeSlot === s.time
-                        ? "bg-[#0D47A1] text-white border-[#0D47A1]"
-                        : s.available
-                          ? "bg-slate-50 text-slate-700 border-[#E5E7EB] hover:bg-blue-50"
-                          : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50 line-through"
-                    }`}
+                    className={`py-2 px-2 rounded-xl text-xs font-mono font-semibold transition-all border text-center ${timeSlot === s.time
+                      ? "bg-[#0D47A1] text-white border-[#0D47A1]"
+                      : s.available
+                        ? "bg-slate-50 text-slate-700 border-[#E5E7EB] hover:bg-blue-50"
+                        : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50 line-through"
+                      }`}
                   >
                     {s.time}
                   </button>
@@ -2398,11 +1984,10 @@ export function AppointmentDetailsDrawer({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`py-3 border-b-2 transition-colors whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? "border-[#0D47A1] text-[#0D47A1]"
-                    : "border-transparent text-slate-500 hover:text-slate-700"
-                }`}
+                className={`py-3 border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
+                  ? "border-[#0D47A1] text-[#0D47A1]"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+                  }`}
                 style={{ fontFamily: PP }}
               >
                 {tab.label}
@@ -3505,19 +3090,19 @@ export function DockableQueueWorkspace({
 
                               {(q.status === "Checked-In" ||
                                 q.status === "Waiting") && (
-                                <button
-                                  onClick={() =>
-                                    onUpdateStatus(
-                                      q.id,
-                                      "Checked-In",
-                                      "Patient called for consultation.",
-                                    )
-                                  }
-                                  className="px-2.5 py-1 rounded-lg bg-teal-50 text-[#009688] text-[11px] font-bold border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1"
-                                >
-                                  <PhoneCall size={12} /> Call Next Patient
-                                </button>
-                              )}
+                                  <button
+                                    onClick={() =>
+                                      onUpdateStatus(
+                                        q.id,
+                                        "Checked-In",
+                                        "Patient called for consultation.",
+                                      )
+                                    }
+                                    className="px-2.5 py-1 rounded-lg bg-teal-50 text-[#009688] text-[11px] font-bold border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1"
+                                  >
+                                    <PhoneCall size={12} /> Call Next Patient
+                                  </button>
+                                )}
                             </>
                           )}
                         </div>
@@ -4678,20 +4263,18 @@ export function AppointmentManagementCenterScreen({
                 <button
                   key={tab.id}
                   onClick={() => setStatusFilter(tab.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
-                    statusFilter === tab.id
-                      ? "bg-[#0D47A1] text-white shadow-xs"
-                      : "bg-slate-50 text-[#64748B] hover:bg-slate-100 hover:text-[#111827]"
-                  }`}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${statusFilter === tab.id
+                    ? "bg-[#0D47A1] text-white shadow-xs"
+                    : "bg-slate-50 text-[#64748B] hover:bg-slate-100 hover:text-[#111827]"
+                    }`}
                   style={{ fontFamily: PP }}
                 >
                   <span>{tab.label}</span>
                   <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                      statusFilter === tab.id
-                        ? "bg-white/20 text-white"
-                        : "bg-slate-200 text-[#111827]"
-                    }`}
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${statusFilter === tab.id
+                      ? "bg-white/20 text-white"
+                      : "bg-slate-200 text-[#111827]"
+                      }`}
                   >
                     {tab.count}
                   </span>
@@ -4834,11 +4417,10 @@ export function AppointmentManagementCenterScreen({
 
                             <td className="px-4 py-3.5">
                               <span
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
-                                  apt.visitType === "Walk-In"
-                                    ? "bg-teal-50 text-[#009688] border-teal-200"
-                                    : "bg-indigo-50 text-indigo-700 border-indigo-200"
-                                }`}
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold border ${apt.visitType === "Walk-In"
+                                  ? "bg-teal-50 text-[#009688] border-teal-200"
+                                  : "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                  }`}
                               >
                                 {apt.visitType}
                               </span>
@@ -4920,16 +4502,16 @@ export function AppointmentManagementCenterScreen({
 
                                     {(apt.status === "Checked-In" ||
                                       apt.status === "Waiting") && (
-                                      <button
-                                        onClick={() =>
-                                          handleCallNextPatient(apt.id)
-                                        }
-                                        className="px-2 py-1 rounded-lg bg-teal-50 text-[#009688] text-[10px] font-bold border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1"
-                                        title="Call Next Patient"
-                                      >
-                                        <PhoneCall size={12} /> Call
-                                      </button>
-                                    )}
+                                        <button
+                                          onClick={() =>
+                                            handleCallNextPatient(apt.id)
+                                          }
+                                          className="px-2 py-1 rounded-lg bg-teal-50 text-[#009688] text-[10px] font-bold border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1"
+                                          title="Call Next Patient"
+                                        >
+                                          <PhoneCall size={12} /> Call
+                                        </button>
+                                      )}
 
                                     <button
                                       onClick={() => setRescheduleApt(apt)}
@@ -5086,10 +4668,10 @@ export function AppointmentManagementCenterScreen({
                       (a) =>
                         a.status === "Waiting" || a.status === "Checked-In",
                     ).length === 0 && (
-                      <div className="py-4 text-center text-xs text-slate-400">
-                        No patients waiting in lounge.
-                      </div>
-                    )}
+                        <div className="py-4 text-center text-xs text-slate-400">
+                          No patients waiting in lounge.
+                        </div>
+                      )}
                   </div>
                 </div>
 
@@ -5982,11 +5564,10 @@ export function ReceptionBookAppointmentScreen({
                     <div
                       key={doc.key}
                       onClick={() => setSelectedDocKey(doc.key)}
-                      className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
-                        isSelected
-                          ? "border-[#009688] bg-teal-50/50 shadow-sm ring-1 ring-[#009688]"
-                          : "border-[#E5E7EB] bg-white hover:border-slate-300"
-                      }`}
+                      className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${isSelected
+                        ? "border-[#009688] bg-teal-50/50 shadow-sm ring-1 ring-[#009688]"
+                        : "border-[#E5E7EB] bg-white hover:border-slate-300"
+                        }`}
                     >
                       <div className="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
                         {doc.name.replace("Dr. ", "").slice(0, 2).toUpperCase()}
@@ -6048,13 +5629,12 @@ export function ReceptionBookAppointmentScreen({
                       type="button"
                       disabled={!item.isAvailable}
                       onClick={() => setSelectedDate(item.date)}
-                      className={`p-2.5 rounded-xl border text-center transition-all ${
-                        !item.isAvailable
-                          ? "opacity-40 bg-slate-100 border-slate-200 cursor-not-allowed"
-                          : isSelected
-                            ? "bg-[#0D47A1] border-[#0D47A1] text-white shadow-sm font-bold"
-                            : "bg-white border-[#E5E7EB] text-[#111827] hover:border-blue-300"
-                      }`}
+                      className={`p-2.5 rounded-xl border text-center transition-all ${!item.isAvailable
+                        ? "opacity-40 bg-slate-100 border-slate-200 cursor-not-allowed"
+                        : isSelected
+                          ? "bg-[#0D47A1] border-[#0D47A1] text-white shadow-sm font-bold"
+                          : "bg-white border-[#E5E7EB] text-[#111827] hover:border-blue-300"
+                        }`}
                     >
                       <span className="block text-[10px] uppercase opacity-80">
                         {item.day}
@@ -6088,13 +5668,12 @@ export function ReceptionBookAppointmentScreen({
                         type="button"
                         disabled={!slot.available}
                         onClick={() => setSelectedTimeSlot(slot.time)}
-                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
-                          !slot.available
-                            ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
-                            : isSelected
-                              ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                              : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
-                        }`}
+                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${!slot.available
+                          ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
+                          : isSelected
+                            ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                            : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                          }`}
                       >
                         {slot.time}
                       </button>
@@ -6117,13 +5696,12 @@ export function ReceptionBookAppointmentScreen({
                         type="button"
                         disabled={!slot.available}
                         onClick={() => setSelectedTimeSlot(slot.time)}
-                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
-                          !slot.available
-                            ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
-                            : isSelected
-                              ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                              : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
-                        }`}
+                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${!slot.available
+                          ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
+                          : isSelected
+                            ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                            : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                          }`}
                       >
                         {slot.time}
                       </button>
@@ -6146,13 +5724,12 @@ export function ReceptionBookAppointmentScreen({
                         type="button"
                         disabled={!slot.available}
                         onClick={() => setSelectedTimeSlot(slot.time)}
-                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
-                          !slot.available
-                            ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
-                            : isSelected
-                              ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                              : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
-                        }`}
+                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${!slot.available
+                          ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
+                          : isSelected
+                            ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                            : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                          }`}
                       >
                         {slot.time}
                       </button>
@@ -6542,7 +6119,7 @@ export function PatientCheckInScreen({
 }: PatientCheckInScreenProps) {
   // Appointment lookup state
   const [aptSearchQuery, setAptSearchQuery] = useState(initialAptId || initialMrn || '')
-  
+
   // Mock appointments database for lookup
   const [checkInApts] = useState([
     {
@@ -6686,8 +6263,8 @@ export function PatientCheckInScreen({
   const [selectedApt, setSelectedApt] = useState(() => {
     if (initialAptId || initialMrn) {
       const target = (initialAptId || initialMrn || '').toLowerCase().trim()
-      const found = checkInApts.find(a => 
-        a.aptId.toLowerCase() === target || 
+      const found = checkInApts.find(a =>
+        a.aptId.toLowerCase() === target ||
         a.mrn.toLowerCase() === target ||
         (a.token && a.token.toLowerCase() === target)
       )
@@ -6721,7 +6298,7 @@ export function PatientCheckInScreen({
   const searchResults = useMemo(() => {
     if (!aptSearchQuery.trim()) return checkInApts
     const q = aptSearchQuery.toLowerCase()
-    return checkInApts.filter(a => 
+    return checkInApts.filter(a =>
       a.aptId.toLowerCase().includes(q) ||
       a.mrn.toLowerCase().includes(q) ||
       a.patientName.toLowerCase().includes(q) ||
@@ -7896,7 +7473,7 @@ export function ReceptionQueueManagementScreen({
                           >
                             <div className="flex items-center justify-end gap-1.5">
                               {item.status === "Scheduled" ||
-                              item.status === "Registered" ? (
+                                item.status === "Registered" ? (
                                 <button
                                   onClick={() => onCheckInClick && onCheckInClick(item.token, item.mrn)}
                                   className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"

@@ -3,7 +3,9 @@ import { appointmentService } from "../services/appointment.service";
 import type { AppointmentRecord } from "../types/appointment.types";
 
 export function useAppointment(appointmentId?: string | number) {
-  const [appointment, setAppointment] = useState<AppointmentRecord | null>(null);
+  const [appointment, setAppointment] = useState<AppointmentRecord | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,4 +38,3 @@ export function useAppointment(appointmentId?: string | number) {
 
   return { appointment, setAppointment, isLoading, error };
 }
-

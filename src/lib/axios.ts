@@ -2,7 +2,7 @@ export const API_BASE_URL =
   (import.meta.env && import.meta.env.VITE_API_BASE_URL) ||
   "https://safe-hands-hms-backend.onrender.com";
 
-export interface ApiResponseData<T = any> {
+export interface ApiResponseData<T = unknown> {
   data: T;
   status: number;
   statusText: string;
@@ -12,12 +12,12 @@ export interface ApiResponseData<T = any> {
 export class ApiError extends Error {
   response?: {
     status: number;
-    data?: any;
+    data?: unknown;
   };
-  config?: any;
+  config?: unknown;
   isAxiosError?: boolean;
 
-  constructor(message: string, status?: number, data?: any) {
+  constructor(message: string, status?: number, data?: unknown) {
     super(message);
     this.name = "ApiError";
     this.isAxiosError = true;
@@ -44,7 +44,7 @@ const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue = [];
 };
 
-async function customFetch<T = any>(
+async function customFetch<T = unknown>(
   url: string,
   options: RequestInit = {},
 ): Promise<ApiResponseData<T>> {
@@ -66,15 +66,16 @@ async function customFetch<T = any>(
       ...options,
       headers,
     });
-  } catch (networkError: any) {
+  } catch (networkError: unknown) {
+    const errorObj = networkError as { message?: string } | undefined;
     throw new ApiError(
       "Unable to connect to the server. Please check your network connection and try again.",
       0,
-      { originalError: networkError?.message },
+      { originalError: errorObj?.message },
     );
   }
 
-  let responseData: any;
+  let responseData: unknown;
   const contentType = response.headers.get("content-type");
   if (contentType && contentType.includes("application/json")) {
     responseData = await response.json();
@@ -155,14 +156,23 @@ async function customFetch<T = any>(
     if (response.status === 403) {
       if (
         typeof responseData === "object" &&
-        responseData?.message?.includes("Password change required")
+        responseData !== null &&
+        "message" in responseData &&
+        typeof (responseData as { message: unknown }).message === "string" &&
+        (responseData as { message: string }).message.includes(
+          "Password change required",
+        )
       ) {
         localStorage.setItem("force_change_password", "true");
       }
     }
 
     const errorMsg =
-      (typeof responseData === "object" && responseData?.message) ||
+      (typeof responseData === "object" &&
+        responseData !== null &&
+        "message" in responseData &&
+        typeof (responseData as { message: unknown }).message === "string" &&
+        (responseData as { message: string }).message) ||
       response.statusText ||
       `Request failed with status ${response.status}`;
 
@@ -183,37 +193,43 @@ async function customFetch<T = any>(
 }
 
 export const apiClient = {
-  get: <T = any>(url: string, config: RequestInit = {}) =>
+  get: <T = unknown>(url: string, config: RequestInit = {}) =>
     customFetch<T>(url, { ...config, method: "GET" }),
 
-  post: <T = any>(url: string, body?: any, config: RequestInit = {}) =>
+  post: <T = unknown>(url: string, body?: unknown, config: RequestInit = {}) =>
     customFetch<T>(url, {
       ...config,
       method: "POST",
       body: body ? JSON.stringify(body) : undefined,
     }),
 
-  put: <T = any>(url: string, body?: any, config: RequestInit = {}) =>
+  put: <T = unknown>(url: string, body?: unknown, config: RequestInit = {}) =>
     customFetch<T>(url, {
       ...config,
       method: "PUT",
       body: body ? JSON.stringify(body) : undefined,
     }),
 
-  patch: <T = any>(url: string, body?: any, config: RequestInit = {}) =>
+  patch: <T = unknown>(url: string, body?: unknown, config: RequestInit = {}) =>
     customFetch<T>(url, {
       ...config,
       method: "PATCH",
       body: body ? JSON.stringify(body) : undefined,
     }),
 
-  delete: <T = any>(url: string, config: RequestInit = {}) =>
+  delete: <T = unknown>(url: string, config: RequestInit = {}) =>
     customFetch<T>(url, { ...config, method: "DELETE" }),
 };
 
 export const axios = {
-  isAxiosError: (err: any): err is ApiError => {
-    return err && (err.isAxiosError === true || err instanceof ApiError);
+  isAxiosError: (err: unknown): err is ApiError => {
+    return (
+      typeof err === "object" &&
+      err !== null &&
+      (("isAxiosError" in err &&
+        (err as { isAxiosError: boolean }).isAxiosError === true) ||
+        err instanceof ApiError)
+    );
   },
 };
 

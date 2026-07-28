@@ -35,9 +35,8 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               onChange={e => setFieldValue('fullName', e.target.value)}
               onBlur={() => validateField('fullName', form.fullName)}
               placeholder="e.g. Dr. Robert Vance"
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${
-                errors.fullName ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
-              }`}
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${errors.fullName ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
+                }`}
             />
           </div>
           {errors.fullName && <p className="text-red-500 text-[10px] font-semibold mt-0.5">{errors.fullName}</p>}
@@ -54,9 +53,8 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               onChange={e => setFieldValue('email', e.target.value)}
               onBlur={() => validateField('email', form.email)}
               placeholder="e.g. robert.vance@hospital.org"
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${
-                errors.email ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
-              }`}
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${errors.email ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
+                }`}
             />
           </div>
           {errors.email && <p className="text-red-500 text-[10px] font-semibold mt-0.5">{errors.email}</p>}
@@ -73,9 +71,8 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               onChange={e => setFieldValue('phone', e.target.value)}
               onBlur={() => validateField('phone', form.phone)}
               placeholder="e.g. +1 (555) 234-5678"
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${
-                errors.phone ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
-              }`}
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${errors.phone ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
+                }`}
             />
           </div>
           {errors.phone && <p className="text-red-500 text-[10px] font-semibold mt-0.5">{errors.phone}</p>}
@@ -135,9 +132,8 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
                 value={form.registrationNumber}
                 onChange={e => setFieldValue('registrationNumber', e.target.value)}
                 placeholder="e.g. REG123456"
-                className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${
-                  errors.registrationNumber ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
-                }`}
+                className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${errors.registrationNumber ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
+                  }`}
               />
             </div>
             {errors.registrationNumber && <p className="text-red-500 text-[10px] font-semibold mt-0.5">{errors.registrationNumber}</p>}

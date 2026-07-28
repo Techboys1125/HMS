@@ -3,7 +3,7 @@ import { authService } from "../services/auth.service";
 
 export function useOTP(
   email?: string,
-  onVerified?: (resetToken: string) => void
+  onVerified?: (resetToken: string) => void,
 ) {
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState<number>(60);
@@ -14,6 +14,7 @@ export function useOTP(
 
   useEffect(() => {
     if (timer <= 0) return;
+
     const interval = setInterval(() => {
       setTimer((prev) => prev - 1);
     }, 1000);
@@ -55,6 +56,7 @@ export function useOTP(
 
   const resendOTP = async () => {
     if (!email) return false;
+
     setLoading(true);
     setError(null);
     try {

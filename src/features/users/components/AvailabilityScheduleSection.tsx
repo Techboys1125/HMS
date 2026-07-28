@@ -43,9 +43,9 @@ export const AvailabilityScheduleSection: React.FC<AvailabilityScheduleSectionPr
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-2">
         <h3 className="text-[#0D47A1] font-heading font-bold text-sm flex items-center gap-2">
           <CalendarRange size={16} />
-         Doctor Availability Schedule
+          Doctor Availability Schedule
         </h3>
-        
+
         <button
           type="button"
           onClick={copyMondayHoursToWeekdays}
@@ -67,13 +67,12 @@ export const AvailabilityScheduleSection: React.FC<AvailabilityScheduleSectionPr
         {WEEK_DAYS.map(day => {
           const sched = form.availability[day] || { isAvailable: false, startTime: '', endTime: '' };
           const dayErrors = errors.availabilityDays?.[day];
-          
+
           return (
             <div
               key={day}
-              className={`p-4 grid grid-cols-1 sm:grid-cols-4 items-center gap-4 text-xs transition-colors ${
-                sched.isAvailable ? 'bg-slate-50/50' : 'bg-white opacity-60'
-              }`}
+              className={`p-4 grid grid-cols-1 sm:grid-cols-4 items-center gap-4 text-xs transition-colors ${sched.isAvailable ? 'bg-slate-50/50' : 'bg-white opacity-60'
+                }`}
             >
               {/* Day Name & Checkbox */}
               <div className="col-span-1 flex items-center gap-3">
@@ -100,9 +99,8 @@ export const AvailabilityScheduleSection: React.FC<AvailabilityScheduleSectionPr
                   disabled={!sched.isAvailable}
                   value={sched.startTime}
                   onChange={e => handleTimeChange(day, 'startTime', e.target.value)}
-                  className={`w-full bg-white border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs outline-none focus:border-[#0D47A1] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed ${
-                    dayErrors?.startTime ? 'border-red-500 bg-red-50/50' : ''
-                  }`}
+                  className={`w-full bg-white border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs outline-none focus:border-[#0D47A1] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed ${dayErrors?.startTime ? 'border-red-500 bg-red-50/50' : ''
+                    }`}
                 />
                 {sched.isAvailable && dayErrors?.startTime && (
                   <p className="text-red-500 text-[10px] font-semibold mt-0.5">{dayErrors.startTime}</p>
@@ -117,9 +115,8 @@ export const AvailabilityScheduleSection: React.FC<AvailabilityScheduleSectionPr
                   disabled={!sched.isAvailable}
                   value={sched.endTime}
                   onChange={e => handleTimeChange(day, 'endTime', e.target.value)}
-                  className={`w-full bg-white border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs outline-none focus:border-[#0D47A1] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed ${
-                    dayErrors?.endTime ? 'border-red-500 bg-red-50/50' : ''
-                  }`}
+                  className={`w-full bg-white border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs outline-none focus:border-[#0D47A1] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed ${dayErrors?.endTime ? 'border-red-500 bg-red-50/50' : ''
+                    }`}
                 />
                 {sched.isAvailable && dayErrors?.endTime && (
                   <p className="text-red-500 text-[10px] font-semibold mt-0.5">{dayErrors.endTime}</p>
@@ -128,9 +125,8 @@ export const AvailabilityScheduleSection: React.FC<AvailabilityScheduleSectionPr
 
               {/* Status indicator */}
               <div className="col-span-1 sm:text-right">
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                  sched.isAvailable ? 'bg-green-50 text-[#66BB6A] border border-green-200' : 'bg-slate-50 border border-slate-200 text-slate-400'
-                }`}>
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${sched.isAvailable ? 'bg-green-50 text-[#66BB6A] border border-green-200' : 'bg-slate-50 border border-slate-200 text-slate-400'
+                  }`}>
                   <span className={`w-1 h-1 rounded-full ${sched.isAvailable ? 'bg-[#66BB6A]' : 'bg-slate-450'}`} />
                   {sched.isAvailable ? 'Available' : 'Unavailable'}
                 </span>

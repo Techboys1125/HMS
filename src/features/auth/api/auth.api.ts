@@ -19,37 +19,51 @@ import type {
 export const authApi = {
   // 1. Patient Registration (POST /api/v1/auth/patient/register)
   registerPatient: async (
-    data: PatientRegistrationData
+    data: PatientRegistrationData,
   ): Promise<PatientRegistrationResponse> => {
     try {
       const response = await apiClient.post<PatientRegistrationResponse>(
         "/api/v1/auth/patient/register",
-        data
+        data,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message as string);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          { message?: string } | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
       }
-      throw new Error(error?.message || "Failed to register patient");
+      const msg =
+        error instanceof Error ? error.message : "Failed to register patient";
+      throw new Error(msg, { cause: error });
     }
   },
 
   // 2. Resend Verification OTP (POST /api/v1/auth/resend-verification)
   resendVerificationOTP: async (
-    data: ResendVerificationData
+    data: ResendVerificationData,
   ): Promise<ApiResponse> => {
     try {
       const response = await apiClient.post<ApiResponse>(
         "/api/v1/auth/resend-verification",
-        data
+        data,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message as string);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          { message?: string } | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
       }
-      throw new Error(error?.message || "Failed to resend verification OTP");
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Failed to resend verification OTP";
+      throw new Error(msg, { cause: error });
     }
   },
 
@@ -61,14 +75,20 @@ export const authApi = {
         {
           email: credentials.email,
           password: credentials.password,
-        }
+        },
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message as string);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          { message?: string } | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
       }
-      throw new Error(error?.message || "Invalid email or password");
+      const msg =
+        error instanceof Error ? error.message : "Invalid email or password";
+      throw new Error(msg, { cause: error });
     }
   },
 
@@ -77,14 +97,20 @@ export const authApi = {
     try {
       const response = await apiClient.post<TokenRefreshResponse>(
         "/api/v1/auth/refresh",
-        { refreshToken }
+        { refreshToken },
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message as string);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          { message?: string } | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
       }
-      throw new Error(error?.message || "Failed to refresh token");
+      const msg =
+        error instanceof Error ? error.message : "Failed to refresh token";
+      throw new Error(msg, { cause: error });
     }
   },
 
@@ -94,11 +120,19 @@ export const authApi = {
       const response =
         await apiClient.get<ApiResponse<User>>("/api/v1/auth/me");
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message as string);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          { message?: string } | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
       }
-      throw new Error(error?.message || "Failed to retrieve profile details");
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Failed to retrieve profile details";
+      throw new Error(msg, { cause: error });
     }
   },
 
@@ -107,11 +141,16 @@ export const authApi = {
     try {
       const response = await apiClient.post<ApiResponse>("/api/v1/auth/logout");
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message as string);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          { message?: string } | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
       }
-      throw new Error(error?.message || "Failed to logout");
+      const msg = error instanceof Error ? error.message : "Failed to logout";
+      throw new Error(msg, { cause: error });
     }
   },
 
@@ -120,32 +159,46 @@ export const authApi = {
     try {
       const response = await apiClient.post<ApiResponse>(
         "/api/v1/auth/forgot-password",
-        data
+        data,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message as string);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          { message?: string } | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
       }
-      throw new Error(error?.message || "Failed to send reset instructions");
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Failed to send reset instructions";
+      throw new Error(msg, { cause: error });
     }
   },
 
   // 8. Verify Forgot Password OTP (POST /api/v1/auth/verify-reset-otp)
   verifyResetOTP: async (
-    data: VerifyResetOTPData
+    data: VerifyResetOTPData,
   ): Promise<VerifyResetOTPResponse> => {
     try {
       const response = await apiClient.post<VerifyResetOTPResponse>(
         "/api/v1/auth/verify-reset-otp",
-        data
+        data,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message as string);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          { message?: string } | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
       }
-      throw new Error(error?.message || "Failed to verify OTP");
+      const msg =
+        error instanceof Error ? error.message : "Failed to verify OTP";
+      throw new Error(msg, { cause: error });
     }
   },
 
@@ -154,14 +207,20 @@ export const authApi = {
     try {
       const response = await apiClient.post<ApiResponse>(
         "/api/v1/auth/reset-password",
-        data
+        data,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message as string);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          { message?: string } | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
       }
-      throw new Error(error?.message || "Failed to reset password");
+      const msg =
+        error instanceof Error ? error.message : "Failed to reset password";
+      throw new Error(msg, { cause: error });
     }
   },
 
@@ -170,14 +229,20 @@ export const authApi = {
     try {
       const response = await apiClient.post<ApiResponse>(
         "/api/v1/auth/verify-email",
-        data
+        data,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message as string);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          { message?: string } | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
       }
-      throw new Error(error?.message || "Failed to verify email");
+      const msg =
+        error instanceof Error ? error.message : "Failed to verify email";
+      throw new Error(msg, { cause: error });
     }
   },
 
@@ -186,14 +251,20 @@ export const authApi = {
     try {
       const response = await apiClient.post<ApiResponse>(
         "/api/v1/auth/change-password",
-        data
+        data,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message as string);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          { message?: string } | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
       }
-      throw new Error(error?.message || "Failed to change password");
+      const msg =
+        error instanceof Error ? error.message : "Failed to change password";
+      throw new Error(msg, { cause: error });
     }
   },
 };

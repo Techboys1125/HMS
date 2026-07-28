@@ -203,8 +203,8 @@ function TextField({
           placeholder={placeholder}
           autoFocus={autoFocus}
           className={`w-full py-3 text-sm rounded-xl border outline-none transition-all ${Icon ? 'pl-10' : 'pl-4'} ${rightElement ? 'pr-11' : 'pr-4'} ${hasError
-              ? 'border-[#EF4444] bg-red-50 text-red-900 placeholder-red-300 focus:border-[#EF4444] focus:ring-2 focus:ring-red-100'
-              : 'border-[#E5E7EB] bg-white text-[#111827] placeholder-slate-400 focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50'
+            ? 'border-[#EF4444] bg-red-50 text-red-900 placeholder-red-300 focus:border-[#EF4444] focus:ring-2 focus:ring-red-100'
+            : 'border-[#E5E7EB] bg-white text-[#111827] placeholder-slate-400 focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50'
             }`}
           style={{ fontFamily: RB }}
         />
@@ -233,8 +233,8 @@ function PrimaryBtn({ label, loading = false, disabled = false, onClick }: {
       onClick={onClick}
       disabled={disabled || loading}
       className={`w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold text-white transition-all ${disabled || loading
-          ? 'bg-slate-300 cursor-not-allowed'
-          : 'bg-[#0D47A1] hover:bg-[#0c3d8a] active:scale-[0.98] shadow-sm'
+        ? 'bg-slate-300 cursor-not-allowed'
+        : 'bg-[#0D47A1] hover:bg-[#0c3d8a] active:scale-[0.98] shadow-sm'
         }`}
       style={{ fontFamily: PP, boxShadow: disabled || loading ? 'none' : '0 2px 12px rgba(13,71,161,0.25)' }}
     >
@@ -615,10 +615,10 @@ function OTPScreen({ email, onBack, onVerify }: { email: string; onBack: () => v
             onChange={e => handleChange(i, e.target.value)}
             onKeyDown={e => handleKeyDown(i, e)}
             className={`w-11 h-13 text-center text-lg font-bold rounded-xl border-2 outline-none transition-all ${error
-                ? 'border-[#EF4444] bg-red-50 text-red-800'
-                : v
-                  ? 'border-[#0D47A1] bg-blue-50 text-[#0D47A1]'
-                  : 'border-[#E5E7EB] bg-white text-[#111827] focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50'
+              ? 'border-[#EF4444] bg-red-50 text-red-800'
+              : v
+                ? 'border-[#0D47A1] bg-blue-50 text-[#0D47A1]'
+                : 'border-[#E5E7EB] bg-white text-[#111827] focus:border-[#0D47A1] focus:ring-2 focus:ring-blue-50'
               }`}
             style={{ fontFamily: PP, height: 52 }}
           />
@@ -1004,8 +1004,8 @@ function DemoNav({ current, onSelect }: { current: AuthScreen; onSelect: (s: Aut
             key={s.id}
             onClick={() => onSelect(s.id)}
             className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${current === s.id
-                ? 'bg-[#0D47A1] text-white'
-                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+              ? 'bg-[#0D47A1] text-white'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
               }`}
             style={{ fontFamily: RB }}
           >

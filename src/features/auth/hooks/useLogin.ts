@@ -8,7 +8,9 @@ export function useLogin(onSuccess?: (res: LoginResponse) => void) {
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const login = async (credentials: LoginCredentials): Promise<LoginResponse | null> => {
+  const login = async (
+    credentials: LoginCredentials,
+  ): Promise<LoginResponse | null> => {
     const valErr = loginSchema(credentials);
     if (valErr) {
       setError(valErr);
@@ -36,5 +38,12 @@ export function useLogin(onSuccess?: (res: LoginResponse) => void) {
     }
   };
 
-  return { login, loading, error, errors, setError, setErrors };
+  return {
+    login,
+    loading,
+    error,
+    errors,
+    setError,
+    setErrors,
+  };
 }

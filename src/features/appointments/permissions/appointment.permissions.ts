@@ -20,13 +20,15 @@ export const useAppointmentPermissions = () => {
     canViewAppointments: permissions.can(appointmentPermissionMap.view),
     canCreateAppointments: permissions.can(appointmentPermissionMap.create),
     canEditAppointments: permissions.can(appointmentPermissionMap.edit),
-    canRescheduleAppointments: permissions.can(appointmentPermissionMap.reschedule),
+    canRescheduleAppointments: permissions.can(
+      appointmentPermissionMap.reschedule,
+    ),
     canCancelAppointments: permissions.can(appointmentPermissionMap.cancel),
     canCheckInAppointments: permissions.can(appointmentPermissionMap.checkIn),
     canMarkNoShowAppointments: permissions.can(appointmentPermissionMap.noShow),
     canViewQueue: permissions.can(appointmentPermissionMap.queue),
-    canViewAppointmentHistory: permissions.can(appointmentPermissionMap.history),
+    canViewAppointmentHistory: permissions.can(
+      appointmentPermissionMap.history,
+    ),
   };
 };
-
-

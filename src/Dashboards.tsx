@@ -967,7 +967,7 @@ export function DoctorDashboard() {
         {/* Section 04: Patient Queue Summary (Reusable Card) */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
           <SH title="Patient Queue Summary" sub="Real-time OPD Live Queue" />
-          
+
           <div className="space-y-3">
             {/* Current Patient */}
             <div className="p-3 rounded-xl bg-teal-50 border border-teal-100">

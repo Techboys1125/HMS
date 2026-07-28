@@ -582,17 +582,15 @@ export function OpdConsultationCenterScreen({
                   <button
                     key={t.id}
                     onClick={() => setActiveTab(t.id)}
-                    className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 transition-all shrink-0 ${
-                      isActive
+                    className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 transition-all shrink-0 ${isActive
                         ? 'border-[#0D47A1] text-[#0D47A1] bg-white shadow-sm'
                         : 'border-transparent text-[#64748B] hover:text-[#111827] hover:bg-white/50'
-                    }`}
+                      }`}
                     style={{ fontFamily: PP }}
                   >
                     <span>{t.label}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      isActive ? 'bg-blue-100 text-[#0D47A1]' : 'bg-slate-200 text-slate-600'
-                    }`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive ? 'bg-blue-100 text-[#0D47A1]' : 'bg-slate-200 text-slate-600'
+                      }`}>
                       {t.count}
                     </span>
                   </button>
@@ -691,10 +689,9 @@ export function OpdConsultationCenterScreen({
 
                             {/* Visit Type */}
                             <td className="py-3.5 px-4">
-                              <span className={`inline-block px-2 py-0.5 text-[11px] font-semibold rounded-md ${
-                                item.visitType === 'First Visit' ? 'bg-blue-50 text-blue-700' :
-                                item.visitType === 'Walk-In' ? 'bg-amber-50 text-amber-700' : 'bg-purple-50 text-purple-700'
-                              }`} style={{ fontFamily: PP }}>
+                              <span className={`inline-block px-2 py-0.5 text-[11px] font-semibold rounded-md ${item.visitType === 'First Visit' ? 'bg-blue-50 text-blue-700' :
+                                  item.visitType === 'Walk-In' ? 'bg-amber-50 text-amber-700' : 'bg-purple-50 text-purple-700'
+                                }`} style={{ fontFamily: PP }}>
                                 {item.visitType}
                               </span>
                             </td>

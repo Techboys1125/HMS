@@ -1,8 +1,5 @@
 export type PatientStatus =
-  | "ACTIVE"
-  | "INACTIVE"
-  | "DECEASED"
-  | "DUPLICATE_CANDIDATE";
+  "ACTIVE" | "INACTIVE" | "DECEASED" | "DUPLICATE_CANDIDATE";
 
 export type AgeBasis = "EXACT" | "APPROXIMATE";
 
@@ -110,6 +107,20 @@ export interface MergePatientsRequest {
  */
 export interface CreatePatientRequest {
   fullName: string;
+  gender: string; // MALE, FEMALE, OTHER
+  dateOfBirth: string | null;
+  bloodGroup: string;
+  phone: string;
+  email: string;
+  address:
+    | {
+        value?: string;
+        line1?: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+      }
+    | string;
   gender: string; // MALE | FEMALE | OTHER
   dateOfBirth?: string | null;
   mobileNumber: string;
@@ -147,7 +158,7 @@ export interface PatientSearchResult extends Patient {
   fullName: string;
 }
 
-export interface PatientFormInput extends CreatePatientRequest {}
+export type PatientFormInput = CreatePatientRequest;
 export type ScreenPatient = {
   id: string;
   name: string;
@@ -334,12 +345,7 @@ export type ScreenPatientSearchResult = {
   };
 };
 export type ChipVariant =
-  | "success"
-  | "warning"
-  | "error"
-  | "info"
-  | "teal"
-  | "default";
+  "success" | "warning" | "error" | "info" | "teal" | "default";
 export interface ReceptionPatientProfileScreenProps {
   onBack?: () => void;
   onEditPatient?: () => void;

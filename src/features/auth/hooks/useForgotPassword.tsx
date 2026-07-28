@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { authService } from "../services/auth.service";
 import { forgotPasswordSchema } from "../validation/login.schema";
-import { ZodError } from "zod";
 
 export const useForgotPassword = (onNext: (email: string) => void) => {
   const [loading, setLoading] = useState(false);
@@ -12,15 +11,17 @@ export const useForgotPassword = (onNext: (email: string) => void) => {
     try {
       setLoading(true);
       setError("");
-      forgotPasswordSchema.parse({ email });
+      const validationError = forgotPasswordSchema({ email });
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
 
       await authService.forgotPassword({ email });
       setSent(true);
       onNext(email);
     } catch (e: unknown) {
-      if (e instanceof ZodError) {
-        setError(e.issues[0]?.message || "Please enter a valid email");
-      } else if (e instanceof Error) {
+      if (e instanceof Error) {
         setError(e.message || "Failed to send reset instructions");
       } else {
         setError("Failed to send reset instructions");
@@ -29,6 +30,5 @@ export const useForgotPassword = (onNext: (email: string) => void) => {
       setLoading(false);
     }
   };
-
   return { sendResetLink, loading, error, sent };
 };

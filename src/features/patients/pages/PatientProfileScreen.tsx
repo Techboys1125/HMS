@@ -54,7 +54,7 @@ export function PatientProfileScreen({
   onStartConsultation?: () => void;
   onRecordVitals?: () => void;
   onCheckIn?: () => void;
-  patientData?: any;
+  patientData?: Record<string, unknown>;
   patientMrn?: string;
 }) {
   const [activeTab, setActiveTab] = useState<string>("overview");
@@ -62,10 +62,10 @@ export function PatientProfileScreen({
   // Slide-over Drawers State
   const [isBookDrawerOpen, setIsBookDrawerOpen] = useState(false);
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
-  const [selectedAppt, setSelectedAppt] = useState<any | null>(null);
-  const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
-  const [selectedDoc, setSelectedDoc] = useState<any | null>(null);
-  const [selectedVisit, setSelectedVisit] = useState<any | null>(null);
+  const [selectedAppt, setSelectedAppt] = useState<Record<string, unknown> | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<Record<string, unknown> | null>(null);
+  const [selectedDoc, setSelectedDoc] = useState<Record<string, unknown> | null>(null);
+  const [selectedVisit, setSelectedVisit] = useState<Record<string, unknown> | null>(null);
   const [isMoreActionsOpen, setIsMoreActionsOpen] = useState(false);
 
   // Visit History Filters State
@@ -744,11 +744,10 @@ export function PatientProfileScreen({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-colors ${
-                activeTab === tab.id
-                  ? "bg-[#0D47A1] text-white shadow-sm"
-                  : "text-slate-600 hover:bg-slate-50"
-              }`}
+              className={`px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-colors ${activeTab === tab.id
+                ? "bg-[#0D47A1] text-white shadow-sm"
+                : "text-slate-600 hover:bg-slate-50"
+                }`}
               style={{ fontFamily: PP }}
             >
               {tab.label}

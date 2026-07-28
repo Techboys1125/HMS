@@ -237,7 +237,7 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
  * Hook to verify current user's permissions and role
  */
 export const usePermissions = () => {
-  const user = useAuthStore((state: any) => state.user);
+  const user = useAuthStore((state) => state.user);
 
   const can = (permission: AppPermission): boolean => {
     if (!user) return false;

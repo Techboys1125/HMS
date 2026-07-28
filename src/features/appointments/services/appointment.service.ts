@@ -39,9 +39,7 @@ const toDisplayStatus = (status?: string): AppointmentRecord["status"] =>
   (status as AppointmentRecord["status"]) ||
   "Scheduled";
 
-export const normalizeAppointmentRecord = (
-  item: any
-): AppointmentRecord => {
+export const normalizeAppointmentRecord = (item: any): AppointmentRecord => {
   const patient = item?.patient || {};
   const doctor = item?.doctor || {};
   const appointmentDate = item?.appointmentDate || item?.date || "";
@@ -50,7 +48,8 @@ export const normalizeAppointmentRecord = (
 
   return {
     id: item?.id ?? item?.appointmentId ?? item?.appointmentNumber ?? "",
-    appointmentNumber: item?.appointmentNumber || item?.queueToken || String(item?.id ?? ""),
+    appointmentNumber:
+      item?.appointmentNumber || item?.queueToken || String(item?.id ?? ""),
     queueToken: item?.queueToken || item?.tokenNo,
     patientId: item?.patientId ?? patient?.id ?? "",
     patientName: item?.patientName || patient?.fullName || patient?.name || "",
@@ -83,7 +82,8 @@ export const normalizeAppointmentRecord = (
     patientAge: item?.patientAge,
     patientGender: item?.patientGender,
     patientPhone: item?.patientPhone || patient?.phone || patient?.mobile,
-    department: item?.department || item?.departmentName || doctor?.departmentName,
+    department:
+      item?.department || item?.departmentName || doctor?.departmentName,
     doctorSpecialty: item?.doctorSpecialty || doctor?.specialty,
     tokenNo: item?.tokenNo || item?.queueToken,
     timeSlot: item?.timeSlot || startTime,
@@ -95,9 +95,14 @@ export const normalizeAppointmentRecord = (
 
 const unwrapAppointmentCollection = (response: any): any[] => {
   if (Array.isArray(response?.data)) return response.data;
+
   if (Array.isArray(response?.content)) return response.content;
+
   if (Array.isArray(response?.data?.content)) return response.data.content;
-  if (Array.isArray(response?.data?.data?.content)) return response.data.data.content;
+
+  if (Array.isArray(response?.data?.data?.content))
+    return response.data.data.content;
+
   return [];
 };
 
@@ -118,26 +123,39 @@ export const appointmentService = {
     return items.map(normalizeAppointmentRecord);
   },
 
-  async listDoctorAppointments(date?: string, status?: string): Promise<AppointmentRecord[]> {
+  async listDoctorAppointments(
+    date?: string,
+    status?: string,
+  ): Promise<AppointmentRecord[]> {
     const res = await appointmentsApi.getDoctorAppointments(date);
     const items = unwrapAppointmentCollection(res);
     return items
-      .filter((item) => (!status ? true : String(item?.status || "").toUpperCase() === status.toUpperCase()))
+      .filter((item) =>
+        !status
+          ? true
+          : String(item?.status || "").toUpperCase() === status.toUpperCase(),
+      )
       .map(normalizeAppointmentRecord);
   },
 
-  async listPatientAppointments(patientId: string | number): Promise<AppointmentRecord[]> {
+  async listPatientAppointments(
+    patientId: string | number,
+  ): Promise<AppointmentRecord[]> {
     const res = await appointmentsApi.getPatientAppointments(patientId);
     const items = unwrapAppointmentCollection(res);
     return items.map(normalizeAppointmentRecord);
   },
 
-  async getAppointment(appointmentId: string | number): Promise<AppointmentRecord | null> {
+  async getAppointment(
+    appointmentId: string | number,
+  ): Promise<AppointmentRecord | null> {
     const res = await appointmentsApi.getAppointmentById(appointmentId);
     return res?.data ? normalizeAppointmentRecord(res.data) : null;
   },
 
-  async bookAppointment(payload: CreateAppointmentRequest): Promise<AppointmentRecord> {
+  async bookAppointment(
+    payload: CreateAppointmentRequest,
+  ): Promise<AppointmentRecord> {
     const res = await appointmentsApi.createAppointment(payload);
     if (!res?.data) {
       throw new Error("Appointment booking did not return a record.");
@@ -147,9 +165,12 @@ export const appointmentService = {
 
   async rescheduleAppointment(
     appointmentId: string | number,
-    payload: RescheduleAppointmentRequest
+    payload: RescheduleAppointmentRequest,
   ): Promise<AppointmentRecord> {
-    const res = await appointmentsApi.rescheduleAppointment(appointmentId, payload);
+    const res = await appointmentsApi.rescheduleAppointment(
+      appointmentId,
+      payload,
+    );
     if (!res?.data) {
       throw new Error("Appointment reschedule did not return a record.");
     }
@@ -158,7 +179,7 @@ export const appointmentService = {
 
   async cancelAppointment(
     appointmentId: string | number,
-    payload: CancelAppointmentRequest
+    payload: CancelAppointmentRequest,
   ): Promise<AppointmentRecord> {
     const res = await appointmentsApi.cancelAppointment(appointmentId, payload);
     if (!res?.data) {
@@ -193,7 +214,10 @@ export const appointmentService = {
     return Array.isArray(res?.data) ? res.data : [];
   },
 
-  async listAvailableSlots(doctorId: string | number, date: string): Promise<any[]> {
+  async listAvailableSlots(
+    doctorId: string | number,
+    date: string,
+  ): Promise<any[]> {
     const res = await appointmentsApi.getAvailableSlots(doctorId, date);
     return Array.isArray(res?.data) ? res.data : [];
   },
@@ -202,7 +226,8 @@ export const appointmentService = {
 export type AppointmentService = typeof appointmentService;
 
 export const isUserRole = (role?: string | null): role is UserRole =>
-  Boolean(role) && [
+  Boolean(role) &&
+  [
     "Receptionist",
     "Admin",
     "Hospital Admin",

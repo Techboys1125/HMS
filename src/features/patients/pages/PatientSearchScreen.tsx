@@ -4,9 +4,16 @@ import {
   Search,
   UserPlus,
 } from "lucide-react";
-import type { ScreenPatientSearchResult } from "../types/patient.types";
-import { RB, PP } from "../constants/patient.mock";
+import type {
+  ScreenPatientSearchResult,
+  ChipVariant
+} from "../types/patient.types";
+import {
+  PP,
+  RB,
 
+} from "../constants/patient.mock";
+import { Av, Chip } from "../components/Avatar";
 
 export function PatientSearchScreen({
   onBack,

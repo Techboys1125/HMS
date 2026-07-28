@@ -111,12 +111,7 @@ export const useCreateStaffForm = (
   onSuccess?: () => void,
   onBack?: () => void,
 ) => {
-  let navigate: any = null;
-  try {
-    navigate = useNavigate();
-  } catch (e) {
-    console.log(e);
-  }
+  const navigate = useNavigate();
 
   const [form, setForm] = useState<FormValues>({
     fullName: "",

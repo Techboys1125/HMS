@@ -988,13 +988,12 @@ export function RecordPatientVitalsForm({
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${
-            toast.type === "success"
-              ? "bg-[#66BB6A] border-green-300"
-              : toast.type === "error"
-                ? "bg-[#EF4444] border-red-300"
-                : "bg-[#0D47A1] border-blue-300"
-          }`}
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${toast.type === "success"
+            ? "bg-[#66BB6A] border-green-300"
+            : toast.type === "error"
+              ? "bg-[#EF4444] border-red-300"
+              : "bg-[#0D47A1] border-blue-300"
+            }`}
         >
           <AlertCircle size={16} />
           {toast.message}
@@ -1800,13 +1799,12 @@ export function RecordPatientVitalsScreen({
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${
-            toast.type === "success"
-              ? "bg-[#66BB6A] border-green-300"
-              : toast.type === "error"
-                ? "bg-[#EF4444] border-red-300"
-                : "bg-[#0D47A1] border-blue-300"
-          }`}
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${toast.type === "success"
+            ? "bg-[#66BB6A] border-green-300"
+            : toast.type === "error"
+              ? "bg-[#EF4444] border-red-300"
+              : "bg-[#0D47A1] border-blue-300"
+            }`}
         >
           <AlertCircle size={16} />
           {toast.message}
@@ -2065,9 +2063,9 @@ export function RecordPatientVitalsScreen({
                 >
                   <option value="All">All Vitals</option>
                   <option value="Waiting for Vitals">Waiting for Vitals</option>
-                  <option value="Recording In Progress">In Progress</option>
-                  <option value="Vitals Recorded">Recorded</option>
-                  <option value="Ready For Consultation">Ready</option>
+                  <option value="Recording In Progress">Recording In Progress</option>
+                  <option value="Vitals Recorded">Vitals Recorded</option>
+                  <option value="Ready For Consultation">Ready For Consultation</option>
                 </select>
               </div>
 
@@ -2091,7 +2089,7 @@ export function RecordPatientVitalsScreen({
 
           {/* STATUS TABS */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-            {[
+            {([
               { id: "All", label: "All", count: kpiStats.total },
               {
                 id: "Waiting for Vitals",
@@ -2113,24 +2111,22 @@ export function RecordPatientVitalsScreen({
                 label: "Ready For Consultation",
                 count: kpiStats.ready,
               },
-            ].map((tab) => (
+            ] as const).map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap flex items-center gap-2 border ${
-                  activeTab === tab.id
-                    ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
-                    : "bg-white text-slate-600 border-[#E5E7EB] hover:bg-slate-50"
-                }`}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap flex items-center gap-2 border ${activeTab === tab.id
+                  ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
+                  : "bg-white text-slate-600 border-[#E5E7EB] hover:bg-slate-50"
+                  }`}
                 style={{ fontFamily: PP }}
               >
                 <span>{tab.label}</span>
                 <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                    activeTab === tab.id
-                      ? "bg-white/20 text-white"
-                      : "bg-slate-100 text-slate-600"
-                  }`}
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${activeTab === tab.id
+                    ? "bg-white/20 text-white"
+                    : "bg-slate-100 text-slate-600"
+                    }`}
                 >
                   {tab.count}
                 </span>

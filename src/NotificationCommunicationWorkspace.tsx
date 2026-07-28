@@ -109,10 +109,10 @@ export function NotificationCommunicationWorkspace() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '20px' }}>
-      
+
       {/* MAIN CONTENT SECTIONS */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
-        
+
         {/* SUB-HEADER ACTION BAR */}
         <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E5E7EB', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
           <div>
@@ -143,7 +143,7 @@ export function NotificationCommunicationWorkspace() {
               <Eye size={14} /> Preview Notification
             </button>
             <button
-              onClick={() => {}}
+              onClick={() => { }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -286,7 +286,7 @@ export function NotificationCommunicationWorkspace() {
                     />
                   </div>
                   <p style={{ fontSize: '11px', color: '#64748B', margin: '0 0 12px 0' }}>{ch.desc}</p>
-                  
+
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #E2E8F0', paddingTop: '8px', fontSize: '11px' }}>
                     <span style={{ color: '#64748B' }}>Set as Primary Channel</span>
                     <input
@@ -649,7 +649,7 @@ export function NotificationCommunicationWorkspace() {
 
             {/* DRAWER CONTENT */}
             <div style={{ padding: '24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              
+
               {/* Group 1: Template Information */}
               <div style={{ background: '#F8FAFC', borderRadius: '12px', border: '1px solid #E2E8F0', padding: '16px' }}>
                 <h4 style={{ fontFamily: PP, fontSize: '13px', fontWeight: 700, color: '#0D47A1', margin: '0 0 12px 0' }}>

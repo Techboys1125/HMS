@@ -1,1 +1,1 @@
-export * from './pages/VitalsManagementScreen';
+export * from "./pages/VitalsManagementScreen";

@@ -206,8 +206,8 @@ export function DoctorConsultationScreen({ onBack }: { onBack?: () => void }) {
               key={id}
               onClick={() => setTab(id)}
               className={`flex items-center gap-1.5 px-4 py-3.5 text-xs font-semibold border-b-2 transition-all -mb-px ${tab === id
-                  ? 'border-[#0D47A1] text-[#0D47A1]'
-                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-200'
+                ? 'border-[#0D47A1] text-[#0D47A1]'
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-200'
                 }`}
               style={{ fontFamily: PP }}
             >
@@ -1418,7 +1418,7 @@ export function DoctorPrescriptionDetailsScreen({
     visitDate: '24 Jul 2026',
     allergies: ['Penicillin', 'Aspirin'],
     knownConditions: ['Hypertension', 'Borderline Type 2 Diabetes'],
-    
+
     // Section 01: Diagnosis Summary
     chiefComplaint: 'Severe chest tightness radiating to left shoulder with acute dyspnea on exertion.',
     clinicalFindings: 'Chest wall non-tender. S1 and S2 heart sounds heard normal. No murmurs or gallop rhythm. BP 145/92 mmHg, HR 88 bpm.',
@@ -1850,7 +1850,7 @@ export function DoctorPrescriptionDetailsScreen({
 
           {/* ── RIGHT CONTEXT PANEL (Col-span-3) ── */}
           <div className="lg:col-span-3 space-y-4">
-            
+
             {/* CARD 01: Quick Actions */}
             <Card className="p-4">
               <h4 className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-3 pb-2 border-b border-gray-100" style={{ fontFamily: PP }}>
@@ -2213,7 +2213,7 @@ export function DoctorEditPrescriptionScreen({
   const validateForm = () => {
     const errs: Record<string, string> = {}
     if (!finalDiagnosis.trim()) errs.diagnosis = 'Diagnosis is required'
-    
+
     medicines.forEach((m, idx) => {
       if (!m.name.trim()) errs[`med_${m.id}_name`] = `Medicine #${idx + 1} name required`
       if (!m.dosage.trim()) errs[`med_${m.id}_dosage`] = `Dosage required`
@@ -3036,7 +3036,7 @@ export function DoctorPrescriptionPrintPreviewScreen({
   onViewConsultation?: (consultId: string) => void
 }) {
   const [toastMsg, setToastMsg] = useState<string | null>(null)
-  
+
   // Print Settings State
   const [paperSize, setPaperSize] = useState('A4')
   const [orientation, setOrientation] = useState('Portrait')
@@ -3195,7 +3195,7 @@ export function DoctorPrescriptionPrintPreviewScreen({
 
           {/* ── CENTER / MAIN WORKSPACE (Col-span-8 / 9): Centered A4 Document ── */}
           <div className="lg:col-span-8 xl:col-span-9 flex justify-center">
-            
+
             {/* ── A4 WHITE PAPER CONTAINER (Subtle Shadow, Exact Print Layout) ── */}
             <div
               id="printable-a4-document"

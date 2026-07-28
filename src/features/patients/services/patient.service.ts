@@ -9,21 +9,10 @@ import type {
   UpdatePatientRequest,
 } from "../types/patient.types";
 
-const unwrapData = <T>(response: any): T | null => {
+const unwrapData = <T>(response: unknown): T | null => {
   if (!response) return null;
-  return (response.data ?? response) as T;
-};
-
-/**
- * Unwrap the standard API envelope: { success, code, message, data, errors }
- */
-const unwrapApiEnvelope = <T>(response: any): T | null => {
-  if (!response) return null;
-  const raw = response.data;
-  if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
-    return raw.data as T;
-  }
-  return raw as T;
+  const resObj = response as { data?: T };
+  return (resObj.data ?? response) as T;
 };
 
 export const patientService = {
@@ -42,22 +31,23 @@ export const patientService = {
         search.append("size", String(params.size));
       if (params?.status) search.append("status", params.status);
       const url = `/api/v1/patients${search.toString() ? `?${search.toString()}` : ""}`;
-      const res = await apiClient.get<any>(url);
-      // Try standard envelope first: { success, code, message, data, errors }
-      const raw = res.data;
-      if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
-        const items = raw.data;
-        return Array.isArray(items) ? items : [];
+      const res = await apiClient.get<{ content?: Patient[] } | Patient[]>(url);
+      const data = res.data;
+      if (
+        data &&
+        typeof data === "object" &&
+        "content" in data &&
+        Array.isArray(data.content)
+      ) {
+        return data.content;
       }
-      // Fallback to direct array or content wrapper
-      return Array.isArray(res.data?.content)
-        ? res.data.content
-        : Array.isArray(res.data)
-          ? res.data
-          : [];
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
+      return Array.isArray(data) ? data : [];
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
       }
       throw error;
     }
@@ -65,22 +55,25 @@ export const patientService = {
 
   async searchPatients(query: string): Promise<Patient[]> {
     try {
-      const res = await apiClient.get<any>(
+      const res = await apiClient.get<{ content?: Patient[] } | Patient[]>(
         `/api/v1/patients/search?query=${encodeURIComponent(query)}`,
       );
-      const raw = res.data;
-      if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
-        const items = raw.data;
-        return Array.isArray(items) ? items : [];
+      const data = res.data;
+      if (
+        data &&
+        typeof data === "object" &&
+        "content" in data &&
+        Array.isArray(data.content)
+      ) {
+        return data.content;
       }
-      return Array.isArray(res.data?.content)
-        ? res.data.content
-        : Array.isArray(res.data)
-          ? res.data
-          : [];
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
+      return Array.isArray(data) ? data : [];
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
       }
       throw error;
     }
@@ -88,7 +81,7 @@ export const patientService = {
 
   async getPatient(mrn: string): Promise<Patient> {
     try {
-      const res = await apiClient.get<any>(
+      const res = await apiClient.get<Patient>(
         `/api/v1/patients/${encodeURIComponent(mrn)}`,
       );
       const raw = res.data;
@@ -96,26 +89,32 @@ export const patientService = {
         return raw.data as Patient;
       }
       return unwrapData<Patient>(res) as Patient;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
       }
       throw error;
     }
   },
 
-  async createPatient(payload: CreatePatientRequest): Promise<{ MRNId: string; message: string; }> {
+  async createPatient(
+    payload: CreatePatientRequest,
+  ): Promise<{ MRNId: string; message: string }> {
     try {
-      const res = await apiClient.post<any>("/api/v1/patients", payload);
-      // Unwrap API envelope: { success, code, message, data, errors }
-      const raw = res.data;
-      if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
-        return raw.data || { MRNId: raw.message || "Unknown", message: raw.message || "" };
-      }
-      return res.data || res;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
+      const res = await apiClient.post<{ MRNId: string; message: string }>(
+        "/api/v1/patients",
+        payload,
+      );
+      return res.data || (res as unknown as { MRNId: string; message: string });
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
       }
       throw error;
     }
@@ -126,7 +125,7 @@ export const patientService = {
     reason: string,
   ): Promise<Patient> {
     try {
-      const res = await apiClient.post<any>("/api/v1/patients/override", {
+      const res = await apiClient.post<Patient>("/api/v1/patients/override", {
         ...payload,
         reason,
       });
@@ -135,9 +134,12 @@ export const patientService = {
         return raw.data as Patient;
       }
       return unwrapData<Patient>(res) as Patient;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
       }
       throw error;
     }
@@ -149,7 +151,7 @@ export const patientService = {
     version: number,
   ): Promise<Patient> {
     try {
-      const res = await apiClient.patch<any>(
+      const res = await apiClient.patch<Patient>(
         `/api/v1/patients/${encodeURIComponent(mrn)}`,
         {
           ...payload,
@@ -161,9 +163,12 @@ export const patientService = {
         return raw.data as Patient;
       }
       return unwrapData<Patient>(res) as Patient;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
       }
       throw error;
     }
@@ -171,18 +176,26 @@ export const patientService = {
 
   async checkDuplicates(payload: DuplicateCheckRequest): Promise<Patient[]> {
     try {
-      const res = await apiClient.post<any>(
+      const res = await apiClient.post<{ candidates?: Patient[] } | Patient[]>(
         "/api/v1/patients/check-duplicates",
         payload,
       );
-      return Array.isArray(res.data?.candidates)
-        ? res.data.candidates
-        : Array.isArray(res.data)
-          ? res.data
-          : [];
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
+      const data = res.data;
+      if (
+        data &&
+        typeof data === "object" &&
+        "candidates" in data &&
+        Array.isArray(data.candidates)
+      ) {
+        return data.candidates;
+      }
+      return Array.isArray(data) ? data : [];
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
       }
       throw error;
     }
@@ -192,7 +205,7 @@ export const patientService = {
     payload: DuplicateOverrideRequest & { mrn?: string },
   ): Promise<Patient> {
     try {
-      const res = await apiClient.post<any>(
+      const res = await apiClient.post<Patient>(
         "/api/v1/patients/duplicate-override",
         payload,
       );
@@ -201,9 +214,12 @@ export const patientService = {
         return raw.data as Patient;
       }
       return unwrapData<Patient>(res) as Patient;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
       }
       throw error;
     }
@@ -211,15 +227,17 @@ export const patientService = {
 
   async mergePatients(payload: MergePatientsRequest): Promise<Patient> {
     try {
-      const res = await apiClient.post<any>("/api/v1/patients/merge", payload);
-      const raw = res.data;
-      if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
-        return raw.data as Patient;
-      }
+      const res = await apiClient.post<Patient>(
+        "/api/v1/patients/merge",
+        payload,
+      );
       return unwrapData<Patient>(res) as Patient;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
       }
       throw error;
     }
@@ -227,16 +245,38 @@ export const patientService = {
 
   async getStatistics(): Promise<PatientStatistics> {
     try {
-      const res = await apiClient.get<any>("/api/v1/patients/statistics");
+      const res = await apiClient.get<PatientStatistics>(
+        "/api/v1/patients/statistics",
+      );
       return unwrapData<PatientStatistics>(res) as PatientStatistics;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && (error.response?.status === 403 || error.response?.status === 404)) {
+    } catch (error: unknown) {
+      if (
+        axios.isAxiosError(error) &&
+        (error.response?.status === 403 || error.response?.status === 404)
+      ) {
         console.warn("Statistics endpoint not available, returning mock data");
-        return { totalPatients: 0, activePatients: 0, inactivePatients: 0, duplicateCandidates: 0, deceasedPatients: 0, newRegistrationsToday: 0 };
+        return {
+          totalPatients: 0,
+          activePatients: 0,
+          inactivePatients: 0,
+          duplicateCandidates: 0,
+          deceasedPatients: 0,
+          newRegistrationsToday: 0,
+        };
       }
-      if (error instanceof ApiError && (error.response?.status === 403 || error.response?.status === 404)) {
-         console.warn("Statistics endpoint not available, returning mock data");
-         return { totalPatients: 0, activePatients: 0, inactivePatients: 0, duplicateCandidates: 0, deceasedPatients: 0, newRegistrationsToday: 0 };
+      if (
+        error instanceof ApiError &&
+        (error.response?.status === 403 || error.response?.status === 404)
+      ) {
+        console.warn("Statistics endpoint not available, returning mock data");
+        return {
+          totalPatients: 0,
+          activePatients: 0,
+          inactivePatients: 0,
+          duplicateCandidates: 0,
+          deceasedPatients: 0,
+          newRegistrationsToday: 0,
+        };
       }
       throw error;
     }

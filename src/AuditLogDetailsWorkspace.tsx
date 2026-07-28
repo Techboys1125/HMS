@@ -107,7 +107,7 @@ export function AuditLogDetailsWorkspace({
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9]" style={{ fontFamily: RB }}>
-      
+
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-16 right-6 z-50 bg-gray-900 text-white px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 border border-gray-700 text-sm animate-bounce">
@@ -189,7 +189,7 @@ export function AuditLogDetailsWorkspace({
 
       {/* WORKSPACE CONTENT LAYOUT: 70% SCROLLABLE WORKSPACE & 30% STICKY RIGHT PANEL */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
+
         {/* LEFT 70% — SCROLLABLE CONTENT WORKSPACE */}
         <div className="lg:col-span-8 space-y-6">
 
@@ -506,7 +506,7 @@ export function AuditLogDetailsWorkspace({
 
         {/* RIGHT 30% — STICKY RIGHT INFORMATION PANEL */}
         <div className="lg:col-span-4 space-y-4 sticky top-6">
-          
+
           {/* Card 1: Audit Summary */}
           <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm space-y-3">
             <h4 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2" style={{ fontFamily: PP }}>

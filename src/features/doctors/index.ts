@@ -1,2 +1,2 @@
-export * from './pages/DoctorManagementCenterScreen';
-export * from './pages/DoctorScreens';
+export * from "./pages/DoctorManagementCenterScreen";
+export * from "./pages/DoctorScreens";

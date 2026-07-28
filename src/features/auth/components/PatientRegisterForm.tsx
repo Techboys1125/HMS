@@ -93,22 +93,20 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
             <button
               type="button"
               onClick={() => setMode("new")}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
-                mode === "new"
-                  ? "bg-white text-[#0D47A1] shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${mode === "new"
+                ? "bg-white text-[#0D47A1] shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+                }`}
             >
               New Patient
             </button>
             <button
               type="button"
               onClick={() => setMode("link")}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
-                mode === "link"
-                  ? "bg-white text-[#0D47A1] shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${mode === "link"
+                ? "bg-white text-[#0D47A1] shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+                }`}
             >
               Existing Patient
             </button>

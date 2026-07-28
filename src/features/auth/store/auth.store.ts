@@ -68,7 +68,7 @@ function saveState(state: AuthState) {
     if (state.isAuthenticated && state.user && state.tokens) {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ user: state.user, tokens: state.tokens })
+        JSON.stringify({ user: state.user, tokens: state.tokens }),
       );
       localStorage.setItem("hms-user", JSON.stringify(state.user));
       localStorage.setItem("accessToken", state.tokens.accessToken);
@@ -129,7 +129,10 @@ export const authStoreActions = {
     if (currentState.tokens) {
       currentState = {
         ...currentState,
-        tokens: { ...currentState.tokens, ...tokens },
+        tokens: {
+          ...currentState.tokens,
+          ...tokens,
+        },
       };
       saveState(currentState);
       notify();
@@ -140,7 +143,10 @@ export const authStoreActions = {
     if (currentState.user) {
       currentState = {
         ...currentState,
-        user: { ...currentState.user, mustChangePassword: mustChange },
+        user: {
+          ...currentState.user,
+          mustChangePassword: mustChange,
+        },
       };
       saveState(currentState);
       notify();
@@ -149,12 +155,12 @@ export const authStoreActions = {
 };
 
 export function useAuthStore<T = AuthState>(
-  selector?: (state: AuthState) => T
+  selector?: (state: AuthState) => T,
 ): T {
   const snapshot = useSyncExternalStore(
     authStoreActions.subscribe,
     authStoreActions.getState,
-    authStoreActions.getState
+    authStoreActions.getState,
   );
 
   if (selector) {
@@ -162,7 +168,6 @@ export function useAuthStore<T = AuthState>(
   }
   return snapshot as unknown as T;
 }
-
 useAuthStore.getState = authStoreActions.getState;
 useAuthStore.subscribe = authStoreActions.subscribe;
 useAuthStore.login = authStoreActions.login;

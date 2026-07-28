@@ -10,7 +10,6 @@ import {
   UserCheck,
 } from "lucide-react";
 import type { Patient } from "../types/patient.types";
-import { PatientStatusBadge as StatusBadge } from "./PatientStatusBadge.tsx";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";

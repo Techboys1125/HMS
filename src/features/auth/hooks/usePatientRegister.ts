@@ -1,15 +1,21 @@
 import { useState } from "react";
 import { authService } from "../services/auth.service";
 import { patientRegisterSchema } from "../validation/login.schema";
-import type { PatientRegistrationData, PatientLinkData, PatientRegistrationResponse } from "../types/auth.types";
+import type {
+  PatientRegistrationData,
+  PatientLinkData,
+  PatientRegistrationResponse,
+} from "../types/auth.types";
 
-export function usePatientRegister(onSuccess?: (res: PatientRegistrationResponse) => void) {
+export function usePatientRegister(
+  onSuccess?: (res: PatientRegistrationResponse) => void,
+) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const register = async (
-    data: PatientRegistrationData
+    data: PatientRegistrationData,
   ): Promise<PatientRegistrationResponse | null> => {
     const valErr = patientRegisterSchema(data);
     if (valErr) {
@@ -39,9 +45,14 @@ export function usePatientRegister(onSuccess?: (res: PatientRegistrationResponse
   };
 
   const linkExisting = async (
-    data: PatientLinkData
+    data: PatientLinkData,
   ): Promise<PatientRegistrationResponse | null> => {
-    if (!data.mrn || !data.mobile || !data.password || data.password !== data.confirmPassword) {
+    if (
+      !data.mrn ||
+      !data.mobile ||
+      !data.password ||
+      data.password !== data.confirmPassword
+    ) {
       const msg = "Please fill all fields and ensure passwords match.";
       setError(msg);
       setErrors({ form: msg });
@@ -68,5 +79,13 @@ export function usePatientRegister(onSuccess?: (res: PatientRegistrationResponse
     }
   };
 
-  return { register, linkExisting, loading, error, errors, setError, setErrors };
+  return {
+    register,
+    linkExisting,
+    loading,
+    error,
+    errors,
+    setError,
+    setErrors,
+  };
 }

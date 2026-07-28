@@ -66,7 +66,7 @@ export function PatientDashboard() {
 
   const handleCancel = () => {
     if (upcomingApt.id) {
-      appointmentsApi.cancelAppointment(upcomingApt.id, { reason: "Patient requested cancellation" }).catch(() => {});
+      appointmentsApi.cancelAppointment(upcomingApt.id, { reason: "Patient requested cancellation" }).catch(() => { });
     }
     setUpcomingApt(prev => ({ ...prev, status: "Cancelled" }));
   };

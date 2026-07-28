@@ -45,7 +45,7 @@ import {
   Receipt, Clock, Activity,
   ChevronRight, User, Check,
   Building2, ChevronDown, LogOut,
-  ClipboardList, 
+  ClipboardList,
   TrendingUp, TrendingDown, RefreshCw,
   Zap, Download,
   UserCheck, LogIn, BarChart2, DollarSign, MessageSquare
@@ -773,14 +773,14 @@ function Header({
   return (
     <header className="h-16 bg-white border-b border-gray-100 flex items-center px-5 gap-5 shrink-0 z-30 relative">
       {/* Branding Left */}
-      <button 
-        onClick={() => onNavigateNav('dashboard')} 
+      <button
+        onClick={() => onNavigateNav('dashboard')}
         className="flex items-center gap-3 text-left outline-none shrink-0 group focus:outline-none"
       >
-        <img 
-          src={safeHandsLogo} 
-          alt="Safe Hands Hospital Logo" 
-          className="h-9 w-auto object-contain transition-transform group-hover:scale-105" 
+        <img
+          src={safeHandsLogo}
+          alt="Safe Hands Hospital Logo"
+          className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
         />
         <div className="flex flex-col">
           <span className="text-sm font-bold text-[#111827] leading-tight" style={{ fontFamily: PP }}>
@@ -860,13 +860,12 @@ function Header({
                           }
                           setPendingSwitchMember(member)
                         }}
-                        className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-all ${
-                          isActive
+                        className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-all ${isActive
                             ? 'bg-blue-50/90 border-[#0D47A1] shadow-sm'
                             : isVerified
-                            ? 'bg-white border-[#E5E7EB] hover:bg-slate-50'
-                            : 'bg-slate-50 border-[#E5E7EB] opacity-60 cursor-not-allowed'
-                        }`}
+                              ? 'bg-white border-[#E5E7EB] hover:bg-slate-50'
+                              : 'bg-slate-50 border-[#E5E7EB] opacity-60 cursor-not-allowed'
+                          }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${isActive ? 'bg-[#0D47A1] text-white' : 'bg-slate-200 text-slate-700'}`}>
@@ -916,7 +915,7 @@ function Header({
         </div>
 
         {/* Notifications */}
-        <button 
+        <button
           onClick={() => onNavigateNav('notifications')}
           className="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-slate-50 text-slate-500 transition-colors"
           title="Notification Center"
@@ -1006,7 +1005,7 @@ function Header({
       {pendingSwitchMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 max-w-md w-full shadow-2xl space-y-4">
-            
+
             {/* HEADER */}
             <div className="flex items-center gap-3 border-b border-[#E5E7EB] pb-3">
               <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0D47A1] flex items-center justify-center font-bold shrink-0">
@@ -1957,7 +1956,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
             {activeNav === 'dashboard' && role === 'admin' && <HospitalAdminDashboard />}
             {activeNav === 'dashboard' && role === 'doctor' && <DoctorDashboard />}
             {activeNav === 'dashboard' && role === 'receptionist' && (
-              <ReceptionDashboard 
+              <ReceptionDashboard
                 userRole={role}
                 onNavigateNav={(nav) => setActiveNav(nav as NavId)}
                 onRegisterPatient={() => {
@@ -1991,14 +1990,14 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               <Dashboard onPatientSelect={handlePatientSelect} />
             )}
             {showPatientWorkspace && !showEditPatient && role === 'receptionist' && (
-              <ReceptionPatientProfileScreen 
+              <ReceptionPatientProfileScreen
                 onBack={() => {
                   setSelectedPatient(null)
                   if (previousNav && previousNav !== 'patients') {
                     setActiveNav(previousNav)
                     setPreviousNav(null)
                   }
-                }} 
+                }}
                 onEditPatient={() => setShowEditPatient(true)}
                 onBookAppointment={(uhid) => {
                   if (uhid) setCheckInUhid(uhid)
@@ -2016,7 +2015,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               />
             )}
             {showPatientWorkspace && !showEditPatient && role !== 'receptionist' && (
-              <PatientProfileScreen 
+              <PatientProfileScreen
                 role={role}
                 patientMrn={selectedPatient ? String(selectedPatient) : undefined}
                 onBack={() => {
@@ -2027,23 +2026,23 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                   } else if (role === 'doctor') {
                     setActiveNav('consultation')
                   }
-                }} 
+                }}
                 onEdit={() => setShowEditPatient(true)}
                 onStartConsultation={() => setActiveNav('consultation')}
                 onRecordVitals={() => setActiveNav('vitals')}
               />
             )}
             {activeNav === 'patients' && showPatientWorkspace && showEditPatient && (
-              <EditPatientScreen 
+              <EditPatientScreen
                 patientMrn={selectedPatient ? String(selectedPatient) : undefined}
-                onBack={() => setShowEditPatient(false)} 
+                onBack={() => setShowEditPatient(false)}
               />
             )}
             {activeNav === 'patients' && !showPatientWorkspace && !showRegisterPatient && role === 'receptionist' && (
-              <PatientSearchScreen 
+              <PatientSearchScreen
                 userRole={role}
-                onBack={() => setActiveNav('dashboard')} 
-                onPatientSelect={(id) => handlePatientSelect(id)} 
+                onBack={() => setActiveNav('dashboard')}
+                onPatientSelect={(id) => handlePatientSelect(id)}
                 onRegisterClick={() => {
                   setShowRegisterPatient(true)
                 }}
@@ -2060,14 +2059,14 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               />
             )}
             {activeNav === 'patients' && !showPatientWorkspace && !showRegisterPatient && (
-              <PatientListScreen 
-                onRegisterClick={() => setShowRegisterPatient(true)} 
+              <PatientListScreen
+                onRegisterClick={() => setShowRegisterPatient(true)}
                 onPatientSelect={(id) => handlePatientSelect(id)}
               />
             )}
             {activeNav === 'patients' && !showPatientWorkspace && showRegisterPatient && (
-              <RegisterPatientScreen 
-                onBack={() => setShowRegisterPatient(false)} 
+              <ReceptionPatientRegistrationScreen
+                onBack={() => setShowRegisterPatient(false)}
                 onBookAppointment={(uhid) => {
                   setShowRegisterPatient(false)
                   if (uhid) setCheckInUhid(uhid)
@@ -2129,7 +2128,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               />
             )}
             {activeNav === 'appointments' && role === 'receptionist' && showQueueManagement && (
-              <ReceptionQueueManagementScreen 
+              <ReceptionQueueManagementScreen
                 onBack={() => setShowQueueManagement(false)}
                 onCheckInClick={(token, uhid) => {
                   if (uhid) setCheckInUhid(uhid)
@@ -2150,7 +2149,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               />
             )}
             {activeNav === 'appointments' && role === 'receptionist' && !showBookAppointmentScreen && !showCheckInScreen && !showQueueManagement && (
-              <AppointmentManagementCenterScreen 
+              <AppointmentManagementCenterScreen
                 onPatientSelect={handlePatientSelect}
                 onBookAppointmentClick={() => setShowBookAppointmentScreen(true)}
                 onReceptionQueueClick={() => {
@@ -2160,9 +2159,9 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               />
             )}
             {activeNav === 'appointments' && role !== 'doctor' && role !== 'patient' && role !== 'receptionist' && (
-              <AppointmentManagementCenterScreen 
-                onPatientSelect={handlePatientSelect} 
-                userRole={role === 'admin' ? 'Hospital Admin' : 'Super Admin'} 
+              <AppointmentManagementCenterScreen
+                onPatientSelect={handlePatientSelect}
+                userRole={role === 'admin' ? 'Hospital Admin' : 'Super Admin'}
               />
             )}
             {activeNav === 'appointments' && role === 'doctor' && (
@@ -2659,10 +2658,10 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               <MyProfileManagement
                 currentRole={
                   role === 'admin' || role === 'super-admin' ? 'Hospital Admin' :
-                  role === 'doctor' ? 'Doctor' :
-                  role === 'nurse' ? 'Nurse' :
-                  role === 'receptionist' ? 'Receptionist' :
-                  role === 'accountant' ? 'Accountant' : 'Hospital Admin'
+                    role === 'doctor' ? 'Doctor' :
+                      role === 'nurse' ? 'Nurse' :
+                        role === 'receptionist' ? 'Receptionist' :
+                          role === 'accountant' ? 'Accountant' : 'Hospital Admin'
                 }
                 onLogout={onLogout}
                 onNavigateToModule={(mod) => {
@@ -2682,11 +2681,11 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               <NotificationCenterManagement
                 currentRole={
                   role === 'admin' || role === 'super-admin' ? 'Hospital Admin' :
-                  role === 'doctor' ? 'Doctor' :
-                  role === 'nurse' ? 'Nurse' :
-                  role === 'receptionist' ? 'Receptionist' :
-                  role === 'accountant' ? 'Accountant' :
-                  role === 'patient' ? 'Patient Portal' : 'Hospital Admin'
+                    role === 'doctor' ? 'Doctor' :
+                      role === 'nurse' ? 'Nurse' :
+                        role === 'receptionist' ? 'Receptionist' :
+                          role === 'accountant' ? 'Accountant' :
+                            role === 'patient' ? 'Patient Portal' : 'Hospital Admin'
                 }
                 onNavigateToModule={(module, targetId) => {
                   switch (module) {
@@ -2728,7 +2727,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               <DoctorManagementCenterScreen />
             )}
             {activeNav === 'reception' && (
-              <ReceptionDashboard 
+              <ReceptionDashboard
                 onRegisterPatient={() => {
                   setActiveNav("patients");
                   setShowRegisterPatient(true);
