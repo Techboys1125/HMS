@@ -1,283 +1,915 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { PP, RB } from "../constants/patient.mock";
+import { useState, useCallback, useMemo } from "react";
+import {
+  ChevronRight,
+  User,
+  MapPin,
+  Shield,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  X,
+  RotateCcw,
+  Calendar,
+  Upload,
+} from "lucide-react";
+import { PP, RB} from "../constants/patient.mock";
+import { useCreatePatient } from "../hooks/useCreatePatient";
+import type { CreatePatientRequest } from "../types/patient.types";
 
-export function RegisterPatientScreen({ onBack }: { onBack: () => void }) {
+/* ─────────────────── Design Tokens ─────────────────── */
+const inputBase =
+  "w-full px-3.5 py-2.5 text-[13px] bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-[#0D47A1]/10 transition-all duration-200 placeholder:text-slate-400";
+const inputError =
+  "w-full px-3.5 py-2.5 text-[13px] bg-white border border-red-300 rounded-xl text-[#111827] outline-none focus:border-red-400 focus:ring-2 focus:ring-red-400/10 transition-all duration-200 placeholder:text-slate-400";
+const inputDisabled =
+  "w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-gray-200 rounded-xl text-slate-500 font-mono outline-none cursor-not-allowed";
+const labelBase = "block text-xs font-semibold text-slate-600 mb-1.5";
+
+/* ─────────────────── Option Data ─────────────────── */
+const BLOOD_GROUPS = [
+  { value: "", label: "Select Blood Group" },
+  { value: "A_POSITIVE", label: "A+" },
+  { value: "A_NEGATIVE", label: "A−" },
+  { value: "B_POSITIVE", label: "B+" },
+  { value: "B_NEGATIVE", label: "B−" },
+  { value: "AB_POSITIVE", label: "AB+" },
+  { value: "AB_NEGATIVE", label: "AB−" },
+  { value: "O_POSITIVE", label: "O+" },
+  { value: "O_NEGATIVE", label: "O−" },
+  { value: "UNKNOWN", label: "Unknown" },
+];
+
+const GENDERS = [
+  { value: "", label: "Select Gender" },
+  { value: "MALE", label: "Male" },
+  { value: "FEMALE", label: "Female" },
+  { value: "OTHER", label: "Other" },
+];
+
+const MARITAL_STATUSES = [
+  { value: "", label: "Select Status" },
+  { value: "SINGLE", label: "Single" },
+  { value: "MARRIED", label: "Married" },
+  { value: "DIVORCED", label: "Divorced" },
+  { value: "WIDOWED", label: "Widowed" },
+  { value: "SEPARATED", label: "Separated" },
+];
+
+
+
+const RELATIONSHIPS = [
+  { value: "", label: "Select Relationship" },
+  { value: "Spouse", label: "Spouse" },
+  { value: "Parent", label: "Parent" },
+  { value: "Child", label: "Child" },
+  { value: "Sibling", label: "Sibling" },
+  { value: "Guardian", label: "Guardian" },
+  { value: "Friend", label: "Friend" },
+  { value: "Other", label: "Other" },
+];
+
+const INDIAN_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
+  "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim",
+  "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand",
+  "West Bengal", "Delhi", "Jammu & Kashmir", "Ladakh",
+];
+
+/* ─────────────────── Form State ─────────────────── */
+interface RegistrationFormState {
+  fullName: string;
+  gender: string;
+  dateOfBirth: string;
+  mobileNumber: string;
+  email: string;
+  bloodGroup: string;
+  maritalStatus: string;
+  nationalId: string;
+  photoUrl: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  pincode: string;
+  country: string;
+  ecName: string;
+  ecRelationship: string;
+  ecMobile: string;
+  ecAltMobile: string;
+  patientCategory: string;
+  registrationType: string;
+  knownAllergies: string;
+  chronicDiseases: string;
+  specialNotes: string;
+  registrationDate: string;
+}
+
+const today = new Date();
+const pad = (n: number) => n.toString().padStart(2, "0");
+const todayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+
+const INITIAL_FORM: RegistrationFormState = {
+  fullName: "",
+  gender: "",
+  dateOfBirth: "",
+  mobileNumber: "",
+  email: "",
+  bloodGroup: "",
+  maritalStatus: "",
+  nationalId: "",
+  photoUrl: "",
+  addressLine1: "",
+  addressLine2: "",
+  city: "",
+  state: "",
+  pincode: "",
+  country: "India",
+  ecName: "",
+  ecRelationship: "",
+  ecMobile: "",
+  ecAltMobile: "",
+  patientCategory: "GENERAL",
+  registrationType: "WALK_IN",
+  knownAllergies: "",
+  chronicDiseases: "",
+  specialNotes: "",
+  registrationDate: todayStr,
+};
+
+/* ─────────────────── Toast ─────────────────── */
+function Toast({
+  message,
+  type,
+  onClose,
+}: {
+  message: string;
+  type: "success" | "error";
+  onClose: () => void;
+}) {
   return (
-    <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center">
-      <div className="w-full max-w-5xl">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-1">
+    <div
+      className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border text-sm font-medium max-w-md animate-[slideIn_0.35s_ease-out] ${
+        type === "success"
+          ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+          : "bg-red-50 border-red-200 text-red-800"
+      }`}
+    >
+      {type === "success" ? (
+        <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
+      ) : (
+        <AlertCircle size={18} className="text-red-500 shrink-0" />
+      )}
+      <span className="flex-1">{message}</span>
+      <button
+        onClick={onClose}
+        className="ml-2 p-0.5 rounded-lg hover:bg-black/5 transition-colors"
+      >
+        <X size={14} />
+      </button>
+    </div>
+  );
+}
+
+/* ─────────────────── Section Header ─────────────────── */
+function SectionHeader({
+  icon: Icon,
+  title,
+  subtitle,
+}: {
+  icon: React.ElementType;
+  title: string;
+  subtitle?: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+      <div className="w-9 h-9 rounded-xl bg-[#0D47A1]/[0.07] flex items-center justify-center">
+        <Icon size={17} className="text-[#0D47A1]" />
+      </div>
+      <div>
+        <h2 className="text-[14px] font-bold text-[#111827]" style={{ fontFamily: PP }}>
+          {title}
+        </h2>
+        {subtitle && (
+          <p className="text-[11px] text-slate-400 mt-0.5" style={{ fontFamily: RB }}>
+            {subtitle}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────── Success Dialog ─────────────────── */
+function RegistrationSuccessDialog({
+  mrn,
+  patientName,
+  onClose,
+  onBookAppointment,
+  onViewProfile,
+}: {
+  mrn: string;
+  patientName: string;
+  onClose: () => void;
+  onBookAppointment?: (mrn: string) => void;
+  onViewProfile?: (mrn: string) => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8 text-center animate-[scaleIn_0.25s_ease-out]">
+        <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-5">
+          <CheckCircle2 size={32} className="text-emerald-600" />
+        </div>
+        <h3
+          className="text-xl font-bold text-[#111827] mb-2"
+          style={{ fontFamily: PP }}
+        >
+          Registration Successful!
+        </h3>
+        <p className="text-sm text-slate-500 mb-1" style={{ fontFamily: RB }}>
+          <span className="font-semibold text-[#111827]">{patientName}</span> has been registered.
+        </p>
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-100 mt-2 mb-6">
+          <span className="text-xs text-slate-500" style={{ fontFamily: RB }}>MRN</span>
+          <span className="text-sm font-bold font-mono text-[#0D47A1]">{mrn}</span>
+        </div>
+
+        <div className="flex flex-col gap-2.5">
+          {onBookAppointment && (
             <button
-              onClick={onBack}
-              className="p-1.5 -ml-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <h1
-              className="text-xl font-bold text-[#111827]"
+              onClick={() => onBookAppointment(mrn)}
+              className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#009688] text-white text-sm font-semibold hover:bg-teal-700 transition-all shadow-sm"
               style={{ fontFamily: PP }}
             >
-              Register Patient
-            </h1>
-          </div>
+              <Calendar size={16} />
+              Book Appointment
+            </button>
+          )}
+          {onViewProfile && (
+            <button
+              onClick={() => onViewProfile(mrn)}
+              className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
+              style={{ fontFamily: PP }}
+            >
+              <User size={16} />
+              View Patient Profile
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="w-full px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"
+            style={{ fontFamily: PP }}
+          >
+            Register Another Patient
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN COMPONENT
+   ═══════════════════════════════════════════════════════ */
+export function RegisterPatientScreen({
+  onBack,
+  onBookAppointment,
+  onViewProfile,
+}: {
+  onBack: () => void;
+  onBookAppointment?: (mrn: string) => void;
+  onViewProfile?: (mrn: string) => void;
+}) {
+  const [form, setForm] = useState<RegistrationFormState>({ ...INITIAL_FORM });
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
+  const [successData, setSuccessData] = useState<{
+    mrn: string;
+    name: string;
+  } | null>(null);
+
+  const createPatient = useCreatePatient();
+
+  const set = useCallback(
+    (key: keyof RegistrationFormState, value: string) =>
+      setForm((prev) => ({ ...prev, [key]: value })),
+    [],
+  );
+
+  const markTouched = useCallback(
+    (field: string) => setTouched((prev) => ({ ...prev, [field]: true })),
+    [],
+  );
+
+  const calculatedAge = useMemo(() => {
+    if (!form.dateOfBirth) return null;
+    const dob = new Date(form.dateOfBirth);
+    const now = new Date();
+    let age = now.getFullYear() - dob.getFullYear();
+    const m = now.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--;
+    return age >= 0 ? age : null;
+  }, [form.dateOfBirth]);
+
+  const errors = useMemo(() => {
+    const e: Record<string, string> = {};
+    if (!form.fullName.trim()) e.fullName = "Full Name is required";
+    if (!form.gender) e.gender = "Gender is required";
+    if (!form.dateOfBirth) e.dateOfBirth = "Date of birth is required";
+    if (!form.mobileNumber.trim()) e.mobileNumber = "Mobile number is required";
+    else if (!/^[\d+\s()-]{7,15}$/.test(form.mobileNumber.trim()))
+      e.mobileNumber = "Enter a valid mobile number";
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      e.email = "Enter a valid email";
+    if (form.pincode && !/^\d{6}$/.test(form.pincode))
+      e.pincode = "Pincode must be 6 digits";
+    return e;
+  }, [form]);
+
+  const isValid = Object.keys(errors).length === 0;
+
+  const fieldError = (field: string) =>
+    touched[field] && errors[field] ? (
+      <p className="mt-1 text-[11px] text-red-500 flex items-center gap-1">
+        <AlertCircle size={11} /> {errors[field]}
+      </p>
+    ) : null;
+
+  const fClass = (field: string) =>
+    touched[field] && errors[field] ? inputError : inputBase;
+
+  const handleSubmit = useCallback(async () => {
+    setTouched({
+      fullName: true,
+      gender: true,
+      dateOfBirth: true,
+      mobileNumber: true,
+      email: true,
+      pincode: true,
+    });
+
+    if (!isValid) {
+      setToast({
+        message: "Please fix the validation errors before submitting.",
+        type: "error",
+      });
+      return;
+    }
+
+    const payload: CreatePatientRequest = {
+      fullName: form.fullName.trim(),
+      gender: form.gender,
+      mobileNumber: form.mobileNumber.trim(),
+    };
+
+    if (form.dateOfBirth) payload.dateOfBirth = form.dateOfBirth;
+    if (form.email?.trim()) payload.email = form.email.trim();
+    if (form.bloodGroup) payload.bloodGroup = form.bloodGroup;
+    if (form.maritalStatus) payload.maritalStatus = form.maritalStatus;
+    if (form.nationalId?.trim()) payload.nationalId = form.nationalId.trim();
+    if (form.photoUrl?.trim()) payload.photoUrl = form.photoUrl.trim();
+    if (form.patientCategory) payload.patientCategory = form.patientCategory;
+    if (form.registrationType) payload.registrationType = form.registrationType;
+    if (form.specialNotes?.trim()) payload.specialNotes = form.specialNotes.trim();
+
+    if (form.knownAllergies?.trim()) {
+      payload.knownAllergies = form.knownAllergies
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    if (form.chronicDiseases?.trim()) {
+      payload.chronicDiseases = form.chronicDiseases
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+
+    const hasAddress = [
+      form.addressLine1,
+      form.addressLine2,
+      form.city,
+      form.state,
+      form.pincode,
+      form.country,
+    ].some((v) => v?.trim());
+
+    if (hasAddress) {
+      payload.address = {};
+      if (form.addressLine1?.trim())
+        payload.address.addressLine1 = form.addressLine1.trim();
+      if (form.addressLine2?.trim())
+        payload.address.addressLine2 = form.addressLine2.trim();
+      if (form.city?.trim()) payload.address.city = form.city.trim();
+      if (form.state?.trim()) payload.address.state = form.state.trim();
+      if (form.pincode?.trim()) payload.address.pincode = form.pincode.trim();
+      if (form.country?.trim()) payload.address.country = form.country.trim();
+    }
+
+    if (form.ecName?.trim() || form.ecMobile?.trim()) {
+      payload.emergencyContact = {
+        name: form.ecName?.trim() || "",
+        relationship: form.ecRelationship || "",
+        mobileNumber: form.ecMobile?.trim() || "",
+        alternativeMobileNumber: form.ecAltMobile?.trim() || "",
+      };
+    }
+
+    try {
+      const result = await createPatient.mutateAsync(payload) as any;
+      setSuccessData({ mrn: result.mrn || result.MRNId, name: form.fullName.trim() });
+    } catch (err: any) {
+      setToast({
+        message: err?.message || "Failed to register patient. Please try again.",
+        type: "error",
+      });
+    }
+  }, [form, isValid, createPatient]);
+
+  const handleClear = useCallback(() => {
+    setForm({ ...INITIAL_FORM });
+    setTouched({});
+  }, []);
+
+  return (
+    <div className="flex-1 min-h-screen bg-[#F4F6F9] overflow-y-auto">
+      {successData && (
+        <RegistrationSuccessDialog
+          mrn={successData.mrn}
+          patientName={successData.name}
+          onBookAppointment={onBookAppointment}
+          onViewProfile={onViewProfile}
+          onClose={() => {
+            setSuccessData(null);
+            setForm({ ...INITIAL_FORM });
+            setTouched({});
+          }}
+        />
+      )}
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      <div className="max-w-[1400px] mx-auto px-6 py-6">
+        <div className="mb-7">
           <div
-            className="flex items-center gap-1.5 text-sm text-slate-500 pl-8"
+            className="flex items-center gap-1.5 text-[12px] text-slate-500 mb-2"
             style={{ fontFamily: RB }}
           >
-            <span>Dashboard</span>
-            <ChevronRight size={14} className="text-slate-300" />
             <button
               onClick={onBack}
               className="hover:text-[#0D47A1] transition-colors"
             >
-              Patients
+              Reception Management
             </button>
-            <ChevronRight size={14} className="text-slate-300" />
-            <span className="font-medium text-[#111827]">Register Patient</span>
+            <ChevronRight size={13} className="text-slate-300" />
+            <span className="font-medium text-[#111827]">
+              Patient Registration
+            </span>
           </div>
+
+          <h1
+            className="text-2xl font-bold text-[#111827] mb-1"
+            style={{ fontFamily: PP }}
+          >
+            Patient Registration
+          </h1>
+          <p
+            className="text-sm text-slate-500"
+            style={{ fontFamily: RB }}
+          >
+            Create a new patient record for hospital services.
+          </p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <form
-            className="p-6 md:p-8 space-y-8"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            {/* 1. Personal Information */}
-            <section>
-              <h2
-                className="text-sm font-bold text-[#0D47A1] uppercase tracking-wider mb-4 pb-2 border-b border-gray-100"
-                style={{ fontFamily: PP }}
-              >
-                Personal Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    Patient ID <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value="PT-2024-006"
-                    disabled
-                    className="w-full px-3 py-2 text-sm bg-slate-50 border border-gray-200 rounded-lg text-slate-500 font-mono outline-none"
-                  />
-                </div>
+        <div className="max-w-full">
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
+            {/* 1. PERSONAL INFORMATION */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6 md:p-7">
+              <SectionHeader
+                icon={User}
+                title="Personal Information"
+                subtitle="Enter the patient's personal and contact details"
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                  <label className={labelBase}>
                     Full Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter full name"
-                    className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all placeholder:text-slate-400"
+                    value={form.fullName}
+                    onChange={(e) => set("fullName", e.target.value)}
+                    onBlur={() => markTouched("fullName")}
+                    placeholder="e.g. Eleanor Vance"
+                    className={fClass("fullName")}
                   />
+                  {fieldError("fullName")}
                 </div>
+
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
+                  <label className={labelBase}>
+                    Gender <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={form.gender}
+                    onChange={(e) => set("gender", e.target.value)}
+                    onBlur={() => markTouched("gender")}
+                    className={fClass("gender")}
+                  >
+                    {GENDERS.map((g) => (
+                      <option key={g.value} value={g.value}>
+                        {g.label}
+                      </option>
+                    ))}
+                  </select>
+                  {fieldError("gender")}
+                </div>
+
+                <div>
+                  <label className={labelBase}>
                     Date of Birth <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
-                    className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all"
+                    value={form.dateOfBirth}
+                    onChange={(e) => set("dateOfBirth", e.target.value)}
+                    onBlur={() => markTouched("dateOfBirth")}
+                    max={todayStr}
+                    className={fClass("dateOfBirth")}
                   />
+                  {fieldError("dateOfBirth")}
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    Age
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="Auto-calculated"
-                    className="w-full px-3 py-2 text-sm bg-slate-50 border border-gray-200 rounded-lg text-[#111827] outline-none placeholder:text-slate-400"
-                    readOnly
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                      Gender <span className="text-red-500">*</span>
-                    </label>
-                    <select className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all">
-                      <option value="">Select</option>
-                      <option>Male</option>
-                      <option>Female</option>
-                      <option>Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                      Blood Group
-                    </label>
-                    <select className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all">
-                      <option value="">Select</option>
-                      <option>A+</option>
-                      <option>A-</option>
-                      <option>B+</option>
-                      <option>B-</option>
-                      <option>O+</option>
-                      <option>O-</option>
-                      <option>AB+</option>
-                      <option>AB-</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </section>
 
-            {/* 2. Contact Information */}
-            <section>
-              <h2
-                className="text-sm font-bold text-[#0D47A1] uppercase tracking-wider mb-4 pb-2 border-b border-gray-100"
-                style={{ fontFamily: PP }}
-              >
-                Contact Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    Phone Number <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="+1 (555) 000-0000"
-                    className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all placeholder:text-slate-400"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="patient@example.com"
-                    className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all placeholder:text-slate-400"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    Residential Address
-                  </label>
-                  <textarea
-                    rows={2}
-                    placeholder="Full address"
-                    className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all placeholder:text-slate-400 resize-none"
-                  />
-                </div>
-              </div>
-            </section>
-
-            {/* 3. Emergency Contact */}
-            <section>
-              <h2
-                className="text-sm font-bold text-[#0D47A1] uppercase tracking-wider mb-4 pb-2 border-b border-gray-100"
-                style={{ fontFamily: PP }}
-              >
-                Emergency Contact
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    Contact Name <span className="text-red-500">*</span>
+                  <label className={labelBase}>
+                    Age{" "}
+                    <span className="text-slate-400 font-normal">
+                      (Auto Calculated)
+                    </span>
                   </label>
                   <input
                     type="text"
-                    placeholder="Full name"
-                    className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all placeholder:text-slate-400"
+                    value={
+                      calculatedAge !== null
+                        ? `${calculatedAge} year${calculatedAge !== 1 ? "s" : ""}`
+                        : "—"
+                    }
+                    disabled
+                    className={inputDisabled}
                   />
                 </div>
+
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    Contact Number <span className="text-red-500">*</span>
+                  <label className={labelBase}>
+                    Mobile Number <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
-                    placeholder="+1 (555) 000-0000"
-                    className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all placeholder:text-slate-400"
+                    value={form.mobileNumber}
+                    onChange={(e) => set("mobileNumber", e.target.value)}
+                    onBlur={() => markTouched("mobileNumber")}
+                    placeholder="+91 98765 43210"
+                    className={fClass("mobileNumber")}
                   />
+                  {fieldError("mobileNumber")}
                 </div>
+
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                    Relationship <span className="text-red-500">*</span>
-                  </label>
-                  <select className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all">
-                    <option value="">Select</option>
-                    <option>Spouse</option>
-                    <option>Parent</option>
-                    <option>Child</option>
-                    <option>Sibling</option>
-                    <option>Other</option>
+                  <label className={labelBase}>Email Address</label>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => set("email", e.target.value)}
+                    onBlur={() => markTouched("email")}
+                    placeholder="patient@example.com"
+                    className={fClass("email")}
+                  />
+                  {fieldError("email")}
+                </div>
+
+                <div>
+                  <label className={labelBase}>Blood Group</label>
+                  <select
+                    value={form.bloodGroup}
+                    onChange={(e) => set("bloodGroup", e.target.value)}
+                    className={inputBase}
+                  >
+                    {BLOOD_GROUPS.map((bg) => (
+                      <option key={bg.value} value={bg.value}>
+                        {bg.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
-              </div>
-            </section>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* 4. Medical Information */}
-              <section>
-                <h2
-                  className="text-sm font-bold text-[#0D47A1] uppercase tracking-wider mb-4 pb-2 border-b border-gray-100"
-                  style={{ fontFamily: PP }}
-                >
-                  Medical Information
-                </h2>
-                <div className="space-y-5">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                      Allergies
-                    </label>
+                <div>
+                  <label className={labelBase}>Marital Status</label>
+                  <select
+                    value={form.maritalStatus}
+                    onChange={(e) => set("maritalStatus", e.target.value)}
+                    className={inputBase}
+                  >
+                    {MARITAL_STATUSES.map((ms) => (
+                      <option key={ms.value} value={ms.value}>
+                        {ms.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className={labelBase}>Aadhar Number</label>
+                  <input
+                    type="text"
+                    value={form.nationalId}
+                    onChange={(e) => set("nationalId", e.target.value)}
+                    placeholder="Aadhar Number"
+                    className={inputBase}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelBase}>Patient Photograph</label>
+                  <div className="flex items-center gap-2">
                     <input
                       type="text"
-                      placeholder="e.g. Penicillin, Peanuts (comma separated)"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all placeholder:text-slate-400"
+                      value={form.photoUrl}
+                      onChange={(e) => set("photoUrl", e.target.value)}
+                      placeholder="Image URL"
+                      className={inputBase}
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                      Existing Medical Conditions
-                    </label>
-                    <textarea
-                      rows={3}
-                      placeholder="e.g. Hypertension, Diabetes"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all placeholder:text-slate-400 resize-none"
-                    />
+                    <button
+                      type="button"
+                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 transition-colors shrink-0"
+                    >
+                      <Upload size={14} /> Upload Photo
+                    </button>
                   </div>
                 </div>
-              </section>
+              </div>
             </div>
 
-            {/* Actions */}
-            <div className="pt-6 border-t border-gray-100 flex items-center justify-end gap-3">
+            {/* 2. ADDRESS INFORMATION */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6 md:p-7">
+              <SectionHeader
+                icon={MapPin}
+                title="Address Information"
+                subtitle="Patient's residential address details"
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                <div className="md:col-span-2">
+                  <label className={labelBase}>Address Line 1</label>
+                  <input
+                    type="text"
+                    value={form.addressLine1}
+                    onChange={(e) => set("addressLine1", e.target.value)}
+                    placeholder="House / Flat No., Building, Street"
+                    className={inputBase}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className={labelBase}>Address Line 2</label>
+                  <input
+                    type="text"
+                    value={form.addressLine2}
+                    onChange={(e) => set("addressLine2", e.target.value)}
+                    placeholder="Landmark, Cross Street"
+                    className={inputBase}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelBase}>City</label>
+                  <input
+                    type="text"
+                    value={form.city}
+                    onChange={(e) => set("city", e.target.value)}
+                    placeholder="City Name"
+                    className={inputBase}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelBase}>State</label>
+                  <select
+                    value={form.state}
+                    onChange={(e) => set("state", e.target.value)}
+                    className={inputBase}
+                  >
+                    <option value="">Select State</option>
+                    {INDIAN_STATES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className={labelBase}>Pincode</label>
+                  <input
+                    type="text"
+                    value={form.pincode}
+                    onChange={(e) => set("pincode", e.target.value)}
+                    onBlur={() => markTouched("pincode")}
+                    placeholder="6-digit Pincode"
+                    maxLength={6}
+                    className={fClass("pincode")}
+                  />
+                  {fieldError("pincode")}
+                </div>
+
+                <div>
+                  <label className={labelBase}>Country</label>
+                  <input
+                    type="text"
+                    value={form.country}
+                    onChange={(e) => set("country", e.target.value)}
+                    className={inputBase}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 3. EMERGENCY CONTACT */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6 md:p-7">
+              <SectionHeader
+                icon={Shield}
+                title="Emergency Contact"
+                subtitle="Person to be contacted in case of an emergency"
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                <div>
+                  <label className={labelBase}>Emergency Contact Name</label>
+                  <input
+                    type="text"
+                    value={form.ecName}
+                    onChange={(e) => set("ecName", e.target.value)}
+                    placeholder="Full name of emergency contact"
+                    className={inputBase}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelBase}>Relationship</label>
+                  <select
+                    value={form.ecRelationship}
+                    onChange={(e) => set("ecRelationship", e.target.value)}
+                    className={inputBase}
+                  >
+                    {RELATIONSHIPS.map((r) => (
+                      <option key={r.value} value={r.value}>
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className={labelBase}>Mobile Number</label>
+                  <input
+                    type="tel"
+                    value={form.ecMobile}
+                    onChange={(e) => set("ecMobile", e.target.value)}
+                    placeholder="+91 98765 00000"
+                    className={inputBase}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelBase}>Alternative Contact Number</label>
+                  <input
+                    type="tel"
+                    value={form.ecAltMobile}
+                    onChange={(e) => set("ecAltMobile", e.target.value)}
+                    placeholder="Landline or Secondary Mobile"
+                    className={inputBase}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 4. REGISTRATION DETAILS */}
+            
+
+            {/* 5. MEDICAL ALERTS & NOTES */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6 md:p-7">
+              <SectionHeader
+                icon={AlertCircle}
+                title="Medical Alerts & Notes"
+                subtitle="Allergies, chronic conditions, and additional info"
+              />
+
+              <div className="grid grid-cols-1 gap-y-5">
+                <div>
+                  <label className={labelBase}>Known Allergies</label>
+                  <input
+                    type="text"
+                    value={form.knownAllergies}
+                    onChange={(e) => set("knownAllergies", e.target.value)}
+                    placeholder="e.g. Penicillin, Peanuts, Latex"
+                    className={inputBase}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelBase}>Chronic Diseases</label>
+                  <input
+                    type="text"
+                    value={form.chronicDiseases}
+                    onChange={(e) => set("chronicDiseases", e.target.value)}
+                    placeholder="e.g. Type 2 Diabetes, Hypertension, Asthma"
+                    className={inputBase}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelBase}>Special Notes</label>
+                  <textarea
+                    rows={3}
+                    value={form.specialNotes}
+                    onChange={(e) => set("specialNotes", e.target.value)}
+                    placeholder="e.g. Requires wheelchair assistance, prefers afternoon slots"
+                    className={inputBase + " resize-none"}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* BOTTOM ACTION BAR */}
+            <div className="flex items-center justify-end gap-3 pt-4">
               <button
                 type="button"
                 onClick={onBack}
-                className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                className="px-6 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"
+                style={{ fontFamily: PP }}
               >
                 Cancel
               </button>
-              <button
-                type="reset"
-                className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-              >
-                Reset
-              </button>
+
               <button
                 type="button"
-                className="px-5 py-2.5 rounded-xl border border-[#0D47A1] text-sm font-medium text-[#0D47A1] hover:bg-blue-50 transition-colors"
+                onClick={handleClear}
+                className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"
+                style={{ fontFamily: PP }}
               >
-                Save & Continue
+                <RotateCcw size={14} />
+                Clear Form
               </button>
+
               <button
                 type="button"
-                onClick={onBack}
-                className="px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-medium hover:bg-[#0c3d8a] transition-colors shadow-sm"
+                onClick={handleSubmit}
+                disabled={createPatient.isPending}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-md shadow-[#0D47A1]/20 disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ fontFamily: PP }}
               >
-                Save Patient
+                {createPatient.isPending ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Registering…
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={16} />
+                    Register Patient & Generate MRN
+                  </>
+                )}
               </button>
             </div>
           </form>
         </div>
       </div>
+
+      {/* Keyframes */}
+      <style>{`
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateX(40px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.92); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
     </div>
   );
 }

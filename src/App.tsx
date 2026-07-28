@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import safeHandsLogo from './assets/safehandshospital_logo.webp'
 import { LoginPage, useAuthStore } from './features/auth'
-import { PatientListScreen, PatientProfileScreen, EditPatientScreen, MedicalHistoryScreen, PatientVisitHistoryScreen, PatientSearchScreen, PatientTimelineScreen, PatientAppointmentsScreen, PatientMedicalRecordsScreen, PatientPrescriptionsScreen, PatientPrescriptionDetailsScreen, PatientProfileCenterScreen, ReceptionPatientRegistrationScreen, ReceptionPatientProfileScreen } from './features/patients'
+import { PatientListScreen, PatientProfileScreen, EditPatientScreen, MedicalHistoryScreen, PatientVisitHistoryScreen, PatientSearchScreen, PatientTimelineScreen, PatientAppointmentsScreen, PatientMedicalRecordsScreen, PatientPrescriptionsScreen, PatientPrescriptionDetailsScreen, PatientProfileCenterScreen, RegisterPatientScreen, ReceptionPatientProfileScreen } from './features/patients'
 import { UserManagementCenterScreen } from './features/users'
 import { DoctorManagementCenterScreen } from './features/doctors'
 import { AppointmentManagementCenterScreen, ReceptionBookAppointmentScreen, PatientCheckInScreen, ReceptionQueueManagementScreen } from './features/appointments'
@@ -2066,7 +2066,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               />
             )}
             {activeNav === 'patients' && !showPatientWorkspace && showRegisterPatient && (
-              <ReceptionPatientRegistrationScreen 
+              <RegisterPatientScreen 
                 onBack={() => setShowRegisterPatient(false)} 
                 onBookAppointment={(uhid) => {
                   setShowRegisterPatient(false)

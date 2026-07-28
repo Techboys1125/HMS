@@ -1,4 +1,4 @@
-import { apiClient, axios, ApiError } from "../../../lib/axios";
+﻿import { apiClient, axios, ApiError } from "../../../lib/axios";
 import type {
   CreatePatientRequest,
   DuplicateCheckRequest,
@@ -12,6 +12,18 @@ import type {
 const unwrapData = <T>(response: any): T | null => {
   if (!response) return null;
   return (response.data ?? response) as T;
+};
+
+/**
+ * Unwrap the standard API envelope: { success, code, message, data, errors }
+ */
+const unwrapApiEnvelope = <T>(response: any): T | null => {
+  if (!response) return null;
+  const raw = response.data;
+  if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
+    return raw.data as T;
+  }
+  return raw as T;
 };
 
 export const patientService = {
@@ -31,6 +43,13 @@ export const patientService = {
       if (params?.status) search.append("status", params.status);
       const url = `/api/v1/patients${search.toString() ? `?${search.toString()}` : ""}`;
       const res = await apiClient.get<any>(url);
+      // Try standard envelope first: { success, code, message, data, errors }
+      const raw = res.data;
+      if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
+        const items = raw.data;
+        return Array.isArray(items) ? items : [];
+      }
+      // Fallback to direct array or content wrapper
       return Array.isArray(res.data?.content)
         ? res.data.content
         : Array.isArray(res.data)
@@ -49,6 +68,11 @@ export const patientService = {
       const res = await apiClient.get<any>(
         `/api/v1/patients/search?query=${encodeURIComponent(query)}`,
       );
+      const raw = res.data;
+      if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
+        const items = raw.data;
+        return Array.isArray(items) ? items : [];
+      }
       return Array.isArray(res.data?.content)
         ? res.data.content
         : Array.isArray(res.data)
@@ -67,6 +91,10 @@ export const patientService = {
       const res = await apiClient.get<any>(
         `/api/v1/patients/${encodeURIComponent(mrn)}`,
       );
+      const raw = res.data;
+      if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
+        return raw.data as Patient;
+      }
       return unwrapData<Patient>(res) as Patient;
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.data?.message) {
@@ -79,6 +107,11 @@ export const patientService = {
   async createPatient(payload: CreatePatientRequest): Promise<{ MRNId: string; message: string; }> {
     try {
       const res = await apiClient.post<any>("/api/v1/patients", payload);
+      // Unwrap API envelope: { success, code, message, data, errors }
+      const raw = res.data;
+      if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
+        return raw.data || { MRNId: raw.message || "Unknown", message: raw.message || "" };
+      }
       return res.data || res;
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.data?.message) {
@@ -97,6 +130,10 @@ export const patientService = {
         ...payload,
         reason,
       });
+      const raw = res.data;
+      if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
+        return raw.data as Patient;
+      }
       return unwrapData<Patient>(res) as Patient;
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.data?.message) {
@@ -119,6 +156,10 @@ export const patientService = {
           version,
         },
       );
+      const raw = res.data;
+      if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
+        return raw.data as Patient;
+      }
       return unwrapData<Patient>(res) as Patient;
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.data?.message) {
@@ -155,6 +196,10 @@ export const patientService = {
         "/api/v1/patients/duplicate-override",
         payload,
       );
+      const raw = res.data;
+      if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
+        return raw.data as Patient;
+      }
       return unwrapData<Patient>(res) as Patient;
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.data?.message) {
@@ -167,6 +212,10 @@ export const patientService = {
   async mergePatients(payload: MergePatientsRequest): Promise<Patient> {
     try {
       const res = await apiClient.post<any>("/api/v1/patients/merge", payload);
+      const raw = res.data;
+      if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
+        return raw.data as Patient;
+      }
       return unwrapData<Patient>(res) as Patient;
     } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.data?.message) {

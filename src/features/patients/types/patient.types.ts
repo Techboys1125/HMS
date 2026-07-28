@@ -6,12 +6,61 @@ export type PatientStatus =
 
 export type AgeBasis = "EXACT" | "APPROXIMATE";
 
+export type BloodGroup =
+  | "A_POSITIVE"
+  | "A_NEGATIVE"
+  | "B_POSITIVE"
+  | "B_NEGATIVE"
+  | "AB_POSITIVE"
+  | "AB_NEGATIVE"
+  | "O_POSITIVE"
+  | "O_NEGATIVE"
+  | "UNKNOWN";
+
+export type MaritalStatus =
+  | "SINGLE"
+  | "MARRIED"
+  | "DIVORCED"
+  | "WIDOWED"
+  | "SEPARATED";
+
+export type PatientCategory =
+  | "GENERAL"
+  | "VIP"
+  | "EMPLOYEE"
+  | "FAMILY"
+  | "INSURANCE"
+  | "CORPORATE"
+  | "RESEARCH"
+  | "CHARITY";
+
+export type RegistrationType =
+  | "WALK_IN"
+  | "REFERRAL"
+  | "EMERGENCY"
+  | "ONLINE"
+  | "CAMP"
+  | "FOLLOW_UP"
+  | "TELEMEDICINE";
+
 export interface EmergencyContact {
   name: string;
   relationship: string;
   mobile: string;
 }
 
+export interface Address {
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  country?: string;
+}
+
+/**
+ * Patient record returned from GET /api/v1/patients
+ */
 export interface Patient {
   id: number;
   name: string;
@@ -21,6 +70,10 @@ export interface Patient {
   age: number;
   gender: string;
   phone: string;
+  email?: string;
+  patientCategory?: string;
+  registrationType?: string;
+  status: string;
   assignedDoctor: string;
   registrationDate: string;
 }
@@ -52,21 +105,38 @@ export interface MergePatientsRequest {
   reason: string;
 }
 
+/**
+ * Full request body for POST /api/v1/patients
+ */
 export interface CreatePatientRequest {
-  relationship: string;
   fullName: string;
-  gender: string; // MALE, FEMALE, OTHER
-  dateOfBirth: string | null;
-  bloodGroup: string;
-  phone: string;
-  email: string;
-  address: {
-    value?: string;
-    line1?: string;
+  gender: string; // MALE | FEMALE | OTHER
+  dateOfBirth?: string | null;
+  mobileNumber: string;
+  email?: string;
+  bloodGroup?: string;
+  maritalStatus?: string;
+  nationalId?: string;
+  photoUrl?: string;
+  address?: {
+    addressLine1?: string;
+    addressLine2?: string;
     city?: string;
     state?: string;
-    postalCode?: string;
-  } | string;
+    pincode?: string;
+    country?: string;
+  };
+  emergencyContact?: {
+    name: string;
+    relationship: string;
+    mobileNumber: string;
+    alternativeMobileNumber?: string;
+  };
+  patientCategory?: string;
+  registrationType?: string;
+  knownAllergies?: string[];
+  chronicDiseases?: string[];
+  specialNotes?: string;
 }
 
 export interface UpdatePatientRequest extends Partial<CreatePatientRequest> {

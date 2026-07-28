@@ -160,6 +160,9 @@ export function PatientTable({
                   "Age",
                   "Gender",
                   "Phone",
+                  "Email",
+                  "Category",
+                  "Reg. Type",
                   "Assigned Doctor",
                   "Registration Date",
                   "Actions",
@@ -210,6 +213,15 @@ export function PatientTable({
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-mono">
                     {p.phone}
+                  </td>
+                  <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
+                    {p.email || "-"}
+                  </td>
+                  <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
+                    <span className="font-medium capitalize">{(p.patientCategory || "GENERAL").toLowerCase().replace(/_/g, " ")}</span>
+                  </td>
+                  <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
+                    <span className="font-medium capitalize">{(p.registrationType || "WALK_IN").toLowerCase().replace(/_/g, " ")}</span>
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
                     <div className="flex items-center gap-1.5">

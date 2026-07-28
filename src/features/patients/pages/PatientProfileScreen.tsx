@@ -1,20 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Search,
   Plus,
-  Filter,
   Download,
-  RefreshCw,
   ChevronLeft,
   ChevronRight,
   MoreVertical,
   Eye,
   Edit,
   Receipt,
-  X,
   Phone,
   UserCheck,
-  ChevronDown,
   Activity,
   Calendar,
   Stethoscope,

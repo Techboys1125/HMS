@@ -50,5 +50,10 @@ export type {
   CreatePatientRequest,
   PatientStatistics,
   PatientSearchResult,
+  BloodGroup,
+  MaritalStatus,
+  PatientCategory,
+  RegistrationType,
+  Address,
 } from "./types/patient.types";
 
