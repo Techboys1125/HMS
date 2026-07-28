@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { AlertTriangle, X, Check, Loader2, DollarSign } from 'lucide-react';
-import type { AppointmentRecord } from '../types/appointment.types';
+import React, { useState } from "react";
+import { AlertTriangle, X, Check, Loader2, DollarSign } from "lucide-react";
+import type { AppointmentRecord } from "../types/appointment.types";
 
-const PP = 'Poppins, sans-serif';
+const PP = "Poppins, sans-serif";
 
 interface CancelModalProps {
   appointment: AppointmentRecord;
@@ -15,23 +15,23 @@ export const CancelModal: React.FC<CancelModalProps> = ({
   onClose,
   onConfirmCancel,
 }) => {
-  const [reason, setReason] = useState('');
-  const [error, setError] = useState('');
+  const [reason, setReason] = useState("");
+  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reason.trim()) {
-      setError('Cancellation reason is mandatory (FR-006.07 / VR-APT-005)');
+      setError("Cancellation reason is mandatory (FR-006.07 / VR-APT-005)");
       return;
     }
-    setError('');
+    setError("");
     setSubmitting(true);
     try {
       await onConfirmCancel(reason);
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Failed to cancel appointment');
+      setError(err.message || "Failed to cancel appointment");
     } finally {
       setSubmitting(false);
     }
@@ -40,7 +40,6 @@ export const CancelModal: React.FC<CancelModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden">
-
         {/* Header */}
         <div className="bg-rose-700 text-white px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -64,7 +63,10 @@ export const CancelModal: React.FC<CancelModalProps> = ({
               {appointment.patientName} (ID: {appointment.patientId})
             </p>
             <p className="text-slate-600">
-              Doctor: <span className="font-semibold text-slate-800">{appointment.doctorName}</span>
+              Doctor:{" "}
+              <span className="font-semibold text-slate-800">
+                {appointment.doctorName}
+              </span>
             </p>
             <p className="text-slate-500">
               Date: {appointment.appointmentDate} at {appointment.startTime}
@@ -72,13 +74,19 @@ export const CancelModal: React.FC<CancelModalProps> = ({
           </div>
 
           {/* Billing warning (EX-APT-004) */}
-          {appointment.paymentStatus === 'PAID' && (
+          {appointment.paymentStatus === "PAID" && (
             <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-xl text-xs flex items-start gap-2">
-              <DollarSign size={16} className="text-amber-600 shrink-0 mt-0.5" />
+              <DollarSign
+                size={16}
+                className="text-amber-600 shrink-0 mt-0.5"
+              />
               <div>
-                <p className="font-bold" style={{ fontFamily: PP }}>Billing Impact Warning (EX-APT-004)</p>
+                <p className="font-bold" style={{ fontFamily: PP }}>
+                  Billing Impact Warning (EX-APT-004)
+                </p>
                 <p className="text-[11px] text-amber-700">
-                  This appointment has a PAID status. Cancellation requires a separate billing refund/adjustment workflow.
+                  This appointment has a PAID status. Cancellation requires a
+                  separate billing refund/adjustment workflow.
                 </p>
               </div>
             </div>
@@ -92,7 +100,10 @@ export const CancelModal: React.FC<CancelModalProps> = ({
           )}
 
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1" style={{ fontFamily: PP }}>
+            <label
+              className="text-xs font-bold text-slate-700 block mb-1"
+              style={{ fontFamily: PP }}
+            >
               Reason for Cancellation *
             </label>
             <textarea
@@ -119,12 +130,15 @@ export const CancelModal: React.FC<CancelModalProps> = ({
               disabled={submitting}
               className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
             >
-              {submitting ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+              {submitting ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Check size={14} />
+              )}
               Confirm Cancellation
             </button>
           </div>
         </form>
-
       </div>
     </div>
   );

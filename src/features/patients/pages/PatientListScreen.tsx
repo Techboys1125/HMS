@@ -16,12 +16,9 @@ import {
   UserPlus,
   UserX,
   User,
-  TrendingUp
+  TrendingUp,
 } from "lucide-react";
-import {
-  usePatientSearch,
-  usePatients,
-} from "../hooks/usePatients";
+import { usePatientSearch, usePatients } from "../hooks/usePatients";
 import type { ScreenPatient } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.mock";
 import { Avatar } from "../components/Avatar";
@@ -50,22 +47,34 @@ export function PatientListScreen({
   const { data: serverPatients, isLoading } = usePatients();
   const { data: searchPatients } = usePatientSearch(searchQuery);
   const [patientsList, setPatientsList] = useState<ScreenPatient[]>([]);
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
-  const [drawerPatient, setDrawerPatient] = useState<ScreenPatient | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
+    null,
+  );
+  const [drawerPatient, setDrawerPatient] = useState<ScreenPatient | null>(
+    null,
+  );
 
-  const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(null);
+  const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(
+    null,
+  );
 
   const stats = useMemo(() => {
     const list = (serverPatients || []) as any[];
-    const todayStr = new Date().toISOString().split('T')[0];
-    
+    const todayStr = new Date().toISOString().split("T")[0];
+
     return {
       totalPatients: list.length,
-      newRegistrationsToday: list.filter(p => p.registrationDate && p.registrationDate.startsWith(todayStr)).length,
-      activePatients: list.filter(p => p.status !== 'Inactive' && p.status !== 'Deceased').length,
-      inactivePatients: list.filter(p => p.status === 'Inactive' || p.status === 'Deceased').length,
+      newRegistrationsToday: list.filter(
+        (p) => p.registrationDate && p.registrationDate.startsWith(todayStr),
+      ).length,
+      activePatients: list.filter(
+        (p) => p.status !== "Inactive" && p.status !== "Deceased",
+      ).length,
+      inactivePatients: list.filter(
+        (p) => p.status === "Inactive" || p.status === "Deceased",
+      ).length,
       duplicateCandidates: 0,
-      deceasedPatients: list.filter(p => p.status === 'Deceased').length
+      deceasedPatients: list.filter((p) => p.status === "Deceased").length,
     };
   }, [serverPatients]);
 
@@ -145,7 +154,6 @@ export function PatientListScreen({
         onPatientSelect={onPatientSelect}
         onViewTimeline={onViewTimeline}
       />
-
 
       <div className="flex-1 overflow-y-auto p-6 flex flex-col space-y-6">
         {/* HEADER SECTION */}
@@ -415,14 +423,18 @@ export function PatientListScreen({
         <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden">
           {/* Table Header Section */}
           <div className="px-6 py-4 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50/50">
-            <h2 className="text-sm font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2" style={{ fontFamily: PP }}>
+            <h2
+              className="text-sm font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2"
+              style={{ fontFamily: PP }}
+            >
               <Users size={18} className="text-[#0D47A1]" /> All Patients
             </h2>
             <div className="text-xs font-semibold text-[#64748B] bg-white px-2.5 py-1 rounded-lg border border-[#E5E7EB] shadow-sm">
-              Showing {filteredPatients.length} result{filteredPatients.length === 1 ? "" : "s"}
+              Showing {filteredPatients.length} result
+              {filteredPatients.length === 1 ? "" : "s"}
             </div>
           </div>
-          
+
           {isLoading ? (
             /* SKELETON TABLE LOADING STATE */
             <div className="p-6 space-y-4 animate-pulse">
@@ -469,7 +481,6 @@ export function PatientListScreen({
                     Reset Search &amp; Filters
                   </button>
                 )}
-
               </div>
             </div>
           ) : (

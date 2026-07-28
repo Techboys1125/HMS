@@ -14,9 +14,16 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-
-import type { MedicalVisitRecord, PrescriptionRecord } from "../types/patient.types";
-import { PP, RB, MOCK_VISIT_RECORDS, MOCK_PRESCRIPTION_RECORDS } from "../constants/patient.mock";
+import type {
+  MedicalVisitRecord,
+  PrescriptionRecord,
+} from "../types/patient.types";
+import {
+  PP,
+  RB,
+  MOCK_VISIT_RECORDS,
+  MOCK_PRESCRIPTION_RECORDS,
+} from "../constants/patient.mock";
 
 export function PatientMedicalRecordsScreen() {
   const [activeTab, setActiveTab] = useState<
@@ -217,20 +224,24 @@ export function PatientMedicalRecordsScreen() {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as "overview" | "visits" | "prescriptions")}
-              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors border-b-2 -mb-0.5 ${isActive
-                ? "border-[#0D47A1] text-[#0D47A1]"
-                : "border-transparent text-[#64748B] hover:text-[#111827]"
-                }`}
+              onClick={() =>
+                setActiveTab(tab.id as "overview" | "visits" | "prescriptions")
+              }
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors border-b-2 -mb-0.5 ${
+                isActive
+                  ? "border-[#0D47A1] text-[#0D47A1]"
+                  : "border-transparent text-[#64748B] hover:text-[#111827]"
+              }`}
               style={{ fontFamily: PP }}
             >
               <span>{tab.label}</span>
               {tab.count !== undefined && (
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] ${isActive
-                    ? "bg-blue-50 text-[#0D47A1]"
-                    : "bg-slate-100 text-slate-500"
-                    }`}
+                  className={`px-2 py-0.5 rounded-full text-[10px] ${
+                    isActive
+                      ? "bg-blue-50 text-[#0D47A1]"
+                      : "bg-slate-100 text-slate-500"
+                  }`}
                 >
                   {tab.count}
                 </span>
@@ -660,20 +671,22 @@ export function PatientMedicalRecordsScreen() {
 
                       <td className="px-4 py-4">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${rx.status === "Active"
-                            ? "bg-teal-50 text-[#009688]"
-                            : rx.status === "Refilled"
-                              ? "bg-blue-50 text-[#0D47A1]"
-                              : "bg-slate-100 text-slate-600"
-                            }`}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                            rx.status === "Active"
+                              ? "bg-teal-50 text-[#009688]"
+                              : rx.status === "Refilled"
+                                ? "bg-blue-50 text-[#0D47A1]"
+                                : "bg-slate-100 text-slate-600"
+                          }`}
                         >
                           <span
-                            className={`w-1.5 h-1.5 rounded-full ${rx.status === "Active"
-                              ? "bg-[#009688]"
-                              : rx.status === "Refilled"
-                                ? "bg-[#0D47A1]"
-                                : "bg-slate-400"
-                              }`}
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              rx.status === "Active"
+                                ? "bg-[#009688]"
+                                : rx.status === "Refilled"
+                                  ? "bg-[#0D47A1]"
+                                  : "bg-slate-400"
+                            }`}
                           />
                           {rx.status}
                         </span>

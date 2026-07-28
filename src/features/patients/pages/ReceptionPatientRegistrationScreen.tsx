@@ -120,8 +120,11 @@ export function ReceptionPatientRegistrationScreen({
       dateOfBirth: formData.dob,
       bloodGroup: formData.bloodGroup || "UNKNOWN",
       phone: formData.phone.trim(),
+      mobileNumber: formData.phone.trim(),
       email: formData.email.trim() || undefined,
-      address: formData.address.trim() ? { value: formData.address.trim() } : undefined,
+      address: formData.address.trim()
+        ? { value: formData.address.trim() }
+        : undefined,
     };
     // Only include bloodGroup if user selected one (empty string crashes backend enum parsing)
     if (formData.bloodGroup) {
@@ -133,7 +136,8 @@ export function ReceptionPatientRegistrationScreen({
       setGeneratedMrn(created.mrn || created.MRNId || "Unknown");
       setShowSuccessDialog(true);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Patient registration failed.";
+      const errorMessage =
+        err instanceof Error ? err.message : "Patient registration failed.";
       setErrors((prev) => ({
         ...prev,
         submit: errorMessage,

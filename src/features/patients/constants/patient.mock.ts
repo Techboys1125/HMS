@@ -1,8 +1,21 @@
-import { UserCheck, Calendar, Stethoscope, Pill, FileText, Receipt } from "lucide-react";
+import {
+  UserCheck,
+  Calendar,
+  Stethoscope,
+  Pill,
+  FileText,
+  Receipt,
+} from "lucide-react";
 
-
-
-import type { VisitRecord, PatientAppointment, BookingDoctor, MedicalVisitRecord, PrescriptionRecord, PatientInvoice, PaymentHistoryRecord } from "../types/patient.types";
+import type {
+  VisitRecord,
+  PatientAppointment,
+  BookingDoctor,
+  MedicalVisitRecord,
+  PrescriptionRecord,
+  PatientInvoice,
+  PaymentHistoryRecord,
+} from "../types/patient.types";
 
 export const PP = "'Poppins', system-ui, sans-serif";
 

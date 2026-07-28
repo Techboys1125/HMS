@@ -45,7 +45,10 @@ export function DuplicateWarningDialog({
             <X size={18} />
           </button>
         </div>
-        <div className="p-5 space-y-3 max-h-64 overflow-y-auto" style={{ fontFamily: RB }}>
+        <div
+          className="p-5 space-y-3 max-h-64 overflow-y-auto"
+          style={{ fontFamily: RB }}
+        >
           <p className="text-xs text-slate-600">
             We found {candidates.length} existing record
             {candidates.length !== 1 ? "s" : ""} that may match this patient.
@@ -59,7 +62,10 @@ export function DuplicateWarningDialog({
               onClick={() => onSelectExisting(c.mrn)}
               className="w-full text-left p-3 rounded-xl border border-gray-200 hover:border-[#0D47A1] hover:bg-blue-50/50 transition-colors"
             >
-              <div className="text-xs font-bold text-[#111827]" style={{ fontFamily: PP }}>
+              <div
+                className="text-xs font-bold text-[#111827]"
+                style={{ fontFamily: PP }}
+              >
                 {c.patientName || c.name}
               </div>
               <div className="text-[11px] text-slate-500 font-mono mt-0.5">

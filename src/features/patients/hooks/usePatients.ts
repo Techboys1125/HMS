@@ -27,4 +27,3 @@ export function usePatientSearch(query: string) {
     enabled: query.trim().length >= 2,
   });
 }
-

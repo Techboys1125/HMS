@@ -1,10 +1,12 @@
-import {
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PP, RB } from "../constants/patient.mock";
 
-export function EditPatientScreen({ onBack }: { onBack: () => void; patientMrn?: string }) {
+export function EditPatientScreen({
+  onBack,
+}: {
+  onBack: () => void;
+  patientMrn?: string;
+}) {
   return (
     <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center">
       <div className="w-full max-w-5xl">

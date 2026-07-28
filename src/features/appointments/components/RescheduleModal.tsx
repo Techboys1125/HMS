@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
-import { Calendar, AlertCircle, X, Check, Loader2 } from 'lucide-react';
-import type { AppointmentRecord } from '../types/appointment.types';
+import React, { useState } from "react";
+import { Calendar, AlertCircle, X, Check, Loader2 } from "lucide-react";
+import type { AppointmentRecord } from "../types/appointment.types";
 
-const PP = 'Poppins, sans-serif';
+const PP = "Poppins, sans-serif";
 
 interface RescheduleModalProps {
   appointment: AppointmentRecord;
   onClose: () => void;
-  onConfirmReschedule: (date: string, time: string, reason: string) => Promise<void>;
+  onConfirmReschedule: (
+    date: string,
+    time: string,
+    reason: string,
+  ) => Promise<void>;
 }
 
 export const RescheduleModal: React.FC<RescheduleModalProps> = ({
@@ -16,26 +20,26 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({
   onConfirmReschedule,
 }) => {
   const [newDate, setNewDate] = useState(
-    new Date(Date.now() + 86400000).toISOString().split('T')[0]
+    new Date(Date.now() + 86400000).toISOString().split("T")[0],
   );
-  const [newTime, setNewTime] = useState('11:00 AM');
-  const [reason, setReason] = useState('');
-  const [error, setError] = useState('');
+  const [newTime, setNewTime] = useState("11:00 AM");
+  const [reason, setReason] = useState("");
+  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reason.trim()) {
-      setError('Reschedule reason is mandatory (BR-APT-005 / VR-APT-005)');
+      setError("Reschedule reason is mandatory (BR-APT-005 / VR-APT-005)");
       return;
     }
-    setError('');
+    setError("");
     setSubmitting(true);
     try {
       await onConfirmReschedule(newDate, newTime, reason);
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Failed to reschedule appointment');
+      setError(err.message || "Failed to reschedule appointment");
     } finally {
       setSubmitting(false);
     }
@@ -44,7 +48,6 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
       <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden">
-
         {/* Header */}
         <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -68,7 +71,10 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({
               {appointment.patientName} (ID: {appointment.patientId})
             </p>
             <p className="text-slate-600">
-              Doctor: <span className="font-semibold text-slate-800">{appointment.doctorName}</span>
+              Doctor:{" "}
+              <span className="font-semibold text-slate-800">
+                {appointment.doctorName}
+              </span>
             </p>
             <p className="text-slate-500">
               Current: {appointment.appointmentDate} at {appointment.startTime}
@@ -83,13 +89,16 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({
           )}
 
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1" style={{ fontFamily: PP }}>
+            <label
+              className="text-xs font-bold text-slate-700 block mb-1"
+              style={{ fontFamily: PP }}
+            >
               New Appointment Date *
             </label>
             <input
               type="date"
               value={newDate}
-              min={new Date().toISOString().split('T')[0]}
+              min={new Date().toISOString().split("T")[0]}
               onChange={(e) => setNewDate(e.target.value)}
               className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-hidden focus:border-[#0D47A1] bg-slate-50/50"
               required
@@ -97,7 +106,10 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1" style={{ fontFamily: PP }}>
+            <label
+              className="text-xs font-bold text-slate-700 block mb-1"
+              style={{ fontFamily: PP }}
+            >
               New Time Slot *
             </label>
             <select
@@ -116,7 +128,10 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1" style={{ fontFamily: PP }}>
+            <label
+              className="text-xs font-bold text-slate-700 block mb-1"
+              style={{ fontFamily: PP }}
+            >
               Reschedule Reason *
             </label>
             <textarea
@@ -143,12 +158,15 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({
               disabled={submitting}
               className="px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
             >
-              {submitting ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+              {submitting ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Check size={14} />
+              )}
               Confirm Reschedule
             </button>
           </div>
         </form>
-
       </div>
     </div>
   );

@@ -1,38 +1,47 @@
-import React from 'react';
-import { CalendarRange, Copy, AlertTriangle } from 'lucide-react';
-import type { FormValues, FormErrors } from '../hooks/useCreateStaffForm';
+import React from "react";
+import { CalendarRange, Copy, AlertTriangle } from "lucide-react";
+import type { FormValues, FormErrors } from "../hooks/useCreateStaffForm";
 
 interface AvailabilityScheduleSectionProps {
   form: FormValues;
   errors: FormErrors;
   setFieldValue: (name: string, value: unknown) => void;
   setNestedFieldValue: (
-    section: 'availability',
+    section: "availability",
     key: string,
-    value: { isAvailable: boolean; startTime: string; endTime: string }
+    value: { isAvailable: boolean; startTime: string; endTime: string },
   ) => void;
   copyMondayHoursToWeekdays: () => void;
 }
 
-const WEEK_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const WEEK_DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
-export const AvailabilityScheduleSection: React.FC<AvailabilityScheduleSectionProps> = ({
-  form,
-  errors,
-  setNestedFieldValue,
-  copyMondayHoursToWeekdays,
-}) => {
+export const AvailabilityScheduleSection: React.FC<
+  AvailabilityScheduleSectionProps
+> = ({ form, errors, setNestedFieldValue, copyMondayHoursToWeekdays }) => {
   const handleDayToggle = (day: string, checked: boolean) => {
     const currentDay = form.availability[day];
-    setNestedFieldValue('availability', day, {
+    setNestedFieldValue("availability", day, {
       ...currentDay,
       isAvailable: checked,
     });
   };
 
-  const handleTimeChange = (day: string, timeType: 'startTime' | 'endTime', value: string) => {
+  const handleTimeChange = (
+    day: string,
+    timeType: "startTime" | "endTime",
+    value: string,
+  ) => {
     const currentDay = form.availability[day];
-    setNestedFieldValue('availability', day, {
+    setNestedFieldValue("availability", day, {
       ...currentDay,
       [timeType]: value,
     });
@@ -64,15 +73,20 @@ export const AvailabilityScheduleSection: React.FC<AvailabilityScheduleSectionPr
 
       {/* Grid Schedule */}
       <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden divide-y divide-gray-100 bg-white">
-        {WEEK_DAYS.map(day => {
-          const sched = form.availability[day] || { isAvailable: false, startTime: '', endTime: '' };
+        {WEEK_DAYS.map((day) => {
+          const sched = form.availability[day] || {
+            isAvailable: false,
+            startTime: "",
+            endTime: "",
+          };
           const dayErrors = errors.availabilityDays?.[day];
 
           return (
             <div
               key={day}
-              className={`p-4 grid grid-cols-1 sm:grid-cols-4 items-center gap-4 text-xs transition-colors ${sched.isAvailable ? 'bg-slate-50/50' : 'bg-white opacity-60'
-                }`}
+              className={`p-4 grid grid-cols-1 sm:grid-cols-4 items-center gap-4 text-xs transition-colors ${
+                sched.isAvailable ? "bg-slate-50/50" : "bg-white opacity-60"
+              }`}
             >
               {/* Day Name & Checkbox */}
               <div className="col-span-1 flex items-center gap-3">
@@ -80,7 +94,7 @@ export const AvailabilityScheduleSection: React.FC<AvailabilityScheduleSectionPr
                   type="checkbox"
                   id={`avail-${day}`}
                   checked={sched.isAvailable}
-                  onChange={e => handleDayToggle(day, e.target.checked)}
+                  onChange={(e) => handleDayToggle(day, e.target.checked)}
                   className="w-4 h-4 rounded border-slate-300 text-[#0D47A1] focus:ring-[#0D47A1] cursor-pointer"
                 />
                 <label
@@ -93,42 +107,63 @@ export const AvailabilityScheduleSection: React.FC<AvailabilityScheduleSectionPr
 
               {/* Start Time */}
               <div className="col-span-1 space-y-1">
-                <label className="block text-[10px] font-semibold text-slate-400 uppercase">Start Time</label>
+                <label className="block text-[10px] font-semibold text-slate-400 uppercase">
+                  Start Time
+                </label>
                 <input
                   type="time"
                   disabled={!sched.isAvailable}
                   value={sched.startTime}
-                  onChange={e => handleTimeChange(day, 'startTime', e.target.value)}
-                  className={`w-full bg-white border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs outline-none focus:border-[#0D47A1] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed ${dayErrors?.startTime ? 'border-red-500 bg-red-50/50' : ''
-                    }`}
+                  onChange={(e) =>
+                    handleTimeChange(day, "startTime", e.target.value)
+                  }
+                  className={`w-full bg-white border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs outline-none focus:border-[#0D47A1] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed ${
+                    dayErrors?.startTime ? "border-red-500 bg-red-50/50" : ""
+                  }`}
                 />
                 {sched.isAvailable && dayErrors?.startTime && (
-                  <p className="text-red-500 text-[10px] font-semibold mt-0.5">{dayErrors.startTime}</p>
+                  <p className="text-red-500 text-[10px] font-semibold mt-0.5">
+                    {dayErrors.startTime}
+                  </p>
                 )}
               </div>
 
               {/* End Time */}
               <div className="col-span-1 space-y-1">
-                <label className="block text-[10px] font-semibold text-slate-400 uppercase">End Time</label>
+                <label className="block text-[10px] font-semibold text-slate-400 uppercase">
+                  End Time
+                </label>
                 <input
                   type="time"
                   disabled={!sched.isAvailable}
                   value={sched.endTime}
-                  onChange={e => handleTimeChange(day, 'endTime', e.target.value)}
-                  className={`w-full bg-white border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs outline-none focus:border-[#0D47A1] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed ${dayErrors?.endTime ? 'border-red-500 bg-red-50/50' : ''
-                    }`}
+                  onChange={(e) =>
+                    handleTimeChange(day, "endTime", e.target.value)
+                  }
+                  className={`w-full bg-white border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs outline-none focus:border-[#0D47A1] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed ${
+                    dayErrors?.endTime ? "border-red-500 bg-red-50/50" : ""
+                  }`}
                 />
                 {sched.isAvailable && dayErrors?.endTime && (
-                  <p className="text-red-500 text-[10px] font-semibold mt-0.5">{dayErrors.endTime}</p>
+                  <p className="text-red-500 text-[10px] font-semibold mt-0.5">
+                    {dayErrors.endTime}
+                  </p>
                 )}
               </div>
 
               {/* Status indicator */}
               <div className="col-span-1 sm:text-right">
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${sched.isAvailable ? 'bg-green-50 text-[#66BB6A] border border-green-200' : 'bg-slate-50 border border-slate-200 text-slate-400'
-                  }`}>
-                  <span className={`w-1 h-1 rounded-full ${sched.isAvailable ? 'bg-[#66BB6A]' : 'bg-slate-450'}`} />
-                  {sched.isAvailable ? 'Available' : 'Unavailable'}
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                    sched.isAvailable
+                      ? "bg-green-50 text-[#66BB6A] border border-green-200"
+                      : "bg-slate-50 border border-slate-200 text-slate-400"
+                  }`}
+                >
+                  <span
+                    className={`w-1 h-1 rounded-full ${sched.isAvailable ? "bg-[#66BB6A]" : "bg-slate-450"}`}
+                  />
+                  {sched.isAvailable ? "Available" : "Unavailable"}
                 </span>
               </div>
             </div>

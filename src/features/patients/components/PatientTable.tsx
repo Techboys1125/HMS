@@ -91,11 +91,15 @@ export function PatientTable({
     <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden">
       {/* Table Header Section */}
       <div className="px-6 py-4 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50/50">
-        <h2 className="text-sm font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2" style={{ fontFamily: PP }}>
+        <h2
+          className="text-sm font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2"
+          style={{ fontFamily: PP }}
+        >
           <Users size={18} className="text-[#0D47A1]" /> All Patients
         </h2>
         <div className="text-xs font-semibold text-[#64748B] bg-white px-2.5 py-1 rounded-lg border border-[#E5E7EB] shadow-sm">
-          Showing {patients.length} of {totalCount} {totalCount === 1 ? 'entity' : 'entities'}
+          Showing {patients.length} of {totalCount}{" "}
+          {totalCount === 1 ? "entity" : "entities"}
         </div>
       </div>
       {isLoading ? (
@@ -144,7 +148,6 @@ export function PatientTable({
                 Reset Search &amp; Filters
               </button>
             )}
-
           </div>
         </div>
       ) : (
@@ -190,7 +193,10 @@ export function PatientTable({
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <Avatar name={(p.patientName || p.name || "").trim()} size="sm" />
+                      <Avatar
+                        name={(p.patientName || p.name || "").trim()}
+                        size="sm"
+                      />
                       <div>
                         <span
                           className="text-xs font-bold text-[#111827] block"
@@ -208,7 +214,9 @@ export function PatientTable({
                     {p.age || 0} Y
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-medium">
-                    {p.gender === "MALE" || p.gender === "M" ? "Male" : "Female"}
+                    {p.gender === "MALE" || p.gender === "M"
+                      ? "Male"
+                      : "Female"}
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-mono">
                     {p.phone}
@@ -217,10 +225,18 @@ export function PatientTable({
                     {p.email || "-"}
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
-                    <span className="font-medium capitalize">{(p.patientCategory || "GENERAL").toLowerCase().replace(/_/g, " ")}</span>
+                    <span className="font-medium capitalize">
+                      {(p.patientCategory || "GENERAL")
+                        .toLowerCase()
+                        .replace(/_/g, " ")}
+                    </span>
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
-                    <span className="font-medium capitalize">{(p.registrationType || "WALK_IN").toLowerCase().replace(/_/g, " ")}</span>
+                    <span className="font-medium capitalize">
+                      {(p.registrationType || "WALK_IN")
+                        .toLowerCase()
+                        .replace(/_/g, " ")}
+                    </span>
                   </td>
                   <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
                     <div className="flex items-center gap-1.5">
@@ -288,10 +304,7 @@ export function PatientTable({
                               }}
                               className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
                             >
-                              <FileText
-                                size={14}
-                                className="text-[#009688]"
-                              />{" "}
+                              <FileText size={14} className="text-[#009688]" />{" "}
                               View Medical History
                             </button>
                             <button
@@ -301,10 +314,7 @@ export function PatientTable({
                               }}
                               className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
                             >
-                              <Calendar
-                                size={14}
-                                className="text-purple-600"
-                              />{" "}
+                              <Calendar size={14} className="text-purple-600" />{" "}
                               View Appointments
                             </button>
                             <button

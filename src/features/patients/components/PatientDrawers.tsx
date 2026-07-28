@@ -111,8 +111,16 @@ export function EditPatientInformationDrawer({
                 <Edit size={18} className="text-blue-100" />
               </div>
               <div>
-                <h2 className="text-base font-bold leading-tight" style={{ fontFamily: PP }}>Edit Patient Information</h2>
-                <p className="text-xs text-blue-200" style={{ fontFamily: RB }}>MRN: {patient?.id || 'PT-2024-001'} • Demographic &amp; Contact Update</p>
+                <h2
+                  className="text-base font-bold leading-tight"
+                  style={{ fontFamily: PP }}
+                >
+                  Edit Patient Information
+                </h2>
+                <p className="text-xs text-blue-200" style={{ fontFamily: RB }}>
+                  MRN: {patient?.id || "PT-2024-001"} • Demographic &amp;
+                  Contact Update
+                </p>
               </div>
             </div>
             <button
@@ -648,7 +656,15 @@ export function ProfileInvoiceDrawer({
   onClose,
   onPay,
 }: {
-  invoice: Record<string, unknown> & { id?: string; date?: string; status?: string; description?: string; amount?: number } | null;
+  invoice:
+    | (Record<string, unknown> & {
+        id?: string;
+        date?: string;
+        status?: string;
+        description?: string;
+        amount?: number;
+      })
+    | null;
   onClose: () => void;
   onPay: (msg: string) => void;
 }) {
@@ -753,7 +769,15 @@ export function ProfileDocDrawer({
   onClose,
   onDownload,
 }: {
-  doc: Record<string, unknown> & { title?: string; category?: string; date?: string; size?: string; doctor?: string } | null;
+  doc:
+    | (Record<string, unknown> & {
+        title?: string;
+        category?: string;
+        date?: string;
+        size?: string;
+        doctor?: string;
+      })
+    | null;
   onClose: () => void;
   onDownload: (msg: string) => void;
 }) {

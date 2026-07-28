@@ -12,7 +12,12 @@ import {
   CreditCard,
 } from "lucide-react";
 import type { PatientInvoice } from "../types/patient.types";
-import { PP, RB, INITIAL_INVOICES, PAYMENT_HISTORY_RECORDS } from "../constants/patient.mock";
+import {
+  PP,
+  RB,
+  INITIAL_INVOICES,
+  PAYMENT_HISTORY_RECORDS,
+} from "../constants/patient.mock";
 
 export function PatientBillingScreen() {
   const [invoices, setInvoices] = useState<PatientInvoice[]>(INITIAL_INVOICES);
@@ -65,15 +70,15 @@ export function PatientBillingScreen() {
       prev.map((i) =>
         i.id === inv.id
           ? {
-            ...i,
-            status: "Paid",
-            paymentRef: `TXN-${Math.floor(10000 + Math.random() * 90000)}-ONLINE`,
-            paymentDate: new Date()
-              .toISOString()
-              .replace("T", " ")
-              .substring(0, 16),
-            paymentMethod: "Instant Card Payment",
-          }
+              ...i,
+              status: "Paid",
+              paymentRef: `TXN-${Math.floor(10000 + Math.random() * 90000)}-ONLINE`,
+              paymentDate: new Date()
+                .toISOString()
+                .replace("T", " ")
+                .substring(0, 16),
+              paymentMethod: "Instant Card Payment",
+            }
           : i,
       ),
     );
@@ -88,15 +93,15 @@ export function PatientBillingScreen() {
       prev.map((i) =>
         i.status === "Pending" || i.status === "Overdue"
           ? {
-            ...i,
-            status: "Paid",
-            paymentRef: `TXN-${Math.floor(10000 + Math.random() * 90000)}-ALL`,
-            paymentDate: new Date()
-              .toISOString()
-              .replace("T", " ")
-              .substring(0, 16),
-            paymentMethod: "Instant Online Pay",
-          }
+              ...i,
+              status: "Paid",
+              paymentRef: `TXN-${Math.floor(10000 + Math.random() * 90000)}-ALL`,
+              paymentDate: new Date()
+                .toISOString()
+                .replace("T", " ")
+                .substring(0, 16),
+              paymentMethod: "Instant Online Pay",
+            }
           : i,
       ),
     );
@@ -358,20 +363,22 @@ export function PatientBillingScreen() {
                   {/* Status Badge */}
                   <td className="px-4 py-4">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${inv.status === "Paid"
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                        inv.status === "Paid"
                           ? "bg-green-50 text-[#66BB6A]"
                           : inv.status === "Pending"
                             ? "bg-amber-50 text-[#F59E0B]"
                             : "bg-red-50 text-[#EF4444]"
-                        }`}
+                      }`}
                     >
                       <span
-                        className={`w-1.5 h-1.5 rounded-full ${inv.status === "Paid"
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          inv.status === "Paid"
                             ? "bg-[#66BB6A]"
                             : inv.status === "Pending"
                               ? "bg-[#F59E0B]"
                               : "bg-[#EF4444]"
-                          }`}
+                        }`}
                       />
                       {inv.status}
                     </span>
@@ -517,10 +524,11 @@ export function PatientBillingScreen() {
                         Payment Status
                       </span>
                       <span
-                        className={`inline-flex items-center gap-1 text-xs font-bold ${selectedInvoice.status === "Paid"
+                        className={`inline-flex items-center gap-1 text-xs font-bold ${
+                          selectedInvoice.status === "Paid"
                             ? "text-[#66BB6A]"
                             : "text-amber-600"
-                          }`}
+                        }`}
                       >
                         {selectedInvoice.status}
                       </span>
@@ -649,8 +657,9 @@ export function PatientBillingScreen() {
                       `Downloading invoice PDF for ${selectedInvoice.id}...`,
                     )
                   }
-                  className={`py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-xs font-bold text-[#111827] hover:bg-slate-50 ${selectedInvoice.status === "Pending" ? "px-3" : "flex-1"
-                    }`}
+                  className={`py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-xs font-bold text-[#111827] hover:bg-slate-50 ${
+                    selectedInvoice.status === "Pending" ? "px-3" : "flex-1"
+                  }`}
                   style={{ fontFamily: PP }}
                 >
                   Download Invoice

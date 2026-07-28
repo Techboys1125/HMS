@@ -459,7 +459,7 @@ export function DoctorDashboard() {
                     {s === "in-progress"
                       ? "Active"
                       : s.charAt(0).toUpperCase() +
-                      s.slice(1).replace("-", " ")}
+                        s.slice(1).replace("-", " ")}
                   </div>
                 ))}
               </div>
@@ -608,10 +608,11 @@ export function DoctorDashboard() {
                     className={`flex items-center gap-3 px-5 py-3.5 ${a.status === "in-progress" ? "bg-teal-50/40" : ""}`}
                   >
                     <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${a.status === "in-progress"
+                      className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
+                        a.status === "in-progress"
                           ? "bg-[#009688] text-white"
                           : "bg-slate-100 text-[#64748B]"
-                        }`}
+                      }`}
                     >
                       {i + 1}
                     </div>

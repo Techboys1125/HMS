@@ -18,8 +18,15 @@ import {
   TrendingUp,
 } from "lucide-react";
 import type { PatientAppointment } from "../types/patient.types";
-import { PP, RB, INITIAL_PATIENT_APPOINTMENTS } from "../constants/patient.mock";
-import { PatientCancelAppointmentDialog, PatientRescheduleAppointmentDialog } from "../components/PatientDialogs";
+import {
+  PP,
+  RB,
+  INITIAL_PATIENT_APPOINTMENTS,
+} from "../constants/patient.mock";
+import {
+  PatientCancelAppointmentDialog,
+  PatientRescheduleAppointmentDialog,
+} from "../components/PatientDialogs";
 import { PatientBookAppointmentScreen } from "./PatientBookAppointmentScreen";
 
 export function PatientAppointmentsScreen() {
@@ -141,7 +148,9 @@ export function PatientAppointmentsScreen() {
       setFormDoctor(apptToReschedule.doctor);
       setFormDate(apptToReschedule.date);
       setFormTime(apptToReschedule.time);
-      setFormType(apptToReschedule.visitType as "In-Person OPD" | "Follow-up OPD");
+      setFormType(
+        apptToReschedule.visitType as "In-Person OPD" | "Follow-up OPD",
+      );
       setFormReason(apptToReschedule.reason);
       setFormNotes(apptToReschedule.notes);
     } else {
@@ -164,16 +173,16 @@ export function PatientAppointmentsScreen() {
         prev.map((a) =>
           a.id === editingAppt.id
             ? {
-              ...a,
-              department: formDept,
-              doctor: formDoctor,
-              date: formDate,
-              time: formTime,
-              visitType: formType,
-              reason: formReason || a.reason,
-              notes: formNotes || a.notes,
-              status: "Scheduled",
-            }
+                ...a,
+                department: formDept,
+                doctor: formDoctor,
+                date: formDate,
+                time: formTime,
+                visitType: formType,
+                reason: formReason || a.reason,
+                notes: formNotes || a.notes,
+                status: "Scheduled",
+              }
             : a,
         ),
       );
@@ -463,13 +472,13 @@ export function PatientAppointmentsScreen() {
                 dateRangeFilter !== "All" ||
                 searchQuery ||
                 activeTab !== "all") && (
-                  <button
-                    onClick={handleResetFilters}
-                    className="text-xs text-[#0D47A1] font-semibold hover:underline px-2 py-1 flex items-center gap-1"
-                  >
-                    <RefreshCw size={12} /> Reset Filters
-                  </button>
-                )}
+                <button
+                  onClick={handleResetFilters}
+                  className="text-xs text-[#0D47A1] font-semibold hover:underline px-2 py-1 flex items-center gap-1"
+                >
+                  <RefreshCw size={12} /> Reset Filters
+                </button>
+              )}
             </div>
           </div>
 
@@ -485,19 +494,25 @@ export function PatientAppointmentsScreen() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as "all" | "upcoming" | "completed" | "cancelled")}
-                  className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors border-b-2 -mb-0.5 whitespace-nowrap ${isActive
-                    ? "border-[#0D47A1] text-[#0D47A1]"
-                    : "border-transparent text-[#64748B] hover:text-[#111827]"
-                    }`}
+                  onClick={() =>
+                    setActiveTab(
+                      tab.id as "all" | "upcoming" | "completed" | "cancelled",
+                    )
+                  }
+                  className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors border-b-2 -mb-0.5 whitespace-nowrap ${
+                    isActive
+                      ? "border-[#0D47A1] text-[#0D47A1]"
+                      : "border-transparent text-[#64748B] hover:text-[#111827]"
+                  }`}
                   style={{ fontFamily: PP }}
                 >
                   <span>{tab.label}</span>
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] ${isActive
-                      ? "bg-blue-50 text-[#0D47A1]"
-                      : "bg-slate-100 text-slate-500"
-                      }`}
+                    className={`px-2 py-0.5 rounded-full text-[10px] ${
+                      isActive
+                        ? "bg-blue-50 text-[#0D47A1]"
+                        : "bg-slate-100 text-slate-500"
+                    }`}
                   >
                     {tab.count}
                   </span>
@@ -614,10 +629,11 @@ export function PatientAppointmentsScreen() {
                             {/* Visit Type */}
                             <td className="px-4 py-4">
                               <span
-                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold ${appt.visitType === "Follow-up OPD"
-                                  ? "bg-teal-50 text-teal-700"
-                                  : "bg-slate-100 text-slate-700"
-                                  }`}
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold ${
+                                  appt.visitType === "Follow-up OPD"
+                                    ? "bg-teal-50 text-teal-700"
+                                    : "bg-slate-100 text-slate-700"
+                                }`}
                               >
                                 <Building2 size={12} />
                                 {appt.visitType}
@@ -627,28 +643,30 @@ export function PatientAppointmentsScreen() {
                             {/* Status */}
                             <td className="px-4 py-4">
                               <span
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${appt.status === "Confirmed"
-                                  ? "bg-green-50 text-[#66BB6A]"
-                                  : appt.status === "Scheduled"
-                                    ? "bg-blue-50 text-[#0D47A1]"
-                                    : appt.status === "Pending"
-                                      ? "bg-amber-50 text-[#F59E0B]"
-                                      : appt.status === "Completed"
-                                        ? "bg-teal-50 text-[#009688]"
-                                        : "bg-red-50 text-[#EF4444]"
-                                  }`}
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                  appt.status === "Confirmed"
+                                    ? "bg-green-50 text-[#66BB6A]"
+                                    : appt.status === "Scheduled"
+                                      ? "bg-blue-50 text-[#0D47A1]"
+                                      : appt.status === "Pending"
+                                        ? "bg-amber-50 text-[#F59E0B]"
+                                        : appt.status === "Completed"
+                                          ? "bg-teal-50 text-[#009688]"
+                                          : "bg-red-50 text-[#EF4444]"
+                                }`}
                               >
                                 <span
-                                  className={`w-1.5 h-1.5 rounded-full ${appt.status === "Confirmed"
-                                    ? "bg-[#66BB6A]"
-                                    : appt.status === "Scheduled"
-                                      ? "bg-[#0D47A1]"
-                                      : appt.status === "Pending"
-                                        ? "bg-[#F59E0B]"
-                                        : appt.status === "Completed"
-                                          ? "bg-[#009688]"
-                                          : "bg-[#EF4444]"
-                                    }`}
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    appt.status === "Confirmed"
+                                      ? "bg-[#66BB6A]"
+                                      : appt.status === "Scheduled"
+                                        ? "bg-[#0D47A1]"
+                                        : appt.status === "Pending"
+                                          ? "bg-[#F59E0B]"
+                                          : appt.status === "Completed"
+                                            ? "bg-[#009688]"
+                                            : "bg-[#EF4444]"
+                                  }`}
                                 />
                                 {appt.status}
                               </span>
@@ -762,14 +780,15 @@ export function PatientAppointmentsScreen() {
                           </div>
                         </div>
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${appt.status === "Confirmed"
-                            ? "bg-green-50 text-[#66BB6A]"
-                            : appt.status === "Scheduled"
-                              ? "bg-blue-50 text-[#0D47A1]"
-                              : appt.status === "Completed"
-                                ? "bg-teal-50 text-[#009688]"
-                                : "bg-red-50 text-[#EF4444]"
-                            }`}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                            appt.status === "Confirmed"
+                              ? "bg-green-50 text-[#66BB6A]"
+                              : appt.status === "Scheduled"
+                                ? "bg-blue-50 text-[#0D47A1]"
+                                : appt.status === "Completed"
+                                  ? "bg-teal-50 text-[#009688]"
+                                  : "bg-red-50 text-[#EF4444]"
+                          }`}
                         >
                           {appt.status}
                         </span>
@@ -1149,20 +1168,22 @@ export function PatientAppointmentsScreen() {
                     <button
                       type="button"
                       onClick={() => setFormType("In-Person OPD")}
-                      className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-colors ${formType === "In-Person OPD"
-                        ? "border-[#0D47A1] bg-blue-50 text-[#0D47A1]"
-                        : "border-[#E5E7EB] bg-slate-50 text-slate-600"
-                        }`}
+                      className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+                        formType === "In-Person OPD"
+                          ? "border-[#0D47A1] bg-blue-50 text-[#0D47A1]"
+                          : "border-[#E5E7EB] bg-slate-50 text-slate-600"
+                      }`}
                     >
                       <Building2 size={14} /> In-Person OPD
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormType("Follow-up OPD")}
-                      className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-colors ${formType === "Follow-up OPD"
-                        ? "border-[#0D47A1] bg-blue-50 text-[#0D47A1]"
-                        : "border-[#E5E7EB] bg-slate-50 text-slate-600"
-                        }`}
+                      className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+                        formType === "Follow-up OPD"
+                          ? "border-[#0D47A1] bg-blue-50 text-[#0D47A1]"
+                          : "border-[#E5E7EB] bg-slate-50 text-slate-600"
+                      }`}
                     >
                       <Stethoscope size={14} /> Follow-up OPD
                     </button>
@@ -1199,10 +1220,11 @@ export function PatientAppointmentsScreen() {
                           key={t}
                           type="button"
                           onClick={() => setFormTime(t)}
-                          className={`py-1.5 rounded-lg border text-xs font-semibold text-center transition-colors ${formTime === t
-                            ? "border-[#0D47A1] bg-[#0D47A1] text-white shadow-sm"
-                            : "border-[#E5E7EB] bg-slate-50 text-[#111827] hover:bg-slate-100"
-                            }`}
+                          className={`py-1.5 rounded-lg border text-xs font-semibold text-center transition-colors ${
+                            formTime === t
+                              ? "border-[#0D47A1] bg-[#0D47A1] text-white shadow-sm"
+                              : "border-[#E5E7EB] bg-slate-50 text-[#111827] hover:bg-slate-100"
+                          }`}
                         >
                           {t}
                         </button>

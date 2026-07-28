@@ -1,27 +1,12 @@
 import { useState } from "react";
-import {
-  Calendar,
-  Search,
-  UserPlus,
-} from "lucide-react";
-import type {
-  ScreenPatientSearchResult,
-  ChipVariant
-} from "../types/patient.types";
-import {
-  PP,
-  RB,
-
-} from "../constants/patient.mock";
-import { Av, Chip } from "../components/Avatar";
+import { Calendar, Search, UserPlus } from "lucide-react";
+import type { ScreenPatientSearchResult } from "../types/patient.types";
+import { PP, RB } from "../constants/patient.mock";
 
 export function PatientSearchScreen({
-  onBack,
   onPatientSelect,
   onRegisterClick,
   onBookAppointmentClick,
-  onCheckInClick,
-  userRole = "Receptionist",
 }: {
   onBack?: () => void;
   onPatientSelect?: (mrn: string) => void;
@@ -211,11 +196,15 @@ export function PatientSearchScreen({
             <span className="text-slate-400">/</span>
             <span className="font-semibold text-[#0D47A1]">Patient Search</span>
           </div>
-          <h1 className="text-2xl font-bold text-[#111827]" style={{ fontFamily: PP }}>
+          <h1
+            className="text-2xl font-bold text-[#111827]"
+            style={{ fontFamily: PP }}
+          >
             Patient Management & Search
           </h1>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Search patient records, filter by status or department, and inspect record details.
+            Search patient records, filter by status or department, and inspect
+            record details.
           </p>
         </div>
 
@@ -233,7 +222,11 @@ export function PatientSearchScreen({
           )}
           {onBookAppointmentClick && (
             <button
-              onClick={() => onBookAppointmentClick(selectedPatient ? selectedPatient.mrn : "")}
+              onClick={() =>
+                onBookAppointmentClick(
+                  selectedPatient ? selectedPatient.mrn : "",
+                )
+              }
               className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm"
               style={{ fontFamily: PP }}
             >
@@ -247,11 +240,14 @@ export function PatientSearchScreen({
       {/* ── GLOBAL SEARCH & FILTER BAR ── */}
       <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4">
         <div className="relative flex-1 w-full">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search
+            size={16}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+          />
           <input
             type="text"
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by Patient Name, MRN, or Mobile Number..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
             style={{ fontFamily: RB }}
@@ -259,9 +255,9 @@ export function PatientSearchScreen({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto">
-          <select 
-            value={statusFilter} 
-            onChange={e => setStatusFilter(e.target.value)}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
             className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
           >
             <option>All Statuses</option>
@@ -272,9 +268,9 @@ export function PatientSearchScreen({
             <option>Inactive</option>
           </select>
 
-          <select 
-            value={regTypeFilter} 
-            onChange={e => setRegTypeFilter(e.target.value)}
+          <select
+            value={regTypeFilter}
+            onChange={(e) => setRegTypeFilter(e.target.value)}
             className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
           >
             <option>All Types</option>
@@ -282,9 +278,9 @@ export function PatientSearchScreen({
             <option>Existing Patient Update</option>
           </select>
 
-          <select 
-            value={genderFilter} 
-            onChange={e => setGenderFilter(e.target.value)}
+          <select
+            value={genderFilter}
+            onChange={(e) => setGenderFilter(e.target.value)}
             className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
           >
             <option>All Genders</option>
@@ -292,16 +288,16 @@ export function PatientSearchScreen({
             <option>Male</option>
           </select>
 
-          <select 
-            value={regDateFilter} 
-            onChange={e => setRegDateFilter(e.target.value)}
+          <select
+            value={regDateFilter}
+            onChange={(e) => setRegDateFilter(e.target.value)}
             className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
           >
             <option>All Dates</option>
             <option>Today</option>
           </select>
 
-          <button 
+          <button
             onClick={resetFilters}
             className="px-3 py-2 rounded-xl text-xs text-[#EF4444] font-semibold hover:bg-red-50 transition-colors"
           >
@@ -314,16 +310,27 @@ export function PatientSearchScreen({
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         <div className="xl:col-span-12 bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
           <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>Patient Search Results</h2>
+            <h2
+              className="text-base font-bold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
+              Patient Search Results
+            </h2>
             <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-[#0D47A1]">
               {filteredPatients.length} Patients Found
             </span>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs" style={{ fontFamily: RB }}>
+            <table
+              className="w-full text-left text-xs"
+              style={{ fontFamily: RB }}
+            >
               <thead>
-                <tr className="bg-slate-50 border-b border-gray-100 text-[#64748B] uppercase tracking-wider text-[10px]" style={{ fontFamily: PP }}>
+                <tr
+                  className="bg-slate-50 border-b border-gray-100 text-[#64748B] uppercase tracking-wider text-[10px]"
+                  style={{ fontFamily: PP }}
+                >
                   <th className="px-4 py-3">MRN</th>
                   <th className="px-4 py-3">Patient Name</th>
                   <th className="px-4 py-3">Age/Gender</th>
@@ -335,24 +342,34 @@ export function PatientSearchScreen({
               </thead>
               <tbody className="divide-y divide-gray-100 text-[#111827]">
                 {filteredPatients.length > 0 ? (
-                  filteredPatients.map(patient => (
-                    <tr 
-                      key={patient.mrn} 
+                  filteredPatients.map((patient) => (
+                    <tr
+                      key={patient.mrn}
                       onClick={() => setSelectedPatientId(patient.mrn)}
-                      className={`hover:bg-slate-50/80 transition-colors cursor-pointer ${selectedPatientId === patient.mrn ? 'bg-blue-50/40' : ''}`}
+                      className={`hover:bg-slate-50/80 transition-colors cursor-pointer ${selectedPatientId === patient.mrn ? "bg-blue-50/40" : ""}`}
                     >
-                      <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">{patient.mrn}</td>
-                      <td className="px-4 py-3.5 font-semibold text-[#111827]">{patient.name}</td>
-                      <td className="px-4 py-3.5 text-slate-600">{patient.age} yrs · {patient.gender}</td>
-                      <td className="px-4 py-3.5 font-mono text-slate-500">{patient.mobile}</td>
-                      <td className="px-4 py-3.5 font-bold text-[#009688]">{patient.bloodGroup}</td>
+                      <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
+                        {patient.mrn}
+                      </td>
+                      <td className="px-4 py-3.5 font-semibold text-[#111827]">
+                        {patient.name}
+                      </td>
+                      <td className="px-4 py-3.5 text-slate-600">
+                        {patient.age} yrs · {patient.gender}
+                      </td>
+                      <td className="px-4 py-3.5 font-mono text-slate-500">
+                        {patient.mobile}
+                      </td>
+                      <td className="px-4 py-3.5 font-bold text-[#009688]">
+                        {patient.bloodGroup}
+                      </td>
                       <td className="px-4 py-3.5">
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
                           {patient.status}
                         </span>
                       </td>
                       <td className="px-4 py-3.5 text-right">
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             if (onPatientSelect) onPatientSelect(patient.mrn);
@@ -366,7 +383,10 @@ export function PatientSearchScreen({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-slate-400">
+                    <td
+                      colSpan={7}
+                      className="px-4 py-12 text-center text-slate-400"
+                    >
                       No matching patient records found.
                     </td>
                   </tr>
@@ -375,7 +395,6 @@ export function PatientSearchScreen({
             </table>
           </div>
         </div>
-
       </div>
     </div>
   );

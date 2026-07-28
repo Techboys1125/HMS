@@ -6,7 +6,7 @@ import {
   EyeOff,
   ShieldCheck,
   Loader2,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import { TextField } from "./TextField";
 import { useLogin } from "../hooks/useLogin";
@@ -146,7 +146,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             )}
           </button>
         </form>
-
       </div>
 
       {/* Bottom Footer Section */}

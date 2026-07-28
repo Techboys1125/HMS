@@ -851,24 +851,26 @@ export const UserManagement: React.FC = () => {
                           </td>
                           <td className="px-4 py-3.5">
                             <span
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${user.status === "Active"
-                                ? "bg-green-50 text-[#66BB6A]"
-                                : user.status === "Pending"
-                                  ? "bg-amber-50 text-[#F59E0B]"
-                                  : user.status === "Suspended"
-                                    ? "bg-orange-50 text-orange-600"
-                                    : "bg-red-50 text-[#EF4444]"
-                                }`}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                                user.status === "Active"
+                                  ? "bg-green-50 text-[#66BB6A]"
+                                  : user.status === "Pending"
+                                    ? "bg-amber-50 text-[#F59E0B]"
+                                    : user.status === "Suspended"
+                                      ? "bg-orange-50 text-orange-600"
+                                      : "bg-red-50 text-[#EF4444]"
+                              }`}
                             >
                               <span
-                                className={`w-1.5 h-1.5 rounded-full ${user.status === "Active"
-                                  ? "bg-[#66BB6A]"
-                                  : user.status === "Pending"
-                                    ? "bg-[#F59E0B]"
-                                    : user.status === "Suspended"
-                                      ? "bg-orange-500"
-                                      : "bg-[#EF4444]"
-                                  }`}
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  user.status === "Active"
+                                    ? "bg-[#66BB6A]"
+                                    : user.status === "Pending"
+                                      ? "bg-[#F59E0B]"
+                                      : user.status === "Suspended"
+                                        ? "bg-orange-500"
+                                        : "bg-[#EF4444]"
+                                }`}
                               />
                               {user.status}
                             </span>
@@ -1246,10 +1248,11 @@ export const UserManagement: React.FC = () => {
                       {detailsUser.role}
                     </span>
                     <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${detailsUser.status === "Active"
-                        ? "bg-green-50 text-[#66BB6A]"
-                        : "bg-red-50 text-red-500"
-                        }`}
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                        detailsUser.status === "Active"
+                          ? "bg-green-50 text-[#66BB6A]"
+                          : "bg-red-50 text-red-500"
+                      }`}
                     >
                       {detailsUser.status}
                     </span>
@@ -1484,10 +1487,11 @@ export const UserManagement: React.FC = () => {
                 </button>
                 <button
                   onClick={handleConfirmStatusChange}
-                  className={`px-4 py-2 text-white rounded-xl font-bold transition-colors cursor-pointer ${statusDialogUser.action === "Suspend"
-                    ? "bg-red-600 hover:bg-red-700"
-                    : "bg-green-600 hover:bg-green-700"
-                    }`}
+                  className={`px-4 py-2 text-white rounded-xl font-bold transition-colors cursor-pointer ${
+                    statusDialogUser.action === "Suspend"
+                      ? "bg-red-600 hover:bg-red-700"
+                      : "bg-green-600 hover:bg-green-700"
+                  }`}
                 >
                   Confirm {statusDialogUser.action}
                 </button>

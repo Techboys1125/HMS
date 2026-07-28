@@ -33,31 +33,31 @@ export type ConsultationStatus =
 export type VisitType = "First Visit" | "Follow-up" | "Walk-In";
 
 export interface AdminConsultationRecord {
-  id: string
-  tokenNo: string
-  patientName: string
-  mrn: string
-  age: number
-  gender: 'Male' | 'Female' | 'Other'
-  phone: string
-  doctor: string
-  department: string
-  appointmentTime: string
-  visitType: VisitType
-  status: ConsultationStatus
-  duration: string
-  chiefComplaint: string
-  opdRoom: string
-  date: string
+  id: string;
+  tokenNo: string;
+  patientName: string;
+  mrn: string;
+  age: number;
+  gender: "Male" | "Female" | "Other";
+  phone: string;
+  doctor: string;
+  department: string;
+  appointmentTime: string;
+  visitType: VisitType;
+  status: ConsultationStatus;
+  duration: string;
+  chiefComplaint: string;
+  opdRoom: string;
+  date: string;
 }
 
 // Initial Mock Dataset for Operational Monitoring
 const ADMIN_CONSULTATIONS: AdminConsultationRecord[] = [
   {
-    id: 'CNS-1001',
-    tokenNo: 'TK-01',
-    patientName: 'Sarah Mitchell',
-    mrn: 'MRN-2024-001',
+    id: "CNS-1001",
+    tokenNo: "TK-01",
+    patientName: "Sarah Mitchell",
+    mrn: "MRN-2024-001",
     age: 34,
     gender: "Female",
     phone: "+1 (555) 234-5678",
@@ -72,10 +72,10 @@ const ADMIN_CONSULTATIONS: AdminConsultationRecord[] = [
     date: new Date().toISOString().split("T")[0],
   },
   {
-    id: 'CNS-1002',
-    tokenNo: 'TK-02',
-    patientName: 'James Thornton',
-    mrn: 'MRN-2024-002',
+    id: "CNS-1002",
+    tokenNo: "TK-02",
+    patientName: "James Thornton",
+    mrn: "MRN-2024-002",
     age: 67,
     gender: "Male",
     phone: "+1 (555) 345-6789",
@@ -90,10 +90,10 @@ const ADMIN_CONSULTATIONS: AdminConsultationRecord[] = [
     date: new Date().toISOString().split("T")[0],
   },
   {
-    id: 'CNS-1003',
-    tokenNo: 'TK-03',
-    patientName: 'Emma Reyes',
-    mrn: 'MRN-2024-003',
+    id: "CNS-1003",
+    tokenNo: "TK-03",
+    patientName: "Emma Reyes",
+    mrn: "MRN-2024-003",
     age: 28,
     gender: "Female",
     phone: "+1 (555) 456-7890",
@@ -108,10 +108,10 @@ const ADMIN_CONSULTATIONS: AdminConsultationRecord[] = [
     date: new Date().toISOString().split("T")[0],
   },
   {
-    id: 'CNS-1004',
-    tokenNo: 'TK-04',
-    patientName: 'Robert Chen',
-    mrn: 'MRN-2024-004',
+    id: "CNS-1004",
+    tokenNo: "TK-04",
+    patientName: "Robert Chen",
+    mrn: "MRN-2024-004",
     age: 52,
     gender: "Male",
     phone: "+1 (555) 567-8901",
@@ -126,10 +126,10 @@ const ADMIN_CONSULTATIONS: AdminConsultationRecord[] = [
     date: new Date().toISOString().split("T")[0],
   },
   {
-    id: 'CNS-1005',
-    tokenNo: 'TK-05',
-    patientName: 'Aisha Kumar',
-    mrn: 'MRN-2024-005',
+    id: "CNS-1005",
+    tokenNo: "TK-05",
+    patientName: "Aisha Kumar",
+    mrn: "MRN-2024-005",
     age: 41,
     gender: "Female",
     phone: "+1 (555) 678-9012",
@@ -144,10 +144,10 @@ const ADMIN_CONSULTATIONS: AdminConsultationRecord[] = [
     date: new Date().toISOString().split("T")[0],
   },
   {
-    id: 'CNS-1006',
-    tokenNo: 'TK-06',
-    patientName: 'David Walsh',
-    mrn: 'MRN-2024-006',
+    id: "CNS-1006",
+    tokenNo: "TK-06",
+    patientName: "David Walsh",
+    mrn: "MRN-2024-006",
     age: 38,
     gender: "Male",
     phone: "+1 (555) 789-0123",
@@ -162,10 +162,10 @@ const ADMIN_CONSULTATIONS: AdminConsultationRecord[] = [
     date: new Date().toISOString().split("T")[0],
   },
   {
-    id: 'CNS-1007',
-    tokenNo: 'TK-07',
-    patientName: 'Nina Patel',
-    mrn: 'MRN-2024-007',
+    id: "CNS-1007",
+    tokenNo: "TK-07",
+    patientName: "Nina Patel",
+    mrn: "MRN-2024-007",
     age: 29,
     gender: "Female",
     phone: "+1 (555) 890-1234",
@@ -180,10 +180,10 @@ const ADMIN_CONSULTATIONS: AdminConsultationRecord[] = [
     date: new Date().toISOString().split("T")[0],
   },
   {
-    id: 'CNS-1008',
-    tokenNo: 'TK-08',
-    patientName: 'Carlos Mendez',
-    mrn: 'MRN-2024-008',
+    id: "CNS-1008",
+    tokenNo: "TK-08",
+    patientName: "Carlos Mendez",
+    mrn: "MRN-2024-008",
     age: 63,
     gender: "Male",
     phone: "+1 (555) 901-2345",
@@ -329,12 +329,12 @@ export function OpdConsultationMonitoringCenterScreen({
       if (filterDoctor !== "All" && item.doctor !== filterDoctor) return false;
 
       if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim()
-        const matchName = item.patientName.toLowerCase().includes(q)
-        const matchMrn = item.mrn.toLowerCase().includes(q)
-        const matchId = item.id.toLowerCase().includes(q)
-        const matchDoc = item.doctor.toLowerCase().includes(q)
-        if (!matchName && !matchMrn && !matchId && !matchDoc) return false
+        const q = searchQuery.toLowerCase().trim();
+        const matchName = item.patientName.toLowerCase().includes(q);
+        const matchMrn = item.mrn.toLowerCase().includes(q);
+        const matchId = item.id.toLowerCase().includes(q);
+        const matchDoc = item.doctor.toLowerCase().includes(q);
+        if (!matchName && !matchMrn && !matchId && !matchDoc) return false;
       }
 
       return true;
@@ -816,18 +816,20 @@ export function OpdConsultationMonitoringCenterScreen({
                   <button
                     key={t.id}
                     onClick={() => setActiveTab(t.id)}
-                    className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 transition-all shrink-0 ${isActive
+                    className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 transition-all shrink-0 ${
+                      isActive
                         ? "border-[#0D47A1] text-[#0D47A1] bg-white shadow-sm"
                         : "border-transparent text-[#64748B] hover:text-[#111827] hover:bg-white/50"
-                      }`}
+                    }`}
                     style={{ fontFamily: PP }}
                   >
                     <span>{t.label}</span>
                     <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        isActive
                           ? "bg-blue-100 text-[#0D47A1]"
                           : "bg-slate-200 text-slate-600"
-                        }`}
+                      }`}
                     >
                       {t.count}
                     </span>
@@ -932,7 +934,9 @@ export function OpdConsultationMonitoringCenterScreen({
                               </div>
                             </td>
 
-                            <td className="py-3.5 px-4 font-mono text-slate-700">{item.mrn}</td>
+                            <td className="py-3.5 px-4 font-mono text-slate-700">
+                              {item.mrn}
+                            </td>
 
                             <td className="py-3.5 px-4 font-semibold text-[#111827]">
                               {item.doctor}

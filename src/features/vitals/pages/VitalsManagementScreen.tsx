@@ -275,13 +275,48 @@ export function VitalsDetailsScreen({
                 Information
               </h3>
               <div className="space-y-2 text-xs">
-                <div className="flex justify-between"><span className="text-slate-400">Patient Name</span><strong className="text-slate-700">{activeApt.patientName}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-400">MRN</span><strong className="text-slate-700 font-mono">{activeApt.mrn}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-400">Age / Gender</span><strong className="text-slate-700">{activeApt.patientAge}y / {activeApt.patientGender}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-400">Blood Group</span><strong className="text-slate-700">{patientInfo?.bloodGroup || 'O+'}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-400">Mobile Number</span><strong className="text-slate-700 font-mono">{activeApt.patientPhone}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-400">Emergency Contact</span><strong className="text-slate-700">{patientInfo?.emergencyContact || 'Spouse'}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-400">Known Allergies</span><strong className="text-[#EF4444] font-bold">Penicillin, NSAIDs</strong></div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Patient Name</span>
+                  <strong className="text-slate-700">
+                    {activeApt.patientName}
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">MRN</span>
+                  <strong className="text-slate-700 font-mono">
+                    {activeApt.mrn}
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Age / Gender</span>
+                  <strong className="text-slate-700">
+                    {activeApt.patientAge}y / {activeApt.patientGender}
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Blood Group</span>
+                  <strong className="text-slate-700">
+                    {patientInfo?.bloodGroup || "O+"}
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Mobile Number</span>
+                  <strong className="text-slate-700 font-mono">
+                    {activeApt.patientPhone}
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Emergency Contact</span>
+                  <strong className="text-slate-700">
+                    {patientInfo?.emergencyContact || "Spouse"}
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Known Allergies</span>
+                  <strong className="text-[#EF4444] font-bold">
+                    Penicillin, NSAIDs
+                  </strong>
+                </div>
               </div>
             </div>
 
@@ -988,12 +1023,13 @@ export function RecordPatientVitalsForm({
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${toast.type === "success"
-            ? "bg-[#66BB6A] border-green-300"
-            : toast.type === "error"
-              ? "bg-[#EF4444] border-red-300"
-              : "bg-[#0D47A1] border-blue-300"
-            }`}
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${
+            toast.type === "success"
+              ? "bg-[#66BB6A] border-green-300"
+              : toast.type === "error"
+                ? "bg-[#EF4444] border-red-300"
+                : "bg-[#0D47A1] border-blue-300"
+          }`}
         >
           <AlertCircle size={16} />
           {toast.message}
@@ -1088,12 +1124,42 @@ export function RecordPatientVitalsForm({
                 Information
               </h3>
               <div className="space-y-2 text-xs">
-                <div className="flex justify-between"><span className="text-slate-400">Full Name</span><strong className="text-slate-700">{activeApt.patientName}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-400">MRN</span><strong className="text-slate-700 font-mono">{activeApt.mrn}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-400">Age / Gender</span><strong className="text-slate-700">{activeApt.patientAge}y / {activeApt.patientGender}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-400">Blood Group</span><strong className="text-slate-700">{patientInfo?.bloodGroup || 'O+'}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-400">Mobile Number</span><strong className="text-slate-700 font-mono">{activeApt.patientPhone}</strong></div>
-                <div className="flex justify-between"><span className="text-slate-400">Emergency Contact</span><strong className="text-slate-700">{patientInfo?.emergencyContact || 'Spouse'}</strong></div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Full Name</span>
+                  <strong className="text-slate-700">
+                    {activeApt.patientName}
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">MRN</span>
+                  <strong className="text-slate-700 font-mono">
+                    {activeApt.mrn}
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Age / Gender</span>
+                  <strong className="text-slate-700">
+                    {activeApt.patientAge}y / {activeApt.patientGender}
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Blood Group</span>
+                  <strong className="text-slate-700">
+                    {patientInfo?.bloodGroup || "O+"}
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Mobile Number</span>
+                  <strong className="text-slate-700 font-mono">
+                    {activeApt.patientPhone}
+                  </strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Emergency Contact</span>
+                  <strong className="text-slate-700">
+                    {patientInfo?.emergencyContact || "Spouse"}
+                  </strong>
+                </div>
               </div>
             </div>
 
@@ -1799,12 +1865,13 @@ export function RecordPatientVitalsScreen({
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${toast.type === "success"
-            ? "bg-[#66BB6A] border-green-300"
-            : toast.type === "error"
-              ? "bg-[#EF4444] border-red-300"
-              : "bg-[#0D47A1] border-blue-300"
-            }`}
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${
+            toast.type === "success"
+              ? "bg-[#66BB6A] border-green-300"
+              : toast.type === "error"
+                ? "bg-[#EF4444] border-red-300"
+                : "bg-[#0D47A1] border-blue-300"
+          }`}
         >
           <AlertCircle size={16} />
           {toast.message}
@@ -1980,7 +2047,7 @@ export function RecordPatientVitalsScreen({
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search by Patient Name, MRN, Appointment ID, or Token Number..."
                   className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
                 />
@@ -2063,9 +2130,13 @@ export function RecordPatientVitalsScreen({
                 >
                   <option value="All">All Vitals</option>
                   <option value="Waiting for Vitals">Waiting for Vitals</option>
-                  <option value="Recording In Progress">Recording In Progress</option>
+                  <option value="Recording In Progress">
+                    Recording In Progress
+                  </option>
                   <option value="Vitals Recorded">Vitals Recorded</option>
-                  <option value="Ready For Consultation">Ready For Consultation</option>
+                  <option value="Ready For Consultation">
+                    Ready For Consultation
+                  </option>
                 </select>
               </div>
 
@@ -2089,44 +2160,48 @@ export function RecordPatientVitalsScreen({
 
           {/* STATUS TABS */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-            {([
-              { id: "All", label: "All", count: kpiStats.total },
-              {
-                id: "Waiting for Vitals",
-                label: "Waiting for Vitals",
-                count: kpiStats.pending,
-              },
-              {
-                id: "Recording In Progress",
-                label: "Recording In Progress",
-                count: kpiStats.inProgress,
-              },
-              {
-                id: "Vitals Recorded",
-                label: "Vitals Recorded",
-                count: kpiStats.recorded,
-              },
-              {
-                id: "Ready For Consultation",
-                label: "Ready For Consultation",
-                count: kpiStats.ready,
-              },
-            ] as const).map((tab) => (
+            {(
+              [
+                { id: "All", label: "All", count: kpiStats.total },
+                {
+                  id: "Waiting for Vitals",
+                  label: "Waiting for Vitals",
+                  count: kpiStats.pending,
+                },
+                {
+                  id: "Recording In Progress",
+                  label: "Recording In Progress",
+                  count: kpiStats.inProgress,
+                },
+                {
+                  id: "Vitals Recorded",
+                  label: "Vitals Recorded",
+                  count: kpiStats.recorded,
+                },
+                {
+                  id: "Ready For Consultation",
+                  label: "Ready For Consultation",
+                  count: kpiStats.ready,
+                },
+              ] as const
+            ).map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap flex items-center gap-2 border ${activeTab === tab.id
-                  ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
-                  : "bg-white text-slate-600 border-[#E5E7EB] hover:bg-slate-50"
-                  }`}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap flex items-center gap-2 border ${
+                  activeTab === tab.id
+                    ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
+                    : "bg-white text-slate-600 border-[#E5E7EB] hover:bg-slate-50"
+                }`}
                 style={{ fontFamily: PP }}
               >
                 <span>{tab.label}</span>
                 <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${activeTab === tab.id
-                    ? "bg-white/20 text-white"
-                    : "bg-slate-100 text-slate-600"
-                    }`}
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                    activeTab === tab.id
+                      ? "bg-white/20 text-white"
+                      : "bg-slate-100 text-slate-600"
+                  }`}
                 >
                   {tab.count}
                 </span>

@@ -11,7 +11,10 @@ import {
   Info,
   AlertCircle,
 } from "lucide-react";
-import type { PatientCancelAppointmentDialogProps, PatientRescheduleAppointmentDialogProps } from "../types/patient.types";
+import type {
+  PatientCancelAppointmentDialogProps,
+  PatientRescheduleAppointmentDialogProps,
+} from "../types/patient.types";
 import { PP, RB } from "../constants/patient.mock";
 
 export function PatientCancelAppointmentDialog({
@@ -171,10 +174,11 @@ export function PatientCancelAppointmentDialog({
                 {appointment.id}
               </span>
               <span
-                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${appointment.status === "Confirmed"
-                  ? "bg-green-50 text-[#66BB6A]"
-                  : "bg-blue-50 text-[#0D47A1]"
-                  }`}
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+                  appointment.status === "Confirmed"
+                    ? "bg-green-50 text-[#66BB6A]"
+                    : "bg-blue-50 text-[#0D47A1]"
+                }`}
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-current" />{" "}
                 {appointment.status}
@@ -239,10 +243,11 @@ export function PatientCancelAppointmentDialog({
                 setReason(e.target.value);
                 if (e.target.value) setValidationError(null);
               }}
-              className={`w-full px-3 py-2 text-xs bg-white border rounded-xl outline-none focus:border-[#0D47A1] transition-colors ${validationError
-                ? "border-red-500 bg-red-50/20"
-                : "border-[#E5E7EB]"
-                }`}
+              className={`w-full px-3 py-2 text-xs bg-white border rounded-xl outline-none focus:border-[#0D47A1] transition-colors ${
+                validationError
+                  ? "border-red-500 bg-red-50/20"
+                  : "border-[#E5E7EB]"
+              }`}
             >
               <option value="">Select Cancellation Reason</option>
               <option value="Personal Reason">Personal Reason</option>
@@ -708,14 +713,15 @@ export function PatientRescheduleAppointmentDialog({
                         onClick={() =>
                           item.fullDate && setSelectedDate(item.fullDate)
                         }
-                        className={`p-2 rounded-xl text-xs font-semibold transition-all relative ${isSelected
-                          ? "bg-[#009688] text-white shadow-sm font-bold"
-                          : item.isCurrentAppt
-                            ? "border-2 border-dashed border-[#009688] text-[#009688] font-bold bg-teal-50/50"
-                            : item.isAvailable
-                              ? "hover:bg-slate-100 text-[#111827]"
-                              : "opacity-30 text-slate-400 cursor-not-allowed"
-                          }`}
+                        className={`p-2 rounded-xl text-xs font-semibold transition-all relative ${
+                          isSelected
+                            ? "bg-[#009688] text-white shadow-sm font-bold"
+                            : item.isCurrentAppt
+                              ? "border-2 border-dashed border-[#009688] text-[#009688] font-bold bg-teal-50/50"
+                              : item.isAvailable
+                                ? "hover:bg-slate-100 text-[#111827]"
+                                : "opacity-30 text-slate-400 cursor-not-allowed"
+                        }`}
                       >
                         {item.day}
                         {item.isToday && !isSelected && (
@@ -751,12 +757,13 @@ export function PatientRescheduleAppointmentDialog({
                           type="button"
                           disabled={isBooked}
                           onClick={() => setSelectedTimeSlot(s.time)}
-                          className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center relative ${isSelected
-                            ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold"
-                            : isBooked
-                              ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed line-through"
-                              : "bg-white text-[#111827] border-[#E5E7EB] hover:border-teal-300 hover:bg-teal-50/30"
-                            }`}
+                          className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center relative ${
+                            isSelected
+                              ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold"
+                              : isBooked
+                                ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed line-through"
+                                : "bg-white text-[#111827] border-[#E5E7EB] hover:border-teal-300 hover:bg-teal-50/30"
+                          }`}
                         >
                           {s.time}
                           {s.isRecommended && !isSelected && (
@@ -785,12 +792,13 @@ export function PatientRescheduleAppointmentDialog({
                           type="button"
                           disabled={isBooked}
                           onClick={() => setSelectedTimeSlot(s.time)}
-                          className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center ${isSelected
-                            ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold"
-                            : isBooked
-                              ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed line-through"
-                              : "bg-white text-[#111827] border-[#E5E7EB] hover:border-teal-300 hover:bg-teal-50/30"
-                            }`}
+                          className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center ${
+                            isSelected
+                              ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold"
+                              : isBooked
+                                ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed line-through"
+                                : "bg-white text-[#111827] border-[#E5E7EB] hover:border-teal-300 hover:bg-teal-50/30"
+                          }`}
                         >
                           {s.time}
                         </button>
@@ -814,12 +822,13 @@ export function PatientRescheduleAppointmentDialog({
                           type="button"
                           disabled={isBooked}
                           onClick={() => setSelectedTimeSlot(s.time)}
-                          className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center ${isSelected
-                            ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold"
-                            : isBooked
-                              ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed line-through"
-                              : "bg-white text-[#111827] border-[#E5E7EB] hover:border-teal-300 hover:bg-teal-50/30"
-                            }`}
+                          className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center ${
+                            isSelected
+                              ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold"
+                              : isBooked
+                                ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed line-through"
+                                : "bg-white text-[#111827] border-[#E5E7EB] hover:border-teal-300 hover:bg-teal-50/30"
+                          }`}
                         >
                           {s.time}
                         </button>
@@ -844,10 +853,11 @@ export function PatientRescheduleAppointmentDialog({
                       setRescheduleReason(e.target.value);
                       if (e.target.value) setValidationError(null);
                     }}
-                    className={`w-full px-3.5 py-2.5 text-xs bg-slate-50 border rounded-xl outline-none focus:border-[#009688] focus:bg-white transition-colors ${validationError
-                      ? "border-red-500 bg-red-50/20"
-                      : "border-[#E5E7EB]"
-                      }`}
+                    className={`w-full px-3.5 py-2.5 text-xs bg-slate-50 border rounded-xl outline-none focus:border-[#009688] focus:bg-white transition-colors ${
+                      validationError
+                        ? "border-red-500 bg-red-50/20"
+                        : "border-[#E5E7EB]"
+                    }`}
                   >
                     <option value="">Select Reason</option>
                     <option value="Patient Request">Patient Request</option>

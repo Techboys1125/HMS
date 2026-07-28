@@ -1,7 +1,7 @@
-import React, { useMemo, useEffect } from 'react';
-import { Building2, Briefcase } from 'lucide-react';
-import type { FormValues, FormErrors } from '../hooks/useCreateStaffForm';
-import { DEPARTMENT_SPECIALTY_MAP } from '../constants/departmentSpecialtyMap';
+import React, { useMemo, useEffect } from "react";
+import { Building2, Briefcase } from "lucide-react";
+import type { FormValues, FormErrors } from "../hooks/useCreateStaffForm";
+import { DEPARTMENT_SPECIALTY_MAP } from "../constants/departmentSpecialtyMap";
 
 const DEPARTMENTS = Object.keys(DEPARTMENT_SPECIALTY_MAP);
 
@@ -13,11 +13,9 @@ interface ConsultationDetailsSectionProps {
 
 const EMPTY_ARRAY: string[] = [];
 
-export const ConsultationDetailsSection: React.FC<ConsultationDetailsSectionProps> = ({
-  form,
-  errors,
-  setFieldValue,
-}) => {
+export const ConsultationDetailsSection: React.FC<
+  ConsultationDetailsSectionProps
+> = ({ form, errors, setFieldValue }) => {
   // Get specialties based on the selected primary department
   const primarySpecialties = useMemo(() => {
     return DEPARTMENT_SPECIALTY_MAP[form.primaryDepartment] || EMPTY_ARRAY;
@@ -31,19 +29,31 @@ export const ConsultationDetailsSection: React.FC<ConsultationDetailsSectionProp
 
   // Auto-select first primary specialty when department changes
   useEffect(() => {
-    if (primarySpecialties.length > 0 && !primarySpecialties.includes(form.primarySpecialty)) {
-      setFieldValue('primarySpecialty', primarySpecialties[0]);
+    if (
+      primarySpecialties.length > 0 &&
+      !primarySpecialties.includes(form.primarySpecialty)
+    ) {
+      setFieldValue("primarySpecialty", primarySpecialties[0]);
     }
   }, [primarySpecialties, form.primarySpecialty, setFieldValue]);
 
   // Auto-select first secondary specialty when secondary department changes
   useEffect(() => {
-    if (form.secondaryDepartment && secondarySpecialties.length > 0 && !secondarySpecialties.includes(form.secondarySpecialty)) {
-      setFieldValue('secondarySpecialty', secondarySpecialties[0]);
-    } else if (!form.secondaryDepartment && form.secondarySpecialty !== '') {
-      setFieldValue('secondarySpecialty', '');
+    if (
+      form.secondaryDepartment &&
+      secondarySpecialties.length > 0 &&
+      !secondarySpecialties.includes(form.secondarySpecialty)
+    ) {
+      setFieldValue("secondarySpecialty", secondarySpecialties[0]);
+    } else if (!form.secondaryDepartment && form.secondarySpecialty !== "") {
+      setFieldValue("secondarySpecialty", "");
     }
-  }, [form.secondaryDepartment, secondarySpecialties, form.secondarySpecialty, setFieldValue]);
+  }, [
+    form.secondaryDepartment,
+    secondarySpecialties,
+    form.secondarySpecialty,
+    setFieldValue,
+  ]);
 
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-4 animate-fade-in">
@@ -54,83 +64,137 @@ export const ConsultationDetailsSection: React.FC<ConsultationDetailsSectionProp
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Primary Department */}
         <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">Primary Department *</label>
+          <label className="block text-xs font-heading font-bold text-text-body">
+            Primary Department *
+          </label>
           <div className="relative">
-            <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Building2
+              size={16}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+            />
             <select
               value={form.primaryDepartment}
-              onChange={e => setFieldValue('primaryDepartment', e.target.value)}
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-[#1E293B] cursor-pointer ${errors.primaryDepartment ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
-                }`}
+              onChange={(e) =>
+                setFieldValue("primaryDepartment", e.target.value)
+              }
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-[#1E293B] cursor-pointer ${
+                errors.primaryDepartment
+                  ? "border-red-500 bg-red-50/50"
+                  : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
+              }`}
             >
-              {DEPARTMENTS.map(dept => (
-                <option key={dept} value={dept}>{dept}</option>
+              {DEPARTMENTS.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
               ))}
             </select>
           </div>
-          {errors.primaryDepartment && <p className="text-red-500 text-[10px] font-semibold mt-0.5">{errors.primaryDepartment}</p>}
+          {errors.primaryDepartment && (
+            <p className="text-red-500 text-[10px] font-semibold mt-0.5">
+              {errors.primaryDepartment}
+            </p>
+          )}
         </div>
 
         {/* Secondary Department (Optional) */}
         <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">Secondary Department <span className="text-slate-400 font-normal">(Optional)</span></label>
+          <label className="block text-xs font-heading font-bold text-text-body">
+            Secondary Department{" "}
+            <span className="text-slate-400 font-normal">(Optional)</span>
+          </label>
           <div className="relative">
-            <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Building2
+              size={16}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+            />
             <select
               value={form.secondaryDepartment}
-              onChange={e => setFieldValue('secondaryDepartment', e.target.value)}
+              onChange={(e) =>
+                setFieldValue("secondaryDepartment", e.target.value)
+              }
               className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-[#1E293B] cursor-pointer"
             >
               <option value="">None (Optional)</option>
-              {DEPARTMENTS
-                .filter(dept => dept !== form.primaryDepartment)
-                .map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
+              {DEPARTMENTS.filter(
+                (dept) => dept !== form.primaryDepartment,
+              ).map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
             </select>
           </div>
         </div>
 
         {/* Primary Specialty */}
         <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">Primary Specialty *</label>
+          <label className="block text-xs font-heading font-bold text-text-body">
+            Primary Specialty *
+          </label>
           <div className="relative">
-            <Briefcase size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Briefcase
+              size={16}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+            />
             <select
               value={form.primarySpecialty}
-              onChange={e => setFieldValue('primarySpecialty', e.target.value)}
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-[#1E293B] cursor-pointer ${errors.primarySpecialty ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
-                }`}
+              onChange={(e) =>
+                setFieldValue("primarySpecialty", e.target.value)
+              }
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-[#1E293B] cursor-pointer ${
+                errors.primarySpecialty
+                  ? "border-red-500 bg-red-50/50"
+                  : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
+              }`}
             >
               {primarySpecialties.length > 0 ? (
-                primarySpecialties.map(spec => (
-                  <option key={spec} value={spec}>{spec}</option>
+                primarySpecialties.map((spec) => (
+                  <option key={spec} value={spec}>
+                    {spec}
+                  </option>
                 ))
               ) : (
                 <option value="">Select Department first</option>
               )}
             </select>
           </div>
-          {errors.primarySpecialty && <p className="text-red-500 text-[10px] font-semibold mt-0.5">{errors.primarySpecialty}</p>}
+          {errors.primarySpecialty && (
+            <p className="text-red-500 text-[10px] font-semibold mt-0.5">
+              {errors.primarySpecialty}
+            </p>
+          )}
         </div>
 
         {/* Secondary Specialty (Optional) */}
         <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">Secondary Specialty <span className="text-slate-400 font-normal">(Optional)</span></label>
+          <label className="block text-xs font-heading font-bold text-text-body">
+            Secondary Specialty{" "}
+            <span className="text-slate-400 font-normal">(Optional)</span>
+          </label>
           <div className="relative">
-            <Briefcase size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Briefcase
+              size={16}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+            />
             <select
               value={form.secondarySpecialty}
-              onChange={e => setFieldValue('secondarySpecialty', e.target.value)}
+              onChange={(e) =>
+                setFieldValue("secondarySpecialty", e.target.value)
+              }
               className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-[#1E293B] cursor-pointer"
             >
               <option value="">None (Optional)</option>
               {secondarySpecialties.length > 0 ? (
-                secondarySpecialties.map(spec => (
-                  <option key={spec} value={spec}>{spec}</option>
+                secondarySpecialties.map((spec) => (
+                  <option key={spec} value={spec}>
+                    {spec}
+                  </option>
                 ))
               ) : form.secondaryDepartment ? (
-                <option value="" disabled>No specialties available</option>
+                <option value="" disabled>
+                  No specialties available
+                </option>
               ) : null}
             </select>
           </div>
@@ -138,20 +202,31 @@ export const ConsultationDetailsSection: React.FC<ConsultationDetailsSectionProp
 
         {/* Consultation Fee */}
         <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">Consultation Fee (₹) *</label>
+          <label className="block text-xs font-heading font-bold text-text-body">
+            Consultation Fee (₹) *
+          </label>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">
+              ₹
+            </span>
             <input
               type="number"
               min={0}
               value={form.consultationFee}
-              onChange={e => setFieldValue('consultationFee', e.target.value)}
+              onChange={(e) => setFieldValue("consultationFee", e.target.value)}
               placeholder="500"
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-9 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${errors.consultationFee ? 'border-red-500 bg-red-50/50' : 'border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white'
-                }`}
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-9 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${
+                errors.consultationFee
+                  ? "border-red-500 bg-red-50/50"
+                  : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
+              }`}
             />
           </div>
-          {errors.consultationFee && <p className="text-red-500 text-[10px] font-semibold mt-0.5">{errors.consultationFee}</p>}
+          {errors.consultationFee && (
+            <p className="text-red-500 text-[10px] font-semibold mt-0.5">
+              {errors.consultationFee}
+            </p>
+          )}
         </div>
       </div>
     </div>

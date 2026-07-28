@@ -1,5 +1,8 @@
 export type PatientStatus =
-  "ACTIVE" | "INACTIVE" | "DECEASED" | "DUPLICATE_CANDIDATE";
+  | "ACTIVE"
+  | "INACTIVE"
+  | "DECEASED"
+  | "DUPLICATE_CANDIDATE";
 
 export type AgeBasis = "EXACT" | "APPROXIMATE";
 
@@ -108,35 +111,27 @@ export interface MergePatientsRequest {
 export interface CreatePatientRequest {
   fullName: string;
   gender: string; // MALE, FEMALE, OTHER
-  dateOfBirth: string | null;
-  bloodGroup: string;
-  phone: string;
-  email: string;
-  address:
-    | {
-        value?: string;
-        line1?: string;
-        city?: string;
-        state?: string;
-        postalCode?: string;
-      }
-    | string;
-  gender: string; // MALE | FEMALE | OTHER
   dateOfBirth?: string | null;
-  mobileNumber: string;
-  email?: string;
   bloodGroup?: string;
+  phone?: string;
+  mobileNumber?: string;
+  email?: string;
   maritalStatus?: string;
   nationalId?: string;
   photoUrl?: string;
-  address?: {
-    addressLine1?: string;
-    addressLine2?: string;
-    city?: string;
-    state?: string;
-    pincode?: string;
-    country?: string;
-  };
+  address?:
+    | {
+        value?: string;
+        line1?: string;
+        addressLine1?: string;
+        addressLine2?: string;
+        city?: string;
+        state?: string;
+        pincode?: string;
+        postalCode?: string;
+        country?: string;
+      }
+    | string;
   emergencyContact?: {
     name: string;
     relationship: string;
@@ -345,7 +340,12 @@ export type ScreenPatientSearchResult = {
   };
 };
 export type ChipVariant =
-  "success" | "warning" | "error" | "info" | "teal" | "default";
+  | "success"
+  | "warning"
+  | "error"
+  | "info"
+  | "teal"
+  | "default";
 export interface ReceptionPatientProfileScreenProps {
   onBack?: () => void;
   onEditPatient?: () => void;

@@ -30,7 +30,8 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          { message?: string } | undefined;
+          | { message?: string }
+          | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -54,7 +55,8 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          { message?: string } | undefined;
+          | { message?: string }
+          | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -81,7 +83,8 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          { message?: string } | undefined;
+          | { message?: string }
+          | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -103,7 +106,8 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          { message?: string } | undefined;
+          | { message?: string }
+          | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -123,7 +127,8 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          { message?: string } | undefined;
+          | { message?: string }
+          | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -144,7 +149,8 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          { message?: string } | undefined;
+          | { message?: string }
+          | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -165,7 +171,8 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          { message?: string } | undefined;
+          | { message?: string }
+          | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -191,7 +198,8 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          { message?: string } | undefined;
+          | { message?: string }
+          | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -213,7 +221,8 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          { message?: string } | undefined;
+          | { message?: string }
+          | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -235,7 +244,8 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          { message?: string } | undefined;
+          | { message?: string }
+          | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -257,7 +267,8 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          { message?: string } | undefined;
+          | { message?: string }
+          | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }

@@ -114,7 +114,7 @@ export const OTPPage: React.FC<OTPPageProps> = ({
           ) : (
             <button
               type="button"
-              onClick={() => { }}
+              onClick={() => {}}
               className="font-semibold text-[#0D47A1] hover:underline"
             >
               Resend Code

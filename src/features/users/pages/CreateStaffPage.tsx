@@ -96,8 +96,9 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-5 right-5 z-50 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-fade-in ${toast.type === "error" ? "bg-[#EF4444]" : "bg-[#111827]"
-            }`}
+          className={`fixed top-5 right-5 z-50 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-fade-in ${
+            toast.type === "error" ? "bg-[#EF4444]" : "bg-[#111827]"
+          }`}
         >
           {toast.type === "error" ? (
             <AlertTriangle size={16} className="text-white" />
@@ -142,24 +143,26 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
                 >
                   {/* Step Bubble */}
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center font-heading font-bold text-xs border transition-all duration-300 ${isCompleted
-                      ? "bg-[#66BB6A] border-[#66BB6A] text-white"
-                      : isActive
-                        ? "bg-[#0D47A1] border-[#0D47A1] text-white shadow-sm ring-4 ring-blue-50"
-                        : "bg-white border-slate-200 text-slate-400"
-                      }`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center font-heading font-bold text-xs border transition-all duration-300 ${
+                      isCompleted
+                        ? "bg-[#66BB6A] border-[#66BB6A] text-white"
+                        : isActive
+                          ? "bg-[#0D47A1] border-[#0D47A1] text-white shadow-sm ring-4 ring-blue-50"
+                          : "bg-white border-slate-200 text-slate-400"
+                    }`}
                   >
                     {isCompleted ? <Check size={14} /> : st.step}
                   </div>
 
                   {/* Step Label */}
                   <span
-                    className={`text-[10px] font-heading font-bold mt-2 tracking-wide uppercase transition-colors duration-300 hidden sm:inline ${isActive
-                      ? "text-[#0D47A1]"
-                      : isCompleted
-                        ? "text-[#66BB6A]"
-                        : "text-slate-400"
-                      }`}
+                    className={`text-[10px] font-heading font-bold mt-2 tracking-wide uppercase transition-colors duration-300 hidden sm:inline ${
+                      isActive
+                        ? "text-[#0D47A1]"
+                        : isCompleted
+                          ? "text-[#66BB6A]"
+                          : "text-slate-400"
+                    }`}
                   >
                     {st.label}
                   </span>
@@ -216,10 +219,10 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
           {/* Step 4 (Doctor) or Step 3 (Others): Recheck/Review Information */}
           {((form.role === "DOCTOR" && currentStep === 4) ||
             (form.role !== "DOCTOR" && currentStep === 3)) && (
-              <div className="animate-fade-in">
-                <ReviewInfoSection form={form} empIdPreview={empIdPreview} />
-              </div>
-            )}
+            <div className="animate-fade-in">
+              <ReviewInfoSection form={form} empIdPreview={empIdPreview} />
+            </div>
+          )}
         </div>
 
         {/* Stepper Wizard Footer Controls */}
@@ -264,10 +267,11 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
               type="button"
               onClick={handleSaveStaff}
               disabled={isSubmitting || !form.role}
-              className={`px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${isSubmitting || !form.role
-                ? "bg-slate-350 cursor-not-allowed"
-                : "bg-[#66BB6A] hover:bg-[#52a656]"
-                }`}
+              className={`px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
+                isSubmitting || !form.role
+                  ? "bg-slate-350 cursor-not-allowed"
+                  : "bg-[#66BB6A] hover:bg-[#52a656]"
+              }`}
               style={{ fontFamily: PP }}
             >
               {isSubmitting ? (

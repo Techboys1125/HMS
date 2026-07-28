@@ -1,4 +1,3 @@
-
 export function PatientStatusBadge({ status }: { status: string }) {
   const s = String(status || "").toUpperCase();
   let c = { bg: "bg-green-50", text: "text-green-700", dot: "bg-[#66BB6A]" };
@@ -17,7 +16,10 @@ export function PatientStatusBadge({ status }: { status: string }) {
     c = { bg: "bg-purple-50", text: "text-purple-700", dot: "bg-purple-500" };
   }
 
-  const label = status ? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase().replace(/_/g, " ") : "Unknown";
+  const label = status
+    ? status.charAt(0).toUpperCase() +
+      status.slice(1).toLowerCase().replace(/_/g, " ")
+    : "Unknown";
 
   return (
     <span

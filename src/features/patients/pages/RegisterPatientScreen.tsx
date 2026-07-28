@@ -12,7 +12,7 @@ import {
   Calendar,
   Upload,
 } from "lucide-react";
-import { PP, RB} from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.mock";
 import { useCreatePatient } from "../hooks/useCreatePatient";
 import type { CreatePatientRequest } from "../types/patient.types";
 
@@ -55,8 +55,6 @@ const MARITAL_STATUSES = [
   { value: "SEPARATED", label: "Separated" },
 ];
 
-
-
 const RELATIONSHIPS = [
   { value: "", label: "Select Relationship" },
   { value: "Spouse", label: "Spouse" },
@@ -69,12 +67,37 @@ const RELATIONSHIPS = [
 ];
 
 const INDIAN_STATES = [
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
-  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
-  "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya",
-  "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim",
-  "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand",
-  "West Bengal", "Delhi", "Jammu & Kashmir", "Ladakh",
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Delhi",
+  "Jammu & Kashmir",
+  "Ladakh",
 ];
 
 /* ─────────────────── Form State ─────────────────── */
@@ -188,11 +211,17 @@ function SectionHeader({
         <Icon size={17} className="text-[#0D47A1]" />
       </div>
       <div>
-        <h2 className="text-[14px] font-bold text-[#111827]" style={{ fontFamily: PP }}>
+        <h2
+          className="text-[14px] font-bold text-[#111827]"
+          style={{ fontFamily: PP }}
+        >
           {title}
         </h2>
         {subtitle && (
-          <p className="text-[11px] text-slate-400 mt-0.5" style={{ fontFamily: RB }}>
+          <p
+            className="text-[11px] text-slate-400 mt-0.5"
+            style={{ fontFamily: RB }}
+          >
             {subtitle}
           </p>
         )}
@@ -228,11 +257,16 @@ function RegistrationSuccessDialog({
           Registration Successful!
         </h3>
         <p className="text-sm text-slate-500 mb-1" style={{ fontFamily: RB }}>
-          <span className="font-semibold text-[#111827]">{patientName}</span> has been registered.
+          <span className="font-semibold text-[#111827]">{patientName}</span>{" "}
+          has been registered.
         </p>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-100 mt-2 mb-6">
-          <span className="text-xs text-slate-500" style={{ fontFamily: RB }}>MRN</span>
-          <span className="text-sm font-bold font-mono text-[#0D47A1]">{mrn}</span>
+          <span className="text-xs text-slate-500" style={{ fontFamily: RB }}>
+            MRN
+          </span>
+          <span className="text-sm font-bold font-mono text-[#0D47A1]">
+            {mrn}
+          </span>
         </div>
 
         <div className="flex flex-col gap-2.5">
@@ -374,7 +408,8 @@ export function RegisterPatientScreen({
     if (form.photoUrl?.trim()) payload.photoUrl = form.photoUrl.trim();
     if (form.patientCategory) payload.patientCategory = form.patientCategory;
     if (form.registrationType) payload.registrationType = form.registrationType;
-    if (form.specialNotes?.trim()) payload.specialNotes = form.specialNotes.trim();
+    if (form.specialNotes?.trim())
+      payload.specialNotes = form.specialNotes.trim();
 
     if (form.knownAllergies?.trim()) {
       payload.knownAllergies = form.knownAllergies
@@ -420,11 +455,15 @@ export function RegisterPatientScreen({
     }
 
     try {
-      const result = await createPatient.mutateAsync(payload) as any;
-      setSuccessData({ mrn: result.mrn || result.MRNId, name: form.fullName.trim() });
+      const result = (await createPatient.mutateAsync(payload)) as any;
+      setSuccessData({
+        mrn: result.mrn || result.MRNId,
+        name: form.fullName.trim(),
+      });
     } catch (err: any) {
       setToast({
-        message: err?.message || "Failed to register patient. Please try again.",
+        message:
+          err?.message || "Failed to register patient. Please try again.",
         type: "error",
       });
     }
@@ -483,10 +522,7 @@ export function RegisterPatientScreen({
           >
             Patient Registration
           </h1>
-          <p
-            className="text-sm text-slate-500"
-            style={{ fontFamily: RB }}
-          >
+          <p className="text-sm text-slate-500" style={{ fontFamily: RB }}>
             Create a new patient record for hospital services.
           </p>
         </div>
@@ -791,7 +827,9 @@ export function RegisterPatientScreen({
                 </div>
 
                 <div>
-                  <label className={labelBase}>Alternative Contact Number</label>
+                  <label className={labelBase}>
+                    Alternative Contact Number
+                  </label>
                   <input
                     type="tel"
                     value={form.ecAltMobile}
@@ -804,7 +842,6 @@ export function RegisterPatientScreen({
             </div>
 
             {/* 4. REGISTRATION DETAILS */}
-            
 
             {/* 5. MEDICAL ALERTS & NOTES */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6 md:p-7">

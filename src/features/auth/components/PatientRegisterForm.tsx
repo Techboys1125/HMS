@@ -34,7 +34,8 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const { register, linkExisting, loading, errors } = usePatientRegister(onSuccess);
+  const { register, linkExisting, loading, errors } =
+    usePatientRegister(onSuccess);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,20 +94,22 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
             <button
               type="button"
               onClick={() => setMode("new")}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${mode === "new"
-                ? "bg-white text-[#0D47A1] shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
-                }`}
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
+                mode === "new"
+                  ? "bg-white text-[#0D47A1] shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
             >
               New Patient
             </button>
             <button
               type="button"
               onClick={() => setMode("link")}
-              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${mode === "link"
-                ? "bg-white text-[#0D47A1] shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
-                }`}
+              className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
+                mode === "link"
+                  ? "bg-white text-[#0D47A1] shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
             >
               Existing Patient
             </button>
@@ -229,8 +232,10 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
                 <Loader2 className="w-5 h-5 animate-spin" />
                 {mode === "new" ? "Creating Account..." : "Linking Account..."}
               </>
+            ) : mode === "new" ? (
+              "Register Account"
             ) : (
-              mode === "new" ? "Register Account" : "Link Existing Patient"
+              "Link Existing Patient"
             )}
           </button>
         </form>

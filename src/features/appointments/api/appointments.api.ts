@@ -10,6 +10,16 @@ import type {
   OnboardingStatusResponse,
 } from "../types/appointment.types";
 
+const handleApiError = (error: unknown): never => {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as { message?: string } | undefined;
+    if (data?.message) {
+      throw new Error(data.message);
+    }
+  }
+  throw error;
+};
+
 export const appointmentsApi = {
   getAppointments: async (params?: {
     doctorId?: string | number;
@@ -39,11 +49,8 @@ export const appointmentsApi = {
       const url = `/api/v1/appointments${query.toString() ? `?${query.toString()}` : ""}`;
       const response = await apiClient.get<ApiResponse<any>>(url);
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -56,11 +63,8 @@ export const appointmentsApi = {
         data,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -72,11 +76,8 @@ export const appointmentsApi = {
         `/api/v1/appointments/${appointmentId}`,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -90,11 +91,8 @@ export const appointmentsApi = {
         data,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -108,11 +106,8 @@ export const appointmentsApi = {
         data,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -123,11 +118,8 @@ export const appointmentsApi = {
         : "/api/v1/doctor/appointments";
       const response = await apiClient.get<ApiResponse<any>>(url);
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -139,11 +131,8 @@ export const appointmentsApi = {
         `/api/v1/doctor/appointments/${appointmentId}`,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -155,11 +144,8 @@ export const appointmentsApi = {
         `/api/v1/doctor/appointments/${appointmentId}/start`,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -171,11 +157,8 @@ export const appointmentsApi = {
         `/api/v1/doctor/appointments/${appointmentId}/complete`,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -187,11 +170,8 @@ export const appointmentsApi = {
         `/api/v1/patients/${patientId}/appointments`,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -201,11 +181,8 @@ export const appointmentsApi = {
         "/api/v1/patients/linked",
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -217,11 +194,8 @@ export const appointmentsApi = {
         ApiResponse<OnboardingStatusResponse>
       >("/api/v1/patients/onboarding-status");
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -233,11 +207,8 @@ export const appointmentsApi = {
         `/api/v1/reception/appointments/${appointmentId}/check-in`,
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -251,11 +222,8 @@ export const appointmentsApi = {
       const response =
         await apiClient.post<ApiResponse<QueueActionResponse>>(url);
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -265,11 +233,8 @@ export const appointmentsApi = {
         "/api/v1/departments",
       );
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -283,11 +248,8 @@ export const appointmentsApi = {
           : "/api/v1/doctors";
       const response = await apiClient.get<ApiResponse<any[]>>(url);
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 
@@ -299,11 +261,8 @@ export const appointmentsApi = {
       const url = `/api/v1/doctors/${doctorId}/slots?date=${encodeURIComponent(date)}`;
       const response = await apiClient.get<ApiResponse<any[]>>(url);
       return response.data;
-    } catch (error: any) {
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw error;
+    } catch (error: unknown) {
+      handleApiError(error);
     }
   },
 };

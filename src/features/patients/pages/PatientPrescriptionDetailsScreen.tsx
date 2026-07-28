@@ -30,9 +30,9 @@ export function PatientPrescriptionDetailsScreen({
   // Prescription Record data matching Patient scope
   const rxRecord = {
     id: prescriptionId,
-    consultationId: 'CNS-1001',
-    patientName: 'Sarah Mitchell',
-    mrn: 'MRN-892101',
+    consultationId: "CNS-1001",
+    patientName: "Sarah Mitchell",
+    mrn: "MRN-892101",
     age: 34,
     gender: "Female",
     bloodGroup: "A+",
@@ -274,9 +274,18 @@ export function PatientPrescriptionDetailsScreen({
             <Av name={rxRecord.patientName} size="md" />
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm text-[#111827]" style={{ fontFamily: PP }}>{rxRecord.patientName}</span>
-                <span className="font-mono text-[10px] bg-blue-50 text-[#0D47A1] px-2 py-0.5 rounded font-bold">{rxRecord.mrn}</span>
-                <span className="font-mono text-[10px] bg-emerald-50 text-[#009688] px-2 py-0.5 rounded font-bold">{rxRecord.id}</span>
+                <span
+                  className="font-bold text-sm text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  {rxRecord.patientName}
+                </span>
+                <span className="font-mono text-[10px] bg-blue-50 text-[#0D47A1] px-2 py-0.5 rounded font-bold">
+                  {rxRecord.mrn}
+                </span>
+                <span className="font-mono text-[10px] bg-emerald-50 text-[#009688] px-2 py-0.5 rounded font-bold">
+                  {rxRecord.id}
+                </span>
               </div>
               <div
                 className="flex items-center gap-3 text-xs text-[#64748B] mt-0.5"
@@ -336,8 +345,15 @@ export function PatientPrescriptionDetailsScreen({
 
               <div className="space-y-3 text-xs" style={{ fontFamily: RB }}>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5" style={{ fontFamily: PP }}>MRN</span>
-                  <span className="font-mono font-bold text-[#0D47A1] text-sm">{rxRecord.mrn}</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    MRN
+                  </span>
+                  <span className="font-mono font-bold text-[#0D47A1] text-sm">
+                    {rxRecord.mrn}
+                  </span>
                 </div>
 
                 <div>
@@ -916,12 +932,22 @@ export function PatientPrescriptionDetailsScreen({
                 <span className="font-mono text-slate-500">{rxRecord.id}</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div><strong>Patient:</strong> {rxRecord.patientName}</div>
-                <div><strong>MRN:</strong> {rxRecord.mrn}</div>
-                <div><strong>Doctor:</strong> {rxRecord.doctorName}</div>
-                <div><strong>Date:</strong> {rxRecord.consultationDate}</div>
+                <div>
+                  <strong>Patient:</strong> {rxRecord.patientName}
+                </div>
+                <div>
+                  <strong>MRN:</strong> {rxRecord.mrn}
+                </div>
+                <div>
+                  <strong>Doctor:</strong> {rxRecord.doctorName}
+                </div>
+                <div>
+                  <strong>Date:</strong> {rxRecord.consultationDate}
+                </div>
               </div>
-              <div><strong>Diagnosis:</strong> {rxRecord.finalDiagnosis}</div>
+              <div>
+                <strong>Diagnosis:</strong> {rxRecord.finalDiagnosis}
+              </div>
               <div className="pt-2 border-t border-gray-200">
                 <div className="font-bold mb-1">
                   Medicines ({rxRecord.medicines.length}):

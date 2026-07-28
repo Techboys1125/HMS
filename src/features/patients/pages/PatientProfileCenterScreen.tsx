@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { PP, RB } from "../constants/patient.mock";
 
-
 export function PatientProfileCenterScreen() {
   const [activeTab, setActiveTab] = useState<"info" | "edit" | "password">(
     "info",
@@ -205,11 +204,14 @@ export function PatientProfileCenterScreen() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as "info" | "edit" | "password")}
-                  className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors border-b-2 -mb-0.5 ${isActive
-                    ? "border-[#0D47A1] text-[#0D47A1]"
-                    : "border-transparent text-[#64748B] hover:text-[#111827]"
-                    }`}
+                  onClick={() =>
+                    setActiveTab(tab.id as "info" | "edit" | "password")
+                  }
+                  className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors border-b-2 -mb-0.5 ${
+                    isActive
+                      ? "border-[#0D47A1] text-[#0D47A1]"
+                      : "border-transparent text-[#64748B] hover:text-[#111827]"
+                  }`}
                   style={{ fontFamily: PP }}
                 >
                   <span>{tab.label}</span>
