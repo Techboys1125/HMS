@@ -1,0 +1,1869 @@
+import React, { useState, useMemo } from "react";
+import {
+  CheckCircle2,
+  ChevronRight,
+  Search,
+  Filter,
+  X,
+  Plus,
+  Edit,
+  Eye,
+  ArrowUpDown,
+  RotateCcw,
+  Building2,
+  Ban,
+  Calendar as CalendarIcon,
+  Stethoscope,
+  User,
+  Users,
+  PhoneCall,
+  UserPlus,
+  Clock,
+  Calendar,
+  UserCheck,
+  Zap,
+} from "lucide-react";
+import { PP, RB } from "../constants/appointment.constants";
+import { appointmentService } from "../services/appointment.service";
+import { useAppointments } from "../hooks/useAppointments";
+import type { AppointmentRecord } from "../types/appointment.types";
+import type { UserRole } from "../types/appointment-screen.types";
+import { DockableQueueWorkspace } from "../components/DockableQueueWorkspace";
+import { BookAppointmentDrawer } from "../components/BookAppointmentDrawer";
+import { EditAppointmentDrawer } from "../components/EditAppointmentDrawer";
+import { AppointmentDetailsDrawer } from "../components/AppointmentDetailsDrawer";
+import { RescheduleAppointmentConfirmationDialog } from "../components/RescheduleAppointmentConfirmationDialog";
+import { CancelAppointmentConfirmationDialog } from "../components/CancelAppointmentConfirmationDialog";
+import { StatusBadge } from "../components/StatusBadge";
+import { Avatar } from "../components/Avatar";
+
+export interface Props {
+  onPatientSelect?: (id: number | string) => void;
+  onStartConsultation?: (apt?: any) => void;
+  onBookAppointmentClick?: () => void;
+  onReceptionQueueClick?: () => void;
+  userRole?: UserRole;
+  onBack?: () => void;
+  onConfirmSuccess?: (uhid: any) => void;
+  onRegisterNewPatientClick?: () => void;
+  onViewPatientProfileClick?: (uhid: any) => void;
+  initialUhid?: string;
+  initialAptId?: string;
+  onCheckInSuccess?: (uhid: any) => void;
+  onViewQueueClick?: (uhid?: any) => void;
+  onCheckInClick?: (token?: any, uhid?: any) => void;
+  onPatientSearchClick?: () => void;
+  onRegisterPatientClick?: () => void;
+}
+
+export function AppointmentManagementCenterScreen({
+  onPatientSelect,
+  onStartConsultation,
+  onBookAppointmentClick,
+  onReceptionQueueClick,
+  userRole = "Receptionist",
+}: Props) {
+  const {
+    appointments,
+    setAppointments,
+    refetch,
+    isLoading: _isLoading,
+  } = useAppointments(userRole, new Date().toISOString().split("T")[0]);
+  const [viewMode, setViewMode] = useState<"directory" | "queue">("directory");
+
+  // Search & Filter state - Default Date = TODAY
+  const todayDateStr = new Date().toISOString().split("T")[0];
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [doctorFilter, setDoctorFilter] = useState<string>("All");
+  const [deptFilter, setDeptFilter] = useState<string>("All");
+  const [dateFilter, setDateFilter] = useState<string>("Today");
+  const [visitTypeFilter, setVisitTypeFilter] = useState<string>("All");
+
+  // Sorting - Default Appointment Time Ascending
+  const [sortColumn, setSortColumn] =
+    useState<keyof AppointmentRecord>("timeSlot");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [_queueSortAsc, _setQueueSortAsc] = useState(true);
+
+  // Toast State
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Drawer States
+  const [showBookDrawer, setShowBookDrawer] = useState(false);
+  const [isWalkInPreset, setIsWalkInPreset] = useState(false);
+  const [showEditDrawer, setShowEditDrawer] = useState(false);
+  const [detailsApt, setDetailsApt] = useState<AppointmentRecord | null>(null);
+  const [editingApt, setEditingApt] = useState<AppointmentRecord | null>(null);
+
+  // Dialog States
+  const [rescheduleApt, setRescheduleApt] = useState<AppointmentRecord | null>(
+    null,
+  );
+  const [cancelApt, setCancelApt] = useState<AppointmentRecord | null>(null);
+
+  const triggerToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  // --- ROLE-BASED APPOINTMENT FILTERING ---
+  const roleAppointments = useMemo(() => {
+    if (userRole === "Doctor") {
+      return appointments.filter((a) => a.doctorName === "Dr. Arjun Mehta");
+    }
+    if (userRole === "Nurse") {
+      return appointments.filter(
+        (a) =>
+          a.department === "Cardiology" ||
+          a.doctorName === "Dr. Arjun Mehta" ||
+          a.doctorName === "Dr. Priya Sharma",
+      );
+    }
+    return appointments;
+  }, [appointments, userRole]);
+
+  // --- SUMMARY KPI COUNTS ---
+  const todayAppointments = roleAppointments.filter(
+    (a) => a.appointmentDate === todayDateStr,
+  );
+  const totalTodayCount = todayAppointments.length;
+  const checkedInCount = todayAppointments.filter(
+    (a) => a.status === "Checked-In",
+  ).length;
+  const waitingCount = todayAppointments.filter(
+    (a) => a.status === "Waiting" || a.status === "Checked-In",
+  ).length;
+  const inConsultationCount = todayAppointments.filter(
+    (a) => a.status === "In Progress",
+  ).length;
+  const completedCheckInsCount = todayAppointments.filter(
+    (a) => a.status === "Completed",
+  ).length;
+  const walkInCount = todayAppointments.filter(
+    (a) => a.visitType === "Walk-In" || a.isWalkIn,
+  ).length;
+  const followUpCount = roleAppointments.filter(
+    (a) => a.visitType === "Follow-up",
+  ).length;
+
+  // Doctor List
+  const doctorsList = useMemo(
+    () => Array.from(new Set(appointments.map((a) => a.doctorName))),
+    [appointments],
+  );
+
+  // --- Filtered & Sorted Appointments ---
+  const filteredAppointments = useMemo(() => {
+    return roleAppointments
+      .filter((apt) => {
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          const match =
+            String(apt.id).toLowerCase().includes(q) ||
+            apt.patientName.toLowerCase().includes(q) ||
+            apt.doctorName.toLowerCase().includes(q) ||
+            String(apt.patientPhone || "")
+              .toLowerCase()
+              .includes(q) ||
+            String(apt.mrn || "")
+              .toLowerCase()
+              .includes(q);
+          if (!match) return false;
+        }
+        if (statusFilter !== "All" && apt.status !== statusFilter) return false;
+        if (doctorFilter !== "All" && apt.doctorName !== doctorFilter)
+          return false;
+        if (deptFilter !== "All" && apt.department !== deptFilter) return false;
+        if (dateFilter === "Today" && apt.appointmentDate !== todayDateStr)
+          return false;
+        if (visitTypeFilter !== "All" && apt.visitType !== visitTypeFilter)
+          return false;
+        return true;
+      })
+      .sort((a, b) => {
+        let valA = (a as any)[sortColumn];
+        let valB = (b as any)[sortColumn];
+        if (typeof valA === "string") valA = (valA as string).toLowerCase();
+        if (typeof valB === "string") valB = (valB as string).toLowerCase();
+        if (valA! < valB!) return sortDirection === "asc" ? -1 : 1;
+        if (valA! > valB!) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      });
+  }, [
+    roleAppointments,
+    searchQuery,
+    statusFilter,
+    doctorFilter,
+    deptFilter,
+    dateFilter,
+    visitTypeFilter,
+    sortColumn,
+    sortDirection,
+    todayDateStr,
+  ]);
+
+  const handleSort = (col: keyof AppointmentRecord) => {
+    if (sortColumn === col) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortColumn(col);
+      setSortDirection("asc");
+    }
+  };
+
+  const handleBookSuccess = async (newApt: AppointmentRecord) => {
+    setAppointments((prev) => [newApt, ...prev]);
+    await refetch();
+    if (newApt.isWalkIn) {
+      triggerToast(`Walk-in patient registered & checked in successfully.`);
+    } else {
+      triggerToast(`Appointment booked successfully.`);
+    }
+  };
+
+  const handleOpenEditDrawer = (apt: AppointmentRecord) => {
+    setEditingApt(apt);
+    setShowEditDrawer(true);
+  };
+
+  const handleSaveEditAppointment = (updated: AppointmentRecord) => {
+    setAppointments((prev) =>
+      prev.map((a) => (a.id === updated.id ? updated : a)),
+    );
+    triggerToast(`Appointment updated successfully.`);
+  };
+
+  const handleConfirmRescheduleWithDetails = async (
+    aptId: string | number,
+    newDate: string,
+    newTimeSlot: string,
+    reason: string,
+    _remarks?: string,
+  ) => {
+    await appointmentService.rescheduleAppointment(aptId, {
+      appointmentDate: newDate,
+      startTime: newTimeSlot,
+      reason,
+    });
+    await refetch();
+    triggerToast(`Appointment rescheduled successfully.`);
+    setRescheduleApt(null);
+  };
+
+  const handleConfirmCancelWithDetails = async (
+    aptId: string | number,
+    reason: string,
+    _remarks?: string,
+  ) => {
+    await appointmentService.cancelAppointment(aptId, { reason });
+    await refetch();
+    triggerToast(`Appointment cancelled successfully.`);
+    setCancelApt(null);
+  };
+
+  const handleCheckInPatient = async (aptId: string | number) => {
+    await appointmentService.receptionCheckIn(aptId);
+    await refetch();
+    triggerToast(`Patient checked in successfully.`);
+  };
+
+  const handleCallNextPatient = async (aptId: string | number) => {
+    await appointmentService.queueCallNext(aptId);
+    await refetch();
+    triggerToast(`Patient called for consultation.`);
+  };
+
+  return (
+    <div
+      className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9]"
+      style={{ fontFamily: RB }}
+    >
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200">
+          <CheckCircle2 size={16} className="text-[#66BB6A]" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* RENDER QUEUE WORKSPACE IF IN QUEUE VIEW MODE */}
+      {viewMode === "queue" ? (
+        <DockableQueueWorkspace
+          appointments={appointments}
+          onUpdateStatus={(id, st, msg) => {
+            if (st === "Checked-In") handleCheckInPatient(id);
+            else triggerToast(msg);
+          }}
+          onViewDetails={(apt) => setDetailsApt(apt)}
+          onBookClick={() => {
+            setIsWalkInPreset(false);
+            setShowBookDrawer(true);
+          }}
+          onBackToDirectory={() => setViewMode("directory")}
+          onPatientSelect={onPatientSelect}
+          userRole={userRole}
+          onStartConsultation={(apt) => onStartConsultation?.(apt)}
+        />
+      ) : (
+        <>
+          {/* ── 1. PAGE HEADER & BREADCRUMB ── */}
+          {userRole === "Nurse" ? (
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1
+                    className="text-xl font-bold text-[#111827]"
+                    style={{ fontFamily: PP }}
+                  >
+                    Assigned Appointments
+                  </h1>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-[#009688] border border-teal-200">
+                    Nurse Workspace (Read Only)
+                  </span>
+                </div>
+                <div
+                  className="flex items-center gap-1.5 text-xs text-[#64748B] mt-1"
+                  style={{ fontFamily: RB }}
+                >
+                  <span>Nurse</span>
+                  <ChevronRight size={13} className="text-slate-300" />
+                  <span>Appointment Management</span>
+                  <ChevronRight size={13} className="text-slate-300" />
+                  <span className="font-medium text-[#111827]">
+                    Assigned Appointments
+                  </span>
+                </div>
+                <p className="text-xs text-[#64748B] mt-1">
+                  Monitor today's patient appointments.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  onClick={() => setViewMode("queue")}
+                  className="px-3.5 py-2.5 rounded-xl border border-[#0D47A1] bg-blue-50 text-xs font-bold text-[#0D47A1] hover:bg-blue-100 transition-colors flex items-center gap-1.5 shadow-xs"
+                  style={{ fontFamily: PP }}
+                >
+                  <Clock size={15} /> Today's Queue
+                </button>
+              </div>
+            </div>
+          ) : userRole === "Doctor" ? (
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1
+                    className="text-xl font-bold text-[#111827]"
+                    style={{ fontFamily: PP }}
+                  >
+                    My Appointments
+                  </h1>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-[#009688] border border-teal-200">
+                    Doctor Workspace
+                  </span>
+                </div>
+                <div
+                  className="flex items-center gap-1.5 text-xs text-[#64748B] mt-1"
+                  style={{ fontFamily: RB }}
+                >
+                  <span>Doctor</span>
+                  <ChevronRight size={13} className="text-slate-300" />
+                  <span className="font-medium text-[#111827]">
+                    Appointment Management
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  onClick={() => setViewMode("queue")}
+                  className="px-3.5 py-2.5 rounded-xl border border-[#0D47A1] bg-blue-50 text-xs font-bold text-[#0D47A1] hover:bg-blue-100 transition-colors flex items-center gap-1.5 shadow-xs"
+                  style={{ fontFamily: PP }}
+                >
+                  <Clock size={15} /> Today's Queue
+                </button>
+
+                <button
+                  onClick={() => {
+                    const nextApt = roleAppointments.find(
+                      (a) =>
+                        a.status === "Checked-In" ||
+                        a.status === "Waiting" ||
+                        a.status === "In Progress",
+                    );
+                    if (nextApt && onStartConsultation)
+                      onStartConsultation(nextApt);
+                    else if (nextApt && onPatientSelect)
+                      onPatientSelect(nextApt.patientId);
+                    else
+                      triggerToast("No active patient ready for consultation.");
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-[#00796B] transition-colors flex items-center gap-2 shadow-sm"
+                  style={{ fontFamily: PP }}
+                >
+                  <Stethoscope size={15} /> Start Consultation
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1
+                    className="text-xl font-bold text-[#111827]"
+                    style={{ fontFamily: PP }}
+                  >
+                    {userRole === "Hospital Admin" || userRole === "Super Admin"
+                      ? "Hospital Appointment Control Center"
+                      : "Appointment Management"}
+                  </h1>
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${userRole === "Hospital Admin" || userRole === "Super Admin" ? "bg-blue-50 text-[#0D47A1] border-blue-200" : "bg-teal-50 text-[#009688] border-teal-200"}`}
+                  >
+                    {userRole === "Hospital Admin"
+                      ? "Hospital Admin"
+                      : userRole === "Super Admin"
+                        ? "Super Admin"
+                        : "Reception Desk"}
+                  </span>
+                </div>
+                <div
+                  className="flex items-center gap-1.5 text-xs text-[#64748B] mt-1"
+                  style={{ fontFamily: RB }}
+                >
+                  <span>
+                    {userRole === "Hospital Admin"
+                      ? "Hospital Administration"
+                      : "Front Desk Reception"}
+                  </span>
+                  <ChevronRight size={13} className="text-slate-300" />
+                  <span className="font-medium text-[#111827]">
+                    {userRole === "Hospital Admin"
+                      ? "Enterprise Appointments & Operations"
+                      : "Today's Appointment Desk"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                {userRole === "Receptionist" && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setIsWalkInPreset(true);
+                        setShowBookDrawer(true);
+                      }}
+                      className="px-3.5 py-2.5 rounded-xl border border-teal-200 bg-teal-50 text-xs font-bold text-[#009688] hover:bg-teal-100 transition-colors flex items-center gap-1.5 shadow-xs"
+                      style={{ fontFamily: PP }}
+                    >
+                      <UserPlus size={15} /> Register Walk-In
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (onReceptionQueueClick) onReceptionQueueClick();
+                        else setViewMode("queue");
+                      }}
+                      className="px-3.5 py-2.5 rounded-xl border border-[#009688] bg-teal-50 text-xs font-bold text-[#009688] hover:bg-teal-100 transition-colors flex items-center gap-1.5 shadow-xs"
+                      style={{ fontFamily: PP }}
+                    >
+                      <Users size={15} /> Patient Queue
+                    </button>
+                  </>
+                )}
+
+                <button
+                  onClick={() => setViewMode("queue")}
+                  className="px-3.5 py-2.5 rounded-xl border border-[#0D47A1] bg-blue-50 text-xs font-bold text-[#0D47A1] hover:bg-blue-100 transition-colors flex items-center gap-1.5 shadow-xs"
+                  style={{ fontFamily: PP }}
+                >
+                  <Clock size={15} /> Today's Queue
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (onBookAppointmentClick) {
+                      onBookAppointmentClick();
+                    } else {
+                      setIsWalkInPreset(false);
+                      setShowBookDrawer(true);
+                    }
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-2 shadow-sm"
+                  style={{ fontFamily: PP }}
+                >
+                  <Plus size={15} /> Book Appointment
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── 2. SUMMARY KPI CARDS (5 CARDS) ── */}
+          {userRole === "Nurse" ? (
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    Today's Assigned Appointments
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#0D47A1] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {totalTodayCount}
+                  </div>
+                  <div className="text-[10px] text-[#0D47A1] font-medium mt-1">
+                    Assigned schedule
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-[#0D47A1]">
+                  <Calendar size={18} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    Patients Waiting
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#F59E0B] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {waitingCount}
+                  </div>
+                  <div className="text-[10px] text-amber-600 font-medium mt-1">
+                    In lounge
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-[#F59E0B]">
+                  <Clock size={18} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    Checked-In Patients
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#0D47A1] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {checkedInCount}
+                  </div>
+                  <div className="text-[10px] text-blue-600 font-medium mt-1">
+                    Arrived at desk
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-[#0D47A1]">
+                  <UserCheck size={18} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    Ready For Consultation
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#009688] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {checkedInCount}
+                  </div>
+                  <div className="text-[10px] text-teal-600 font-medium mt-1">
+                    Vitals prepped
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center text-[#009688]">
+                  <Stethoscope size={18} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    Completed Consultations
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#66BB6A] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {completedCheckInsCount}
+                  </div>
+                  <div className="text-[10px] text-green-600 font-medium mt-1">
+                    Finished visits
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center text-[#66BB6A]">
+                  <CheckCircle2 size={18} />
+                </div>
+              </div>
+            </div>
+          ) : userRole === "Doctor" ? (
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    Today's Appointments
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#111827] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {totalTodayCount}
+                  </div>
+                  <div className="text-[10px] text-[#0D47A1] font-medium mt-1">
+                    My schedule today
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-[#0D47A1]">
+                  <Calendar size={18} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    Patients Waiting
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#F59E0B] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {waitingCount}
+                  </div>
+                  <div className="text-[10px] text-amber-600 font-medium mt-1">
+                    Arrived in lounge
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-[#F59E0B]">
+                  <Clock size={18} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    In Consultation
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#009688] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {inConsultationCount}
+                  </div>
+                  <div className="text-[10px] text-teal-600 font-medium mt-1">
+                    Active in room
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center text-[#009688]">
+                  <Stethoscope size={18} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    Completed Today
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#66BB6A] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {completedCheckInsCount}
+                  </div>
+                  <div className="text-[10px] text-green-600 font-medium mt-1">
+                    Finished visits
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center text-[#66BB6A]">
+                  <CheckCircle2 size={18} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    Follow-up Visits
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#0D47A1] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {followUpCount}
+                  </div>
+                  <div className="text-[10px] text-blue-600 font-medium mt-1">
+                    Review patients
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-[#0D47A1]">
+                  <UserCheck size={18} />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    Today's Appointments
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#111827] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {totalTodayCount}
+                  </div>
+                  <div className="text-[10px] text-[#0D47A1] font-medium mt-1">
+                    Scheduled today
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-[#0D47A1]">
+                  <Calendar size={18} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    Checked-In Patients
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#0D47A1] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {checkedInCount}
+                  </div>
+                  <div className="text-[10px] text-blue-600 font-medium mt-1">
+                    Arrived at desk
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-[#0D47A1]">
+                  <UserCheck size={18} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    Waiting Patients
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#F59E0B] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {waitingCount}
+                  </div>
+                  <div className="text-[10px] text-amber-600 font-medium mt-1">
+                    In OPD lounge
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-[#F59E0B]">
+                  <Clock size={18} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    Completed Check-Ins
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#66BB6A] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {completedCheckInsCount}
+                  </div>
+                  <div className="text-[10px] text-green-600 font-medium mt-1">
+                    Consulted & done
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center text-[#66BB6A]">
+                  <CheckCircle2 size={18} />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-[#64748B] font-medium">
+                    Walk-In Registrations
+                  </div>
+                  <div
+                    className="text-2xl font-bold text-[#009688] mt-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    {walkInCount}
+                  </div>
+                  <div className="text-[10px] text-teal-600 font-medium mt-1">
+                    Direct OPD arrivals
+                  </div>
+                </div>
+                <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center text-[#009688]">
+                  <UserPlus size={18} />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── 3. SEARCH & FILTERS TOOLBAR + STATUS TABS ── */}
+          <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="relative flex-1 max-w-md">
+                <Search
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by Patient Name, MRN, Appointment ID..."
+                  className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap text-xs">
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
+                  <CalendarIcon size={13} className="text-slate-400" />
+                  <span className="text-slate-500 font-medium">Date:</span>
+                  <select
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
+                  >
+                    <option value="Today">Today Only</option>
+                    <option value="All">All Dates</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
+                  <Filter size={13} className="text-slate-400" />
+                  <span className="text-slate-500 font-medium">Status:</span>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
+                  >
+                    <option value="All">All Statuses</option>
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="Checked-In">Checked-In</option>
+                    <option value="Waiting">Waiting</option>
+                    <option value="In Progress">In Consultation</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+
+                {userRole !== "Doctor" && (
+                  <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
+                    <Stethoscope size={13} className="text-slate-400" />
+                    <span className="text-slate-500 font-medium">Doctor:</span>
+                    <select
+                      value={doctorFilter}
+                      onChange={(e) => setDoctorFilter(e.target.value)}
+                      className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
+                    >
+                      <option value="All">All Doctors</option>
+                      {doctorsList.map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
+                  <Building2 size={13} className="text-slate-400" />
+                  <span className="text-slate-500 font-medium">
+                    Visit Type:
+                  </span>
+                  <select
+                    value={visitTypeFilter}
+                    onChange={(e) => setVisitTypeFilter(e.target.value)}
+                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
+                  >
+                    <option value="All">All Visit Types</option>
+                    <option value="First Visit">First Visit</option>
+                    <option value="Follow-up">Follow-up</option>
+                    <option value="Walk-In">Walk-In</option>
+                  </select>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setStatusFilter("All");
+                    setDoctorFilter("All");
+                    setDeptFilter("All");
+                    setDateFilter("Today");
+                    setVisitTypeFilter("All");
+                    triggerToast("Filters reset.");
+                  }}
+                  className="p-2 rounded-xl border border-[#E5E7EB] bg-white text-slate-500 hover:text-[#0D47A1] hover:bg-slate-50 transition-colors"
+                  title="Reset Filters"
+                >
+                  <RotateCcw size={14} />
+                </button>
+              </div>
+            </div>
+
+            {/* STATUS TABS STRIP */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-2 border-t border-gray-100">
+              {[
+                { id: "All", label: "All", count: roleAppointments.length },
+                {
+                  id: "Waiting",
+                  label: "Waiting",
+                  count: roleAppointments.filter((a) => a.status === "Waiting")
+                    .length,
+                },
+                {
+                  id: "Checked-In",
+                  label: "Checked-In",
+                  count: roleAppointments.filter(
+                    (a) => a.status === "Checked-In",
+                  ).length,
+                },
+                {
+                  id: "In Progress",
+                  label: "In Consultation",
+                  count: roleAppointments.filter(
+                    (a) => a.status === "In Progress",
+                  ).length,
+                },
+                {
+                  id: "Completed",
+                  label: "Completed",
+                  count: roleAppointments.filter(
+                    (a) => a.status === "Completed",
+                  ).length,
+                },
+                {
+                  id: "Cancelled",
+                  label: "Cancelled",
+                  count: roleAppointments.filter(
+                    (a) => a.status === "Cancelled",
+                  ).length,
+                },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setStatusFilter(tab.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                    statusFilter === tab.id
+                      ? "bg-[#0D47A1] text-white shadow-xs"
+                      : "bg-slate-50 text-[#64748B] hover:bg-slate-100 hover:text-[#111827]"
+                  }`}
+                  style={{ fontFamily: PP }}
+                >
+                  <span>{tab.label}</span>
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                      statusFilter === tab.id
+                        ? "bg-white/20 text-white"
+                        : "bg-slate-200 text-[#111827]"
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── 4. MAIN WORKSPACE GRID: ENTERPRISE DATA TABLE + RIGHT CONTEXT PANEL ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Main Table Column */}
+            <div
+              className={`${userRole === "Receptionist" ? "lg:col-span-4" : "lg:col-span-3"} space-y-6`}
+            >
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
+                <div className="p-4 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50/50">
+                  <h3
+                    className="text-sm font-bold text-[#111827] flex items-center gap-2"
+                    style={{ fontFamily: PP }}
+                  >
+                    <Calendar size={16} className="text-[#0D47A1]" />{" "}
+                    {userRole === "Doctor"
+                      ? "Today's Doctor Consultation Appointments"
+                      : "Today's Reception Appointment Workload"}
+                  </h3>
+                  <span className="text-xs text-[#64748B]">
+                    Showing{" "}
+                    <strong className="text-[#111827]">
+                      {filteredAppointments.length}
+                    </strong>{" "}
+                    appointments
+                  </span>
+                </div>
+
+                {filteredAppointments.length > 0 ? (
+                  <div className="overflow-x-auto max-h-[520px] overflow-y-auto">
+                    <table className="w-full border-collapse text-left text-xs">
+                      <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
+                        <tr
+                          className="text-[#64748B] font-bold"
+                          style={{ fontFamily: PP }}
+                        >
+                          <th
+                            onClick={() => handleSort("id")}
+                            className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
+                          >
+                            <div className="flex items-center gap-1">
+                              <span>Appointment ID</span>
+                              <ArrowUpDown
+                                size={12}
+                                className="text-slate-400"
+                              />
+                            </div>
+                          </th>
+                          <th
+                            onClick={() => handleSort("patientName")}
+                            className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
+                          >
+                            <div className="flex items-center gap-1">
+                              <span>Patient</span>
+                              <ArrowUpDown
+                                size={12}
+                                className="text-slate-400"
+                              />
+                            </div>
+                          </th>
+                          <th className="px-4 py-3.5">MRN</th>
+                          {userRole !== "Doctor" && (
+                            <th className="px-4 py-3.5">Doctor</th>
+                          )}
+                          {userRole !== "Doctor" && (
+                            <th className="px-4 py-3.5">Department</th>
+                          )}
+                          <th
+                            onClick={() => handleSort("timeSlot")}
+                            className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
+                          >
+                            <div className="flex items-center gap-1">
+                              <span>Appointment Time</span>
+                              <ArrowUpDown
+                                size={12}
+                                className="text-slate-400"
+                              />
+                            </div>
+                          </th>
+                          <th className="px-4 py-3.5">Visit Type</th>
+                          <th className="px-4 py-3.5">Status</th>
+                          <th className="px-4 py-3.5">Token Number</th>
+                          <th className="px-4 py-3.5 text-right">Actions</th>
+                        </tr>
+                      </thead>
+
+                      <tbody className="divide-y divide-gray-100 text-[#111827]">
+                        {filteredAppointments.map((apt) => (
+                          <tr
+                            key={apt.id}
+                            className="hover:bg-slate-50/80 transition-colors"
+                          >
+                            <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
+                              {apt.id}
+                            </td>
+
+                            <td className="px-4 py-3.5">
+                              <div
+                                onClick={() => onPatientSelect?.(apt.patientId)}
+                                className="flex items-center gap-2 cursor-pointer hover:underline"
+                              >
+                                <Avatar name={apt.patientName} size="sm" />
+                                <div>
+                                  <span
+                                    className="font-bold text-[#111827] block"
+                                    style={{ fontFamily: PP }}
+                                  >
+                                    {apt.patientName}
+                                  </span>
+                                  <span className="text-[10px] text-slate-500 font-mono">
+                                    {apt.patientPhone}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+
+                            <td className="px-4 py-3.5 font-mono text-[#0D47A1] font-bold">
+                              {apt.mrn}
+                            </td>
+
+                            {userRole !== "Doctor" && (
+                              <td className="px-4 py-3.5">
+                                <div className="font-semibold text-[#111827]">
+                                  {apt.doctorName}
+                                </div>
+                                <div className="text-[10px] text-slate-400">
+                                  {apt.opdRoom}
+                                </div>
+                              </td>
+                            )}
+
+                            {userRole !== "Doctor" && (
+                              <td className="px-4 py-3.5 font-medium text-slate-700">
+                                {apt.department}
+                              </td>
+                            )}
+
+                            <td className="px-4 py-3.5 font-mono text-[#0D47A1] font-bold">
+                              {apt.timeSlot}
+                            </td>
+
+                            <td className="px-4 py-3.5">
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                                  apt.visitType === "Walk-In"
+                                    ? "bg-teal-50 text-[#009688] border-teal-200"
+                                    : "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                }`}
+                              >
+                                {apt.visitType}
+                              </span>
+                            </td>
+
+                            <td className="px-4 py-3.5">
+                              <StatusBadge status={apt.status} />
+                            </td>
+
+                            <td className="px-4 py-3.5 font-mono">
+                              <span className="bg-blue-50 text-[#0D47A1] px-2 py-0.5 rounded font-bold border border-blue-100">
+                                {apt.tokenNo}
+                              </span>
+                            </td>
+
+                            <td className="px-4 py-3.5 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => setDetailsApt(apt)}
+                                  className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-blue-50 text-[#0D47A1] transition-colors"
+                                  title="View Appointment Details"
+                                >
+                                  <Eye size={14} />
+                                </button>
+
+                                {userRole === "Nurse" ? (
+                                  <>
+                                    {onPatientSelect && (
+                                      <button
+                                        onClick={() =>
+                                          onPatientSelect(apt.patientId)
+                                        }
+                                        className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors"
+                                        title="View Patient Profile"
+                                      >
+                                        <User size={14} />
+                                      </button>
+                                    )}
+                                  </>
+                                ) : userRole === "Doctor" ? (
+                                  <button
+                                    onClick={() => {
+                                      if (onStartConsultation)
+                                        onStartConsultation(apt);
+                                      else if (onPatientSelect)
+                                        onPatientSelect(apt.patientId);
+                                      else
+                                        triggerToast(
+                                          `Starting consultation for ${apt.patientName}`,
+                                        );
+                                    }}
+                                    className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[10px] font-bold hover:bg-[#00796B] transition-colors flex items-center gap-1 shadow-xs"
+                                    title="Start Consultation"
+                                    style={{ fontFamily: PP }}
+                                  >
+                                    <Stethoscope size={13} /> Start Consultation
+                                  </button>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => handleOpenEditDrawer(apt)}
+                                      className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-amber-50 text-[#F59E0B] transition-colors"
+                                      title="Edit Appointment"
+                                    >
+                                      <Edit size={14} />
+                                    </button>
+
+                                    {apt.status === "Scheduled" && (
+                                      <button
+                                        onClick={() =>
+                                          handleCheckInPatient(apt.id)
+                                        }
+                                        className="px-2 py-1 rounded-lg bg-[#0D47A1] text-white text-[10px] font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1 shadow-xs"
+                                        title="Check-In Patient"
+                                      >
+                                        <CheckCircle2 size={12} /> Check-In
+                                      </button>
+                                    )}
+
+                                    {(apt.status === "Checked-In" ||
+                                      apt.status === "Waiting") && (
+                                      <button
+                                        onClick={() =>
+                                          handleCallNextPatient(apt.id)
+                                        }
+                                        className="px-2 py-1 rounded-lg bg-teal-50 text-[#009688] text-[10px] font-bold border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1"
+                                        title="Call Next Patient"
+                                      >
+                                        <PhoneCall size={12} /> Call
+                                      </button>
+                                    )}
+
+                                    <button
+                                      onClick={() => setRescheduleApt(apt)}
+                                      className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors"
+                                      title="Reschedule Appointment"
+                                    >
+                                      <CalendarIcon size={14} />
+                                    </button>
+
+                                    {apt.status !== "Cancelled" &&
+                                      apt.status !== "Completed" && (
+                                        <button
+                                          onClick={() => setCancelApt(apt)}
+                                          className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-red-50 text-[#EF4444] transition-colors"
+                                          title="Cancel Appointment"
+                                        >
+                                          <Ban size={14} />
+                                        </button>
+                                      )}
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="py-16 text-center space-y-3">
+                    <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
+                      <Calendar size={32} />
+                    </div>
+                    <div className="space-y-1">
+                      <h3
+                        className="text-sm font-bold text-[#111827]"
+                        style={{ fontFamily: PP }}
+                      >
+                        No appointments scheduled today.
+                      </h3>
+                      <p className="text-xs text-[#64748B]">
+                        All consultation visits for today are completed or no
+                        appointments match filters.
+                      </p>
+                    </div>
+                    {userRole !== "Doctor" && (
+                      <button
+                        onClick={() => {
+                          setIsWalkInPreset(false);
+                          setShowBookDrawer(true);
+                        }}
+                        className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors inline-flex items-center gap-2 mt-2"
+                        style={{ fontFamily: PP }}
+                      >
+                        <Plus size={14} /> Book Appointment
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column (1/4): RIGHT CONTEXT PANEL */}
+            {userRole === "Nurse" ? (
+              <div className="space-y-6">
+                {/* CARD 1: TODAY'S SCHEDULE */}
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
+                  <h3
+                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
+                    style={{ fontFamily: PP }}
+                  >
+                    <Clock size={15} className="text-[#0D47A1]" /> Today's
+                    Schedule
+                  </h3>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-400 block font-medium">
+                        Assigned
+                      </span>
+                      <strong className="text-sm font-bold text-[#0D47A1]">
+                        {totalTodayCount}
+                      </strong>
+                    </div>
+                    <div className="bg-amber-50/70 p-2.5 rounded-xl border border-amber-100">
+                      <span className="text-[10px] text-amber-700 block font-medium">
+                        Waiting
+                      </span>
+                      <strong className="text-sm font-bold text-[#F59E0B]">
+                        {waitingCount}
+                      </strong>
+                    </div>
+                    <div className="bg-blue-50/70 p-2.5 rounded-xl border border-blue-100">
+                      <span className="text-[10px] text-[#0D47A1] block font-medium">
+                        Checked-In
+                      </span>
+                      <strong className="text-sm font-bold text-[#0D47A1]">
+                        {checkedInCount}
+                      </strong>
+                    </div>
+                    <div className="bg-green-50/70 p-2.5 rounded-xl border border-green-100">
+                      <span className="text-[10px] text-green-700 block font-medium">
+                        Completed
+                      </span>
+                      <strong className="text-sm font-bold text-[#66BB6A]">
+                        {completedCheckInsCount}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CARD 2: CURRENT WAITING PATIENTS */}
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
+                  <h3
+                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
+                    style={{ fontFamily: PP }}
+                  >
+                    <Users size={15} className="text-[#F59E0B]" /> Current
+                    Waiting Patients
+                  </h3>
+
+                  <div className="space-y-2 text-xs">
+                    {todayAppointments
+                      .filter(
+                        (a) =>
+                          a.status === "Waiting" || a.status === "Checked-In",
+                      )
+                      .slice(0, 3)
+                      .map((wp) => (
+                        <div
+                          key={wp.id}
+                          className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Avatar name={wp.patientName} size="sm" />
+                            <div>
+                              <strong
+                                className="text-[#111827] block"
+                                style={{ fontFamily: PP }}
+                              >
+                                {wp.patientName}
+                              </strong>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                {wp.mrn} · {wp.tokenNo}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="font-mono text-xs font-bold text-[#009688] bg-teal-50 px-2 py-0.5 rounded border border-teal-100">
+                            {wp.timeSlot}
+                          </span>
+                        </div>
+                      ))}
+                    {todayAppointments.filter(
+                      (a) =>
+                        a.status === "Waiting" || a.status === "Checked-In",
+                    ).length === 0 && (
+                      <div className="py-4 text-center text-xs text-slate-400">
+                        No patients waiting in lounge.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* CARD 3: NEXT PATIENT */}
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
+                  <h3
+                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
+                    style={{ fontFamily: PP }}
+                  >
+                    <User size={15} className="text-[#009688]" /> Next Patient
+                  </h3>
+
+                  {(() => {
+                    const next = todayAppointments.find(
+                      (a) =>
+                        a.status === "Checked-In" ||
+                        a.status === "Waiting" ||
+                        a.status === "Scheduled",
+                    );
+                    if (!next)
+                      return (
+                        <div className="py-4 text-center text-xs text-slate-400">
+                          No upcoming patient scheduled today.
+                        </div>
+                      );
+                    return (
+                      <div className="space-y-2 text-xs">
+                        <div className="p-2.5 bg-teal-50/50 rounded-xl border border-teal-100 flex items-center gap-3">
+                          <Avatar name={next.patientName} size="md" />
+                          <div>
+                            <strong
+                              className="text-sm text-[#111827] block"
+                              style={{ fontFamily: PP }}
+                            >
+                              {next.patientName}
+                            </strong>
+                            <span className="font-mono text-[10px] text-[#0D47A1] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
+                              Token {next.tokenNo}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-500 pt-1">
+                          <span>
+                            Doctor:{" "}
+                            <strong className="text-slate-800">
+                              {next.doctorName}
+                            </strong>
+                          </span>
+                          <span className="font-mono font-bold text-[#0D47A1]">
+                            {next.timeSlot}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* CARD 4: QUICK ACTIONS */}
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
+                  <h3
+                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
+                    style={{ fontFamily: PP }}
+                  >
+                    <Zap size={15} className="text-[#0D47A1]" /> Quick Actions
+                  </h3>
+
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => setViewMode("queue")}
+                      className="w-full py-2.5 px-3 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-2 shadow-xs"
+                      style={{ fontFamily: PP }}
+                    >
+                      <Clock size={15} /> View Queue
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const firstP = roleAppointments[0];
+                        if (firstP && onPatientSelect)
+                          onPatientSelect(firstP.patientId);
+                        else
+                          triggerToast(
+                            "Select a patient from table to view profile.",
+                          );
+                      }}
+                      className="w-full py-2 px-3 rounded-xl border border-[#E5E7EB] bg-slate-50 text-slate-700 text-xs font-semibold hover:bg-slate-100 transition-colors flex items-center justify-center gap-2"
+                      style={{ fontFamily: PP }}
+                    >
+                      <User size={14} className="text-[#009688]" /> View Patient
+                      Profile
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : userRole === "Doctor" ? (
+              <div className="space-y-6">
+                {/* CARD 1: TODAY'S SCHEDULE */}
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
+                  <h3
+                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
+                    style={{ fontFamily: PP }}
+                  >
+                    <Clock size={15} className="text-[#0D47A1]" /> Today's
+                    Schedule
+                  </h3>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-400 block">
+                        Total Scheduled
+                      </span>
+                      <strong className="text-sm font-bold text-[#0D47A1]">
+                        {totalTodayCount}
+                      </strong>
+                    </div>
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-400 block">
+                        Completed
+                      </span>
+                      <strong className="text-sm font-bold text-[#66BB6A]">
+                        {completedCheckInsCount}
+                      </strong>
+                    </div>
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-400 block">
+                        Waiting
+                      </span>
+                      <strong className="text-sm font-bold text-[#F59E0B]">
+                        {waitingCount}
+                      </strong>
+                    </div>
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-400 block">
+                        In Progress
+                      </span>
+                      <strong className="text-sm font-bold text-[#009688]">
+                        {inConsultationCount}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const next = todayAppointments.find(
+                      (a) =>
+                        a.status === "Checked-In" ||
+                        a.status === "Waiting" ||
+                        a.status === "Scheduled",
+                    );
+                    if (!next) return null;
+                    return (
+                      <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 mt-2 text-xs">
+                        <div className="text-[10px] text-[#0D47A1] font-bold uppercase tracking-wider">
+                          Next Appointment
+                        </div>
+                        <div className="flex items-center justify-between mt-1">
+                          <div>
+                            <strong
+                              className="text-[#111827] block"
+                              style={{ fontFamily: PP }}
+                            >
+                              {next.patientName}
+                            </strong>
+                            <span className="text-[10px] text-slate-500 font-mono">
+                              {next.tokenNo} · {next.timeSlot}
+                            </span>
+                          </div>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-white text-[#0D47A1] border border-blue-200">
+                            {next.status}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* CARD 2: UPCOMING PATIENT */}
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
+                  <h3
+                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
+                    style={{ fontFamily: PP }}
+                  >
+                    <User size={15} className="text-[#009688]" /> Upcoming
+                    Patient
+                  </h3>
+
+                  {(() => {
+                    const up = todayAppointments.find(
+                      (a) =>
+                        a.status === "Checked-In" ||
+                        a.status === "Waiting" ||
+                        a.status === "Scheduled",
+                    );
+                    if (!up) {
+                      return (
+                        <div className="py-6 text-center text-xs text-slate-400">
+                          No upcoming patients in queue today.
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="space-y-2.5 text-xs">
+                        <div className="flex items-center gap-3 p-2.5 bg-teal-50/50 rounded-xl border border-teal-100">
+                          <Avatar name={up.patientName} size="md" />
+                          <div>
+                            <strong
+                              className="text-sm text-[#111827] block"
+                              style={{ fontFamily: PP }}
+                            >
+                              {up.patientName}
+                            </strong>
+                            <span className="text-[10px] text-slate-500 font-mono">
+                              {up.mrn}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-[11px]">
+                          <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                            <span className="text-slate-400 block text-[10px]">
+                              Time Slot
+                            </span>
+                            <strong className="text-[#0D47A1] font-mono">
+                              {up.timeSlot}
+                            </strong>
+                          </div>
+                          <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                            <span className="text-slate-400 block text-[10px]">
+                              Token No
+                            </span>
+                            <strong className="text-[#009688] font-mono">
+                              {up.tokenNo}
+                            </strong>
+                          </div>
+                          <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 col-span-2 flex items-center justify-between">
+                            <span className="text-slate-400 text-[10px]">
+                              Visit Type:
+                            </span>
+                            <span className="font-semibold text-slate-700">
+                              {up.visitType}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* CARD 3: QUICK ACTIONS */}
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
+                  <h3
+                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
+                    style={{ fontFamily: PP }}
+                  >
+                    <Zap size={15} className="text-[#0D47A1]" /> Quick Actions
+                  </h3>
+
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => {
+                        const next = todayAppointments.find(
+                          (a) =>
+                            a.status === "Checked-In" ||
+                            a.status === "Waiting" ||
+                            a.status === "In Progress",
+                        );
+                        if (next && onStartConsultation)
+                          onStartConsultation(next);
+                        else if (next && onPatientSelect)
+                          onPatientSelect(next.patientId);
+                        else triggerToast("No active patient in queue");
+                      }}
+                      className="w-full py-2.5 px-3 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-[#00796B] transition-colors flex items-center justify-center gap-2 shadow-xs"
+                      style={{ fontFamily: PP }}
+                    >
+                      <Stethoscope size={15} /> Start Consultation
+                    </button>
+
+                    <button
+                      onClick={() => setViewMode("queue")}
+                      className="w-full py-2 px-3 rounded-xl border border-[#0D47A1] bg-blue-50 text-[#0D47A1] text-xs font-bold hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Clock size={14} /> View Today's Queue
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : userRole !== "Receptionist" ? (
+              <div className="space-y-6">
+                {/* CARD 1: TODAY'S QUEUE SUMMARY */}
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
+                  <h3
+                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
+                    style={{ fontFamily: PP }}
+                  >
+                    <Clock size={15} className="text-[#0D47A1]" /> Today's Queue
+                    Summary
+                  </h3>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-400 block">
+                        Waiting
+                      </span>
+                      <strong className="text-sm font-bold text-[#F59E0B]">
+                        {waitingCount}
+                      </strong>
+                    </div>
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-400 block">
+                        Checked-In
+                      </span>
+                      <strong className="text-sm font-bold text-[#0D47A1]">
+                        {checkedInCount}
+                      </strong>
+                    </div>
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-400 block">
+                        In Consultation
+                      </span>
+                      <strong className="text-sm font-bold text-[#009688]">
+                        {
+                          todayAppointments.filter(
+                            (a) => a.status === "In Progress",
+                          ).length
+                        }
+                      </strong>
+                    </div>
+                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                      <span className="text-[10px] text-slate-400 block">
+                        Completed
+                      </span>
+                      <strong className="text-sm font-bold text-[#66BB6A]">
+                        {completedCheckInsCount}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CARD 2: UPCOMING APPOINTMENTS */}
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
+                  <h3
+                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
+                    style={{ fontFamily: PP }}
+                  >
+                    <Calendar size={15} className="text-[#009688]" /> Upcoming
+                    Appointments Today
+                  </h3>
+
+                  <div className="space-y-2 text-xs">
+                    {todayAppointments
+                      .filter((a) => a.status === "Scheduled")
+                      .slice(0, 3)
+                      .map((up) => (
+                        <div
+                          key={up.id}
+                          className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between"
+                        >
+                          <div>
+                            <strong
+                              className="text-[#111827] block"
+                              style={{ fontFamily: PP }}
+                            >
+                              {up.patientName}
+                            </strong>
+                            <span className="text-[10px] text-slate-400">
+                              {up.doctorName}
+                            </span>
+                          </div>
+                          <span className="font-mono text-xs font-bold text-[#0D47A1]">
+                            {up.timeSlot}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                {/* CARD 3: QUICK ACTIONS */}
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
+                  <h3
+                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
+                    style={{ fontFamily: PP }}
+                  >
+                    <Zap size={15} className="text-[#0D47A1]" /> Reception Quick
+                    Actions
+                  </h3>
+
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => {
+                        setIsWalkInPreset(false);
+                        setShowBookDrawer(true);
+                      }}
+                      className="w-full py-2 px-3 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-2"
+                      style={{ fontFamily: PP }}
+                    >
+                      <Plus size={14} /> Book Appointment
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsWalkInPreset(true);
+                        setShowBookDrawer(true);
+                      }}
+                      className="w-full py-2 px-3 rounded-xl border border-teal-200 bg-teal-50 text-[#009688] text-xs font-bold hover:bg-teal-100 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <UserPlus size={14} /> Register Walk-In Patient
+                    </button>
+
+                    <button
+                      onClick={() => setViewMode("queue")}
+                      className="w-full py-2 px-3 rounded-xl border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Clock size={14} className="text-[#009688]" /> View Queue
+                      Workspace
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </>
+      )}
+
+      {/* REUSABLE DRAWERS & DIALOGS */}
+      <BookAppointmentDrawer
+        isOpen={showBookDrawer}
+        onClose={() => {
+          setShowBookDrawer(false);
+          setIsWalkInPreset(false);
+        }}
+        onBookSuccess={handleBookSuccess}
+        onPatientSelect={onPatientSelect}
+        isWalkInPreset={isWalkInPreset}
+      />
+
+      <AppointmentDetailsDrawer
+        apt={detailsApt}
+        isOpen={!!detailsApt}
+        onClose={() => setDetailsApt(null)}
+        onEditClick={(aptToEdit) => {
+          setDetailsApt(null);
+          handleOpenEditDrawer(aptToEdit);
+        }}
+        onPrintClick={(aptToPrint) => {
+          triggerToast(`Printing appointment slip for ${aptToPrint.id}...`);
+        }}
+        onPatientSelect={onPatientSelect}
+        userRole={userRole}
+        onStartConsultation={() => {
+          setDetailsApt(null);
+          onStartConsultation?.(detailsApt || undefined);
+        }}
+      />
+
+      <EditAppointmentDrawer
+        apt={editingApt}
+        isOpen={showEditDrawer}
+        onClose={() => {
+          setShowEditDrawer(false);
+          setEditingApt(null);
+        }}
+        onSaveSuccess={handleSaveEditAppointment}
+        onRescheduleClick={(aptToReschedule) =>
+          setRescheduleApt(aptToReschedule)
+        }
+        onCancelClick={(aptToCancel) => setCancelApt(aptToCancel)}
+        onPatientSelect={onPatientSelect}
+      />
+
+      <RescheduleAppointmentConfirmationDialog
+        apt={rescheduleApt}
+        isOpen={!!rescheduleApt}
+        onClose={() => setRescheduleApt(null)}
+        onConfirmReschedule={handleConfirmRescheduleWithDetails}
+      />
+
+      <CancelAppointmentConfirmationDialog
+        apt={cancelApt}
+        isOpen={!!cancelApt}
+        onClose={() => setCancelApt(null)}
+        onConfirmCancel={handleConfirmCancelWithDetails}
+      />
+    </div>
+  );
+}
+
+export { AppointmentManagementCenterScreen as AppointmentCenterScreen };
