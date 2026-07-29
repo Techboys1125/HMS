@@ -38,6 +38,12 @@ export { useUpdatePatient } from "./hooks/useUpdatePatient";
 // Services
 export { patientService } from "./services/patient.service";
 
+// API
+export { patientsApi } from "./api/patient.api";
+
+// Store
+export { patientStore, usePatientStore } from "./store/patient.store";
+
 // Permissions
 export { usePatientPermissions } from "./permissions/patient.permissions";
 
