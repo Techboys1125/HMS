@@ -82,9 +82,9 @@ import { MyProfileManagement } from "./MyProfileManagement";
 import { SettingsWorkspace } from "./SettingsWorkspace";
 import {
   FamilyMembersManagement,
-  INITIAL_FAMILY_MEMBERS,
   type FamilyMember,
 } from "./FamilyMembersManagement";
+import { INITIAL_FAMILY_MEMBERS } from "./mocks/familyMembers.mock";
 import {
   SuperAdminDashboard,
   HospitalAdminDashboard,

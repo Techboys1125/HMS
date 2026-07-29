@@ -1232,7 +1232,7 @@ export function ReportsDashboardScreen({
                             borderColor: "#E5E7EB",
                             fontSize: "11px",
                           }}
-                          formatter={(val: any) => [
+                          formatter={(val: unknown) => [
                             `${val} views`,
                             "Total Views",
                           ]}
@@ -1286,7 +1286,7 @@ export function ReportsDashboardScreen({
                             borderColor: "#E5E7EB",
                             fontSize: "11px",
                           }}
-                          formatter={(val: any) => [`${val}%`, "Share"]}
+                          formatter={(val: unknown) => [`${val}%`, "Share"]}
                         />
                         <Legend
                           layout="horizontal"
