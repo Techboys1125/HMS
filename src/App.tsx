@@ -2,7 +2,6 @@ import { useState } from "react";
 import safeHandsLogo from "./assets/safehandshospital_logo.webp";
 import { LoginPage, useAuthStore } from "./features/auth";
 import {
-  PatientListScreen,
   PatientProfileScreen,
   EditPatientScreen,
   MedicalHistoryScreen,
@@ -2390,8 +2389,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               )}
             {activeNav === "patients" &&
               !showPatientWorkspace &&
-              !showRegisterPatient &&
-              role === "receptionist" && (
+              !showRegisterPatient && (
                 <PatientSearchScreen
                   userRole={role}
                   onBack={() => setActiveNav("dashboard")}
@@ -2409,14 +2407,6 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                     setActiveNav("appointments");
                     setShowCheckInScreen(true);
                   }}
-                />
-              )}
-            {activeNav === "patients" &&
-              !showPatientWorkspace &&
-              !showRegisterPatient && (
-                <PatientListScreen
-                  onRegisterClick={() => setShowRegisterPatient(true)}
-                  onPatientSelect={(id) => handlePatientSelect(id)}
                 />
               )}
             {activeNav === "patients" &&
@@ -2646,13 +2636,13 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                 <DoctorPrescriptionHistoryScreen
                   patientMrn={historyPrescriptionUhid}
                   onBack={() => setHistoryPrescriptionUhid(null)}
-                  onViewPrescription={(rxId) => {
+                  onViewPrescription={(rxId: any) => {
                     setHistoryPrescriptionUhid(null);
-                    setViewDetailsPrescriptionId(rxId);
+                    setViewDetailsPrescriptionId(typeof rxId === "string" ? rxId : rxId?.id || "");
                   }}
-                  onPrintPreview={(rxId) => {
+                  onPrintPreview={(rxId: any) => {
                     setHistoryPrescriptionUhid(null);
-                    setPrintPreviewPrescriptionId(rxId);
+                    setPrintPreviewPrescriptionId(typeof rxId === "string" ? rxId : rxId?.id || "");
                   }}
                   onViewPatientProfile={(uhid) => {
                     setHistoryPrescriptionUhid(null);

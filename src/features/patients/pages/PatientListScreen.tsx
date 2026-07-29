@@ -58,7 +58,9 @@ export function PatientListScreen({
   );
 
   const stats = useMemo(() => {
-    const list = (serverPatients || []) as unknown as Array<Record<string, unknown>>;
+    const list = (serverPatients || []) as unknown as Array<
+      Record<string, unknown>
+    >;
     const todayStr = new Date().toISOString().split("T")[0];
 
     return {
@@ -94,11 +96,11 @@ export function PatientListScreen({
     const matchesGender =
       genderFilter === "All" ||
       p.gender ===
-      (genderFilter === "Male"
-        ? "M"
-        : genderFilter === "Female"
-          ? "F"
-          : "Other");
+        (genderFilter === "Male"
+          ? "M"
+          : genderFilter === "Female"
+            ? "F"
+            : "Other");
     const matchesStatus = statusFilter === "All" || p.status === statusFilter;
     const matchesDoctor = doctorFilter === "All" || p.doctor === doctorFilter;
 

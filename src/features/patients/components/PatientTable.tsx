@@ -10,6 +10,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import type { Patient } from "../types/patient.types";
+import { usePermissions } from "../../../permissions";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -50,8 +51,8 @@ function Avatar({
 }
 
 /**
- * Patient list table with loading skeleton, empty state, and pagination footer.
- * Design preserved from original PatientListScreen table section.
+ * Single common Patient list table with RBAC system controls.
+ * Column visibility, available actions, and accessibility change dynamically based on user permissions/role.
  */
 export function PatientTable({
   patients,
@@ -69,6 +70,7 @@ export function PatientTable({
   onViewAppointments,
   onGenerateBill,
   onResetFilters,
+  userRole,
 }: {
   patients: Patient[];
   totalCount: number;
@@ -80,13 +82,41 @@ export function PatientTable({
   onOpenQuickView: (p: Patient) => void;
   onToggleActionMenu: (id: string | null) => void;
   onViewProfile: (id: string) => void;
-  onEditPatient: (p: Patient) => void;
-  onViewMedicalHistory?: () => void;
-  onViewAppointments?: () => void;
-  onGenerateBill?: () => void;
-  onRegisterClick: () => void;
+  onEditPatient?: (p: Patient) => void;
+  onViewMedicalHistory?: (id: string) => void;
+  onViewAppointments?: (id: string) => void;
+  onGenerateBill?: (id: string) => void;
   onResetFilters: () => void;
+  userRole?: string;
 }) {
+  const permissions = usePermissions();
+  const activeRole = (userRole || permissions.role || "RECEPTIONIST").toUpperCase();
+
+  // Column definitions & role-based visibility
+  const isDoctor = activeRole === "DOCTOR";
+  const isReceptionist = activeRole === "RECEPTIONIST";
+
+  const columns = [
+    { key: "mrn", label: "MRN", visible: true },
+    { key: "name", label: "Patient Name", visible: true },
+    { key: "age_gender", label: "Age/Gender", visible: true },
+    { key: "phone", label: "Mobile", visible: true },
+    { key: "email", label: "Email", visible: !isDoctor && !isReceptionist },
+    { key: "blood_group", label: "Blood Group", visible: isDoctor },
+    { key: "category", label: "Category", visible: !isDoctor && !isReceptionist },
+    { key: "reg_type", label: "Reg. Type", visible: !isDoctor },
+    { key: "assigned_doctor", label: "Assigned Doctor", visible: true },
+    { key: "reg_date", label: "Registration Date", visible: !isDoctor },
+    { key: "status", label: "Status", visible: true },
+    { key: "actions", label: "Actions", visible: true },
+  ].filter((c) => c.visible);
+
+  // RBAC Permission checks for Row Actions
+  const canEdit = permissions.can("PATIENT_EDIT");
+  const canViewHistory = permissions.can("PATIENT_VIEW_HISTORY") || isDoctor || activeRole.includes("ADMIN");
+  const canViewAppointments = permissions.can("APPOINTMENT_VIEW");
+  const canBilling = permissions.can("BILLING_CREATE") || permissions.can("BILLING_VIEW");
+
   return (
     <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden">
       {/* Table Header Section */}
@@ -151,189 +181,224 @@ export function PatientTable({
           </div>
         </div>
       ) : (
-        /* PATIENT TABLE */
+        /* COMMON PATIENT TABLE */
         <div className="overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#F1F5F9]/80 border-b border-[#E5E7EB]">
-                {[
-                  "Patient ID",
-                  "Patient Name",
-                  "Age",
-                  "Gender",
-                  "Phone",
-                  "Email",
-                  "Category",
-                  "Reg. Type",
-                  "Assigned Doctor",
-                  "Registration Date",
-                  "Actions",
-                ].map((h) => (
+                {columns.map((col) => (
                   <th
-                    key={h}
-                    className="px-4 py-3.5 text-xs font-bold text-[#64748B] uppercase tracking-wider whitespace-nowrap"
+                    key={col.key}
+                    className={`px-4 py-3.5 text-xs font-bold text-[#64748B] uppercase tracking-wider whitespace-nowrap ${col.key === "actions" ? "text-right" : ""}`}
                     style={{ fontFamily: PP }}
                   >
-                    {h}
+                    {col.label}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {patients.map((p) => (
-                <tr
-                  key={p.mrn}
-                  className={`hover:bg-blue-50/40 transition-colors cursor-pointer group ${selectedPatientId === p.mrn ? "bg-blue-50/60" : ""}`}
-                  onClick={() => onSelectRow(p)}
-                >
-                  <td className="px-4 py-3.5 whitespace-nowrap">
-                    <span className="font-mono text-xs font-semibold text-[#0D47A1] bg-blue-50 px-2 py-1 rounded-lg border border-blue-100">
-                      {p.mrn}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3.5 whitespace-nowrap">
-                    <div className="flex items-center gap-3">
-                      <Avatar
-                        name={(p.patientName || p.name || "").trim()}
-                        size="sm"
-                      />
-                      <div>
-                        <span
-                          className="text-xs font-bold text-[#111827] block"
-                          style={{ fontFamily: PP }}
-                        >
-                          {(p.patientName || p.name || "").trim()}
-                        </span>
-                        <span className="text-[11px] text-[#64748B] block">
-                          OPD Intake
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-medium">
-                    {p.age || 0} Y
-                  </td>
-                  <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-medium">
-                    {p.gender === "MALE" || p.gender === "M"
-                      ? "Male"
-                      : "Female"}
-                  </td>
-                  <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-mono">
-                    {p.phone}
-                  </td>
-                  <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
-                    {p.email || "-"}
-                  </td>
-                  <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
-                    <span className="font-medium capitalize">
-                      {(p.patientCategory || "GENERAL")
-                        .toLowerCase()
-                        .replace(/_/g, " ")}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
-                    <span className="font-medium capitalize">
-                      {(p.registrationType || "WALK_IN")
-                        .toLowerCase()
-                        .replace(/_/g, " ")}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
-                    <div className="flex items-center gap-1.5">
-                      <UserCheck size={14} className="text-[#009688]" />
-                      <span className="font-medium text-[#111827]">
-                        {p.assignedDoctor || "Unassigned"}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-600">
-                    {p.registrationDate ? p.registrationDate.split("T")[0] : ""}
-                  </td>
-                  <td
-                    className="px-4 py-3.5 whitespace-nowrap relative"
-                    onClick={(e) => e.stopPropagation()}
+              {patients.map((p) => {
+                const mrn = p.mrn || p.patientId || String(p.id);
+                const name = (p.patientName || p.name || "").trim();
+                const age = p.age || 0;
+                const gender = p.gender === "FEMALE" || p.gender === "F" ? "Female" : "Male";
+                const phone = p.phone || "-";
+                const email = p.email || "-";
+                const category = (p.patientCategory || "GENERAL").toLowerCase().replace(/_/g, " ");
+                const regType = (p.registrationType || "WALK_IN").toLowerCase().replace(/_/g, " ");
+                const doctor = p.assignedDoctor || "Unassigned";
+                const regDate = p.registrationDate ? p.registrationDate.split("T")[0] : "";
+                const status = p.status || "Active";
+
+                return (
+                  <tr
+                    key={mrn}
+                    className={`hover:bg-blue-50/40 transition-colors cursor-pointer group ${selectedPatientId === mrn ? "bg-blue-50/60" : ""}`}
+                    onClick={() => onSelectRow(p)}
                   >
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => onOpenQuickView(p)}
-                        className="p-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Quick Drawer View"
-                      >
-                        <Eye size={15} />
-                      </button>
-                      <div className="relative">
-                        <button
-                          onClick={() =>
-                            onToggleActionMenu(
-                              activeActionMenuId === p.mrn ? null : p.mrn,
-                            )
-                          }
-                          className="p-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Row Actions"
-                        >
-                          <MoreVertical size={15} />
-                        </button>
-                        {activeActionMenuId === p.mrn && (
-                          <div className="absolute right-0 top-8 z-30 w-48 bg-white border border-[#E5E7EB] rounded-xl shadow-xl py-1.5 animate-in fade-in zoom-in-95 duration-150">
-                            <button
-                              onClick={() => {
-                                onToggleActionMenu(null);
-                                onViewProfile(p.mrn);
-                              }}
-                              className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
+                    {columns.some((c) => c.key === "mrn") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <span className="font-mono text-xs font-semibold text-[#0D47A1] bg-blue-50 px-2 py-1 rounded-lg border border-blue-100">
+                          {mrn}
+                        </span>
+                      </td>
+                    )}
+
+                    {columns.some((c) => c.key === "name") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <Avatar name={name} size="sm" />
+                          <div>
+                            <span
+                              className="text-xs font-bold text-[#111827] block"
+                              style={{ fontFamily: PP }}
                             >
-                              <User size={14} className="text-[#0D47A1]" /> View
-                              Profile
-                            </button>
-                            <button
-                              onClick={() => {
-                                onToggleActionMenu(null);
-                                onEditPatient(p);
-                              }}
-                              className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
-                            >
-                              <Edit size={14} className="text-slate-500" /> Edit
-                              Patient
-                            </button>
-                            <button
-                              onClick={() => {
-                                onToggleActionMenu(null);
-                                if (onViewMedicalHistory)
-                                  onViewMedicalHistory();
-                                else onViewProfile(p.mrn);
-                              }}
-                              className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
-                            >
-                              <FileText size={14} className="text-[#009688]" />{" "}
-                              View Medical History
-                            </button>
-                            <button
-                              onClick={() => {
-                                onToggleActionMenu(null);
-                                if (onViewAppointments) onViewAppointments();
-                              }}
-                              className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
-                            >
-                              <Calendar size={14} className="text-purple-600" />{" "}
-                              View Appointments
-                            </button>
-                            <button
-                              onClick={() => {
-                                onToggleActionMenu(null);
-                                if (onGenerateBill) onGenerateBill();
-                              }}
-                              className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-[#66BB6A]/10 hover:text-[#66BB6A] flex items-center gap-2 font-medium transition-colors border-t border-gray-100 mt-1 pt-2"
-                            >
-                              <Receipt size={14} className="text-amber-600" />{" "}
-                              Generate Bill
-                            </button>
+                              {name}
+                            </span>
+                            <span className="text-[11px] text-[#64748B] block capitalize">
+                              {regType}
+                            </span>
                           </div>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        </div>
+                      </td>
+                    )}
+
+                    {columns.some((c) => c.key === "age_gender") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-medium">
+                        {age} Y · {gender}
+                      </td>
+                    )}
+
+                    {columns.some((c) => c.key === "phone") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-mono">
+                        {phone}
+                      </td>
+                    )}
+
+                    {columns.some((c) => c.key === "email") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
+                        {email}
+                      </td>
+                    )}
+
+                    {columns.some((c) => c.key === "blood_group") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap text-xs font-bold text-[#009688]">
+                        O+
+                      </td>
+                    )}
+
+                    {columns.some((c) => c.key === "category") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
+                        <span className="font-medium capitalize">{category}</span>
+                      </td>
+                    )}
+
+                    {columns.some((c) => c.key === "reg_type") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
+                        <span className="font-medium capitalize">{regType}</span>
+                      </td>
+                    )}
+
+                    {columns.some((c) => c.key === "assigned_doctor") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
+                        <div className="flex items-center gap-1.5">
+                          <UserCheck size={14} className="text-[#009688]" />
+                          <span className="font-medium text-[#111827]">{doctor}</span>
+                        </div>
+                      </td>
+                    )}
+
+                    {columns.some((c) => c.key === "reg_date") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-600">
+                        {regDate}
+                      </td>
+                    )}
+
+                    {columns.some((c) => c.key === "status") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 capitalize">
+                          {status.toLowerCase().replace(/_/g, " ")}
+                        </span>
+                      </td>
+                    )}
+
+                    {columns.some((c) => c.key === "actions") && (
+                      <td
+                        className="px-4 py-3.5 whitespace-nowrap text-right relative"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => onOpenQuickView(p)}
+                            className="p-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Quick Drawer View"
+                          >
+                            <Eye size={15} />
+                          </button>
+                          <div className="relative">
+                            <button
+                              onClick={() =>
+                                onToggleActionMenu(
+                                  activeActionMenuId === mrn ? null : mrn,
+                                )
+                              }
+                              className="p-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Row Actions"
+                            >
+                              <MoreVertical size={15} />
+                            </button>
+                            {activeActionMenuId === mrn && (
+                              <div className="absolute right-0 top-8 z-30 w-48 bg-white border border-[#E5E7EB] rounded-xl shadow-xl py-1.5 animate-in fade-in zoom-in-95 duration-150 text-left">
+                                <button
+                                  onClick={() => {
+                                    onToggleActionMenu(null);
+                                    onViewProfile(mrn);
+                                  }}
+                                  className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
+                                >
+                                  <User size={14} className="text-[#0D47A1]" /> View
+                                  Profile
+                                </button>
+                                {canEdit && onEditPatient && (
+                                  <button
+                                    onClick={() => {
+                                      onToggleActionMenu(null);
+                                      onEditPatient(p);
+                                    }}
+                                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
+                                  >
+                                    <Edit size={14} className="text-slate-500" /> Edit
+                                    Patient
+                                  </button>
+                                )}
+                                {canViewHistory && (
+                                  <button
+                                    onClick={() => {
+                                      onToggleActionMenu(null);
+                                      if (onViewMedicalHistory)
+                                        onViewMedicalHistory(mrn);
+                                      else onViewProfile(mrn);
+                                    }}
+                                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
+                                  >
+                                    <FileText size={14} className="text-[#009688]" />{" "}
+                                    Medical History
+                                  </button>
+                                )}
+                                {canViewAppointments && (
+                                  <button
+                                    onClick={() => {
+                                      onToggleActionMenu(null);
+                                      if (onViewAppointments) onViewAppointments(mrn);
+                                    }}
+                                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
+                                  >
+                                    <Calendar size={14} className="text-purple-600" />{" "}
+                                    Appointments
+                                  </button>
+                                )}
+                                {canBilling && (
+                                  <button
+                                    onClick={() => {
+                                      onToggleActionMenu(null);
+                                      if (onGenerateBill) onGenerateBill(mrn);
+                                    }}
+                                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-[#66BB6A]/10 hover:text-[#66BB6A] flex items-center gap-2 font-medium transition-colors border-t border-gray-100 mt-1 pt-2"
+                                  >
+                                    <Receipt size={14} className="text-amber-600" />{" "}
+                                    Generate Bill
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -373,3 +438,4 @@ export function PatientTable({
     </div>
   );
 }
+

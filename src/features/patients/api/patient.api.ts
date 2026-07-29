@@ -31,8 +31,11 @@ export const patientsApi = {
         search.append("size", String(params.size));
       if (params?.status) search.append("status", params.status);
       const url = `/api/v1/patients${search.toString() ? `?${search.toString()}` : ""}`;
-      const res = await apiClient.get<{ content?: Patient[] } | Patient[]>(url);
-      const data = res.data;
+      const res = await apiClient.get<unknown>(url);
+      let data = res.data as any;
+      if (data && typeof data === "object" && "data" in data) {
+        data = data.data;
+      }
       if (
         data &&
         typeof data === "object" &&
@@ -102,13 +105,14 @@ export const patientsApi = {
 
   async create(
     payload: CreatePatientRequest,
-  ): Promise<{ MRNId: string; message: string }> {
+  ): Promise<{ success?: boolean; message?: string; data?: Patient }> {
     try {
-      const res = await apiClient.post<{ MRNId: string; message: string }>(
-        "/api/v1/patients",
-        payload,
-      );
-      return res.data || (res as unknown as { MRNId: string; message: string });
+      const res = await apiClient.post<{
+        success?: boolean;
+        message?: string;
+        data?: Patient;
+      }>("/api/v1/patients", payload);
+      return res.data;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const data = error.response?.data as { message?: string } | undefined;

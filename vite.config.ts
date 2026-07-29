@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://safe-hands-hms-backend.onrender.com",
+        target: "http://192.168.1.44:8081",
         changeOrigin: true,
         secure: false,
       },

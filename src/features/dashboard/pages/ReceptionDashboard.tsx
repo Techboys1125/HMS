@@ -435,6 +435,7 @@ const REC_QUICK_ACTIONS = [
   { label: "Search Patient", Icon: Search, color: "#64748B", action: "search" },
 ];
 
+
 export function ReceptionDashboard({
   onRegisterPatient,
   onPatientSearch,

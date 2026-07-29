@@ -21,8 +21,10 @@ const PRESCRIPTION_HEADER = {
 
 export interface DoctorPrescriptionPrintPreviewScreenProps {
   prescription?: PrescriptionRecord;
+  prescriptionId?: string;
   onBack?: () => void;
   onPrint?: () => void;
+  onViewConsultation?: (consultId: any) => void;
 }
 
 export function DoctorPrescriptionPrintPreviewScreen({
@@ -243,8 +245,11 @@ export function DoctorPrescriptionPrintPreviewScreen({
 }
 
 export interface DoctorPrescriptionHistoryScreenProps {
+  patientMrn?: string;
   onBack?: () => void;
-  onViewPrescription?: (rx: PrescriptionRecord) => void;
+  onViewPrescription?: (rx: any) => void;
+  onPrintPreview?: (rx: any) => void;
+  onViewPatientProfile?: (uhid: string) => void;
 }
 
 export function DoctorPrescriptionHistoryScreen({
