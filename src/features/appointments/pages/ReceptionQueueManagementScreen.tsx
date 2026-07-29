@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from "react";
-import { PP, RB, ChipVariant } from "../constants/appointment.constants";
+import { useState, useMemo } from "react";
+import { PP, RB } from "../constants/appointment.constants";
+import type { ChipVariant } from "../constants/appointment.constants";
 import { Chip } from "../components/Chip";
-import { ReceptionQueueManagementScreenProps } from "../types/appointment-screen.types";
+import { type ReceptionQueueManagementScreenProps } from "../types/appointment-screen.types";
 import {
   ChevronRight,
   RefreshCw,
@@ -34,7 +35,6 @@ export function ReceptionQueueManagementScreen({
 
   // Dialog States
   const [noShowDialogApt, setNoShowDialogApt] = useState<any | null>(null);
-  const [] = useState<any | null>(null);
 
   // Queue Data List
   const [queueItems, setQueueItems] = useState([

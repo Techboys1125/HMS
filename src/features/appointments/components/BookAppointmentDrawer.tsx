@@ -9,7 +9,10 @@ import {
   Calendar,
   Clock,
 } from "lucide-react";
-import type { AppointmentRecord, PatientSummary } from "../types/appointment.types";
+import type {
+  AppointmentRecord,
+  PatientSummary,
+} from "../types/appointment.types";
 import type { VisitType } from "../types/appointment-screen.types";
 import { Avatar } from "./Avatar";
 import { PP, RB, EMPTY_AVAILABILITY } from "../constants/appointment.constants";
@@ -47,7 +50,6 @@ export function BookAppointmentDrawer({
     isWalkInPreset ? "Walk-In" : "First Visit",
   );
   const [reasonForVisit, setReasonForVisit] = useState("");
-  const [_additionalNotes] = useState("");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showErrorAlert, setShowErrorAlert] = useState(false);

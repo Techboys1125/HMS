@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Eye,
   Edit,
@@ -17,7 +17,11 @@ import type { AppointmentRecord } from "../types/appointment.types";
 import type { UserRole } from "../types/appointment-screen.types";
 import { StatusBadge } from "./StatusBadge";
 import { Avatar } from "./Avatar";
-import { PP, RB, appointmentToPatientSummary } from "../constants/appointment.constants";
+import {
+  PP,
+  RB,
+  appointmentToPatientSummary,
+} from "../constants/appointment.constants";
 
 export function AppointmentDetailsDrawer({
   apt,
@@ -26,7 +30,6 @@ export function AppointmentDetailsDrawer({
   onEditClick,
   onPrintClick,
   onPatientSelect,
-  isDetailsLoading: _isDetailsLoading = false,
   userRole = "Receptionist",
   onStartConsultation,
 }: {

@@ -43,7 +43,7 @@ export function EditAppointmentDrawer({
   const [reasonForVisit, setReasonForVisit] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
 
-  const [_errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [showErrorAlert, setShowErrorAlert] = useState(false);
 
   useEffect(() => {

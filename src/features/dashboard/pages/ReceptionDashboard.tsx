@@ -1,27 +1,439 @@
-import { useState } from "react";
 import {
-  Users,
   Calendar,
+  CheckSquare,
   Clock,
-  BarChart2,
+  TrendingDown,
+  TrendingUp,
   UserPlus,
-  Stethoscope,
+  Bell,
   CreditCard,
   Search,
-  ChevronRight,
-  Activity,
-  Receipt,
-  CheckSquare,
 } from "lucide-react";
 import {
-  DKpi,
-  Av,
-  Chip,
-  SH,
-  PP,
-  RB,
-  type ChipVariant,
-} from "../components/DashboardShared";
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  Cell,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
+
+const PP = "Poppins, system-ui, sans-serif";
+const RB = "Roboto, system-ui, sans-serif";
+
+function DKpi({
+  title,
+  value,
+  sub,
+  trend,
+  up,
+  data,
+  color,
+  gid,
+  Icon,
+}: {
+  title: string;
+  value: string;
+  sub: string;
+  trend: string;
+  up: boolean;
+  data: { v: number }[];
+  color: string;
+  gid: string;
+  Icon: React.ElementType;
+}) {
+  return (
+    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm">
+      <div className="flex items-start justify-between">
+        <div>
+          <div
+            className="text-xs font-medium text-[#64748B] mb-1"
+            style={{ fontFamily: RB }}
+          >
+            {title}
+          </div>
+          <div
+            className={`${value.length > 12 ? "text-base" : value.length > 8 ? "text-lg" : "text-xl"} font-bold text-[#111827] leading-tight truncate`}
+            style={{ fontFamily: PP }}
+          >
+            {value}
+          </div>
+          <div
+            className="text-xs text-slate-400 mt-1 truncate"
+            style={{ fontFamily: RB }}
+          >
+            {sub}
+          </div>
+        </div>
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: color + "18" }}
+        >
+          <Icon size={16} style={{ color }} />
+        </div>
+      </div>
+      <ResponsiveContainer width="100%" height={40}>
+        <AreaChart
+          data={data}
+          margin={{ top: 2, right: 0, bottom: 0, left: 0 }}
+        >
+          <defs>
+            <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.18} />
+              <stop offset="100%" stopColor={color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <Area
+            type="monotone"
+            dataKey="v"
+            stroke={color}
+            strokeWidth={1.5}
+            fill={`url(#${gid})`}
+            dot={false}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+      <div
+        className={`flex items-center gap-1 text-xs font-medium ${up ? "text-[#66BB6A]" : "text-[#EF4444]"}`}
+        style={{ fontFamily: RB }}
+      >
+        {up ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+        {trend}
+      </div>
+    </div>
+  );
+}
+
+function Av({
+  name,
+  size = "sm",
+}: {
+  name: string;
+  size?: "sm" | "md" | "lg";
+}) {
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const palette = [
+    "bg-[#0D47A1]",
+    "bg-[#009688]",
+    "bg-violet-600",
+    "bg-rose-500",
+    "bg-amber-600",
+  ];
+  const bg = palette[name.charCodeAt(0) % palette.length];
+  const sz = {
+    sm: "w-7 h-7 text-xs",
+    md: "w-9 h-9 text-sm",
+    lg: "w-11 h-11 text-base",
+  }[size];
+  return (
+    <div
+      className={`${sz} ${bg} rounded-full flex items-center justify-center text-white font-semibold shrink-0`}
+      style={{ fontFamily: PP }}
+    >
+      {initials}
+    </div>
+  );
+}
+
+type ChipVariant =
+  | "success"
+  | "warning"
+  | "error"
+  | "info"
+  | "teal"
+  | "default";
+function Chip({
+  label,
+  variant = "default",
+}: {
+  label: string;
+  variant?: ChipVariant;
+}) {
+  const map: Record<ChipVariant, string> = {
+    success: "bg-green-50 text-[#66BB6A]",
+    warning: "bg-amber-50 text-[#F59E0B]",
+    error: "bg-red-50 text-[#EF4444]",
+    info: "bg-blue-50 text-[#0D47A1]",
+    teal: "bg-teal-50 text-[#009688]",
+    default: "bg-slate-50 text-[#64748B]",
+  };
+  return (
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${map[variant]}`}
+      style={{ fontFamily: RB }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function SH({
+  title,
+  sub,
+  action,
+}: {
+  title: string;
+  sub?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start justify-between mb-4">
+      <div>
+        <div
+          className="text-sm font-semibold text-[#111827]"
+          style={{ fontFamily: PP }}
+        >
+          {title}
+        </div>
+        {sub && (
+          <div
+            className="text-xs text-[#64748B] mt-0.5"
+            style={{ fontFamily: RB }}
+          >
+            {sub}
+          </div>
+        )}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+// Section 01: Patient Registration Trend (Large Line Chart)
+const REC_REGISTRATION_TREND = [
+  { hour: "08 AM", registered: 4, walkins: 2 },
+  { hour: "09 AM", registered: 9, walkins: 5 },
+  { hour: "10 AM", registered: 15, walkins: 8 },
+  { hour: "11 AM", registered: 22, walkins: 11 },
+  { hour: "12 PM", registered: 27, walkins: 14 },
+  { hour: "01 PM", registered: 30, walkins: 15 },
+  { hour: "02 PM", registered: 33, walkins: 17 },
+  { hour: "03 PM", registered: 35, walkins: 18 },
+  { hour: "04 PM", registered: 37, walkins: 19 },
+  { hour: "05 PM", registered: 38, walkins: 20 },
+];
+
+// Section 02: Today's Appointment Status (Donut Chart)
+const REC_APPT_STATUS_DIST = [
+  { name: "Scheduled", value: 45, color: "#0D47A1" },
+  { name: "Checked In", value: 89, color: "#4DB6AC" },
+  { name: "Completed", value: 48, color: "#66BB6A" },
+  { name: "Cancelled", value: 8, color: "#EF4444" },
+  { name: "No Show", value: 4, color: "#F59E0B" },
+];
+
+// Section 03: Current Patient Queue
+const REC_FRONTDESK_QUEUE = [
+  {
+    token: "TK-084",
+    name: "Helen Brooks",
+    doctor: "Dr. Priya Sharma",
+    dept: "General OPD",
+    time: "08:00 AM",
+    pos: "Q-01",
+    status: "Completed",
+  },
+  {
+    token: "TK-085",
+    name: "Alex Monroe",
+    doctor: "Dr. Arjun Mehta",
+    dept: "Cardiology",
+    time: "08:30 AM",
+    pos: "Q-02",
+    status: "Completed",
+  },
+  {
+    token: "TK-086",
+    name: "Sarah Mitchell",
+    doctor: "Dr. Arjun Mehta",
+    dept: "Cardiology",
+    time: "09:00 AM",
+    pos: "Q-03",
+    status: "In Consultation",
+  },
+  {
+    token: "TK-087",
+    name: "James Thornton",
+    doctor: "Dr. Priya Sharma",
+    dept: "General OPD",
+    time: "09:15 AM",
+    pos: "Q-04",
+    status: "Waiting",
+  },
+  {
+    token: "TK-088",
+    name: "Emma Reyes",
+    doctor: "Dr. Sunita Patel",
+    dept: "Gynecology",
+    time: "09:30 AM",
+    pos: "Q-05",
+    status: "Checked In",
+  },
+  {
+    token: "TK-089",
+    name: "Robert Chen",
+    doctor: "Dr. Arjun Mehta",
+    dept: "Cardiology",
+    time: "10:00 AM",
+    pos: "Q-06",
+    status: "Ready",
+  },
+  {
+    token: "TK-090",
+    name: "Aisha Kumar",
+    doctor: "Dr. Rajesh Kapoor",
+    dept: "Neurology",
+    time: "10:15 AM",
+    pos: "Q-07",
+    status: "Scheduled",
+  },
+  {
+    token: "TK-091",
+    name: "David Walsh",
+    doctor: "Dr. Chen Wei",
+    dept: "Orthopedics",
+    time: "10:30 AM",
+    pos: "N/A",
+    status: "Cancelled",
+  },
+];
+
+// Section 04: Doctor Availability (Summary Cards)
+const REC_DOCTOR_AVAILABILITY = [
+  {
+    name: "Dr. Priya Sharma",
+    dept: "General OPD",
+    status: "Available",
+    color: "#66BB6A",
+  },
+  {
+    name: "Dr. Arjun Mehta",
+    dept: "Cardiology",
+    status: "In Consultation",
+    color: "#009688",
+  },
+  {
+    name: "Dr. Sunita Patel",
+    dept: "Gynecology",
+    status: "Available",
+    color: "#66BB6A",
+  },
+  {
+    name: "Dr. Rajesh Kapoor",
+    dept: "Neurology",
+    status: "Unavailable",
+    color: "#EF4444",
+  },
+];
+
+// Section 05: Department Patient Distribution (Horizontal Bar Chart)
+const REC_DEPT_DISTRIBUTION = [
+  { dept: "General OPD", count: 48 },
+  { dept: "Cardiology", count: 34 },
+  { dept: "Orthopedics", count: 26 },
+  { dept: "Pediatrics", count: 22 },
+  { dept: "Neurology", count: 18 },
+  { dept: "Gynecology", count: 16 },
+];
+
+// Section 06: Registration Categories (Pie Chart)
+const REC_REGISTRATION_TYPES = [
+  { category: "New Patient", count: 18, color: "#0D47A1" },
+  { category: "Returning Patient", count: 12, color: "#009688" },
+  { category: "Walk-In", count: 6, color: "#4DB6AC" },
+  { category: "Follow-Up", count: 2, color: "#F59E0B" },
+];
+
+// Section 09: Reception Performance Summary (Statistics Table)
+const REC_PERFORMANCE_METRICS = [
+  {
+    metric: "Patients Registered",
+    today: "38",
+    yesterday: "32",
+    status: "Optimal (+18.7%)",
+  },
+  {
+    metric: "Appointments Booked",
+    today: "142",
+    yesterday: "130",
+    status: "Ahead (+9.2%)",
+  },
+  {
+    metric: "Patients Checked In",
+    today: "89",
+    yesterday: "79",
+    status: "Normal",
+  },
+  {
+    metric: "Appointments Rescheduled",
+    today: "6",
+    yesterday: "8",
+    status: "Reduced (-25%)",
+  },
+  {
+    metric: "Billing Initiated",
+    today: "45",
+    yesterday: "38",
+    status: "Efficient",
+  },
+  {
+    metric: "Cancelled Appointments",
+    today: "8",
+    yesterday: "10",
+    status: "Low",
+  },
+];
+
+const REC_STATUS_CHIP: Record<
+  string,
+  "success" | "teal" | "warning" | "error" | "info" | "default"
+> = {
+  Completed: "success",
+  "In Consultation": "teal",
+  Waiting: "warning",
+  "Checked In": "info",
+  Ready: "info",
+  Scheduled: "default",
+  Cancelled: "error",
+};
+
+// Quick Actions strictly aligned with requirements
+const REC_QUICK_ACTIONS = [
+  {
+    label: "Register Patient",
+    Icon: UserPlus,
+    color: "#0D47A1",
+    action: "register",
+  },
+  {
+    label: "Book Appointment",
+    Icon: Calendar,
+    color: "#009688",
+    action: "appointment",
+  },
+  {
+    label: "Check Patient In",
+    Icon: CheckSquare,
+    color: "#4DB6AC",
+    action: "checkin",
+  },
+  { label: "View Queue", Icon: Clock, color: "#F59E0B", action: "queue" },
+  {
+    label: "Start Billing",
+    Icon: CreditCard,
+    color: "#0D47A1",
+    action: "billing",
+  },
+  { label: "Search Patient", Icon: Search, color: "#64748B", action: "search" },
+];
 
 export function ReceptionDashboard({
   onRegisterPatient,
@@ -35,451 +447,72 @@ export function ReceptionDashboard({
 }: {
   onRegisterPatient?: () => void;
   onPatientSearch?: () => void;
-  onCheckInClick?: (token?: string, uhid?: string) => void;
+  onCheckInClick?: (token?: string, mrn?: string) => void;
   userRole?: string;
   onNavigateNav?: (nav: string) => void;
-  onPatientSelect?: (uhid: string) => void;
-  onEditPatient?: (uhid: string) => void;
+  onPatientSelect?: (mrn: string) => void;
+  onEditPatient?: (mrn: string) => void;
   onCreateInvoiceClick?: () => void;
 }) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDate, setSelectedDate] = useState("Today (2026-07-24)");
-  const [selectedDoctor, setSelectedDoctor] = useState("All Doctors");
-  const [selectedDept, setSelectedDept] = useState("All Departments");
-  const [selectedStatus, setSelectedStatus] = useState("All Statuses");
-
-  const [queueList, setQueueList] = useState([
-    {
-      token: "TK-086",
-      name: "Sarah Mitchell",
-      uhid: "UHID-892101",
-      doctor: "Dr. Arjun Mehta",
-      dept: "Cardiology",
-      time: "09:00 AM",
-      type: "Follow-up",
-      status: "In Consultation",
-      wait: "18 min",
-    },
-    {
-      token: "TK-087",
-      name: "James Thornton",
-      uhid: "UHID-892102",
-      doctor: "Dr. Priya Sharma",
-      dept: "General OPD",
-      time: "09:15 AM",
-      type: "Routine",
-      status: "Waiting",
-      wait: "12 min",
-    },
-    {
-      token: "TK-088",
-      name: "Emma Reyes",
-      uhid: "UHID-892103",
-      doctor: "Dr. Sunita Patel",
-      dept: "Gynecology",
-      time: "09:30 AM",
-      type: "New Visit",
-      status: "Checked-In",
-      wait: "08 min",
-    },
-    {
-      token: "TK-089",
-      name: "Robert Chen",
-      uhid: "UHID-892104",
-      doctor: "Dr. Arjun Mehta",
-      dept: "Cardiology",
-      time: "10:00 AM",
-      type: "Emergency",
-      status: "Waiting",
-      wait: "22 min",
-    },
-    {
-      token: "TK-090",
-      name: "Aisha Kumar",
-      uhid: "UHID-892105",
-      doctor: "Dr. Rajesh Kapoor",
-      dept: "Neurology",
-      time: "10:15 AM",
-      type: "Consultation",
-      status: "Registered",
-      wait: "04 min",
-    },
-    {
-      token: "TK-091",
-      name: "David Walsh",
-      uhid: "UHID-892106",
-      doctor: "Dr. Priya Sharma",
-      dept: "General OPD",
-      time: "10:30 AM",
-      type: "Routine",
-      status: "Scheduled",
-      wait: "00 min",
-    },
-    {
-      token: "TK-092",
-      name: "Nina Patel",
-      uhid: "UHID-892107",
-      doctor: "Dr. Rajesh Kapoor",
-      dept: "Dermatology",
-      time: "11:00 AM",
-      type: "Follow-up",
-      status: "Completed",
-      wait: "00 min",
-    },
-    {
-      token: "TK-093",
-      name: "Carlos Mendez",
-      uhid: "UHID-892108",
-      doctor: "Dr. Priya Sharma",
-      dept: "General OPD",
-      time: "11:30 AM",
-      type: "Consultation",
-      status: "Cancelled",
-      wait: "00 min",
-    },
-  ]);
-
-  const [todaysRegs] = useState([
-    {
-      name: "Aisha Kumar",
-      uhid: "UHID-892105",
-      time: "10:11 AM",
-      type: "Walk-In Registration",
-    },
-    {
-      name: "Michael Vance",
-      uhid: "UHID-892109",
-      time: "10:05 AM",
-      type: "Online Self-Reg",
-    },
-    {
-      name: "Diana Prince",
-      uhid: "UHID-892110",
-      time: "09:48 AM",
-      type: "Emergency Intake",
-    },
-    {
-      name: "Karan Malhotra",
-      uhid: "UHID-892111",
-      time: "09:30 AM",
-      type: "Kiosk Check-In",
-    },
-  ]);
-
-  const [upcomingApps] = useState([
-    {
-      patient: "Lily Anderson",
-      doctor: "Dr. Sunita Patel",
-      time: "11:45 AM",
-      dept: "Gynecology",
-    },
-    {
-      patient: "Marcus Brown",
-      doctor: "Dr. Arjun Mehta",
-      time: "12:15 PM",
-      dept: "Cardiology",
-    },
-    {
-      patient: "Siddharth Rao",
-      doctor: "Dr. Rajesh Kapoor",
-      time: "01:00 PM",
-      dept: "Neurology",
-    },
-    {
-      patient: "Ananya Roy",
-      doctor: "Dr. Priya Sharma",
-      time: "01:30 PM",
-      dept: "General OPD",
-    },
-  ]);
-
-  const getStatusVariant = (status: string): ChipVariant => {
-    switch (status) {
-      case "In Consultation":
-        return "teal";
-      case "Waiting":
-        return "warning";
-      case "Checked-In":
-        return "info";
-      case "Registered":
-        return "info";
-      case "Scheduled":
-        return "default";
-      case "Completed":
-        return "success";
-      case "Cancelled":
-        return "error";
-      case "No Show":
-        return "error";
-      default:
-        return "default";
-    }
-  };
-
-  const handleCheckIn = (token: string) => {
-    setQueueList((prev) =>
-      prev.map((q) => (q.token === token ? { ...q, status: "Checked-In" } : q)),
-    );
-  };
-
-  const filteredQueue = queueList.filter((item) => {
-    const matchSearch =
-      searchQuery === "" ||
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.uhid.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.token.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchDoctor =
-      selectedDoctor === "All Doctors" || item.doctor === selectedDoctor;
-    const matchDept =
-      selectedDept === "All Departments" || item.dept === selectedDept;
-    const matchStatus =
-      selectedStatus === "All Statuses" || item.status === selectedStatus;
-    return matchSearch && matchDoctor && matchDept && matchStatus;
-  });
+  const regTotal = REC_REGISTRATION_TYPES.reduce(
+    (acc, curr) => acc + curr.count,
+    0,
+  );
 
   return (
     <div
-      className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9]"
-      style={{ fontFamily: RB }}
+      className="flex-1 overflow-y-auto p-6 space-y-6"
+      style={{ background: "#F1F5F9" }}
     >
-      {/* ── HEADER & BREADCRUMB & PRIMARY ACTIONS ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
-            <span>Reception</span>
-            <ChevronRight size={12} />
-            <span className="font-semibold text-[#0D47A1]">Dashboard</span>
-          </div>
-          <h1
-            className="text-2xl font-bold text-[#111827]"
-            style={{ fontFamily: PP }}
-          >
-            Reception Dashboard
-          </h1>
-          <p className="text-xs text-[#64748B] mt-0.5">
-            Monitor patient registrations, appointments and today's reception
-            activities.
-          </p>
-        </div>
-
-        {/* Primary Action Buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={onRegisterPatient}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
-            style={{ fontFamily: PP }}
-          >
-            <UserPlus size={15} />
-            Register Patient
-          </button>
-          <button
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm"
-            style={{ fontFamily: PP }}
-          >
-            <Calendar size={15} />
-            Book Appointment
-          </button>
-          <button
-            onClick={onPatientSearch}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-[#111827] text-xs font-semibold hover:bg-slate-200 transition-all"
-            style={{ fontFamily: PP }}
-          >
-            <Search size={15} />
-            Patient Search
-          </button>
-        </div>
-      </div>
-
-      {/* ── GLOBAL SEARCH & FILTER BAR ── */}
-      <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4">
-        {/* Reusable Search Component */}
-        <div className="relative flex-1 w-full">
-          <Search
-            size={16}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by Patient Name, UHID, Mobile Number, or Appointment ID..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-            style={{ fontFamily: RB }}
-          />
-        </div>
-
-        {/* Filter Controls */}
-        <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto">
-          <select
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
-          >
-            <option>Today (2026-07-24)</option>
-            <option>Tomorrow</option>
-            <option>Yesterday</option>
-          </select>
-
-          <select
-            value={selectedDoctor}
-            onChange={(e) => setSelectedDoctor(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
-          >
-            <option>All Doctors</option>
-            <option>Dr. Arjun Mehta</option>
-            <option>Dr. Priya Sharma</option>
-            <option>Dr. Sunita Patel</option>
-            <option>Dr. Rajesh Kapoor</option>
-          </select>
-
-          <select
-            value={selectedDept}
-            onChange={(e) => setSelectedDept(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
-          >
-            <option>All Departments</option>
-            <option>Cardiology</option>
-            <option>General OPD</option>
-            <option>Gynecology</option>
-            <option>Neurology</option>
-            <option>Dermatology</option>
-          </select>
-
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
-          >
-            <option>All Statuses</option>
-            <option>Registered</option>
-            <option>Scheduled</option>
-            <option>Checked-In</option>
-            <option>Waiting</option>
-            <option>In Consultation</option>
-            <option>Completed</option>
-            <option>Cancelled</option>
-            <option>No Show</option>
-          </select>
-
-          <button
-            onClick={() => {
-              setSearchQuery("");
-              setSelectedDate("Today (2026-07-24)");
-              setSelectedDoctor("All Doctors");
-              setSelectedDept("All Departments");
-              setSelectedStatus("All Statuses");
-            }}
-            className="px-3 py-2 rounded-xl text-xs text-[#EF4444] font-semibold hover:bg-red-50 transition-colors"
-          >
-            Reset Filters
-          </button>
-        </div>
-      </div>
-
-      {/* ── QUICK ACTIONS BAR (TOP BAR ABOVE KPI CARDS) ── */}
-      <div className="flex items-center gap-4 flex-wrap">
+      {/* ── QUICK ACTIONS ── */}
+      <div className="flex items-center gap-3 flex-wrap">
         <span
-          className="text-xs font-bold uppercase tracking-wider text-[#64748B]"
+          className="text-xs font-semibold text-[#64748B] uppercase tracking-wider mr-1"
           style={{ fontFamily: PP }}
         >
-          Quick Actions
+          Front Desk Quick Actions ({userRole})
         </span>
-        <div className="flex items-center gap-2 flex-wrap">
-          {userRole === "admin" ||
-          userRole === "Hospital Admin" ||
-          userRole === "Super Admin" ? (
-            <>
-              <button
-                onClick={() => onNavigateNav?.("patients")}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-semibold text-[#0D47A1] hover:border-[#0D47A1] hover:bg-blue-50/50 transition-all shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <Users size={15} className="text-[#0D47A1]" />
-                View Patients
-              </button>
-              <button
-                onClick={() => onNavigateNav?.("appointments")}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-semibold text-[#009688] hover:border-[#009688] hover:bg-teal-50/50 transition-all shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <Clock size={15} className="text-[#009688]" />
-                View Queue
-              </button>
-              <button
-                onClick={() => onNavigateNav?.("appointments")}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-semibold text-[#0D47A1] hover:border-[#0D47A1] hover:bg-blue-50/50 transition-all shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <Calendar size={15} className="text-[#0D47A1]" />
-                Appointment Management
-              </button>
-              <button
-                onClick={() => onNavigateNav?.("reports")}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-semibold text-[#64748B] hover:border-[#64748B] hover:bg-slate-100 transition-all shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <BarChart2 size={15} className="text-[#64748B]" />
-                Operational Reports
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => onRegisterPatient?.()}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-semibold text-[#0D47A1] hover:border-[#0D47A1] hover:bg-blue-50/50 transition-all shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <UserPlus size={15} className="text-[#0D47A1]" />
-                Register Patient
-              </button>
-              <button
-                onClick={() => onNavigateNav?.("appointments")}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-semibold text-[#009688] hover:border-[#009688] hover:bg-teal-50/50 transition-all shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <Calendar size={15} className="text-[#009688]" />
-                Book Appointment
-              </button>
-              <button
-                onClick={() => onNavigateNav?.("doctors")}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-semibold text-[#0D47A1] hover:border-[#0D47A1] hover:bg-blue-50/50 transition-all shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <Stethoscope size={15} className="text-[#0D47A1]" />
-                Doctor Management
-              </button>
-              <button
-                onClick={() =>
-                  onCreateInvoiceClick
-                    ? onCreateInvoiceClick()
-                    : onNavigateNav?.("billing")
-                }
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-semibold text-[#009688] hover:border-[#009688] hover:bg-teal-50/50 transition-all shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <CreditCard size={15} className="text-[#009688]" />
-                Billing
-              </button>
-              <button
-                onClick={() => onNavigateNav?.("reports")}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-semibold text-[#64748B] hover:border-[#64748B] hover:bg-slate-100 transition-all shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <BarChart2 size={15} className="text-[#64748B]" />
-                Reports
-              </button>
-            </>
-          )}
+        {REC_QUICK_ACTIONS.map(({ label, Icon, color, action }) => (
+          <button
+            key={label}
+            onClick={() => {
+              if (action === "register" && onRegisterPatient)
+                onRegisterPatient();
+              else if (action === "search" && onPatientSearch)
+                onPatientSearch();
+              else if (action === "billing" && onCreateInvoiceClick)
+                onCreateInvoiceClick();
+              else if (action === "billing" && onNavigateNav)
+                onNavigateNav("billing");
+              else if (action === "appointment" && onNavigateNav)
+                onNavigateNav("appointments");
+              else if (action === "queue" && onNavigateNav)
+                onNavigateNav("checkin");
+              else if (action === "checkin" && onNavigateNav)
+                onNavigateNav("checkin");
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#0D47A1]/40 hover:text-[#0D47A1] hover:bg-blue-50 transition-all shadow-sm"
+            style={{ fontFamily: RB }}
+          >
+            <Icon size={13} style={{ color }} />
+            {label}
+          </button>
+        ))}
+        <div className="ml-auto flex items-center gap-2">
+          <button className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-[#E5E7EB] text-[#64748B] hover:bg-slate-50 transition-colors shadow-sm">
+            <Bell size={14} />
+            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#EF4444]" />
+          </button>
         </div>
       </div>
 
-      {/* ── SUMMARY KPI CARDS (6 CARDS) ── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+      {/* ── KPI Row — 5 Reception KPI Cards ── */}
+      <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
         <DKpi
           title="Today's Registrations"
           value="38"
-          sub="Total registrations"
-          trend="+14% vs yesterday"
+          sub="New Patients Registered Today"
+          trend="+14% vs Yesterday"
           up={true}
           data={[
             { v: 24 },
@@ -496,8 +529,8 @@ export function ReceptionDashboard({
         <DKpi
           title="Today's Appointments"
           value="142"
-          sub="Booked visits"
-          trend="+8% vs avg"
+          sub="Appointments Scheduled Today"
+          trend="63% Completion Progress"
           up={true}
           data={[
             { v: 110 },
@@ -512,10 +545,10 @@ export function ReceptionDashboard({
           Icon={Calendar}
         />
         <DKpi
-          title="Waiting Patients"
+          title="Patients Waiting"
           value="18"
-          sub="Pending consultation"
-          trend="Avg wait: 14 min"
+          sub="Current Waiting Queue"
+          trend="Avg Wait: 14 mins"
           up={false}
           data={[
             { v: 12 },
@@ -530,46 +563,10 @@ export function ReceptionDashboard({
           Icon={Clock}
         />
         <DKpi
-          title="Checked-In Patients"
-          value="89"
-          sub="Arrived & ready"
-          trend="63% of total"
-          up={true}
-          data={[
-            { v: 50 },
-            { v: 62 },
-            { v: 71 },
-            { v: 79 },
-            { v: 84 },
-            { v: 89 },
-          ]}
-          color="#4DB6AC"
-          gid="rec4"
-          Icon={CheckSquare}
-        />
-        <DKpi
-          title="Completed Visits"
-          value="48"
-          sub="Consultations done"
-          trend="34% overall"
-          up={true}
-          data={[
-            { v: 20 },
-            { v: 28 },
-            { v: 35 },
-            { v: 40 },
-            { v: 45 },
-            { v: 48 },
-          ]}
-          color="#66BB6A"
-          gid="rec5"
-          Icon={Activity}
-        />
-        <DKpi
-          title="Pending Payments"
+          title="Billing Pending"
           value="12"
-          sub="Pending billing (Read Only)"
-          trend="Read-Only view"
+          sub="Patients Waiting for Billing"
+          trend="-3 vs Yesterday"
           up={true}
           data={[
             { v: 18 },
@@ -580,274 +577,543 @@ export function ReceptionDashboard({
             { v: 12 },
           ]}
           color="#EF4444"
-          gid="rec6"
-          Icon={Receipt}
+          gid="rec4"
+          Icon={CreditCard}
+        />
+        <DKpi
+          title="Check-ins Completed"
+          value="89"
+          sub="Patients Successfully Checked In"
+          trend="Today's Progress"
+          up={true}
+          data={[
+            { v: 50 },
+            { v: 62 },
+            { v: 71 },
+            { v: 79 },
+            { v: 84 },
+            { v: 89 },
+          ]}
+          color="#4DB6AC"
+          gid="rec5"
+          Icon={CheckSquare}
         />
       </div>
 
-      {/* ── THREE-COLUMN ENTERPRISE DASHBOARD CONTENT ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        {/* LEFT & CENTER MAIN CONTENT (8 COLS) */}
-        <div className="xl:col-span-8 space-y-6">
-          {/* MAIN SECTION: TODAY'S PATIENT QUEUE (Enterprise Data Table) */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-              <div>
-                <h2
-                  className="text-base font-bold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  Today's Patient Queue
-                </h2>
-                <p className="text-xs text-[#64748B]">
-                  Real-time operational queue and check-in status
-                </p>
+      {/* ── Section 01 & 02: Registration Trend & Appointment Status ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+        {/* Section 01: Patient Registration Trend (Large Line Chart) */}
+        <div className="xl:col-span-2 bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <div
+                className="text-sm font-semibold text-[#111827]"
+                style={{ fontFamily: PP }}
+              >
+                Patient Registrations Throughout the Day
               </div>
-              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-[#0D47A1]">
-                {filteredQueue.length} Patients Listed
-              </span>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table
-                className="w-full text-left text-xs"
+              <div
+                className="text-xs text-[#64748B] mt-0.5"
                 style={{ fontFamily: RB }}
               >
-                <thead>
-                  <tr
-                    className="bg-slate-50 border-b border-gray-100 text-[#64748B] uppercase tracking-wider text-[10px]"
+                Shows new patient registrations by hour (08 AM - 05 PM)
+              </div>
+            </div>
+            <span
+              className="text-[10px] font-semibold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded-full"
+              style={{ fontFamily: RB }}
+            >
+              Today: 38 Registrations
+            </span>
+          </div>
+          <ResponsiveContainer width="100%" height={210}>
+            <AreaChart
+              data={REC_REGISTRATION_TREND}
+              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="recRegGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#0D47A1" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="#0D47A1" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis
+                dataKey="hour"
+                tick={{ fontSize: 11, fill: "#64748B", fontFamily: RB }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: "#94A3B8" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "#fff",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: 12,
+                  fontSize: 12,
+                }}
+                formatter={(val: unknown, name: unknown) => [
+                  `${val} Patients`,
+                  name === "registered"
+                    ? "Registered Patients"
+                    : "Walk-in Patients",
+                ]}
+              />
+              <Area
+                type="monotone"
+                dataKey="registered"
+                stroke="#0D47A1"
+                strokeWidth={2.5}
+                fill="url(#recRegGrad)"
+                dot={{ r: 3, fill: "#0D47A1" }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+          <div
+            className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-[#64748B]"
+            style={{ fontFamily: RB }}
+          >
+            <span>Workload Peak: 11 AM - 12 PM (7 registrations/hr)</span>
+            <span className="font-semibold text-[#111827]">
+              38 Registered Patients Today
+            </span>
+          </div>
+        </div>
+
+        {/* Section 02: Appointment Status (Donut / Status Chart) */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
+          <SH
+            title="Today's Appointment Status"
+            sub="Current Appointment Progress"
+          />
+          <ResponsiveContainer width="100%" height={170}>
+            <BarChart
+              data={REC_APPT_STATUS_DIST}
+              layout="vertical"
+              margin={{ top: 0, right: 15, left: 10, bottom: 0 }}
+            >
+              <XAxis type="number" hide />
+              <YAxis
+                dataKey="name"
+                type="category"
+                tick={{ fontSize: 11, fill: "#111827", fontFamily: RB }}
+                axisLine={false}
+                tickLine={false}
+                width={90}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "#fff",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: 12,
+                  fontSize: 12,
+                }}
+                formatter={(v: unknown) => [`${v} Patients`, "Count"]}
+              />
+              <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={13}>
+                {REC_APPT_STATUS_DIST.map((entry, idx) => (
+                  <Cell key={idx} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          <div
+            className="grid grid-cols-2 gap-1.5 mt-2 pt-3 border-t border-gray-50 text-xs"
+            style={{ fontFamily: RB }}
+          >
+            {REC_APPT_STATUS_DIST.map((s) => (
+              <div
+                key={s.name}
+                className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50"
+              >
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ background: s.color }}
+                  />
+                  <span className="text-[#64748B] text-[11px]">{s.name}</span>
+                </div>
+                <span className="font-bold text-[#111827]">{s.value}</span>
+              </div>
+            ))}
+          </div>
+          <div
+            className="mt-2 text-[11px] text-center text-[#64748B]"
+            style={{ fontFamily: RB }}
+          >
+            194 Total Appointments Scheduled Today
+          </div>
+        </div>
+      </div>
+
+      {/* ── Section 03: Current Patient Queue Table ── */}
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+          <div>
+            <div
+              className="text-sm font-semibold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
+              Current Patient Queue
+            </div>
+            <div
+              className="text-xs text-[#64748B] mt-0.5"
+              style={{ fontFamily: RB }}
+            >
+              Monitor current front desk queue and patient arrivals
+            </div>
+          </div>
+          <span
+            className="text-xs font-semibold text-[#009688] bg-teal-50 px-2.5 py-1 rounded-lg"
+            style={{ fontFamily: RB }}
+          >
+            18 Patients Waiting
+          </span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-50 bg-slate-50/50">
+                {[
+                  "Token",
+                  "Patient Name",
+                  "Doctor",
+                  "Department",
+                  "Appt Time",
+                  "Queue Position",
+                  "Status",
+                  "Action",
+                ].map((h) => (
+                  <th
+                    key={h}
+                    className="px-5 py-3 text-left text-xs font-semibold text-[#64748B]"
+                    style={{ fontFamily: RB }}
+                  >
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {REC_FRONTDESK_QUEUE.map((q, i) => (
+                <tr key={i} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                    {q.token}
+                  </td>
+                  <td className="px-5 py-3">
+                    <div className="flex items-center gap-2">
+                      <Av name={q.name} size="sm" />
+                      <span
+                        className="text-xs font-medium text-[#111827]"
+                        style={{ fontFamily: RB }}
+                      >
+                        {q.name}
+                      </span>
+                    </div>
+                  </td>
+                  <td
+                    className="px-5 py-3 text-xs text-[#64748B]"
+                    style={{ fontFamily: RB }}
+                  >
+                    {q.doctor}
+                  </td>
+                  <td
+                    className="px-5 py-3 text-xs text-[#64748B]"
+                    style={{ fontFamily: RB }}
+                  >
+                    {q.dept}
+                  </td>
+                  <td className="px-5 py-3 font-mono text-xs text-slate-600">
+                    {q.time}
+                  </td>
+                  <td className="px-5 py-3 font-mono text-xs font-bold text-[#009688]">
+                    {q.pos}
+                  </td>
+                  <td className="px-5 py-3">
+                    <Chip
+                      label={q.status}
+                      variant={REC_STATUS_CHIP[q.status] || "default"}
+                    />
+                  </td>
+                  <td className="px-5 py-3">
+                    <div className="flex items-center gap-1.5">
+                      {q.status === "Scheduled" ? (
+                        <button
+                          onClick={() => onCheckInClick?.(q.token, "MRN-REG")}
+                          className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
+                          style={{ fontFamily: PP }}
+                        >
+                          Check-In
+                        </button>
+                      ) : (
+                        <span className="text-xs text-slate-400 font-medium">
+                          Logged
+                        </span>
+                      )}
+                      <button
+                        onClick={() => onPatientSelect?.("MRN-892101")}
+                        className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() => onEditPatient?.("MRN-892101")}
+                        className="px-2 py-1 rounded-lg border border-[#E5E7EB] text-slate-600 text-[11px] font-medium hover:bg-slate-50 transition-colors"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── Section 04, 05 & 06: Doctor Availability & Distribution & Registration Categories ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+        {/* Section 04: Doctor Availability (Summary Cards) */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
+          <SH
+            title="Doctor Availability"
+            sub="Help Reception Assign Appointments Efficiently"
+          />
+          <div className="space-y-2.5 my-auto">
+            {REC_DOCTOR_AVAILABILITY.map((d) => (
+              <div
+                key={d.name}
+                className="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 bg-slate-50"
+              >
+                <div>
+                  <div
+                    className="text-xs font-semibold text-[#111827]"
                     style={{ fontFamily: PP }}
                   >
-                    <th className="px-4 py-3">Token</th>
-                    <th className="px-4 py-3">Patient Name</th>
-                    <th className="px-4 py-3">UHID</th>
-                    <th className="px-4 py-3">Doctor</th>
-                    <th className="px-4 py-3">Department</th>
-                    <th className="px-4 py-3">Appt Time</th>
-                    <th className="px-4 py-3">Type</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Wait Time</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-[#111827]">
-                  {filteredQueue.length > 0 ? (
-                    filteredQueue.map((item) => (
-                      <tr
-                        key={item.token}
-                        className="hover:bg-slate-50/80 transition-colors"
-                      >
-                        <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
-                          {item.token}
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <div className="font-semibold text-[#111827]">
-                            {item.name}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3.5 font-mono text-slate-500">
-                          {item.uhid}
-                        </td>
-                        <td className="px-4 py-3.5 font-medium">
-                          {item.doctor}
-                        </td>
-                        <td className="px-4 py-3.5 text-slate-600">
-                          {item.dept}
-                        </td>
-                        <td className="px-4 py-3.5 font-mono text-slate-500">
-                          {item.time}
-                        </td>
-                        <td className="px-4 py-3.5 text-slate-600">
-                          {item.type}
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <Chip
-                            label={item.status}
-                            variant={getStatusVariant(item.status)}
-                          />
-                        </td>
-                        <td className="px-4 py-3.5 font-mono text-slate-500">
-                          {item.wait}
-                        </td>
-                        <td className="px-4 py-3.5 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {item.status === "Scheduled" ||
-                            item.status === "Registered" ? (
-                              <button
-                                onClick={() => {
-                                  handleCheckIn(item.token);
-                                  if (onCheckInClick)
-                                    onCheckInClick(item.token, item.uhid);
-                                }}
-                                className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
-                              >
-                                Check-In
-                              </button>
-                            ) : null}
-                            <button
-                              onClick={() =>
-                                onPatientSelect
-                                  ? onPatientSelect(item.uhid)
-                                  : null
-                              }
-                              className="px-2.5 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
-                            >
-                              View
-                            </button>
-                            <button
-                              onClick={() =>
-                                onEditPatient ? onEditPatient(item.uhid) : null
-                              }
-                              className="px-2 py-1 rounded-lg border border-[#E5E7EB] text-slate-600 text-[11px] font-medium hover:bg-slate-50 transition-colors"
-                            >
-                              Edit
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={10} className="px-4 py-12 text-center">
-                        <div className="flex flex-col items-center justify-center gap-2">
-                          <Clock size={32} className="text-slate-300" />
-                          <p className="text-sm font-semibold text-[#111827]">
-                            No appointments available today.
-                          </p>
-                          <p className="text-xs text-slate-400">
-                            Try adjusting your filters or register a new
-                            patient.
-                          </p>
-                          <button
-                            className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all"
-                            style={{ fontFamily: PP }}
-                          >
-                            Register Patient
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    {d.name}
+                  </div>
+                  <div
+                    className="text-[10px] text-[#64748B]"
+                    style={{ fontFamily: RB }}
+                  >
+                    {d.dept}
+                  </div>
+                </div>
+                <Chip
+                  label={d.status}
+                  variant={
+                    d.status === "Available"
+                      ? "success"
+                      : d.status === "In Consultation"
+                        ? "teal"
+                        : "error"
+                  }
+                />
+              </div>
+            ))}
+          </div>
+          <div
+            className="mt-3 pt-2 text-xs text-[#64748B] text-center"
+            style={{ fontFamily: RB }}
+          >
+            Real-time Roster Status
+          </div>
+        </div>
 
-            {/* Reusable Pagination */}
-            <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-[#64748B]">
-              <span>
-                Showing 1-{filteredQueue.length} of {filteredQueue.length} queue
-                entries
-              </span>
-              <div className="flex items-center gap-1">
-                <button
-                  className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] disabled:opacity-50 hover:bg-slate-50"
-                  disabled
+        {/* Section 05: Department Patient Distribution (Horizontal Bar Chart) */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
+          <SH
+            title="Patients by Department"
+            sub="Today's Registered Patient Distribution"
+          />
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart
+              data={REC_DEPT_DISTRIBUTION}
+              layout="vertical"
+              margin={{ top: 0, right: 20, left: 15, bottom: 0 }}
+            >
+              <XAxis
+                type="number"
+                tick={{ fontSize: 10, fill: "#94A3B8" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                dataKey="dept"
+                type="category"
+                tick={{ fontSize: 11, fill: "#111827", fontFamily: RB }}
+                axisLine={false}
+                tickLine={false}
+                width={90}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "#fff",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: 12,
+                  fontSize: 12,
+                }}
+                formatter={(v: unknown) => [`${v} Patients`, "Volume"]}
+              />
+              <Bar
+                dataKey="count"
+                fill="#0D47A1"
+                radius={[0, 4, 4, 0]}
+                barSize={13}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+          <div
+            className="mt-2 pt-2 border-t border-gray-50 text-xs text-[#64748B] flex items-center justify-between"
+            style={{ fontFamily: RB }}
+          >
+            <span>Busiest: General OPD (48)</span>
+            <span className="font-semibold text-[#0D47A1]">
+              164 Total Patients
+            </span>
+          </div>
+        </div>
+
+        {/* Section 06: Registration Category Summary (Pie Chart) */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
+          <SH
+            title="Registration Categories"
+            sub="Understand Registration Mix Today"
+          />
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart
+              data={REC_REGISTRATION_TYPES}
+              margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+            >
+              <XAxis
+                dataKey="category"
+                tick={{ fontSize: 10, fill: "#64748B", fontFamily: RB }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: "#94A3B8" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "#fff",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: 12,
+                  fontSize: 12,
+                }}
+                formatter={(v: unknown) => [`${v} Registrations`, "Count"]}
+              />
+              <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={22}>
+                {REC_REGISTRATION_TYPES.map((entry, idx) => (
+                  <Cell key={idx} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          <div
+            className="grid grid-cols-2 gap-1.5 mt-2 pt-2 border-t border-gray-50 text-xs"
+            style={{ fontFamily: RB }}
+          >
+            {REC_REGISTRATION_TYPES.map((r) => (
+              <div
+                key={r.category}
+                className="flex items-center justify-between"
+              >
+                <span className="text-[#64748B] text-[11px]">
+                  {r.category}:
+                </span>
+                <span className="font-bold text-[#111827]">{r.count}</span>
+              </div>
+            ))}
+          </div>
+          <div
+            className="mt-2 text-xs font-semibold text-center text-[#0D47A1]"
+            style={{ fontFamily: PP }}
+          >
+            Total Registrations: {regTotal}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Section 09: Reception Performance Summary ── */}
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+          <div>
+            <div
+              className="text-sm font-semibold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
+              Today's Reception Performance Summary
+            </div>
+            <div
+              className="text-xs text-[#64748B] mt-0.5"
+              style={{ fontFamily: RB }}
+            >
+              Front desk operational statistics and daily efficiency metrics
+            </div>
+          </div>
+          <button
+            className="text-xs text-[#0D47A1] font-semibold hover:underline"
+            style={{ fontFamily: RB }}
+          >
+            Export Operational Summary →
+          </button>
+        </div>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-50 bg-slate-50/50">
+              {["Metric", "Today", "Yesterday", "Status"].map((h) => (
+                <th
+                  key={h}
+                  className="px-5 py-3 text-left text-xs font-semibold text-[#64748B]"
+                  style={{ fontFamily: RB }}
                 >
-                  Previous
-                </button>
-                <button className="px-3 py-1.5 rounded-lg bg-[#0D47A1] text-white font-semibold">
-                  1
-                </button>
-                <button className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] hover:bg-slate-50">
-                  Next
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT CONTEXT PANEL (4 COLS) */}
-        <div className="xl:col-span-4 space-y-6">
-          {/* Today's Registrations */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-5 flex flex-col justify-between">
-            <div>
-              <SH
-                title="Today's Registrations"
-                sub="Recently created patient profiles"
-              />
-              <div className="divide-y divide-gray-100">
-                {todaysRegs.map((reg) => (
-                  <div
-                    key={reg.uhid}
-                    className="py-3 flex items-center justify-between gap-3 hover:bg-slate-50/50 px-2 rounded-xl transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Av name={reg.name} size="sm" />
-                      <div>
-                        <div className="text-xs font-bold text-[#111827]">
-                          {reg.name}
-                        </div>
-                        <div className="text-[11px] font-mono text-slate-400">
-                          {reg.uhid}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs font-mono font-semibold text-[#0D47A1]">
-                        {reg.time}
-                      </div>
-                      <div className="text-[10px] text-slate-500">
-                        {reg.type}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <button
-              className="mt-4 w-full py-2 rounded-xl border border-[#E5E7EB] text-xs font-semibold text-[#0D47A1] hover:bg-blue-50 transition-colors"
-              style={{ fontFamily: PP }}
-            >
-              View All Registrations →
-            </button>
-          </div>
-
-          {/* Upcoming Appointments */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-5 flex flex-col justify-between">
-            <div>
-              <SH
-                title="Upcoming Appointments"
-                sub="Next scheduled consultations"
-              />
-              <div className="divide-y divide-gray-100">
-                {upcomingApps.map((app, idx) => (
-                  <div
-                    key={idx}
-                    className="py-3 flex items-center justify-between gap-3 hover:bg-slate-50/50 px-2 rounded-xl transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-[#009688] font-bold text-xs">
-                        <Calendar size={14} />
-                      </div>
-                      <div>
-                        <div className="text-xs font-bold text-[#111827]">
-                          {app.patient}
-                        </div>
-                        <div className="text-[11px] text-slate-500">
-                          {app.doctor}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs font-mono font-bold text-[#009688]">
-                        {app.time}
-                      </div>
-                      <div className="text-[10px] text-slate-400">
-                        {app.dept}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <button
-              className="mt-4 w-full py-2 rounded-xl border border-[#E5E7EB] text-xs font-semibold text-[#009688] hover:bg-teal-50 transition-colors"
-              style={{ fontFamily: PP }}
-            >
-              View Master Schedule →
-            </button>
-          </div>
-        </div>
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {REC_PERFORMANCE_METRICS.map((m) => (
+              <tr
+                key={m.metric}
+                className="hover:bg-slate-50 transition-colors"
+              >
+                <td
+                  className="px-5 py-3 text-xs font-medium text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  {m.metric}
+                </td>
+                <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                  {m.today}
+                </td>
+                <td className="px-5 py-3 font-mono text-xs font-semibold text-[#64748B]">
+                  {m.yesterday}
+                </td>
+                <td className="px-5 py-3">
+                  <Chip
+                    label={m.status}
+                    variant={
+                      m.status.includes("Ahead") ||
+                      m.status.includes("Optimal") ||
+                      m.status.includes("Efficient")
+                        ? "success"
+                        : m.status.includes("Low")
+                          ? "info"
+                          : "default"
+                    }
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

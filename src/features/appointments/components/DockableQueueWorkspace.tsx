@@ -18,14 +18,16 @@ import {
 import { PP, RB } from "../constants/appointment.constants";
 import { StatusBadge } from "./StatusBadge";
 import { Avatar } from "./Avatar";
-import type { AppointmentStatus, UserRole } from "../types/appointment-screen.types";
+import type {
+  AppointmentStatus,
+  UserRole,
+} from "../types/appointment-screen.types";
 import type { AppointmentRecord } from "../types/appointment.types";
 
 export function DockableQueueWorkspace({
   appointments,
   onUpdateStatus,
   onViewDetails,
-  onBookClick: _onBookClick,
   onBackToDirectory,
   onPatientSelect,
   userRole = "Receptionist",
@@ -45,12 +47,12 @@ export function DockableQueueWorkspace({
   onStartConsultation?: (apt?: any) => void;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [doctorFilter, _setDoctorFilter] = useState("All");
-  const [deptFilter, _setDeptFilter] = useState("All");
+  const [doctorFilter, setDoctorFilter] = useState("All");
+  const [deptFilter, setDeptFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [visitTypeFilter, setVisitTypeFilter] = useState("All");
   const [timeFilter, setTimeFilter] = useState("All");
-  const [_isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const isDoctor = userRole === "Doctor";
   const isNurse = userRole === "Nurse";

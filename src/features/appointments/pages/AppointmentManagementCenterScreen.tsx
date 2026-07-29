@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   CheckCircle2,
   ChevronRight,
@@ -67,7 +67,6 @@ export function AppointmentManagementCenterScreen({
     appointments,
     setAppointments,
     refetch,
-    isLoading: _isLoading,
   } = useAppointments(userRole, new Date().toISOString().split("T")[0]);
   const [viewMode, setViewMode] = useState<"directory" | "queue">("directory");
 
@@ -84,7 +83,6 @@ export function AppointmentManagementCenterScreen({
   const [sortColumn, setSortColumn] =
     useState<keyof AppointmentRecord>("timeSlot");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [_queueSortAsc, _setQueueSortAsc] = useState(true);
 
   // Toast State
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -239,7 +237,6 @@ export function AppointmentManagementCenterScreen({
     newDate: string,
     newTimeSlot: string,
     reason: string,
-    _remarks?: string,
   ) => {
     await appointmentService.rescheduleAppointment(aptId, {
       appointmentDate: newDate,
@@ -254,7 +251,6 @@ export function AppointmentManagementCenterScreen({
   const handleConfirmCancelWithDetails = async (
     aptId: string | number,
     reason: string,
-    _remarks?: string,
   ) => {
     await appointmentService.cancelAppointment(aptId, { reason });
     await refetch();

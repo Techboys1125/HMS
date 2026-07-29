@@ -6,11 +6,9 @@ import {
   ChevronLeft,
   Stethoscope,
   FileText,
+  X,
   Pill,
   Activity,
-  Heart,
-  Thermometer,
-  Droplets,
   Plus,
   Download,
   Check,
@@ -21,9 +19,21 @@ import {
   ArrowRight,
   Building2,
 } from "lucide-react";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
-import type { VitalSign, Medication } from "../types/doctors.types";
-import { VITALS_DATA, MEDICATIONS, TIMELINE, PP, RB } from "../constants/doctors.constants";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
+import {
+  VITALS_DATA,
+  MEDICATIONS,
+  TIMELINE,
+  PP,
+  RB,
+} from "../constants/doctors.constants";
 import { Card } from "./Card";
 import { Avatar } from "./Avatar";
 
@@ -455,10 +465,12 @@ export function DoctorConsultationScreen({ onBack }: { onBack?: () => void }) {
                   style={{ fontFamily: RB }}
                 >
                   <span className="flex items-center gap-1">
-                    <span className="w-2.5 h-2.5 rounded bg-[#EF4444]" /> Systolic
+                    <span className="w-2.5 h-2.5 rounded bg-[#EF4444]" />{" "}
+                    Systolic
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="w-2.5 h-2.5 rounded bg-[#0D47A1]" /> Diastolic
+                    <span className="w-2.5 h-2.5 rounded bg-[#0D47A1]" />{" "}
+                    Diastolic
                   </span>
                 </div>
               </Card>
@@ -519,14 +531,32 @@ export function DoctorConsultationScreen({ onBack }: { onBack?: () => void }) {
                   </button>
                 </div>
 
-                {(
-                  [
-                    { key: "subjective" as const, label: "S — Subjective", sub: "Patient's own account", color: "#0D47A1" },
-                    { key: "objective" as const, label: "O — Objective", sub: "Clinical findings", color: "#009688" },
-                    { key: "assessment" as const, label: "A — Assessment", sub: "Diagnosis & impression", color: "#F59E0B" },
-                    { key: "plan" as const, label: "P — Plan", sub: "Management strategy", color: "#66BB6A" },
-                  ]
-                ).map(({ key, label, sub, color }) => (
+                {[
+                  {
+                    key: "subjective" as const,
+                    label: "S — Subjective",
+                    sub: "Patient's own account",
+                    color: "#0D47A1",
+                  },
+                  {
+                    key: "objective" as const,
+                    label: "O — Objective",
+                    sub: "Clinical findings",
+                    color: "#009688",
+                  },
+                  {
+                    key: "assessment" as const,
+                    label: "A — Assessment",
+                    sub: "Diagnosis & impression",
+                    color: "#F59E0B",
+                  },
+                  {
+                    key: "plan" as const,
+                    label: "P — Plan",
+                    sub: "Management strategy",
+                    color: "#66BB6A",
+                  },
+                ].map(({ key, label, sub, color }) => (
                   <div key={key} className="mb-4 last:mb-0">
                     <div className="flex items-center gap-2 mb-1.5">
                       <div
@@ -569,9 +599,21 @@ export function DoctorConsultationScreen({ onBack }: { onBack?: () => void }) {
                 </div>
                 <div className="flex flex-col gap-2">
                   {[
-                    { code: "R07.9", desc: "Chest Pain, Unspecified", status: "primary" },
-                    { code: "I10", desc: "Essential (primary) Hypertension", status: "secondary" },
-                    { code: "E11", desc: "Type 2 Diabetes Mellitus", status: "secondary" },
+                    {
+                      code: "R07.9",
+                      desc: "Chest Pain, Unspecified",
+                      status: "primary",
+                    },
+                    {
+                      code: "I10",
+                      desc: "Essential (primary) Hypertension",
+                      status: "secondary",
+                    },
+                    {
+                      code: "E11",
+                      desc: "Type 2 Diabetes Mellitus",
+                      status: "secondary",
+                    },
                   ].map((d) => (
                     <div
                       key={d.code}
@@ -735,10 +777,30 @@ export function DoctorConsultationScreen({ onBack }: { onBack?: () => void }) {
                 </div>
                 <div className="divide-y divide-gray-50">
                   {[
-                    { date: "12 Jun 2026", complaint: "Hypertension Follow-up", doctor: "Dr. A. Mehta", outcome: "Medication adjusted" },
-                    { date: "04 Apr 2026", complaint: "Diabetes Review", doctor: "Dr. P. Sharma", outcome: "HbA1c improved — 7.2%" },
-                    { date: "18 Jan 2026", complaint: "Annual Health Check", doctor: "Dr. A. Mehta", outcome: "All normal, lipids reviewed" },
-                    { date: "22 Oct 2025", complaint: "Chest Discomfort", doctor: "Dr. A. Mehta", outcome: "ECG normal, advised lifestyle mod" },
+                    {
+                      date: "12 Jun 2026",
+                      complaint: "Hypertension Follow-up",
+                      doctor: "Dr. A. Mehta",
+                      outcome: "Medication adjusted",
+                    },
+                    {
+                      date: "04 Apr 2026",
+                      complaint: "Diabetes Review",
+                      doctor: "Dr. P. Sharma",
+                      outcome: "HbA1c improved — 7.2%",
+                    },
+                    {
+                      date: "18 Jan 2026",
+                      complaint: "Annual Health Check",
+                      doctor: "Dr. A. Mehta",
+                      outcome: "All normal, lipids reviewed",
+                    },
+                    {
+                      date: "22 Oct 2025",
+                      complaint: "Chest Discomfort",
+                      doctor: "Dr. A. Mehta",
+                      outcome: "ECG normal, advised lifestyle mod",
+                    },
                   ].map((v, i) => (
                     <div
                       key={i}

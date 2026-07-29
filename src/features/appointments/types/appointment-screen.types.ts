@@ -1,5 +1,3 @@
-import type { AppointmentRecord } from "./appointment.types";
-
 export type AppointmentStatus =
   | "Scheduled"
   | "Checked-In"

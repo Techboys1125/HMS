@@ -1,250 +1,396 @@
 import {
   Calendar,
-  Clock,
   CheckSquare,
-  Heart,
-  FileText,
-  Pill,
-  Stethoscope,
-  BarChart2,
-  Bell,
-  ChevronRight,
+  Clock,
   ClipboardList,
+  FileText,
+  TrendingDown,
+  TrendingUp,
+  DollarSign,
+  Stethoscope,
+  Pill,
 } from "lucide-react";
 import {
-  DKpi,
-  Av,
-  Chip,
-  SH,
-  AlertRow,
-  PP,
-  RB,
-} from "../components/DashboardShared";
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  Cell,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
 
-const DOC_SCHEDULE = [
-  {
-    time: "08:30",
-    patient: "Alex Monroe",
-    complaint: "Post-op Follow-up",
-    mrn: "MRN-091",
-    status: "completed" as const,
-    room: "OPD-1",
-  },
-  {
-    time: "09:00",
-    patient: "Sarah Mitchell",
-    complaint: "Chest Pain",
-    mrn: "MRN-001",
-    status: "in-progress" as const,
-    room: "OPD-1",
-  },
-  {
-    time: "09:30",
-    patient: "James Thornton",
-    complaint: "Diabetes Follow-up",
-    mrn: "MRN-002",
-    status: "waiting" as const,
-    room: null,
-  },
-  {
-    time: "10:00",
-    patient: "Robert Chen",
-    complaint: "Cardiology Review",
-    mrn: "MRN-004",
-    status: "scheduled" as const,
-    room: null,
-  },
-  {
-    time: "10:30",
-    patient: "Marcus Brown",
-    complaint: "Hypertension F/U",
-    mrn: "MRN-008",
-    status: "scheduled" as const,
-    room: null,
-  },
-  {
-    time: "11:00",
-    patient: "Aisha Kumar",
-    complaint: "ECG Review",
-    mrn: "MRN-005",
-    status: "scheduled" as const,
-    room: null,
-  },
-  {
-    time: "14:00",
-    patient: "Lily Anderson",
-    complaint: "Thyroid Review",
-    mrn: "MRN-007",
-    status: "scheduled" as const,
-    room: null,
-  },
-  {
-    time: "14:30",
-    patient: "Nina Patel",
-    complaint: "Annual Check-up",
-    mrn: "MRN-009",
-    status: "scheduled" as const,
-    room: null,
-  },
+const PP = "Poppins, system-ui, sans-serif";
+const RB = "Roboto, system-ui, sans-serif";
+
+function DKpi({
+  title,
+  value,
+  sub,
+  trend,
+  up,
+  data,
+  color,
+  gid,
+  Icon,
+}: {
+  title: string;
+  value: string;
+  sub: string;
+  trend: string;
+  up: boolean;
+  data: { v: number }[];
+  color: string;
+  gid: string;
+  Icon: React.ElementType;
+}) {
+  return (
+    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm">
+      <div className="flex items-start justify-between">
+        <div>
+          <div
+            className="text-xs font-medium text-[#64748B] mb-1"
+            style={{ fontFamily: RB }}
+          >
+            {title}
+          </div>
+          <div
+            className={`${value.length > 12 ? "text-base" : value.length > 8 ? "text-lg" : "text-xl"} font-bold text-[#111827] leading-tight truncate`}
+            style={{ fontFamily: PP }}
+          >
+            {value}
+          </div>
+          <div
+            className="text-xs text-slate-400 mt-1 truncate"
+            style={{ fontFamily: RB }}
+          >
+            {sub}
+          </div>
+        </div>
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: color + "18" }}
+        >
+          <Icon size={16} style={{ color }} />
+        </div>
+      </div>
+      <ResponsiveContainer width="100%" height={40}>
+        <AreaChart
+          data={data}
+          margin={{ top: 2, right: 0, bottom: 0, left: 0 }}
+        >
+          <defs>
+            <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.18} />
+              <stop offset="100%" stopColor={color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <Area
+            type="monotone"
+            dataKey="v"
+            stroke={color}
+            strokeWidth={1.5}
+            fill={`url(#${gid})`}
+            dot={false}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+      <div
+        className={`flex items-center gap-1 text-xs font-medium ${up ? "text-[#66BB6A]" : "text-[#EF4444]"}`}
+        style={{ fontFamily: RB }}
+      >
+        {up ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+        {trend}
+      </div>
+    </div>
+  );
+}
+
+function Av({
+  name,
+  size = "sm",
+}: {
+  name: string;
+  size?: "sm" | "md" | "lg";
+}) {
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const palette = [
+    "bg-[#0D47A1]",
+    "bg-[#009688]",
+    "bg-violet-600",
+    "bg-rose-500",
+    "bg-amber-600",
+  ];
+  const bg = palette[name.charCodeAt(0) % palette.length];
+  const sz = {
+    sm: "w-7 h-7 text-xs",
+    md: "w-9 h-9 text-sm",
+    lg: "w-11 h-11 text-base",
+  }[size];
+  return (
+    <div
+      className={`${sz} ${bg} rounded-full flex items-center justify-center text-white font-semibold shrink-0`}
+      style={{ fontFamily: PP }}
+    >
+      {initials}
+    </div>
+  );
+}
+
+type ChipVariant =
+  | "success"
+  | "warning"
+  | "error"
+  | "info"
+  | "teal"
+  | "default";
+function Chip({
+  label,
+  variant = "default",
+}: {
+  label: string;
+  variant?: ChipVariant;
+}) {
+  const map: Record<ChipVariant, string> = {
+    success: "bg-green-50 text-[#66BB6A]",
+    warning: "bg-amber-50 text-[#F59E0B]",
+    error: "bg-red-50 text-[#EF4444]",
+    info: "bg-blue-50 text-[#0D47A1]",
+    teal: "bg-teal-50 text-[#009688]",
+    default: "bg-slate-50 text-[#64748B]",
+  };
+  return (
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${map[variant]}`}
+      style={{ fontFamily: RB }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function SH({
+  title,
+  sub,
+  action,
+}: {
+  title: string;
+  sub?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start justify-between mb-4">
+      <div>
+        <div
+          className="text-sm font-semibold text-[#111827]"
+          style={{ fontFamily: PP }}
+        >
+          {title}
+        </div>
+        {sub && (
+          <div
+            className="text-xs text-[#64748B] mt-0.5"
+            style={{ fontFamily: RB }}
+          >
+            {sub}
+          </div>
+        )}
+      </div>
+      {action}
+    </div>
+  );
+}
+// Section 01: Consultation Progress Throughout the Day (Line Chart)
+const DOC_HOURLY_PROGRESS = [
+  { hour: "08 AM", completed: 2, remaining: 26 },
+  { hour: "09 AM", completed: 5, remaining: 23 },
+  { hour: "10 AM", completed: 9, remaining: 19 },
+  { hour: "11 AM", completed: 14, remaining: 14 },
+  { hour: "12 PM", completed: 17, remaining: 11 },
+  { hour: "01 PM", completed: 18, remaining: 10 },
+  { hour: "02 PM", completed: 20, remaining: 8 },
+  { hour: "03 PM", completed: 23, remaining: 5 },
+  { hour: "04 PM", completed: 26, remaining: 2 },
+  { hour: "05 PM", completed: 28, remaining: 0 },
 ];
 
-const PRESCRIPTIONS_PENDING = [
-  { patient: "James Thornton", drugs: "Metformin, Glimepiride", since: "20m" },
-  { patient: "Robert Chen", drugs: "Atorvastatin, Ramipril", since: "45m" },
-  { patient: "Aisha Kumar", drugs: "Sumatriptan", since: "1h" },
+// Section 02: Patient Consultation Status (Donut Chart)
+const DOC_PATIENT_STATUS_DIST = [
+  { name: "Waiting", value: 4, color: "#F59E0B" },
+  { name: "In Consultation", value: 1, color: "#009688" },
+  { name: "Completed", value: 21, color: "#66BB6A" },
+  { name: "Cancelled", value: 2, color: "#EF4444" },
 ];
 
-const DOC_PATIENT_HISTORY = [
+// Section 03: Appointment Timeline (Clinical details without billing)
+const DOC_APPT_TIMELINE = [
   {
-    name: "Helen Brooks",
-    complaint: "General Check-up",
-    diagnosis: "Healthy — Annual",
-    date: "Today 08:00",
-    mrn: "MRN-041",
-  },
-  {
+    time: "08:30 AM",
     name: "Alex Monroe",
-    complaint: "Post-op Follow-up",
-    diagnosis: "Recovery on track",
-    date: "Today 08:30",
-    mrn: "MRN-091",
+    age: 45,
+    gender: "M",
+    visitType: "Follow-up Visit",
+    room: "OPD-1",
+    token: "TK-101",
+    status: "Completed",
   },
   {
+    time: "09:00 AM",
+    name: "Sarah Mitchell",
+    age: 34,
+    gender: "F",
+    visitType: "Emergency OPD",
+    room: "OPD-1",
+    token: "TK-102",
+    status: "In Consultation",
+  },
+  {
+    time: "09:30 AM",
+    name: "James Thornton",
+    age: 58,
+    gender: "M",
+    visitType: "General Consultation",
+    room: "OPD-1",
+    token: "TK-103",
+    status: "Waiting",
+  },
+  {
+    time: "10:00 AM",
+    name: "Robert Chen",
+    age: 62,
+    gender: "M",
+    visitType: "Review Visit",
+    room: "OPD-1",
+    token: "TK-104",
+    status: "Ready",
+  },
+  {
+    time: "10:30 AM",
+    name: "Marcus Brown",
+    age: 50,
+    gender: "M",
+    visitType: "Follow-up Visit",
+    room: "OPD-1",
+    token: "TK-105",
+    status: "Scheduled",
+  },
+  {
+    time: "11:00 AM",
+    name: "Aisha Kumar",
+    age: 29,
+    gender: "F",
+    visitType: "General Consultation",
+    room: "OPD-1",
+    token: "TK-106",
+    status: "Scheduled",
+  },
+  {
+    time: "11:30 AM",
     name: "David Walsh",
-    complaint: "Back Pain",
-    diagnosis: "L4-L5 Disc Herniation",
-    date: "Yesterday",
-    mrn: "MRN-006",
-  },
-  {
-    name: "Nina Patel",
-    complaint: "Skin Allergy",
-    diagnosis: "Allergic Rhinitis",
-    date: "Yesterday",
-    mrn: "MRN-009",
-  },
-  {
-    name: "Carlos Mendez",
-    complaint: "Joint Pain",
-    diagnosis: "Osteoarthritis",
-    date: "2 days ago",
-    mrn: "MRN-010",
+    age: 41,
+    gender: "M",
+    visitType: "Review Visit",
+    room: "N/A",
+    token: "TK-107",
+    status: "Cancelled",
   },
 ];
 
-const DOC_FOLLOW_UPS = [
+// Section 05: Consultation Types (Horizontal Bar Chart)
+const DOC_CONSULTATION_TYPES = [
+  { type: "General Consultation", count: 12 },
+  { type: "Follow-up Visit", count: 8 },
+  { type: "Review Visit", count: 5 },
+  { type: "Emergency OPD", count: 3 },
+];
+
+// Section 06: Prescriptions Issued Today (Pie Chart)
+const DOC_PRESCRIPTION_SUMMARY = [
+  { category: "New Prescription", count: 12, color: "#0D47A1" },
+  { category: "Repeat Prescription", count: 6, color: "#009688" },
+  { category: "Medication Updated", count: 4, color: "#4DB6AC" },
+  { category: "No Medication", count: 2, color: "#94A3B8" },
+];
+
+// Section 09: Today's Performance Summary (Statistics Table)
+const DOC_PERFORMANCE_METRICS = [
   {
-    patient: "James Thornton",
-    date: "Tomorrow 09:30",
-    reason: "HbA1c Review",
-    type: "Diabetes F/U",
+    metric: "Appointments Scheduled",
+    today: "28",
+    yesterday: "24",
+    status: "Optimal",
   },
   {
-    patient: "Marcus Brown",
-    date: "Thu 14:00",
-    reason: "BP Med Review",
-    type: "Hypertension",
+    metric: "Patients Consulted",
+    today: "21",
+    yesterday: "18",
+    status: "Ahead (+16.7%)",
   },
   {
-    patient: "Aisha Kumar",
-    date: "Fri 11:00",
-    reason: "Post-treatment Check",
-    type: "Neurology",
+    metric: "Average Consultation Time",
+    today: "14.2 mins",
+    yesterday: "15.8 mins",
+    status: "Efficient (-1.6 mins)",
+  },
+  {
+    metric: "Prescriptions Issued",
+    today: "22",
+    yesterday: "19",
+    status: "Normal",
+  },
+  { metric: "Follow-up Cases", today: "8", yesterday: "6", status: "On Track" },
+  {
+    metric: "Cancelled Consultations",
+    today: "2",
+    yesterday: "3",
+    status: "Low",
   },
 ];
 
-const DOC_DIAGNOSIS = [
-  { condition: "Cardiovascular", count: 8, color: "#EF4444" },
-  { condition: "Diabetes / Endo", count: 6, color: "#F59E0B" },
-  { condition: "Hypertension", count: 5, color: "#0D47A1" },
-  { condition: "Respiratory", count: 4, color: "#009688" },
-  { condition: "Post-operative", count: 3, color: "#66BB6A" },
-  { condition: "Other", count: 2, color: "#94A3B8" },
-];
-
-const DOC_ACTIVITIES = [
-  {
-    action: "Consultation completed",
-    detail: "Alex Monroe · 28 min",
-    time: "08:58",
-    Icon: CheckSquare,
-    color: "#66BB6A",
-  },
-  {
-    action: "Clinical notes updated",
-    detail: "Sarah Mitchell · Chest Pain",
-    time: "09:10",
-    Icon: FileText,
-    color: "#0D47A1",
-  },
-  {
-    action: "Prescription signed",
-    detail: "James Thornton · 3 drugs",
-    time: "09:18",
-    Icon: Pill,
-    color: "#009688",
-  },
-  {
-    action: "Referral sent",
-    detail: "Robert Chen → Cardiology",
-    time: "09:32",
-    Icon: FileText,
-    color: "#0D47A1",
-  },
-];
-
-const DOC_MEDICAL_ALERTS = [
-  {
-    level: "critical" as const,
-    msg: "Sarah Mitchell — BP critically high",
-    time: "4m",
-    sub: "165/104 mmHg — immediate attention required",
-  },
-  {
-    level: "warning" as const,
-    msg: "James Thornton — BP not controlled post-visit",
-    time: "22m",
-    sub: "145/92 recorded by nurse — consider medication adjustment",
-  },
-  {
-    level: "info" as const,
-    msg: "Robert Chen — Vitals updated by nurse",
-    time: "41m",
-    sub: "All vitals within normal range post-cardiology check",
-  },
-];
-
-const DOC_QUICK_ACTIONS = [
-  { label: "Open Patient Record", Icon: FileText, color: "#0D47A1" },
-  { label: "Start Consultation", Icon: Stethoscope, color: "#009688" },
-  { label: "Write Prescription", Icon: Pill, color: "#0D47A1" },
-  { label: "Add Clinical Note", Icon: ClipboardList, color: "#009688" },
-  { label: "View Reports", Icon: BarChart2, color: "#64748B" },
-];
-
-type ScheduleStatus = "completed" | "in-progress" | "waiting" | "scheduled";
-const STATUS_DOT: Record<ScheduleStatus, string> = {
-  completed: "bg-[#66BB6A]",
-  "in-progress": "bg-[#009688]",
-  waiting: "bg-[#F59E0B]",
-  scheduled: "bg-slate-300",
+const DOC_STATUS_CHIP: Record<
+  string,
+  "success" | "teal" | "warning" | "error" | "info" | "default"
+> = {
+  Completed: "success",
+  "In Consultation": "teal",
+  Waiting: "warning",
+  Ready: "info",
+  Scheduled: "default",
+  Cancelled: "error",
 };
 
+const DOC_QUICK_ACTIONS = [
+  { label: "Start Consultation", Icon: Stethoscope, color: "#009688" },
+  { label: "Open Patient Record", Icon: FileText, color: "#0D47A1" },
+  { label: "Write Prescription", Icon: Pill, color: "#0D47A1" },
+  { label: "Add Clinical Note", Icon: ClipboardList, color: "#009688" },
+];
+
 export function DoctorDashboard() {
-  const completed = DOC_SCHEDULE.filter((s) => s.status === "completed").length;
-  const waiting = DOC_SCHEDULE.filter((s) => s.status === "waiting").length;
-  const current = DOC_SCHEDULE.find((s) => s.status === "in-progress");
-  const diagTotal = DOC_DIAGNOSIS.reduce((s, d) => s + d.count, 0);
+  const rxTotal = DOC_PRESCRIPTION_SUMMARY.reduce(
+    (acc, curr) => acc + curr.count,
+    0,
+  );
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-5">
+    <div
+      className="flex-1 overflow-y-auto p-6 space-y-6"
+      style={{ background: "#F1F5F9" }}
+    >
       {/* ── Quick Actions ── */}
       <div className="flex items-center gap-3 flex-wrap">
         <span
           className="text-xs font-semibold text-[#64748B] uppercase tracking-wider mr-1"
           style={{ fontFamily: PP }}
         >
-          Quick Actions
+          Clinical Actions
         </span>
         {DOC_QUICK_ACTIONS.map(({ label, Icon, color }) => (
           <button
@@ -256,21 +402,15 @@ export function DoctorDashboard() {
             {label}
           </button>
         ))}
-        <div className="ml-auto flex items-center gap-2">
-          <button className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-[#E5E7EB] text-[#64748B] hover:bg-slate-50 transition-colors shadow-sm">
-            <Bell size={14} />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#EF4444]" />
-          </button>
-        </div>
       </div>
 
-      {/* ── KPI Row ── */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      {/* ── KPI Row — 5 Clinical KPI Cards ── */}
+      <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
         <DKpi
           title="Today's Appointments"
           value="28"
-          sub="Total scheduled"
-          trend="4 follow-ups added"
+          sub="Scheduled Patients Today"
+          trend="+4 vs Yesterday"
           up={true}
           data={[
             { v: 22 },
@@ -282,559 +422,735 @@ export function DoctorDashboard() {
             { v: 28 },
           ]}
           color="#0D47A1"
-          gid="d1"
+          gid="doc1"
           Icon={Calendar}
         />
         <DKpi
-          title="Patients Waiting"
-          value={String(waiting)}
-          sub="In queue right now"
-          trend="Avg wait: 18 min"
+          title="Patients Consulted"
+          value="21"
+          sub="Completed Consultations"
+          trend="75% Progress Today"
           up={true}
           data={[
             { v: 8 },
-            { v: 6 },
-            { v: 9 },
-            { v: 5 },
-            { v: 7 },
-            { v: 4 },
-            { v: waiting },
-          ]}
-          color="#F59E0B"
-          gid="d2"
-          Icon={Clock}
-        />
-        <DKpi
-          title="Completed Today"
-          value={String(completed)}
-          sub="Consultations done"
-          trend={`${Math.round((completed / 28) * 100)}% of today's list`}
-          up={true}
-          data={[
-            { v: 0 },
-            { v: 1 },
-            { v: 2 },
-            { v: 2 },
-            { v: 2 },
-            { v: 3 },
-            { v: completed },
+            { v: 12 },
+            { v: 15 },
+            { v: 17 },
+            { v: 19 },
+            { v: 20 },
+            { v: 21 },
           ]}
           color="#66BB6A"
-          gid="d3"
+          gid="doc2"
           Icon={CheckSquare}
         />
         <DKpi
-          title="Follow-ups Pending"
-          value={String(DOC_FOLLOW_UPS.length)}
-          sub="Scheduled this week"
-          trend="1 urgent review"
+          title="Pending Consultations"
+          value="4"
+          sub="Remaining Queue"
+          trend="Avg Wait: 14 mins"
           up={false}
           data={[
+            { v: 10 },
+            { v: 9 },
+            { v: 8 },
+            { v: 7 },
             { v: 6 },
             { v: 5 },
-            { v: 5 },
             { v: 4 },
-            { v: 4 },
-            { v: 4 },
-            { v: DOC_FOLLOW_UPS.length },
           ]}
-          color="#EF4444"
-          gid="d4"
-          Icon={Heart}
+          color="#F59E0B"
+          gid="doc3"
+          Icon={Clock}
+        />
+        <DKpi
+          title="Prescriptions Issued"
+          value="22"
+          sub="Today's Prescriptions"
+          trend="+3 vs Yesterday"
+          up={true}
+          data={[
+            { v: 14 },
+            { v: 16 },
+            { v: 17 },
+            { v: 19 },
+            { v: 20 },
+            { v: 21 },
+            { v: 22 },
+          ]}
+          color="#009688"
+          gid="doc4"
+          Icon={Pill}
+        />
+        <DKpi
+          title="Consultation Revenue"
+          value="$4,200"
+          sub="Earnings Today"
+          trend="+$600 vs Yesterday"
+          up={true}
+          data={[
+            { v: 2800 },
+            { v: 3100 },
+            { v: 3300 },
+            { v: 3600 },
+            { v: 3900 },
+            { v: 4000 },
+            { v: 4200 },
+          ]}
+          color="#0D47A1"
+          gid="doc5"
+          Icon={DollarSign}
         />
       </div>
 
-      {/* ── Active Consultation Banner ── */}
-      {current && (
-        <div
-          className="rounded-2xl border-2 border-[#009688]/30 p-5 shadow-sm"
-          style={{
-            background: "linear-gradient(135deg, #f0fdfa 0%, #e6f9ff 100%)",
-          }}
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <span className="w-2 h-2 rounded-full bg-[#009688] animate-pulse" />
-            <span
-              className="text-xs font-bold text-[#009688] uppercase tracking-wide"
-              style={{ fontFamily: PP }}
-            >
-              Active Consultation
-            </span>
-            <span
-              className="ml-auto font-mono text-xs font-semibold text-[#64748B]"
-              style={{ fontFamily: RB }}
-            >
-              Started {current.time}
-            </span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Av name={current.patient} size="lg" />
-            <div className="flex-1">
-              <div
+      {/* ── Active Patient Banner (Clinical Workstation) ── */}
+      <div
+        className="rounded-2xl border-2 border-[#009688]/30 p-5 shadow-sm"
+        style={{
+          background: "linear-gradient(135deg, #f0fdfa 0%, #e6f9ff 100%)",
+        }}
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#009688] animate-pulse" />
+          <span
+            className="text-xs font-bold text-[#009688] uppercase tracking-wide"
+            style={{ fontFamily: PP }}
+          >
+            Active Patient Consultation
+          </span>
+          <span
+            className="ml-auto font-mono text-xs font-semibold text-[#64748B]"
+            style={{ fontFamily: RB }}
+          >
+            Started 09:00 AM · Token TK-102
+          </span>
+        </div>
+        <div className="flex items-center gap-4 flex-wrap xl:flex-nowrap">
+          <Av name="Sarah Mitchell" size="lg" />
+          <div className="flex-1 min-w-[200px]">
+            <div className="flex items-center gap-2">
+              <span
                 className="text-lg font-bold text-[#111827]"
                 style={{ fontFamily: PP }}
               >
-                {current.patient}
-              </div>
-              <div
-                className="text-sm text-[#64748B]"
+                Sarah Mitchell
+              </span>
+              <span
+                className="text-xs text-[#64748B]"
                 style={{ fontFamily: RB }}
               >
-                {current.complaint} · {current.mrn}
-              </div>
-              <div className="flex items-center gap-3 mt-2">
-                <Chip label="In Progress" variant="teal" />
-                {current.room && (
-                  <span
-                    className="text-xs font-semibold text-[#009688]"
-                    style={{ fontFamily: RB }}
-                  >
-                    {current.room}
-                  </span>
-                )}
-              </div>
+                (34 Yrs / F)
+              </span>
             </div>
-            <div className="flex gap-2 shrink-0">
-              <button
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <FileText size={13} /> Clinical Notes
-              </button>
-              <button
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-800 transition-colors shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                <Pill size={13} /> Prescribe
-              </button>
-              <button
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#0D47A1] text-[#0D47A1] text-xs font-semibold hover:bg-blue-50 transition-colors"
-                style={{ fontFamily: PP }}
-              >
-                <CheckSquare size={13} /> Complete
-              </button>
+            <div
+              className="text-xs text-[#64748B] mt-0.5"
+              style={{ fontFamily: RB }}
+            >
+              Visit Type: Emergency OPD · Room: OPD-1
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Main Workspace ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-        {/* Left: Schedule + Patient History */}
-        <div className="xl:col-span-2 flex flex-col gap-5">
-          {/* Today's Schedule */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-              <div>
-                <div
-                  className="text-sm font-semibold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  Today's Schedule
-                </div>
-                <div
-                  className="text-xs text-[#64748B] mt-0.5"
-                  style={{ fontFamily: RB }}
-                >
-                  {DOC_SCHEDULE.length} appointments · {completed} completed
-                </div>
-              </div>
-              <div
-                className="flex items-center gap-3 text-[10px]"
+            <div className="flex items-center gap-2 mt-2">
+              <Chip label="In Consultation" variant="teal" />
+              <span
+                className="text-[11px] font-medium text-[#EF4444] bg-red-50 px-2 py-0.5 rounded border border-red-100"
                 style={{ fontFamily: RB }}
               >
-                {(
-                  [
-                    "completed",
-                    "in-progress",
-                    "waiting",
-                    "scheduled",
-                  ] as ScheduleStatus[]
-                ).map((s) => (
-                  <div
-                    key={s}
-                    className="flex items-center gap-1.5 text-[#64748B]"
-                  >
-                    <span className={`w-2 h-2 rounded-full ${STATUS_DOT[s]}`} />
-                    {s === "in-progress"
-                      ? "Active"
-                      : s.charAt(0).toUpperCase() +
-                        s.slice(1).replace("-", " ")}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="divide-y divide-gray-50">
-              {DOC_SCHEDULE.map((a) => (
-                <div
-                  key={a.time + a.patient}
-                  className={`flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50 cursor-pointer transition-colors ${a.status === "in-progress" ? "bg-teal-50/30" : ""}`}
-                >
-                  <div className="font-mono text-xs font-bold text-[#0D47A1] shrink-0 w-12">
-                    {a.time}
-                  </div>
-                  <div
-                    className={`w-2 h-2 rounded-full shrink-0 ${STATUS_DOT[a.status]}`}
-                  />
-                  <Av name={a.patient} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <div
-                      className="text-sm font-medium text-[#111827] truncate"
-                      style={{ fontFamily: RB }}
-                    >
-                      {a.patient}
-                    </div>
-                    <div
-                      className="text-xs text-[#64748B] truncate"
-                      style={{ fontFamily: RB }}
-                    >
-                      {a.complaint}
-                    </div>
-                  </div>
-                  {a.room && (
-                    <span
-                      className="text-xs font-semibold text-[#009688] shrink-0"
-                      style={{ fontFamily: RB }}
-                    >
-                      {a.room}
-                    </span>
-                  )}
-                  <div className="shrink-0">
-                    {a.status === "completed" && (
-                      <Chip label="Done" variant="success" />
-                    )}
-                    {a.status === "in-progress" && (
-                      <Chip label="Active" variant="teal" />
-                    )}
-                    {a.status === "waiting" && (
-                      <Chip label="Waiting" variant="warning" />
-                    )}
-                    {a.status === "scheduled" && (
-                      <Chip label="Scheduled" variant="default" />
-                    )}
-                  </div>
-                </div>
-              ))}
+                High Risk: Acute Chest Pain
+              </span>
             </div>
           </div>
-
-          {/* Recent Patient History */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-50">
-              <SH
-                title="Recent Patient History"
-                sub="Previously seen patients"
-              />
-            </div>
-            <div className="divide-y divide-gray-50">
-              {DOC_PATIENT_HISTORY.map((p) => (
-                <div
-                  key={p.mrn}
-                  className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50 cursor-pointer transition-colors"
-                >
-                  <Av name={p.name} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <div
-                      className="text-sm font-medium text-[#111827] truncate"
-                      style={{ fontFamily: RB }}
-                    >
-                      {p.name}
-                    </div>
-                    <div
-                      className="text-xs text-[#64748B] truncate"
-                      style={{ fontFamily: RB }}
-                    >
-                      {p.complaint}
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0 max-w-[160px]">
-                    <div
-                      className="text-xs font-medium text-[#111827] truncate"
-                      style={{ fontFamily: RB }}
-                    >
-                      {p.diagnosis}
-                    </div>
-                    <div
-                      className="text-[10px] text-[#64748B]"
-                      style={{ fontFamily: RB }}
-                    >
-                      {p.date}
-                    </div>
-                  </div>
-                  <ChevronRight size={14} className="text-slate-300 shrink-0" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column */}
-        <div className="flex flex-col gap-5">
-          {/* Patient Queue */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-              <div>
-                <div
-                  className="text-sm font-semibold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  Patient Queue
-                </div>
-                <div
-                  className="text-xs text-[#64748B] mt-0.5"
-                  style={{ fontFamily: RB }}
-                >
-                  {waiting} waiting · Avg 18 min
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-[#66BB6A] animate-pulse" />
-                <span
-                  className="text-xs text-[#64748B]"
-                  style={{ fontFamily: RB }}
-                >
-                  Live
-                </span>
-              </div>
-            </div>
-            <div className="divide-y divide-gray-50">
-              {DOC_SCHEDULE.filter((s) =>
-                ["in-progress", "waiting", "scheduled"].includes(s.status),
-              )
-                .slice(0, 5)
-                .map((a, i) => (
-                  <div
-                    key={a.patient}
-                    className={`flex items-center gap-3 px-5 py-3.5 ${a.status === "in-progress" ? "bg-teal-50/40" : ""}`}
-                  >
-                    <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
-                        a.status === "in-progress"
-                          ? "bg-[#009688] text-white"
-                          : "bg-slate-100 text-[#64748B]"
-                      }`}
-                    >
-                      {i + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div
-                        className="text-sm font-medium text-[#111827] truncate"
-                        style={{ fontFamily: RB }}
-                      >
-                        {a.patient}
-                      </div>
-                      <div
-                        className="text-xs text-[#64748B]"
-                        style={{ fontFamily: RB }}
-                      >
-                        {a.time} · {a.complaint}
-                      </div>
-                    </div>
-                    {a.status === "in-progress" && (
-                      <Chip label="Active" variant="teal" />
-                    )}
-                    {a.status === "waiting" && (
-                      <Chip label="Waiting" variant="warning" />
-                    )}
-                    {a.status === "scheduled" && (
-                      <Chip label="Next" variant="info" />
-                    )}
-                  </div>
-                ))}
-            </div>
-            <div className="px-5 py-3 border-t border-gray-50">
-              <button
-                className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors"
-                style={{ fontFamily: PP }}
-              >
-                <Stethoscope size={13} /> Start Next Consultation
-              </button>
-            </div>
-          </div>
-
-          {/* Medical Alerts */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-            <SH title="Medical Alerts" />
-            <div className="space-y-2">
-              {DOC_MEDICAL_ALERTS.map((a, i) => (
-                <AlertRow
-                  key={i}
-                  level={a.level}
-                  msg={a.msg}
-                  time={a.time}
-                  sub={a.sub}
-                />
-              ))}
-            </div>
+          <div className="flex gap-2 shrink-0">
+            <button
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-sm"
+              style={{ fontFamily: PP }}
+            >
+              <FileText size={13} /> Clinical Notes
+            </button>
+            <button
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-800 transition-colors shadow-sm"
+              style={{ fontFamily: PP }}
+            >
+              <Pill size={13} /> Prescribe
+            </button>
+            <button
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#0D47A1] text-[#0D47A1] text-xs font-semibold hover:bg-blue-50 transition-colors"
+              style={{ fontFamily: PP }}
+            >
+              <CheckSquare size={13} /> Complete Visit
+            </button>
           </div>
         </div>
       </div>
 
-      {/* ── Bottom Row ── */}
+      {/* ── Main Clinical Analytics Grid ── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-        {/* Pending Prescriptions */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-          <SH title="Pending Prescriptions" sub="Awaiting your signature" />
-          <div className="space-y-2.5">
-            {PRESCRIPTIONS_PENDING.map((p) => (
+        {/* Section 01: Today's Consultation Progress (Large Line Chart) */}
+        <div className="xl:col-span-2 bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-3">
+            <div>
               <div
-                key={p.patient}
-                className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-[#E5E7EB]"
+                className="text-sm font-semibold text-[#111827]"
+                style={{ fontFamily: PP }}
               >
-                <div className="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
-                  <Pill size={12} className="text-[#009688]" />
+                Consultation Progress Throughout the Day
+              </div>
+              <div
+                className="text-xs text-[#64748B] mt-0.5"
+                style={{ fontFamily: RB }}
+              >
+                Monitors consultation pace and completed patients per hour
+              </div>
+            </div>
+            <span
+              className="text-[10px] font-semibold text-[#009688] bg-teal-50 px-2 py-0.5 rounded-full"
+              style={{ fontFamily: RB }}
+            >
+              Pace: 2.8 Patients/Hour
+            </span>
+          </div>
+          <ResponsiveContainer width="100%" height={210}>
+            <AreaChart
+              data={DOC_HOURLY_PROGRESS}
+              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient
+                  id="docProgressGrad"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="0%" stopColor="#009688" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="#009688" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis
+                dataKey="hour"
+                tick={{ fontSize: 11, fill: "#64748B", fontFamily: RB }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: "#94A3B8" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "#fff",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: 12,
+                  fontSize: 12,
+                }}
+                formatter={(val: unknown, name: unknown) => [
+                  `${val} Patients`,
+                  name === "completed"
+                    ? "Completed Consultations"
+                    : "Remaining Queue",
+                ]}
+              />
+              <Area
+                type="monotone"
+                dataKey="completed"
+                stroke="#009688"
+                strokeWidth={2.5}
+                fill="url(#docProgressGrad)"
+                dot={{ r: 3, fill: "#009688" }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+          <div
+            className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-[#64748B]"
+            style={{ fontFamily: RB }}
+          >
+            <span>Target completion by 05:00 PM</span>
+            <span className="font-semibold text-[#111827]">
+              21 Completed · 4 Remaining Queue
+            </span>
+          </div>
+        </div>
+
+        {/* Section 02: Today's Patient Status (Donut Chart) */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
+          <SH
+            title="Patient Consultation Status"
+            sub="Current OPD Workflow Breakdown"
+          />
+          <ResponsiveContainer width="100%" height={170}>
+            <BarChart
+              data={DOC_PATIENT_STATUS_DIST}
+              layout="vertical"
+              margin={{ top: 0, right: 15, left: 10, bottom: 0 }}
+            >
+              <XAxis type="number" hide />
+              <YAxis
+                dataKey="name"
+                type="category"
+                tick={{ fontSize: 11, fill: "#111827", fontFamily: RB }}
+                axisLine={false}
+                tickLine={false}
+                width={100}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "#fff",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: 12,
+                  fontSize: 12,
+                }}
+                formatter={(v: unknown) => [`${v} Patients`, "Count"]}
+              />
+              <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={14}>
+                {DOC_PATIENT_STATUS_DIST.map((entry, idx) => (
+                  <Cell key={idx} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          <div
+            className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-gray-50 text-xs"
+            style={{ fontFamily: RB }}
+          >
+            {DOC_PATIENT_STATUS_DIST.map((s) => (
+              <div
+                key={s.name}
+                className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50"
+              >
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ background: s.color }}
+                  />
+                  <span className="text-[#64748B] text-[11px]">{s.name}</span>
                 </div>
-                <div className="flex-1 min-w-0">
+                <span className="font-bold text-[#111827]">{s.value}</span>
+              </div>
+            ))}
+          </div>
+          <div
+            className="mt-2 text-[11px] text-center text-[#64748B]"
+            style={{ fontFamily: RB }}
+          >
+            28 Total Appointments Today
+          </div>
+        </div>
+      </div>
+
+      {/* ── Section 03 & 04: Appointment Timeline & Patient Queue Summary ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+        {/* Section 03: Appointment Timeline (No Billing Info) */}
+        <div className="xl:col-span-2 bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col justify-between">
+          <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+            <div>
+              <div
+                className="text-sm font-semibold text-[#111827]"
+                style={{ fontFamily: PP }}
+              >
+                Today's Clinical Appointment Timeline
+              </div>
+              <div
+                className="text-xs text-[#64748B] mt-0.5"
+                style={{ fontFamily: RB }}
+              >
+                Doctor consultation schedule and current patient status
+              </div>
+            </div>
+            <span
+              className="text-xs font-medium text-[#0D47A1] bg-blue-50 px-2.5 py-1 rounded-lg"
+              style={{ fontFamily: RB }}
+            >
+              Room OPD-1
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-50 bg-slate-50/50">
+                  {[
+                    "Time",
+                    "Token",
+                    "Patient Name",
+                    "Age / Gender",
+                    "Visit Type",
+                    "Room",
+                    "Status",
+                  ].map((h) => (
+                    <th
+                      key={h}
+                      className="px-5 py-3 text-left text-xs font-semibold text-[#64748B]"
+                      style={{ fontFamily: RB }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {DOC_APPT_TIMELINE.map((a, i) => (
+                  <tr key={i} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                      {a.time}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs font-semibold text-slate-600">
+                      {a.token}
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2">
+                        <Av name={a.name} size="sm" />
+                        <span
+                          className="text-xs font-medium text-[#111827]"
+                          style={{ fontFamily: RB }}
+                        >
+                          {a.name}
+                        </span>
+                      </div>
+                    </td>
+                    <td
+                      className="px-5 py-3 text-xs text-[#64748B]"
+                      style={{ fontFamily: RB }}
+                    >
+                      {a.age} Yrs / {a.gender}
+                    </td>
+                    <td
+                      className="px-5 py-3 text-xs text-[#111827]"
+                      style={{ fontFamily: RB }}
+                    >
+                      {a.visitType}
+                    </td>
+                    <td className="px-5 py-3">
+                      <span className="font-mono text-[10px] font-semibold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                        {a.room}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <Chip
+                        label={a.status}
+                        variant={DOC_STATUS_CHIP[a.status] || "default"}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div
+            className="px-5 py-3 border-t border-gray-50 flex items-center justify-between text-xs text-[#64748B]"
+            style={{ fontFamily: RB }}
+          >
+            <span>Showing 7 of 28 scheduled appointments</span>
+            <button className="text-[#0D47A1] font-semibold hover:underline">
+              View Full Schedule →
+            </button>
+          </div>
+        </div>
+
+        {/* Section 04: Patient Queue Summary (Reusable Card) */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
+          <SH title="Patient Queue Summary" sub="Real-time OPD Live Queue" />
+
+          <div className="space-y-3">
+            {/* Current Patient */}
+            <div className="p-3 rounded-xl bg-teal-50 border border-teal-100">
+              <div
+                className="text-[10px] font-bold text-[#009688] uppercase tracking-wider mb-1"
+                style={{ fontFamily: PP }}
+              >
+                Current Patient
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
                   <div
-                    className="text-xs font-semibold text-[#111827] truncate"
+                    className="text-sm font-bold text-[#111827]"
                     style={{ fontFamily: PP }}
                   >
-                    {p.patient}
+                    Sarah Mitchell
                   </div>
                   <div
-                    className="text-[10px] text-[#64748B] truncate"
+                    className="text-xs text-[#64748B]"
                     style={{ fontFamily: RB }}
                   >
-                    {p.drugs}
-                  </div>
-                  <div
-                    className="text-[10px] text-slate-400 mt-0.5"
-                    style={{ fontFamily: RB }}
-                  >
-                    Waiting {p.since}
+                    Emergency OPD · Room OPD-1
                   </div>
                 </div>
-                <button
-                  className="text-xs text-[#0D47A1] font-semibold hover:underline shrink-0"
+                <Chip label="In Progress" variant="teal" />
+              </div>
+            </div>
+
+            {/* Next Patient */}
+            <div className="p-3 rounded-xl bg-blue-50 border border-blue-100">
+              <div
+                className="text-[10px] font-bold text-[#0D47A1] uppercase tracking-wider mb-1"
+                style={{ fontFamily: PP }}
+              >
+                Next Patient
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <div
+                    className="text-sm font-bold text-[#111827]"
+                    style={{ fontFamily: PP }}
+                  >
+                    James Thornton
+                  </div>
+                  <div
+                    className="text-xs text-[#64748B]"
+                    style={{ fontFamily: RB }}
+                  >
+                    Token TK-103 · General Consultation
+                  </div>
+                </div>
+                <Chip label="Waiting" variant="warning" />
+              </div>
+            </div>
+
+            {/* Queue Metrics */}
+            <div className="grid grid-cols-3 gap-2 pt-2 text-center">
+              <div className="p-2 rounded-xl bg-slate-50 border border-[#E5E7EB]">
+                <div
+                  className="text-[10px] text-[#64748B]"
+                  style={{ fontFamily: RB }}
+                >
+                  Remaining Queue
+                </div>
+                <div
+                  className="text-base font-bold text-[#111827] mt-0.5"
                   style={{ fontFamily: PP }}
                 >
-                  Sign
-                </button>
+                  4
+                </div>
               </div>
-            ))}
+              <div className="p-2 rounded-xl bg-slate-50 border border-[#E5E7EB]">
+                <div
+                  className="text-[10px] text-[#64748B]"
+                  style={{ fontFamily: RB }}
+                >
+                  Avg Wait Time
+                </div>
+                <div
+                  className="text-base font-bold text-[#F59E0B] mt-0.5"
+                  style={{ fontFamily: PP }}
+                >
+                  14 m
+                </div>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-50 border border-[#E5E7EB]">
+                <div
+                  className="text-[10px] text-[#64748B]"
+                  style={{ fontFamily: RB }}
+                >
+                  Est. Completion
+                </div>
+                <div
+                  className="text-base font-bold text-[#009688] mt-0.5"
+                  style={{ fontFamily: PP }}
+                >
+                  04:45 PM
+                </div>
+              </div>
+            </div>
           </div>
+
           <button
-            className="mt-3 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-[#009688] text-[#009688] text-xs font-semibold hover:bg-teal-50 transition-colors"
+            className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-sm"
             style={{ fontFamily: PP }}
           >
-            <Pill size={13} /> Write New Prescription
+            <Stethoscope size={13} /> Call Next Patient (TK-103)
           </button>
         </div>
+      </div>
 
-        {/* Diagnosis Summary */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-          <SH title="Diagnosis Summary" sub="This month's case types" />
-          <div className="space-y-3">
-            {DOC_DIAGNOSIS.map((d) => (
-              <div key={d.condition}>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span
-                    className="text-xs font-medium text-[#111827]"
-                    style={{ fontFamily: RB }}
-                  >
-                    {d.condition}
-                  </span>
-                  <span className="font-mono text-xs font-semibold text-[#64748B]">
-                    {d.count}
-                  </span>
-                </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${Math.round((d.count / diagTotal) * 100)}%`,
-                      background: d.color,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between">
-            <span className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>
-              Total cases this month
-            </span>
-            <span
-              className="text-sm font-bold text-[#111827]"
-              style={{ fontFamily: PP }}
+      {/* ── Section 05 & 06: Consultation Categories & Prescription Summary ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        {/* Section 05: Today's Consultation Categories (Horizontal Bar Chart) */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
+          <SH
+            title="Consultation Types"
+            sub="Today's Workload Distribution by Category"
+          />
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart
+              data={DOC_CONSULTATION_TYPES}
+              layout="vertical"
+              margin={{ top: 0, right: 20, left: 20, bottom: 0 }}
             >
-              {diagTotal}
+              <XAxis
+                type="number"
+                tick={{ fontSize: 10, fill: "#94A3B8" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                dataKey="type"
+                type="category"
+                tick={{ fontSize: 11, fill: "#111827", fontFamily: RB }}
+                axisLine={false}
+                tickLine={false}
+                width={130}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "#fff",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: 12,
+                  fontSize: 12,
+                }}
+                formatter={(v: unknown) => [`${v} Patients`, "Volume"]}
+              />
+              <Bar
+                dataKey="count"
+                fill="#0D47A1"
+                radius={[0, 4, 4, 0]}
+                barSize={14}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+          <div
+            className="mt-2 pt-3 border-t border-gray-50 text-xs text-[#64748B] flex items-center justify-between"
+            style={{ fontFamily: RB }}
+          >
+            <span>Most Common: General Consultation (12)</span>
+            <span className="font-semibold text-[#0D47A1]">
+              28 Total Consultations
             </span>
           </div>
         </div>
 
-        {/* Today's Activities + Upcoming Follow-ups */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-          <SH title="Today's Activities" sub="Your clinical log" />
+        {/* Section 06: Prescription Summary (Pie Chart) */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
+          <SH
+            title="Prescriptions Issued Today"
+            sub="Summary of Today's Prescription Activity"
+          />
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart
+              data={DOC_PRESCRIPTION_SUMMARY}
+              margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+            >
+              <XAxis
+                dataKey="category"
+                tick={{ fontSize: 10, fill: "#64748B", fontFamily: RB }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: "#94A3B8" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "#fff",
+                  border: "1px solid #E5E7EB",
+                  borderRadius: 12,
+                  fontSize: 12,
+                }}
+                formatter={(v: unknown) => [`${v} Prescriptions`, "Count"]}
+              />
+              <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={22}>
+                {DOC_PRESCRIPTION_SUMMARY.map((entry, idx) => (
+                  <Cell key={idx} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          <div
+            className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-gray-50 text-xs"
+            style={{ fontFamily: RB }}
+          >
+            {DOC_PRESCRIPTION_SUMMARY.map((p) => (
+              <div
+                key={p.category}
+                className="flex items-center justify-between"
+              >
+                <span className="text-[#64748B] text-[11px]">
+                  {p.category}:
+                </span>
+                <span className="font-bold text-[#111827]">{p.count}</span>
+              </div>
+            ))}
+          </div>
+          <div
+            className="mt-2 text-xs font-semibold text-center text-[#009688]"
+            style={{ fontFamily: PP }}
+          >
+            Total Prescriptions Issued: {rxTotal}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Section 09: Today's Performance Summary ── */}
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
           <div>
-            {DOC_ACTIVITIES.map((a, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-3 pb-4 last:pb-0 relative"
-              >
-                {i < DOC_ACTIVITIES.length - 1 && (
-                  <div className="absolute left-[13px] top-7 bottom-0 w-px bg-gray-100" />
-                )}
-                <div
-                  className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 z-10"
-                  style={{ background: a.color + "18" }}
-                >
-                  <a.Icon size={12} style={{ color: a.color }} />
-                </div>
-                <div className="flex-1 min-w-0 pt-0.5">
-                  <div
-                    className="text-xs font-medium text-[#111827]"
-                    style={{ fontFamily: RB }}
-                  >
-                    {a.action}
-                  </div>
-                  <div
-                    className="text-[10px] text-[#64748B] mt-0.5"
-                    style={{ fontFamily: RB }}
-                  >
-                    {a.detail}
-                  </div>
-                </div>
-                <span className="font-mono text-[10px] text-slate-400 shrink-0 pt-0.5">
-                  {a.time}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-gray-100 pt-4 mt-1">
             <div
-              className="text-[10px] font-bold text-[#64748B] uppercase tracking-widest mb-3"
+              className="text-sm font-semibold text-[#111827]"
               style={{ fontFamily: PP }}
             >
-              Upcoming Follow-ups
+              Today's Clinical Performance Summary
             </div>
-            {DOC_FOLLOW_UPS.map((f) => (
-              <div
-                key={f.patient}
-                className="flex items-center gap-2.5 py-2 border-b border-gray-50 last:border-0"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0D47A1] shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div
-                    className="text-xs font-medium text-[#111827] truncate"
-                    style={{ fontFamily: RB }}
-                  >
-                    {f.patient}
-                  </div>
-                  <div
-                    className="text-[10px] text-[#64748B]"
-                    style={{ fontFamily: RB }}
-                  >
-                    {f.reason}
-                  </div>
-                </div>
-                <span className="text-[10px] text-[#64748B] font-mono shrink-0">
-                  {f.date.split(" ")[0]}
-                </span>
-              </div>
-            ))}
+            <div
+              className="text-xs text-[#64748B] mt-0.5"
+              style={{ fontFamily: RB }}
+            >
+              Doctor efficiency & daily consultation statistics
+            </div>
           </div>
+          <button
+            className="text-xs text-[#0D47A1] font-semibold hover:underline"
+            style={{ fontFamily: RB }}
+          >
+            Export Summary Report →
+          </button>
         </div>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-50 bg-slate-50/50">
+              {["Metric", "Today", "Yesterday", "Status"].map((h) => (
+                <th
+                  key={h}
+                  className="px-5 py-3 text-left text-xs font-semibold text-[#64748B]"
+                  style={{ fontFamily: RB }}
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {DOC_PERFORMANCE_METRICS.map((m) => (
+              <tr
+                key={m.metric}
+                className="hover:bg-slate-50 transition-colors"
+              >
+                <td
+                  className="px-5 py-3 text-xs font-medium text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  {m.metric}
+                </td>
+                <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                  {m.today}
+                </td>
+                <td className="px-5 py-3 font-mono text-xs font-semibold text-[#64748B]">
+                  {m.yesterday}
+                </td>
+                <td className="px-5 py-3">
+                  <Chip
+                    label={m.status}
+                    variant={
+                      m.status.includes("Ahead") ||
+                      m.status.includes("Efficient")
+                        ? "success"
+                        : m.status.includes("Low")
+                          ? "info"
+                          : "default"
+                    }
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

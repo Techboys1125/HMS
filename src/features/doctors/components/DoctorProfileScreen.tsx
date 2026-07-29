@@ -1,9 +1,8 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Calendar,
   Clock,
   Award,
-  DollarSign,
   Building2,
   ChevronLeft,
   ChevronRight,
@@ -16,13 +15,21 @@ import {
   X,
   User,
   FileCheck,
-  Stethoscope,
-  FileText,
 } from "lucide-react";
-import type { DoctorRecord, DoctorAvailability, DoctorAppointment, DoctorPatient, WeeklySchedule, DoctorTimeline } from "../types/doctors.types";
-import { INITIAL_DOCTORS, MOCK_DOCTOR_APPOINTMENTS, MOCK_DOCTOR_PATIENTS, MOCK_WEEKLY_SCHEDULE, MOCK_DOCTOR_TIMELINE, PP, RB } from "../constants/doctors.constants";
-import { Avatar } from "./Avatar";
-import { Card } from "./Card";
+import type {
+  DoctorRecord,
+  DoctorAvailability,
+  DoctorAppointment,
+} from "../types/doctors.types";
+import {
+  INITIAL_DOCTORS,
+  MOCK_DOCTOR_APPOINTMENTS,
+  MOCK_DOCTOR_PATIENTS,
+  MOCK_WEEKLY_SCHEDULE,
+  MOCK_DOCTOR_TIMELINE,
+  PP,
+  RB,
+} from "../constants/doctors.constants";
 import { EditDoctorDrawer } from "./EditDoctorDrawer";
 import { DeactivateDoctorDialog } from "./DeactivateDoctorDialog";
 
@@ -43,14 +50,20 @@ export function DoctorProfileScreen({
 }: DoctorProfileScreenProps) {
   const [docState, setDocState] = useState<DoctorRecord>(doctor);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "professional" | "schedule" | "appointments" | "patients" | "timeline"
+    | "overview"
+    | "professional"
+    | "schedule"
+    | "appointments"
+    | "patients"
+    | "timeline"
   >("overview");
 
   const [apptSearch, setApptSearch] = useState("");
   const [apptDateFilter, setApptDateFilter] = useState("All Dates");
   const [patientSearch, setPatientSearch] = useState("");
 
-  const [selectedApptDetail, setSelectedApptDetail] = useState<Record<string, unknown> | null>(null);
+  const [selectedApptDetail, setSelectedApptDetail] =
+    useState<DoctorAppointment | null>(null);
   const [showEditDrawer, setShowEditDrawer] = useState(false);
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,15 +77,30 @@ export function DoctorProfileScreen({
   const getAvailStyle = (avail: DoctorAvailability) => {
     switch (avail) {
       case "Available Today":
-        return { bg: "bg-teal-50 text-[#009688] border-teal-200", dot: "bg-[#009688]" };
+        return {
+          bg: "bg-teal-50 text-[#009688] border-teal-200",
+          dot: "bg-[#009688]",
+        };
       case "On Duty":
-        return { bg: "bg-blue-50 text-[#0D47A1] border-blue-200", dot: "bg-[#0D47A1]" };
+        return {
+          bg: "bg-blue-50 text-[#0D47A1] border-blue-200",
+          dot: "bg-[#0D47A1]",
+        };
       case "On Call":
-        return { bg: "bg-purple-50 text-purple-700 border-purple-200", dot: "bg-purple-600" };
+        return {
+          bg: "bg-purple-50 text-purple-700 border-purple-200",
+          dot: "bg-purple-600",
+        };
       case "On Leave":
-        return { bg: "bg-amber-50 text-[#F59E0B] border-amber-200", dot: "bg-[#F59E0B]" };
+        return {
+          bg: "bg-amber-50 text-[#F59E0B] border-amber-200",
+          dot: "bg-[#F59E0B]",
+        };
       default:
-        return { bg: "bg-slate-100 text-slate-600 border-slate-200", dot: "bg-slate-400" };
+        return {
+          bg: "bg-slate-100 text-slate-600 border-slate-200",
+          dot: "bg-slate-400",
+        };
     }
   };
 
@@ -95,7 +123,8 @@ export function DoctorProfileScreen({
           a.type.toLowerCase().includes(q);
         if (!match) return false;
       }
-      if (apptDateFilter === "Today" && !a.date.includes("March 28")) return false;
+      if (apptDateFilter === "Today" && !a.date.includes("March 28"))
+        return false;
       return true;
     });
   }, [apptSearch, apptDateFilter]);
@@ -285,7 +314,8 @@ export function DoctorProfileScreen({
                   {docState.experienceYrs} Years Experience
                 </span>
                 <span className="flex items-center gap-1 font-bold text-[#0D47A1]">
-                  <DollarSignIcon /> ${docState.consultationFee} Consultation Fee
+                  <DollarSignIcon /> ${docState.consultationFee} Consultation
+                  Fee
                 </span>
                 <span className="flex items-center gap-1 font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
                   <Building2 size={13} /> {docState.opdRoom}
@@ -316,14 +346,16 @@ export function DoctorProfileScreen({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <div className="flex flex-wrap items-center gap-2">
-            {([
-              { id: "overview", label: "Overview" },
-              { id: "professional", label: "Professional Info" },
-              { id: "schedule", label: "Availability Schedule" },
-              { id: "appointments", label: "Appointments" },
-              { id: "patients", label: "Assigned Patients" },
-              { id: "timeline", label: "Activity Timeline" },
-            ] as const).map((tab) => (
+            {(
+              [
+                { id: "overview", label: "Overview" },
+                { id: "professional", label: "Professional Info" },
+                { id: "schedule", label: "Availability Schedule" },
+                { id: "appointments", label: "Appointments" },
+                { id: "patients", label: "Assigned Patients" },
+                { id: "timeline", label: "Activity Timeline" },
+              ] as const
+            ).map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -409,24 +441,33 @@ export function DoctorProfileScreen({
                     className="text-sm font-bold text-[#111827] flex items-center gap-2 border-b border-[#E5E7EB] pb-3"
                     style={{ fontFamily: PP }}
                   >
-                    <User size={16} className="text-[#0D47A1]" /> Basic Information
+                    <User size={16} className="text-[#0D47A1]" /> Basic
+                    Information
                   </h3>
                   <div className="space-y-2.5 text-xs">
                     <div className="flex justify-between py-1 border-b border-gray-50">
                       <span className="text-[#64748B]">Full Name</span>
-                      <span className="font-bold text-[#111827]">{docState.name}</span>
+                      <span className="font-bold text-[#111827]">
+                        {docState.name}
+                      </span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-gray-50">
                       <span className="text-[#64748B]">Gender</span>
-                      <span className="font-medium text-[#111827]">{docState.gender}</span>
+                      <span className="font-medium text-[#111827]">
+                        {docState.gender}
+                      </span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-gray-50">
                       <span className="text-[#64748B]">Email Address</span>
-                      <span className="font-semibold text-[#0D47A1]">{docState.email}</span>
+                      <span className="font-semibold text-[#0D47A1]">
+                        {docState.email}
+                      </span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-gray-50">
                       <span className="text-[#64748B]">Contact Phone</span>
-                      <span className="font-medium text-[#111827]">{docState.phone}</span>
+                      <span className="font-medium text-[#111827]">
+                        {docState.phone}
+                      </span>
                     </div>
                     <div className="flex justify-between py-1 border-b border-gray-50">
                       <span className="text-[#64748B]">OPD Cabinet Room</span>
@@ -436,11 +477,15 @@ export function DoctorProfileScreen({
                     </div>
                     <div className="flex justify-between py-1 border-b border-gray-50">
                       <span className="text-[#64748B]">Facility Location</span>
-                      <span className="font-semibold text-[#111827]">City General Main Campus</span>
+                      <span className="font-semibold text-[#111827]">
+                        City General Main Campus
+                      </span>
                     </div>
                     <div className="flex justify-between py-1">
                       <span className="text-[#64748B]">Joined HMS</span>
-                      <span className="font-medium text-[#111827]">{docState.joinedDate}</span>
+                      <span className="font-medium text-[#111827]">
+                        {docState.joinedDate}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -451,7 +496,10 @@ export function DoctorProfileScreen({
           {activeTab === "professional" && (
             <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
               <div>
-                <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                <h3
+                  className="text-base font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
                   Professional Credentials & Attributes
                 </h3>
                 <p className="text-xs text-[#64748B]">
@@ -461,41 +509,76 @@ export function DoctorProfileScreen({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Employee ID</span>
-                  <span className="font-mono font-bold text-[#0D47A1] text-sm">{docState.empId}</span>
+                  <span className="text-[#64748B] block text-[11px]">
+                    Employee ID
+                  </span>
+                  <span className="font-mono font-bold text-[#0D47A1] text-sm">
+                    {docState.empId}
+                  </span>
                 </div>
                 <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Medical Registration Number</span>
-                  <span className="font-mono font-bold text-teal-700 text-sm">{docState.regNumber}</span>
+                  <span className="text-[#64748B] block text-[11px]">
+                    Medical Registration Number
+                  </span>
+                  <span className="font-mono font-bold text-teal-700 text-sm">
+                    {docState.regNumber}
+                  </span>
                 </div>
                 <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Qualification & Degrees</span>
-                  <span className="font-bold text-[#111827] text-sm">{docState.qualification}</span>
+                  <span className="text-[#64748B] block text-[11px]">
+                    Qualification & Degrees
+                  </span>
+                  <span className="font-bold text-[#111827] text-sm">
+                    {docState.qualification}
+                  </span>
                 </div>
                 <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Department</span>
-                  <span className="font-bold text-[#111827] text-sm">{docState.department}</span>
+                  <span className="text-[#64748B] block text-[11px]">
+                    Department
+                  </span>
+                  <span className="font-bold text-[#111827] text-sm">
+                    {docState.department}
+                  </span>
                 </div>
                 <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Clinical Specialty</span>
-                  <span className="font-bold text-[#0D47A1] text-sm">{docState.specialty}</span>
+                  <span className="text-[#64748B] block text-[11px]">
+                    Clinical Specialty
+                  </span>
+                  <span className="font-bold text-[#0D47A1] text-sm">
+                    {docState.specialty}
+                  </span>
                 </div>
                 <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Years of Experience</span>
-                  <span className="font-bold text-[#111827] text-sm">{docState.experienceYrs} Years</span>
+                  <span className="text-[#64748B] block text-[11px]">
+                    Years of Experience
+                  </span>
+                  <span className="font-bold text-[#111827] text-sm">
+                    {docState.experienceYrs} Years
+                  </span>
                 </div>
                 <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Consultation Fee</span>
-                  <span className="font-bold text-[#0D47A1] text-sm" style={{ fontFamily: PP }}>
+                  <span className="text-[#64748B] block text-[11px]">
+                    Consultation Fee
+                  </span>
+                  <span
+                    className="font-bold text-[#0D47A1] text-sm"
+                    style={{ fontFamily: PP }}
+                  >
                     ${docState.consultationFee}
                   </span>
                 </div>
                 <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                  <span className="text-[#64748B] block text-[11px]">Appointment Slot Duration</span>
-                  <span className="font-bold text-[#111827] text-sm">{docState.slotDuration || "15 Minutes"}</span>
+                  <span className="text-[#64748B] block text-[11px]">
+                    Appointment Slot Duration
+                  </span>
+                  <span className="font-bold text-[#111827] text-sm">
+                    {docState.slotDuration || "15 Minutes"}
+                  </span>
                 </div>
                 <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 md:col-span-2">
-                  <span className="text-[#64748B] block text-[11px]">Account Status</span>
+                  <span className="text-[#64748B] block text-[11px]">
+                    Account Status
+                  </span>
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border inline-block mt-1 ${
                       docState.status === "Active"
@@ -514,12 +597,17 @@ export function DoctorProfileScreen({
             <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                  <h3
+                    className="text-base font-bold text-[#111827]"
+                    style={{ fontFamily: PP }}
+                  >
                     Weekly OPD Practice Schedule
                   </h3>
                   <p className="text-xs text-[#64748B]">
                     Assigned OPD cabinet:{" "}
-                    <span className="font-bold text-teal-700">{docState.opdRoom}</span>
+                    <span className="font-bold text-teal-700">
+                      {docState.opdRoom}
+                    </span>
                   </p>
                 </div>
                 <span className="text-xs font-bold text-[#0D47A1] bg-blue-50 px-3 py-1 rounded-xl border border-blue-100 shrink-0">
@@ -530,7 +618,10 @@ export function DoctorProfileScreen({
               <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead className="bg-slate-50 border-b border-[#E5E7EB]">
-                    <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
+                    <tr
+                      className="text-[#64748B] font-bold"
+                      style={{ fontFamily: PP }}
+                    >
                       <th className="px-4 py-3">Day</th>
                       <th className="px-4 py-3">Available</th>
                       <th className="px-4 py-3">Start Time</th>
@@ -540,22 +631,33 @@ export function DoctorProfileScreen({
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-[#111827]">
                     {MOCK_WEEKLY_SCHEDULE.map((sched) => (
-                      <tr key={sched.day} className="hover:bg-slate-50 transition-colors">
+                      <tr
+                        key={sched.day}
+                        className="hover:bg-slate-50 transition-colors"
+                      >
                         <td className="px-4 py-3 font-bold">{sched.day}</td>
                         <td className="px-4 py-3">
                           {sched.available ? (
                             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-50 text-[#009688] border border-teal-200 inline-flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#009688]" /> Available
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#009688]" />{" "}
+                              Available
                             </span>
                           ) : (
                             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200 inline-flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> Not Available
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />{" "}
+                              Not Available
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-3 font-medium text-slate-700">{sched.startTime}</td>
-                        <td className="px-4 py-3 font-medium text-slate-700">{sched.endTime}</td>
-                        <td className="px-4 py-3 font-semibold text-[#0D47A1]">{sched.slotDuration}</td>
+                        <td className="px-4 py-3 font-medium text-slate-700">
+                          {sched.startTime}
+                        </td>
+                        <td className="px-4 py-3 font-medium text-slate-700">
+                          {sched.endTime}
+                        </td>
+                        <td className="px-4 py-3 font-semibold text-[#0D47A1]">
+                          {sched.slotDuration}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -568,7 +670,10 @@ export function DoctorProfileScreen({
             <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="relative flex-1 max-w-md">
-                  <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search
+                    size={14}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
                   <input
                     type="text"
                     value={apptSearch}
@@ -589,7 +694,9 @@ export function DoctorProfileScreen({
                 <div className="flex items-center gap-2 text-xs">
                   <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
                     <Filter size={13} className="text-slate-400" />
-                    <span className="text-slate-500 font-medium">Filter Date:</span>
+                    <span className="text-slate-500 font-medium">
+                      Filter Date:
+                    </span>
                     <select
                       value={apptDateFilter}
                       onChange={(e) => setApptDateFilter(e.target.value)}
@@ -606,7 +713,10 @@ export function DoctorProfileScreen({
               <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB]">
-                    <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
+                    <tr
+                      className="text-[#64748B] font-bold"
+                      style={{ fontFamily: PP }}
+                    >
                       <th className="px-4 py-3">Appointment ID</th>
                       <th className="px-4 py-3">Patient Name</th>
                       <th className="px-4 py-3">Date</th>
@@ -619,37 +729,68 @@ export function DoctorProfileScreen({
                     {isLoading ? (
                       Array.from({ length: 4 }).map((_, idx) => (
                         <tr key={idx} className="animate-pulse">
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-16" /></td>
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-28" /></td>
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-20" /></td>
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-16" /></td>
-                          <td className="px-4 py-3"><div className="h-5 bg-slate-200 rounded-full w-20" /></td>
-                          <td className="px-4 py-3"><div className="h-5 bg-slate-200 rounded w-16 ml-auto" /></td>
+                          <td className="px-4 py-3">
+                            <div className="h-3 bg-slate-200 rounded w-16" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-3 bg-slate-200 rounded w-28" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-3 bg-slate-200 rounded w-20" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-3 bg-slate-200 rounded w-16" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-5 bg-slate-200 rounded-full w-20" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-5 bg-slate-200 rounded w-16 ml-auto" />
+                          </td>
                         </tr>
                       ))
                     ) : filteredAppointments.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
+                        <td
+                          colSpan={6}
+                          className="px-4 py-10 text-center text-slate-500"
+                        >
                           <div className="flex flex-col items-center justify-center space-y-2">
                             <Calendar size={28} className="text-slate-300" />
-                            <span className="font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                            <span
+                              className="font-bold text-[#111827]"
+                              style={{ fontFamily: PP }}
+                            >
                               No appointments found.
                             </span>
                             <span className="text-xs text-[#64748B]">
-                              No appointments matching your current search or date filter.
+                              No appointments matching your current search or
+                              date filter.
                             </span>
                           </div>
                         </td>
                       </tr>
                     ) : (
                       filteredAppointments.map((apt) => (
-                        <tr key={apt.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="px-4 py-3 font-mono font-bold text-[#0D47A1]">{apt.id}</td>
-                          <td className="px-4 py-3 font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                        <tr
+                          key={apt.id}
+                          className="hover:bg-slate-50/80 transition-colors"
+                        >
+                          <td className="px-4 py-3 font-mono font-bold text-[#0D47A1]">
+                            {apt.id}
+                          </td>
+                          <td
+                            className="px-4 py-3 font-bold text-[#111827]"
+                            style={{ fontFamily: PP }}
+                          >
                             {apt.patientName}
                           </td>
-                          <td className="px-4 py-3 text-slate-600">{apt.date}</td>
-                          <td className="px-4 py-3 text-slate-600">{apt.time}</td>
+                          <td className="px-4 py-3 text-slate-600">
+                            {apt.date}
+                          </td>
+                          <td className="px-4 py-3 text-slate-600">
+                            {apt.time}
+                          </td>
                           <td className="px-4 py-3">
                             <span
                               className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
@@ -684,7 +825,10 @@ export function DoctorProfileScreen({
           {activeTab === "patients" && (
             <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-4">
               <div className="relative max-w-md">
-                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search
+                  size={14}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                />
                 <input
                   type="text"
                   value={patientSearch}
@@ -705,7 +849,10 @@ export function DoctorProfileScreen({
               <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB]">
-                    <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
+                    <tr
+                      className="text-[#64748B] font-bold"
+                      style={{ fontFamily: PP }}
+                    >
                       <th className="px-4 py-3">Patient ID</th>
                       <th className="px-4 py-3">Patient Name</th>
                       <th className="px-4 py-3">Gender</th>
@@ -719,39 +866,74 @@ export function DoctorProfileScreen({
                     {isLoading ? (
                       Array.from({ length: 4 }).map((_, idx) => (
                         <tr key={idx} className="animate-pulse">
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-16" /></td>
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-28" /></td>
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-12" /></td>
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-10" /></td>
-                          <td className="px-4 py-3"><div className="h-3 bg-slate-200 rounded w-20" /></td>
-                          <td className="px-4 py-3"><div className="h-5 bg-slate-200 rounded-full w-16" /></td>
-                          <td className="px-4 py-3"><div className="h-5 bg-slate-200 rounded w-20 ml-auto" /></td>
+                          <td className="px-4 py-3">
+                            <div className="h-3 bg-slate-200 rounded w-16" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-3 bg-slate-200 rounded w-28" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-3 bg-slate-200 rounded w-12" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-3 bg-slate-200 rounded w-10" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-3 bg-slate-200 rounded w-20" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-5 bg-slate-200 rounded-full w-16" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="h-5 bg-slate-200 rounded w-20 ml-auto" />
+                          </td>
                         </tr>
                       ))
                     ) : filteredPatients.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
+                        <td
+                          colSpan={7}
+                          className="px-4 py-10 text-center text-slate-500"
+                        >
                           <div className="flex flex-col items-center justify-center space-y-2">
                             <User size={28} className="text-slate-300" />
-                            <span className="font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                            <span
+                              className="font-bold text-[#111827]"
+                              style={{ fontFamily: PP }}
+                            >
                               No assigned patients.
                             </span>
                             <span className="text-xs text-[#64748B]">
-                              No patient records matching search criteria for this doctor.
+                              No patient records matching search criteria for
+                              this doctor.
                             </span>
                           </div>
                         </td>
                       </tr>
                     ) : (
                       filteredPatients.map((pt) => (
-                        <tr key={pt.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="px-4 py-3 font-mono font-bold text-[#0D47A1]">{pt.id}</td>
-                          <td className="px-4 py-3 font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                        <tr
+                          key={pt.id}
+                          className="hover:bg-slate-50/80 transition-colors"
+                        >
+                          <td className="px-4 py-3 font-mono font-bold text-[#0D47A1]">
+                            {pt.id}
+                          </td>
+                          <td
+                            className="px-4 py-3 font-bold text-[#111827]"
+                            style={{ fontFamily: PP }}
+                          >
                             {pt.name}
                           </td>
-                          <td className="px-4 py-3 text-slate-600">{pt.gender}</td>
-                          <td className="px-4 py-3 text-slate-600">{pt.age} Yrs</td>
-                          <td className="px-4 py-3 text-slate-600">{pt.lastVisit}</td>
+                          <td className="px-4 py-3 text-slate-600">
+                            {pt.gender}
+                          </td>
+                          <td className="px-4 py-3 text-slate-600">
+                            {pt.age} Yrs
+                          </td>
+                          <td className="px-4 py-3 text-slate-600">
+                            {pt.lastVisit}
+                          </td>
                           <td className="px-4 py-3">
                             <span
                               className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
@@ -768,7 +950,9 @@ export function DoctorProfileScreen({
                           <td className="px-4 py-3 text-right">
                             <button
                               onClick={() =>
-                                triggerToast(`Viewing profile for ${pt.name} (${pt.id})...`)
+                                triggerToast(
+                                  `Viewing profile for ${pt.name} (${pt.id})...`,
+                                )
                               }
                               className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#0D47A1] font-bold text-xs transition-colors"
                               style={{ fontFamily: PP }}
@@ -788,11 +972,15 @@ export function DoctorProfileScreen({
           {activeTab === "timeline" && (
             <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
               <div>
-                <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                <h3
+                  className="text-base font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
                   Chronological Activity Log
                 </h3>
                 <p className="text-xs text-[#64748B]">
-                  Audit trajectory of consultation events, schedule changes, and registration records.
+                  Audit trajectory of consultation events, schedule changes, and
+                  registration records.
                 </p>
               </div>
 
@@ -800,7 +988,10 @@ export function DoctorProfileScreen({
                 {MOCK_DOCTOR_TIMELINE.map((item, idx) => {
                   const IconComp = item.icon;
                   return (
-                    <div key={idx} className="relative flex items-start gap-4 group">
+                    <div
+                      key={idx}
+                      className="relative flex items-start gap-4 group"
+                    >
                       <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center shrink-0">
                         <div className="w-1.5 h-1.5 rounded-full bg-[#0D47A1]" />
                       </div>
@@ -810,9 +1001,12 @@ export function DoctorProfileScreen({
                             className="font-bold text-[#111827] text-xs flex items-center gap-1.5"
                             style={{ fontFamily: PP }}
                           >
-                            <IconComp size={14} className="text-[#0D47A1]" /> {item.title}
+                            <IconComp size={14} className="text-[#0D47A1]" />{" "}
+                            {item.title}
                           </span>
-                          <span className="text-[11px] text-[#64748B] font-mono">{item.time}</span>
+                          <span className="text-[11px] text-[#64748B] font-mono">
+                            {item.time}
+                          </span>
                         </div>
                         <p className="text-xs text-slate-600">{item.desc}</p>
                       </div>
@@ -834,7 +1028,10 @@ export function DoctorProfileScreen({
                 {initials}
               </div>
               <div className="truncate">
-                <span className="font-bold text-[#111827] text-sm truncate block" style={{ fontFamily: PP }}>
+                <span
+                  className="font-bold text-[#111827] text-sm truncate block"
+                  style={{ fontFamily: PP }}
+                >
                   {docState.name}
                 </span>
                 <span className="text-xs text-[#0D47A1] font-semibold truncate block">
@@ -855,11 +1052,16 @@ export function DoctorProfileScreen({
               </div>
               <div className="flex justify-between">
                 <span className="text-[#64748B]">Shift Timings:</span>
-                <span className="font-medium text-[#111827]">{docState.shiftTimings}</span>
+                <span className="font-medium text-[#111827]">
+                  {docState.shiftTimings}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#64748B]">Consultation Fee:</span>
-                <span className="font-bold text-[#0D47A1]" style={{ fontFamily: PP }}>
+                <span
+                  className="font-bold text-[#0D47A1]"
+                  style={{ fontFamily: PP }}
+                >
                   ${docState.consultationFee}
                 </span>
               </div>
@@ -871,7 +1073,8 @@ export function DoctorProfileScreen({
               className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-1.5"
               style={{ fontFamily: PP }}
             >
-              <Clock size={14} className="text-[#009688]" /> Today's Upcoming Queue
+              <Clock size={14} className="text-[#009688]" /> Today's Upcoming
+              Queue
             </h3>
 
             <div className="space-y-2.5 text-xs">
@@ -881,14 +1084,19 @@ export function DoctorProfileScreen({
                   className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1 hover:border-blue-200 transition-colors"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                    <span
+                      className="font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
                       {apt.patientName}
                     </span>
                     <span className="font-mono text-[10px] text-[#0D47A1] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
                       {apt.time}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 truncate">{apt.complaint}</p>
+                  <p className="text-[11px] text-slate-500 truncate">
+                    {apt.complaint}
+                  </p>
                 </div>
               ))}
             </div>
@@ -902,7 +1110,10 @@ export function DoctorProfileScreen({
             <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
               <div className="flex items-center gap-2">
                 <Calendar size={18} className="text-[#0D47A1]" />
-                <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                <h3
+                  className="text-base font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
                   Appointment Details
                 </h3>
               </div>
@@ -917,31 +1128,42 @@ export function DoctorProfileScreen({
             <div className="space-y-3 text-xs">
               <div className="flex justify-between py-1 border-b border-gray-100">
                 <span className="text-[#64748B]">Appointment ID</span>
-                <span className="font-mono font-bold text-[#0D47A1]">{selectedApptDetail.id as string}</span>
+                <span className="font-mono font-bold text-[#0D47A1]">
+                  {selectedApptDetail.id}
+                </span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100">
                 <span className="text-[#64748B]">Patient Name</span>
                 <span className="font-bold text-[#111827]">
-                  {selectedApptDetail.patientName as string} ({selectedApptDetail.gender as string}/{selectedApptDetail.age as number}Y)
+                  {selectedApptDetail.patientName} ({selectedApptDetail.gender}/
+                  {selectedApptDetail.age}Y)
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100">
                 <span className="text-[#64748B]">Date & Time</span>
                 <span className="font-medium text-[#111827]">
-                  {selectedApptDetail.date as string} &bull; {selectedApptDetail.time as string}
+                  {selectedApptDetail.date} &bull; {selectedApptDetail.time}
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100">
                 <span className="text-[#64748B]">Visit Type</span>
-                <span className="font-medium text-[#111827]">{selectedApptDetail.type as string}</span>
+                <span className="font-medium text-[#111827]">
+                  {selectedApptDetail.type}
+                </span>
               </div>
               <div className="flex justify-between py-1 border-b border-gray-100">
                 <span className="text-[#64748B]">Status</span>
-                <span className="font-semibold text-[#66BB6A]">{selectedApptDetail.status as string}</span>
+                <span className="font-semibold text-[#66BB6A]">
+                  {selectedApptDetail.status}
+                </span>
               </div>
               <div className="py-1">
-                <span className="text-[#64748B] block text-[11px]">Chief Complaint</span>
-                <p className="text-slate-700 font-medium mt-0.5">{selectedApptDetail.complaint as string}</p>
+                <span className="text-[#64748B] block text-[11px]">
+                  Chief Complaint
+                </span>
+                <p className="text-[#111827] mt-0.5">
+                  {selectedApptDetail.complaint}
+                </p>
               </div>
             </div>
 

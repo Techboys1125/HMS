@@ -1,4 +1,3 @@
-import React from "react";
 import {
   ArrowUpDown,
   Stethoscope,
@@ -8,21 +7,40 @@ import {
   Calendar,
   AlertTriangle,
 } from "lucide-react";
-import type { DoctorRecord, DoctorAvailability, DoctorStatus } from "../types/doctors.types";
+import type {
+  DoctorRecord,
+  DoctorAvailability,
+  DoctorStatus,
+} from "../types/doctors.types";
 import { PP } from "../constants/doctors.constants";
 
 function getAvailabilityBadgeStyle(avail: DoctorAvailability) {
   switch (avail) {
     case "Available Today":
-      return { bg: "bg-[#E6F4F1] text-[#009688] border-teal-200", dot: "bg-[#009688]" };
+      return {
+        bg: "bg-[#E6F4F1] text-[#009688] border-teal-200",
+        dot: "bg-[#009688]",
+      };
     case "On Duty":
-      return { bg: "bg-blue-50 text-[#0D47A1] border-blue-200", dot: "bg-[#0D47A1]" };
+      return {
+        bg: "bg-blue-50 text-[#0D47A1] border-blue-200",
+        dot: "bg-[#0D47A1]",
+      };
     case "On Call":
-      return { bg: "bg-purple-50 text-purple-700 border-purple-200", dot: "bg-purple-600" };
+      return {
+        bg: "bg-purple-50 text-purple-700 border-purple-200",
+        dot: "bg-purple-600",
+      };
     case "On Leave":
-      return { bg: "bg-amber-50 text-[#F59E0B] border-amber-200", dot: "bg-[#F59E0B]" };
+      return {
+        bg: "bg-amber-50 text-[#F59E0B] border-amber-200",
+        dot: "bg-[#F59E0B]",
+      };
     case "Out of Office":
-      return { bg: "bg-slate-100 text-slate-600 border-slate-200", dot: "bg-slate-400" };
+      return {
+        bg: "bg-slate-100 text-slate-600 border-slate-200",
+        dot: "bg-slate-400",
+      };
   }
 }
 
@@ -59,8 +77,6 @@ export function DoctorTable({
   doctors,
   filteredDoctors,
   isLoading,
-  sortColumn,
-  sortDirection,
   onSort,
   onViewProfile,
   onQuickView,
@@ -90,14 +106,24 @@ export function DoctorTable({
               ].map((col) => (
                 <th
                   key={col.label}
-                  onClick={col.key ? () => onSort(col.key as keyof DoctorRecord) : undefined}
+                  onClick={
+                    col.key
+                      ? () => onSort(col.key as keyof DoctorRecord)
+                      : undefined
+                  }
                   className={`px-4 py-3.5 ${
-                    col.key ? "cursor-pointer hover:text-[#0D47A1] transition-colors" : ""
+                    col.key
+                      ? "cursor-pointer hover:text-[#0D47A1] transition-colors"
+                      : ""
                   } ${col.align || ""}`}
                 >
-                  <div className={`flex items-center gap-1 ${col.align ? "justify-end" : ""}`}>
+                  <div
+                    className={`flex items-center gap-1 ${col.align ? "justify-end" : ""}`}
+                  >
                     <span>{col.label}</span>
-                    {col.key && <ArrowUpDown size={12} className="text-slate-400" />}
+                    {col.key && (
+                      <ArrowUpDown size={12} className="text-slate-400" />
+                    )}
                   </div>
                 </th>
               ))}
@@ -108,7 +134,9 @@ export function DoctorTable({
             {isLoading ? (
               Array.from({ length: 6 }).map((_, idx) => (
                 <tr key={idx} className="animate-pulse">
-                  <td className="px-4 py-3.5"><div className="h-3 bg-slate-200 rounded w-16" /></td>
+                  <td className="px-4 py-3.5">
+                    <div className="h-3 bg-slate-200 rounded w-16" />
+                  </td>
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-xl bg-slate-200 shrink-0" />
@@ -118,14 +146,30 @@ export function DoctorTable({
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3.5"><div className="h-3 bg-slate-200 rounded w-20" /></td>
-                  <td className="px-4 py-3.5"><div className="h-3 bg-slate-200 rounded w-28" /></td>
-                  <td className="px-4 py-3.5"><div className="h-3 bg-slate-200 rounded w-24" /></td>
-                  <td className="px-4 py-3.5"><div className="h-3 bg-slate-200 rounded w-12" /></td>
-                  <td className="px-4 py-3.5"><div className="h-3 bg-slate-200 rounded w-12" /></td>
-                  <td className="px-4 py-3.5"><div className="h-5 bg-slate-200 rounded-full w-24" /></td>
-                  <td className="px-4 py-3.5"><div className="h-5 bg-slate-200 rounded-full w-16" /></td>
-                  <td className="px-4 py-3.5"><div className="h-6 bg-slate-200 rounded w-20 ml-auto" /></td>
+                  <td className="px-4 py-3.5">
+                    <div className="h-3 bg-slate-200 rounded w-20" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="h-3 bg-slate-200 rounded w-28" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="h-3 bg-slate-200 rounded w-24" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="h-3 bg-slate-200 rounded w-12" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="h-3 bg-slate-200 rounded w-12" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="h-5 bg-slate-200 rounded-full w-24" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="h-5 bg-slate-200 rounded-full w-16" />
+                  </td>
+                  <td className="px-4 py-3.5">
+                    <div className="h-6 bg-slate-200 rounded w-20 ml-auto" />
+                  </td>
                 </tr>
               ))
             ) : filteredDoctors.length === 0 ? (
@@ -136,11 +180,15 @@ export function DoctorTable({
                       <Stethoscope size={28} />
                     </div>
                     <div className="space-y-1">
-                      <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                      <h3
+                        className="text-base font-bold text-[#111827]"
+                        style={{ fontFamily: PP }}
+                      >
                         No doctors found.
                       </h3>
                       <p className="text-xs text-[#64748B]">
-                        No doctor records matched your search query or selected filter options.
+                        No doctor records matched your search query or selected
+                        filter options.
                       </p>
                     </div>
                     <div className="flex items-center gap-2 pt-2">
@@ -186,7 +234,10 @@ export function DoctorTable({
                       {doc.id}
                     </td>
 
-                    <td onClick={() => onViewProfile(doc)} className="px-4 py-3.5">
+                    <td
+                      onClick={() => onViewProfile(doc)}
+                      className="px-4 py-3.5"
+                    >
                       <div className="flex items-center gap-3">
                         <div
                           className="w-8 h-8 rounded-xl bg-teal-100 text-[#009688] font-bold text-xs flex items-center justify-center shrink-0 border border-teal-200"
@@ -208,17 +259,29 @@ export function DoctorTable({
                       </div>
                     </td>
 
-                    <td className="px-4 py-3.5 font-semibold text-[#111827]">{doc.department}</td>
+                    <td className="px-4 py-3.5 font-semibold text-[#111827]">
+                      {doc.department}
+                    </td>
 
-                    <td className="px-4 py-3.5 text-slate-700">{doc.specialty}</td>
+                    <td className="px-4 py-3.5 text-slate-700">
+                      {doc.specialty}
+                    </td>
 
-                    <td className="px-4 py-3.5 text-[#64748B] max-w-[150px] truncate" title={doc.qualification}>
+                    <td
+                      className="px-4 py-3.5 text-[#64748B] max-w-[150px] truncate"
+                      title={doc.qualification}
+                    >
                       {doc.qualification}
                     </td>
 
-                    <td className="px-4 py-3.5 font-medium text-[#111827]">{doc.experienceYrs} Yrs</td>
+                    <td className="px-4 py-3.5 font-medium text-[#111827]">
+                      {doc.experienceYrs} Yrs
+                    </td>
 
-                    <td className="px-4 py-3.5 font-bold text-[#0D47A1]" style={{ fontFamily: PP }}>
+                    <td
+                      className="px-4 py-3.5 font-bold text-[#0D47A1]"
+                      style={{ fontFamily: PP }}
+                    >
                       ${doc.consultationFee}
                     </td>
 
@@ -226,7 +289,9 @@ export function DoctorTable({
                       <span
                         className={`px-2.5 py-1 rounded-full text-[11px] font-medium border inline-flex items-center gap-1.5 ${availBadge.bg}`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${availBadge.dot}`} />
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${availBadge.dot}`}
+                        />
                         {doc.availability}
                       </span>
                     </td>
@@ -289,21 +354,33 @@ export function DoctorTable({
         <div className="px-4 py-3 bg-slate-50 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
           <div>
             Showing{" "}
-            <span className="font-bold text-[#111827]">{filteredDoctors.length}</span>{" "}
+            <span className="font-bold text-[#111827]">
+              {filteredDoctors.length}
+            </span>{" "}
             of{" "}
             <span className="font-bold text-[#111827]">{doctors.length}</span>{" "}
             registered doctors
           </div>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#009688]" /> Available Today:{" "}
-              {doctors.filter(
-                (d) => d.availability === "Available Today" || d.availability === "On Duty",
-              ).length}
+              <span className="w-2 h-2 rounded-full bg-[#009688]" /> Available
+              Today:{" "}
+              {
+                doctors.filter(
+                  (d) =>
+                    d.availability === "Available Today" ||
+                    d.availability === "On Duty",
+                ).length
+              }
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#F59E0B]" /> On Leave:{" "}
-              {doctors.filter((d) => d.availability === "On Leave" || d.status === "On Leave").length}
+              {
+                doctors.filter(
+                  (d) =>
+                    d.availability === "On Leave" || d.status === "On Leave",
+                ).length
+              }
             </span>
           </div>
         </div>
