@@ -293,33 +293,33 @@ const RECENT_ACTIVITIES: ActivityRecord[] = [
 // ─── Status Chip Component ────────────────────────────────────────────────────
 function StatusChip({ status }: { status: PaymentStatus }) {
   const map: Record<PaymentStatus, { bg: string; text: string; dot: string }> =
-    {
-      Paid: {
-        bg: "bg-green-50 border-green-200",
-        text: "text-[#66BB6A]",
-        dot: "bg-[#66BB6A]",
-      },
-      "Partially Paid": {
-        bg: "bg-blue-50 border-blue-200",
-        text: "text-[#0D47A1]",
-        dot: "bg-[#0D47A1]",
-      },
-      Pending: {
-        bg: "bg-amber-50 border-amber-200",
-        text: "text-[#F59E0B]",
-        dot: "bg-[#F59E0B]",
-      },
-      Cancelled: {
-        bg: "bg-slate-100 border-slate-200",
-        text: "text-[#64748B]",
-        dot: "bg-[#64748B]",
-      },
-      Refunded: {
-        bg: "bg-red-50 border-red-200",
-        text: "text-[#EF4444]",
-        dot: "bg-[#EF4444]",
-      },
-    };
+  {
+    Paid: {
+      bg: "bg-green-50 border-green-200",
+      text: "text-[#66BB6A]",
+      dot: "bg-[#66BB6A]",
+    },
+    "Partially Paid": {
+      bg: "bg-blue-50 border-blue-200",
+      text: "text-[#0D47A1]",
+      dot: "bg-[#0D47A1]",
+    },
+    Pending: {
+      bg: "bg-amber-50 border-amber-200",
+      text: "text-[#F59E0B]",
+      dot: "bg-[#F59E0B]",
+    },
+    Cancelled: {
+      bg: "bg-slate-100 border-slate-200",
+      text: "text-[#64748B]",
+      dot: "bg-[#64748B]",
+    },
+    Refunded: {
+      bg: "bg-red-50 border-red-200",
+      text: "text-[#EF4444]",
+      dot: "bg-[#EF4444]",
+    },
+  };
   const style = map[status];
   return (
     <span
@@ -1071,9 +1071,9 @@ export function BillingDashboardScreen({
                                           prev.map((i) =>
                                             i.id === inv.id
                                               ? {
-                                                  ...i,
-                                                  paymentStatus: "Cancelled",
-                                                }
+                                                ...i,
+                                                paymentStatus: "Cancelled",
+                                              }
                                               : i,
                                           ),
                                         );
@@ -1663,11 +1663,10 @@ export function BillingDashboardScreen({
                         key={m}
                         type="button"
                         onClick={() => setCollectMethod(m)}
-                        className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${
-                          collectMethod === m
+                        className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all ${collectMethod === m
                             ? "bg-[#009688] text-white border-[#009688] shadow-sm"
                             : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                        }`}
+                          }`}
                       >
                         {m}
                       </button>
@@ -2117,10 +2116,10 @@ export function CreateInvoiceWorkspaceScreen({
   const balanceDue = Math.max(0, grandTotal - Number(amountReceived));
 
   // Update item totals on row change
-  const handleUpdateItem = (
+  const handleUpdateItem = <K extends keyof BillingLineItem>(
     id: string,
-    field: keyof BillingLineItem,
-    val: any,
+    field: K,
+    val: BillingLineItem[K],
   ) => {
     setLineItems((prev) =>
       prev.map((item) => {
@@ -2418,11 +2417,10 @@ export function CreateInvoiceWorkspaceScreen({
                         key={cat}
                         type="button"
                         onClick={() => setPatientCategory(cat)}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                          patientCategory === cat
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${patientCategory === cat
                             ? "bg-[#0D47A1] text-white shadow-xs"
                             : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
-                        }`}
+                          }`}
                       >
                         {cat}
                       </button>
@@ -3612,7 +3610,7 @@ export function CollectPaymentWorkspaceScreen({
                 </label>
                 <select
                   value={paymentMode}
-                  onChange={(e) => setPaymentMode(e.target.value as any)}
+                  onChange={(e) => setPaymentMode(e.target.value as PaymentMethod)}
                   className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 font-bold text-[#111827] focus:bg-white focus:border-[#0D47A1] focus:outline-none"
                 >
                   <option value="UPI">UPI / GPay / PhonePe</option>
@@ -3639,11 +3637,10 @@ export function CollectPaymentWorkspaceScreen({
                     if (errors.amountReceived)
                       setErrors({ ...errors, amountReceived: "" });
                   }}
-                  className={`w-full px-3 py-2.5 rounded-xl border bg-slate-50 font-bold text-sm text-[#111827] focus:bg-white focus:outline-none ${
-                    errors.amountReceived
+                  className={`w-full px-3 py-2.5 rounded-xl border bg-slate-50 font-bold text-sm text-[#111827] focus:bg-white focus:outline-none ${errors.amountReceived
                       ? "border-[#EF4444]"
                       : "border-[#E5E7EB] focus:border-[#0D47A1]"
-                  }`}
+                    }`}
                 />
                 {errors.amountReceived && (
                   <span className="text-[10px] text-[#EF4444] block mt-0.5">
@@ -3684,11 +3681,10 @@ export function CollectPaymentWorkspaceScreen({
                       setErrors({ ...errors, referenceNo: "" });
                   }}
                   placeholder="e.g. UPI/998120/OKAX or Card Auth Code"
-                  className={`w-full px-3 py-2.5 rounded-xl border bg-slate-50 font-mono text-xs text-[#111827] focus:bg-white focus:outline-none ${
-                    errors.referenceNo
+                  className={`w-full px-3 py-2.5 rounded-xl border bg-slate-50 font-mono text-xs text-[#111827] focus:bg-white focus:outline-none ${errors.referenceNo
                       ? "border-[#EF4444]"
                       : "border-[#E5E7EB] focus:border-[#0D47A1]"
-                  }`}
+                    }`}
                 />
                 {errors.referenceNo && (
                   <span className="text-[10px] text-[#EF4444] block mt-0.5">
@@ -5888,11 +5884,10 @@ export function InvoicePrintPreviewScreen({
                       key={s}
                       type="button"
                       onClick={() => setPaperSize(s)}
-                      className={`py-1.5 px-3 rounded-lg border font-semibold ${
-                        paperSize === s
+                      className={`py-1.5 px-3 rounded-lg border font-semibold ${paperSize === s
                           ? "bg-[#0D47A1] text-white border-[#0D47A1]"
                           : "bg-slate-50 text-slate-700 border-slate-200"
-                      }`}
+                        }`}
                     >
                       {s}
                     </button>
@@ -5906,7 +5901,7 @@ export function InvoicePrintPreviewScreen({
                 </label>
                 <select
                   value={margins}
-                  onChange={(e) => setMargins(e.target.value as any)}
+                  onChange={(e) => setMargins(e.target.value as "Normal" | "Narrow" | "Wide")}
                   className="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 font-medium"
                 >
                   <option value="Normal">Normal Margins</option>
@@ -6107,7 +6102,7 @@ export function PaymentHistoryScreen({
 
   // Selected Payment Drawer State
   const [selectedDrawerPayment, setSelectedDrawerPayment] = useState<
-    any | null
+    (typeof initialPayments)[number] | null
   >(null);
   const [showMoreMenuId, setShowMoreMenuId] = useState<string | null>(null);
 
@@ -7574,11 +7569,10 @@ export function DailyBillingReportScreen({
                       </td>
                       <td className="py-3 px-4 text-center">
                         <span
-                          className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                            c.status === "Excellent"
+                          className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${c.status === "Excellent"
                               ? "bg-green-50 text-[#66BB6A]"
                               : "bg-blue-50 text-[#0D47A1]"
-                          }`}
+                            }`}
                         >
                           {c.status}
                         </span>

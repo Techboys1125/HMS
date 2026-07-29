@@ -1,4 +1,4 @@
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status = "" }: { status?: string }) {
   const c =
     status === "Active"
       ? { bg: "bg-green-50", text: "text-green-700", dot: "bg-[#66BB6A]" }
@@ -17,7 +17,7 @@ export function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export function TimelineStatusBadge({ status }: { status: string }) {
+export function TimelineStatusBadge({ status = "" }: { status?: string }) {
   const isCompleted = status === "Completed";
   return (
     <span

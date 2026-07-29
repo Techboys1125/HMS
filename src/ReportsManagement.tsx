@@ -10234,7 +10234,7 @@ export function DashboardKpiDetailScreen({
                 style={{ fontFamily: PP }}
               >
                 {selectedKpi.includes("Revenue") ||
-                selectedKpi.includes("Collected")
+                  selectedKpi.includes("Collected")
                   ? "₹72,000"
                   : selectedKpi.includes("Appointments")
                     ? "184"

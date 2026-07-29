@@ -173,11 +173,10 @@ function Toast({
 }) {
   return (
     <div
-      className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border text-sm font-medium max-w-md animate-[slideIn_0.35s_ease-out] ${
-        type === "success"
-          ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-          : "bg-red-50 border-red-200 text-red-800"
-      }`}
+      className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border text-sm font-medium max-w-md animate-[slideIn_0.35s_ease-out] ${type === "success"
+        ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+        : "bg-red-50 border-red-200 text-red-800"
+        }`}
     >
       {type === "success" ? (
         <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
@@ -455,15 +454,20 @@ export function RegisterPatientScreen({
     }
 
     try {
-      const result = (await createPatient.mutateAsync(payload)) as any;
+      const result = (await createPatient.mutateAsync(payload)) as {
+        mrn?: string;
+        MRNId?: string;
+      };
       setSuccessData({
-        mrn: result.mrn || result.MRNId,
+        mrn: result.mrn || result.MRNId || "",
         name: form.fullName.trim(),
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setToast({
         message:
-          err?.message || "Failed to register patient. Please try again.",
+          err instanceof Error
+            ? err.message
+            : "Failed to register patient. Please try again.",
         type: "error",
       });
     }

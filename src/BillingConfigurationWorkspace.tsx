@@ -219,7 +219,7 @@ export function BillingConfigurationWorkspace() {
               <Eye size={14} /> Preview Invoice
             </button>
             <button
-              onClick={() => {}}
+              onClick={() => { }}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -1364,7 +1364,7 @@ export function BillingConfigurationWorkspace() {
               >
                 <input
                   type="checkbox"
-                  checked={(receiptConfig as any)[item.key]}
+                  checked={(receiptConfig as unknown as Record<string, boolean>)[item.key]}
                   onChange={(e) =>
                     setReceiptConfig((prev) => ({
                       ...prev,
@@ -1488,7 +1488,7 @@ export function BillingConfigurationWorkspace() {
                 </span>
                 <input
                   type="checkbox"
-                  checked={(billingRules as any)[item.key]}
+                  checked={(billingRules as unknown as Record<string, boolean>)[item.key]}
                   onChange={(e) =>
                     setBillingRules((prev) => ({
                       ...prev,

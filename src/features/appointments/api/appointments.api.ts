@@ -8,6 +8,7 @@ import type {
   QueueActionResponse,
   LinkedPatient,
   OnboardingStatusResponse,
+  DoctorSummary,
 } from "../types/appointment.types";
 
 const handleApiError = (error: unknown): never => {
@@ -31,7 +32,7 @@ export const appointmentsApi = {
     page?: number;
     size?: number;
     sort?: string;
-  }): Promise<ApiResponse<any>> => {
+  }): Promise<ApiResponse<unknown>> => {
     try {
       const query = new URLSearchParams();
       if (params?.doctorId !== undefined)
@@ -47,10 +48,10 @@ export const appointmentsApi = {
       if (params?.sort) query.append("sort", params.sort);
 
       const url = `/api/v1/appointments${query.toString() ? `?${query.toString()}` : ""}`;
-      const response = await apiClient.get<ApiResponse<any>>(url);
+      const response = await apiClient.get<ApiResponse<unknown>>(url);
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
@@ -64,7 +65,7 @@ export const appointmentsApi = {
       );
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
@@ -77,7 +78,7 @@ export const appointmentsApi = {
       );
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
@@ -92,7 +93,7 @@ export const appointmentsApi = {
       );
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
@@ -107,19 +108,21 @@ export const appointmentsApi = {
       );
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
-  getDoctorAppointments: async (date?: string): Promise<ApiResponse<any>> => {
+  getDoctorAppointments: async (
+    date?: string,
+  ): Promise<ApiResponse<unknown>> => {
     try {
       const url = date
         ? `/api/v1/doctor/appointments?date=${encodeURIComponent(date)}`
         : "/api/v1/doctor/appointments";
-      const response = await apiClient.get<ApiResponse<any>>(url);
+      const response = await apiClient.get<ApiResponse<unknown>>(url);
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
@@ -132,46 +135,46 @@ export const appointmentsApi = {
       );
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
   doctorStartConsultation: async (
     appointmentId: string | number,
-  ): Promise<ApiResponse<AppointmentRecord>> => {
+  ): Promise<ApiResponse<QueueActionResponse>> => {
     try {
-      const response = await apiClient.patch<ApiResponse<AppointmentRecord>>(
+      const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
         `/api/v1/doctor/appointments/${appointmentId}/start`,
       );
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
   doctorCompleteConsultation: async (
     appointmentId: string | number,
-  ): Promise<ApiResponse<AppointmentRecord>> => {
+  ): Promise<ApiResponse<QueueActionResponse>> => {
     try {
-      const response = await apiClient.patch<ApiResponse<AppointmentRecord>>(
+      const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
         `/api/v1/doctor/appointments/${appointmentId}/complete`,
       );
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
   getPatientAppointments: async (
     patientId: string | number,
-  ): Promise<ApiResponse<any>> => {
+  ): Promise<ApiResponse<unknown>> => {
     try {
-      const response = await apiClient.get<ApiResponse<any>>(
+      const response = await apiClient.get<ApiResponse<unknown>>(
         `/api/v1/patients/${patientId}/appointments`,
       );
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
@@ -182,7 +185,7 @@ export const appointmentsApi = {
       );
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
@@ -195,7 +198,7 @@ export const appointmentsApi = {
       >("/api/v1/patients/onboarding-status");
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
@@ -208,7 +211,7 @@ export const appointmentsApi = {
       );
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
@@ -223,46 +226,46 @@ export const appointmentsApi = {
         await apiClient.post<ApiResponse<QueueActionResponse>>(url);
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
-  getDepartments: async (): Promise<ApiResponse<any[]>> => {
+  getDepartments: async (): Promise<ApiResponse<unknown[]>> => {
     try {
-      const response = await apiClient.get<ApiResponse<any[]>>(
+      const response = await apiClient.get<ApiResponse<unknown[]>>(
         "/api/v1/departments",
       );
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
   getDoctors: async (
     departmentId?: string | number,
-  ): Promise<ApiResponse<any[]>> => {
+  ): Promise<ApiResponse<DoctorSummary[]>> => {
     try {
       const url =
         departmentId !== undefined && departmentId !== null
           ? `/api/v1/doctors?departmentId=${encodeURIComponent(String(departmentId))}`
           : "/api/v1/doctors";
-      const response = await apiClient.get<ApiResponse<any[]>>(url);
+      const response = await apiClient.get<ApiResponse<DoctorSummary[]>>(url);
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 
   getAvailableSlots: async (
     doctorId: string | number,
     date: string,
-  ): Promise<ApiResponse<any[]>> => {
+  ): Promise<ApiResponse<unknown[]>> => {
     try {
       const url = `/api/v1/doctors/${doctorId}/slots?date=${encodeURIComponent(date)}`;
-      const response = await apiClient.get<ApiResponse<any[]>>(url);
+      const response = await apiClient.get<ApiResponse<unknown[]>>(url);
       return response.data;
     } catch (error: unknown) {
-      handleApiError(error);
+      return handleApiError(error);
     }
   },
 };

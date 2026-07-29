@@ -1,6 +1,7 @@
 import { apiClient, axios } from "../../../lib/axios";
 import type {
   PatientRegistrationData,
+  PatientLinkData,
   PatientRegistrationResponse,
   ResendVerificationData,
   LoginCredentials,
@@ -30,14 +31,37 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          | { message?: string }
-          | undefined;
+          { message?: string } | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
       }
       const msg =
         error instanceof Error ? error.message : "Failed to register patient";
+      throw new Error(msg, { cause: error });
+    }
+  },
+
+  // Link Existing Patient (POST /api/v1/auth/patient/link)
+  linkPatient: async (
+    data: PatientLinkData,
+  ): Promise<PatientRegistrationResponse> => {
+    try {
+      const response = await apiClient.post<PatientRegistrationResponse>(
+        "/api/v1/auth/patient/link",
+        data,
+      );
+      return response.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          { message?: string } | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
+      }
+      const msg =
+        error instanceof Error ? error.message : "Failed to link patient";
       throw new Error(msg, { cause: error });
     }
   },
@@ -55,8 +79,7 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          | { message?: string }
-          | undefined;
+          { message?: string } | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -83,8 +106,7 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          | { message?: string }
-          | undefined;
+          { message?: string } | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -106,8 +128,7 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          | { message?: string }
-          | undefined;
+          { message?: string } | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -127,8 +148,7 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          | { message?: string }
-          | undefined;
+          { message?: string } | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -149,8 +169,7 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          | { message?: string }
-          | undefined;
+          { message?: string } | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -171,8 +190,7 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          | { message?: string }
-          | undefined;
+          { message?: string } | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -198,8 +216,7 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          | { message?: string }
-          | undefined;
+          { message?: string } | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -221,8 +238,7 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          | { message?: string }
-          | undefined;
+          { message?: string } | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -244,8 +260,7 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          | { message?: string }
-          | undefined;
+          { message?: string } | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }
@@ -267,8 +282,7 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          | { message?: string }
-          | undefined;
+          { message?: string } | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }

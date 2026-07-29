@@ -22,8 +22,10 @@ export function useForgotPassword(onSendOTP?: (email: string) => void) {
         onSendOTP(email);
       }
       return true;
-    } catch (err: any) {
-      setError(err.message || "Failed to send reset email");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to send reset email";
+      setError(message);
       return false;
     } finally {
       setLoading(false);

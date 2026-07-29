@@ -6,6 +6,8 @@ import type {
   CancelAppointmentRequest,
   LinkedPatient,
   UserRole,
+  DoctorSummary,
+  PatientSummary,
 } from "../types/appointment.types";
 
 export interface AppointmentPage<T> {
@@ -39,69 +41,96 @@ const toDisplayStatus = (status?: string): AppointmentRecord["status"] =>
   (status as AppointmentRecord["status"]) ||
   "Scheduled";
 
-export const normalizeAppointmentRecord = (item: any): AppointmentRecord => {
-  const patient = item?.patient || {};
-  const doctor = item?.doctor || {};
-  const appointmentDate = item?.appointmentDate || item?.date || "";
-  const startTime =
-    item?.startTime || item?.timeSlot || item?.appointmentTime || "";
+export const normalizeAppointmentRecord = (
+  item: Record<string, unknown> | null | undefined,
+): AppointmentRecord => {
+  const patient = (item?.patient as Record<string, unknown>) || {};
+  const doctor = (item?.doctor as Record<string, unknown>) || {};
+  const appointmentDate = (item?.appointmentDate || item?.date || "") as string;
+  const startTime = (item?.startTime ||
+    item?.timeSlot ||
+    item?.appointmentTime ||
+    "") as string;
 
   return {
-    id: item?.id ?? item?.appointmentId ?? item?.appointmentNumber ?? "",
-    appointmentNumber:
-      item?.appointmentNumber || item?.queueToken || String(item?.id ?? ""),
-    queueToken: item?.queueToken || item?.tokenNo,
-    patientId: item?.patientId ?? patient?.id ?? "",
-    patientName: item?.patientName || patient?.fullName || patient?.name || "",
-    patientMrn: item?.patientMrn || patient?.mrn || item?.mrn,
-    doctorId: item?.doctorId ?? doctor?.id ?? "",
-    doctorName: item?.doctorName || doctor?.name || "",
+    id: (item?.id ?? item?.appointmentId ?? item?.appointmentNumber ?? "") as
+      string | number,
+    appointmentNumber: (item?.appointmentNumber ||
+      item?.queueToken ||
+      String(item?.id ?? "")) as string,
+    queueToken: (item?.queueToken || item?.tokenNo) as string | undefined,
+    patientId: (item?.patientId ?? patient?.id ?? "") as string | number,
+    patientName: (item?.patientName ||
+      patient?.fullName ||
+      patient?.name ||
+      "") as string,
+    patientMrn: (item?.patientMrn || patient?.mrn || item?.mrn) as
+      string | undefined,
+    doctorId: (item?.doctorId ?? doctor?.id ?? "") as string | number,
+    doctorName: (item?.doctorName || doctor?.name || "") as string,
     appointmentDate,
     startTime,
-    endTime: item?.endTime,
-    status: toDisplayStatus(item?.status),
-    queueStatus: item?.queueStatus || item?.arrivalStatus,
-    appointmentType: item?.appointmentType,
-    reason: item?.reason || item?.chiefComplaint,
-    symptoms: item?.symptoms,
-    departmentId: item?.departmentId,
-    departmentName: item?.departmentName || item?.department?.name,
-    patient: patient,
-    doctor: doctor,
-    cancellationReason: item?.cancellationReason,
-    rescheduleReason: item?.rescheduleReason,
-    vitalsRecorded: item?.vitalsRecorded,
-    paymentStatus: item?.paymentStatus,
-    priority: item?.priority,
-    arrivalStatus: item?.arrivalStatus,
-    opdRoom: item?.opdRoom || doctor?.opdRoom,
-    waitingTimeMinutes: item?.waitingTimeMinutes,
-    isWalkIn: item?.isWalkIn,
-    createdDate: item?.createdDate || item?.createdAt,
-    mrn: item?.mrn || patient?.mrn,
-    patientAge: item?.patientAge,
-    patientGender: item?.patientGender,
-    patientPhone: item?.patientPhone || patient?.phone || patient?.mobile,
-    department:
-      item?.department || item?.departmentName || doctor?.departmentName,
-    doctorSpecialty: item?.doctorSpecialty || doctor?.specialty,
-    tokenNo: item?.tokenNo || item?.queueToken,
-    timeSlot: item?.timeSlot || startTime,
-    visitType: item?.visitType || item?.appointmentType,
-    chiefComplaint: item?.chiefComplaint || item?.reason,
-    notes: item?.notes,
+    endTime: item?.endTime as string | undefined,
+    status: toDisplayStatus(item?.status as string | undefined),
+    queueStatus: (item?.queueStatus || item?.arrivalStatus) as
+      string | undefined,
+    appointmentType: item?.appointmentType as string | undefined,
+    reason: (item?.reason || item?.chiefComplaint) as string | undefined,
+    symptoms: item?.symptoms as string | undefined,
+    departmentId:
+      typeof item?.departmentId === "number" ? item.departmentId : undefined,
+    departmentName: (item?.departmentName ||
+      (item?.department as Record<string, unknown>)?.name) as
+      string | undefined,
+    patient: patient as unknown as PatientSummary,
+    doctor: doctor as unknown as DoctorSummary,
+    cancellationReason: item?.cancellationReason as string | undefined,
+    rescheduleReason: item?.rescheduleReason as string | undefined,
+    vitalsRecorded: item?.vitalsRecorded as boolean | undefined,
+    paymentStatus: item?.paymentStatus as
+      "PAID" | "UNPAID" | "PARTIAL" | "PENDING" | undefined,
+    priority: item?.priority as string | undefined,
+    arrivalStatus: item?.arrivalStatus as string | undefined,
+    opdRoom: (item?.opdRoom || doctor?.opdRoom) as string | undefined,
+    waitingTimeMinutes: item?.waitingTimeMinutes as number | undefined,
+    isWalkIn: item?.isWalkIn as boolean | undefined,
+    createdDate: (item?.createdDate || item?.createdAt) as string | undefined,
+    mrn: (item?.mrn || patient?.mrn) as string | undefined,
+    patientAge: item?.patientAge as number | undefined,
+    patientGender: item?.patientGender as string | undefined,
+    patientPhone: (item?.patientPhone || patient?.phone || patient?.mobile) as
+      string | undefined,
+    department: (item?.department ||
+      item?.departmentName ||
+      doctor?.departmentName) as string | undefined,
+    doctorSpecialty: (item?.doctorSpecialty || doctor?.specialty) as
+      string | undefined,
+    tokenNo: (item?.tokenNo || item?.queueToken) as string | undefined,
+    timeSlot: (item?.timeSlot || startTime) as string | undefined,
+    visitType: (item?.visitType || item?.appointmentType) as string | undefined,
+    chiefComplaint: (item?.chiefComplaint || item?.reason) as
+      string | undefined,
+    notes: item?.notes as string | undefined,
   };
 };
 
-const unwrapAppointmentCollection = (response: any): any[] => {
-  if (Array.isArray(response?.data)) return response.data;
+const unwrapAppointmentCollection = (response: {
+  data?: unknown;
+  content?: unknown;
+}): Record<string, unknown>[] => {
+  if (Array.isArray(response?.data))
+    return response.data as Record<string, unknown>[];
 
-  if (Array.isArray(response?.content)) return response.content;
+  if (Array.isArray(response?.content))
+    return response.content as Record<string, unknown>[];
 
-  if (Array.isArray(response?.data?.content)) return response.data.content;
+  const resData = response?.data as
+    { content?: unknown; data?: { content?: unknown } } | undefined;
+  if (Array.isArray(resData?.content))
+    return resData.content as Record<string, unknown>[];
 
-  if (Array.isArray(response?.data?.data?.content))
-    return response.data.data.content;
+  if (Array.isArray(resData?.data?.content))
+    return resData.data.content as Record<string, unknown>[];
 
   return [];
 };
@@ -150,7 +179,11 @@ export const appointmentService = {
     appointmentId: string | number,
   ): Promise<AppointmentRecord | null> {
     const res = await appointmentsApi.getAppointmentById(appointmentId);
-    return res?.data ? normalizeAppointmentRecord(res.data) : null;
+    return res?.data
+      ? normalizeAppointmentRecord(
+          res.data as unknown as Record<string, unknown>,
+        )
+      : null;
   },
 
   async bookAppointment(
@@ -160,7 +193,9 @@ export const appointmentService = {
     if (!res?.data) {
       throw new Error("Appointment booking did not return a record.");
     }
-    return normalizeAppointmentRecord(res.data);
+    return normalizeAppointmentRecord(
+      res.data as unknown as Record<string, unknown>,
+    );
   },
 
   async rescheduleAppointment(
@@ -174,7 +209,9 @@ export const appointmentService = {
     if (!res?.data) {
       throw new Error("Appointment reschedule did not return a record.");
     }
-    return normalizeAppointmentRecord(res.data);
+    return normalizeAppointmentRecord(
+      res.data as unknown as Record<string, unknown>,
+    );
   },
 
   async cancelAppointment(
@@ -185,7 +222,9 @@ export const appointmentService = {
     if (!res?.data) {
       throw new Error("Appointment cancellation did not return a record.");
     }
-    return normalizeAppointmentRecord(res.data);
+    return normalizeAppointmentRecord(
+      res.data as unknown as Record<string, unknown>,
+    );
   },
 
   async receptionCheckIn(appointmentId: string | number) {
@@ -209,7 +248,7 @@ export const appointmentService = {
     return Array.isArray(res?.data) ? res.data : [];
   },
 
-  async listDoctors(departmentId?: string | number): Promise<any[]> {
+  async listDoctors(departmentId?: string | number): Promise<DoctorSummary[]> {
     const res = await appointmentsApi.getDoctors(departmentId);
     return Array.isArray(res?.data) ? res.data : [];
   },
@@ -217,7 +256,7 @@ export const appointmentService = {
   async listAvailableSlots(
     doctorId: string | number,
     date: string,
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     const res = await appointmentsApi.getAvailableSlots(doctorId, date);
     return Array.isArray(res?.data) ? res.data : [];
   },

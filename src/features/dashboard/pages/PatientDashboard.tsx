@@ -14,85 +14,6 @@ import {
 import { PP, RB } from "../components/DashboardShared";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
 
-export const PAT_PRESCRIPTIONS = [
-  {
-    drug: "Metoprolol 25mg",
-    freq: "Once daily — Morning",
-    remaining: 18,
-    total: 30,
-    doctor: "Dr. A. Mehta",
-  },
-  {
-    drug: "Aspirin 75mg",
-    freq: "Once daily — Evening",
-    remaining: 22,
-    total: 30,
-    doctor: "Dr. A. Mehta",
-  },
-  {
-    drug: "Atorvastatin 10mg",
-    freq: "Once daily — Night",
-    remaining: 7,
-    total: 30,
-    doctor: "Dr. A. Mehta",
-  },
-];
-
-export const PAT_BILLS = [
-  {
-    invoice: "INV-847",
-    service: "Cardiology OPD Consultation",
-    amount: 97.6,
-    due: "Due Today",
-    status: "unpaid",
-  },
-  {
-    invoice: "INV-831",
-    service: "General Medicine Consultation",
-    amount: 45.0,
-    due: "Due Mar 20",
-    status: "unpaid",
-  },
-  {
-    invoice: "INV-810",
-    service: "Follow-up Checkup",
-    amount: 28.0,
-    due: "Paid Mar 12",
-    status: "paid",
-  },
-];
-
-export const PAT_HISTORY = [
-  {
-    date: "Mar 12, 2025",
-    complaint: "Chest pain, shortness of breath",
-    doctor: "Dr. A. Mehta",
-    diagnosis: "Stable angina",
-    status: "completed",
-  },
-  {
-    date: "Feb 20, 2025",
-    complaint: "Routine cardiac checkup",
-    doctor: "Dr. A. Mehta",
-    diagnosis: "Normal cardiac rhythm",
-    status: "completed",
-  },
-  {
-    date: "Jan 08, 2025",
-    complaint: "High BP monitoring",
-    doctor: "Dr. P. Sharma",
-    diagnosis: "Hypertension stage I",
-    status: "completed",
-  },
-  {
-    date: "Dec 14, 2024",
-    complaint: "Annual health check",
-    doctor: "Dr. A. Mehta",
-    diagnosis: "All clear",
-    status: "completed",
-  },
-];
-
 export function PatientDashboard() {
   const [upcomingApt, setUpcomingApt] = useState<{
     id?: string | number;
@@ -148,7 +69,7 @@ export function PatientDashboard() {
         .cancelAppointment(upcomingApt.id, {
           reason: "Patient requested cancellation",
         })
-        .catch(() => {});
+        .catch(() => { });
     }
     setUpcomingApt((prev) => ({ ...prev, status: "Cancelled" }));
   };
@@ -593,13 +514,12 @@ export function PatientDashboard() {
                       <td className="px-4 py-3 text-slate-500">{rx.date}</td>
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                            rx.status === "Active"
-                              ? "bg-teal-50 text-[#009688]"
-                              : rx.status === "Refill Ready"
-                                ? "bg-amber-50 text-[#F59E0B]"
-                                : "bg-slate-100 text-slate-500"
-                          }`}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${rx.status === "Active"
+                            ? "bg-teal-50 text-[#009688]"
+                            : rx.status === "Refill Ready"
+                              ? "bg-amber-50 text-[#F59E0B]"
+                              : "bg-slate-100 text-slate-500"
+                            }`}
                         >
                           {rx.status}
                         </span>
@@ -700,13 +620,12 @@ export function PatientDashboard() {
                       <td className="px-4 py-3 text-slate-500">{bill.due}</td>
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                            bill.status === "Unpaid"
-                              ? "bg-red-50 text-[#EF4444]"
-                              : bill.status === "Pending"
-                                ? "bg-amber-50 text-[#F59E0B]"
-                                : "bg-green-50 text-[#66BB6A]"
-                          }`}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${bill.status === "Unpaid"
+                            ? "bg-red-50 text-[#EF4444]"
+                            : bill.status === "Pending"
+                              ? "bg-amber-50 text-[#F59E0B]"
+                              : "bg-green-50 text-[#66BB6A]"
+                            }`}
                         >
                           {bill.status}
                         </span>

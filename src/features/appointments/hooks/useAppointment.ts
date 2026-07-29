@@ -23,8 +23,12 @@ export function useAppointment(appointmentId?: string | number) {
       try {
         const data = await appointmentService.getAppointment(appointmentId);
         if (mounted) setAppointment(data);
-      } catch (err: any) {
-        if (mounted) setError(err?.message || "Failed to load appointment.");
+      } catch (err: unknown) {
+        if (mounted) {
+          const msg =
+            err instanceof Error ? err.message : "Failed to load appointment.";
+          setError(msg);
+        }
       } finally {
         if (mounted) setIsLoading(false);
       }

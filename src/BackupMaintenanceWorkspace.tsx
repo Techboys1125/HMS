@@ -98,7 +98,9 @@ export function BackupMaintenanceWorkspace() {
     notifyUsers: true,
   });
 
-  const [selectedBackup, setSelectedBackup] = useState<any>(null);
+  const [selectedBackup, setSelectedBackup] = useState<
+    (typeof backupHistory)[0] | null
+  >(null);
   const [saveToast, setSaveToast] = useState<string | null>(null);
   const [isBackingUp, setIsBackingUp] = useState(false);
 
@@ -746,7 +748,7 @@ export function BackupMaintenanceWorkspace() {
                 </div>
                 <input
                   type="checkbox"
-                  checked={(backupConfig as any)[item.key]}
+                  checked={(backupConfig as unknown as Record<string, boolean>)[item.key]}
                   onChange={(e) =>
                     setBackupConfig((prev) => ({
                       ...prev,

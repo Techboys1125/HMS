@@ -46,8 +46,10 @@ export function useOTP(
         onVerified(resetToken);
       }
       return res;
-    } catch (err: any) {
-      setError(err.message || "Invalid or expired OTP code");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Invalid or expired OTP code",
+      );
       return null;
     } finally {
       setLoading(false);
@@ -63,8 +65,8 @@ export function useOTP(
       await authService.resendVerificationOTP(email);
       setTimer(60);
       return true;
-    } catch (err: any) {
-      setError(err.message || "Failed to resend OTP");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to resend OTP");
       return false;
     } finally {
       setLoading(false);

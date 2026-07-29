@@ -657,14 +657,14 @@ export function ProfileInvoiceDrawer({
   onPay,
 }: {
   invoice:
-    | (Record<string, unknown> & {
-        id?: string;
-        date?: string;
-        status?: string;
-        description?: string;
-        amount?: number;
-      })
-    | null;
+  | (Record<string, unknown> & {
+    id?: string;
+    date?: string;
+    status?: string;
+    description?: string;
+    amount?: number;
+  })
+  | null;
   onClose: () => void;
   onPay: (msg: string) => void;
 }) {
@@ -721,14 +721,14 @@ export function ProfileInvoiceDrawer({
                     </div>
                   </div>
                   <span className="font-bold text-[#111827] text-sm">
-                    ${invoice.amount.toFixed(2)}
+                    ${(invoice.amount ?? 0).toFixed(2)}
                   </span>
                 </div>
               </div>
               <div className="pt-3 border-t border-gray-100 flex justify-between items-center text-sm font-bold text-[#111827]">
                 <span>Total Amount Due</span>
                 <span className="text-red-600">
-                  ${invoice.amount.toFixed(2)}
+                  ${(invoice.amount ?? 0).toFixed(2)}
                 </span>
               </div>
             </div>
@@ -737,7 +737,7 @@ export function ProfileInvoiceDrawer({
                 <button
                   onClick={() => {
                     onPay(
-                      `Payment of $${invoice.amount.toFixed(2)} for ${invoice.id} processed successfully!`,
+                      `Payment of $${(invoice.amount ?? 0).toFixed(2)} for ${invoice.id} processed successfully!`,
                     );
                     onClose();
                   }}
@@ -770,14 +770,14 @@ export function ProfileDocDrawer({
   onDownload,
 }: {
   doc:
-    | (Record<string, unknown> & {
-        title?: string;
-        category?: string;
-        date?: string;
-        size?: string;
-        doctor?: string;
-      })
-    | null;
+  | (Record<string, unknown> & {
+    title?: string;
+    category?: string;
+    date?: string;
+    size?: string;
+    doctor?: string;
+  })
+  | null;
   onClose: () => void;
   onDownload: (msg: string) => void;
 }) {

@@ -18,10 +18,8 @@ export const authService = {
   },
 
   // Link Existing Patient (Endpoint Stub)
-  async linkPatient(_data: PatientLinkData) {
-    // Replace with actual authApi.linkPatient when backend is ready
-    // return await authApi.linkPatient(data);
-    throw new Error("Link Patient API is not yet connected to backend.");
+  async linkPatient(data: PatientLinkData) {
+    return await authApi.linkPatient(data);
   },
 
   // Resend Verification (Endpoint 2)

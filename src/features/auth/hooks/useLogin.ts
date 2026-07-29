@@ -28,8 +28,9 @@ export function useLogin(onSuccess?: (res: LoginResponse) => void) {
         onSuccess(res);
       }
       return res;
-    } catch (err: any) {
-      const msg = err.message || "Invalid email or password";
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Invalid email or password";
       setError(msg);
       setErrors({ form: msg });
       return null;

@@ -33,18 +33,18 @@ export type FamilyMember = {
   patientName: string;
   mrn: string;
   relationship:
-    | "Self"
-    | "Mother"
-    | "Father"
-    | "Spouse"
-    | "Son"
-    | "Daughter"
-    | "Brother"
-    | "Sister"
-    | "Grandfather"
-    | "Grandmother"
-    | "Guardian"
-    | "Other";
+  | "Self"
+  | "Mother"
+  | "Father"
+  | "Spouse"
+  | "Son"
+  | "Daughter"
+  | "Brother"
+  | "Sister"
+  | "Grandfather"
+  | "Grandmother"
+  | "Guardian"
+  | "Other";
   age: number;
   gender: "Male" | "Female" | "Other";
   bloodGroup?: string;
@@ -178,7 +178,7 @@ export const INITIAL_FAMILY_MEMBERS: FamilyMember[] = [
   },
 ];
 
-export const MOCK_ACTIVITIES: LinkActivity[] = [
+const MOCK_ACTIVITIES: LinkActivity[] = [
   {
     id: "ACT-1",
     date: "26 Jul 2026",
@@ -291,15 +291,15 @@ type SearchResultType = {
 
 type ValidationError = {
   type:
-    | "mrn-not-found"
-    | "mobile-not-found"
-    | "name-not-found"
-    | "already-linked"
-    | "cannot-link-self"
-    | "relationship-exists"
-    | "duplicate-pending"
-    | "inactive-patient"
-    | "empty-field";
+  | "mrn-not-found"
+  | "mobile-not-found"
+  | "name-not-found"
+  | "already-linked"
+  | "cannot-link-self"
+  | "relationship-exists"
+  | "duplicate-pending"
+  | "inactive-patient"
+  | "empty-field";
   message: string;
 };
 
@@ -1094,13 +1094,12 @@ export function FamilyMembersManagement({
                 </div>
               </div>
               <span
-                className={`px-2 py-0.5 rounded-md text-[10px] font-semibold shrink-0 ${
-                  act.status === "Completed"
-                    ? "bg-emerald-50 text-[#66BB6A]"
-                    : act.status === "Pending"
-                      ? "bg-amber-50 text-[#F59E0B]"
-                      : "bg-blue-50 text-[#0D47A1]"
-                }`}
+                className={`px-2 py-0.5 rounded-md text-[10px] font-semibold shrink-0 ${act.status === "Completed"
+                  ? "bg-emerald-50 text-[#66BB6A]"
+                  : act.status === "Pending"
+                    ? "bg-amber-50 text-[#F59E0B]"
+                    : "bg-blue-50 text-[#0D47A1]"
+                  }`}
               >
                 {act.status}
               </span>
@@ -1157,13 +1156,12 @@ export function FamilyMembersManagement({
                       {viewDrawerMember.relationship}
                     </span>
                     <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                        viewDrawerMember.verificationStatus === "Verified"
-                          ? "bg-emerald-50 text-[#66BB6A] border border-emerald-100"
-                          : viewDrawerMember.verificationStatus === "Pending"
-                            ? "bg-amber-50 text-[#F59E0B] border border-amber-100"
-                            : "bg-slate-100 text-[#64748B] border border-slate-200"
-                      }`}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${viewDrawerMember.verificationStatus === "Verified"
+                        ? "bg-emerald-50 text-[#66BB6A] border border-emerald-100"
+                        : viewDrawerMember.verificationStatus === "Pending"
+                          ? "bg-amber-50 text-[#F59E0B] border border-amber-100"
+                          : "bg-slate-100 text-[#64748B] border border-slate-200"
+                        }`}
                     >
                       {viewDrawerMember.verificationStatus === "Verified" && (
                         <CheckCircle2 size={10} />
@@ -1224,13 +1222,12 @@ export function FamilyMembersManagement({
                   <div className="flex justify-between items-center">
                     <span className="text-[#64748B]">Verification Status:</span>
                     <span
-                      className={`px-2 py-0.5 rounded-full font-semibold ${
-                        viewDrawerMember.verificationStatus === "Verified"
-                          ? "bg-emerald-100 text-[#66BB6A]"
-                          : viewDrawerMember.verificationStatus === "Pending"
-                            ? "bg-amber-100 text-[#F59E0B]"
-                            : "bg-slate-100 text-[#64748B]"
-                      }`}
+                      className={`px-2 py-0.5 rounded-full font-semibold ${viewDrawerMember.verificationStatus === "Verified"
+                        ? "bg-emerald-100 text-[#66BB6A]"
+                        : viewDrawerMember.verificationStatus === "Pending"
+                          ? "bg-amber-100 text-[#F59E0B]"
+                          : "bg-slate-100 text-[#64748B]"
+                        }`}
                     >
                       {viewDrawerMember.verificationStatus}
                     </span>
@@ -1586,11 +1583,10 @@ export function FamilyMembersManagement({
                           setSearchPerformed(false);
                           setValidationError(null);
                         }}
-                        className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                          searchMethod === method
-                            ? "bg-white text-[#0D47A1] shadow-sm border border-blue-100"
-                            : "text-[#64748B] hover:text-[#111827]"
-                        }`}
+                        className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${searchMethod === method
+                          ? "bg-white text-[#0D47A1] shadow-sm border border-blue-100"
+                          : "text-[#64748B] hover:text-[#111827]"
+                          }`}
                         style={{ fontFamily: PP }}
                       >
                         {method === "MRN" && <Hash size={13} />}
@@ -1652,11 +1648,10 @@ export function FamilyMembersManagement({
               {/* Inline Validation Error */}
               {validationError && (
                 <div
-                  className={`flex items-start gap-2.5 p-3 rounded-xl border text-xs ${
-                    validationError.type === "inactive-patient"
-                      ? "bg-amber-50 border-amber-200 text-[#F59E0B]"
-                      : "bg-red-50 border-red-200 text-[#EF4444]"
-                  }`}
+                  className={`flex items-start gap-2.5 p-3 rounded-xl border text-xs ${validationError.type === "inactive-patient"
+                    ? "bg-amber-50 border-amber-200 text-[#F59E0B]"
+                    : "bg-red-50 border-red-200 text-[#EF4444]"
+                    }`}
                 >
                   <AlertCircle size={16} className="shrink-0 mt-0.5" />
                   <span className="font-medium" style={{ fontFamily: RB }}>
@@ -1708,21 +1703,19 @@ export function FamilyMembersManagement({
                       <div className="flex items-center gap-2">
                         {/* Patient Status Badge */}
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                            searchResult.patientStatus === "Active"
-                              ? "bg-emerald-50 text-[#66BB6A] border border-emerald-100"
-                              : "bg-slate-100 text-[#64748B] border border-slate-200"
-                          }`}
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${searchResult.patientStatus === "Active"
+                            ? "bg-emerald-50 text-[#66BB6A] border border-emerald-100"
+                            : "bg-slate-100 text-[#64748B] border border-slate-200"
+                            }`}
                         >
                           {searchResult.patientStatus}
                         </span>
                         {/* Verification Badge */}
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                            searchResult.verificationStatus === "Verified"
-                              ? "bg-emerald-50 text-[#66BB6A] border border-emerald-100"
-                              : "bg-amber-50 text-[#F59E0B] border border-amber-100"
-                          }`}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${searchResult.verificationStatus === "Verified"
+                            ? "bg-emerald-50 text-[#66BB6A] border border-emerald-100"
+                            : "bg-amber-50 text-[#F59E0B] border border-amber-100"
+                            }`}
                         >
                           {searchResult.verificationStatus === "Verified" ? (
                             <CheckCircle2 size={10} />
@@ -2026,11 +2019,10 @@ export function FamilyMembersManagement({
                         );
                         setRelFormError(null);
                       }}
-                      className={`w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-medium text-[#111827] outline-none transition-colors ${
-                        relFormError
-                          ? "border-red-400 bg-red-50/20"
-                          : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
-                      }`}
+                      className={`w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-medium text-[#111827] outline-none transition-colors ${relFormError
+                        ? "border-red-400 bg-red-50/20"
+                        : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
+                        }`}
                       style={{ fontFamily: RB }}
                     >
                       <option value="Mother">Mother</option>
@@ -2092,14 +2084,12 @@ export function FamilyMembersManagement({
                     <button
                       type="button"
                       onClick={() => setIsPrimary(!isPrimary)}
-                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        isPrimary ? "bg-[#0D47A1]" : "bg-slate-300"
-                      }`}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isPrimary ? "bg-[#0D47A1]" : "bg-slate-300"
+                        }`}
                     >
                       <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                          isPrimary ? "translate-x-4" : "translate-x-0"
-                        }`}
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isPrimary ? "translate-x-4" : "translate-x-0"
+                          }`}
                       />
                     </button>
                   </div>
@@ -2124,14 +2114,12 @@ export function FamilyMembersManagement({
                     <button
                       type="button"
                       onClick={() => setIsEmergency(!isEmergency)}
-                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        isEmergency ? "bg-[#009688]" : "bg-slate-300"
-                      }`}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isEmergency ? "bg-[#009688]" : "bg-slate-300"
+                        }`}
                     >
                       <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                          isEmergency ? "translate-x-4" : "translate-x-0"
-                        }`}
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isEmergency ? "translate-x-4" : "translate-x-0"
+                          }`}
                       />
                     </button>
                   </div>

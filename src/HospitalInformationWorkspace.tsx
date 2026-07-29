@@ -74,7 +74,7 @@ export function HospitalInformationWorkspace() {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | boolean | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => {

@@ -13,15 +13,12 @@ import type {
   AuthScreen,
   LoginResponse,
   PatientRegistrationResponse,
+  User,
+  AuthTokens,
 } from "../types/auth.types";
 
 export const LoginPage: React.FC = () => {
-  let navigate: any = null;
-  try {
-    navigate = useNavigate();
-  } catch (e) {
-    console.log(e);
-  }
+  const navigate = useNavigate();
   const [currentScreen, setCurrentScreen] = useState<AuthScreen>(() => {
     if (localStorage.getItem("force_change_password") === "true") {
       localStorage.removeItem("force_change_password");
@@ -36,8 +33,8 @@ export const LoginPage: React.FC = () => {
     message: string;
   } | null>(null);
 
-  const [pendingUser, setPendingUser] = useState<any>(null);
-  const [pendingTokens, setPendingTokens] = useState<any>(null);
+  const [pendingUser, setPendingUser] = useState<User | null>(null);
+  const [pendingTokens, setPendingTokens] = useState<AuthTokens | null>(null);
 
   const handleLoginSuccess = (response: LoginResponse) => {
     const resAny = response as unknown as Record<string, unknown>;
@@ -49,10 +46,10 @@ export const LoginPage: React.FC = () => {
     if (loggedInUser) {
       setPendingUser(loggedInUser);
       setPendingTokens({
-        accessToken: authData.accessToken || resAny.accessToken,
-        refreshToken: authData.refreshToken || resAny.refreshToken,
-        tokenType: authData.tokenType || resAny.tokenType || "Bearer",
-        expiresIn: authData.expiresIn || resAny.expiresIn || 86400,
+        accessToken: String(authData.accessToken || resAny.accessToken || ""),
+        refreshToken: String(authData.refreshToken || resAny.refreshToken || ""),
+        tokenType: String(authData.tokenType || resAny.tokenType || "Bearer"),
+        expiresIn: Number(authData.expiresIn || resAny.expiresIn || 86400),
       });
     }
 

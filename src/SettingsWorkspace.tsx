@@ -1619,7 +1619,7 @@ export function SettingsWorkspace({ onNavigate }: SettingsWorkspaceProps) {
                             </div>
                             <input
                               type="checkbox"
-                              checked={(generalSettings as any)[pref.key]}
+                              checked={Boolean(generalSettings[pref.key as keyof typeof generalSettings])}
                               onChange={(e) =>
                                 setGeneralSettings((prev) => ({
                                   ...prev,
