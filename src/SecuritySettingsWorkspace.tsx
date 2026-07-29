@@ -124,7 +124,17 @@ export function SecuritySettingsWorkspace() {
     },
   ]);
 
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  interface SecurityEvent {
+    id: string;
+    event: string;
+    category: string;
+    severity: string;
+    triggeredBy: string;
+    datetime: string;
+    status: string;
+  }
+
+  const [selectedEvent, setSelectedEvent] = useState<SecurityEvent | null>(null);
   const [saveToast, setSaveToast] = useState<string | null>(null);
 
   const handleSave = () => {
@@ -190,7 +200,7 @@ export function SecuritySettingsWorkspace() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <button
-              onClick={() => {}}
+              onClick={() => { }}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -208,7 +218,7 @@ export function SecuritySettingsWorkspace() {
               <ShieldAlert size={14} /> Security Audit
             </button>
             <button
-              onClick={() => {}}
+              onClick={() => { }}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -637,7 +647,7 @@ export function SecuritySettingsWorkspace() {
                 </div>
                 <input
                   type="checkbox"
-                  checked={(authConfig as any)[item.key]}
+                  checked={authConfig[item.key as keyof typeof authConfig]}
                   onChange={(e) =>
                     setAuthConfig((prev) => ({
                       ...prev,
@@ -708,7 +718,7 @@ export function SecuritySettingsWorkspace() {
               >
                 <input
                   type="checkbox"
-                  checked={(passPolicy as any)[item.key]}
+                  checked={passPolicy[item.key as keyof typeof passPolicy] as boolean}
                   onChange={(e) =>
                     setPassPolicy((prev) => ({
                       ...prev,
@@ -1231,7 +1241,7 @@ export function SecuritySettingsWorkspace() {
                 </div>
                 <input
                   type="checkbox"
-                  checked={(accessRestrictions as any)[item.key]}
+                  checked={accessRestrictions[item.key as keyof typeof accessRestrictions]}
                   onChange={(e) =>
                     setAccessRestrictions((prev) => ({
                       ...prev,

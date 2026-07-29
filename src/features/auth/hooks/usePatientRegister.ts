@@ -34,8 +34,9 @@ export function usePatientRegister(
         onSuccess(res);
       }
       return res;
-    } catch (err: any) {
-      const msg = err.message || "Failed to register patient";
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to register patient";
       setError(msg);
       setErrors({ form: msg });
       return null;
@@ -69,8 +70,9 @@ export function usePatientRegister(
         onSuccess(res);
       }
       return res;
-    } catch (err: any) {
-      const msg = err.message || "Failed to link patient account";
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to link patient account";
       setError(msg);
       setErrors({ form: msg });
       return null;

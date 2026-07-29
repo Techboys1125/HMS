@@ -1,4 +1,3 @@
-export { DKpi, Av, Chip, SH, AlertRow, ProgressBar } from "../components/DashboardShared";
 export { SuperAdminDashboard } from "./SuperAdminDashboard";
 export { HospitalAdminDashboard } from "./HospitalAdminDashboard";
 export { DoctorDashboard } from "./DoctorDashboard";

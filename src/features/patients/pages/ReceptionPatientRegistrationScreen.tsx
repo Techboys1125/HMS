@@ -132,7 +132,10 @@ export function ReceptionPatientRegistrationScreen({
     }
 
     try {
-      const created = (await createPatient.mutateAsync(payload)) as any;
+      const created = (await createPatient.mutateAsync(payload)) as {
+        mrn?: string;
+        MRNId?: string;
+      };
       setGeneratedMrn(created.mrn || created.MRNId || "Unknown");
       setShowSuccessDialog(true);
     } catch (err: unknown) {

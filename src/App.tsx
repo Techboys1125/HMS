@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import safeHandsLogo from "./assets/safehandshospital_logo.webp";
 import { LoginPage, useAuthStore } from "./features/auth";
 import {
@@ -175,6 +175,14 @@ type AppStatus =
   | "waiting"
   | "completed"
   | "cancelled";
+type ReportView =
+  | "dashboard"
+  | "daily-appointments"
+  | "daily-revenue"
+  | "patient-report"
+  | "doctor-report"
+  | "billing-report"
+  | "kpi-detail";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -1073,13 +1081,12 @@ function Header({
                           }
                           setPendingSwitchMember(member);
                         }}
-                        className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-all ${
-                          isActive
-                            ? "bg-blue-50/90 border-[#0D47A1] shadow-sm"
-                            : isVerified
-                              ? "bg-white border-[#E5E7EB] hover:bg-slate-50"
-                              : "bg-slate-50 border-[#E5E7EB] opacity-60 cursor-not-allowed"
-                        }`}
+                        className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-all ${isActive
+                          ? "bg-blue-50/90 border-[#0D47A1] shadow-sm"
+                          : isVerified
+                            ? "bg-white border-[#E5E7EB] hover:bg-slate-50"
+                            : "bg-slate-50 border-[#E5E7EB] opacity-60 cursor-not-allowed"
+                          }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div
@@ -2124,7 +2131,7 @@ function PlaceholderScreen({ nav }: { nav: NavId }) {
   );
 }
 
-export function mapUserRoleToAppRole(userRole?: string | null): Role {
+function mapUserRoleToAppRole(userRole?: string | null): Role {
   if (!userRole) return "admin";
   const r = String(userRole).toUpperCase();
   if (r === "SUPER_ADMIN") return "super-admin";
@@ -2142,15 +2149,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
   const user = useAuthStore((s) => s.user);
   const [activeNav, setActiveNav] = useState<NavId>("dashboard");
   const [previousNav, setPreviousNav] = useState<NavId | null>(null);
-  const [role, setRole] = useState<Role>(() =>
-    mapUserRoleToAppRole(user?.role),
-  );
-
-  useEffect(() => {
-    if (user?.role) {
-      setRole(mapUserRoleToAppRole(user.role));
-    }
-  }, [user]);
+  const role = user?.role ? mapUserRoleToAppRole(user.role) : "admin";
   const [selectedPatient, setSelectedPatient] = useState<
     number | string | null
   >(null);
@@ -2203,15 +2202,8 @@ function HMS({ onLogout }: { onLogout: () => void }) {
   const [printPreviewInvoiceId, setPrintPreviewInvoiceId] = useState<
     string | null
   >(null);
-  const [activeReportView, setActiveReportView] = useState<
-    | "dashboard"
-    | "daily-appointments"
-    | "daily-revenue"
-    | "patient-report"
-    | "doctor-report"
-    | "billing-report"
-    | "kpi-detail"
-  >("dashboard");
+  const [activeReportView, setActiveReportView] =
+    useState<ReportView>("dashboard");
 
   const handleNavSelect = (id: NavId) => {
     setActiveNav(id);
@@ -2555,7 +2547,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
             )}
             {activeNav === "consultation" && showConsultationHistory && (
               <ConsultationHistoryScreen
-                role={role as any}
+                role={role}
                 onBack={() => setShowConsultationHistory(false)}
                 onPatientSelect={(id) => handlePatientSelect(id)}
                 onStartNewConsultation={() => {
@@ -2937,7 +2929,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               activeReportView === "kpi-detail" && (
                 <DoctorDashboardKpiDetailScreen
                   onBack={() => setActiveReportView("dashboard")}
-                  onOpenReport={(v) => setActiveReportView(v as any)}
+                  onOpenReport={(v) => setActiveReportView(v as ReportView)}
                 />
               )}
             {activeNav === "reports" &&
@@ -2945,7 +2937,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               activeReportView === "kpi-detail" && (
                 <ReceptionistDashboardKpiDetailScreen
                   onBack={() => setActiveReportView("dashboard")}
-                  onOpenReport={(v) => setActiveReportView(v as any)}
+                  onOpenReport={(v) => setActiveReportView(v as ReportView)}
                 />
               )}
             {activeNav === "reports" &&
@@ -2986,7 +2978,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               activeReportView === "kpi-detail" && (
                 <AccountantDashboardKpiDetailScreen
                   onBack={() => setActiveReportView("dashboard")}
-                  onOpenReport={(v) => setActiveReportView(v as any)}
+                  onOpenReport={(v) => setActiveReportView(v as ReportView)}
                 />
               )}
             {activeNav === "prescriptions" &&
@@ -3302,7 +3294,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
             )}
             {activeNav === "settings" && (
               <div className="w-full flex-1 flex flex-col">
-                <SettingsWorkspace onNavigate={(s) => setActiveNav(s as any)} />
+                <SettingsWorkspace onNavigate={(s) => setActiveNav(s as NavId)} />
               </div>
             )}
             {activeNav === "family-members" && (
@@ -3379,19 +3371,11 @@ function HMS({ onLogout }: { onLogout: () => void }) {
 // ─── App ───────────────────────────────────────────────────────────────────
 export default function App() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const [authed, setAuthed] = useState(false);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      setAuthed(true);
-    }
-  }, [isAuthenticated]);
-
-  if (!authed && !isAuthenticated) return <LoginPage />;
+  if (!isAuthenticated) return <LoginPage />;
   return (
     <HMS
       onLogout={() => {
-        setAuthed(false);
         useAuthStore.logout();
       }}
     />

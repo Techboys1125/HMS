@@ -139,8 +139,7 @@ export function StartOpdConsultationWorkspaceScreen({
     setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Form State
-  const [formData, setFormData] = useState<ConsultationFormData>({
+  const [formData, setFormData] = useState<ConsultationFormData>(() => ({
     visitDate: new Date().toISOString().split("T")[0],
     doctorName: "Dr. Arjun Mehta",
     department: "Cardiology",
@@ -186,7 +185,7 @@ export function StartOpdConsultationWorkspaceScreen({
       .split("T")[0],
     followupNotes:
       "Review ECG & Troponin reports. Adjust anti-hypertensive dosage if required.",
-  });
+  }));
 
   // Auto-calculated BMI
   const calculatedBmi = useMemo(() => {
@@ -566,7 +565,7 @@ export function StartOpdConsultationWorkspaceScreen({
                         onChange={(e) =>
                           setFormData((prev) => ({
                             ...prev,
-                            visitType: e.target.value as any,
+                            visitType: e.target.value as ConsultationFormData["visitType"],
                           }))
                         }
                         className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
@@ -963,7 +962,7 @@ export function StartOpdConsultationWorkspaceScreen({
                           showIcdDropdown
                             ? icdSearchQuery
                             : formData.icdCode ||
-                              "I20.9 — Angina Pectoris, unspecified"
+                            "I20.9 — Angina Pectoris, unspecified"
                         }
                         onFocus={() => setShowIcdDropdown(true)}
                         onChange={(e) => {
@@ -1207,20 +1206,20 @@ export function StartOpdConsultationWorkspaceScreen({
                       Recommended Investigations
                     </label>
                     <div className="flex flex-wrap gap-4">
-                      {[
+                      {([
                         { key: "cbc", label: "CBC" },
                         { key: "ecg", label: "ECG" },
                         { key: "xray", label: "X-Ray" },
                         { key: "ultrasound", label: "Ultrasound" },
                         { key: "other", label: "Other" },
-                      ].map((item) => (
+                      ] as const).map((item) => (
                         <label
                           key={item.key}
                           className="flex items-center gap-2 font-medium text-[#111827] cursor-pointer"
                         >
                           <input
                             type="checkbox"
-                            checked={(formData.investigations as any)[item.key]}
+                            checked={formData.investigations[item.key]}
                             onChange={(e) =>
                               setFormData((prev) => ({
                                 ...prev,
@@ -1725,11 +1724,10 @@ export function StartOpdConsultationWorkspaceScreen({
                 ].map((step, idx) => (
                   <div key={idx} className="flex items-center gap-2.5">
                     <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                        step.done
-                          ? "bg-[#009688] text-white"
-                          : "bg-slate-200 text-slate-500"
-                      }`}
+                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${step.done
+                        ? "bg-[#009688] text-white"
+                        : "bg-slate-200 text-slate-500"
+                        }`}
                     >
                       {step.done ? <Check size={12} /> : idx + 1}
                     </div>

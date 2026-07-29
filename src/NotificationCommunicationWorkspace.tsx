@@ -227,7 +227,16 @@ export function NotificationCommunicationWorkspace() {
     criticalSecurityAlerts: true,
   });
 
-  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  interface NotificationTemplate {
+    id: string;
+    name: string;
+    category: string;
+    channel: string;
+    status: string;
+    lastUpdated: string;
+  }
+
+  const [selectedTemplate, setSelectedTemplate] = useState<NotificationTemplate | null>(null);
   const [isTemplateEditMode, setIsTemplateEditMode] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [saveToast, setSaveToast] = useState<string | null>(null);
@@ -330,7 +339,7 @@ export function NotificationCommunicationWorkspace() {
               <Eye size={14} /> Preview Notification
             </button>
             <button
-              onClick={() => {}}
+              onClick={() => { }}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -1341,7 +1350,7 @@ export function NotificationCommunicationWorkspace() {
                 </div>
                 <input
                   type="checkbox"
-                  checked={(commRules as any)[item.key]}
+                  checked={commRules[item.key as keyof typeof commRules]}
                   onChange={(e) =>
                     setCommRules((prev) => ({
                       ...prev,

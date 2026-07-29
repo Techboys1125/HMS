@@ -118,7 +118,7 @@ export function StartOpdConsultationWorkspaceScreen({
   onBack?: () => void;
   onCompleteSuccess?: () => void;
   onViewHistory?: (patientId?: string) => void;
-  onViewPatientProfile?: (uhid?: any) => void;
+  onViewPatientProfile?: (uhid?: string | number) => void;
 }) {
   // Collapsible section card states
   const [collapsedSections, setCollapsedSections] = useState<
@@ -139,7 +139,7 @@ export function StartOpdConsultationWorkspaceScreen({
   };
 
   // Form State
-  const [formData, setFormData] = useState<ConsultationFormData>({
+  const [formData, setFormData] = useState<ConsultationFormData>(() => ({
     visitDate: new Date().toISOString().split("T")[0],
     doctorName: "Dr. Arjun Mehta",
     department: "Cardiology",
@@ -185,7 +185,7 @@ export function StartOpdConsultationWorkspaceScreen({
       .split("T")[0],
     followupNotes:
       "Review ECG & Troponin reports. Adjust anti-hypertensive dosage if required.",
-  });
+  }));
 
   // Auto-calculated BMI
   const calculatedBmi = useMemo(() => {
@@ -564,7 +564,7 @@ export function StartOpdConsultationWorkspaceScreen({
                         onChange={(e) =>
                           setFormData((prev) => ({
                             ...prev,
-                            visitType: e.target.value as any,
+                            visitType: e.target.value as ConsultationFormData["visitType"],
                           }))
                         }
                         className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
@@ -961,7 +961,7 @@ export function StartOpdConsultationWorkspaceScreen({
                           showIcdDropdown
                             ? icdSearchQuery
                             : formData.icdCode ||
-                              "I20.9 — Angina Pectoris, unspecified"
+                            "I20.9 — Angina Pectoris, unspecified"
                         }
                         onFocus={() => setShowIcdDropdown(true)}
                         onChange={(e) => {
@@ -1218,7 +1218,7 @@ export function StartOpdConsultationWorkspaceScreen({
                         >
                           <input
                             type="checkbox"
-                            checked={(formData.investigations as any)[item.key]}
+                            checked={Boolean(formData.investigations[item.key as keyof typeof formData.investigations])}
                             onChange={(e) =>
                               setFormData((prev) => ({
                                 ...prev,
@@ -1723,11 +1723,10 @@ export function StartOpdConsultationWorkspaceScreen({
                 ].map((step, idx) => (
                   <div key={idx} className="flex items-center gap-2.5">
                     <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                        step.done
-                          ? "bg-[#009688] text-white"
-                          : "bg-slate-200 text-slate-500"
-                      }`}
+                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${step.done
+                        ? "bg-[#009688] text-white"
+                        : "bg-slate-200 text-slate-500"
+                        }`}
                     >
                       {step.done ? <Check size={12} /> : idx + 1}
                     </div>

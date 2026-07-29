@@ -19,7 +19,7 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({
   onClose,
   onConfirmReschedule,
 }) => {
-  const [newDate, setNewDate] = useState(
+  const [newDate, setNewDate] = useState(() =>
     new Date(Date.now() + 86400000).toISOString().split("T")[0],
   );
   const [newTime, setNewTime] = useState("11:00 AM");
@@ -38,8 +38,9 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({
     try {
       await onConfirmReschedule(newDate, newTime, reason);
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Failed to reschedule appointment");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to reschedule appointment";
+      setError(msg);
     } finally {
       setSubmitting(false);
     }

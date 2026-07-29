@@ -28,7 +28,63 @@ export function useAppointments(
 
   const todayStr = date || new Date().toISOString().split("T")[0];
 
-  const fetchAppointments = useCallback(async () => {
+  useEffect(() => {
+    let active = true;
+
+    const loadData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        let items: AppointmentRecord[] = [];
+        if (userRole === "Doctor") {
+          items = await appointmentService.listDoctorAppointments(
+            todayStr,
+            params?.status,
+          );
+        } else if (userRole === "Patient" && params?.patientId) {
+          items = await appointmentService.listPatientAppointments(
+            params.patientId,
+          );
+        } else {
+          items = await appointmentService.listAppointments({
+            doctorId: params?.doctorId,
+            patientId: params?.patientId,
+            date: todayStr,
+            fromDate: params?.fromDate,
+            toDate: params?.toDate,
+            status: params?.status,
+            page: params?.page,
+            size: params?.size,
+            sort: params?.sort,
+          });
+        }
+        if (active) {
+          setAppointments(items);
+        }
+      } catch (err: unknown) {
+        if (active) {
+          const msg =
+            err instanceof Error
+              ? err.message
+              : "Failed to load appointments from server.";
+          setError(msg);
+          setAppointments([]);
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadData();
+
+    return () => {
+      active = false;
+    };
+  }, [userRole, todayStr, params]);
+
+  const refetch = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -55,37 +111,25 @@ export function useAppointments(
           sort: params?.sort,
         });
       }
-
       setAppointments(items);
-    } catch (err: any) {
-      setError(err?.message || "Failed to load appointments from server.");
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Failed to load appointments from server.";
+      setError(msg);
       setAppointments([]);
     } finally {
       setIsLoading(false);
     }
-  }, [
-    userRole,
-    todayStr,
-    params?.doctorId,
-    params?.patientId,
-    params?.status,
-    params?.fromDate,
-    params?.toDate,
-    params?.page,
-    params?.size,
-    params?.sort,
-  ]);
-
-  useEffect(() => {
-    fetchAppointments();
-  }, [fetchAppointments]);
+  }, [userRole, todayStr, params]);
 
   return {
     appointments,
     setAppointments,
     isLoading,
     error,
-    refetch: fetchAppointments,
+    refetch,
   };
 }
 
@@ -100,8 +144,10 @@ export function useCreateAppointment() {
     setError(null);
     try {
       return await appointmentService.bookAppointment(payload);
-    } catch (err: any) {
-      setError(err?.message || "Failed to create appointment.");
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to create appointment.";
+      setError(msg);
       throw err;
     } finally {
       setIsSubmitting(false);
@@ -126,8 +172,12 @@ export function useRescheduleAppointment() {
         appointmentId,
         payload,
       );
-    } catch (err: any) {
-      setError(err?.message || "Failed to reschedule appointment.");
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Failed to reschedule appointment.";
+      setError(msg);
       throw err;
     } finally {
       setIsSubmitting(false);
@@ -149,8 +199,10 @@ export function useCancelAppointment() {
     setError(null);
     try {
       return await appointmentService.cancelAppointment(appointmentId, payload);
-    } catch (err: any) {
-      setError(err?.message || "Failed to cancel appointment.");
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to cancel appointment.";
+      setError(msg);
       throw err;
     } finally {
       setIsSubmitting(false);

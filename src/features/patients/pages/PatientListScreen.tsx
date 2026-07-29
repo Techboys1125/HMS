@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Search,
   Plus,
@@ -46,7 +46,6 @@ export function PatientListScreen({
 
   const { data: serverPatients, isLoading } = usePatients();
   const { data: searchPatients } = usePatientSearch(searchQuery);
-  const [patientsList, setPatientsList] = useState<ScreenPatient[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null,
   );
@@ -59,13 +58,15 @@ export function PatientListScreen({
   );
 
   const stats = useMemo(() => {
-    const list = (serverPatients || []) as any[];
+    const list = (serverPatients || []) as unknown as Array<Record<string, unknown>>;
     const todayStr = new Date().toISOString().split("T")[0];
 
     return {
       totalPatients: list.length,
       newRegistrationsToday: list.filter(
-        (p) => p.registrationDate && p.registrationDate.startsWith(todayStr),
+        (p) =>
+          typeof p.registrationDate === "string" &&
+          p.registrationDate.startsWith(todayStr),
       ).length,
       activePatients: list.filter(
         (p) => p.status !== "Inactive" && p.status !== "Deceased",
@@ -78,16 +79,10 @@ export function PatientListScreen({
     };
   }, [serverPatients]);
 
-  useEffect(() => {
-    if (serverPatients) {
-      setPatientsList(serverPatients as unknown as ScreenPatient[]);
-    }
-  }, [serverPatients]);
-
   const sourcePatients =
     searchQuery.trim().length >= 2 && searchPatients
       ? (searchPatients as unknown as ScreenPatient[])
-      : patientsList;
+      : ((serverPatients || []) as unknown as ScreenPatient[]);
 
   const filteredPatients = sourcePatients.filter((p) => {
     const q = searchQuery.toLowerCase().trim();
@@ -99,11 +94,11 @@ export function PatientListScreen({
     const matchesGender =
       genderFilter === "All" ||
       p.gender ===
-        (genderFilter === "Male"
-          ? "M"
-          : genderFilter === "Female"
-            ? "F"
-            : "Other");
+      (genderFilter === "Male"
+        ? "M"
+        : genderFilter === "Female"
+          ? "F"
+          : "Other");
     const matchesStatus = statusFilter === "All" || p.status === statusFilter;
     const matchesDoctor = doctorFilter === "All" || p.doctor === doctorFilter;
 
@@ -218,7 +213,7 @@ export function PatientListScreen({
                     className="text-2xl font-bold text-[#111827] mt-1"
                     style={{ fontFamily: PP }}
                   >
-                    {stats?.totalPatients ?? patientsList.length}
+                    {stats?.totalPatients ?? sourcePatients.length}
                   </div>
                   <div
                     className="flex items-center gap-1 text-[11px] text-[#66BB6A] font-semibold mt-1"
@@ -708,7 +703,7 @@ export function PatientListScreen({
                 </span>
                 <span>of</span>
                 <span className="font-semibold text-[#111827]">
-                  {patientsList.length}
+                  {sourcePatients.length}
                 </span>
                 <span>patients</span>
               </div>
