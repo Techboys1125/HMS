@@ -6,6 +6,8 @@ export interface AdminCreateStaffData {
   mobile: string;
   role: string;
   departmentId: number;
+  primaryDepartmentId?: number;
+  secondaryDepartmentIds?: number[];
   designation: string;
 }
 
@@ -42,17 +44,48 @@ export interface DoctorAvailability {
   slots: SlotRequest[];
 }
 
+export interface ScheduleException {
+  exceptionDate: string;
+  reason: string;
+}
+
 export interface DoctorProfile {
-  registrationNumber: string;
+  registrationNumber?: string;
+  medicalRegistrationNumber?: string;
+  qualification?: string;
+  yearsOfExperience?: number;
+  doctorCode?: string;
+  primaryDepartmentId?: number;
+  secondaryDepartmentIds?: number[];
   primarySpecialtyId?: number;
   secondarySpecialtyIds?: number[];
   consultationFee: number;
   followUpFee?: number;
   slotDurationMinutes: number;
-  consultationTypes: string[];
+  consultationTypes?: string[];
   availability: DoctorAvailability[];
+  residentialAddress?: string;
+  professionalBio?: string;
+  photoUrl?: string;
+  scheduleExceptions?: ScheduleException[];
 }
 
 export interface AdminCreateDoctorStaffData extends AdminCreateStaffData {
   doctorProfile: DoctorProfile;
+  primaryDepartmentId?: number;
+  secondaryDepartmentIds?: number[];
+  primarySpecialtyId?: number;
+  secondarySpecialtyIds?: number[];
+  photoUrl?: string;
+  residentialAddress?: string;
+  professionalBio?: string;
+  qualification?: string;
+  yearsOfExperience?: number;
+  doctorCode?: string;
+  medicalRegistrationNumber?: string;
+  consultationFee?: number;
+  followUpFee?: number;
+  slotDurationMinutes?: number;
+  scheduleExceptions?: ScheduleException[];
+  sendCredentials?: boolean;
 }

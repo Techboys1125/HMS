@@ -49,11 +49,19 @@ export interface FormValues {
   role: "DOCTOR" | "RECEPTIONIST" | "NURSE" | "ACCOUNTANT" | "";
   professionalIdentity: string;
   registrationNumber: string;
+  qualification: string;
+  yearsOfExperience: string;
+  doctorCode: string;
   primaryDepartment: string;
   secondaryDepartment: string;
   primarySpecialty: string;
   secondarySpecialty: string;
   consultationFee: string;
+  followUpFee: string;
+  slotDurationMinutes: string;
+  residentialAddress: string;
+  professionalBio: string;
+  photoUrl: string;
   availability: Record<
     string,
     {
@@ -122,11 +130,19 @@ export const useCreateStaffForm = (
     role: "DOCTOR",
     professionalIdentity: "",
     registrationNumber: "",
+    qualification: "",
+    yearsOfExperience: "",
+    doctorCode: "",
     primaryDepartment: "Cardiology",
     secondaryDepartment: "",
     primarySpecialty: "",
     secondarySpecialty: "",
     consultationFee: "",
+    followUpFee: "",
+    slotDurationMinutes: "15",
+    residentialAddress: "",
+    professionalBio: "",
+    photoUrl: "",
     availability: { ...INITIAL_AVAILABILITY },
     sendCredentials: true,
   });
@@ -490,6 +506,9 @@ export const useCreateStaffForm = (
       };
 
       const finalDeptId = departmentMapping[form.primaryDepartment] || 2;
+      const secondaryDeptIds = form.secondaryDepartment
+        ? [departmentMapping[form.secondaryDepartment] || 2]
+        : [];
       const apiRole = form.role;
 
       const cleanMobile = form.phone.replace(/\D/g, "");
@@ -502,6 +521,8 @@ export const useCreateStaffForm = (
         mobile: finalMobile,
         role: apiRole,
         departmentId: finalDeptId,
+        primaryDepartmentId: finalDeptId,
+        secondaryDepartmentIds: secondaryDeptIds,
         designation:
           form.role === "DOCTOR"
             ? form.primarySpecialty
@@ -540,14 +561,39 @@ export const useCreateStaffForm = (
 
         const doctorPayload: AdminCreateDoctorStaffData = {
           ...basePayload,
+          primaryDepartmentId: finalDeptId,
+          secondaryDepartmentIds: secondaryDeptIds,
+          primarySpecialtyId: primaryId,
+          secondarySpecialtyIds: secondaryIds,
+          photoUrl: form.photoUrl || undefined,
+          residentialAddress: form.residentialAddress || undefined,
+          professionalBio: form.professionalBio || undefined,
+          qualification: form.qualification || undefined,
+          yearsOfExperience: form.yearsOfExperience ? Number(form.yearsOfExperience) : undefined,
+          doctorCode: form.doctorCode || undefined,
+          medicalRegistrationNumber: form.registrationNumber || undefined,
+          consultationFee: Number(form.consultationFee) || 0,
+          followUpFee: form.followUpFee ? Number(form.followUpFee) : undefined,
+          slotDurationMinutes: Number(form.slotDurationMinutes) || 15,
+          sendCredentials: form.sendCredentials,
           doctorProfile: {
             registrationNumber: form.registrationNumber,
+            medicalRegistrationNumber: form.registrationNumber,
+            qualification: form.qualification || undefined,
+            yearsOfExperience: form.yearsOfExperience ? Number(form.yearsOfExperience) : undefined,
+            doctorCode: form.doctorCode || undefined,
+            primaryDepartmentId: finalDeptId,
+            secondaryDepartmentIds: secondaryDeptIds,
             primarySpecialtyId: primaryId,
             secondarySpecialtyIds: secondaryIds,
-            consultationFee: Number(form.consultationFee),
-            slotDurationMinutes: 15,
+            consultationFee: Number(form.consultationFee) || 0,
+            followUpFee: form.followUpFee ? Number(form.followUpFee) : 0,
+            slotDurationMinutes: Number(form.slotDurationMinutes) || 15,
             consultationTypes: ["IN_PERSON"],
             availability: availabilityList,
+            residentialAddress: form.residentialAddress || undefined,
+            professionalBio: form.professionalBio || undefined,
+            photoUrl: form.photoUrl || undefined,
           },
         };
 

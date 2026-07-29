@@ -228,6 +228,88 @@ export const ConsultationDetailsSection: React.FC<
             </p>
           )}
         </div>
+
+        {/* Follow-up Fee */}
+        <div className="space-y-1">
+          <label className="block text-xs font-heading font-bold text-text-body">
+            Follow-up Fee (₹) <span className="text-slate-400 font-normal">(Optional)</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">
+              ₹
+            </span>
+            <input
+              type="number"
+              min={0}
+              value={form.followUpFee}
+              onChange={(e) => setFieldValue("followUpFee", e.target.value)}
+              placeholder="300"
+              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-9 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body"
+            />
+          </div>
+        </div>
+
+        {/* Qualification */}
+        <div className="space-y-1">
+          <label className="block text-xs font-heading font-bold text-text-body">
+            Qualification <span className="text-slate-400 font-normal">(Optional)</span>
+          </label>
+          <input
+            type="text"
+            value={form.qualification}
+            onChange={(e) => setFieldValue("qualification", e.target.value)}
+            placeholder="e.g. MBBS, MD, DM (Cardiology)"
+            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body"
+          />
+        </div>
+
+        {/* Years of Experience */}
+        <div className="space-y-1">
+          <label className="block text-xs font-heading font-bold text-text-body">
+            Years of Experience <span className="text-slate-400 font-normal">(Optional)</span>
+          </label>
+          <input
+            type="number"
+            min={0}
+            value={form.yearsOfExperience}
+            onChange={(e) => setFieldValue("yearsOfExperience", e.target.value)}
+            placeholder="e.g. 10"
+            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body"
+          />
+        </div>
+
+        {/* Doctor Code */}
+        <div className="space-y-1">
+          <label className="block text-xs font-heading font-bold text-text-body">
+            Doctor Code <span className="text-slate-400 font-normal">(Optional)</span>
+          </label>
+          <input
+            type="text"
+            value={form.doctorCode}
+            onChange={(e) => setFieldValue("doctorCode", e.target.value.toUpperCase())}
+            placeholder="e.g. DOC-CARD-01"
+            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body font-mono uppercase"
+          />
+        </div>
+
+        {/* Slot Duration Minutes */}
+        <div className="space-y-1">
+          <label className="block text-xs font-heading font-bold text-text-body">
+            Slot Duration (Minutes)
+          </label>
+          <select
+            value={form.slotDurationMinutes}
+            onChange={(e) => setFieldValue("slotDurationMinutes", e.target.value)}
+            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body cursor-pointer font-medium"
+          >
+            <option value="10">10 Minutes</option>
+            <option value="15">15 Minutes (Default)</option>
+            <option value="20">20 Minutes</option>
+            <option value="30">30 Minutes</option>
+            <option value="45">45 Minutes</option>
+            <option value="60">60 Minutes</option>
+          </select>
+        </div>
       </div>
     </div>
   );

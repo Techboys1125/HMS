@@ -198,12 +198,48 @@ export const ReviewInfoSection: React.FC<ReviewInfoSectionProps> = ({
                   </span>
                 </div>
               )}
+              {form.qualification && (
+                <div className="flex justify-between items-start py-0.5">
+                  <span className="text-slate-400 font-medium">Qualification</span>
+                  <span className="text-slate-800 font-semibold">{form.qualification}</span>
+                </div>
+              )}
+              {form.yearsOfExperience && (
+                <div className="flex justify-between items-start py-0.5">
+                  <span className="text-slate-400 font-medium">Experience</span>
+                  <span className="text-slate-800 font-semibold">{form.yearsOfExperience} Years</span>
+                </div>
+              )}
+              {form.doctorCode && (
+                <div className="flex justify-between items-start py-0.5">
+                  <span className="text-slate-400 font-medium">Doctor Code</span>
+                  <span className="text-[#0D47A1] font-mono font-bold">{form.doctorCode}</span>
+                </div>
+              )}
               <div className="flex justify-between items-center py-0.5">
                 <span className="text-slate-400 font-medium flex items-center gap-1">
                   <DollarSign size={13} /> Consultation Fee
                 </span>
                 <span className="text-slate-800 font-bold text-sm">
                   ₹{form.consultationFee || "0"}
+                </span>
+              </div>
+              {form.followUpFee && (
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-400 font-medium flex items-center gap-1">
+                    <DollarSign size={13} /> Follow-up Fee
+                  </span>
+                  <span className="text-slate-800 font-bold text-sm">
+                    ₹{form.followUpFee}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between items-center py-0.5">
+                <span className="text-slate-400 font-medium flex items-center gap-1">
+                  <Clock size={13} /> Slot Duration
+                </span>
+                <span className="text-slate-800 font-bold text-xs">
+                  {form.slotDurationMinutes || "15"} Mins
                 </span>
               </div>
             </div>
