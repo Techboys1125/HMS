@@ -1,7 +1,6 @@
-import React from "react";
 import { X, Stethoscope, Eye } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
-import { PP, RB } from "../constants/doctors.constants";
+import { PP } from "../constants/doctors.constants";
 
 function getAvailabilityBadgeStyle(avail: string) {
   switch (avail) {

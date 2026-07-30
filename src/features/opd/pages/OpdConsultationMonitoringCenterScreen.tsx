@@ -14,9 +14,6 @@ import {
   ArrowUpRight,
   X,
   ChevronRight,
-  Building2,
-  UserCheck,
-  BarChart2,
 } from "lucide-react";
 
 // --- Design System Tokens ---
@@ -291,7 +288,6 @@ export function OpdConsultationMonitoringCenterScreen({
   onViewDetails,
   onViewHistory,
   onPatientSelect,
-  onNavigateReports,
 }: {
   onViewDetails?: (consultationId: string) => void;
   onViewHistory?: (patientId?: string) => void;
@@ -382,39 +378,8 @@ export function OpdConsultationMonitoringCenterScreen({
   }, [consultations]);
 
   // Doctor Workload Statistics
-  const doctorWorkload = [
-    {
-      name: "Dr. Arjun Mehta",
-      dept: "Cardiology",
-      assigned: 5,
-      completed: 2,
-      waiting: 2,
-      status: "In OPD Room 104",
-    },
-    {
-      name: "Dr. Priya Sharma",
-      dept: "General Medicine",
-      assigned: 2,
-      completed: 1,
-      waiting: 1,
-      status: "In OPD Room 202",
-    },
-    {
-      name: "Dr. Rajesh Kapoor",
-      dept: "Neurology",
-      assigned: 2,
-      completed: 0,
-      waiting: 1,
-      status: "In OPD Room 305",
-    },
-  ];
 
   // Department Summary Statistics
-  const departmentSummary = [
-    { dept: "Cardiology", total: 5, completed: 2, waiting: 2 },
-    { dept: "General Medicine", total: 2, completed: 1, waiting: 1 },
-    { dept: "Neurology", total: 2, completed: 0, waiting: 1 },
-  ];
 
   return (
     <div className="flex-1 bg-[#F1F5F9] overflow-y-auto flex flex-col font-sans">
@@ -625,7 +590,7 @@ export function OpdConsultationMonitoringCenterScreen({
         {/* ── MAIN LAYOUT: 3-COLUMN ENTERPRISE GRID ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* LEFT & CENTER CONTENT (Columns 1-8 or 1-9) */}
-          <div className="lg:col-span-8 xl:col-span-9 space-y-6">
+          <div className="lg:col-span-12 space-y-6">
             {/* SEARCH AND FILTER BAR */}
             <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-4">
               <div className="relative">
@@ -895,7 +860,6 @@ export function OpdConsultationMonitoringCenterScreen({
                           <th className="py-3.5 px-4">Appt Time</th>
                           <th className="py-3.5 px-4">Visit Type</th>
                           <th className="py-3.5 px-4">Status</th>
-                          <th className="py-3.5 px-4">Duration</th>
                           <th className="py-3.5 px-4 text-right">Actions</th>
                         </tr>
                       </thead>
@@ -963,9 +927,6 @@ export function OpdConsultationMonitoringCenterScreen({
                               <StatusChip status={item.status} />
                             </td>
 
-                            <td className="py-3.5 px-4 font-medium text-slate-700">
-                              {item.duration}
-                            </td>
 
                             <td className="py-3.5 px-4 text-right relative">
                               <div className="flex items-center justify-end gap-1.5">
@@ -1049,170 +1010,6 @@ export function OpdConsultationMonitoringCenterScreen({
           </div>
 
           {/* RIGHT CONTEXT PANEL: OPERATIONAL DASHBOARD */}
-          <div className="lg:col-span-4 xl:col-span-3 space-y-6">
-            {/* CARD 1: TODAY'S OPERATIONAL OVERVIEW */}
-            <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h3
-                  className="text-sm font-bold text-[#111827] flex items-center gap-2"
-                  style={{ fontFamily: PP }}
-                >
-                  <Activity size={16} className="text-[#0D47A1]" />
-                  Today's Operational Overview
-                </h3>
-                <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-2 py-0.5 rounded">
-                  Live Monitor
-                </span>
-              </div>
-
-              <div className="space-y-2 text-xs" style={{ fontFamily: RB }}>
-                <div className="flex justify-between py-1 border-b border-gray-50">
-                  <span className="text-slate-500">Total Consultations:</span>
-                  <span
-                    className="font-bold text-[#111827]"
-                    style={{ fontFamily: PP }}
-                  >
-                    {consultations.length}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-gray-50">
-                  <span className="text-slate-500">Completed:</span>
-                  <span
-                    className="font-bold text-[#66BB6A]"
-                    style={{ fontFamily: PP }}
-                  >
-                    {tabCounts.Completed}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-gray-50">
-                  <span className="text-slate-500">Waiting Patients:</span>
-                  <span
-                    className="font-bold text-amber-600"
-                    style={{ fontFamily: PP }}
-                  >
-                    {tabCounts.Waiting}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span className="text-slate-500">
-                    Average Consultation Time:
-                  </span>
-                  <span
-                    className="font-bold text-[#0D47A1]"
-                    style={{ fontFamily: PP }}
-                  >
-                    14 mins
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* CARD 2: DOCTOR WORKLOAD */}
-            <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-3">
-              <h3
-                className="text-sm font-bold text-[#111827] flex items-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <UserCheck size={16} className="text-[#009688]" />
-                Doctor Workload
-              </h3>
-
-              <div className="space-y-2.5 text-xs" style={{ fontFamily: RB }}>
-                {doctorWorkload.map((doc, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-1"
-                  >
-                    <div
-                      className="flex justify-between font-bold text-[#111827]"
-                      style={{ fontFamily: PP }}
-                    >
-                      <span>{doc.name}</span>
-                      <span className="text-[10px] text-[#0D47A1] font-normal">
-                        {doc.dept}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-500">
-                      <span>
-                        Assigned: <strong>{doc.assigned}</strong> | Done:{" "}
-                        <strong>{doc.completed}</strong> | Wait:{" "}
-                        <strong>{doc.waiting}</strong>
-                      </span>
-                    </div>
-                    <div className="text-[10px] text-[#009688] font-semibold pt-0.5">
-                      {doc.status}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* CARD 3: DEPARTMENT SUMMARY */}
-            <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-3">
-              <h3
-                className="text-sm font-bold text-[#111827] flex items-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Building2 size={16} className="text-purple-600" />
-                Department Summary
-              </h3>
-
-              <div className="space-y-2 text-xs" style={{ fontFamily: RB }}>
-                {departmentSummary.map((dept, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl text-xs"
-                  >
-                    <div>
-                      <div
-                        className="font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        {dept.dept}
-                      </div>
-                      <div className="text-[10px] text-slate-500">
-                        Done: {dept.completed} · Wait: {dept.waiting}
-                      </div>
-                    </div>
-                    <span
-                      className="font-bold text-sm text-[#0D47A1]"
-                      style={{ fontFamily: PP }}
-                    >
-                      {dept.total} Visits
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* CARD 4: QUICK ACTIONS */}
-            <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-2">
-              <h3
-                className="text-sm font-bold text-[#111827] mb-2"
-                style={{ fontFamily: PP }}
-              >
-                Quick Actions
-              </h3>
-
-              <button
-                onClick={() => alert("Exporting OPD Operational Report")}
-                className="w-full py-2.5 px-4 bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Download size={15} />
-                Export OPD Report
-              </button>
-
-              <button
-                onClick={() => onNavigateReports?.()}
-                className="w-full py-2.5 px-4 bg-slate-50 hover:bg-slate-100 border border-[#E5E7EB] text-slate-700 text-xs font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <BarChart2 size={15} />
-                View Reports
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 

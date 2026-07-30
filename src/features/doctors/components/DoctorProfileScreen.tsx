@@ -1,9 +1,8 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Calendar,
   Clock,
   Award,
-  DollarSign,
   Building2,
   ChevronLeft,
   ChevronRight,
@@ -16,13 +15,9 @@ import {
   X,
   User,
   FileCheck,
-  Stethoscope,
-  FileText,
 } from "lucide-react";
-import type { DoctorRecord, DoctorAvailability, DoctorAppointment, DoctorPatient, WeeklySchedule, DoctorTimeline } from "../types/doctors.types";
-import { INITIAL_DOCTORS, MOCK_DOCTOR_APPOINTMENTS, MOCK_DOCTOR_PATIENTS, MOCK_WEEKLY_SCHEDULE, MOCK_DOCTOR_TIMELINE, PP, RB } from "../constants/doctors.constants";
-import { Avatar } from "./Avatar";
-import { Card } from "./Card";
+import type { DoctorRecord, DoctorAvailability, DoctorAppointment } from "../types/doctors.types";
+import { INITIAL_DOCTORS, MOCK_DOCTOR_APPOINTMENTS, MOCK_DOCTOR_PATIENTS, MOCK_WEEKLY_SCHEDULE, PP, RB } from "../constants/doctors.constants";
 import { EditDoctorDrawer } from "./EditDoctorDrawer";
 import { DeactivateDoctorDialog } from "./DeactivateDoctorDialog";
 
@@ -50,7 +45,7 @@ export function DoctorProfileScreen({
   const [apptDateFilter, setApptDateFilter] = useState("All Dates");
   const [patientSearch, setPatientSearch] = useState("");
 
-  const [selectedApptDetail, setSelectedApptDetail] = useState<Record<string, unknown> | null>(null);
+  const [selectedApptDetail, setSelectedApptDetail] = useState<DoctorAppointment | null>(null);
   const [showEditDrawer, setShowEditDrawer] = useState(false);
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -313,8 +308,7 @@ export function DoctorProfileScreen({
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-2">
             {([
               { id: "overview", label: "Overview" },
@@ -322,7 +316,6 @@ export function DoctorProfileScreen({
               { id: "schedule", label: "Availability Schedule" },
               { id: "appointments", label: "Appointments" },
               { id: "patients", label: "Assigned Patients" },
-              { id: "timeline", label: "Activity Timeline" },
             ] as const).map((tab) => (
               <button
                 key={tab.id}
@@ -598,6 +591,7 @@ export function DoctorProfileScreen({
                       <option value="All Dates">All Dates</option>
                       <option value="Today">Today</option>
                       <option value="This Week">This Week</option>
+                      <option value="This Month">This Month</option>
                     </select>
                   </div>
                 </div>
@@ -784,117 +778,7 @@ export function DoctorProfileScreen({
               </div>
             </div>
           )}
-
-          {activeTab === "timeline" && (
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
-              <div>
-                <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>
-                  Chronological Activity Log
-                </h3>
-                <p className="text-xs text-[#64748B]">
-                  Audit trajectory of consultation events, schedule changes, and registration records.
-                </p>
-              </div>
-
-              <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-                {MOCK_DOCTOR_TIMELINE.map((item, idx) => {
-                  const IconComp = item.icon;
-                  return (
-                    <div key={idx} className="relative flex items-start gap-4 group">
-                      <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center shrink-0">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#0D47A1]" />
-                      </div>
-                      <div className="bg-slate-50 p-4 rounded-2xl border border-[#E5E7EB] flex-1 space-y-1 hover:border-blue-200 transition-colors">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <span
-                            className="font-bold text-[#111827] text-xs flex items-center gap-1.5"
-                            style={{ fontFamily: PP }}
-                          >
-                            <IconComp size={14} className="text-[#0D47A1]" /> {item.title}
-                          </span>
-                          <span className="text-[11px] text-[#64748B] font-mono">{item.time}</span>
-                        </div>
-                        <p className="text-xs text-slate-600">{item.desc}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
-
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
-              <div
-                className="w-12 h-12 rounded-xl bg-[#0D47A1] text-white font-bold text-base flex items-center justify-center shrink-0"
-                style={{ fontFamily: PP }}
-              >
-                {initials}
-              </div>
-              <div className="truncate">
-                <span className="font-bold text-[#111827] text-sm truncate block" style={{ fontFamily: PP }}>
-                  {docState.name}
-                </span>
-                <span className="text-xs text-[#0D47A1] font-semibold truncate block">
-                  {docState.specialty}
-                </span>
-                <span className="text-[11px] text-[#64748B] truncate block">
-                  {docState.department}
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-2 text-xs border-t border-slate-100 pt-3">
-              <div className="flex justify-between">
-                <span className="text-[#64748B]">OPD Cabinet:</span>
-                <span className="font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
-                  {docState.opdRoom}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#64748B]">Shift Timings:</span>
-                <span className="font-medium text-[#111827]">{docState.shiftTimings}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#64748B]">Consultation Fee:</span>
-                <span className="font-bold text-[#0D47A1]" style={{ fontFamily: PP }}>
-                  ${docState.consultationFee}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-1.5"
-              style={{ fontFamily: PP }}
-            >
-              <Clock size={14} className="text-[#009688]" /> Today's Upcoming Queue
-            </h3>
-
-            <div className="space-y-2.5 text-xs">
-              {MOCK_DOCTOR_APPOINTMENTS.slice(0, 3).map((apt) => (
-                <div
-                  key={apt.id}
-                  className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1 hover:border-blue-200 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#111827]" style={{ fontFamily: PP }}>
-                      {apt.patientName}
-                    </span>
-                    <span className="font-mono text-[10px] text-[#0D47A1] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
-                      {apt.time}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 truncate">{apt.complaint}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
 
       {selectedApptDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   ChevronRight,
   Clock,
@@ -190,9 +190,8 @@ export function PatientCheckInScreen({
   const [remarks, setRemarks] = useState("");
 
   // Generated token & queue assignment details
-  const generatedToken = useMemo(
+  const [generatedToken] = useState(
     () => `TK-08${Math.floor(6 + Math.random() * 5)}`,
-    [],
   );
   const queuePosition = 3;
   const estWaitTime = "12 mins";
@@ -296,7 +295,7 @@ export function PatientCheckInScreen({
       {/* ── MAIN WORKSPACE GRID ── */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* LEFT COLUMN: CHECK-IN WORKSPACE (8 COLS) */}
-        <div className="xl:col-span-8 space-y-6">
+        <div className="xl:col-span-12 space-y-6">
           {/* SEARCH APPOINTMENT / PATIENT SEARCH */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
@@ -574,63 +573,6 @@ export function PatientCheckInScreen({
                 </div>
               </div>
 
-              {/* SECTION 04: QUEUE ASSIGNMENT PREVIEW */}
-              <div className="bg-white rounded-2xl border border-[#009688] p-5 shadow-sm space-y-3 bg-gradient-to-b from-teal-50/30 to-white">
-                <div className="flex items-center justify-between border-b border-teal-100 pb-3">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-7 h-7 rounded-lg bg-teal-100 text-[#009688] flex items-center justify-center font-bold text-xs"
-                      style={{ fontFamily: PP }}
-                    >
-                      04
-                    </div>
-                    <h2
-                      className="text-base font-bold text-[#009688]"
-                      style={{ fontFamily: PP }}
-                    >
-                      Queue Token Assignment
-                    </h2>
-                  </div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-teal-100 text-[#009688] font-bold text-[10px]">
-                    Auto-Generated Queue Entry
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                  <div className="p-3 rounded-xl bg-white border border-teal-200">
-                    <span className="text-[10px] text-[#64748B] block">
-                      Assigned Doctor
-                    </span>
-                    <span className="font-bold text-[#111827]">
-                      {selectedApt.doctor}
-                    </span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-white border border-teal-200">
-                    <span className="text-[10px] text-[#64748B] block">
-                      Department
-                    </span>
-                    <span className="font-semibold text-slate-700">
-                      {selectedApt.dept}
-                    </span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-teal-50 border border-teal-300">
-                    <span className="text-[10px] text-[#009688] block">
-                      Generated Token
-                    </span>
-                    <span className="font-mono text-base font-bold text-[#0D47A1]">
-                      {generatedToken}
-                    </span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-white border border-teal-200">
-                    <span className="text-[10px] text-[#64748B] block">
-                      Est. Waiting Time
-                    </span>
-                    <span className="font-mono font-bold text-[#009688]">
-                      {estWaitTime}
-                    </span>
-                  </div>
-                </div>
-              </div>
             </>
           ) : (
             <div className="bg-white rounded-2xl border border-[#E5E7EB] p-8 text-center space-y-2">
@@ -646,168 +588,6 @@ export function PatientCheckInScreen({
           )}
         </div>
 
-        {/* RIGHT COLUMN: CONTEXT PANEL (4 COLS) */}
-        <div className="xl:col-span-4 space-y-6">
-          {selectedApt ? (
-            <>
-              {/* CARD 01: Patient Summary */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-                <h3
-                  className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2"
-                  style={{ fontFamily: PP }}
-                >
-                  Patient Summary
-                </h3>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between py-1 border-b border-slate-50">
-                    <span className="text-[#64748B]">Patient Name</span>
-                    <span className="font-bold text-[#111827]">
-                      {selectedApt.patientName}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-50">
-                    <span className="text-[#64748B]">MRN</span>
-                    <span className="font-mono font-bold text-[#0D47A1]">
-                      {selectedApt.mrn}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-50">
-                    <span className="text-[#64748B]">Age / Gender</span>
-                    <span className="text-[#111827]">
-                      {selectedApt.age} yrs · {selectedApt.gender}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1">
-                    <span className="text-[#64748B]">Blood Group</span>
-                    <span className="font-bold text-[#009688]">
-                      {selectedApt.bloodGroup}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* CARD 02: Appointment Summary */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-                <h3
-                  className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2"
-                  style={{ fontFamily: PP }}
-                >
-                  Appointment Summary
-                </h3>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between py-1 border-b border-slate-50">
-                    <span className="text-[#64748B]">Appointment Date</span>
-                    <span className="font-mono font-bold text-[#111827]">
-                      {selectedApt.date}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-50">
-                    <span className="text-[#64748B]">Time Slot</span>
-                    <span className="font-mono font-bold text-[#009688]">
-                      {selectedApt.timeSlot}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-50">
-                    <span className="text-[#64748B]">Consulting Doctor</span>
-                    <span className="font-bold text-[#111827]">
-                      {selectedApt.doctor}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-50">
-                    <span className="text-[#64748B]">Department</span>
-                    <span className="text-slate-600">{selectedApt.dept}</span>
-                  </div>
-                  <div className="flex justify-between py-1">
-                    <span className="text-[#64748B]">Visit Type</span>
-                    <span className="font-semibold text-[#111827]">
-                      {selectedApt.visitType}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* CARD 03: Queue Summary */}
-              <div className="bg-white rounded-2xl border border-[#0D47A1] p-5 shadow-sm space-y-3 bg-gradient-to-b from-blue-50/40 to-white">
-                <h3
-                  className="text-xs font-bold text-[#0D47A1] uppercase tracking-wider border-b border-blue-100 pb-2 flex items-center justify-between"
-                  style={{ fontFamily: PP }}
-                >
-                  <span>Queue Summary</span>
-                  <Clock size={14} />
-                </h3>
-                <div className="space-y-2 text-xs">
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-[#64748B]">Token Number</span>
-                    <span className="font-mono font-bold text-[#0D47A1] text-sm">
-                      {generatedToken}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-[#64748B]">Queue Position</span>
-                    <span className="font-bold text-[#111827]">
-                      #{queuePosition} in line
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-[#64748B]">Est. Waiting Time</span>
-                    <span className="font-mono font-bold text-[#009688]">
-                      {estWaitTime}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1 pt-1">
-                    <span className="text-[#64748B]">Current Queue Status</span>
-                    <span className="px-2 py-0.5 rounded-full bg-teal-100 text-[#009688] font-bold text-[10px]">
-                      Waiting
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* CARD 04: Quick Actions */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-2.5">
-                <h3
-                  className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2"
-                  style={{ fontFamily: PP }}
-                >
-                  Quick Actions
-                </h3>
-                <button
-                  onClick={() =>
-                    onViewPatientProfileClick &&
-                    onViewPatientProfileClick(selectedApt.mrn)
-                  }
-                  className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 text-xs font-semibold text-[#0D47A1] transition-colors"
-                >
-                  View Patient Profile <ChevronRight size={14} />
-                </button>
-                <button
-                  onClick={() =>
-                    alert(
-                      `Printing Queue Token ${generatedToken} for ${selectedApt.patientName}...`,
-                    )
-                  }
-                  className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 text-xs font-semibold text-[#009688] transition-colors"
-                >
-                  Print Queue Token <Printer size={14} />
-                </button>
-                <button
-                  onClick={() =>
-                    alert(
-                      `Printing Appointment Slip for ${selectedApt.aptId}...`,
-                    )
-                  }
-                  className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-[#111827] transition-colors"
-                >
-                  Print Appointment Slip <Printer size={14} />
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 text-center text-xs text-slate-400">
-              Select an appointment to inspect summary.
-            </div>
-          )}
-        </div>
       </div>
 
       {/* ── STICKY FOOTER ACTION BAR ── */}

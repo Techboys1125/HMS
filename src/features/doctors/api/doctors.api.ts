@@ -1,4 +1,4 @@
-import { apiClient, axios } from "../../../lib/axios";
+import { apiClient } from "../../../lib/axios";
 import type { DoctorRecord, DoctorApiResponse, PaginatedResponse } from "../types/doctors.types";
 import { INITIAL_DOCTORS } from "../constants/doctors.constants";
 
@@ -14,7 +14,13 @@ let doctorsData = [...INITIAL_DOCTORS];
 export const doctorsApi = {
   getAll: async (params?: { page?: number; limit?: number; search?: string; department?: string }): Promise<PaginatedResponse<DoctorRecord>> => {
     try {
-      const response = await apiClient.get<PaginatedResponse<DoctorRecord>>("/api/v1/doctors", { params });
+      const query = new URLSearchParams();
+      if (params?.page) query.append("page", String(params.page));
+      if (params?.limit) query.append("limit", String(params.limit));
+      if (params?.search) query.append("search", params.search);
+      if (params?.department) query.append("department", params.department);
+      const url = `/api/v1/doctors${query.toString() ? `?${query.toString()}` : ""}`;
+      const response = await apiClient.get<PaginatedResponse<DoctorRecord>>(url);
       return response.data;
     } catch {
       const page = params?.page || 1;

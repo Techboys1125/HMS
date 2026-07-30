@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from "react";
-import { PP, RB, ChipVariant } from "../constants/appointment.constants";
+import { useState, useMemo } from "react";
+import { PP, RB, type ChipVariant } from "../constants/appointment.constants";
 import { Chip } from "../components/Chip";
-import { ReceptionQueueManagementScreenProps } from "../types/appointment-screen.types";
+import type { ReceptionQueueManagementScreenProps } from "../types/appointment-screen.types";
 import {
   ChevronRight,
   RefreshCw,
@@ -16,8 +16,6 @@ export function ReceptionQueueManagementScreen({
   onCheckInClick,
   onPatientSearchClick,
   onPatientSelect,
-  onRegisterPatientClick,
-  onBookAppointmentClick,
 }: ReceptionQueueManagementScreenProps) {
   // Global Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -33,8 +31,7 @@ export function ReceptionQueueManagementScreen({
   const [selectedTokenId, setSelectedTokenId] = useState<string>("TK-086");
 
   // Dialog States
-  const [noShowDialogApt, setNoShowDialogApt] = useState<any | null>(null);
-  const [] = useState<any | null>(null);
+  const [noShowDialogApt, setNoShowDialogApt] = useState<Record<string, any> | null>(null);
 
   // Queue Data List
   const [queueItems, setQueueItems] = useState([
@@ -199,13 +196,6 @@ export function ReceptionQueueManagementScreen({
     selectedType,
   ]);
 
-  const selectedItem = useMemo(() => {
-    return (
-      queueItems.find((i) => i.token === selectedTokenId) ||
-      filteredQueue[0] ||
-      queueItems[0]
-    );
-  }, [queueItems, selectedTokenId, filteredQueue]);
 
   // Summary KPI Metrics
   const metrics = useMemo(() => {
@@ -518,7 +508,7 @@ export function ReceptionQueueManagementScreen({
       {/* ── ENTERPRISE LAYOUT GRID ── */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* LEFT COLUMN: ENTERPRISE QUEUE TABLE (8 COLS) */}
-        <div className="xl:col-span-8 space-y-6">
+        <div className="xl:col-span-12 space-y-6">
           <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <div>
@@ -687,167 +677,6 @@ export function ReceptionQueueManagementScreen({
           </div>
         </div>
 
-        {/* RIGHT COLUMN: CONTEXT PANEL (4 COLS) */}
-        <div className="xl:col-span-4 space-y-6">
-          {/* CARD 01: Selected Patient Summary */}
-          {selectedItem && (
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2"
-                style={{ fontFamily: PP }}
-              >
-                Selected Patient Summary
-              </h3>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">Patient Name</span>
-                  <span className="font-bold text-[#111827]">
-                    {selectedItem.name}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">MRN</span>
-                  <span className="font-mono font-bold text-[#0D47A1]">
-                    {selectedItem.mrn}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">Assigned Doctor</span>
-                  <span className="font-semibold text-[#111827]">
-                    {selectedItem.doctor}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">Department</span>
-                  <span className="text-slate-600">{selectedItem.dept}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">Appointment Time</span>
-                  <span className="font-mono text-slate-700">
-                    {selectedItem.apptTime}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span className="text-[#64748B]">Current Status</span>
-                  <Chip
-                    label={selectedItem.status}
-                    variant={getStatusChipVariant(selectedItem.status)}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* CARD 02: Queue Statistics */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2"
-              style={{ fontFamily: PP }}
-            >
-              Queue Statistics
-            </h3>
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-[#64748B]">Total Waiting</span>
-                <span className="font-bold text-[#F59E0B]">
-                  {metrics.waiting}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-[#64748B]">Checked-In</span>
-                <span className="font-bold text-[#0D47A1]">
-                  {metrics.checkedIn}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-[#64748B]">In Consultation</span>
-                <span className="font-bold text-[#009688]">
-                  {metrics.inConsultation}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-[#64748B]">Completed</span>
-                <span className="font-bold text-[#66BB6A]">
-                  {metrics.completed}
-                </span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-[#64748B]">No Shows</span>
-                <span className="font-bold text-[#EF4444]">
-                  {metrics.noShows}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* CARD 03: Quick Actions */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-2.5">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2"
-              style={{ fontFamily: PP }}
-            >
-              Quick Actions
-            </h3>
-            <button
-              onClick={onPatientSearchClick}
-              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 text-xs font-semibold text-[#0D47A1] transition-colors"
-            >
-              Patient Search <ChevronRight size={14} />
-            </button>
-            <button
-              onClick={() => onRegisterPatientClick?.()}
-              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 text-xs font-semibold text-[#0D47A1] transition-colors"
-            >
-              Patient Registration <ChevronRight size={14} />
-            </button>
-            <button
-              onClick={() => onBookAppointmentClick?.()}
-              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 text-xs font-semibold text-[#009688] transition-colors"
-            >
-              Appointment Booking <ChevronRight size={14} />
-            </button>
-            <button
-              onClick={() => onCheckInClick && onCheckInClick()}
-              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 text-xs font-semibold text-[#009688] transition-colors"
-            >
-              Patient Check-In <ChevronRight size={14} />
-            </button>
-            <button
-              onClick={() => {
-                // Trigger quick queue refresh
-              }}
-              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-[#111827] transition-colors"
-            >
-              Refresh Queue <ChevronRight size={14} />
-            </button>
-          </div>
-
-          {/* CARD 04: Queue Alerts */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-              style={{ fontFamily: PP }}
-            >
-              <AlertCircle size={15} className="text-[#F59E0B]" /> Queue Alerts
-            </h3>
-            <div className="space-y-2 text-xs">
-              <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
-                <span className="font-bold block">Extended Waiting Time</span>
-                <span className="text-[11px]">
-                  Robert Chen (Cardiology) has been waiting over 20 mins.
-                </span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900">
-                <span className="font-bold block">
-                  Upcoming Appointment Slot
-                </span>
-                <span className="text-[11px]">
-                  3 patients scheduled for 11:00 AM session.
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* ── CONFIRMATION DIALOG: MARK NO SHOW ── */}

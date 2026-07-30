@@ -12,8 +12,6 @@ import {
   Lock,
   Shield,
   RefreshCw,
-  Check,
-  FileCheck,
 } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";

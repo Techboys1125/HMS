@@ -1,4 +1,3 @@
-import React from "react";
 import { Stethoscope, CheckCircle2, UserX, Building2 } from "lucide-react";
 import { PP } from "../constants/doctors.constants";
 

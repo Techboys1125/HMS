@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Eye,
   Edit,
@@ -26,7 +26,7 @@ export function AppointmentDetailsDrawer({
   onEditClick,
   onPrintClick,
   onPatientSelect,
-  isDetailsLoading: _isDetailsLoading = false,
+  isDetailsLoading = false,
   userRole = "Receptionist",
   onStartConsultation,
 }: {
@@ -38,8 +38,9 @@ export function AppointmentDetailsDrawer({
   onPatientSelect?: (id: number | string) => void;
   isDetailsLoading?: boolean;
   userRole?: UserRole;
-  onStartConsultation?: (aptId?: any) => void;
+  onStartConsultation?: (aptId?: string | number) => void;
 }) {
+  void isDetailsLoading;
   const [activeTab, setActiveTab] = useState<
     "all" | "patient" | "appointment" | "clinical" | "alerts" | "timeline"
   >("all");
@@ -209,17 +210,17 @@ export function AppointmentDetailsDrawer({
 
           {/* NAVIGATION TABS */}
           <div className="bg-white border-b border-[#E5E7EB] px-6 flex items-center gap-4 sm:gap-6 shrink-0 text-xs font-semibold overflow-x-auto">
-            {[
+            {([
               { id: "all", label: "All Sections" },
               { id: "patient", label: "Patient Info" },
               { id: "appointment", label: "Appointment" },
               { id: "clinical", label: "Clinical Prep" },
               { id: "alerts", label: "Patient Alerts" },
               { id: "timeline", label: "Timeline" },
-            ].map((tab) => (
+            ] as const).map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id)}
                 className={`py-3 border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.id
                     ? "border-[#0D47A1] text-[#0D47A1]"
@@ -386,7 +387,7 @@ export function AppointmentDetailsDrawer({
                       Booking Source
                     </span>
                     <span className="text-slate-700 font-semibold">
-                      {(apt as any).bookingChannel || "Reception Desk"}
+                      {(apt as AppointmentRecord & { bookingChannel?: string }).bookingChannel || "Reception Desk"}
                     </span>
                   </div>
                   <div>

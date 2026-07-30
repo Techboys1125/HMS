@@ -1,4 +1,3 @@
-import React from "react";
 import {
   ArrowUpDown,
   Stethoscope,
@@ -22,20 +21,20 @@ function getAvailabilityBadgeStyle(avail: DoctorAvailability) {
     case "On Leave":
       return { bg: "bg-amber-50 text-[#F59E0B] border-amber-200", dot: "bg-[#F59E0B]" };
     case "Out of Office":
-      return { bg: "bg-slate-100 text-slate-600 border-slate-200", dot: "bg-slate-400" };
+    default:
+      return { bg: "bg-slate-100 text-[#64748B] border-slate-200", dot: "bg-[#64748B]" };
   }
 }
 
 function getStatusBadgeStyle(status: DoctorStatus) {
   switch (status) {
     case "Active":
-      return "bg-emerald-50 text-[#66BB6A] border-emerald-200 font-semibold";
+      return { bg: "bg-emerald-50 text-[#66BB6A] border-emerald-200", dot: "bg-[#66BB6A]" };
     case "Inactive":
-      return "bg-slate-100 text-slate-600 border-slate-200 font-semibold";
+      return { bg: "bg-[#FEE2E2] text-[#EF4444] border-red-200", dot: "bg-[#EF4444]" };
     case "On Leave":
-      return "bg-amber-50 text-[#F59E0B] border-amber-200 font-semibold";
-    case "Suspended":
-      return "bg-red-50 text-[#EF4444] border-red-200 font-semibold";
+    default:
+      return { bg: "bg-amber-50 text-[#F59E0B] border-amber-200", dot: "bg-[#F59E0B]" };
   }
 }
 
@@ -46,11 +45,11 @@ export interface DoctorTableProps {
   sortColumn: keyof DoctorRecord;
   sortDirection: "asc" | "desc";
   onSort: (col: keyof DoctorRecord) => void;
-  onViewProfile: (doctor: DoctorRecord) => void;
-  onQuickView: (doctor: DoctorRecord) => void;
-  onEdit: (doctor: DoctorRecord) => void;
-  onViewSchedule: (doctor: DoctorRecord) => void;
-  onDeactivate: (doctor: DoctorRecord) => void;
+  onViewProfile: (doc: DoctorRecord) => void;
+  onQuickView: (doc: DoctorRecord) => void;
+  onEdit: (doc: DoctorRecord) => void;
+  onViewSchedule: (doc: DoctorRecord) => void;
+  onDeactivate: (doc: DoctorRecord) => void;
   onAddDoctor: () => void;
   onResetFilters: () => void;
 }
@@ -60,7 +59,6 @@ export function DoctorTable({
   filteredDoctors,
   isLoading,
   sortColumn,
-  sortDirection,
   onSort,
   onViewProfile,
   onQuickView,
@@ -82,7 +80,8 @@ export function DoctorTable({
                 { key: "department", label: "Department" },
                 { key: "specialty", label: "Specialty" },
                 { key: null, label: "Qualification" },
-                { key: "experienceYrs", label: "Experience" },
+
+                { key: null, label: "Designation" },
                 { key: "consultationFee", label: "Fee ($)" },
                 { key: "availability", label: "Availability" },
                 { key: "status", label: "Status" },
@@ -91,13 +90,17 @@ export function DoctorTable({
                 <th
                   key={col.label}
                   onClick={col.key ? () => onSort(col.key as keyof DoctorRecord) : undefined}
-                  className={`px-4 py-3.5 ${
-                    col.key ? "cursor-pointer hover:text-[#0D47A1] transition-colors" : ""
-                  } ${col.align || ""}`}
+                  className={`px-4 py-3.5 ${col.key ? "cursor-pointer hover:text-[#0D47A1] transition-colors" : ""
+                    } ${col.align || ""}`}
                 >
                   <div className={`flex items-center gap-1 ${col.align ? "justify-end" : ""}`}>
                     <span>{col.label}</span>
-                    {col.key && <ArrowUpDown size={12} className="text-slate-400" />}
+                    {col.key && (
+                      <ArrowUpDown
+                        size={12}
+                        className={sortColumn === col.key ? "text-[#0D47A1]" : "text-slate-400"}
+                      />
+                    )}
                   </div>
                 </th>
               ))}
@@ -216,25 +219,30 @@ export function DoctorTable({
                       {doc.qualification}
                     </td>
 
-                    <td className="px-4 py-3.5 font-medium text-[#111827]">{doc.experienceYrs} Yrs</td>
+                    <td className="px-4 py-3.5 font-medium text-[#111827]">{doc.designation ?? "—"}</td>
 
                     <td className="px-4 py-3.5 font-bold text-[#0D47A1]" style={{ fontFamily: PP }}>
                       ${doc.consultationFee}
                     </td>
 
                     <td className="px-4 py-3.5">
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-[11px] font-medium border inline-flex items-center gap-1.5 ${availBadge.bg}`}
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full ${availBadge.dot}`} />
-                        {doc.availability}
-                      </span>
+                      {(doc.availability === "Available Today" ||
+                        doc.availability === "On Duty" ||
+                        doc.availability === "On Leave") && (
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-medium border inline-flex items-center gap-1.5 ${availBadge.bg}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${availBadge.dot}`} />
+                          {doc.availability}
+                        </span>
+                      )}
                     </td>
 
                     <td className="px-4 py-3.5">
                       <span
-                        className={`px-2.5 py-1 rounded-full text-[11px] border inline-block ${getStatusBadgeStyle(doc.status)}`}
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-medium border inline-flex items-center gap-1.5 ${getStatusBadgeStyle(doc.status).bg}`}
                       >
+                        <span className={`w-1.5 h-1.5 rounded-full ${getStatusBadgeStyle(doc.status).dot}`} />
                         {doc.status}
                       </span>
                     </td>

@@ -27,10 +27,13 @@ export function CancelAppointmentConfirmationDialog({
 
   useEffect(() => {
     if (isOpen) {
-      setCancellationReason("Patient Request");
-      setAdditionalRemarks("");
-      setError("");
-      setTimeout(() => dropdownRef.current?.focus(), 50);
+      const timer = setTimeout(() => {
+        setCancellationReason("Patient Request");
+        setAdditionalRemarks("");
+        setError("");
+        dropdownRef.current?.focus();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 

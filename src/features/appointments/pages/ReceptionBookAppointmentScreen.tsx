@@ -1,9 +1,8 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   ChevronRight,
   UserPlus,
   Search,
-  Calendar as CalendarIcon,
   CheckCircle2,
   Printer,
   UserCheck,
@@ -147,10 +146,11 @@ export function ReceptionBookAppointmentScreen({
   // Modal & Confirmation State
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [confirmedAptId, setConfirmedAptId] = useState("");
-  const [notificationSent, setNotificationSent] = useState<{
+  const [notificationPrefs] = useState<{
     sms: boolean;
     email: boolean;
   }>({ sms: true, email: true });
+  void notificationPrefs;
 
   // Confirm Appointment Handler
   const handleConfirm = () => {
@@ -206,7 +206,7 @@ export function ReceptionBookAppointmentScreen({
       {/* ── MAIN WORKSPACE GRID ── */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* LEFT COLUMN: APPOINTMENT BOOKING FORM (8 COLS) */}
-        <div className="xl:col-span-8 space-y-6">
+        <div className="xl:col-span-12 space-y-6">
           {/* SECTION 01: PATIENT SEARCH */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
@@ -671,172 +671,6 @@ export function ReceptionBookAppointmentScreen({
                 placeholder="Add optional notes for OPD staff..."
                 className="w-full p-3 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
               />
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN: CONTEXT PANEL & SUMMARY (4 COLS) */}
-        <div className="xl:col-span-4 space-y-6">
-          {/* CARD 01: Patient Summary Card */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2"
-              style={{ fontFamily: PP }}
-            >
-              Patient Summary
-            </h3>
-            {selectedPatient ? (
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">Patient Name</span>
-                  <span className="font-bold text-[#111827]">
-                    {selectedPatient.name}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">MRN</span>
-                  <span className="font-mono font-bold text-[#0D47A1]">
-                    {selectedPatient.mrn}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">Age / Gender</span>
-                  <span className="text-[#111827]">
-                    {selectedPatient.age} yrs · {selectedPatient.gender}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span className="text-[#64748B]">Mobile Number</span>
-                  <span className="font-mono text-[#111827]">
-                    {selectedPatient.phone}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <p className="text-xs text-slate-400 py-2">
-                No patient selected.
-              </p>
-            )}
-          </div>
-
-          {/* CARD 02: Doctor Summary Card */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2"
-              style={{ fontFamily: PP }}
-            >
-              Doctor Summary
-            </h3>
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-[#64748B]">Consulting Doctor</span>
-                <span className="font-bold text-[#111827]">
-                  {currentDoctor.name}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-[#64748B]">Department</span>
-                <span className="text-[#111827]">{currentDoctor.dept}</span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-50">
-                <span className="text-[#64748B]">Specialization</span>
-                <span className="text-[#111827]">{currentDoctor.spec}</span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-[#64748B]">Consultation Fee</span>
-                <span className="font-bold text-[#0D47A1]">
-                  ₹{currentDoctor.fee}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* CARD 03: Appointment Booking Summary */}
-          <div className="bg-white rounded-2xl border border-[#0D47A1] p-5 shadow-sm space-y-3 bg-gradient-to-b from-blue-50/40 to-white">
-            <h3
-              className="text-xs font-bold text-[#0D47A1] uppercase tracking-wider border-b border-blue-100 pb-2 flex items-center justify-between"
-              style={{ fontFamily: PP }}
-            >
-              <span>Appointment Summary</span>
-              <CalendarIcon size={14} />
-            </h3>
-
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-[#64748B]">Appointment Date</span>
-                <span className="font-mono font-bold text-[#111827]">
-                  {selectedDate}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-[#64748B]">Time Slot</span>
-                <span className="font-mono font-bold text-[#009688]">
-                  {selectedTimeSlot}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-[#64748B]">Visit Type</span>
-                <span className="font-semibold text-[#111827]">
-                  {visitType}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-[#64748B]">Fee Payable</span>
-                <span className="font-bold text-base text-[#0D47A1]">
-                  ₹{currentDoctor.fee}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 pt-1">
-                <span className="text-[#64748B]">Booking Status</span>
-                <span className="px-2 py-0.5 rounded-full bg-blue-100 text-[#0D47A1] font-bold text-[10px]">
-                  Scheduled
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* CARD 04: Quick Communications Toggle Actions */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2"
-              style={{ fontFamily: PP }}
-            >
-              Notification Preferences
-            </h3>
-            <div className="space-y-2 text-xs">
-              <label className="flex items-center justify-between p-2 rounded-xl bg-slate-50 cursor-pointer">
-                <span className="font-medium text-[#111827]">
-                  Send SMS Notification
-                </span>
-                <input
-                  type="checkbox"
-                  checked={notificationSent.sms}
-                  onChange={(e) =>
-                    setNotificationSent((prev) => ({
-                      ...prev,
-                      sms: e.target.checked,
-                    }))
-                  }
-                  className="accent-[#009688] w-4 h-4"
-                />
-              </label>
-
-              <label className="flex items-center justify-between p-2 rounded-xl bg-slate-50 cursor-pointer">
-                <span className="font-medium text-[#111827]">
-                  Send Email Confirmation
-                </span>
-                <input
-                  type="checkbox"
-                  checked={notificationSent.email}
-                  onChange={(e) =>
-                    setNotificationSent((prev) => ({
-                      ...prev,
-                      email: e.target.checked,
-                    }))
-                  }
-                  className="accent-[#009688] w-4 h-4"
-                />
-              </label>
             </div>
           </div>
         </div>

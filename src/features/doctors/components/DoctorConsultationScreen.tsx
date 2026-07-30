@@ -8,9 +8,6 @@ import {
   FileText,
   Pill,
   Activity,
-  Heart,
-  Thermometer,
-  Droplets,
   Plus,
   Download,
   Check,
@@ -20,9 +17,9 @@ import {
   Save,
   ArrowRight,
   Building2,
+  X,
 } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
-import type { VitalSign, Medication } from "../types/doctors.types";
 import { VITALS_DATA, MEDICATIONS, TIMELINE, PP, RB } from "../constants/doctors.constants";
 import { Card } from "./Card";
 import { Avatar } from "./Avatar";

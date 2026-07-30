@@ -1,5 +1,5 @@
-import type { DoctorRecord } from "../features/doctors/pages/DoctorManagementCenterScreen";
-import { CheckCircle2, FileText, Clock, Edit, Stethoscope } from "lucide-react";
+import { CheckCircle2, Clock, Edit, FileText, Stethoscope } from "lucide-react";
+import type { DoctorRecord } from "../features/doctors/types/doctors.types";
 
 export const INITIAL_DOCTORS: DoctorRecord[] = [
   {

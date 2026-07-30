@@ -23,6 +23,7 @@ export interface DoctorRecord {
   department: string;
   specialty: string;
   qualification: string;
+  designation?: string;
   experienceYrs: number;
   consultationFee: number;
   followUpFee?: number;

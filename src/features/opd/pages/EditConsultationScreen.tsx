@@ -6,7 +6,6 @@ import {
   ChevronDown,
   Plus,
   Trash2,
-  Printer,
   Save,
   Info,
   Search,
@@ -256,39 +255,6 @@ export function EditConsultationScreen({
     return count;
   }, [formData.investigations, formData.customInvestigation]);
 
-  // Revision Timeline Events
-  const revisionTimelineEvents = [
-    {
-      event: "Consultation Created",
-      user: "Dr. Arjun Mehta",
-      date: "24 Jul 2026",
-      time: "09:00 AM",
-    },
-    {
-      event: "Diagnosis Updated",
-      user: "Dr. Arjun Mehta",
-      date: "24 Jul 2026",
-      time: "09:20 AM",
-    },
-    {
-      event: "Prescription Updated",
-      user: "Dr. Arjun Mehta",
-      date: "24 Jul 2026",
-      time: "09:30 AM",
-    },
-    {
-      event: "Follow-up Updated",
-      user: "Dr. Arjun Mehta",
-      date: "24 Jul 2026",
-      time: "09:38 AM",
-    },
-    {
-      event: "Revision #2 Modified",
-      user: "Dr. Arjun Mehta",
-      date: "24 Jul 2026",
-      time: "12:45 PM",
-    },
-  ];
 
   return (
     <div className="flex-1 bg-[#F1F5F9] overflow-y-auto flex flex-col font-sans relative pb-24">
@@ -571,7 +537,7 @@ export function EditConsultationScreen({
         {/* 2-COLUMN ENTERPRISE WORKSPACE GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* LEFT WORKSPACE (70% on desktop: col-span-8) */}
-          <div className="lg:col-span-8 space-y-5">
+          <div className="lg:col-span-12 space-y-5">
             {/* ── SECTION 01: VISIT INFORMATION ── */}
             <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
               <button
@@ -1731,176 +1697,6 @@ export function EditConsultationScreen({
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* RIGHT CONTEXT PANEL (30% on desktop: col-span-4) */}
-          <div className="lg:col-span-4 space-y-5">
-            {/* CARD 1: PATIENT SNAPSHOT */}
-            <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h3
-                  className="text-sm font-bold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  Patient Snapshot
-                </h3>
-                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
-                  Editing
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-12 h-12 rounded-full bg-[#0D47A1] text-white flex items-center justify-center font-bold text-base"
-                  style={{ fontFamily: PP }}
-                >
-                  SM
-                </div>
-                <div>
-                  <div
-                    className="font-bold text-sm text-[#111827]"
-                    style={{ fontFamily: PP }}
-                  >
-                    Sarah Mitchell
-                  </div>
-                  <div
-                    className="text-xs text-slate-500"
-                    style={{ fontFamily: RB }}
-                  >
-                    34 yrs · Female · Blood A+
-                  </div>
-                </div>
-              </div>
-
-              <div
-                className="space-y-2 text-xs pt-2 border-t border-gray-100"
-                style={{ fontFamily: RB }}
-              >
-                <div className="flex justify-between text-slate-600">
-                  <span>Previous Visits:</span>
-                  <span className="font-bold text-[#111827]">4 Visits</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Last Visit Date:</span>
-                  <span className="font-bold text-[#111827]">12 Jun 2026</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Allergies:</span>
-                  <span className="font-bold text-red-600">
-                    Penicillin, Aspirin
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* CARD 2: PREVIOUS CONSULTATION SUMMARY */}
-            <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-3">
-              <h3
-                className="text-sm font-bold text-[#111827]"
-                style={{ fontFamily: PP }}
-              >
-                Previous Consultation Summary
-              </h3>
-
-              <div
-                className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-1.5 text-xs"
-                style={{ fontFamily: RB }}
-              >
-                <div
-                  className="flex justify-between font-bold text-slate-800"
-                  style={{ fontFamily: PP }}
-                >
-                  <span>12 Jun 2026 — OPD</span>
-                  <span className="text-[#0D47A1]">Dr. Arjun Mehta</span>
-                </div>
-                <div className="text-slate-600">
-                  Previous Dx: Hypertensive Crisis (Controlled)
-                </div>
-                <div className="text-slate-500 text-[11px]">
-                  3 Prescribed Meds · Follow-up Completed
-                </div>
-              </div>
-
-              <button
-                onClick={() => onViewHistory?.("MRN-2024-001")}
-                className="w-full py-2 bg-slate-50 hover:bg-slate-100 border border-[#E5E7EB] text-slate-700 text-xs font-semibold rounded-xl transition-colors"
-                style={{ fontFamily: PP }}
-              >
-                View Consultation History
-              </button>
-            </div>
-
-            {/* CARD 3: REVISION TIMELINE */}
-            <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h3
-                  className="text-sm font-bold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  Revision Timeline
-                </h3>
-                <span className="text-[10px] font-bold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded">
-                  Audit Log
-                </span>
-              </div>
-
-              <div className="space-y-0">
-                {revisionTimelineEvents.map((evt, idx) => (
-                  <div key={idx} className="flex gap-3">
-                    <div className="flex flex-col items-center">
-                      <div className="w-2.5 h-2.5 rounded-full bg-[#0D47A1] mt-1 shrink-0" />
-                      {idx < revisionTimelineEvents.length - 1 && (
-                        <div className="w-px flex-1 bg-gray-200 my-0.5" />
-                      )}
-                    </div>
-                    <div className="pb-3 flex-1">
-                      <div
-                        className="font-bold text-xs text-slate-800"
-                        style={{ fontFamily: PP }}
-                      >
-                        {evt.event}
-                      </div>
-                      <div className="text-[11px] text-slate-600">
-                        {evt.user}
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-mono">
-                        {evt.date} · {evt.time}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* CARD 4: QUICK ACTIONS */}
-            <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-2">
-              <h3
-                className="text-sm font-bold text-[#111827] mb-2"
-                style={{ fontFamily: PP }}
-              >
-                Quick Actions
-              </h3>
-
-              <button
-                onClick={handleUpdateConsultation}
-                className="w-full py-2.5 px-4 bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Save size={15} />
-                Save Changes
-              </button>
-
-              <button
-                onClick={() =>
-                  alert(`Prescription printed for ${formData.consultationId}`)
-                }
-                className="w-full py-2.5 px-4 bg-teal-50 hover:bg-teal-100 text-[#009688] text-xs font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Printer size={15} />
-                Print Prescription
-              </button>
             </div>
           </div>
         </div>

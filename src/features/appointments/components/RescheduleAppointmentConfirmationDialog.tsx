@@ -46,11 +46,14 @@ export function RescheduleAppointmentConfirmationDialog({
       tomorrow.setDate(today.getDate() + 1);
       const defaultDateStr = tomorrow.toISOString().split("T")[0];
 
-      setSelectedDate(defaultDateStr);
-      setSelectedTimeSlot("09:30 AM");
-      setRescheduleReason("Patient Request");
-      setAdditionalRemarks("");
-      setErrors({});
+      const timer = setTimeout(() => {
+        setSelectedDate(defaultDateStr);
+        setSelectedTimeSlot("09:30 AM");
+        setRescheduleReason("Patient Request");
+        setAdditionalRemarks("");
+        setErrors({});
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isOpen, apt]);
 

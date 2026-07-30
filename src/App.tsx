@@ -534,7 +534,6 @@ const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         },
         { id: "prescriptions", Icon: Pill, label: "Prescriptions" },
         { id: "bills-payments", Icon: Receipt, label: "Billing & Payments" },
-        { id: "reports", Icon: BarChart2, label: "Reports" },
       ],
     },
   ],
@@ -2648,11 +2647,11 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                   onBack={() => setHistoryPrescriptionUhid(null)}
                   onViewPrescription={(rxId) => {
                     setHistoryPrescriptionUhid(null);
-                    setViewDetailsPrescriptionId(rxId);
+                    setViewDetailsPrescriptionId(typeof rxId === "string" ? rxId : rxId.id);
                   }}
                   onPrintPreview={(rxId) => {
                     setHistoryPrescriptionUhid(null);
-                    setPrintPreviewPrescriptionId(rxId);
+                    setPrintPreviewPrescriptionId(String(rxId));
                   }}
                   onViewPatientProfile={(uhid) => {
                     setHistoryPrescriptionUhid(null);
@@ -2670,7 +2669,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                   onViewConsultation={(consultId) => {
                     setPrintPreviewPrescriptionId(null);
                     setActiveNav("consultation");
-                    setViewDetailsConsultationId(consultId);
+                    setViewDetailsConsultationId(String(consultId));
                   }}
                 />
               )}

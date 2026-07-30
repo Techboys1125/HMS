@@ -1,15 +1,36 @@
-export * from "./types/appointment.types";
-export * from "./types/appointment-screen.types";
-export * from "./api/appointments.api";
-export * from "./services/appointment.service";
+export type {
+  AppointmentRecord,
+  CreateAppointmentRequest,
+  RescheduleAppointmentRequest,
+  CancelAppointmentRequest,
+  QueueActionResponse,
+  LinkedPatient,
+  OnboardingStatusResponse,
+  DoctorSummary,
+  AppointmentStatusEnum,
+  QueueStatusEnum,
+  AppointmentTypeEnum,
+  FamilyRelationshipEnum,
+} from "./types/appointment.types";
+export type {
+  AppointmentStatus,
+  VisitType,
+  PriorityLevel,
+  UserRole,
+  TimelineActivity,
+  AppointmentManagementCenterScreenProps,
+  ReceptionBookAppointmentScreenProps,
+  PatientCheckInScreenProps,
+  ReceptionQueueManagementScreenProps,
+} from "./types/appointment-screen.types";
+export { appointmentsApi } from "./api/appointments.api";
+export { appointmentService } from "./services/appointment.service";
 export * from "./hooks/useAppointments";
 export * from "./hooks/useAppointment";
 export * from "./hooks/useBookAppointment";
 export * from "./hooks/useAppointmentSlots";
-export * from "./hooks/useCancelAppointment";
-export * from "./hooks/useRescheduleAppointment";
 export * from "./permissions/appointment.permissions";
-export * from "./constants/appointment.constants";
+export { PP, RB, type ChipVariant, PATIENT_DATABASE, DOCTOR_DATABASE, DOCTOR_AVAILABILITY_DATA, INITIAL_APPOINTMENTS, EMPTY_AVAILABILITY, appointmentToPatientSummary } from "./constants/appointment.constants";
 export { appointmentStore, useAppointmentStore } from "./store/appointment.store";
 
 // Components

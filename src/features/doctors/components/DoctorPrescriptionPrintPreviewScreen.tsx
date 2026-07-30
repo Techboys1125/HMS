@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { X, Printer, Download, ChevronRight, ChevronLeft, CheckCircle2, Clock, ArrowLeft, Search, Filter, Eye, FileText } from "lucide-react";
+import { useState } from "react";
+import { Printer, Download, CheckCircle2, ArrowLeft, Search, Filter, Eye, FileText } from "lucide-react";
 import type { PrescriptionRecord } from "../types/doctors.types";
 import { MY_PRESCRIPTIONS_DATA, PP, RB } from "../constants/doctors.constants";
 
@@ -11,17 +11,20 @@ const PRESCRIPTION_HEADER = {
 };
 
 export interface DoctorPrescriptionPrintPreviewScreenProps {
+  prescriptionId?: string;
   prescription?: PrescriptionRecord;
   onBack?: () => void;
   onPrint?: () => void;
+  onViewConsultation?: (consultId: string | number) => void;
 }
 
 export function DoctorPrescriptionPrintPreviewScreen({
+  prescriptionId,
   prescription,
   onBack,
   onPrint,
 }: DoctorPrescriptionPrintPreviewScreenProps) {
-  const rx = prescription || MY_PRESCRIPTIONS_DATA[0];
+  const rx = prescription || MY_PRESCRIPTIONS_DATA.find((p) => p.id === prescriptionId) || MY_PRESCRIPTIONS_DATA[0];
 
   const handlePrint = () => {
     window.print();
@@ -148,8 +151,11 @@ export function DoctorPrescriptionPrintPreviewScreen({
 }
 
 export interface DoctorPrescriptionHistoryScreenProps {
+  patientMrn?: string;
   onBack?: () => void;
-  onViewPrescription?: (rx: PrescriptionRecord) => void;
+  onViewPrescription?: (rx: PrescriptionRecord | string) => void;
+  onPrintPreview?: (rxId: string | number) => void;
+  onViewPatientProfile?: (uhid: string | number) => void;
 }
 
 export function DoctorPrescriptionHistoryScreen({

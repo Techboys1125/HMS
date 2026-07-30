@@ -1,5 +1,3 @@
-import type { AppointmentRecord } from "./appointment.types";
-
 export type AppointmentStatus =
   | "Scheduled"
   | "Checked-In"
@@ -29,21 +27,23 @@ export interface TimelineActivity {
   notes?: string;
 }
 
+import type { AppointmentRecord } from "./appointment.types";
+
 export interface AppointmentManagementCenterScreenProps {
   onPatientSelect?: (id: number | string) => void;
-  onStartConsultation?: (apt?: any) => void;
+  onStartConsultation?: (apt?: AppointmentRecord | null | string | number) => void;
   onBookAppointmentClick?: () => void;
   onReceptionQueueClick?: () => void;
   userRole?: UserRole;
   onBack?: () => void;
-  onConfirmSuccess?: (uhid: any) => void;
+  onConfirmSuccess?: (uhid: string | number) => void;
   onRegisterNewPatientClick?: () => void;
-  onViewPatientProfileClick?: (uhid: any) => void;
+  onViewPatientProfileClick?: (uhid: string | number) => void;
   initialUhid?: string;
   initialAptId?: string;
-  onCheckInSuccess?: (uhid: any) => void;
-  onViewQueueClick?: (uhid?: any) => void;
-  onCheckInClick?: (token?: any, uhid?: any) => void;
+  onCheckInSuccess?: (uhid: string | number) => void;
+  onViewQueueClick?: (uhid?: string | number) => void;
+  onCheckInClick?: (token?: string | number, uhid?: string | number) => void;
   onPatientSearchClick?: () => void;
   onRegisterPatientClick?: () => void;
 }

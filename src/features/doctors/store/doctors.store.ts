@@ -53,7 +53,10 @@ export function useDoctorsStore(): DoctorRecord[] {
   const [doctors, setDoctors] = useState<DoctorRecord[]>(currentDoctors);
 
   useEffect(() => {
-    return doctorsStore.subscribe(() => setDoctors([...currentDoctors]));
+    const unsub = doctorsStore.subscribe(() => setDoctors([...currentDoctors]));
+    return () => {
+      unsub();
+    };
   }, []);
 
   return doctors;

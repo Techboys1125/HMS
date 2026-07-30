@@ -43,7 +43,10 @@ export function useAppointmentStore(): AppointmentRecord[] {
   const [appointments, setAppointments] = useState<AppointmentRecord[]>(currentAppointments);
 
   useEffect(() => {
-    return appointmentStore.subscribe(() => setAppointments([...currentAppointments]));
+    const unsub = appointmentStore.subscribe(() => setAppointments([...currentAppointments]));
+    return () => {
+      unsub();
+    };
   }, []);
 
   return appointments;

@@ -41,7 +41,7 @@ export const appointmentToPatientSummary = (apt: AppointmentRecord): PS => ({
   mrn: apt.patientMrn || apt.mrn || "",
   name: apt.patientName,
   age: apt.patientAge || 0,
-  gender: (apt.patientGender as any) || "Other",
+  gender: (apt.patientGender as PS["gender"]) || "Other",
   bloodGroup: "",
   phone: apt.patientPhone || "",
   emergencyContact: "",

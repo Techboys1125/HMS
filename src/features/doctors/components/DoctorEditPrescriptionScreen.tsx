@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   ChevronRight,
-  ChevronLeft,
   User,
   AlertTriangle,
   CheckCircle2,
@@ -13,7 +12,6 @@ import {
   Copy,
   Trash2,
   X,
-  Edit3,
 } from "lucide-react";
 import type { EditableMedicine, RxStatus } from "../types/doctors.types";
 import { FREQUENCY_OPTIONS, ROUTE_OPTIONS, COMMON_MEDICINES, PP, RB } from "../constants/doctors.constants";

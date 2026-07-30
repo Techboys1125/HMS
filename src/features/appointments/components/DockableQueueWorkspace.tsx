@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   ArrowLeft,
   Calendar,
@@ -13,7 +13,6 @@ import {
   User,
   UserCheck,
   Users,
-  Zap,
 } from "lucide-react";
 import { PP, RB } from "../constants/appointment.constants";
 import { StatusBadge } from "./StatusBadge";
@@ -25,7 +24,6 @@ export function DockableQueueWorkspace({
   appointments,
   onUpdateStatus,
   onViewDetails,
-  onBookClick: _onBookClick,
   onBackToDirectory,
   onPatientSelect,
   userRole = "Receptionist",
@@ -42,15 +40,15 @@ export function DockableQueueWorkspace({
   onBackToDirectory: () => void;
   onPatientSelect?: (id: number | string) => void;
   userRole?: UserRole;
-  onStartConsultation?: (apt?: any) => void;
+  onStartConsultation?: (apt?: AppointmentRecord | null) => void;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [doctorFilter, _setDoctorFilter] = useState("All");
-  const [deptFilter, _setDeptFilter] = useState("All");
+  const doctorFilter = "All";
+  const deptFilter = "All";
   const [statusFilter, setStatusFilter] = useState("All");
   const [visitTypeFilter, setVisitTypeFilter] = useState("All");
   const [timeFilter, setTimeFilter] = useState("All");
-  const [_isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const isDoctor = userRole === "Doctor";
   const isNurse = userRole === "Nurse";
@@ -201,7 +199,7 @@ export function DockableQueueWorkspace({
             }}
             className="px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
           >
-            <RefreshCw size={13} /> Refresh Queue
+            <RefreshCw size={13} className={isLoading ? "animate-spin" : ""} /> Refresh Queue
           </button>
 
           {isDoctor ? (
@@ -447,7 +445,7 @@ export function DockableQueueWorkspace({
       {/* WORKSPACE CONTENT: LEFT TABLE & RIGHT CONTEXT PANEL */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* MAIN QUEUE COLUMN (8 Cols) */}
-        <div className="lg:col-span-8 space-y-4">
+        <div className="lg:col-span-12 space-y-4">
           {/* SEARCH & FILTER BAR */}
           <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -701,198 +699,6 @@ export function DockableQueueWorkspace({
               </table>
             </div>
           </div>
-        </div>
-
-        {/* RIGHT CONTEXT PANEL (4 Cols) */}
-        <div className="lg:col-span-4 space-y-4">
-          {/* CARD 1: TODAY'S QUEUE SUMMARY (Doctor & Receptionist only) */}
-          {!isNurse && (
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Clock size={15} className="text-[#0D47A1]" /> Today's Queue
-                Summary
-              </h3>
-
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                  <span className="text-[10px] text-slate-400 block font-medium">
-                    Total Patients
-                  </span>
-                  <strong className="text-sm font-bold text-[#111827]">
-                    {totalCount}
-                  </strong>
-                </div>
-                <div className="bg-amber-50/70 p-2.5 rounded-xl border border-amber-100">
-                  <span className="text-[10px] text-amber-700 block font-medium">
-                    Waiting
-                  </span>
-                  <strong className="text-sm font-bold text-[#F59E0B]">
-                    {waitingPatients.length}
-                  </strong>
-                </div>
-                <div className="bg-teal-50/70 p-2.5 rounded-xl border border-teal-100">
-                  <span className="text-[10px] text-teal-700 block font-medium">
-                    In Consultation
-                  </span>
-                  <strong className="text-sm font-bold text-[#009688]">
-                    {inConsultationPatients.length}
-                  </strong>
-                </div>
-                <div className="bg-green-50/70 p-2.5 rounded-xl border border-green-100">
-                  <span className="text-[10px] text-green-700 block font-medium">
-                    Completed
-                  </span>
-                  <strong className="text-sm font-bold text-[#66BB6A]">
-                    {completedCount}
-                  </strong>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">
-                  Average Waiting Time
-                </span>
-                <strong className="font-mono text-[#0D47A1] font-bold">
-                  14 min
-                </strong>
-              </div>
-            </div>
-          )}
-
-          {/* CARD 2: CURRENT PATIENT */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-              style={{ fontFamily: PP }}
-            >
-              <User size={15} className="text-[#009688]" /> Current Active
-              Patient
-            </h3>
-
-            {currentPatient ? (
-              <div className="space-y-3 text-xs">
-                <div className="flex items-center gap-3">
-                  <Avatar name={currentPatient.patientName} size="md" />
-                  <div>
-                    <strong
-                      className="text-sm text-[#111827] block"
-                      style={{ fontFamily: PP }}
-                    >
-                      {currentPatient.patientName}
-                    </strong>
-                    <span className="font-mono text-[10px] text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                      Token {currentPatient.tokenNo}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-3 bg-amber-50/80 border border-amber-100 rounded-xl">
-                  <div
-                    className="text-[10px] font-bold text-amber-800 uppercase tracking-wide mb-0.5"
-                    style={{ fontFamily: PP }}
-                  >
-                    Chief Complaint
-                  </div>
-                  <div className="text-xs text-amber-950 font-medium">
-                    {currentPatient.chiefComplaint ||
-                      "Chest pain and shortness of breath."}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-                  <span>Waiting Duration</span>
-                  <strong className="font-mono text-[#111827]">
-                    {currentPatient.waitingTimeMinutes || 12} mins
-                  </strong>
-                </div>
-              </div>
-            ) : (
-              <div className="py-4 text-center text-xs text-slate-400">
-                No active patient currently being seen.
-              </div>
-            )}
-          </div>
-
-          {/* CARD 3: NEXT PATIENT (Doctor & Receptionist only) */}
-          {!isNurse && (
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Users size={15} className="text-[#0D47A1]" /> Next Patient in
-                Line
-              </h3>
-
-              {nextPatient ? (
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
-                    <strong
-                      className="text-[#111827]"
-                      style={{ fontFamily: PP }}
-                    >
-                      {nextPatient.patientName}
-                    </strong>
-                    <span className="font-mono font-bold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                      {nextPatient.tokenNo}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-500">
-                    <span>
-                      Time:{" "}
-                      <strong className="font-mono text-slate-700">
-                        {nextPatient.timeSlot}
-                      </strong>
-                    </span>
-                    <span>
-                      Est. Wait:{" "}
-                      <strong className="text-[#009688]">15 mins</strong>
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="py-4 text-center text-xs text-slate-400">
-                  No upcoming patient in queue.
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* CARD 4: QUICK ACTIONS (Doctor & Receptionist only) */}
-          {!isNurse && (
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Zap size={15} className="text-[#0D47A1]" /> Quick Actions
-              </h3>
-
-              <div className="space-y-2">
-                {isDoctor && (
-                  <button
-                    onClick={() => onStartConsultation?.(currentPatient)}
-                    className="w-full py-2.5 px-3 rounded-xl bg-[#009688] text-[#FFFFFF] text-xs font-bold hover:bg-[#00796B] transition-colors flex items-center justify-center gap-2 shadow-sm"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Stethoscope size={15} /> Start Consultation
-                  </button>
-                )}
-
-                <button
-                  onClick={onBackToDirectory}
-                  className="w-full py-2.5 px-3 rounded-xl border border-[#E5E7EB] bg-slate-50 text-slate-700 text-xs font-semibold hover:bg-slate-100 transition-colors flex items-center justify-center gap-2"
-                  style={{ fontFamily: PP }}
-                >
-                  <Calendar size={14} className="text-[#0D47A1]" /> View My
-                  Appointments
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
