@@ -104,8 +104,6 @@ export interface TimelineActivity {
   notes?: string;
 }
 
-
-
 // Status Configuration Palette
 const STATUS_CONFIG: Record<
   AppointmentStatus,
@@ -525,14 +523,15 @@ export function RescheduleAppointmentConfirmationDialog({
                         if (errors.date)
                           setErrors((prev) => ({ ...prev, date: "" }));
                       }}
-                      className={`py-1.5 rounded-lg text-xs font-medium transition-all ${isSelected
-                        ? "bg-[#009688] text-white font-bold shadow-xs"
-                        : isCurrentAptDate
-                          ? "bg-amber-100 text-amber-800 font-bold border border-amber-300"
-                          : isDisabled
-                            ? "text-slate-300 cursor-not-allowed line-through opacity-50"
-                            : "text-slate-700 bg-white hover:bg-teal-50 hover:text-[#009688] border border-slate-100"
-                        }`}
+                      className={`py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        isSelected
+                          ? "bg-[#009688] text-white font-bold shadow-xs"
+                          : isCurrentAptDate
+                            ? "bg-amber-100 text-amber-800 font-bold border border-amber-300"
+                            : isDisabled
+                              ? "text-slate-300 cursor-not-allowed line-through opacity-50"
+                              : "text-slate-700 bg-white hover:bg-teal-50 hover:text-[#009688] border border-slate-100"
+                      }`}
                     >
                       {dayNum}
                     </button>
@@ -579,12 +578,13 @@ export function RescheduleAppointmentConfirmationDialog({
                           setErrors((prev) => ({ ...prev, slot: "" }));
                       }
                     }}
-                    className={`py-2 px-1.5 rounded-xl text-xs font-mono font-semibold transition-all border text-center ${isSelected
-                      ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
-                      : isAvailable
-                        ? "bg-slate-50 text-slate-700 border-[#E5E7EB] hover:bg-blue-50 hover:text-[#0D47A1]"
-                        : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50 line-through"
-                      }`}
+                    className={`py-2 px-1.5 rounded-xl text-xs font-mono font-semibold transition-all border text-center ${
+                      isSelected
+                        ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
+                        : isAvailable
+                          ? "bg-slate-50 text-slate-700 border-[#E5E7EB] hover:bg-blue-50 hover:text-[#0D47A1]"
+                          : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50 line-through"
+                    }`}
                   >
                     {s.time}
                   </button>
@@ -987,7 +987,9 @@ export function BookAppointmentDrawer({
           }))
           .map((p) => p as PatientSummary);
         setLinkedPatients(normalized);
-        setSelectedPatient((prev) => prev ?? (normalized.length > 0 ? normalized[0] : null));
+        setSelectedPatient(
+          (prev) => prev ?? (normalized.length > 0 ? normalized[0] : null),
+        );
       })
       .catch(() => {
         if (mounted) setLinkedPatients([]);
@@ -1014,12 +1016,12 @@ export function BookAppointmentDrawer({
     );
     return matched
       ? {
-        specialty: matched.doctorSpecialty || "",
-        department: matched.department || department,
-        opdRoom: matched.opdRoom || "",
-        slotDuration: "15 Minutes",
-        slots: slotOptions,
-      }
+          specialty: matched.doctorSpecialty || "",
+          department: matched.department || department,
+          opdRoom: matched.opdRoom || "",
+          slotDuration: "15 Minutes",
+          slots: slotOptions,
+        }
       : { ...EMPTY_AVAILABILITY, department, slots: slotOptions };
   }, [liveAppointments, doctorName, department, slotOptions]);
 
@@ -1044,11 +1046,14 @@ export function BookAppointmentDrawer({
           matched.doctorId,
           appointmentDate,
         );
-        const normalizedSlots = (slots as Array<Record<string, unknown>>).map((slot) => ({
-          time: String(slot.time || slot.startTime || slot.slotTime || ""),
-          available:
-            Boolean(slot.available ?? slot.isAvailable ?? slot.status === "AVAILABLE"),
-        }));
+        const normalizedSlots = (slots as Array<Record<string, unknown>>).map(
+          (slot) => ({
+            time: String(slot.time || slot.startTime || slot.slotTime || ""),
+            available: Boolean(
+              slot.available ?? slot.isAvailable ?? slot.status === "AVAILABLE",
+            ),
+          }),
+        );
         setSlotOptions(normalizedSlots);
         const availableSlot = normalizedSlots.find((s) => s.available)?.time;
         if (availableSlot) setTimeSlot(availableSlot);
@@ -1193,10 +1198,11 @@ export function BookAppointmentDrawer({
                     }}
                     onFocus={() => setIsDropdownOpen(true)}
                     placeholder="Type Patient Name, MRN (MRN-2024-001) or Phone..."
-                    className={`w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border rounded-xl text-[#111827] outline-none transition-colors ${errors.patient
-                      ? "border-[#EF4444] bg-red-50/20"
-                      : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
-                      }`}
+                    className={`w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border rounded-xl text-[#111827] outline-none transition-colors ${
+                      errors.patient
+                        ? "border-[#EF4444] bg-red-50/20"
+                        : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
+                    }`}
                   />
                   {patientSearch && (
                     <button
@@ -1406,12 +1412,13 @@ export function BookAppointmentDrawer({
                     onClick={() => {
                       if (s.available) setTimeSlot(s.time);
                     }}
-                    className={`py-2 px-2 rounded-xl text-xs font-mono font-semibold transition-all border text-center ${timeSlot === s.time
-                      ? "bg-[#0D47A1] text-white border-[#0D47A1]"
-                      : s.available
-                        ? "bg-slate-50 text-slate-700 border-[#E5E7EB] hover:bg-blue-50"
-                        : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50 line-through"
-                      }`}
+                    className={`py-2 px-2 rounded-xl text-xs font-mono font-semibold transition-all border text-center ${
+                      timeSlot === s.time
+                        ? "bg-[#0D47A1] text-white border-[#0D47A1]"
+                        : s.available
+                          ? "bg-slate-50 text-slate-700 border-[#E5E7EB] hover:bg-blue-50"
+                          : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50 line-through"
+                    }`}
                   >
                     {s.time}
                   </button>
@@ -1463,11 +1470,19 @@ export function EditAppointmentDrawer({
   onPatientSelect?: (id: number | string) => void;
 }) {
   const [department, setDepartment] = useState(() => apt?.department || "");
-  const [doctorName, setDoctorName] = useState(() => apt?.doctorName || "Dr. Arjun Mehta");
-  const [appointmentDate, setAppointmentDate] = useState(() => apt?.appointmentDate || "");
+  const [doctorName, setDoctorName] = useState(
+    () => apt?.doctorName || "Dr. Arjun Mehta",
+  );
+  const [appointmentDate, setAppointmentDate] = useState(
+    () => apt?.appointmentDate || "",
+  );
   const [timeSlot, setTimeSlot] = useState(() => apt?.timeSlot || "");
-  const [visitType] = useState<VisitType>(() => (apt?.visitType as VisitType) || "First Visit");
-  const [status, setStatus] = useState<AppointmentStatus | string>(() => String(apt?.status || "Scheduled"));
+  const [visitType] = useState<VisitType>(
+    () => (apt?.visitType as VisitType) || "First Visit",
+  );
+  const [status, setStatus] = useState<AppointmentStatus | string>(() =>
+    String(apt?.status || "Scheduled"),
+  );
   const [reasonForVisit] = useState(() => apt?.chiefComplaint || "");
   const [additionalNotes] = useState(() => apt?.notes || "");
 
@@ -1962,10 +1977,11 @@ export function AppointmentDetailsDrawer({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`py-3 border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
-                  ? "border-[#0D47A1] text-[#0D47A1]"
-                  : "border-transparent text-slate-500 hover:text-slate-700"
-                  }`}
+                className={`py-3 border-b-2 transition-colors whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? "border-[#0D47A1] text-[#0D47A1]"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
                 style={{ fontFamily: PP }}
               >
                 {tab.label}
@@ -2127,7 +2143,8 @@ export function AppointmentDetailsDrawer({
                       Booking Source
                     </span>
                     <span className="text-slate-700 font-semibold">
-                      {(apt as unknown as Record<string, unknown>).bookingChannel as string || "Reception Desk"}
+                      {((apt as unknown as Record<string, unknown>)
+                        .bookingChannel as string) || "Reception Desk"}
                     </span>
                   </div>
                   <div>
@@ -3069,19 +3086,19 @@ export function DockableQueueWorkspace({
 
                               {(q.status === "Checked-In" ||
                                 q.status === "Waiting") && (
-                                  <button
-                                    onClick={() =>
-                                      onUpdateStatus(
-                                        q.id,
-                                        "Checked-In",
-                                        "Patient called for consultation.",
-                                      )
-                                    }
-                                    className="px-2.5 py-1 rounded-lg bg-teal-50 text-[#009688] text-[11px] font-bold border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1"
-                                  >
-                                    <PhoneCall size={12} /> Call Next Patient
-                                  </button>
-                                )}
+                                <button
+                                  onClick={() =>
+                                    onUpdateStatus(
+                                      q.id,
+                                      "Checked-In",
+                                      "Patient called for consultation.",
+                                    )
+                                  }
+                                  className="px-2.5 py-1 rounded-lg bg-teal-50 text-[#009688] text-[11px] font-bold border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1"
+                                >
+                                  <PhoneCall size={12} /> Call Next Patient
+                                </button>
+                              )}
                             </>
                           )}
                         </div>
@@ -3344,11 +3361,10 @@ export function AppointmentManagementCenterScreen({
   onReceptionQueueClick,
   userRole = "Receptionist",
 }: Props) {
-  const {
-    appointments,
-    setAppointments,
-    refetch,
-  } = useAppointments(userRole, new Date().toISOString().split("T")[0]);
+  const { appointments, setAppointments, refetch } = useAppointments(
+    userRole,
+    new Date().toISOString().split("T")[0],
+  );
   const [viewMode, setViewMode] = useState<"directory" | "queue">("directory");
 
   // Search & Filter state - Default Date = TODAY
@@ -4238,18 +4254,20 @@ export function AppointmentManagementCenterScreen({
                 <button
                   key={tab.id}
                   onClick={() => setStatusFilter(tab.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${statusFilter === tab.id
-                    ? "bg-[#0D47A1] text-white shadow-xs"
-                    : "bg-slate-50 text-[#64748B] hover:bg-slate-100 hover:text-[#111827]"
-                    }`}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                    statusFilter === tab.id
+                      ? "bg-[#0D47A1] text-white shadow-xs"
+                      : "bg-slate-50 text-[#64748B] hover:bg-slate-100 hover:text-[#111827]"
+                  }`}
                   style={{ fontFamily: PP }}
                 >
                   <span>{tab.label}</span>
                   <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${statusFilter === tab.id
-                      ? "bg-white/20 text-white"
-                      : "bg-slate-200 text-[#111827]"
-                      }`}
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                      statusFilter === tab.id
+                        ? "bg-white/20 text-white"
+                        : "bg-slate-200 text-[#111827]"
+                    }`}
                   >
                     {tab.count}
                   </span>
@@ -4399,10 +4417,11 @@ export function AppointmentManagementCenterScreen({
 
                             <td className="px-4 py-3.5">
                               <span
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold border ${apt.visitType === "Walk-In"
-                                  ? "bg-teal-50 text-[#009688] border-teal-200"
-                                  : "bg-indigo-50 text-indigo-700 border-indigo-200"
-                                  }`}
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                                  apt.visitType === "Walk-In"
+                                    ? "bg-teal-50 text-[#009688] border-teal-200"
+                                    : "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                }`}
                               >
                                 {apt.visitType}
                               </span>
@@ -4484,16 +4503,16 @@ export function AppointmentManagementCenterScreen({
 
                                     {(apt.status === "Checked-In" ||
                                       apt.status === "Waiting") && (
-                                        <button
-                                          onClick={() =>
-                                            handleCallNextPatient(apt.id)
-                                          }
-                                          className="px-2 py-1 rounded-lg bg-teal-50 text-[#009688] text-[10px] font-bold border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1"
-                                          title="Call Next Patient"
-                                        >
-                                          <PhoneCall size={12} /> Call
-                                        </button>
-                                      )}
+                                      <button
+                                        onClick={() =>
+                                          handleCallNextPatient(apt.id)
+                                        }
+                                        className="px-2 py-1 rounded-lg bg-teal-50 text-[#009688] text-[10px] font-bold border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1"
+                                        title="Call Next Patient"
+                                      >
+                                        <PhoneCall size={12} /> Call
+                                      </button>
+                                    )}
 
                                     <button
                                       onClick={() => setRescheduleApt(apt)}
@@ -4650,10 +4669,10 @@ export function AppointmentManagementCenterScreen({
                       (a) =>
                         a.status === "Waiting" || a.status === "Checked-In",
                     ).length === 0 && (
-                        <div className="py-4 text-center text-xs text-slate-400">
-                          No patients waiting in lounge.
-                        </div>
-                      )}
+                      <div className="py-4 text-center text-xs text-slate-400">
+                        No patients waiting in lounge.
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -5554,10 +5573,11 @@ export function ReceptionBookAppointmentScreen({
                     <div
                       key={doc.key}
                       onClick={() => setSelectedDocKey(doc.key)}
-                      className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${isSelected
-                        ? "border-[#009688] bg-teal-50/50 shadow-sm ring-1 ring-[#009688]"
-                        : "border-[#E5E7EB] bg-white hover:border-slate-300"
-                        }`}
+                      className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
+                        isSelected
+                          ? "border-[#009688] bg-teal-50/50 shadow-sm ring-1 ring-[#009688]"
+                          : "border-[#E5E7EB] bg-white hover:border-slate-300"
+                      }`}
                     >
                       <div className="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
                         {doc.name.replace("Dr. ", "").slice(0, 2).toUpperCase()}
@@ -5619,12 +5639,13 @@ export function ReceptionBookAppointmentScreen({
                       type="button"
                       disabled={!item.isAvailable}
                       onClick={() => setSelectedDate(item.date)}
-                      className={`p-2.5 rounded-xl border text-center transition-all ${!item.isAvailable
-                        ? "opacity-40 bg-slate-100 border-slate-200 cursor-not-allowed"
-                        : isSelected
-                          ? "bg-[#0D47A1] border-[#0D47A1] text-white shadow-sm font-bold"
-                          : "bg-white border-[#E5E7EB] text-[#111827] hover:border-blue-300"
-                        }`}
+                      className={`p-2.5 rounded-xl border text-center transition-all ${
+                        !item.isAvailable
+                          ? "opacity-40 bg-slate-100 border-slate-200 cursor-not-allowed"
+                          : isSelected
+                            ? "bg-[#0D47A1] border-[#0D47A1] text-white shadow-sm font-bold"
+                            : "bg-white border-[#E5E7EB] text-[#111827] hover:border-blue-300"
+                      }`}
                     >
                       <span className="block text-[10px] uppercase opacity-80">
                         {item.day}
@@ -5658,12 +5679,13 @@ export function ReceptionBookAppointmentScreen({
                         type="button"
                         disabled={!slot.available}
                         onClick={() => setSelectedTimeSlot(slot.time)}
-                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${!slot.available
-                          ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
-                          : isSelected
-                            ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                            : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
-                          }`}
+                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
+                          !slot.available
+                            ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
+                            : isSelected
+                              ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                              : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                        }`}
                       >
                         {slot.time}
                       </button>
@@ -5686,12 +5708,13 @@ export function ReceptionBookAppointmentScreen({
                         type="button"
                         disabled={!slot.available}
                         onClick={() => setSelectedTimeSlot(slot.time)}
-                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${!slot.available
-                          ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
-                          : isSelected
-                            ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                            : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
-                          }`}
+                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
+                          !slot.available
+                            ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
+                            : isSelected
+                              ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                              : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                        }`}
                       >
                         {slot.time}
                       </button>
@@ -5714,12 +5737,13 @@ export function ReceptionBookAppointmentScreen({
                         type="button"
                         disabled={!slot.available}
                         onClick={() => setSelectedTimeSlot(slot.time)}
-                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${!slot.available
-                          ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
-                          : isSelected
-                            ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                            : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
-                          }`}
+                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
+                          !slot.available
+                            ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
+                            : isSelected
+                              ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                              : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                        }`}
                       >
                         {slot.time}
                       </button>
@@ -7070,7 +7094,9 @@ export function ReceptionQueueManagementScreen({
   }
 
   // Dialog States
-  const [noShowDialogApt, setNoShowDialogApt] = useState<QueueItem | null>(null);
+  const [noShowDialogApt, setNoShowDialogApt] = useState<QueueItem | null>(
+    null,
+  );
 
   // Queue Data List
   const [queueItems, setQueueItems] = useState([
@@ -7638,7 +7664,7 @@ export function ReceptionQueueManagementScreen({
                           >
                             <div className="flex items-center justify-end gap-1.5">
                               {item.status === "Scheduled" ||
-                                item.status === "Registered" ? (
+                              item.status === "Registered" ? (
                                 <button
                                   onClick={() =>
                                     onCheckInClick &&

@@ -5,15 +5,30 @@ import { PP } from "../constants/doctors.constants";
 function getAvailabilityBadgeStyle(avail: string) {
   switch (avail) {
     case "Available Today":
-      return { bg: "bg-[#E6F4F1] text-[#009688] border-teal-200", dot: "bg-[#009688]" };
+      return {
+        bg: "bg-[#E6F4F1] text-[#009688] border-teal-200",
+        dot: "bg-[#009688]",
+      };
     case "On Duty":
-      return { bg: "bg-blue-50 text-[#0D47A1] border-blue-200", dot: "bg-[#0D47A1]" };
+      return {
+        bg: "bg-blue-50 text-[#0D47A1] border-blue-200",
+        dot: "bg-[#0D47A1]",
+      };
     case "On Call":
-      return { bg: "bg-purple-50 text-purple-700 border-purple-200", dot: "bg-purple-600" };
+      return {
+        bg: "bg-purple-50 text-purple-700 border-purple-200",
+        dot: "bg-purple-600",
+      };
     case "On Leave":
-      return { bg: "bg-amber-50 text-[#F59E0B] border-amber-200", dot: "bg-[#F59E0B]" };
+      return {
+        bg: "bg-amber-50 text-[#F59E0B] border-amber-200",
+        dot: "bg-[#F59E0B]",
+      };
     default:
-      return { bg: "bg-slate-100 text-slate-600 border-slate-200", dot: "bg-slate-400" };
+      return {
+        bg: "bg-slate-100 text-slate-600 border-slate-200",
+        dot: "bg-slate-400",
+      };
   }
 }
 
@@ -39,7 +54,10 @@ export function QuickDetailsDrawer({
           <div className="p-5 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50">
             <div className="flex items-center gap-2">
               <Stethoscope size={18} className="text-[#0D47A1]" />
-              <h2 className="text-sm font-bold text-[#111827]" style={{ fontFamily: PP }}>
+              <h2
+                className="text-sm font-bold text-[#111827]"
+                style={{ fontFamily: PP }}
+              >
                 Quick Doctor Details
               </h2>
             </div>
@@ -65,23 +83,34 @@ export function QuickDetailsDrawer({
                   .toUpperCase()}
               </div>
               <div className="space-y-1 overflow-hidden">
-                <h3 className="text-base font-bold text-[#111827] truncate" style={{ fontFamily: PP }}>
+                <h3
+                  className="text-base font-bold text-[#111827] truncate"
+                  style={{ fontFamily: PP }}
+                >
                   {doctor.name}
                 </h3>
-                <p className="text-xs text-[#0D47A1] font-bold">{doctor.specialty}</p>
-                <p className="text-[11px] text-[#64748B]">{doctor.department}</p>
+                <p className="text-xs text-[#0D47A1] font-bold">
+                  {doctor.specialty}
+                </p>
+                <p className="text-[11px] text-[#64748B]">
+                  {doctor.department}
+                </p>
               </div>
             </div>
 
             <div className="space-y-3.5 text-xs">
               <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
                 <span className="text-[#64748B]">Doctor ID</span>
-                <span className="font-mono font-bold text-[#0D47A1]">{doctor.id}</span>
+                <span className="font-mono font-bold text-[#0D47A1]">
+                  {doctor.id}
+                </span>
               </div>
 
               <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
                 <span className="text-[#64748B]">Employee ID</span>
-                <span className="font-mono font-semibold text-[#111827]">{doctor.empId}</span>
+                <span className="font-mono font-semibold text-[#111827]">
+                  {doctor.empId}
+                </span>
               </div>
 
               <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
@@ -93,27 +122,38 @@ export function QuickDetailsDrawer({
 
               <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
                 <span className="text-[#64748B]">Department</span>
-                <span className="font-bold text-[#111827]">{doctor.department}</span>
+                <span className="font-bold text-[#111827]">
+                  {doctor.department}
+                </span>
               </div>
 
               <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
                 <span className="text-[#64748B]">Specialty</span>
-                <span className="font-semibold text-[#0D47A1]">{doctor.specialty}</span>
+                <span className="font-semibold text-[#0D47A1]">
+                  {doctor.specialty}
+                </span>
               </div>
 
               <div className="py-1.5 border-b border-gray-100 space-y-1">
                 <span className="text-[#64748B] block">Qualification</span>
-                <span className="font-medium text-[#111827] block">{doctor.qualification}</span>
+                <span className="font-medium text-[#111827] block">
+                  {doctor.qualification}
+                </span>
               </div>
 
               <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
                 <span className="text-[#64748B]">Experience</span>
-                <span className="font-bold text-[#111827]">{doctor.experienceYrs} Years</span>
+                <span className="font-bold text-[#111827]">
+                  {doctor.experienceYrs} Years
+                </span>
               </div>
 
               <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
                 <span className="text-[#64748B]">Consultation Fee</span>
-                <span className="font-bold text-[#0D47A1] text-sm" style={{ fontFamily: PP }}>
+                <span
+                  className="font-bold text-[#0D47A1] text-sm"
+                  style={{ fontFamily: PP }}
+                >
                   ${doctor.consultationFee}
                 </span>
               </div>
@@ -136,7 +176,9 @@ export function QuickDetailsDrawer({
 
               <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
                 <span className="text-[#64748B]">Shift Timings</span>
-                <span className="font-medium text-[#111827]">{doctor.shiftTimings}</span>
+                <span className="font-medium text-[#111827]">
+                  {doctor.shiftTimings}
+                </span>
               </div>
             </div>
 

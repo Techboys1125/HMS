@@ -9,7 +9,10 @@ import {
   Calendar,
   Clock,
 } from "lucide-react";
-import type { AppointmentRecord, PatientSummary } from "../types/appointment.types";
+import type {
+  AppointmentRecord,
+  PatientSummary,
+} from "../types/appointment.types";
 import type { VisitType } from "../types/appointment-screen.types";
 import { Avatar } from "./Avatar";
 import { PP, RB, EMPTY_AVAILABILITY } from "../constants/appointment.constants";

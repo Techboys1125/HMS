@@ -22,7 +22,6 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
   errors,
   setFieldValue,
   validateField,
-  empIdPreview,
 }) => {
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-4">
@@ -158,7 +157,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
         </div>
 
         {/* Employee ID Preview */}
-        <div className="space-y-1">
+        {/* <div className="space-y-1">
           <label className="block text-xs font-heading font-bold text-slate-400">
             Employee ID (Optional)
           </label>
@@ -174,7 +173,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               className="w-full bg-slate-100 border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none text-slate-500 font-mono font-bold cursor-not-allowed"
             />
           </div>
-        </div>
+        </div> */}
 
         {/* Medical Registration Number (Doctor only) */}
         {form.role === "DOCTOR" && (
@@ -230,6 +229,36 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
                 className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body"
               />
             </div>
+          </div>
+        )}
+
+        {/* Residential Address */}
+        <div className="space-y-1 md:col-span-1">
+          <label className="block text-xs font-heading font-bold text-text-body">
+            Residential Address <span className="text-slate-400 font-normal">(Optional)</span>
+          </label>
+          <input
+            type="text"
+            value={form.residentialAddress}
+            onChange={(e) => setFieldValue("residentialAddress", e.target.value)}
+            placeholder="e.g. 123 Healthcare Avenue, Suite 400, City, Country"
+            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body"
+          />
+        </div>
+
+        {/* Professional Bio (Doctor only) */}
+        {form.role === "DOCTOR" && (
+          <div className="space-y-1 md:col-span-2 animate-fade-in">
+            <label className="block text-xs font-heading font-bold text-text-body">
+              Professional Bio <span className="text-slate-400 font-normal">(Optional)</span>
+            </label>
+            <textarea
+              rows={3}
+              value={form.professionalBio}
+              onChange={(e) => setFieldValue("professionalBio", e.target.value)}
+              placeholder="Summary of clinical expertise, achievements, and patient care philosophy..."
+              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl p-3 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body resize-none"
+            />
           </div>
         )}
       </div>

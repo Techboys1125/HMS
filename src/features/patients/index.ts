@@ -4,7 +4,6 @@ export * from "./pages/MedicalHistoryScreen";
 export * from "./pages/PatientAppointmentsScreen";
 export * from "./pages/PatientBillingScreen";
 export * from "./pages/PatientBookAppointmentScreen";
-export * from "./pages/PatientListScreen";
 export * from "./pages/PatientMedicalRecordsScreen";
 export * from "./pages/PatientPrescriptionDetailsScreen";
 export * from "./pages/PatientPrescriptionsScreen";

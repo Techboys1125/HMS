@@ -1,12 +1,16 @@
-import { useState } from "react";
-import { Calendar, Search, UserPlus } from "lucide-react";
-import type { ScreenPatientSearchResult } from "../types/patient.types";
+import { useState, useMemo } from "react";
+import { Calendar, Search, UserPlus, Users, TrendingUp, Clock, UserX } from "lucide-react";
+import { usePatients } from "../hooks/usePatients";
 import { PP, RB } from "../constants/patient.mock";
+import { PatientTable } from "../components/PatientTable";
+import { usePermissions } from "../../../permissions";
+import type { Patient } from "../types/patient.types";
 
 export function PatientSearchScreen({
   onPatientSelect,
   onRegisterClick,
   onBookAppointmentClick,
+  userRole,
 }: {
   onBack?: () => void;
   onPatientSelect?: (mrn: string) => void;
@@ -20,160 +24,80 @@ export function PatientSearchScreen({
   const [regTypeFilter, setRegTypeFilter] = useState("All Types");
   const [genderFilter, setGenderFilter] = useState("All Genders");
   const [regDateFilter, setRegDateFilter] = useState("All Dates");
-  const [selectedPatientId, setSelectedPatientId] =
-    useState<string>("MRN-892101");
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(null);
 
-  const [patients] = useState<ScreenPatientSearchResult[]>([
-    {
-      mrn: "MRN-892101",
-      name: "Sarah Mitchell",
-      age: 34,
-      gender: "Female",
-      mobile: "+91 98765 43210",
-      bloodGroup: "A+",
-      regDate: "2026-03-12",
-      status: "Checked-In",
-      regType: "New Patient",
-      lastVisit: {
-        date: "2026-06-15",
-        doctor: "Dr. Arjun Mehta",
-        department: "Cardiology",
-        status: "Completed",
-      },
-      upcomingAppointment: {
-        date: "2026-07-24",
-        time: "09:00 AM",
-        doctor: "Dr. Arjun Mehta",
-        department: "Cardiology",
-        status: "In Queue",
-      },
-    },
-    {
-      mrn: "MRN-892102",
-      name: "James Thornton",
-      age: 67,
-      gender: "Male",
-      mobile: "+91 98765 43211",
-      bloodGroup: "O+",
-      regDate: "2026-02-10",
-      status: "Scheduled",
-      regType: "Existing Patient Update",
-      lastVisit: {
-        date: "2026-05-20",
-        doctor: "Dr. Priya Sharma",
-        department: "General OPD",
-        status: "Completed",
-      },
-      upcomingAppointment: {
-        date: "2026-07-24",
-        time: "09:15 AM",
-        doctor: "Dr. Priya Sharma",
-        department: "General OPD",
-        status: "Scheduled",
-      },
-    },
-    {
-      mrn: "MRN-892103",
-      name: "Emma Reyes",
-      age: 28,
-      gender: "Female",
-      mobile: "+91 98765 43212",
-      bloodGroup: "B+",
-      regDate: "2026-05-01",
-      status: "Active",
-      regType: "New Patient",
-      lastVisit: {
-        date: "2026-05-01",
-        doctor: "Dr. Sunita Patel",
-        department: "Gynecology",
-        status: "Completed",
-      },
-      upcomingAppointment: {
-        date: "2026-07-25",
-        time: "10:00 AM",
-        doctor: "Dr. Sunita Patel",
-        department: "Gynecology",
-        status: "Confirmed",
-      },
-    },
-    {
-      mrn: "MRN-892104",
-      name: "Robert Chen",
-      age: 52,
-      gender: "Male",
-      mobile: "+91 98765 43213",
-      bloodGroup: "AB+",
-      regDate: "2025-11-18",
-      status: "Registered",
-      regType: "Existing Patient Update",
-      lastVisit: {
-        date: "2026-04-10",
-        doctor: "Dr. Arjun Mehta",
-        department: "Cardiology",
-        status: "Completed",
-      },
-    },
-    {
-      mrn: "MRN-892105",
-      name: "Aisha Kumar",
-      age: 41,
-      gender: "Female",
-      mobile: "+91 98765 43214",
-      bloodGroup: "O-",
-      regDate: "2026-07-24",
-      status: "Registered",
-      regType: "New Patient",
-      upcomingAppointment: {
-        date: "2026-07-24",
-        time: "10:15 AM",
-        doctor: "Dr. Rajesh Kapoor",
-        department: "Neurology",
-        status: "Scheduled",
-      },
-    },
-    {
-      mrn: "MRN-892106",
-      name: "David Walsh",
-      age: 38,
-      gender: "Male",
-      mobile: "+91 98765 43215",
-      bloodGroup: "A-",
-      regDate: "2025-08-30",
-      status: "Inactive",
-      regType: "Existing Patient Update",
-      lastVisit: {
-        date: "2025-10-12",
-        doctor: "Dr. Priya Sharma",
-        department: "General OPD",
-        status: "Completed",
-      },
-    },
-  ]);
+  const permissions = usePermissions();
+  const activeRole = (userRole || permissions.role || "RECEPTIONIST").toUpperCase();
 
-  // Filter Logic
-  const filteredPatients = patients.filter((p) => {
+  // Backend API connection
+  const { data: dbPatients = [], isLoading } = usePatients();
+
+  // Dynamic KPI Stats calculation from API patient data
+  const stats = useMemo(() => {
+    const todayStr = new Date().toISOString().split("T")[0];
+    const totalPatients = dbPatients.length;
+    const newRegistrationsToday = dbPatients.filter(
+      (p) =>
+        typeof p.registrationDate === "string" &&
+        p.registrationDate.startsWith(todayStr),
+    ).length;
+    const activePatients = dbPatients.filter(
+      (p) => p.status !== "Inactive" && p.status !== "INACTIVE" && p.status !== "Deceased",
+    ).length;
+    const inactivePatients = dbPatients.filter(
+      (p) => p.status === "Inactive" || p.status === "INACTIVE" || p.status === "Deceased",
+    ).length;
+
+    return {
+      totalPatients,
+      newRegistrationsToday,
+      activePatients,
+      inactivePatients,
+    };
+  }, [dbPatients]);
+
+  // Filter Logic over DB Patients
+  const filteredPatients = dbPatients.filter((p) => {
     const q = searchQuery.toLowerCase().trim();
+    const mrnStr = (p.mrn || p.patientId || String(p.id)).toLowerCase();
+    const nameStr = (p.patientName || p.name || "").toLowerCase();
+    const phoneStr = (p.phone || "").toLowerCase();
+
     const matchSearch =
       q === "" ||
-      p.mrn.toLowerCase().includes(q) ||
-      p.name.toLowerCase().includes(q) ||
-      p.mobile.includes(q);
+      mrnStr.includes(q) ||
+      nameStr.includes(q) ||
+      phoneStr.includes(q);
+
+    const pStatus = p.status || "ACTIVE";
+    const pGender = p.gender || "MALE";
+    const pRegType = p.registrationType || "WALK_IN";
 
     const matchStatus =
-      statusFilter === "All Statuses" || p.status === statusFilter;
+      statusFilter === "All Statuses" ||
+      pStatus.toUpperCase() === statusFilter.toUpperCase().replace("-", "_");
     const matchType =
-      regTypeFilter === "All Types" || p.regType === regTypeFilter;
+      regTypeFilter === "All Types" ||
+      pRegType.toUpperCase() === regTypeFilter.toUpperCase().replace(/\s+/g, "_");
     const matchGender =
-      genderFilter === "All Genders" || p.gender === genderFilter;
+      genderFilter === "All Genders" ||
+      pGender.toUpperCase() === genderFilter.toUpperCase() ||
+      (genderFilter === "Female" && pGender === "F") ||
+      (genderFilter === "Male" && pGender === "M");
     const matchDate =
       regDateFilter === "All Dates" ||
-      (regDateFilter === "Today" && p.regDate === "2026-07-24");
+      (regDateFilter === "Today" &&
+        p.registrationDate &&
+        p.registrationDate.startsWith(new Date().toISOString().split("T")[0]));
 
     return matchSearch && matchStatus && matchType && matchGender && matchDate;
   });
 
   const selectedPatient =
-    patients.find((p) => p.mrn === selectedPatientId) || filteredPatients[0];
+    dbPatients.find(
+      (p) => (p.mrn || p.patientId || String(p.id)) === selectedPatientId,
+    ) || filteredPatients[0];
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -182,6 +106,25 @@ export function PatientSearchScreen({
     setGenderFilter("All Genders");
     setRegDateFilter("All Dates");
   };
+
+  const hasActiveFilters =
+    searchQuery !== "" ||
+    statusFilter !== "All Statuses" ||
+    regTypeFilter !== "All Types" ||
+    genderFilter !== "All Genders" ||
+    regDateFilter !== "All Dates";
+
+  // RBAC permission checks for action buttons
+  const canRegister = permissions.can("PATIENT_CREATE");
+  const canBook = permissions.can("APPOINTMENT_CREATE");
+
+  // Breadcrumb label based on role
+  const roleLabel =
+    activeRole === "DOCTOR"
+      ? "Doctor Workspace"
+      : activeRole.includes("ADMIN")
+      ? "Hospital Admin"
+      : "Reception";
 
   return (
     <div
@@ -192,7 +135,7 @@ export function PatientSearchScreen({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm">
         <div>
           <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
-            <span>Reception</span>
+            <span>{roleLabel}</span>
             <span className="text-slate-400">/</span>
             <span className="font-semibold text-[#0D47A1]">Patient Search</span>
           </div>
@@ -208,9 +151,9 @@ export function PatientSearchScreen({
           </p>
         </div>
 
-        {/* Primary Action Buttons */}
+        {/* Primary Action Buttons (Governed by RBAC) */}
         <div className="flex items-center gap-2 flex-wrap">
-          {onRegisterClick && (
+          {canRegister && onRegisterClick && (
             <button
               onClick={onRegisterClick}
               className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
@@ -220,11 +163,11 @@ export function PatientSearchScreen({
               Register Patient
             </button>
           )}
-          {onBookAppointmentClick && (
+          {canBook && onBookAppointmentClick && (
             <button
               onClick={() =>
                 onBookAppointmentClick(
-                  selectedPatient ? selectedPatient.mrn : "",
+                  selectedPatient ? (selectedPatient.mrn || selectedPatient.patientId || String(selectedPatient.id)) : "",
                 )
               }
               className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm"
@@ -235,6 +178,132 @@ export function PatientSearchScreen({
             </button>
           )}
         </div>
+      </div>
+
+      {/* ── KPI SUMMARY CARDS ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {isLoading ? (
+          [1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm animate-pulse space-y-3"
+            >
+              <div className="w-8 h-8 rounded-xl bg-slate-200" />
+              <div className="w-1/2 h-3 bg-slate-200 rounded" />
+              <div className="w-2/3 h-6 bg-slate-200 rounded" />
+            </div>
+          ))
+        ) : (
+          <>
+            {/* Total Patients */}
+            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+              <div>
+                <span
+                  className="text-xs font-medium text-[#64748B] uppercase tracking-wider block"
+                  style={{ fontFamily: PP }}
+                >
+                  Total Patients
+                </span>
+                <div
+                  className="text-2xl font-bold text-[#111827] mt-1"
+                  style={{ fontFamily: PP }}
+                >
+                  {stats.totalPatients}
+                </div>
+                <div
+                  className="flex items-center gap-1 text-[11px] text-[#66BB6A] font-semibold mt-1"
+                  style={{ fontFamily: RB }}
+                >
+                  <TrendingUp size={13} /> Active Master Records
+                </div>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#0D47A1] flex items-center justify-center shrink-0">
+                <Users size={22} />
+              </div>
+            </div>
+
+            {/* New Registrations Today */}
+            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+              <div>
+                <span
+                  className="text-xs font-medium text-[#64748B] uppercase tracking-wider block"
+                  style={{ fontFamily: PP }}
+                >
+                  New Registrations Today
+                </span>
+                <div
+                  className="text-2xl font-bold text-[#111827] mt-1"
+                  style={{ fontFamily: PP }}
+                >
+                  {stats.newRegistrationsToday}
+                </div>
+                <div
+                  className="flex items-center gap-1 text-[11px] text-[#009688] font-semibold mt-1"
+                  style={{ fontFamily: RB }}
+                >
+                  <UserPlus size={13} /> Registered Today
+                </div>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-teal-50 text-[#009688] flex items-center justify-center shrink-0">
+                <UserPlus size={22} />
+              </div>
+            </div>
+
+            {/* Active Patients */}
+            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+              <div>
+                <span
+                  className="text-xs font-medium text-[#64748B] uppercase tracking-wider block"
+                  style={{ fontFamily: PP }}
+                >
+                  Active Patients
+                </span>
+                <div
+                  className="text-2xl font-bold text-[#111827] mt-1"
+                  style={{ fontFamily: PP }}
+                >
+                  {stats.activePatients}
+                </div>
+                <div
+                  className="flex items-center gap-1 text-[11px] text-purple-600 font-semibold mt-1"
+                  style={{ fontFamily: RB }}
+                >
+                  <Clock size={13} /> Active OPD & Care
+                </div>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                <Calendar size={22} />
+              </div>
+            </div>
+
+            {/* Inactive Patients */}
+            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
+              <div>
+                <span
+                  className="text-xs font-medium text-[#64748B] uppercase tracking-wider block"
+                  style={{ fontFamily: PP }}
+                >
+                  Inactive Patients
+                </span>
+                <div
+                  className="text-2xl font-bold text-[#111827] mt-1"
+                  style={{ fontFamily: PP }}
+                >
+                  {stats.inactivePatients}
+                </div>
+                <div
+                  className="flex items-center gap-1 text-[11px] text-slate-500 font-semibold mt-1"
+                  style={{ fontFamily: RB }}
+                >
+                  <UserX size={13} /> Archived / Inactive
+                </div>
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                <UserX size={22} />
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── GLOBAL SEARCH & FILTER BAR ── */}
@@ -306,96 +375,39 @@ export function PatientSearchScreen({
         </div>
       </div>
 
-      {/* ── PATIENTS TABLE & CONTENT LAYOUT ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        <div className="xl:col-span-12 bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-            <h2
-              className="text-base font-bold text-[#111827]"
-              style={{ fontFamily: PP }}
-            >
-              Patient Search Results
-            </h2>
-            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-[#0D47A1]">
-              {filteredPatients.length} Patients Found
-            </span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table
-              className="w-full text-left text-xs"
-              style={{ fontFamily: RB }}
-            >
-              <thead>
-                <tr
-                  className="bg-slate-50 border-b border-gray-100 text-[#64748B] uppercase tracking-wider text-[10px]"
-                  style={{ fontFamily: PP }}
-                >
-                  <th className="px-4 py-3">MRN</th>
-                  <th className="px-4 py-3">Patient Name</th>
-                  <th className="px-4 py-3">Age/Gender</th>
-                  <th className="px-4 py-3">Mobile</th>
-                  <th className="px-4 py-3">Blood Group</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 text-[#111827]">
-                {filteredPatients.length > 0 ? (
-                  filteredPatients.map((patient) => (
-                    <tr
-                      key={patient.mrn}
-                      onClick={() => setSelectedPatientId(patient.mrn)}
-                      className={`hover:bg-slate-50/80 transition-colors cursor-pointer ${selectedPatientId === patient.mrn ? "bg-blue-50/40" : ""}`}
-                    >
-                      <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
-                        {patient.mrn}
-                      </td>
-                      <td className="px-4 py-3.5 font-semibold text-[#111827]">
-                        {patient.name}
-                      </td>
-                      <td className="px-4 py-3.5 text-slate-600">
-                        {patient.age} yrs · {patient.gender}
-                      </td>
-                      <td className="px-4 py-3.5 font-mono text-slate-500">
-                        {patient.mobile}
-                      </td>
-                      <td className="px-4 py-3.5 font-bold text-[#009688]">
-                        {patient.bloodGroup}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
-                          {patient.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 text-right">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (onPatientSelect) onPatientSelect(patient.mrn);
-                          }}
-                          className="px-2.5 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-4 py-12 text-center text-slate-400"
-                    >
-                      No matching patient records found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      {/* ── SINGLE COMMON PATIENT TABLE COMPONENT FOR ALL ROLES (RBAC CONTROLLED) ── */}
+      <PatientTable
+        patients={filteredPatients}
+        totalCount={filteredPatients.length}
+        isLoading={isLoading}
+        selectedPatientId={selectedPatientId}
+        activeActionMenuId={activeActionMenuId}
+        hasActiveFilters={hasActiveFilters}
+        userRole={userRole}
+        onSelectRow={(p: Patient) => setSelectedPatientId(p.mrn || p.patientId || String(p.id))}
+        onOpenQuickView={(p: Patient) => {
+          const id = p.mrn || p.patientId || String(p.id);
+          if (onPatientSelect) onPatientSelect(id);
+        }}
+        onToggleActionMenu={(id) => setActiveActionMenuId(id)}
+        onViewProfile={(id) => {
+          if (onPatientSelect) onPatientSelect(id);
+        }}
+        onEditPatient={(p) => {
+          const id = p.mrn || p.patientId || String(p.id);
+          if (onPatientSelect) onPatientSelect(id);
+        }}
+        onViewMedicalHistory={(id) => {
+          if (onPatientSelect) onPatientSelect(id);
+        }}
+        onViewAppointments={(id) => {
+          if (onPatientSelect) onPatientSelect(id);
+        }}
+        onGenerateBill={(id) => {
+          if (onPatientSelect) onPatientSelect(id);
+        }}
+        onResetFilters={resetFilters}
+      />
     </div>
   );
 }

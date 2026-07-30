@@ -1,6 +1,6 @@
 export const API_BASE_URL =
   (import.meta.env && import.meta.env.VITE_API_BASE_URL) ||
-  "https://safe-hands-hms-backend.onrender.com";
+  "http://192.168.1.44:8081";
 
 export interface ApiResponseData<T = unknown> {
   data: T;
@@ -176,6 +176,7 @@ async function customFetch<T = unknown>(
       response.statusText ||
       `Request failed with status ${response.status}`;
 
+    console.error(`[API Error ${response.status}] ${url}:`, responseData);
     throw new ApiError(errorMsg, response.status, responseData);
   }
 

@@ -17,7 +17,10 @@ import {
 import { PP, RB } from "../constants/appointment.constants";
 import { StatusBadge } from "./StatusBadge";
 import { Avatar } from "./Avatar";
-import type { AppointmentStatus, UserRole } from "../types/appointment-screen.types";
+import type {
+  AppointmentStatus,
+  UserRole,
+} from "../types/appointment-screen.types";
 import type { AppointmentRecord } from "../types/appointment.types";
 
 export function DockableQueueWorkspace({
@@ -43,8 +46,8 @@ export function DockableQueueWorkspace({
   onStartConsultation?: (apt?: AppointmentRecord | null) => void;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const doctorFilter = "All";
-  const deptFilter = "All";
+  const [doctorFilter, setDoctorFilter] = useState("All");
+  const [deptFilter, setDeptFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [visitTypeFilter, setVisitTypeFilter] = useState("All");
   const [timeFilter, setTimeFilter] = useState("All");

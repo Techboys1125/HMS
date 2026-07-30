@@ -52,13 +52,48 @@ export function AddDoctorDrawer({
   const [slotDuration, setSlotDuration] = useState("15 Minutes");
 
   const [schedule, setSchedule] = useState([
-    { day: "Monday", available: true, startTime: "09:00 AM", endTime: "04:00 PM" },
-    { day: "Tuesday", available: true, startTime: "09:00 AM", endTime: "04:00 PM" },
-    { day: "Wednesday", available: true, startTime: "09:00 AM", endTime: "04:00 PM" },
-    { day: "Thursday", available: true, startTime: "09:00 AM", endTime: "04:00 PM" },
-    { day: "Friday", available: true, startTime: "09:00 AM", endTime: "04:00 PM" },
-    { day: "Saturday", available: false, startTime: "09:00 AM", endTime: "01:00 PM" },
-    { day: "Sunday", available: false, startTime: "09:00 AM", endTime: "01:00 PM" },
+    {
+      day: "Monday",
+      available: true,
+      startTime: "09:00 AM",
+      endTime: "04:00 PM",
+    },
+    {
+      day: "Tuesday",
+      available: true,
+      startTime: "09:00 AM",
+      endTime: "04:00 PM",
+    },
+    {
+      day: "Wednesday",
+      available: true,
+      startTime: "09:00 AM",
+      endTime: "04:00 PM",
+    },
+    {
+      day: "Thursday",
+      available: true,
+      startTime: "09:00 AM",
+      endTime: "04:00 PM",
+    },
+    {
+      day: "Friday",
+      available: true,
+      startTime: "09:00 AM",
+      endTime: "04:00 PM",
+    },
+    {
+      day: "Saturday",
+      available: false,
+      startTime: "09:00 AM",
+      endTime: "01:00 PM",
+    },
+    {
+      day: "Sunday",
+      available: false,
+      startTime: "09:00 AM",
+      endTime: "01:00 PM",
+    },
   ]);
 
   const [tempPassword, setTempPassword] = useState(
@@ -257,7 +292,8 @@ export function AddDoctorDrawer({
                   Doctor Photo Upload
                 </span>
                 <p className="text-[11px] text-[#64748B]">
-                  JPEG or PNG, Max size 2MB. Reused in patient portal & OPD slips.
+                  JPEG or PNG, Max size 2MB. Reused in patient portal & OPD
+                  slips.
                 </p>
                 <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#E5E7EB] text-xs font-semibold text-[#0D47A1] hover:bg-blue-50 cursor-pointer transition-colors shadow-xs">
                   <Upload size={13} /> Upload Photo
@@ -404,7 +440,9 @@ export function AddDoctorDrawer({
               <div>
                 <label className="block text-xs font-bold text-[#111827] mb-1">
                   Employee ID{" "}
-                  <span className="text-slate-400 font-normal">(Auto Generated)</span>
+                  <span className="text-slate-400 font-normal">
+                    (Auto Generated)
+                  </span>
                 </label>
                 <input
                   type="text"
@@ -415,7 +453,8 @@ export function AddDoctorDrawer({
               </div>
               <div>
                 <label className="block text-xs font-bold text-[#111827] mb-1">
-                  Medical Registration No. <span className="text-red-500">*</span>
+                  Medical Registration No.{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -423,7 +462,8 @@ export function AddDoctorDrawer({
                   value={regNumber}
                   onChange={(e) => {
                     setRegNumber(e.target.value);
-                    if (errors.regNumber) setErrors({ ...errors, regNumber: "" });
+                    if (errors.regNumber)
+                      setErrors({ ...errors, regNumber: "" });
                   }}
                   className={`w-full px-3 py-2 text-xs bg-slate-50 border rounded-xl font-mono text-[#111827] outline-none focus:bg-white transition-colors ${
                     errors.regNumber
@@ -504,7 +544,8 @@ export function AddDoctorDrawer({
                   value={department}
                   onChange={(e) => {
                     setDepartment(e.target.value);
-                    if (errors.department) setErrors({ ...errors, department: "" });
+                    if (errors.department)
+                      setErrors({ ...errors, department: "" });
                   }}
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1] focus:bg-white"
                 >
@@ -513,7 +554,9 @@ export function AddDoctorDrawer({
                   <option value="Neurology">Neurology</option>
                   <option value="Orthopedics">Orthopedics</option>
                   <option value="Pediatrics">Pediatrics</option>
-                  <option value="Obstetrics & Gynecology">Obstetrics & Gynecology</option>
+                  <option value="Obstetrics & Gynecology">
+                    Obstetrics & Gynecology
+                  </option>
                   <option value="Dermatology">Dermatology</option>
                   <option value="ENT">ENT</option>
                   <option value="Ophthalmology">Ophthalmology</option>
@@ -530,7 +573,8 @@ export function AddDoctorDrawer({
                   value={specialty}
                   onChange={(e) => {
                     setSpecialty(e.target.value);
-                    if (errors.specialty) setErrors({ ...errors, specialty: "" });
+                    if (errors.specialty)
+                      setErrors({ ...errors, specialty: "" });
                   }}
                   className={`w-full px-3 py-2 text-xs bg-slate-50 border rounded-xl text-[#111827] outline-none focus:bg-white transition-colors ${
                     errors.specialty
@@ -619,7 +663,8 @@ export function AddDoctorDrawer({
 
             <div>
               <label className="block text-xs font-bold text-[#111827] mb-1">
-                Appointment Slot Duration <span className="text-red-500">*</span>
+                Appointment Slot Duration{" "}
+                <span className="text-red-500">*</span>
               </label>
               <select
                 value={slotDuration}
@@ -644,7 +689,8 @@ export function AddDoctorDrawer({
                 <span>In-Person OPD Consultations</span>
               </div>
               <p className="text-[11px] text-[#64748B]">
-                All consultations conducted on-site in assigned OPD cabinet room.
+                All consultations conducted on-site in assigned OPD cabinet
+                room.
               </p>
             </div>
           </div>
@@ -661,7 +707,10 @@ export function AddDoctorDrawer({
             <div className="border border-[#E5E7EB] rounded-xl overflow-hidden text-xs">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-50 border-b border-[#E5E7EB]">
-                  <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
+                  <tr
+                    className="text-[#64748B] font-bold"
+                    style={{ fontFamily: PP }}
+                  >
                     <th className="px-3.5 py-2.5">Day</th>
                     <th className="px-3.5 py-2.5">Available</th>
                     <th className="px-3.5 py-2.5">Start Time</th>
@@ -671,7 +720,10 @@ export function AddDoctorDrawer({
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
                   {schedule.map((item, idx) => (
-                    <tr key={item.day} className="hover:bg-slate-50 transition-colors">
+                    <tr
+                      key={item.day}
+                      className="hover:bg-slate-50 transition-colors"
+                    >
                       <td className="px-3.5 py-2.5 font-bold">{item.day}</td>
                       <td className="px-3.5 py-2.5">
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -689,7 +741,11 @@ export function AddDoctorDrawer({
                           disabled={!item.available}
                           value={item.startTime}
                           onChange={(e) =>
-                            handleScheduleTimeChange(idx, "startTime", e.target.value)
+                            handleScheduleTimeChange(
+                              idx,
+                              "startTime",
+                              e.target.value,
+                            )
                           }
                           className="bg-slate-50 border border-[#E5E7EB] px-2 py-1 rounded-lg outline-none font-medium disabled:opacity-40 disabled:cursor-not-allowed"
                         >
@@ -705,7 +761,11 @@ export function AddDoctorDrawer({
                           disabled={!item.available}
                           value={item.endTime}
                           onChange={(e) =>
-                            handleScheduleTimeChange(idx, "endTime", e.target.value)
+                            handleScheduleTimeChange(
+                              idx,
+                              "endTime",
+                              e.target.value,
+                            )
                           }
                           className="bg-slate-50 border border-[#E5E7EB] px-2 py-1 rounded-lg outline-none font-medium disabled:opacity-40 disabled:cursor-not-allowed"
                         >
@@ -732,7 +792,8 @@ export function AddDoctorDrawer({
               className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 pb-2.5"
               style={{ fontFamily: PP }}
             >
-              <Lock size={15} className="text-[#0D47A1]" /> Section 05: Account & Access
+              <Lock size={15} className="text-[#0D47A1]" /> Section 05: Account
+              & Access
             </h3>
 
             <div className="p-3 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-between">

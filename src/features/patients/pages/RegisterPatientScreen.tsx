@@ -444,12 +444,14 @@ export function RegisterPatientScreen({
       if (form.country?.trim()) payload.address.country = form.country.trim();
     }
 
-    if (form.ecName?.trim() || form.ecMobile?.trim()) {
+    if (form.ecName?.trim() && form.ecMobile?.trim()) {
+      const ecMobile = form.ecMobile.trim();
+      const ecAltMobile = form.ecAltMobile?.trim();
       payload.emergencyContact = {
-        name: form.ecName?.trim() || "",
-        relationship: form.ecRelationship || "",
-        mobileNumber: form.ecMobile?.trim() || "",
-        alternativeMobileNumber: form.ecAltMobile?.trim() || "",
+        name: form.ecName.trim(),
+        relationship: form.ecRelationship?.trim() || "OTHER",
+        mobileNumber: ecMobile,
+        ...(ecAltMobile ? { alternativeMobileNumber: ecAltMobile } : {}),
       };
     }
 
