@@ -4,6 +4,7 @@ import type {
   AdminCreateStaffData,
   AdminCreateStaffResponse,
   AdminUpdateStaffData,
+  UserDetailData,
 } from "../types/users.types";
 
 export const usersApi = {
@@ -86,9 +87,9 @@ export const usersApi = {
   adminUpdateStaff: async (
     userId: number | string,
     data: AdminUpdateStaffData,
-  ): Promise<ApiResponse<User>> => {
+  ): Promise<ApiResponse<UserDetailData>> => {
     try {
-      const response = await apiClient.put<ApiResponse<User>>(
+      const response = await apiClient.put<ApiResponse<UserDetailData>>(
         `/api/v1/admin/users/${userId}`,
         data,
       );
@@ -161,9 +162,9 @@ export const usersApi = {
   // 7. Admin Gets User By ID (GET /api/v1/admin/users/{userId})
   adminGetUserById: async (
     userId: number | string,
-  ): Promise<ApiResponse<User>> => {
+  ): Promise<ApiResponse<UserDetailData>> => {
     try {
-      const response = await apiClient.get<ApiResponse<User>>(
+      const response = await apiClient.get<ApiResponse<UserDetailData>>(
         `/api/v1/admin/users/${userId}`,
       );
       return response.data;
@@ -182,3 +183,4 @@ export const usersApi = {
     }
   },
 };
+

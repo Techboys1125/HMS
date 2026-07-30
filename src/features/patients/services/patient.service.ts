@@ -1,4 +1,4 @@
-﻿import { patientsApi } from "../api/patient.api";
+import { patientsApi } from "../api/patient.api";
 import type {
   CreatePatientRequest,
   DuplicateCheckRequest,
@@ -6,7 +6,6 @@ import type {
   MergePatientsRequest,
   Patient,
   PatientStatistics,
-  UpdatePatientRequest,
 } from "../types/patient.types";
 
 export const patientService = {
@@ -29,7 +28,7 @@ export const patientService = {
 
   async createPatient(
     payload: CreatePatientRequest,
-  ): Promise<{ MRNId: string; message: string }> {
+  ): Promise<{ success?: boolean; message?: string; data?: Patient }> {
     return patientsApi.create(payload);
   },
 
@@ -41,11 +40,10 @@ export const patientService = {
   },
 
   async updatePatient(
-    mrn: string,
-    payload: UpdatePatientRequest,
-    version: number,
+    idOrMrn: string | number,
+    payload: Record<string, unknown>,
   ): Promise<Patient> {
-    return patientsApi.update(mrn, payload, version);
+    return patientsApi.update(idOrMrn, payload);
   },
 
   async checkDuplicates(payload: DuplicateCheckRequest): Promise<Patient[]> {

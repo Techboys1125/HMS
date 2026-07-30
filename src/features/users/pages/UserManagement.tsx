@@ -21,12 +21,13 @@ import {
   UserPlus,
   Check,
   Loader2,
+  Building,
 } from "lucide-react";
 import DashboardHeader from "../../dashboard/components/DashboardHeader";
 import CreateStaffPage from "./CreateStaffPage";
+import { DepartmentsSpecialtiesWorkspace } from "../../../DepartmentsSpecialtiesWorkspace";
 import { usersApi } from "../api/users.api";
 import type { User } from "../../auth/types/auth.types";
-import type { AdminUpdateStaffData } from "../types/users.types";
 
 // --- Typography & Design Tokens ---
 const PP = "Poppins, sans-serif";
@@ -113,6 +114,7 @@ export const UserManagement: React.FC = () => {
   const navigate = useNavigate();
 
   const [isCreatingStaff, setIsCreatingStaff] = useState(false);
+  const [userMgmtTab, setUserMgmtTab] = useState<"users" | "departments">("users");
 
   // Main Data States
   const [users, setUsers] = useState<UserRecord[]>([]);
@@ -135,6 +137,8 @@ export const UserManagement: React.FC = () => {
   // Drawer States
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
   const [detailsUser, setDetailsUser] = useState<UserRecord | null>(null);
+  const [fullUserDetail, setFullUserDetail] = useState<import("../types/users.types").UserDetailData | null>(null);
+  const [isFetchingDetail, setIsFetchingDetail] = useState(false);
 
   // Dialog States
   const [resetPassUser, setResetPassUser] = useState<UserRecord | null>(null);
@@ -151,13 +155,26 @@ export const UserManagement: React.FC = () => {
     fullName: "",
     email: "",
     phone: "",
+    gender: "",
+    dateOfBirth: "",
+    residentialAddress: "",
+    professionalBio: "",
+    medicalRegistrationNumber: "",
+    qualification: "",
+    yearsOfExperience: 0,
+    primaryDepartmentId: 2,
+    primarySpecialtyId: 1,
+    consultationFee: 500,
+    followUpFee: 300,
+    slotDurationMinutes: 15,
+    availability: [] as import("../types/users.types").BackendAvailabilityItem[],
+    scheduleExceptions: [] as import("../types/users.types").ScheduleException[],
     department: "General Medicine",
     status: "Active" as AccountStatus,
   });
 
   // Fetch Users
   const fetchUsers = async () => {
-    // Schedule state updates asynchronously to avoid synchronous calls inside effects
     Promise.resolve().then(() => {
       setLoading(true);
       setErrorMsg(null);
@@ -166,23 +183,26 @@ export const UserManagement: React.FC = () => {
     try {
       const response = await usersApi.adminGetUsers();
       if (response.success && response.data) {
-        const mappedUsers: UserRecord[] = response.data.map((u: User) => {
+        const mappedUsers: UserRecord[] = response.data.map((u: User & { userId?: number }, index: number) => {
+          const userId = u.userId ?? u.id;
           const roleDisplay =
             BACKEND_TO_DISPLAY_ROLE[String(u.role).toUpperCase()] || "Doctor";
+          const uid = userId ? String(userId) : `user-record-${index}`;
           const statusDisplay =
+            localStatusOverrides[uid] ||
             BACKEND_TO_DISPLAY_STATUS[String(u.status).toUpperCase()] ||
             "Active";
-          const deptId = u.hospitalId || 2; // Default fallback to general medicine dept id
+          const deptId = u.hospitalId || 2;
           const deptName = DEPARTMENT_ID_TO_NAME[deptId] || "General Medicine";
 
           return {
-            id: String(u.id),
+            id: uid,
             empId:
               u.employeeId ||
-              `EMP-${roleDisplay.substring(0, 3).toUpperCase()}-${u.id}`,
-            fullName: u.fullName,
-            username: u.email ? u.email.split("@")[0] : `user_${u.id}`,
-            email: u.email,
+              `EMP-${roleDisplay.substring(0, 3).toUpperCase()}-${userId ?? index}`,
+            fullName: u.fullName || "Staff User",
+            username: u.email ? u.email.split("@")[0] : `user_${userId ?? index}`,
+            email: u.email || "",
             phone: u.mobile || "+1 (555) 000-0000",
             role: roleDisplay,
             department: deptName,
@@ -207,60 +227,7 @@ export const UserManagement: React.FC = () => {
   };
 
   useEffect(() => {
-    let active = true;
-    const initialLoad = async () => {
-      try {
-        const response = await usersApi.adminGetUsers();
-        if (!active) return;
-        if (response.success && response.data) {
-          const mappedUsers: UserRecord[] = response.data.map((u: User) => {
-            const roleDisplay =
-              BACKEND_TO_DISPLAY_ROLE[String(u.role).toUpperCase()] || "Doctor";
-            const statusDisplay =
-              BACKEND_TO_DISPLAY_STATUS[String(u.status).toUpperCase()] ||
-              "Active";
-            const deptId = u.hospitalId || 2;
-            const deptName =
-              DEPARTMENT_ID_TO_NAME[deptId] || "General Medicine";
-
-            return {
-              id: String(u.id),
-              empId:
-                u.employeeId ||
-                `EMP-${roleDisplay.substring(0, 3).toUpperCase()}-${u.id}`,
-              fullName: u.fullName,
-              username: u.email ? u.email.split("@")[0] : `user_${u.id}`,
-              email: u.email,
-              phone: u.mobile || "+1 (555) 000-0000",
-              role: roleDisplay,
-              department: deptName,
-              departmentId: deptId,
-              status: statusDisplay,
-              lastLogin: "Today, 10:15 AM",
-              joinedDate: "2023-11-01",
-              twoFactor: false,
-            };
-          });
-          setUsers(mappedUsers);
-        } else {
-          setErrorMsg(response.message || "Failed to retrieve staff list.");
-        }
-      } catch (err: unknown) {
-        if (!active) return;
-        const errMsg =
-          err instanceof Error ? err.message : "Error fetching staff accounts";
-        setErrorMsg(errMsg);
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    };
-
-    initialLoad();
-    return () => {
-      active = false;
-    };
+    fetchUsers();
   }, []);
 
   const triggerToast = (msg: string) => {
@@ -268,13 +235,69 @@ export const UserManagement: React.FC = () => {
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  // Open Edit Drawer
-  const handleOpenEditDrawer = (user: UserRecord) => {
+  // Open View Details Drawer & fetch full backend record
+  const handleOpenDetailsDrawer = async (user: UserRecord) => {
+    setDetailsUser(user);
+    setFullUserDetail(null);
+    setIsFetchingDetail(true);
+    try {
+      const response = await usersApi.adminGetUserById(user.id);
+      if (response.success && response.data) {
+        setFullUserDetail(response.data);
+      }
+    } catch (err: unknown) {
+      console.error("Failed to fetch full user details:", err);
+    } finally {
+      setIsFetchingDetail(false);
+    }
+  };
+
+  // Open Edit Drawer & prefill details
+  const handleOpenEditDrawer = async (user: UserRecord) => {
     setEditingUser(user);
+    let currentDetail = fullUserDetail?.userId === Number(user.id) ? fullUserDetail : null;
+
+    if (!currentDetail) {
+      try {
+        const response = await usersApi.adminGetUserById(user.id);
+        if (response.success && response.data) {
+          currentDetail = response.data;
+          setFullUserDetail(response.data);
+        }
+      } catch (err) {
+        console.error("Failed to prefill edit doctor details:", err);
+      }
+    }
+
+    const docProfile = currentDetail?.doctorProfile;
+    const existingAvailability = (docProfile?.availability && docProfile.availability.length > 0)
+      ? docProfile.availability
+      : [
+          { dayOfWeek: "MONDAY", startTime: "09:00", endTime: "17:00" },
+          { dayOfWeek: "TUESDAY", startTime: "09:00", endTime: "17:00" },
+          { dayOfWeek: "WEDNESDAY", startTime: "09:00", endTime: "17:00" },
+          { dayOfWeek: "THURSDAY", startTime: "09:00", endTime: "17:00" },
+          { dayOfWeek: "FRIDAY", startTime: "09:00", endTime: "17:00" },
+        ];
+
     setEditForm({
       fullName: user.fullName,
       email: user.email,
       phone: user.phone,
+      gender: currentDetail?.gender || "MALE",
+      dateOfBirth: currentDetail?.dateOfBirth || "",
+      residentialAddress: currentDetail?.residentialAddress || "",
+      professionalBio: currentDetail?.professionalBio || "",
+      medicalRegistrationNumber: docProfile?.medicalRegistrationNumber || "",
+      qualification: docProfile?.qualification || "",
+      yearsOfExperience: docProfile?.yearsOfExperience || 0,
+      primaryDepartmentId: docProfile?.primaryDepartment?.departmentId || DEPARTMENT_NAME_TO_ID[user.department] || 2,
+      primarySpecialtyId: docProfile?.primarySpecialty?.specialtyId || 1,
+      consultationFee: docProfile?.consultationFee || 500,
+      followUpFee: docProfile?.followUpFee || 300,
+      slotDurationMinutes: docProfile?.slotDurationMinutes || 15,
+      availability: existingAvailability,
+      scheduleExceptions: docProfile?.scheduleExceptions || [],
       department: user.department,
       status: user.status,
     });
@@ -287,15 +310,32 @@ export const UserManagement: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const deptId = DEPARTMENT_NAME_TO_ID[editForm.department] || 2;
+      const deptId = editForm.primaryDepartmentId || DEPARTMENT_NAME_TO_ID[editForm.department] || 2;
       const apiStatus = DISPLAY_TO_BACKEND_STATUS[editForm.status] || "ACTIVE";
 
-      const payload: AdminUpdateStaffData = {
+      const payload: import("../types/users.types").AdminUpdateStaffData = {
         fullName: editForm.fullName,
         email: editForm.email,
         mobile: editForm.phone,
+        gender: editForm.gender,
+        dateOfBirth: editForm.dateOfBirth,
+        residentialAddress: editForm.residentialAddress,
+        professionalBio: editForm.professionalBio,
+        medicalRegistrationNumber: editForm.medicalRegistrationNumber,
+        qualification: editForm.qualification,
+        yearsOfExperience: Number(editForm.yearsOfExperience),
+        primaryDepartmentId: deptId,
+        secondaryDepartmentIds: [],
+        primarySpecialtyId: editForm.primarySpecialtyId || 1,
+        secondarySpecialtyIds: [],
+        consultationFee: Number(editForm.consultationFee),
+        followUpFee: Number(editForm.followUpFee),
+        slotDurationMinutes: Number(editForm.slotDurationMinutes),
+        availability: editForm.availability,
+        scheduleExceptions: editForm.scheduleExceptions,
         departmentId: deptId,
         status: apiStatus,
+        changeReason: "Updated staff details via Admin Management",
       };
 
       const response = await usersApi.adminUpdateStaff(editingUser.id, payload);
@@ -340,6 +380,9 @@ export const UserManagement: React.FC = () => {
     }
   };
 
+  // Local override map for status persistence across backend refetches
+  const [localStatusOverrides, setLocalStatusOverrides] = useState<Record<string, AccountStatus>>({});
+
   // Handle Account Status Toggles (Activate / Suspend / Deactivate)
   const handleConfirmStatusChange = async () => {
     if (!statusDialogUser) return;
@@ -361,10 +404,16 @@ export const UserManagement: React.FC = () => {
       }
 
       if (response && response.success) {
-        triggerToast(
-          `User ${user.empId} account status successfully changed to "${action === "Activate" ? "Active" : "Inactive"}".`,
+        const newStatus: AccountStatus = action === "Activate" ? "Active" : "Inactive";
+        setLocalStatusOverrides((prev) => ({ ...prev, [user.id]: newStatus }));
+        setUsers((prevUsers) =>
+          prevUsers.map((u) =>
+            u.id === user.id ? { ...u, status: newStatus } : u
+          )
         );
-        fetchUsers(); // Refresh database list
+        triggerToast(
+          `User ${user.empId} account status successfully changed to "${newStatus}".`
+        );
       } else {
         triggerToast(response?.message || "Failed to toggle account status.");
       }
@@ -485,29 +534,47 @@ export const UserManagement: React.FC = () => {
       {/* ── 1. PAGE HEADER & BREADCRUMB ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <DashboardHeader
-          title="User & Role Management"
-          description="Manage active clinical staff accounts, register system users, and audit roles status."
+          title="Roles & Management"
+          description="Manage active clinical staff accounts, system users, departments, and security roles."
         />
 
-        <button
-          onClick={() => {
-            setIsCreatingStaff(true);
-            if (navigate) {
-              try {
-                navigate("/dashboard/admin/users/create");
-              } catch (e) {
-                console.log(e);
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setUserMgmtTab(userMgmtTab === "departments" ? "users" : "departments")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-sm cursor-pointer ${
+              userMgmtTab === "departments"
+                ? "bg-[#009688] text-white"
+                : "bg-white border border-gray-200 text-[#0D47A1] hover:bg-slate-50"
+            }`}
+            style={{ fontFamily: PP }}
+          >
+            <Building size={15} /> Department
+          </button>
+
+          <button
+            onClick={() => {
+              setUserMgmtTab("users");
+              setIsCreatingStaff(true);
+              if (navigate) {
+                try {
+                  navigate("/dashboard/admin/users/create");
+                } catch (e) {
+                  console.log(e);
+                }
               }
-            }
-          }}
-          className="px-4 py-2.5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-colors flex items-center gap-2 shadow-sm shrink-0 cursor-pointer"
-          style={{ fontFamily: PP }}
-        >
-          <UserPlus size={15} /> Add User
-        </button>
+            }}
+            className="px-4 py-2.5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-colors flex items-center gap-2 shadow-sm shrink-0 cursor-pointer"
+            style={{ fontFamily: PP }}
+          >
+            <UserPlus size={15} /> Add User
+          </button>
+        </div>
       </div>
 
-      <div className="bg-slate-50/50 rounded-2xl shadow-sm border border-gray-200 min-h-[700px] overflow-hidden flex flex-col font-medium animate-in fade-in zoom-in-95 duration-200 w-full space-y-6 relative p-6">
+      {userMgmtTab === "departments" ? (
+        <DepartmentsSpecialtiesWorkspace />
+      ) : (
+        <div className="bg-slate-50/50 rounded-2xl shadow-sm border border-gray-200 min-h-[700px] overflow-hidden flex flex-col font-medium animate-in fade-in zoom-in-95 duration-200 w-full space-y-6 relative p-6">
         {/* ── 2. SUMMARY KPI CARDS ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Total Users */}
@@ -784,7 +851,7 @@ export const UserManagement: React.FC = () => {
 
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
                   {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user) => {
+                    filteredUsers.map((user, idx) => {
                       const initials = user.fullName
                         .split(" ")
                         .filter((n) => n.length > 0)
@@ -795,7 +862,7 @@ export const UserManagement: React.FC = () => {
 
                       return (
                         <tr
-                          key={user.id}
+                          key={user.id || user.empId || `user-row-${idx}`}
                           className="hover:bg-slate-50/80 transition-colors group"
                         >
                           <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
@@ -882,7 +949,7 @@ export const UserManagement: React.FC = () => {
                             <div className="flex items-center justify-end gap-1">
                               {/* View Details */}
                               <button
-                                onClick={() => setDetailsUser(user)}
+                                onClick={() => handleOpenDetailsDrawer(user)}
                                 className="p-1.5 text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                                 title="View User Details"
                               >
@@ -915,7 +982,7 @@ export const UserManagement: React.FC = () => {
                                   onClick={() =>
                                     setStatusDialogUser({
                                       user,
-                                      action: "Suspend",
+                                      action: "Deactivate",
                                     })
                                   }
                                   disabled={
@@ -1021,6 +1088,7 @@ export const UserManagement: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* ── 6. RIGHT DRAWER: EDIT USER ── */}
       {editingUser && (
@@ -1142,7 +1210,7 @@ export const UserManagement: React.FC = () => {
                   <select
                     value={editForm.department}
                     onChange={(e) =>
-                      setEditForm({ ...editForm, department: e.target.value })
+                      setEditForm({ ...editForm, department: e.target.value, primaryDepartmentId: DEPARTMENT_NAME_TO_ID[e.target.value] || 2 })
                     }
                     className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
                   >
@@ -1160,6 +1228,141 @@ export const UserManagement: React.FC = () => {
                     <option value="IT & Systems">IT & Systems</option>
                   </select>
                 </div>
+
+                {/* Additional Doctor Clinical Profile Inputs if Doctor */}
+                {editingUser.role === "Doctor" && (
+                  <div className="pt-3 border-t border-slate-100 space-y-3">
+                    <h4 className="text-xs font-bold text-[#009688] uppercase tracking-wider">
+                      Doctor Clinical Profile & Fees
+                    </h4>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-[#111827] mb-1">
+                          Reg Number
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.medicalRegistrationNumber}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, medicalRegistrationNumber: e.target.value })
+                          }
+                          className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-[#111827] mb-1">
+                          Qualification
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.qualification}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, qualification: e.target.value })
+                          }
+                          className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-[#111827] mb-1">
+                          Experience (Yrs)
+                        </label>
+                        <input
+                          type="number"
+                          value={editForm.yearsOfExperience}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, yearsOfExperience: Number(e.target.value) })
+                          }
+                          className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-[#111827] mb-1">
+                          Consult Fee (₹)
+                        </label>
+                        <input
+                          type="number"
+                          value={editForm.consultationFee}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, consultationFee: Number(e.target.value) })
+                          }
+                          className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-[#111827] mb-1">
+                          Followup Fee (₹)
+                        </label>
+                        <input
+                          type="number"
+                          value={editForm.followUpFee}
+                          onChange={(e) =>
+                            setEditForm({ ...editForm, followUpFee: Number(e.target.value) })
+                          }
+                          className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#111827] mb-1">
+                        Slot Duration (Minutes)
+                      </label>
+                      <input
+                        type="number"
+                        value={editForm.slotDurationMinutes}
+                        onChange={(e) =>
+                          setEditForm({ ...editForm, slotDurationMinutes: Number(e.target.value) })
+                        }
+                        className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
+                      />
+                    </div>
+
+                    {/* Pre-populated Schedule & Availability Editor */}
+                    <div className="pt-3 border-t border-slate-100 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-bold text-[#111827]">
+                          Doctor Weekly Availability Schedule
+                        </label>
+                        <span className="text-[10px] text-slate-400 font-semibold uppercase">HH:mm Format</span>
+                      </div>
+
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        {editForm.availability.map((item, index) => (
+                          <div key={index} className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 text-xs">
+                            <span className="w-20 font-bold text-slate-700">{item.dayOfWeek}</span>
+                            <input
+                              type="text"
+                              value={item.startTime}
+                              placeholder="09:00"
+                              onChange={(e) => {
+                                const newArr = [...editForm.availability];
+                                newArr[index] = { ...newArr[index], startTime: e.target.value };
+                                setEditForm({ ...editForm, availability: newArr });
+                              }}
+                              className="w-20 px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-mono text-center"
+                            />
+                            <span className="text-slate-400 font-bold">-</span>
+                            <input
+                              type="text"
+                              value={item.endTime}
+                              placeholder="17:00"
+                              onChange={(e) => {
+                                const newArr = [...editForm.availability];
+                                newArr[index] = { ...newArr[index], endTime: e.target.value };
+                                setEditForm({ ...editForm, availability: newArr });
+                              }}
+                              className="w-20 px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-mono text-center"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex gap-3 pt-4 border-t border-border mt-6">
                   <button
@@ -1265,57 +1468,141 @@ export const UserManagement: React.FC = () => {
                     Account Registry Metadata
                   </h4>
 
-                  <div className="grid grid-cols-2 gap-4 text-xs">
-                    <div>
-                      <span className="text-slate-400 block font-medium">
-                        Employee Reference ID
-                      </span>
-                      <span className="font-bold text-slate-900 mt-1 block font-mono">
-                        {detailsUser.empId}
-                      </span>
+                  {isFetchingDetail ? (
+                    <div className="flex items-center justify-center py-6 text-slate-400 gap-2 text-xs">
+                      <Loader2 size={16} className="animate-spin" /> Fetching complete profile...
                     </div>
-                    <div>
-                      <span className="text-slate-400 block font-medium">
-                        Department Unit
-                      </span>
-                      <span className="font-bold text-slate-900 mt-1 block">
-                        {detailsUser.department}
-                      </span>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <span className="text-slate-400 block font-medium">
+                          Employee Reference ID
+                        </span>
+                        <span className="font-bold text-slate-900 mt-1 block font-mono">
+                          {detailsUser.empId}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block font-medium">
+                          Department Unit
+                        </span>
+                        <span className="font-bold text-slate-900 mt-1 block">
+                          {fullUserDetail?.doctorProfile?.primaryDepartment?.departmentName || detailsUser.department}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block font-medium">
+                          System User ID
+                        </span>
+                        <span className="font-semibold text-slate-700 mt-1 block font-mono">
+                          {detailsUser.id}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block font-medium">
+                          Gender & Date of Birth
+                        </span>
+                        <span className="font-bold text-slate-900 mt-1 block">
+                          {fullUserDetail?.gender || "N/A"} {fullUserDetail?.dateOfBirth ? `(${fullUserDetail.dateOfBirth})` : ""}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block font-medium">
+                          Email Address
+                        </span>
+                        <span className="font-bold text-slate-900 mt-1 block">
+                          {detailsUser.email}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block font-medium">
+                          Mobile Contact
+                        </span>
+                        <span className="font-bold text-slate-900 mt-1 block font-mono">
+                          {fullUserDetail?.mobile || detailsUser.phone}
+                        </span>
+                      </div>
+                      {fullUserDetail?.residentialAddress && (
+                        <div className="col-span-2">
+                          <span className="text-slate-400 block font-medium">
+                            Residential Address
+                          </span>
+                          <span className="font-bold text-slate-900 mt-1 block">
+                            {fullUserDetail.residentialAddress}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <span className="text-slate-400 block font-medium">
-                        System UUID
-                      </span>
-                      <span className="font-semibold text-slate-700 mt-1 block font-mono">
-                        {detailsUser.id}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block font-medium">
-                        Database Created At
-                      </span>
-                      <span className="font-bold text-slate-900 mt-1 block">
-                        {detailsUser.joinedDate}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block font-medium">
-                        Email Address
-                      </span>
-                      <span className="font-bold text-slate-900 mt-1 block">
-                        {detailsUser.email}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block font-medium">
-                        Mobile Contact
-                      </span>
-                      <span className="font-bold text-slate-900 mt-1 block font-mono">
-                        {detailsUser.phone}
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
+
+                {/* Doctor Clinical Profile (If Doctor Role or Doctor Profile exists) */}
+                {fullUserDetail?.doctorProfile && (
+                  <div className="bg-white rounded-2xl border border-teal-100 p-5 space-y-4 shadow-xs">
+                    <h4 className="font-heading text-xs font-bold text-teal-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <Shield size={14} /> Doctor Clinical Profile & Fees
+                    </h4>
+
+                    <div className="grid grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <span className="text-slate-400 block font-medium">Registration No.</span>
+                        <span className="font-bold text-slate-900 mt-1 block font-mono">
+                          {fullUserDetail.doctorProfile.medicalRegistrationNumber || "N/A"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block font-medium">Qualification</span>
+                        <span className="font-bold text-slate-900 mt-1 block">
+                          {fullUserDetail.doctorProfile.qualification || "N/A"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block font-medium">Experience (Years)</span>
+                        <span className="font-bold text-slate-900 mt-1 block font-mono">
+                          {fullUserDetail.doctorProfile.yearsOfExperience ?? "N/A"} yrs
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block font-medium">Primary Specialty</span>
+                        <span className="font-bold text-teal-700 mt-1 block">
+                          {fullUserDetail.doctorProfile.primarySpecialty?.specialtyName || "General Cardiology"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block font-medium">Consultation Fee</span>
+                        <span className="font-bold text-slate-900 mt-1 block font-mono text-teal-600">
+                          ₹{fullUserDetail.doctorProfile.consultationFee ?? 0}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block font-medium">Follow-Up Fee</span>
+                        <span className="font-bold text-slate-900 mt-1 block font-mono">
+                          ₹{fullUserDetail.doctorProfile.followUpFee ?? 0}
+                        </span>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-slate-400 block font-medium">Slot Duration</span>
+                        <span className="font-bold text-slate-900 mt-1 block font-mono">
+                          {fullUserDetail.doctorProfile.slotDurationMinutes || 15} minutes / patient slot
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Weekly Availability Schedule */}
+                    {fullUserDetail.doctorProfile.availability && fullUserDetail.doctorProfile.availability.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-slate-100">
+                        <span className="text-slate-400 block font-bold text-[11px] mb-2 uppercase">Weekly Availability</span>
+                        <div className="flex flex-wrap gap-2">
+                          {fullUserDetail.doctorProfile.availability.map((slot, idx) => (
+                            <span key={idx} className="bg-teal-50 border border-teal-200 text-teal-800 text-[11px] font-semibold px-2.5 py-1 rounded-lg">
+                              {slot.dayOfWeek}: {slot.startTime} - {slot.endTime}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Security Metrics */}
                 <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 space-y-4">
@@ -1464,16 +1751,26 @@ export const UserManagement: React.FC = () => {
                 ?
               </p>
 
-              {statusDialogUser.action === "Suspend" && (
+              {statusDialogUser.action === "Deactivate" && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex gap-2.5 text-red-800">
                   <AlertTriangle
                     size={18}
                     className="shrink-0 text-red-600 mt-0.5"
                   />
                   <p className="leading-relaxed">
-                    This action will immediately suspend the user's active
-                    session. They will be logged out and unable to log back in
-                    until manually activated again.
+                    This action will immediately deactivate the user account and revoke their active session. They will be logged out and unable to log back in until re-activated.
+                  </p>
+                </div>
+              )}
+
+              {statusDialogUser.action === "Activate" && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex gap-2.5 text-green-800">
+                  <CheckCircle2
+                    size={18}
+                    className="shrink-0 text-green-600 mt-0.5"
+                  />
+                  <p className="leading-relaxed">
+                    This action will re-activate the user account and restore their system login privileges.
                   </p>
                 </div>
               )}
@@ -1488,7 +1785,7 @@ export const UserManagement: React.FC = () => {
                 <button
                   onClick={handleConfirmStatusChange}
                   className={`px-4 py-2 text-white rounded-xl font-bold transition-colors cursor-pointer ${
-                    statusDialogUser.action === "Suspend"
+                    statusDialogUser.action === "Deactivate"
                       ? "bg-red-600 hover:bg-red-700"
                       : "bg-green-600 hover:bg-green-700"
                   }`}

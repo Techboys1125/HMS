@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Building,
   Plus,
@@ -16,7 +16,10 @@ import {
   Network,
   BarChart2,
   X,
+  Loader2,
+  Trash2,
 } from "lucide-react";
+import { departmentsApi, type ApiDepartment } from "./features/admin/api/departments.api";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -36,6 +39,69 @@ interface Department {
   createdDate: string;
 }
 
+const INITIAL_DEPARTMENTS: Department[] = [
+  {
+    id: "1",
+    code: "DEP-CARD-01",
+    name: "Cardiology Department",
+    specialty: "Cardiology & Cardiovascular Surgery",
+    head: "Dr. Arjun Mehta (MD, FACC)",
+    doctorsCount: 18,
+    consultationRooms: 8,
+    status: "Active",
+    lastUpdated: "Today, 10:30 AM",
+    description:
+      "Comprehensive cardiac care unit equipped with advanced cath lab and electrophysiology monitoring.",
+    workingHours: "24/7 Operational",
+    createdDate: "15 Jan 2020",
+  },
+  {
+    id: "2",
+    code: "DEP-NEUR-02",
+    name: "Neurology Department",
+    specialty: "Neurology & Neurosurgery",
+    head: "Dr. Rajesh Kapoor (DM, MCh)",
+    doctorsCount: 14,
+    consultationRooms: 6,
+    status: "Active",
+    lastUpdated: "Yesterday, 14:15",
+    description:
+      "Specialized neuro-critical care unit for stroke management, epilepsy, and brain surgery.",
+    workingHours: "Mon - Sat: 08:00 AM - 08:00 PM",
+    createdDate: "10 Feb 2020",
+  },
+  {
+    id: "3",
+    code: "DEP-PED-03",
+    name: "Pediatrics Department",
+    specialty: "Pediatrics & Neonatology (NICU)",
+    head: "Dr. Sunita Patel (MD, DCH)",
+    doctorsCount: 12,
+    consultationRooms: 5,
+    status: "Active",
+    lastUpdated: "2 days ago",
+    description:
+      "Dedicated pediatric OPD and Level-3 NICU facility for infants and child healthcare.",
+    workingHours: "24/7 Emergency / OPD 09:00 AM - 06:00 PM",
+    createdDate: "01 Mar 2020",
+  },
+  {
+    id: "4",
+    code: "DEP-ORTH-04",
+    name: "Orthopedics Department",
+    specialty: "Orthopedics & Joint Replacement",
+    head: "Dr. Vikram Shah (MS Ortho)",
+    doctorsCount: 15,
+    consultationRooms: 7,
+    status: "Active",
+    lastUpdated: "3 days ago",
+    description:
+      "Trauma care, robotic knee replacement, and sports medicine rehabilitation center.",
+    workingHours: "Mon - Sat: 09:00 AM - 07:00 PM",
+    createdDate: "20 Apr 2020",
+  },
+];
+
 export function DepartmentsSpecialtiesWorkspace() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTypeFilter, setSelectedTypeFilter] = useState("All");
@@ -43,100 +109,148 @@ export function DepartmentsSpecialtiesWorkspace() {
   const [selectedDept, setSelectedDept] = useState<Department | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Mock Departments Data
-  const [departments] = useState<Department[]>([
-    {
-      id: "1",
-      code: "DEP-CARD-01",
-      name: "Cardiology Department",
-      specialty: "Cardiology & Cardiovascular Surgery",
-      head: "Dr. Arjun Mehta (MD, FACC)",
-      doctorsCount: 18,
-      consultationRooms: 8,
-      status: "Active",
-      lastUpdated: "Today, 10:30 AM",
-      description:
-        "Comprehensive cardiac care unit equipped with advanced cath lab and electrophysiology monitoring.",
-      workingHours: "24/7 Operational",
-      createdDate: "15 Jan 2020",
-    },
-    {
-      id: "2",
-      code: "DEP-NEUR-02",
-      name: "Neurology Department",
-      specialty: "Neurology & Neurosurgery",
-      head: "Dr. Rajesh Kapoor (DM, MCh)",
-      doctorsCount: 14,
-      consultationRooms: 6,
-      status: "Active",
-      lastUpdated: "Yesterday, 14:15",
-      description:
-        "Specialized neuro-critical care unit for stroke management, epilepsy, and brain surgery.",
-      workingHours: "Mon - Sat: 08:00 AM - 08:00 PM",
-      createdDate: "10 Feb 2020",
-    },
-    {
-      id: "3",
-      code: "DEP-PED-03",
-      name: "Pediatrics Department",
-      specialty: "Pediatrics & Neonatology (NICU)",
-      head: "Dr. Sunita Patel (MD, DCH)",
-      doctorsCount: 12,
-      consultationRooms: 5,
-      status: "Active",
-      lastUpdated: "2 days ago",
-      description:
-        "Dedicated pediatric OPD and Level-3 NICU facility for infants and child healthcare.",
-      workingHours: "24/7 Emergency / OPD 09:00 AM - 06:00 PM",
-      createdDate: "01 Mar 2020",
-    },
-    {
-      id: "4",
-      code: "DEP-ORTH-04",
-      name: "Orthopedics Department",
-      specialty: "Orthopedics & Joint Replacement",
-      head: "Dr. Vikram Shah (MS Ortho)",
-      doctorsCount: 15,
-      consultationRooms: 7,
-      status: "Active",
-      lastUpdated: "3 days ago",
-      description:
-        "Trauma care, robotic knee replacement, and sports medicine rehabilitation center.",
-      workingHours: "Mon - Sat: 09:00 AM - 07:00 PM",
-      createdDate: "20 Apr 2020",
-    },
-    {
-      id: "5",
-      code: "DEP-DERM-05",
-      name: "Dermatology Department",
-      specialty: "Dermatology & Cosmetology",
-      head: "Dr. Priya Sharma (MD Derm)",
-      doctorsCount: 8,
-      consultationRooms: 4,
-      status: "Inactive",
-      lastUpdated: "1 week ago",
-      description:
-        "Skin disease diagnostic clinic, laser treatments, and aesthetic clinical procedures.",
-      workingHours: "Mon - Fri: 10:00 AM - 05:00 PM",
-      createdDate: "12 Jun 2021",
-    },
-    {
-      id: "6",
-      code: "DEP-GYN-06",
-      name: "Gynecology & Obstetrics",
-      specialty: "Gynecology & Fetal Medicine",
-      head: "Dr. Ananya Roy (MD, DGO)",
-      doctorsCount: 16,
-      consultationRooms: 6,
-      status: "Active",
-      lastUpdated: "Yesterday, 09:00",
-      description:
-        "High-risk pregnancy monitoring, maternity suites, and minimally invasive laparoscopic surgery.",
-      workingHours: "24/7 Maternity / OPD 08:00 AM - 08:00 PM",
-      createdDate: "10 Aug 2020",
-    },
-  ]);
+  // Form State for Add/Edit
+  const [newDeptName, setNewDeptName] = useState("");
+  const [newDeptCode, setNewDeptCode] = useState("");
+  const [newDeptSpecialty, setNewDeptSpecialty] = useState("");
+  const [newDeptDescription, setNewDeptDescription] = useState("");
+  const [newDeptHead, setNewDeptHead] = useState("");
+
+  const [departments, setDepartments] = useState<Department[]>(INITIAL_DEPARTMENTS);
+
+  // Toast State
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  const triggerToast = (msg: string, type: "success" | "error" = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const loadDepartments = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const apiList = await departmentsApi.getDepartments();
+      if (apiList && apiList.length > 0) {
+        const mapped: Department[] = apiList.map((d, index) => {
+          const deptId = String(d.departmentId || d.id || index + 1);
+          const deptName = d.departmentName || d.name || "Department";
+          const deptCode = d.departmentCode || d.code || `DEP-${deptName.substring(0, 4).toUpperCase()}-0${index + 1}`;
+          const specsList = d.specialties?.map((s) => s.name).filter(Boolean).join(", ");
+          const isActive = d.active !== undefined ? d.active : (d.status !== "INACTIVE" && d.status !== "Inactive");
+
+          return {
+            id: deptId,
+            code: deptCode,
+            name: deptName,
+            specialty: specsList || d.description || "General Specialty",
+            head: d.headOfDepartment || d.head || "Dr. Unassigned",
+            doctorsCount: d.doctorsCount || (d.specialties ? d.specialties.length * 3 : 10),
+            consultationRooms: d.consultationRooms || 4,
+            status: isActive ? "Active" : "Inactive",
+            lastUpdated: "Recently updated",
+            description: d.description || `${deptName} clinical unit.`,
+            workingHours: d.workingHours || "09:00 AM - 05:00 PM",
+            createdDate: d.createdDate || d.createdAt?.split("T")[0] || "2024",
+          };
+        });
+        setDepartments(mapped);
+      }
+    } catch (err) {
+      console.warn("Failed to load departments from API:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDepartments();
+  }, [loadDepartments]);
+
+  const handleCreateDepartment = async () => {
+    if (!newDeptName.trim()) {
+      triggerToast("Department name is required.", "error");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const cleanDeptCode = (newDeptCode || `DEP_${newDeptName}`).replace(/[^a-zA-Z0-9_]/g, "_").toUpperCase();
+      const cleanSpecCode = `${(newDeptCode || newDeptName).replace(/[^a-zA-Z0-9_]/g, "_").substring(0, 8).toUpperCase()}_SPEC_01`;
+
+      const payload: Partial<ApiDepartment> = {
+        departmentName: newDeptName,
+        departmentCode: cleanDeptCode,
+        description: newDeptDescription || newDeptSpecialty,
+        active: true,
+        specialties: newDeptSpecialty
+          ? [
+              {
+                name: newDeptSpecialty,
+                code: cleanSpecCode,
+                description: `${newDeptSpecialty} Specialty`,
+                active: true,
+              },
+            ]
+          : [],
+        headOfDepartment: newDeptHead,
+      };
+      await departmentsApi.createDepartment(payload);
+      triggerToast(`Department "${newDeptName}" created successfully!`, "success");
+      setIsAddModalOpen(false);
+      setNewDeptName("");
+      setNewDeptCode("");
+      setNewDeptSpecialty("");
+      setNewDeptDescription("");
+      setNewDeptHead("");
+      loadDepartments();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to create department";
+      triggerToast(msg, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateDepartment = async () => {
+    if (!selectedDept) return;
+    setIsSubmitting(true);
+    try {
+      const payload: Partial<ApiDepartment> = {
+        departmentName: selectedDept.name,
+        departmentCode: selectedDept.code,
+        description: selectedDept.description,
+        active: selectedDept.status === "Active",
+        headOfDepartment: selectedDept.head,
+      };
+      await departmentsApi.updateDepartment(selectedDept.id, payload);
+      triggerToast(`Department "${selectedDept.name}" updated successfully!`, "success");
+      setIsEditMode(false);
+      loadDepartments();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to update department";
+      triggerToast(msg, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteDepartment = async (deptId: string, deptName: string) => {
+    if (!window.confirm(`Are you sure you want to delete department "${deptName}"?`)) return;
+    setIsSubmitting(true);
+    try {
+      await departmentsApi.deleteDepartment(deptId);
+      triggerToast(`Department "${deptName}" deleted successfully!`, "success");
+      if (selectedDept?.id === deptId) setSelectedDept(null);
+      loadDepartments();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete department";
+      triggerToast(msg, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Mock Specialties Card Grid Data
   const specialties = [
@@ -258,7 +372,8 @@ export function DepartmentsSpecialtiesWorkspace() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <button
-            onClick={() => {}}
+            onClick={loadDepartments}
+            disabled={isLoading}
             style={{
               display: "flex",
               alignItems: "center",
@@ -273,25 +388,7 @@ export function DepartmentsSpecialtiesWorkspace() {
               cursor: "pointer",
             }}
           >
-            <RefreshCw size={14} /> Refresh
-          </button>
-          <button
-            onClick={() => {}}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "8px 14px",
-              borderRadius: "8px",
-              border: "1px solid #E5E7EB",
-              background: "#FFFFFF",
-              color: "#009688",
-              fontSize: "13px",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-          >
-            <Download size={14} /> Export
+            <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} /> Refresh
           </button>
           <button
             onClick={() => setIsAddModalOpen(true)}
@@ -299,7 +396,7 @@ export function DepartmentsSpecialtiesWorkspace() {
               display: "flex",
               alignItems: "center",
               gap: "6px",
-              padding: "8px 18px",
+              padding: "8px 14px",
               borderRadius: "8px",
               border: "none",
               background: "#0D47A1",
@@ -314,6 +411,22 @@ export function DepartmentsSpecialtiesWorkspace() {
           </button>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed top-5 right-5 z-50 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-fade-in ${
+            toast.type === "error" ? "bg-[#EF4444]" : "bg-[#111827]"
+          }`}
+        >
+          {toast.type === "error" ? (
+            <AlertCircle size={16} className="text-white" />
+          ) : (
+            <CheckCircle2 size={16} className="text-[#66BB6A]" />
+          )}
+          <span>{toast.msg}</span>
+        </div>
+      )}
 
       {/* ─── TOP KPI CARDS (4 CARDS) ──────────────────────────────────────── */}
       <div
@@ -989,7 +1102,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                       >
                         {dept.lastUpdated}
                       </td>
-                      <td style={{ padding: "12px 16px", textAlign: "right" }}>
+                      <td style={{ padding: "12px 16px", textAlign: "right", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
                         <button
                           onClick={() => setSelectedDept(dept)}
                           style={{
@@ -1007,6 +1120,24 @@ export function DepartmentsSpecialtiesWorkspace() {
                           }}
                         >
                           <Eye size={14} /> View Details
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDepartment(dept.id, dept.name)}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            padding: "6px 10px",
+                            borderRadius: "6px",
+                            border: "1px solid #EF4444",
+                            background: "#FEF2F2",
+                            color: "#EF4444",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                        >
+                          <Trash2 size={14} /> Delete
                         </button>
                       </td>
                     </tr>
@@ -1911,10 +2042,8 @@ export function DepartmentsSpecialtiesWorkspace() {
               </button>
               {isEditMode && (
                 <button
-                  onClick={() => {
-                    setSelectedDept(null);
-                    setIsEditMode(false);
-                  }}
+                  onClick={handleUpdateDepartment}
+                  disabled={isSubmitting}
                   style={{
                     padding: "8px 20px",
                     borderRadius: "8px",
@@ -1925,8 +2054,12 @@ export function DepartmentsSpecialtiesWorkspace() {
                     fontWeight: 600,
                     cursor: "pointer",
                     boxShadow: "0 2px 4px rgba(13,71,161,0.2)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
                   }}
                 >
+                  {isSubmitting && <Loader2 size={14} className="animate-spin" />}
                   Save Changes
                 </button>
               )}
@@ -2010,6 +2143,8 @@ export function DepartmentsSpecialtiesWorkspace() {
                 </label>
                 <input
                   type="text"
+                  value={newDeptName}
+                  onChange={(e) => setNewDeptName(e.target.value)}
                   placeholder="e.g. Nephrology Department"
                   style={{
                     width: "100%",
@@ -2032,10 +2167,12 @@ export function DepartmentsSpecialtiesWorkspace() {
                     marginBottom: "4px",
                   }}
                 >
-                  Department Code *
+                  Department Code
                 </label>
                 <input
                   type="text"
+                  value={newDeptCode}
+                  onChange={(e) => setNewDeptCode(e.target.value.toUpperCase())}
                   placeholder="e.g. DEP-NEPH-07"
                   style={{
                     width: "100%",
@@ -2058,11 +2195,41 @@ export function DepartmentsSpecialtiesWorkspace() {
                     marginBottom: "4px",
                   }}
                 >
-                  Medical Specialty *
+                  Medical Specialty / Description
                 </label>
                 <input
                   type="text"
+                  value={newDeptSpecialty}
+                  onChange={(e) => setNewDeptSpecialty(e.target.value)}
                   placeholder="e.g. Nephrology & Renal Care"
+                  style={{
+                    width: "100%",
+                    padding: "8px 12px",
+                    borderRadius: "8px",
+                    border: "1px solid #D1D5DB",
+                    fontSize: "13px",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: "#374151",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Head of Department
+                </label>
+                <input
+                  type="text"
+                  value={newDeptHead}
+                  onChange={(e) => setNewDeptHead(e.target.value)}
+                  placeholder="e.g. Dr. Rajesh Verma (MD)"
                   style={{
                     width: "100%",
                     padding: "8px 12px",
@@ -2096,7 +2263,8 @@ export function DepartmentsSpecialtiesWorkspace() {
                   Cancel
                 </button>
                 <button
-                  onClick={() => setIsAddModalOpen(false)}
+                  onClick={handleCreateDepartment}
+                  disabled={isSubmitting}
                   style={{
                     padding: "8px 16px",
                     borderRadius: "8px",
@@ -2106,9 +2274,13 @@ export function DepartmentsSpecialtiesWorkspace() {
                     fontSize: "13px",
                     fontWeight: 600,
                     cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
                   }}
                 >
-                  Create Unit
+                  {isSubmitting && <Loader2 size={14} className="animate-spin" />}
+                  Create Department
                 </button>
               </div>
             </div>

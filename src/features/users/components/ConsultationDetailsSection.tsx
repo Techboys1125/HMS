@@ -1,9 +1,10 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import { Building2, Briefcase } from "lucide-react";
 import type { FormValues, FormErrors } from "../hooks/useCreateStaffForm";
 import { DEPARTMENT_SPECIALTY_MAP } from "../constants/departmentSpecialtyMap";
+import { departmentsApi } from "../../admin/api/departments.api";
 
-const DEPARTMENTS = Object.keys(DEPARTMENT_SPECIALTY_MAP);
+const STATIC_DEPARTMENTS = Object.keys(DEPARTMENT_SPECIALTY_MAP);
 
 interface ConsultationDetailsSectionProps {
   form: FormValues;
@@ -16,16 +17,53 @@ const EMPTY_ARRAY: string[] = [];
 export const ConsultationDetailsSection: React.FC<
   ConsultationDetailsSectionProps
 > = ({ form, errors, setFieldValue }) => {
+  const [apiDepts, setApiDepts] = useState<string[]>([]);
+  const [deptSpecialtiesMap, setDeptSpecialtiesMap] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    departmentsApi.getDepartmentLookup(true).then((lookupList) => {
+      if (lookupList && lookupList.length > 0) {
+        const names = lookupList.map((d) => d.departmentName).filter(Boolean);
+        setApiDepts(names);
+
+        const map: Record<string, string[]> = {};
+        lookupList.forEach((d) => {
+          if (d.departmentName && d.specialties) {
+            map[d.departmentName] = d.specialties.map((s) => s.name).filter(Boolean);
+          }
+        });
+        setDeptSpecialtiesMap(map);
+      } else {
+        // Fallback to full department-specialties list if lookup is empty
+        departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
+          const names = list.map((d) => d.departmentName || d.name).filter((n): n is string => Boolean(n));
+          if (names.length > 0) setApiDepts(names);
+        });
+      }
+    });
+  }, []);
+
+  const departmentOptions = useMemo(() => {
+    const set = new Set([...apiDepts, ...STATIC_DEPARTMENTS]);
+    return Array.from(set);
+  }, [apiDepts]);
+
   // Get specialties based on the selected primary department
   const primarySpecialties = useMemo(() => {
-    return DEPARTMENT_SPECIALTY_MAP[form.primaryDepartment] || EMPTY_ARRAY;
-  }, [form.primaryDepartment]);
+    if (deptSpecialtiesMap[form.primaryDepartment]?.length) {
+      return deptSpecialtiesMap[form.primaryDepartment];
+    }
+    return DEPARTMENT_SPECIALTY_MAP[form.primaryDepartment] || ["General Care", "Specialized Care"];
+  }, [form.primaryDepartment, deptSpecialtiesMap]);
 
   // Get specialties based on the selected secondary department
   const secondarySpecialties = useMemo(() => {
     if (!form.secondaryDepartment) return EMPTY_ARRAY;
-    return DEPARTMENT_SPECIALTY_MAP[form.secondaryDepartment] || EMPTY_ARRAY;
-  }, [form.secondaryDepartment]);
+    if (deptSpecialtiesMap[form.secondaryDepartment]?.length) {
+      return deptSpecialtiesMap[form.secondaryDepartment];
+    }
+    return DEPARTMENT_SPECIALTY_MAP[form.secondaryDepartment] || ["General Care", "Specialized Care"];
+  }, [form.secondaryDepartment, deptSpecialtiesMap]);
 
   // Auto-select first primary specialty when department changes
   useEffect(() => {
@@ -83,7 +121,7 @@ export const ConsultationDetailsSection: React.FC<
                   : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
               }`}
             >
-              {DEPARTMENTS.map((dept) => (
+              {departmentOptions.map((dept) => (
                 <option key={dept} value={dept}>
                   {dept}
                 </option>
@@ -116,7 +154,7 @@ export const ConsultationDetailsSection: React.FC<
               className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-[#1E293B] cursor-pointer"
             >
               <option value="">None (Optional)</option>
-              {DEPARTMENTS.filter(
+              {departmentOptions.filter(
                 (dept) => dept !== form.primaryDepartment,
               ).map((dept) => (
                 <option key={dept} value={dept}>

@@ -76,6 +76,33 @@ export interface Patient {
   status: string;
   assignedDoctor: string;
   registrationDate: string;
+  dob?: string;
+  bloodGroup?: string;
+  maritalStatus?: string;
+  photo?: string;
+  photoUrl?: string;
+  emergencyContact?: {
+    name?: string;
+    contactName?: string;
+    relationship?: string;
+    phone?: string;
+    contactNumber?: string;
+    mobile?: string;
+  };
+  address?: {
+    street?: string;
+    streetAddress?: string;
+    addressLine1?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    postalCode?: string;
+    pincode?: string;
+    country?: string;
+  };
+  allergies?: string[];
+  medicalHistory?: string[];
+  version?: number;
 }
 
 export interface PatientStatistics {

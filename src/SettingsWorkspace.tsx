@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { HospitalInformationWorkspace } from "./HospitalInformationWorkspace";
-import { DepartmentsSpecialtiesWorkspace } from "./DepartmentsSpecialtiesWorkspace";
 import { UserRolesPermissionsWorkspace } from "./UserRolesPermissionsWorkspace";
 import { AppointmentConfigurationWorkspace } from "./AppointmentConfigurationWorkspace";
 import { BillingConfigurationWorkspace } from "./BillingConfigurationWorkspace";
@@ -10,7 +9,6 @@ import { BackupMaintenanceWorkspace } from "./BackupMaintenanceWorkspace";
 import {
   Settings as SettingsIcon,
   Building2,
-  Building,
   Shield,
   Calendar,
   CreditCard,
@@ -87,13 +85,6 @@ export function SettingsWorkspace({ onNavigate }: SettingsWorkspaceProps) {
       title: "Hospital Information",
       description: "Branding, contact & address",
       icon: Building2,
-      status: "Configured",
-    },
-    {
-      id: "departments",
-      title: "Departments & Specialties",
-      description: "Clinical units & OPDs",
-      icon: Building,
       status: "Configured",
     },
     {
@@ -2233,8 +2224,6 @@ export function SettingsWorkspace({ onNavigate }: SettingsWorkspaceProps) {
             </div>
           ) : activeMenu === "hospital-info" ? (
             <HospitalInformationWorkspace />
-          ) : activeMenu === "departments" ? (
-            <DepartmentsSpecialtiesWorkspace />
           ) : activeMenu === "roles-permissions" ? (
             <UserRolesPermissionsWorkspace />
           ) : activeMenu === "appointments" ? (

@@ -46,6 +46,7 @@ export interface FormValues {
   phone: string;
   gender: string;
   dob: string;
+  dateOfBirth?: string;
   role: "DOCTOR" | "RECEPTIONIST" | "NURSE" | "ACCOUNTANT" | "";
   professionalIdentity: string;
   registrationNumber: string;
@@ -531,7 +532,21 @@ export const useCreateStaffForm = (
 
       let response;
       if (form.role === "DOCTOR") {
-        const availabilityList = Object.entries(form.availability).map(
+        const backendAvailabilityList = Object.entries(form.availability)
+          .filter(([_, sched]) => sched.isAvailable)
+          .map(([day, sched]) => ({
+            dayOfWeek: day.toUpperCase(),
+            startTime:
+              sched.startTime.includes(":") && sched.startTime.split(":").length === 2
+                ? sched.startTime
+                : `${sched.startTime}:00`,
+            endTime:
+              sched.endTime.includes(":") && sched.endTime.split(":").length === 2
+                ? sched.endTime
+                : `${sched.endTime}:00`,
+          }));
+
+        const legacyAvailabilityList = Object.entries(form.availability).map(
           ([day, sched]) => ({
             day: day.toUpperCase(),
             available: sched.isAvailable,
@@ -560,22 +575,32 @@ export const useCreateStaffForm = (
           : [];
 
         const doctorPayload: AdminCreateDoctorStaffData = {
-          ...basePayload,
+          fullName: form.fullName,
+          email: form.email,
+          mobile: finalMobile,
+          gender: form.gender || "MALE",
+          dateOfBirth: form.dob || form.dateOfBirth || undefined,
+          photo: form.photoUrl || undefined,
+          photoUrl: form.photoUrl || undefined,
+          residentialAddress: form.residentialAddress || undefined,
+          professionalBio: form.professionalBio || undefined,
+          role: apiRole,
+          medicalRegistrationNumber: form.registrationNumber || undefined,
+          qualification: form.qualification || undefined,
+          yearsOfExperience: form.yearsOfExperience ? Number(form.yearsOfExperience) : undefined,
+          doctorCode: form.doctorCode || undefined,
           primaryDepartmentId: finalDeptId,
           secondaryDepartmentIds: secondaryDeptIds,
           primarySpecialtyId: primaryId,
           secondarySpecialtyIds: secondaryIds,
-          photoUrl: form.photoUrl || undefined,
-          residentialAddress: form.residentialAddress || undefined,
-          professionalBio: form.professionalBio || undefined,
-          qualification: form.qualification || undefined,
-          yearsOfExperience: form.yearsOfExperience ? Number(form.yearsOfExperience) : undefined,
-          doctorCode: form.doctorCode || undefined,
-          medicalRegistrationNumber: form.registrationNumber || undefined,
           consultationFee: Number(form.consultationFee) || 0,
-          followUpFee: form.followUpFee ? Number(form.followUpFee) : undefined,
+          followUpFee: form.followUpFee ? Number(form.followUpFee) : 0,
           slotDurationMinutes: Number(form.slotDurationMinutes) || 15,
+          availability: backendAvailabilityList,
           sendCredentials: form.sendCredentials,
+          // Legacy backward compatibility
+          departmentId: finalDeptId,
+          designation: form.primarySpecialty || "Doctor",
           doctorProfile: {
             registrationNumber: form.registrationNumber,
             medicalRegistrationNumber: form.registrationNumber,
@@ -590,7 +615,7 @@ export const useCreateStaffForm = (
             followUpFee: form.followUpFee ? Number(form.followUpFee) : 0,
             slotDurationMinutes: Number(form.slotDurationMinutes) || 15,
             consultationTypes: ["IN_PERSON"],
-            availability: availabilityList,
+            availability: legacyAvailabilityList,
             residentialAddress: form.residentialAddress || undefined,
             professionalBio: form.professionalBio || undefined,
             photoUrl: form.photoUrl || undefined,
@@ -619,14 +644,23 @@ export const useCreateStaffForm = (
         );
       }
     } catch (err: unknown) {
-      let errMsg = "Error submitting form";
+      let errMsg = "Failed to create staff account.";
       if (err instanceof Error) {
         errMsg = err.message;
       }
-      const axiosErr = err as { cause?: { response?: { status?: number } } };
-      if (axiosErr?.cause?.response?.status === 403) {
+      const apiErr = err as { response?: { status?: number; data?: { message?: string; errors?: any } } };
+      const status = apiErr?.response?.status;
+      const resData = apiErr?.response?.data;
+
+      if (status === 403) {
         errMsg =
           "Access denied. Your account does not have ADMIN permissions to create staff. Please log in with an admin account.";
+      } else if (status === 500) {
+        errMsg =
+          resData?.message ||
+          "Internal server error occurred on the backend. Please check staff details and try again.";
+      } else if (resData?.message) {
+        errMsg = resData.message;
       }
       console.error("[CreateStaff] Error:", err);
       triggerToast(errMsg, "error");

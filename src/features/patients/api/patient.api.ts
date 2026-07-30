@@ -6,7 +6,6 @@ import type {
   MergePatientsRequest,
   Patient,
   PatientStatistics,
-  UpdatePatientRequest,
 } from "../types/patient.types";
 
 const unwrapData = <T>(response: unknown): T | null => {
@@ -150,18 +149,26 @@ export const patientsApi = {
   },
 
   async update(
-    mrn: string,
-    payload: UpdatePatientRequest,
-    version: number,
+    userIdOrMrn: string | number,
+    payload: Record<string, unknown>,
   ): Promise<Patient> {
     try {
-      const res = await apiClient.patch<Patient>(
-        `/api/v1/patients/${encodeURIComponent(mrn)}`,
-        {
-          ...payload,
-          version,
-        },
-      );
+      let res;
+      try {
+        res = await apiClient.put<Patient>(
+          `/api/v1/admin/users/${userIdOrMrn}`,
+          payload,
+        );
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+          res = await apiClient.put<Patient>(
+            `/api/v1/patients/${encodeURIComponent(String(userIdOrMrn))}`,
+            payload,
+          );
+        } else {
+          throw err;
+        }
+      }
       const raw = res.data;
       if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
         return raw.data as Patient;

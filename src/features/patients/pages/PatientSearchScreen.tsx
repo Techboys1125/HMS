@@ -10,12 +10,14 @@ export function PatientSearchScreen({
   onPatientSelect,
   onRegisterClick,
   onBookAppointmentClick,
+  onEditPatientClick,
   userRole,
 }: {
   onBack?: () => void;
   onPatientSelect?: (mrn: string) => void;
   onRegisterClick?: () => void;
   onBookAppointmentClick?: (mrn: string) => void;
+  onEditPatientClick?: (patient: Patient) => void;
   onCheckInClick?: (mrn: string) => void;
   userRole?: string;
 }) {
@@ -384,9 +386,9 @@ export function PatientSearchScreen({
         activeActionMenuId={activeActionMenuId}
         hasActiveFilters={hasActiveFilters}
         userRole={userRole}
-        onSelectRow={(p: Patient) => setSelectedPatientId(p.mrn || p.patientId || String(p.id))}
-        onOpenQuickView={(p: Patient) => {
+        onSelectRow={(p: Patient) => {
           const id = p.mrn || p.patientId || String(p.id);
+          setSelectedPatientId(id);
           if (onPatientSelect) onPatientSelect(id);
         }}
         onToggleActionMenu={(id) => setActiveActionMenuId(id)}
@@ -395,7 +397,11 @@ export function PatientSearchScreen({
         }}
         onEditPatient={(p) => {
           const id = p.mrn || p.patientId || String(p.id);
-          if (onPatientSelect) onPatientSelect(id);
+          if (onEditPatientClick) {
+            onEditPatientClick(p);
+          } else if (onPatientSelect) {
+            onPatientSelect(id);
+          }
         }}
         onViewMedicalHistory={(id) => {
           if (onPatientSelect) onPatientSelect(id);

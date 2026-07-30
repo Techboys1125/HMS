@@ -2377,23 +2377,27 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                   onRecordVitals={() => setActiveNav("vitals")}
                 />
               )}
-            {activeNav === "patients" &&
-              showPatientWorkspace &&
-              showEditPatient && (
-                <EditPatientScreen
-                  patientMrn={
-                    selectedPatient ? String(selectedPatient) : undefined
-                  }
-                  onBack={() => setShowEditPatient(false)}
-                />
-              )}
+            {activeNav === "patients" && showEditPatient && (
+              <EditPatientScreen
+                patientMrn={
+                  selectedPatient ? String(selectedPatient) : undefined
+                }
+                onBack={() => setShowEditPatient(false)}
+              />
+            )}
             {activeNav === "patients" &&
               !showPatientWorkspace &&
-              !showRegisterPatient && (
+              !showRegisterPatient &&
+              !showEditPatient && (
                 <PatientSearchScreen
                   userRole={role}
                   onBack={() => setActiveNav("dashboard")}
                   onPatientSelect={(id) => handlePatientSelect(id)}
+                  onEditPatientClick={(p) => {
+                    const id = p.mrn || p.patientId || String(p.id);
+                    setSelectedPatient(id);
+                    setShowEditPatient(true);
+                  }}
                   onRegisterClick={() => {
                     setShowRegisterPatient(true);
                   }}
