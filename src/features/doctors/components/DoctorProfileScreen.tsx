@@ -367,8 +367,7 @@ export function DoctorProfileScreen({
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-2">
             {(
               [
@@ -752,6 +751,7 @@ export function DoctorProfileScreen({
                       <option value="All Dates">All Dates</option>
                       <option value="Today">Today</option>
                       <option value="This Week">This Week</option>
+                      <option value="This Month">This Month</option>
                     </select>
                   </div>
                 </div>

@@ -8,11 +8,8 @@ import {
   Stethoscope,
   Edit,
   FileText,
-  Clock,
   Droplets,
-  User,
   Printer,
-  CheckCircle2,
 } from "lucide-react";
 import type { ReceptionPatientProfileScreenProps } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.mock";
@@ -89,28 +86,51 @@ export function ReceptionPatientProfileScreen({
     },
   ];
 
-  // Visit History Mock (Operational Only - No clinical diagnosis details)
+  // Visit History Mock
   const visitHistory = [
     {
       id: "VIS-2024-001",
       date: "March 12, 2024",
-      doctor: "Dr. A. Mehta",
+      time: "09:45 AM",
+      doctor: "Dr. Arjun Mehta",
       dept: "Cardiology",
-      status: "Completed",
+      diagnosis: "Primary Essential Hypertension",
+      treatmentSummary: "Oral anti-hypertensive daily (Lisinopril 10mg)",
+      rxStatus: "Issued",
+      billingStatus: "Paid",
     },
     {
       id: "VIS-2024-002",
       date: "February 10, 2024",
-      doctor: "Dr. P. Sharma",
+      time: "11:15 AM",
+      doctor: "Dr. Priya Sharma",
       dept: "General Medicine",
-      status: "Completed",
+      diagnosis: "Type 2 Diabetes Mellitus",
+      treatmentSummary: "Dietary control & Metformin 500mg BD",
+      rxStatus: "Issued",
+      billingStatus: "Paid",
     },
     {
       id: "VIS-2023-089",
       date: "November 14, 2023",
-      doctor: "Dr. R. Kapoor",
+      time: "02:30 PM",
+      doctor: "Dr. Rajesh Kapoor",
       dept: "Neurology",
-      status: "Completed",
+      diagnosis: "Mild Bronchial Asthma",
+      treatmentSummary: "Inhaler PRN during seasonal exacerbation",
+      rxStatus: "Pending",
+      billingStatus: "Paid",
+    },
+    {
+      id: "VIS-2023-045",
+      date: "August 05, 2023",
+      time: "10:00 AM",
+      doctor: "Dr. Sunita Patel",
+      dept: "Gynecology",
+      diagnosis: "Routine Health Screening",
+      treatmentSummary: "Normal vitals, general wellness guidance",
+      rxStatus: "Pending",
+      billingStatus: "Not Paid",
     },
   ];
 
@@ -133,36 +153,6 @@ export function ReceptionPatientProfileScreen({
   ];
 
   // Timeline Events Mock
-  const timelineEvents = [
-    {
-      time: "Today, 09:15 AM",
-      title: "Patient Checked-In",
-      desc: "Checked in at Reception Counter 02 by Staff Mark",
-      icon: UserCheck,
-      color: "text-[#009688] bg-teal-50",
-    },
-    {
-      time: "Today, 08:30 AM",
-      title: "Appointment Booked",
-      desc: "Booked APT-1024 for Dr. A. Mehta",
-      icon: Calendar,
-      color: "text-[#0D47A1] bg-blue-50",
-    },
-    {
-      time: "2024-03-12, 10:30 AM",
-      title: "Completed Visit",
-      desc: "General OPD Visit with Dr. P. Sharma",
-      icon: CheckCircle2,
-      color: "text-[#66BB6A] bg-green-50",
-    },
-    {
-      time: "2024-03-12, 09:00 AM",
-      title: "Registration Created",
-      desc: "Initial Master Patient Registration created",
-      icon: FileText,
-      color: "text-slate-600 bg-slate-100",
-    },
-  ];
 
   const getStatusChipVariant = (status: string) => {
     switch (status) {
@@ -189,7 +179,6 @@ export function ReceptionPatientProfileScreen({
     { id: "overview" as const, label: "Overview" },
     { id: "appointments" as const, label: "Appointments" },
     { id: "visits" as const, label: "Visit History" },
-    { id: "medical-history" as const, label: "Medical History" },
     { id: "billing" as const, label: "Billing" },
     { id: "documents" as const, label: "Documents" },
   ];
@@ -373,76 +362,8 @@ export function ReceptionPatientProfileScreen({
 
         {/* ── THREE-COLUMN LAYOUT (DESKTOP) ── */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-          {/* LEFT COLUMN: PATIENT SUMMARY CARD (COMPACT) */}
-          <div className="xl:col-span-3 space-y-6">
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center justify-between"
-                style={{ fontFamily: PP }}
-              >
-                <span>Patient Summary</span>
-                <User size={15} className="text-[#0D47A1]" />
-              </h3>
-
-              <div className="space-y-3 text-xs">
-                <div>
-                  <span className="text-[#64748B] block text-[11px]">MRN</span>
-                  <span className="font-mono font-bold text-[#0D47A1]">
-                    {patient.mrn}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[#64748B] block text-[11px]">
-                    Age &amp; Gender
-                  </span>
-                  <span className="text-[#111827]">
-                    {patient.age} Yrs · {patient.gender}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[#64748B] block text-[11px]">
-                    Blood Group
-                  </span>
-                  <span className="font-semibold text-[#111827]">
-                    {patient.bloodGroup}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[#64748B] block text-[11px]">
-                    Mobile Number
-                  </span>
-                  <span className="font-mono text-[#111827]">
-                    {patient.mobile}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[#64748B] block text-[11px]">
-                    Primary OPD Department
-                  </span>
-                  <span className="font-semibold text-[#111827]">
-                    {patient.department}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[#64748B] block text-[11px]">
-                    Assigned Doctor
-                  </span>
-                  <span className="font-semibold text-[#111827]">
-                    {patient.assignedDoctor}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[#64748B] block text-[11px]">
-                    Current Status
-                  </span>
-                  <StatusBadge status={patient.status} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* CENTER COLUMN: REUSABLE PATIENT PROFILE TABS (6 COLS) */}
-          <div className="xl:col-span-6 space-y-6">
+          {/* CENTER COLUMN: REUSABLE PATIENT PROFILE TABS (12 COLS) */}
+          <div className="xl:col-span-12 space-y-6">
             {/* TAB NAVIGATION BAR */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-1.5 flex overflow-x-auto gap-1">
               {tabs.map((tab) => (
@@ -693,34 +614,104 @@ export function ReceptionPatientProfileScreen({
                       >
                         Patient Visit History
                       </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Operational visit timeline log
+                      <p className="text-xs text-slate-500">
+                        Comprehensive log of outpatient consultations, diagnoses, and treatments.
                       </p>
                     </div>
-                    <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-semibold">
-                      Reception Scope
-                    </span>
                   </div>
-                  <div className="space-y-3">
-                    {visitHistory.map((visit) => (
-                      <div
-                        key={visit.id}
-                        className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 flex items-center justify-between"
-                      >
-                        <div>
-                          <div
-                            className="font-bold text-xs text-[#111827]"
-                            style={{ fontFamily: PP }}
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="bg-slate-50 border-b border-gray-200">
+                          {[
+                            "Visit Date",
+                            "Visit ID",
+                            "Doctor",
+                            "Department",
+                            "Diagnosis",
+                            "Treatment Summary",
+                            "Prescription Status",
+                            "Billing Status",
+                            "Actions",
+                          ].map((h) => (
+                            <th
+                              key={h}
+                              className="px-3.5 py-3 font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap"
+                              style={{ fontFamily: PP }}
+                            >
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {visitHistory.map((v) => (
+                          <tr
+                            key={v.id}
+                            className="hover:bg-blue-50/30 transition-colors"
                           >
-                            {visit.doctor} ({visit.dept})
-                          </div>
-                          <div className="text-[11px] text-slate-500 font-mono mt-0.5">
-                            Visit ID: {visit.id} · Date: {visit.date}
-                          </div>
-                        </div>
-                        <Chip label={visit.status} variant="success" />
-                      </div>
-                    ))}
+                            {/* 1. Visit Date */}
+                            <td className="px-3.5 py-3 whitespace-nowrap font-medium text-slate-700">
+                              {v.date}
+                            </td>
+
+                            {/* 2. Visit ID */}
+                            <td className="px-3.5 py-3 whitespace-nowrap font-mono font-bold text-[#0D47A1]">
+                              <span className="bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                                {v.id}
+                              </span>
+                            </td>
+
+                            {/* 3. Doctor */}
+                            <td className="px-3.5 py-3 whitespace-nowrap font-semibold text-[#111827]">
+                              {v.doctor}
+                            </td>
+
+                            {/* 4. Department */}
+                            <td className="px-3.5 py-3 whitespace-nowrap text-slate-600">
+                              {v.dept}
+                            </td>
+
+                            {/* 5. Diagnosis */}
+                            <td className="px-3.5 py-3 font-semibold text-[#111827]">
+                              {v.diagnosis}
+                            </td>
+
+                            {/* 6. Treatment Summary */}
+                            <td className="px-3.5 py-3 text-slate-600 max-w-xs truncate">
+                              {v.treatmentSummary}
+                            </td>
+
+                            {/* 7. Prescription Status */}
+                            <td className="px-3.5 py-3 whitespace-nowrap">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                                v.rxStatus === "Issued"
+                                  ? "bg-green-50 text-green-700 border-green-100"
+                                  : "bg-amber-50 text-amber-700 border-amber-100"
+                              }`}>
+                                {v.rxStatus}
+                              </span>
+                            </td>
+
+                            {/* 8. Billing Status */}
+                            <td className="px-3.5 py-3 whitespace-nowrap">
+                              <StatusBadge status={v.billingStatus} />
+                            </td>
+
+                            {/* 9. Actions */}
+                            <td className="px-3.5 py-3 whitespace-nowrap">
+                              <button
+                                className="px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white text-[11px] font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm flex items-center gap-1"
+                                style={{ fontFamily: PP }}
+                              >
+                                View Visit
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}
@@ -848,152 +839,6 @@ export function ReceptionPatientProfileScreen({
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* RIGHT COLUMN: CONTEXT PANEL (3 COLS) */}
-          <div className="xl:col-span-3 space-y-6">
-            {/* CARD 01: Patient Summary */}
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2"
-                style={{ fontFamily: PP }}
-              >
-                Patient Summary
-              </h3>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">MRN</span>
-                  <span className="font-mono font-bold text-[#0D47A1]">
-                    {patient.mrn}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">Registration Date</span>
-                  <span className="font-mono text-slate-700">
-                    {patient.regDate}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">Registration Type</span>
-                  <span className="text-slate-700">
-                    {patient.registrationType}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span className="text-[#64748B]">Status</span>
-                  <StatusBadge status={patient.status} />
-                </div>
-              </div>
-            </div>
-
-            {/* CARD 02: Quick Actions (RECEPTION ROLE ACTIONS) */}
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-2.5">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2"
-                style={{ fontFamily: PP }}
-              >
-                Quick Actions
-              </h3>
-              <button
-                onClick={() => onBookAppointment?.(patient.mrn)}
-                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 text-xs font-semibold text-[#009688] transition-colors"
-              >
-                Book Appointment <ChevronRight size={14} />
-              </button>
-              <button
-                onClick={() => onCheckInClick?.(undefined, patient.mrn)}
-                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-teal-50 text-xs font-semibold text-[#009688] transition-colors"
-              >
-                Patient Check-In <ChevronRight size={14} />
-              </button>
-              <button
-                onClick={onEditPatient}
-                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50 text-xs font-semibold text-[#0D47A1] transition-colors"
-              >
-                Edit Patient Information <ChevronRight size={14} />
-              </button>
-              <button
-                onClick={() =>
-                  alert(`Printing official Patient Card for ${patient.name}...`)
-                }
-                className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-[#111827] transition-colors"
-              >
-                Print Patient Card <ChevronRight size={14} />
-              </button>
-            </div>
-
-            {/* CARD 03: Recent Reception Activity */}
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center justify-between"
-                style={{ fontFamily: PP }}
-              >
-                <span>Recent Reception Activity</span>
-                <Clock size={15} className="text-[#0D47A1]" />
-              </h3>
-
-              <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-                {timelineEvents.map((ev, idx) => {
-                  const IconComp = ev.icon;
-                  return (
-                    <div key={idx} className="relative">
-                      <div
-                        className={`absolute -left-6 top-0.5 w-4 h-4 rounded-full flex items-center justify-center ${ev.color}`}
-                      >
-                        <IconComp size={10} />
-                      </div>
-                      <div>
-                        <div
-                          className="text-xs font-bold text-[#111827]"
-                          style={{ fontFamily: PP }}
-                        >
-                          {ev.title}
-                        </div>
-                        <p className="text-xs text-[#64748B] mt-0.5">
-                          {ev.desc}
-                        </p>
-                        <span className="text-[10px] text-slate-400 font-mono mt-1 block">
-                          {ev.time}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* CARD 04: Today's Appointment */}
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center justify-between"
-                style={{ fontFamily: PP }}
-              >
-                <span>Today's Appointment</span>
-                <Calendar size={15} className="text-[#009688]" />
-              </h3>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">Assigned Doctor</span>
-                  <span className="font-semibold text-[#111827]">
-                    {patient.assignedDoctor}
-                  </span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">Department</span>
-                  <span className="text-slate-600">{patient.department}</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">Date &amp; Time</span>
-                  <span className="font-mono text-[#0D47A1]">
-                    Today · 09:00 AM
-                  </span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span className="text-[#64748B]">Status</span>
-                  <StatusBadge status="Scheduled" />
-                </div>
-              </div>
             </div>
           </div>
         </div>

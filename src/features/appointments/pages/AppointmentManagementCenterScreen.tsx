@@ -22,6 +22,7 @@ import {
   Calendar,
   UserCheck,
   Zap,
+  Download,
 } from "lucide-react";
 import { PP, RB } from "../constants/appointment.constants";
 import { appointmentService } from "../services/appointment.service";
@@ -39,19 +40,19 @@ import { Avatar } from "../components/Avatar";
 
 export interface Props {
   onPatientSelect?: (id: number | string) => void;
-  onStartConsultation?: (apt?: any) => void;
+  onStartConsultation?: (apt?: AppointmentRecord | null | string | number) => void;
   onBookAppointmentClick?: () => void;
   onReceptionQueueClick?: () => void;
   userRole?: UserRole;
   onBack?: () => void;
-  onConfirmSuccess?: (uhid: any) => void;
+  onConfirmSuccess?: (uhid: string | number) => void;
   onRegisterNewPatientClick?: () => void;
-  onViewPatientProfileClick?: (uhid: any) => void;
+  onViewPatientProfileClick?: (uhid: string | number) => void;
   initialUhid?: string;
   initialAptId?: string;
-  onCheckInSuccess?: (uhid: any) => void;
-  onViewQueueClick?: (uhid?: any) => void;
-  onCheckInClick?: (token?: any, uhid?: any) => void;
+  onCheckInSuccess?: (uhid: string | number) => void;
+  onViewQueueClick?: (uhid?: string | number) => void;
+  onCheckInClick?: (token?: string | number, uhid?: string | number) => void;
   onPatientSearchClick?: () => void;
   onRegisterPatientClick?: () => void;
 }
@@ -69,6 +70,30 @@ export function AppointmentManagementCenterScreen({
     refetch,
   } = useAppointments(userRole, new Date().toISOString().split("T")[0]);
   const [viewMode, setViewMode] = useState<"directory" | "queue">("directory");
+
+  const handleExportCSV = () => {
+    const headers = ["ID", "Patient Name", "MRN", "Doctor", "Department", "Date", "Time Slot", "Visit Type", "Status", "Phone"];
+    const rows = filteredAppointments.map((a) => [
+      a.id,
+      a.patientName,
+      a.mrn,
+      a.doctorName,
+      a.department,
+      a.date,
+      a.timeSlot,
+      a.visitType,
+      a.status,
+      a.patientPhone ?? "",
+    ]);
+    const csv = [headers, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `appointments_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   // Search & Filter state - Default Date = TODAY
   const todayDateStr = new Date().toISOString().split("T")[0];
@@ -153,8 +178,7 @@ export function AppointmentManagementCenterScreen({
 
   // --- Filtered & Sorted Appointments ---
   const filteredAppointments = useMemo(() => {
-    return roleAppointments
-      .filter((apt) => {
+    const filtered = roleAppointments.filter((apt) => {
         if (searchQuery) {
           const q = searchQuery.toLowerCase();
           const match =
@@ -178,16 +202,17 @@ export function AppointmentManagementCenterScreen({
         if (visitTypeFilter !== "All" && apt.visitType !== visitTypeFilter)
           return false;
         return true;
-      })
-      .sort((a, b) => {
-        let valA = (a as any)[sortColumn];
-        let valB = (b as any)[sortColumn];
-        if (typeof valA === "string") valA = (valA as string).toLowerCase();
-        if (typeof valB === "string") valB = (valB as string).toLowerCase();
-        if (valA! < valB!) return sortDirection === "asc" ? -1 : 1;
-        if (valA! > valB!) return sortDirection === "asc" ? 1 : -1;
-        return 0;
       });
+
+    return [...filtered].sort((a, b) => {
+      let valA = (a as unknown as Record<string, unknown>)[sortColumn];
+      let valB = (b as unknown as Record<string, unknown>)[sortColumn];
+      if (typeof valA === "string") valA = valA.toLowerCase();
+      if (typeof valB === "string") valB = valB.toLowerCase();
+      if ((valA ?? "") < (valB ?? "")) return sortDirection === "asc" ? -1 : 1;
+      if ((valA ?? "") > (valB ?? "")) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
   }, [
     roleAppointments,
     searchQuery,
@@ -475,6 +500,15 @@ export function AppointmentManagementCenterScreen({
                   style={{ fontFamily: PP }}
                 >
                   <Clock size={15} /> Today's Queue
+                </button>
+
+                <button
+                  onClick={handleExportCSV}
+                  className="px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5 shadow-xs"
+                  style={{ fontFamily: PP }}
+                  title="Export appointments to CSV"
+                >
+                  <Download size={14} /> Export CSV
                 </button>
 
                 <button
@@ -983,7 +1017,7 @@ export function AppointmentManagementCenterScreen({
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Main Table Column */}
             <div
-              className={`${userRole === "Receptionist" ? "lg:col-span-4" : "lg:col-span-3"} space-y-6`}
+              className="lg:col-span-4 space-y-6"
             >
               <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
                 <div className="p-4 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50/50">
@@ -1664,135 +1698,7 @@ export function AppointmentManagementCenterScreen({
               </div>
             ) : userRole !== "Receptionist" ? (
               <div className="space-y-6">
-                {/* CARD 1: TODAY'S QUEUE SUMMARY */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-                  <h3
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Clock size={15} className="text-[#0D47A1]" /> Today's Queue
-                    Summary
-                  </h3>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-slate-400 block">
-                        Waiting
-                      </span>
-                      <strong className="text-sm font-bold text-[#F59E0B]">
-                        {waitingCount}
-                      </strong>
-                    </div>
-                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-slate-400 block">
-                        Checked-In
-                      </span>
-                      <strong className="text-sm font-bold text-[#0D47A1]">
-                        {checkedInCount}
-                      </strong>
-                    </div>
-                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-slate-400 block">
-                        In Consultation
-                      </span>
-                      <strong className="text-sm font-bold text-[#009688]">
-                        {
-                          todayAppointments.filter(
-                            (a) => a.status === "In Progress",
-                          ).length
-                        }
-                      </strong>
-                    </div>
-                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-slate-400 block">
-                        Completed
-                      </span>
-                      <strong className="text-sm font-bold text-[#66BB6A]">
-                        {completedCheckInsCount}
-                      </strong>
-                    </div>
-                  </div>
-                </div>
-
-                {/* CARD 2: UPCOMING APPOINTMENTS */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-                  <h3
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Calendar size={15} className="text-[#009688]" /> Upcoming
-                    Appointments Today
-                  </h3>
-
-                  <div className="space-y-2 text-xs">
-                    {todayAppointments
-                      .filter((a) => a.status === "Scheduled")
-                      .slice(0, 3)
-                      .map((up) => (
-                        <div
-                          key={up.id}
-                          className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between"
-                        >
-                          <div>
-                            <strong
-                              className="text-[#111827] block"
-                              style={{ fontFamily: PP }}
-                            >
-                              {up.patientName}
-                            </strong>
-                            <span className="text-[10px] text-slate-400">
-                              {up.doctorName}
-                            </span>
-                          </div>
-                          <span className="font-mono text-xs font-bold text-[#0D47A1]">
-                            {up.timeSlot}
-                          </span>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-
-                {/* CARD 3: QUICK ACTIONS */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-                  <h3
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Zap size={15} className="text-[#0D47A1]" /> Reception Quick
-                    Actions
-                  </h3>
-
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => {
-                        setIsWalkInPreset(false);
-                        setShowBookDrawer(true);
-                      }}
-                      className="w-full py-2 px-3 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-2"
-                      style={{ fontFamily: PP }}
-                    >
-                      <Plus size={14} /> Book Appointment
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setIsWalkInPreset(true);
-                        setShowBookDrawer(true);
-                      }}
-                      className="w-full py-2 px-3 rounded-xl border border-teal-200 bg-teal-50 text-[#009688] text-xs font-bold hover:bg-teal-100 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <UserPlus size={14} /> Register Walk-In Patient
-                    </button>
-
-                    <button
-                      onClick={() => setViewMode("queue")}
-                      className="w-full py-2 px-3 rounded-xl border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Clock size={14} className="text-[#009688]" /> View Queue
-                      Workspace
-                    </button>
-                  </div>
-                </div>
               </div>
             ) : null}
           </div>

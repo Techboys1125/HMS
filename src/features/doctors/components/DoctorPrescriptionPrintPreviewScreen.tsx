@@ -20,6 +20,7 @@ const PRESCRIPTION_HEADER = {
 };
 
 export interface DoctorPrescriptionPrintPreviewScreenProps {
+  prescriptionId?: string;
   prescription?: PrescriptionRecord;
   prescriptionId?: string;
   onBack?: () => void;
@@ -28,11 +29,12 @@ export interface DoctorPrescriptionPrintPreviewScreenProps {
 }
 
 export function DoctorPrescriptionPrintPreviewScreen({
+  prescriptionId,
   prescription,
   onBack,
   onPrint,
 }: DoctorPrescriptionPrintPreviewScreenProps) {
-  const rx = prescription || MY_PRESCRIPTIONS_DATA[0];
+  const rx = prescription || MY_PRESCRIPTIONS_DATA.find((p) => p.id === prescriptionId) || MY_PRESCRIPTIONS_DATA[0];
 
   const handlePrint = () => {
     window.print();

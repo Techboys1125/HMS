@@ -43,7 +43,7 @@ export function EditDoctorDrawer({
   const [dob, setDob] = useState(doctor?.dob || "1985-05-14");
   const [phone, setPhone] = useState(doctor?.phone || "");
   const [email, setEmail] = useState(doctor?.email || "");
-  const [address, setAddress] = useState(doctor?.address || "");
+  const [address] = useState(doctor?.address || "");
 
   const [regNumber, setRegNumber] = useState(doctor?.regNumber || "");
   const [qualification, setQualification] = useState(
@@ -443,13 +443,13 @@ export function EditDoctorDrawer({
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
+              {/* <div className="flex items-center justify-between mb-1">
                 <label className="block text-xs font-bold text-[#111827]">Residential Address</label>
                 {isFieldModified("address", address) && (
                   <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
                 )}
-              </div>
-              <input
+              </div> */}
+              {/* <input
                 type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
@@ -458,7 +458,7 @@ export function EditDoctorDrawer({
                     ? "border-[#009688] bg-teal-50/20"
                     : "bg-slate-50 border-[#E5E7EB]"
                 }`}
-              />
+              /> */}
             </div>
           </div>
 

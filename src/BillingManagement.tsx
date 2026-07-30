@@ -20,7 +20,6 @@ import {
   User,
   UserCheck,
   X,
-  FileSpreadsheet,
   PieChart,
   Activity,
   Copy,
@@ -232,63 +231,6 @@ const INITIAL_INVOICES: InvoiceRecord[] = [
   },
 ];
 
-const RECENT_ACTIVITIES: ActivityRecord[] = [
-  {
-    id: "ACT-1",
-    time: "09:42 AM",
-    cashier: "Emma Wilson",
-    invoiceNo: "INV-1042",
-    patientName: "Sarah Mitchell",
-    amount: 500,
-    paymentMode: "UPI",
-    status: "Paid",
-    type: "collection",
-  },
-  {
-    id: "ACT-2",
-    time: "09:16 AM",
-    cashier: "Robert Fox",
-    invoiceNo: "INV-1041",
-    patientName: "James Thornton",
-    amount: 500,
-    paymentMode: "Cash",
-    status: "Partially Paid",
-    type: "collection",
-  },
-  {
-    id: "ACT-3",
-    time: "08:52 AM",
-    cashier: "Emma Wilson",
-    invoiceNo: "INV-1040",
-    patientName: "Emma Reyes",
-    amount: 1200,
-    paymentMode: "Card",
-    status: "Pending",
-    type: "pending",
-  },
-  {
-    id: "ACT-4",
-    time: "Yesterday 03:12 PM",
-    cashier: "Emma Wilson",
-    invoiceNo: "INV-1038",
-    patientName: "Aisha Kumar",
-    amount: 200,
-    paymentMode: "Refund",
-    status: "Refunded",
-    type: "refund",
-  },
-  {
-    id: "ACT-5",
-    time: "Yesterday 02:05 PM",
-    cashier: "Emma Wilson",
-    invoiceNo: "INV-1037",
-    patientName: "David Walsh",
-    amount: 750,
-    paymentMode: "UPI",
-    status: "Paid",
-    type: "collection",
-  },
-];
 
 // ─── Status Chip Component ────────────────────────────────────────────────────
 function StatusChip({ status }: { status: PaymentStatus }) {
@@ -1288,166 +1230,6 @@ export function BillingDashboardScreen({
                 82%
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── 5. BOTTOM SECTION: RECENT PAYMENT ACTIVITY & FLOATING ACTIONS ────── */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* ── Recent Payment Activity Timeline (2 Cols Span) ────────────────── */}
-        <div className="xl:col-span-2 bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-            <div>
-              <h3
-                className="text-base font-bold text-[#111827]"
-                style={{ fontFamily: PP }}
-              >
-                Recent Payment Activity Timeline
-              </h3>
-              <p className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>
-                Real-time cashier activity log and transaction audits
-              </p>
-            </div>
-            <button
-              className="text-xs text-[#0D47A1] font-semibold hover:underline"
-              style={{ fontFamily: PP }}
-            >
-              View Full Audit Log →
-            </button>
-          </div>
-
-          <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
-            {RECENT_ACTIVITIES.map((act) => (
-              <div
-                key={act.id}
-                className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/60 transition-colors"
-              >
-                {/* Timeline Bullet Dot */}
-                <div className="absolute -left-6 top-4 w-3.5 h-3.5 rounded-full bg-white border-2 border-[#0D47A1]" />
-
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="font-bold text-xs text-[#0D47A1]"
-                      style={{ fontFamily: PP }}
-                    >
-                      {act.invoiceNo}
-                    </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-medium">
-                      {act.paymentMode}
-                    </span>
-                    <span className="text-xs text-slate-400">• {act.time}</span>
-                  </div>
-
-                  <div
-                    className="text-xs text-[#111827]"
-                    style={{ fontFamily: RB }}
-                  >
-                    Collected{" "}
-                    <span className="font-bold text-[#111827]">
-                      ₹{act.amount}
-                    </span>{" "}
-                    from{" "}
-                    <span className="font-semibold">{act.patientName}</span>
-                  </div>
-                  <div
-                    className="text-[11px] text-[#64748B]"
-                    style={{ fontFamily: RB }}
-                  >
-                    Collected by{" "}
-                    <span className="font-medium text-[#111827]">
-                      {act.cashier}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="shrink-0">
-                  <StatusChip status={act.status} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Right Floating Quick Action Panel ─────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-          <div>
-            <h3
-              className="text-sm font-bold text-[#111827]"
-              style={{ fontFamily: PP }}
-            >
-              Quick Finance Actions
-            </h3>
-            <p className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>
-              Frequent operational workflows
-            </p>
-          </div>
-
-          <div className="space-y-2.5" style={{ fontFamily: RB }}>
-            <button
-              onClick={() => setShowGenerateModal(true)}
-              className="w-full flex items-center justify-between p-3 rounded-xl bg-[#0D47A1] text-white hover:bg-blue-900 transition-colors shadow-sm"
-            >
-              <div className="flex items-center gap-3">
-                <Plus size={16} />
-                <span
-                  className="text-xs font-semibold"
-                  style={{ fontFamily: PP }}
-                >
-                  Generate Invoice
-                </span>
-              </div>
-              <ChevronRight size={14} />
-            </button>
-
-            <button
-              onClick={() => {
-                const pendingInv = invoices.find((i) => i.balance > 0);
-                if (pendingInv) setShowCollectDrawer(pendingInv);
-              }}
-              className="w-full flex items-center justify-between p-3 rounded-xl bg-teal-50 border border-teal-200 text-[#009688] hover:bg-teal-100 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <DollarSign size={16} />
-                <span
-                  className="text-xs font-semibold"
-                  style={{ fontFamily: PP }}
-                >
-                  Collect Payment
-                </span>
-              </div>
-              <ChevronRight size={14} />
-            </button>
-
-            <button className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 text-[#111827] hover:bg-slate-100 transition-colors">
-              <div className="flex items-center gap-3">
-                <FileSpreadsheet size={16} className="text-slate-500" />
-                <span className="text-xs font-medium">
-                  Daily Revenue Report
-                </span>
-              </div>
-              <ChevronRight size={14} className="text-slate-400" />
-            </button>
-
-            <button className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 text-[#111827] hover:bg-slate-100 transition-colors">
-              <div className="flex items-center gap-3">
-                <History size={16} className="text-slate-500" />
-                <span className="text-xs font-medium">
-                  Payment History Audit
-                </span>
-              </div>
-              <ChevronRight size={14} className="text-slate-400" />
-            </button>
-
-            <button className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 text-[#111827] hover:bg-slate-100 transition-colors">
-              <div className="flex items-center gap-3">
-                <Printer size={16} className="text-slate-500" />
-                <span className="text-xs font-medium">
-                  Print Duplicate Invoice
-                </span>
-              </div>
-              <ChevronRight size={14} className="text-slate-400" />
-            </button>
           </div>
         </div>
       </div>
@@ -4901,56 +4683,6 @@ export function InvoiceDetailsScreen({
             </div>
           </div>
 
-          {/* SECTION 07: ACTIVITY TIMELINE */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <div>
-                <h3
-                  className="text-sm font-bold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  SECTION 07: ACTIVITY TIMELINE
-                </h3>
-                <p
-                  className="text-xs text-[#64748B]"
-                  style={{ fontFamily: RB }}
-                >
-                  Chronological billing event log
-                </p>
-              </div>
-            </div>
-
-            <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
-              {invoiceData.timeline.map((act) => (
-                <div
-                  key={act.id}
-                  className="relative p-3 rounded-xl bg-slate-50 border border-slate-100"
-                >
-                  <div className="absolute -left-6 top-3.5 w-3.5 h-3.5 rounded-full bg-white border-2 border-[#0D47A1]" />
-                  <div className="flex items-center justify-between mb-1">
-                    <span
-                      className="font-bold text-xs text-[#0D47A1]"
-                      style={{ fontFamily: PP }}
-                    >
-                      {act.title}
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                      {act.time}
-                    </span>
-                  </div>
-                  <div
-                    className="text-xs text-slate-700"
-                    style={{ fontFamily: RB }}
-                  >
-                    {act.desc}
-                  </div>
-                  <div className="text-[10px] text-slate-400 mt-1">
-                    Action by: {act.user}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* ── RIGHT COLUMN (30% STICKY PANEL) ───────────────────────────────── */}
@@ -6966,32 +6698,6 @@ export function DailyBillingReportScreen({
   ];
 
   // Section 05: Billing Timeline
-  const recentActivities = [
-    {
-      time: "04:15 PM",
-      title: "Payment Collected (₹1,644)",
-      desc: "Received via UPI from Sarah Mitchell",
-      user: "Emma Wilson",
-    },
-    {
-      time: "03:40 PM",
-      title: "Invoice Printed (INV-1041)",
-      desc: "OPD Bill printed for James Thornton",
-      user: "Emma Wilson",
-    },
-    {
-      time: "02:20 PM",
-      title: "Payment Collected (₹2,400)",
-      desc: "Card payment processed for Anita Roy",
-      user: "Sarah Jenkins",
-    },
-    {
-      time: "11:15 AM",
-      title: "Invoice Generated (INV-1040)",
-      desc: "Orthopedics consultation bill generated",
-      user: "Sarah Jenkins",
-    },
-  ];
 
   // Section 06: Top Recent Invoices
   const recentInvoices = [
@@ -7584,7 +7290,7 @@ export function DailyBillingReportScreen({
             </div>
           </div>
 
-          {/* SECTION 05: RECENT BILLING ACTIVITIES TIMELINE */}
+          {/* SECTION 05: TOP RECENT INVOICES TABLE */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
@@ -7592,58 +7298,7 @@ export function DailyBillingReportScreen({
                   className="text-sm font-bold text-[#111827]"
                   style={{ fontFamily: PP }}
                 >
-                  SECTION 05: RECENT BILLING ACTIVITIES
-                </h3>
-                <p
-                  className="text-xs text-[#64748B]"
-                  style={{ fontFamily: RB }}
-                >
-                  Real-time timeline of billing events
-                </p>
-              </div>
-            </div>
-
-            <div className="relative pl-6 space-y-3 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
-              {recentActivities.map((act, i) => (
-                <div
-                  key={i}
-                  className="relative p-3 rounded-xl bg-slate-50 border border-slate-100"
-                >
-                  <div className="absolute -left-6 top-3.5 w-3.5 h-3.5 rounded-full bg-white border-2 border-[#0D47A1]" />
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span
-                      className="font-bold text-xs text-[#0D47A1]"
-                      style={{ fontFamily: PP }}
-                    >
-                      {act.title}
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                      {act.time}
-                    </span>
-                  </div>
-                  <div
-                    className="text-xs text-slate-700"
-                    style={{ fontFamily: RB }}
-                  >
-                    {act.desc}
-                  </div>
-                  <div className="text-[10px] text-slate-400 mt-1">
-                    Processed by: {act.user}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* SECTION 06: TOP RECENT INVOICES TABLE */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <div>
-                <h3
-                  className="text-sm font-bold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  SECTION 06: RECENT TODAY'S INVOICES
+                  SECTION 05: RECENT TODAY'S INVOICES
                 </h3>
                 <p
                   className="text-xs text-[#64748B]"

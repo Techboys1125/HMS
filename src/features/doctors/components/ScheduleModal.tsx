@@ -1,4 +1,3 @@
-import React from "react";
 import { X, Calendar } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
 import { PP } from "../constants/doctors.constants";

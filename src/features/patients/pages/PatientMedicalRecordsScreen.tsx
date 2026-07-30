@@ -10,7 +10,6 @@ import {
   Calendar,
   Pill,
   AlertTriangle,
-  FileText,
   CheckCircle2,
 } from "lucide-react";
 
@@ -27,8 +26,8 @@ import {
 
 export function PatientMedicalRecordsScreen() {
   const [activeTab, setActiveTab] = useState<
-    "overview" | "visits" | "prescriptions"
-  >("overview");
+    "visits" | "prescriptions"
+  >("visits");
   const [searchQuery, setSearchQuery] = useState("");
   const [doctorFilter, setDoctorFilter] = useState("All");
   const [deptFilter, setDeptFilter] = useState("All");
@@ -208,7 +207,6 @@ export function PatientMedicalRecordsScreen() {
       {/* ── 3. TAB NAVIGATION ── */}
       <div className="flex items-center gap-2 border-b border-[#E5E7EB] pb-0.5">
         {[
-          { id: "overview", label: "Overview" },
           {
             id: "visits",
             label: "Visit History",
@@ -225,7 +223,7 @@ export function PatientMedicalRecordsScreen() {
             <button
               key={tab.id}
               onClick={() =>
-                setActiveTab(tab.id as "overview" | "visits" | "prescriptions")
+                setActiveTab(tab.id as "visits" | "prescriptions")
               }
               className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors border-b-2 -mb-0.5 ${
                 isActive
@@ -253,209 +251,7 @@ export function PatientMedicalRecordsScreen() {
 
       {/* ── 4. TAB CONTENTS ── */}
 
-      {/* TAB 1: OVERVIEW */}
-      {activeTab === "overview" && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Patient Summary Card */}
-          <div className="bg-white p-6 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <h2
-                className="text-sm font-bold text-[#111827]"
-                style={{ fontFamily: PP }}
-              >
-                Patient Summary
-              </h2>
-              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-teal-50 text-[#009688]">
-                ID: P-9821
-              </span>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4 text-xs">
-              <div className="p-3 bg-slate-50 rounded-xl">
-                <span className="text-[#64748B] text-[11px] block">
-                  Blood Group
-                </span>
-                <span
-                  className="text-base font-bold text-[#0D47A1]"
-                  style={{ fontFamily: PP }}
-                >
-                  O Rh Positive (O+)
-                </span>
-              </div>
-              <div className="p-3 bg-slate-50 rounded-xl">
-                <span className="text-[#64748B] text-[11px] block">
-                  Age & Gender
-                </span>
-                <span
-                  className="text-sm font-bold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  34 Yrs / Female
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-3 text-xs pt-2">
-              <div>
-                <span className="text-[#64748B] text-[11px] block font-medium">
-                  Primary Doctor
-                </span>
-                <span className="font-semibold text-[#111827]">
-                  Dr. Arjun Mehta (Cardiology)
-                </span>
-              </div>
-
-              <div>
-                <span className="text-[#64748B] text-[11px] block font-medium mb-1">
-                  Known Allergies
-                </span>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-red-50 text-[#EF4444] border border-red-100 flex items-center gap-1">
-                    <AlertTriangle size={11} /> Penicillin
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-[#F59E0B] border border-amber-100">
-                    Peanuts
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600">
-                    Latex
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <span className="text-[#64748B] text-[11px] block font-medium mb-1">
-                  Current Medical Conditions
-                </span>
-                <ul className="space-y-1.5 text-xs text-slate-700">
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#0D47A1]" />
-                    <span>
-                      Mild Essential Hypertension (Diagnosed Mar 2024)
-                    </span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#009688]" />
-                    <span>
-                      Type 2 Diabetes Mellitus — Managed via Diet & Meds
-                    </span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          {/* Recent Activity Timeline */}
-          <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
-            <h2
-              className="text-sm font-bold text-[#111827] pb-2 border-b border-gray-100"
-              style={{ fontFamily: PP }}
-            >
-              Recent Medical Activity Timeline
-            </h2>
-
-            <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-              {/* Timeline Item 1 */}
-              <div className="relative">
-                <div className="absolute -left-6 top-1 w-4 h-4 rounded-full bg-[#0D47A1] ring-4 ring-blue-50 flex items-center justify-center text-white text-[10px]">
-                  <Activity size={10} />
-                </div>
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="flex items-center justify-between">
-                    <span
-                      className="text-xs font-bold text-[#111827]"
-                      style={{ fontFamily: PP }}
-                    >
-                      Cardiology Follow-Up Visit
-                    </span>
-                    <span className="text-[11px] text-[#64748B]">
-                      Mar 12, 2024
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-600 mt-1">
-                    Doctor:{" "}
-                    <span className="font-medium text-[#111827]">
-                      Dr. Arjun Mehta
-                    </span>{" "}
-                    · Diagnosis: Mild Hypertension
-                  </p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-[#0D47A1]">
-                      Rx Issued
-                    </span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-green-100 text-[#66BB6A]">
-                      Completed
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Timeline Item 2 */}
-              <div className="relative">
-                <div className="absolute -left-6 top-1 w-4 h-4 rounded-full bg-[#009688] ring-4 ring-teal-50 flex items-center justify-center text-white text-[10px]">
-                  <FileText size={10} />
-                </div>
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="flex items-center justify-between">
-                    <span
-                      className="text-xs font-bold text-[#111827]"
-                      style={{ fontFamily: PP }}
-                    >
-                      Cardiology Routine Clinical Consultation
-                    </span>
-                    <span className="text-[11px] text-[#64748B]">
-                      Feb 28, 2024
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-600 mt-1">
-                    Doctor:{" "}
-                    <span className="font-medium text-[#111827]">
-                      Dr. Arjun Mehta
-                    </span>{" "}
-                    · Routine vital check & blood pressure review
-                  </p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-100 text-[#009688]">
-                      Consultation Verified
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Timeline Item 3 */}
-              <div className="relative">
-                <div className="absolute -left-6 top-1 w-4 h-4 rounded-full bg-indigo-600 ring-4 ring-indigo-50 flex items-center justify-center text-white text-[10px]">
-                  <Pill size={10} />
-                </div>
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="flex items-center justify-between">
-                    <span
-                      className="text-xs font-bold text-[#111827]"
-                      style={{ fontFamily: PP }}
-                    >
-                      General Medicine Checkup & Bronchitis Rx
-                    </span>
-                    <span className="text-[11px] text-[#64748B]">
-                      Dec 04, 2023
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-600 mt-1">
-                    Doctor:{" "}
-                    <span className="font-medium text-[#111827]">
-                      Dr. Priya Sharma
-                    </span>{" "}
-                    · Prescribed Amoxicillin 500mg
-                  </p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-200 text-slate-700">
-                      Completed
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* TAB 2: VISIT HISTORY */}
       {activeTab === "visits" && (

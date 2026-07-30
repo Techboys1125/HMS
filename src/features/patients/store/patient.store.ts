@@ -43,7 +43,10 @@ export function usePatientStore(): Patient[] {
   const [patients, setPatients] = useState<Patient[]>(currentPatients);
 
   useEffect(() => {
-    return patientStore.subscribe(() => setPatients([...currentPatients]));
+    const unsub = patientStore.subscribe(() => setPatients([...currentPatients]));
+    return () => {
+      unsub();
+    };
   }, []);
 
   return patients;

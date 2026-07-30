@@ -296,121 +296,7 @@ const REVENUE_VS_COLLECTION_DATA = [
   { month: "Jul", revenue: 640000, collected: 605000, outstanding: 35000 },
 ];
 
-const DOCTOR_PERFORMANCE_LIST: DoctorSummaryPerformanceRecord[] = [
-  {
-    id: "DOC-101",
-    doctorName: "Dr. Sarah Jenkins",
-    department: "Cardiology",
-    appointments: 142,
-    completed: 134,
-    cancelled: 8,
-    revenue: 168000,
-    rating: 4.9,
-    avatar:
-      "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "DOC-102",
-    doctorName: "Dr. Rajesh Kapoor",
-    department: "Neurology",
-    appointments: 118,
-    completed: 110,
-    cancelled: 8,
-    revenue: 145000,
-    rating: 4.8,
-    avatar:
-      "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "DOC-103",
-    doctorName: "Dr. Priya Sharma",
-    department: "General Medicine",
-    appointments: 195,
-    completed: 188,
-    cancelled: 7,
-    revenue: 97500,
-    rating: 4.95,
-    avatar:
-      "https://images.unsplash.com/photo-1594824813566-8185b378f79c?w=150&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "DOC-104",
-    doctorName: "Dr. Arjun Mehta",
-    department: "Orthopedics",
-    appointments: 130,
-    completed: 121,
-    cancelled: 9,
-    revenue: 122000,
-    rating: 4.7,
-    avatar:
-      "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "DOC-105",
-    doctorName: "Dr. Sunita Patel",
-    department: "Gynecology",
-    appointments: 156,
-    completed: 149,
-    cancelled: 7,
-    revenue: 109200,
-    rating: 4.85,
-    avatar:
-      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=150&auto=format&fit=crop&q=80",
-  },
-];
 
-const RECENT_ACTIVITIES: ActivityItem[] = [
-  {
-    id: "ACT-001",
-    user: "Dr. Robert Chen",
-    role: "Hospital Admin",
-    action: "Generated",
-    reportName: "Daily Revenue Report",
-    date: "2026-07-26",
-    time: "10:30 AM",
-    type: "generation",
-  },
-  {
-    id: "ACT-002",
-    user: "Emma Wilson",
-    role: "Billing Manager",
-    action: "Exported",
-    reportName: "Billing Report (PDF)",
-    date: "2026-07-26",
-    time: "10:15 AM",
-    type: "export",
-  },
-  {
-    id: "ACT-003",
-    user: "Dr. Sarah Jenkins",
-    role: "Head of Cardiology",
-    action: "Viewed",
-    reportName: "Patient Report",
-    date: "2026-07-26",
-    time: "09:45 AM",
-    type: "view",
-  },
-  {
-    id: "ACT-004",
-    user: "Michael Scott",
-    role: "Finance Officer",
-    action: "Printed",
-    reportName: "Doctor Performance Report",
-    date: "2026-07-26",
-    time: "09:20 AM",
-    type: "print",
-  },
-  {
-    id: "ACT-005",
-    user: "Dr. Robert Chen",
-    role: "Hospital Admin",
-    action: "Downloaded",
-    reportName: "Dashboard KPI Report",
-    date: "2026-07-26",
-    time: "08:50 AM",
-    type: "download",
-  },
-];
 
 // ─── Custom Circular Progress Component ──────────────────────────────────────
 function CircularProgress({
@@ -460,6 +346,54 @@ function CircularProgress({
   );
 }
 
+
+const DOCTOR_PERFORMANCE_SUMMARY_DATA: DoctorSummaryPerformanceRecord[] = [
+  {
+    id: "DOC-001",
+    doctorName: "Dr. Albert Flores",
+    department: "Cardiology",
+    appointments: 142,
+    completed: 130,
+    cancelled: 12,
+    revenue: 125000,
+    rating: 4.9,
+    avatar: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=100",
+  },
+  {
+    id: "DOC-002",
+    doctorName: "Dr. Bessie Cooper",
+    department: "Pediatrics",
+    appointments: 110,
+    completed: 105,
+    cancelled: 5,
+    revenue: 88000,
+    rating: 4.8,
+    avatar: "https://images.unsplash.com/photo-1594824813573-246434de83fb?auto=format&fit=crop&q=80&w=100",
+  },
+  {
+    id: "DOC-003",
+    doctorName: "Dr. Cody Fisher",
+    department: "Orthopedics",
+    appointments: 98,
+    completed: 90,
+    cancelled: 8,
+    revenue: 95000,
+    rating: 4.7,
+    avatar: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=100",
+  },
+  {
+    id: "DOC-004",
+    doctorName: "Dr. Dianne Russell",
+    department: "Dermatology",
+    appointments: 120,
+    completed: 115,
+    cancelled: 5,
+    revenue: 110000,
+    rating: 4.9,
+    avatar: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=100",
+  },
+];
+
 // ─── Main Reports Dashboard Screen Component ─────────────────────────────────
 export function ReportsDashboardScreen({
   onOpenReport,
@@ -470,7 +404,7 @@ export function ReportsDashboardScreen({
 }) {
   // State
   const [searchQuery, setSearchQuery] = useState("");
-  const [branchFilter, setBranchFilter] = useState("Main Branch");
+  const [, setBranchFilter] = useState("Main Branch");
   const [deptFilter, setDeptFilter] = useState("All Departments");
   const [doctorFilter, setDoctorFilter] = useState("All Doctors");
   const [dateRangeFilter, setDateRangeFilter] = useState("Today");
@@ -522,21 +456,29 @@ export function ReportsDashboardScreen({
     });
   }, [searchQuery, typeFilter]);
 
-  // Table sorting logic
+  // Sorted doctors for the performance table
   const sortedDoctors = useMemo(() => {
-    return [...DOCTOR_PERFORMANCE_LIST].sort((a, b) => {
+    return [...DOCTOR_PERFORMANCE_SUMMARY_DATA].sort((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
+      
       if (typeof aVal === "string" && typeof bVal === "string") {
         return sortOrder === "asc"
           ? aVal.localeCompare(bVal)
           : bVal.localeCompare(aVal);
       }
-      return sortOrder === "asc"
-        ? (aVal as number) - (bVal as number)
-        : (bVal as number) - (aVal as number);
+      
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return sortOrder === "asc"
+          ? aVal - bVal
+          : bVal - aVal;
+      }
+      
+      return 0;
     });
   }, [sortField, sortOrder]);
+
+
 
   const handleSort = (field: keyof DoctorSummaryPerformanceRecord) => {
     if (sortField === field) {
@@ -652,6 +594,245 @@ export function ReportsDashboardScreen({
           </div>
         </div>
 
+        {/* TOP 6 KPI CARDS SECTION */}
+        {!isLoading && !hasError && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+            {/* Card 1: Daily Appointments */}
+            <div
+              onClick={() => onOpenKpiDetail?.("Total OPD Appointments")}
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
+                  Daily Appointments
+                </span>
+                <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
+                  <Calendar className="w-4 h-4" />
+                </div>
+              </div>
+              <div
+                className="text-2xl font-bold text-[#111827] mb-1"
+                style={{ fontFamily: PP }}
+              >
+                184
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
+                <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
+                  <TrendingUp className="w-3 h-3" /> +12.4% vs yesterday
+                </span>
+                <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
+                  View Detail <ChevronRight className="w-3 h-3" />
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+                <div>
+                  <div className="text-[#66BB6A] font-bold">142</div>
+                  <div className="text-[#64748B]">Done</div>
+                </div>
+                <div>
+                  <div className="text-[#EF4444] font-bold">18</div>
+                  <div className="text-[#64748B]">Cancel</div>
+                </div>
+                <div>
+                  <div className="text-[#F59E0B] font-bold">24</div>
+                  <div className="text-[#64748B]">Pending</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2: Patient Registrations */}
+            <div
+              onClick={() => onOpenKpiDetail?.("Patient Registrations")}
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
+                  Patient Registrations
+                </span>
+                <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
+                  <Users className="w-4 h-4" />
+                </div>
+              </div>
+              <div
+                className="text-2xl font-bold text-[#111827] mb-1"
+                style={{ fontFamily: PP }}
+              >
+                58
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
+                <span className="text-[#009688] font-semibold flex items-center gap-0.5">
+                  <TrendingUp className="w-3 h-3" /> +8.1% new admissions
+                </span>
+                <span className="text-[#009688] font-semibold flex items-center gap-0.5 group-hover:underline">
+                  View Detail <ChevronRight className="w-3 h-3" />
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+                <div>
+                  <div className="text-[#009688] font-bold">34</div>
+                  <div className="text-[#64748B]">New</div>
+                </div>
+                <div>
+                  <div className="text-[#0D47A1] font-bold">16</div>
+                  <div className="text-[#64748B]">Return</div>
+                </div>
+                <div>
+                  <div className="text-[#4DB6AC] font-bold">8</div>
+                  <div className="text-[#64748B]">Walk-in</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Daily Revenue */}
+            <div
+              onClick={() => onOpenKpiDetail?.("Today's Revenue")}
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition">
+                  Daily Revenue
+                </span>
+                <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
+                  <DollarSign className="w-4 h-4" />
+                </div>
+              </div>
+              <div
+                className="text-2xl font-bold text-[#111827] mb-1"
+                style={{ fontFamily: PP }}
+              >
+                ₹72,000
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
+                <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
+                  <TrendingUp className="w-3 h-3" /> +15.2% today's total
+                </span>
+                <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5 group-hover:underline">
+                  View Detail <ChevronRight className="w-3 h-3" />
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+                <div>
+                  <div className="text-[#66BB6A] font-bold">₹68,500</div>
+                  <div className="text-[#64748B]">Collected</div>
+                </div>
+                <div>
+                  <div className="text-[#F59E0B] font-bold">₹3,500</div>
+                  <div className="text-[#64748B]">Outstanding</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4: Invoices Summary */}
+            <div
+              onClick={() => onOpenKpiDetail?.("Invoices Generated")}
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#F59E0B] transition">
+                  Invoices Summary
+                </span>
+                <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
+                  <CreditCard className="w-4 h-4" />
+                </div>
+              </div>
+              <div
+                className="text-2xl font-bold text-[#111827] mb-1"
+                style={{ fontFamily: PP }}
+              >
+                142
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
+                <span className="text-[#0D47A1] font-semibold">
+                  95% Collection Rate
+                </span>
+                <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
+                  View Detail <ChevronRight className="w-3 h-3" />
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+                <div>
+                  <div className="text-[#66BB6A] font-bold">128</div>
+                  <div className="text-[#64748B]">Paid</div>
+                </div>
+                <div>
+                  <div className="text-[#F59E0B] font-bold">10</div>
+                  <div className="text-[#64748B]">Pending</div>
+                </div>
+                <div>
+                  <div className="text-[#64748B] font-bold">4</div>
+                  <div className="text-[#64748B]">Void</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 5: Doctor Performance */}
+            <div
+              onClick={() =>
+                onOpenKpiDetail?.("Doctor Workload Performance")
+              }
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
+                  Doctor Performance
+                </span>
+                <div className="p-2 rounded-xl bg-indigo-50 text-[#0D47A1]">
+                  <UserCheck className="w-4 h-4" />
+                </div>
+              </div>
+              <div
+                className="text-2xl font-bold text-[#111827] mb-1"
+                style={{ fontFamily: PP }}
+              >
+                18.4 min
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
+                <span className="text-[#009688] font-semibold">
+                  Avg Consult Time
+                </span>
+                <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
+                  View Detail <ChevronRight className="w-3 h-3" />
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+                <div>
+                  <div className="text-[#0D47A1] font-bold">94%</div>
+                  <div className="text-[#64748B]">Completion</div>
+                </div>
+                <div>
+                  <div className="text-[#66BB6A] font-bold">4.85 / 5</div>
+                  <div className="text-[#64748B]">Avg Rating</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 6: Collection Rate Circular */}
+            <div
+              onClick={() => onOpenKpiDetail?.("Collected Payments")}
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between cursor-pointer group"
+            >
+              <div>
+                <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
+                  Collection Rate
+                </span>
+                <div
+                  className="text-2xl font-bold text-[#111827] mt-1"
+                  style={{ fontFamily: PP }}
+                >
+                  95.1%
+                </div>
+                <p className="text-[11px] text-[#64748B] mt-1">
+                  ₹68.5k of ₹72k collected
+                </p>
+                <div className="mt-2 text-[11px] font-semibold text-[#009688] flex items-center gap-0.5 group-hover:underline">
+                  View Detail <ChevronRight className="w-3 h-3" />
+                </div>
+              </div>
+              <CircularProgress percentage={95} size={64} strokeWidth={7} />
+            </div>
+          </div>
+        )}
+
         {/* Global Filter Bar */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-6">
           <div
@@ -663,7 +844,7 @@ export function ReportsDashboardScreen({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-            <div>
+            {/* <div>
               <label className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Hospital Branch
               </label>
@@ -676,7 +857,7 @@ export function ReportsDashboardScreen({
                 <option>North Wing OPD</option>
                 <option>South Specialty Center</option>
               </select>
-            </div>
+            </div> */}
 
             <div>
               <label className="block text-[11px] font-medium text-[#64748B] mb-1">
@@ -857,243 +1038,7 @@ export function ReportsDashboardScreen({
         {!isLoading && !hasError && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* LEFT MAIN CONTENT AREA (3 Cols) */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* TOP 6 KPI CARDS SECTION */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Card 1: Daily Appointments */}
-                <div
-                  onClick={() => onOpenKpiDetail?.("Total OPD Appointments")}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
-                      Daily Appointments
-                    </span>
-                    <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
-                      <Calendar className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    184
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> +12.4% vs yesterday
-                    </span>
-                    <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">142</div>
-                      <div className="text-[#64748B]">Done</div>
-                    </div>
-                    <div>
-                      <div className="text-[#EF4444] font-bold">18</div>
-                      <div className="text-[#64748B]">Cancel</div>
-                    </div>
-                    <div>
-                      <div className="text-[#F59E0B] font-bold">24</div>
-                      <div className="text-[#64748B]">Pending</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 2: Patient Registrations */}
-                <div
-                  onClick={() => onOpenKpiDetail?.("Patient Registrations")}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
-                      Patient Registrations
-                    </span>
-                    <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
-                      <Users className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    58
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#009688] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> +8.1% new admissions
-                    </span>
-                    <span className="text-[#009688] font-semibold flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#009688] font-bold">34</div>
-                      <div className="text-[#64748B]">New</div>
-                    </div>
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">16</div>
-                      <div className="text-[#64748B]">Return</div>
-                    </div>
-                    <div>
-                      <div className="text-[#4DB6AC] font-bold">8</div>
-                      <div className="text-[#64748B]">Walk-in</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 3: Daily Revenue */}
-                <div
-                  onClick={() => onOpenKpiDetail?.("Today's Revenue")}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition">
-                      Daily Revenue
-                    </span>
-                    <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
-                      <DollarSign className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    ₹72,000
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> +15.2% today's total
-                    </span>
-                    <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">₹68,500</div>
-                      <div className="text-[#64748B]">Collected</div>
-                    </div>
-                    <div>
-                      <div className="text-[#F59E0B] font-bold">₹3,500</div>
-                      <div className="text-[#64748B]">Outstanding</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 4: Invoices Summary */}
-                <div
-                  onClick={() => onOpenKpiDetail?.("Invoices Generated")}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#F59E0B] transition">
-                      Invoices Summary
-                    </span>
-                    <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
-                      <CreditCard className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    142
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#0D47A1] font-semibold">
-                      95% Collection Rate
-                    </span>
-                    <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">128</div>
-                      <div className="text-[#64748B]">Paid</div>
-                    </div>
-                    <div>
-                      <div className="text-[#F59E0B] font-bold">10</div>
-                      <div className="text-[#64748B]">Pending</div>
-                    </div>
-                    <div>
-                      <div className="text-[#64748B] font-bold">4</div>
-                      <div className="text-[#64748B]">Void</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 5: Doctor Performance */}
-                <div
-                  onClick={() =>
-                    onOpenKpiDetail?.("Doctor Workload Performance")
-                  }
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
-                      Doctor Performance
-                    </span>
-                    <div className="p-2 rounded-xl bg-indigo-50 text-[#0D47A1]">
-                      <UserCheck className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    18.4 min
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#009688] font-semibold">
-                      Avg Consult Time
-                    </span>
-                    <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">94%</div>
-                      <div className="text-[#64748B]">Completion</div>
-                    </div>
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">4.85 / 5</div>
-                      <div className="text-[#64748B]">Avg Rating</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 6: Collection Rate Circular */}
-                <div
-                  onClick={() => onOpenKpiDetail?.("Collected Payments")}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between cursor-pointer group"
-                >
-                  <div>
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
-                      Collection Rate
-                    </span>
-                    <div
-                      className="text-2xl font-bold text-[#111827] mt-1"
-                      style={{ fontFamily: PP }}
-                    >
-                      95.1%
-                    </div>
-                    <p className="text-[11px] text-[#64748B] mt-1">
-                      ₹68.5k of ₹72k collected
-                    </p>
-                    <div className="mt-2 text-[11px] font-semibold text-[#009688] flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </div>
-                  </div>
-                  <CircularProgress percentage={95} size={64} strokeWidth={7} />
-                </div>
-              </div>
+            <div className="lg:col-span-4 space-y-6">
 
               {/* AVAILABLE REPORTS (PHASE 1 GRID) */}
               <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
@@ -1103,7 +1048,7 @@ export function ReportsDashboardScreen({
                       className="text-lg font-bold text-[#111827]"
                       style={{ fontFamily: PP }}
                     >
-                      Available Phase 1 Reports
+                       Reports
                     </h2>
                     <p className="text-xs text-[#64748B]">
                       Select any verified report to view details, print, or
@@ -1594,8 +1539,6 @@ export function ReportsDashboardScreen({
                           {sortField === "revenue" &&
                             (sortOrder === "asc" ? "↑" : "↓")}
                         </th>
-                        <th className="py-3.5 px-4 text-center">Rating</th>
-                        <th className="py-3.5 px-4 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E5E7EB] text-xs">
@@ -1636,12 +1579,8 @@ export function ReportsDashboardScreen({
                           <td className="py-3.5 px-4 text-right font-bold text-[#111827]">
                             {formatCurrency(doc.revenue)}
                           </td>
-                          <td className="py-3.5 px-4 text-center">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-bold text-[11px]">
-                              ★ {doc.rating}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
+
+                          {/* <td className="py-3.5 px-4 text-right">
                             <button
                               onClick={() =>
                                 alert(`Viewing report for ${doc.doctorName}`)
@@ -1651,7 +1590,7 @@ export function ReportsDashboardScreen({
                             >
                               <Eye className="w-4 h-4" />
                             </button>
-                          </td>
+                          </td> */}
                         </tr>
                       ))}
                     </tbody>
@@ -1681,208 +1620,8 @@ export function ReportsDashboardScreen({
                 </div>
               </div>
 
-              {/* RECENT REPORT ACTIVITY TIMELINE */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-                <h3
-                  className="text-base font-bold text-[#111827] mb-4"
-                  style={{ fontFamily: PP }}
-                >
-                  Recent Report Activity History
-                </h3>
-                <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {RECENT_ACTIVITIES.map((act) => (
-                    <div
-                      key={act.id}
-                      className="flex items-start gap-4 relative z-10"
-                    >
-                      <div className="w-7 h-7 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center text-[#0D47A1] shrink-0">
-                        <Activity className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-bold text-[#111827]">
-                            {act.user} ({act.role})
-                          </span>
-                          <span className="text-[11px] text-[#64748B]">
-                            {act.time}
-                          </span>
-                        </div>
-                        <p className="text-[#64748B]">
-                          <strong className="text-[#0D47A1]">
-                            {act.action}
-                          </strong>{" "}
-                          the report{" "}
-                          <span className="font-semibold text-[#111827]">
-                            "{act.reportName}"
-                          </span>
-                          .
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
 
-            {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm sticky top-20 space-y-6">
-                {/* Header */}
-                <div>
-                  <h3
-                    className="text-base font-bold text-[#111827] flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Shield className="w-4 h-4 text-[#0D47A1]" />
-                    <span>Executive Summary</span>
-                  </h3>
-                  <p className="text-[11px] text-[#64748B]">
-                    Live Phase 1 operational snapshot
-                  </p>
-                </div>
-
-                {/* Selected Filters Overview */}
-                <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] text-xs space-y-1.5">
-                  <div className="text-[11px] font-bold text-[#64748B] uppercase">
-                    Active Scope
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Branch:</span>
-                    <span className="font-semibold text-[#111827]">
-                      {branchFilter}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Department:</span>
-                    <span className="font-semibold text-[#111827]">
-                      {deptFilter}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Timeframe:</span>
-                    <span className="font-semibold text-[#111827]">
-                      {dateRangeFilter}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Realtime Stats */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-blue-50 border border-blue-100">
-                    <div>
-                      <div className="text-[11px] text-[#64748B]">
-                        Reports Generated Today
-                      </div>
-                      <div
-                        className="text-lg font-bold text-[#0D47A1]"
-                        style={{ fontFamily: PP }}
-                      >
-                        24 Reports
-                      </div>
-                    </div>
-                    <FileText className="w-5 h-5 text-[#0D47A1]" />
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-teal-50 border border-teal-100">
-                    <div>
-                      <div className="text-[11px] text-[#64748B]">
-                        Exports Completed
-                      </div>
-                      <div
-                        className="text-lg font-bold text-[#009688]"
-                        style={{ fontFamily: PP }}
-                      >
-                        12 Files
-                      </div>
-                    </div>
-                    <Download className="w-5 h-5 text-[#009688]" />
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-100">
-                    <div>
-                      <div className="text-[11px] text-[#64748B]">
-                        Most Viewed Module
-                      </div>
-                      <div
-                        className="text-sm font-bold text-[#66BB6A]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Dashboard KPI
-                      </div>
-                    </div>
-                    <BarChart2 className="w-5 h-5 text-[#66BB6A]" />
-                  </div>
-                </div>
-
-                {/* Quick Shortcuts */}
-                <div>
-                  <h4
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    Quick Report Shortcuts
-                  </h4>
-                  <div className="space-y-1.5">
-                    {[
-                      {
-                        name: "Daily Revenue",
-                        icon: DollarSign,
-                        color: "text-[#009688]",
-                      },
-                      {
-                        name: "Appointments",
-                        icon: Calendar,
-                        color: "text-[#0D47A1]",
-                      },
-                      {
-                        name: "Billing Audit",
-                        icon: CreditCard,
-                        color: "text-[#F59E0B]",
-                      },
-                      {
-                        name: "Patient Directory",
-                        icon: Users,
-                        color: "text-[#4DB6AC]",
-                      },
-                      {
-                        name: "Doctor Ratings",
-                        icon: UserCheck,
-                        color: "text-[#66BB6A]",
-                      },
-                    ].map((sc, idx) => {
-                      const ScIcon = sc.icon;
-                      return (
-                        <button
-                          key={idx}
-                          onClick={() =>
-                            alert(`Quick export triggered for ${sc.name}`)
-                          }
-                          className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
-                        >
-                          <div className="flex items-center gap-2">
-                            <ScIcon className={`w-3.5 h-3.5 ${sc.color}`} />
-                            <span>{sc.name}</span>
-                          </div>
-                          <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Phase 1 Compliance Badge */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-[#E5E7EB] text-[11px] text-[#64748B]">
-                  <div className="flex items-center gap-1.5 text-[#009688] font-bold mb-1">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Phase 1 Scope Compliant</span>
-                  </div>
-                  <span>
-                    Excludes Lab, Pharmacy, IPD, Ward, and AI modules as per
-                    enterprise specifications.
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 

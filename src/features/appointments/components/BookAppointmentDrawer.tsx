@@ -58,9 +58,12 @@ export function BookAppointmentDrawer({
   >([]);
 
   useEffect(() => {
-    if (isWalkInPreset) {
-      setVisitType("Walk-In");
-      setAppointmentDate(new Date().toISOString().split("T")[0]);
+    if (isWalkInPreset && isOpen) {
+      const timer = setTimeout(() => {
+        setVisitType("Walk-In");
+        setAppointmentDate(new Date().toISOString().split("T")[0]);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [isWalkInPreset, isOpen]);
 
@@ -77,7 +80,7 @@ export function BookAppointmentDrawer({
             mrn: p.patientId,
             name: p.fullName,
             age: 0,
-            gender: (p.gender as any) || "Other",
+            gender: (p.gender as PatientSummary["gender"]) || "Other",
             bloodGroup: "",
             phone: p.mobile || "",
             emergencyContact: "",
@@ -85,8 +88,8 @@ export function BookAppointmentDrawer({
           }))
           .map((p) => p as PatientSummary);
         setLinkedPatients(normalized);
-        if (!selectedPatient && normalized.length > 0) {
-          setSelectedPatient(normalized[0]);
+        if (normalized.length > 0) {
+          setSelectedPatient((prev) => prev || normalized[0]);
         }
       })
       .catch(() => {
@@ -144,7 +147,7 @@ export function BookAppointmentDrawer({
           matched.doctorId,
           appointmentDate,
         );
-        const normalizedSlots = slots.map((slot: any) => ({
+        const normalizedSlots = slots.map((slot: { time?: string; startTime?: string; slotTime?: string; available?: boolean; isAvailable?: boolean; status?: string }) => ({
           time: slot.time || slot.startTime || slot.slotTime || "",
           available:
             slot.available ?? slot.isAvailable ?? slot.status === "AVAILABLE",

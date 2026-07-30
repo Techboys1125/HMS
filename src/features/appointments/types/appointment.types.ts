@@ -90,6 +90,7 @@ export interface LinkedPatient {
 }
 
 export interface AppointmentRecord {
+  date?: string;
   id: number | string;
   appointmentNumber?: string;
   queueToken?: string;

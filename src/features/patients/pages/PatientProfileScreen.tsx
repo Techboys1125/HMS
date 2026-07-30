@@ -103,7 +103,6 @@ export function PatientProfileScreen({
       return [
         { id: "overview", label: "Overview" },
         { id: "visit-history", label: "Visit History" },
-        { id: "medical-history", label: "Medical History" },
         { id: "prescriptions", label: "Prescriptions" },
         { id: "consultation-notes", label: "Consultation Notes" },
         { id: "documents", label: "Documents" },
@@ -121,7 +120,6 @@ export function PatientProfileScreen({
     return [
       { id: "overview", label: "Overview" },
       { id: "appointments", label: "Appointments" },
-      { id: "medical-history", label: "Medical History" },
       { id: "visit-history", label: "Visit History" },
       { id: "prescriptions", label: "Prescriptions" },
       { id: "billing-payments", label: "Billing & Payments" },
@@ -233,7 +231,7 @@ export function PatientProfileScreen({
       department: "Neurology",
       diagnosis: "Mild Bronchial Asthma",
       treatmentSummary: "Inhaler PRN during seasonal exacerbation",
-      rxStatus: "Completed",
+      rxStatus: "Pending",
       billingStatus: "Paid",
       chiefComplaint: "Wheezing and chest tightness.",
     },
@@ -245,8 +243,8 @@ export function PatientProfileScreen({
       department: "Gynecology",
       diagnosis: "Routine Health Screening",
       treatmentSummary: "Normal vitals, general wellness guidance",
-      rxStatus: "None",
-      billingStatus: "Paid",
+      rxStatus: "Pending",
+      billingStatus: "Not Paid",
       chiefComplaint: "Annual physical checkup.",
     },
   ];
@@ -1338,7 +1336,11 @@ export function PatientProfileScreen({
 
                           {/* 7. Prescription Status */}
                           <td className="px-3.5 py-3 whitespace-nowrap">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-green-50 text-green-700 border border-green-100">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                              v.rxStatus === "Issued"
+                                ? "bg-green-50 text-green-700 border-green-100"
+                                : "bg-amber-50 text-amber-700 border-amber-100"
+                            }`}>
                               {v.rxStatus}
                             </span>
                           </td>

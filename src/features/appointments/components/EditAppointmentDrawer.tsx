@@ -48,16 +48,19 @@ export function EditAppointmentDrawer({
 
   useEffect(() => {
     if (apt) {
-      setDepartment(apt.department || "");
-      setDoctorName(apt.doctorName);
-      setAppointmentDate(apt.appointmentDate);
-      setTimeSlot(apt.timeSlot || "");
-      setVisitType((apt.visitType as VisitType) || "First Visit");
-      setStatus(String(apt.status));
-      setReasonForVisit(apt.chiefComplaint || "");
-      setAdditionalNotes(apt.notes || "");
-      setErrors({});
-      setShowErrorAlert(false);
+      const timer = setTimeout(() => {
+        setDepartment(apt.department || "");
+        setDoctorName(apt.doctorName);
+        setAppointmentDate(apt.appointmentDate);
+        setTimeSlot(apt.timeSlot || "");
+        setVisitType((apt.visitType as VisitType) || "First Visit");
+        setStatus(String(apt.status));
+        setReasonForVisit(apt.chiefComplaint || "");
+        setAdditionalNotes(apt.notes || "");
+        setErrors({});
+        setShowErrorAlert(false);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [apt]);
 

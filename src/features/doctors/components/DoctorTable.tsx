@@ -47,13 +47,12 @@ function getAvailabilityBadgeStyle(avail: DoctorAvailability) {
 function getStatusBadgeStyle(status: DoctorStatus) {
   switch (status) {
     case "Active":
-      return "bg-emerald-50 text-[#66BB6A] border-emerald-200 font-semibold";
+      return { bg: "bg-emerald-50 text-[#66BB6A] border-emerald-200", dot: "bg-[#66BB6A]" };
     case "Inactive":
-      return "bg-slate-100 text-slate-600 border-slate-200 font-semibold";
+      return { bg: "bg-[#FEE2E2] text-[#EF4444] border-red-200", dot: "bg-[#EF4444]" };
     case "On Leave":
-      return "bg-amber-50 text-[#F59E0B] border-amber-200 font-semibold";
-    case "Suspended":
-      return "bg-red-50 text-[#EF4444] border-red-200 font-semibold";
+    default:
+      return { bg: "bg-amber-50 text-[#F59E0B] border-amber-200", dot: "bg-[#F59E0B]" };
   }
 }
 
@@ -64,11 +63,11 @@ export interface DoctorTableProps {
   sortColumn: keyof DoctorRecord;
   sortDirection: "asc" | "desc";
   onSort: (col: keyof DoctorRecord) => void;
-  onViewProfile: (doctor: DoctorRecord) => void;
-  onQuickView: (doctor: DoctorRecord) => void;
-  onEdit: (doctor: DoctorRecord) => void;
-  onViewSchedule: (doctor: DoctorRecord) => void;
-  onDeactivate: (doctor: DoctorRecord) => void;
+  onViewProfile: (doc: DoctorRecord) => void;
+  onQuickView: (doc: DoctorRecord) => void;
+  onEdit: (doc: DoctorRecord) => void;
+  onViewSchedule: (doc: DoctorRecord) => void;
+  onDeactivate: (doc: DoctorRecord) => void;
   onAddDoctor: () => void;
   onResetFilters: () => void;
 }
@@ -98,7 +97,8 @@ export function DoctorTable({
                 { key: "department", label: "Department" },
                 { key: "specialty", label: "Specialty" },
                 { key: null, label: "Qualification" },
-                { key: "experienceYrs", label: "Experience" },
+
+                { key: null, label: "Designation" },
                 { key: "consultationFee", label: "Fee ($)" },
                 { key: "availability", label: "Availability" },
                 { key: "status", label: "Status" },
@@ -298,8 +298,9 @@ export function DoctorTable({
 
                     <td className="px-4 py-3.5">
                       <span
-                        className={`px-2.5 py-1 rounded-full text-[11px] border inline-block ${getStatusBadgeStyle(doc.status)}`}
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-medium border inline-flex items-center gap-1.5 ${getStatusBadgeStyle(doc.status).bg}`}
                       >
+                        <span className={`w-1.5 h-1.5 rounded-full ${getStatusBadgeStyle(doc.status).dot}`} />
                         {doc.status}
                       </span>
                     </td>
