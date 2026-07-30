@@ -1,5 +1,5 @@
 import { doctorsApi } from "../api/doctors.api";
-import type { DoctorRecord, PaginatedResponse } from "../types/doctors.types";
+import type { DoctorRecord, PaginatedResponse, CreateDoctorPayload, UpdateDoctorPayload } from "../types/doctors.types";
 
 export const doctorsService = {
   async getAll(params?: { page?: number; limit?: number; search?: string; department?: string }): Promise<PaginatedResponse<DoctorRecord>> {
@@ -10,19 +10,27 @@ export const doctorsService = {
     return doctorsApi.getById(id);
   },
 
-  async create(doctor: Omit<DoctorRecord, "id">): Promise<DoctorRecord> {
-    return doctorsApi.create(doctor);
+  async create(payload: CreateDoctorPayload): Promise<DoctorRecord> {
+    return doctorsApi.create(payload);
   },
 
-  async update(id: string, doctor: Partial<DoctorRecord>): Promise<DoctorRecord> {
-    return doctorsApi.update(id, doctor);
+  async update(userId: number | string, payload: UpdateDoctorPayload) {
+    return doctorsApi.update(userId, payload);
+  },
+
+  async getDailyAvailability(doctorId: number | string, date: string) {
+    return doctorsApi.getDailyAvailability(doctorId, date);
+  },
+
+  async getScheduleExceptions(doctorId: number | string) {
+    return doctorsApi.getScheduleExceptions(doctorId);
   },
 
   async delete(id: string): Promise<boolean> {
     return doctorsApi.delete(id);
   },
 
-  async deactivate(id: string): Promise<DoctorRecord> {
+  async deactivate(id: string) {
     return doctorsApi.deactivate(id);
   },
 };

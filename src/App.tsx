@@ -21,7 +21,6 @@ import { DoctorManagementCenterScreen } from "./features/doctors";
 import {
   AppointmentManagementCenterScreen,
   ReceptionBookAppointmentScreen,
-  PatientCheckInScreen,
   ReceptionQueueManagementScreen,
 } from "./features/appointments";
 import {
@@ -1080,12 +1079,13 @@ function Header({
                           }
                           setPendingSwitchMember(member);
                         }}
-                        className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-all ${isActive
-                          ? "bg-blue-50/90 border-[#0D47A1] shadow-sm"
-                          : isVerified
-                            ? "bg-white border-[#E5E7EB] hover:bg-slate-50"
-                            : "bg-slate-50 border-[#E5E7EB] opacity-60 cursor-not-allowed"
-                          }`}
+                        className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-all ${
+                          isActive
+                            ? "bg-blue-50/90 border-[#0D47A1] shadow-sm"
+                            : isVerified
+                              ? "bg-white border-[#E5E7EB] hover:bg-slate-50"
+                              : "bg-slate-50 border-[#E5E7EB] opacity-60 cursor-not-allowed"
+                        }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div
@@ -2173,10 +2173,8 @@ function HMS({ onLogout }: { onLogout: () => void }) {
   const [showConsultationHistory, setShowConsultationHistory] = useState(false);
   const [showBookAppointmentScreen, setShowBookAppointmentScreen] =
     useState(false);
-  const [showCheckInScreen, setShowCheckInScreen] = useState(false);
   const [showQueueManagement, setShowQueueManagement] = useState(false);
-  const [checkInUhid, setCheckInUhid] = useState<string | null>(null);
-  const [checkInAptId, setCheckInAptId] = useState<string | null>(null);
+
 
   const [viewDetailsPrescriptionId, setViewDetailsPrescriptionId] = useState<
     string | null
@@ -2211,10 +2209,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
     setShowRegisterPatient(false);
     setShowEditPatient(false);
     setShowBookAppointmentScreen(false);
-    setShowCheckInScreen(false);
     setShowQueueManagement(false);
-    setCheckInUhid(null);
-    setCheckInAptId(null);
     setActiveConsultationId(null);
     setViewDetailsConsultationId(null);
     setEditConsultationId(null);
@@ -2286,11 +2281,9 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                 onPatientSearch={() => {
                   setActiveNav("patient-search");
                 }}
-                onCheckInClick={(token, uhid) => {
-                  if (uhid) setCheckInUhid(uhid);
-                  if (token) setCheckInAptId(token);
+                onCheckInClick={() => {
                   setActiveNav("appointments");
-                  setShowCheckInScreen(true);
+                  setShowQueueManagement(true);
                 }}
                 onPatientSelect={(uhid) => handlePatientSelect(uhid)}
                 onEditPatient={(uhid) => {
@@ -2337,15 +2330,12 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                   }}
                   onEditPatient={() => setShowEditPatient(true)}
                   onBookAppointment={(uhid) => {
-                    if (uhid) setCheckInUhid(uhid);
                     setActiveNav("appointments");
                     setShowBookAppointmentScreen(true);
                   }}
                   onCheckInClick={(token, uhid) => {
-                    if (uhid) setCheckInUhid(uhid);
-                    if (token) setCheckInAptId(token);
                     setActiveNav("appointments");
-                    setShowCheckInScreen(true);
+                    setShowQueueManagement(true);
                   }}
                   patientMrn={
                     typeof selectedPatient === "string"
@@ -2402,14 +2392,12 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                     setShowRegisterPatient(true);
                   }}
                   onBookAppointmentClick={(uhid) => {
-                    if (uhid) setCheckInUhid(uhid);
                     setActiveNav("appointments");
                     setShowBookAppointmentScreen(true);
                   }}
                   onCheckInClick={(uhid) => {
-                    if (uhid) setCheckInUhid(uhid);
                     setActiveNav("appointments");
-                    setShowCheckInScreen(true);
+                    setShowQueueManagement(true);
                   }}
                 />
               )}
@@ -2420,7 +2408,6 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                   onBack={() => setShowRegisterPatient(false)}
                   onBookAppointment={(uhid) => {
                     setShowRegisterPatient(false);
-                    if (uhid) setCheckInUhid(uhid);
                     setActiveNav("appointments");
                     setShowBookAppointmentScreen(true);
                   }}
@@ -2437,49 +2424,18 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               role === "receptionist" &&
               showBookAppointmentScreen && (
                 <ReceptionBookAppointmentScreen
-                  initialMrn={checkInUhid || undefined}
+                  initialMrn={undefined}
                   onBack={() => {
                     setShowBookAppointmentScreen(false);
-                    setCheckInUhid(null);
                   }}
                   onConfirmSuccess={(uhid) => {
                     setShowBookAppointmentScreen(false);
-                    setCheckInUhid(null);
                     handlePatientSelect(uhid || "UHID-892101");
                   }}
                   onRegisterNewPatientClick={() => {
                     setShowBookAppointmentScreen(false);
-                    setCheckInUhid(null);
                     setActiveNav("patients");
                     setShowRegisterPatient(true);
-                  }}
-                  onViewPatientProfileClick={(uhid) =>
-                    handlePatientSelect(uhid)
-                  }
-                />
-              )}
-            {activeNav === "appointments" &&
-              role === "receptionist" &&
-              showCheckInScreen && (
-                <PatientCheckInScreen
-                  initialMrn={checkInUhid || undefined}
-                  initialAptId={checkInAptId || undefined}
-                  onBack={() => {
-                    setShowCheckInScreen(false);
-                    setCheckInUhid(null);
-                    setCheckInAptId(null);
-                  }}
-                  onCheckInSuccess={(uhid) => {
-                    setShowCheckInScreen(false);
-                    handlePatientSelect(uhid || checkInUhid || "UHID-892101");
-                    setCheckInUhid(null);
-                    setCheckInAptId(null);
-                  }}
-                  onViewQueueClick={() => {
-                    setShowCheckInScreen(false);
-                    setCheckInUhid(null);
-                    setCheckInAptId(null);
-                    setShowQueueManagement(true);
                   }}
                   onViewPatientProfileClick={(uhid) =>
                     handlePatientSelect(uhid)
@@ -2492,10 +2448,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                 <ReceptionQueueManagementScreen
                   onBack={() => setShowQueueManagement(false)}
                   onCheckInClick={(token, uhid) => {
-                    if (uhid) setCheckInUhid(uhid);
-                    if (token) setCheckInAptId(token);
-                    setShowQueueManagement(false);
-                    setShowCheckInScreen(true);
+                    setShowQueueManagement(true);
                   }}
                   onPatientSearchClick={() => setActiveNav("patient-search")}
                   onPatientSelect={handlePatientSelect}
@@ -2512,7 +2465,6 @@ function HMS({ onLogout }: { onLogout: () => void }) {
             {activeNav === "appointments" &&
               role === "receptionist" &&
               !showBookAppointmentScreen &&
-              !showCheckInScreen &&
               !showQueueManagement && (
                 <AppointmentManagementCenterScreen
                   onPatientSelect={handlePatientSelect}
@@ -2642,11 +2594,15 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                   onBack={() => setHistoryPrescriptionUhid(null)}
                   onViewPrescription={(rxId: any) => {
                     setHistoryPrescriptionUhid(null);
-                    setViewDetailsPrescriptionId(typeof rxId === "string" ? rxId : rxId?.id || "");
+                    setViewDetailsPrescriptionId(
+                      typeof rxId === "string" ? rxId : rxId?.id || "",
+                    );
                   }}
                   onPrintPreview={(rxId: any) => {
                     setHistoryPrescriptionUhid(null);
-                    setPrintPreviewPrescriptionId(typeof rxId === "string" ? rxId : rxId?.id || "");
+                    setPrintPreviewPrescriptionId(
+                      typeof rxId === "string" ? rxId : rxId?.id || "",
+                    );
                   }}
                   onViewPatientProfile={(uhid) => {
                     setHistoryPrescriptionUhid(null);
@@ -3019,7 +2975,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                 }}
                 onCheckInClick={() => {
                   setActiveNav("appointments");
-                  setShowCheckInScreen(true);
+                  setShowQueueManagement(true);
                 }}
               />
             )}
@@ -3288,7 +3244,9 @@ function HMS({ onLogout }: { onLogout: () => void }) {
             )}
             {activeNav === "settings" && (
               <div className="w-full flex-1 flex flex-col">
-                <SettingsWorkspace onNavigate={(s) => setActiveNav(s as NavId)} />
+                <SettingsWorkspace
+                  onNavigate={(s) => setActiveNav(s as NavId)}
+                />
               </div>
             )}
             {activeNav === "family-members" && (

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Calendar,
   Clock,
@@ -33,6 +33,9 @@ import {
 import { EditDoctorDrawer } from "./EditDoctorDrawer";
 import { DeactivateDoctorDialog } from "./DeactivateDoctorDialog";
 
+import { doctorsService } from "../services/doctors.service";
+import type { ApiScheduleExceptionItem } from "../types/doctors.types";
+
 export interface DoctorProfileScreenProps {
   doctor?: DoctorRecord;
   onBack: () => void;
@@ -49,6 +52,9 @@ export function DoctorProfileScreen({
   onEdit,
 }: DoctorProfileScreenProps) {
   const [docState, setDocState] = useState<DoctorRecord>(doctor);
+  const [scheduleExceptions, setScheduleExceptions] = useState<ApiScheduleExceptionItem[]>(
+    doctor.scheduleExceptions || []
+  );
   const [activeTab, setActiveTab] = useState<
     | "overview"
     | "professional"
@@ -57,6 +63,24 @@ export function DoctorProfileScreen({
     | "patients"
     | "timeline"
   >("overview");
+
+  const fetchExceptions = async () => {
+    const numericDocId = docState.doctorId || (docState.userId ? docState.userId : docState.id.replace("DOC-", ""));
+    if (numericDocId) {
+      try {
+        const exceptions = await doctorsService.getScheduleExceptions(numericDocId);
+        if (exceptions && exceptions.length > 0) {
+          setScheduleExceptions(exceptions);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch schedule exceptions:", err);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchExceptions();
+  }, [docState.id]);
 
   const [apptSearch, setApptSearch] = useState("");
   const [apptDateFilter, setApptDateFilter] = useState("All Dates");
@@ -663,6 +687,29 @@ export function DoctorProfileScreen({
                   </tbody>
                 </table>
               </div>
+
+              {scheduleExceptions.length > 0 && (
+                <div className="pt-4 border-t border-[#E5E7EB] space-y-3">
+                  <h4 className="text-xs font-bold text-[#111827] uppercase tracking-wider" style={{ fontFamily: PP }}>
+                    Schedule Exceptions & Leave Overrides
+                  </h4>
+                  <div className="space-y-2">
+                    {scheduleExceptions.map((ex, idx) => (
+                      <div key={idx} className="p-3 bg-amber-50/60 rounded-xl border border-amber-200 text-xs flex items-center justify-between">
+                        <div>
+                          <span className="font-bold text-[#111827] block">
+                            {ex.exceptionDate || `${ex.startDate || ''} - ${ex.endDate || ''}`}
+                          </span>
+                          <span className="text-[#64748B] text-[11px]">{ex.reason}</span>
+                        </div>
+                        <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded-md border border-amber-300">
+                          {ex.exceptionType || "Holiday Exception"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

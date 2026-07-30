@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type { DoctorRecord, DoctorStatus } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
+import { doctorsService } from "../services/doctors.service";
 
 export interface EditDoctorDrawerProps {
   isOpen: boolean;
@@ -160,37 +161,83 @@ export function EditDoctorDrawer({
     return true;
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    setIsSubmitting(true);
     const activeWorkingDays = schedule
       .filter((s) => s.available)
       .map((s) => s.day.slice(0, 3));
 
+    const activeAvailability = schedule
+      .filter((s) => s.available)
+      .map((s, idx) => ({
+        availabilityId: idx + 1,
+        dayOfWeek: s.day.toUpperCase(),
+        startTime: s.startTime.includes("AM") || s.startTime.includes("PM")
+          ? (s.startTime.includes("PM") && !s.startTime.startsWith("12")
+              ? `${Number(s.startTime.split(":")[0]) + 12}:${s.startTime.split(":")[1].replace(" PM", "")}:00`
+              : `${s.startTime.replace(" AM", "").replace(" PM", "")}:00`)
+          : s.startTime,
+        endTime: s.endTime.includes("AM") || s.endTime.includes("PM")
+          ? (s.endTime.includes("PM") && !s.endTime.startsWith("12")
+              ? `${Number(s.endTime.split(":")[0]) + 12}:${s.endTime.split(":")[1].replace(" PM", "")}:00`
+              : `${s.endTime.replace(" AM", "").replace(" PM", "")}:00`)
+          : s.endTime,
+      }));
+
+    const slotMins = parseInt(slotDuration) || 15;
+
     const updatedDoctor: DoctorRecord = {
       ...doctor,
       name: fullName,
-      gender: gender,
-      dob: dob,
-      phone: phone,
-      email: email,
-      address: address,
-      regNumber: regNumber,
-      qualification: qualification,
+      gender,
+      dob,
+      phone,
+      email,
+      address,
+      regNumber,
+      qualification,
       experienceYrs: Number(experienceYrs) || doctor.experienceYrs,
-      department: department,
-      specialty: specialty,
-      bio: bio,
+      department,
+      specialty,
+      bio,
       consultationFee: Number(consultationFee) || doctor.consultationFee,
       followUpFee: Number(followUpFee) || 80,
-      slotDuration: slotDuration,
+      slotDuration,
       status: accountStatus,
-      workingDays:
-        activeWorkingDays.length > 0 ? activeWorkingDays : doctor.workingDays,
+      workingDays: activeWorkingDays.length > 0 ? activeWorkingDays : doctor.workingDays,
     };
 
-    onSave(updatedDoctor);
+    try {
+      const targetUserId = doctor.userId || doctor.id.replace("DOC-", "");
+      await doctorsService.update(targetUserId, {
+        fullName,
+        email,
+        mobile: phone,
+        gender,
+        dateOfBirth: dob,
+        residentialAddress: address,
+        professionalBio: bio,
+        medicalRegistrationNumber: regNumber,
+        qualification,
+        yearsOfExperience: Number(experienceYrs) || 5,
+        consultationFee: Number(consultationFee) || 150,
+        followUpFee: Number(followUpFee) || 80,
+        slotDurationMinutes: slotMins,
+        availability: activeAvailability,
+        changeReason: "Admin updated doctor profile details.",
+      });
+      onSave(updatedDoctor);
+    } catch (err) {
+      console.warn("Failed to update doctor via API:", err);
+      onSave(updatedDoctor);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -876,10 +923,12 @@ export function EditDoctorDrawer({
             <button
               type="submit"
               form="edit-doctor-form"
-              className="px-6 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-[#00796b] transition-colors flex items-center gap-2 shadow-sm"
+              disabled={isSubmitting}
+              className="px-6 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-[#00796b] transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: PP }}
             >
-              <Check size={15} /> Save Changes
+              <Check size={15} />
+              <span>{isSubmitting ? "Saving Changes..." : "Save Changes"}</span>
             </button>
           </div>
         </div>
