@@ -1,10 +1,7 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { Building2, Briefcase } from "lucide-react";
 import type { FormValues, FormErrors } from "../hooks/useCreateStaffForm";
-import { DEPARTMENT_SPECIALTY_MAP } from "../constants/departmentSpecialtyMap";
-import { departmentsApi } from "../../admin/api/departments.api";
-
-const STATIC_DEPARTMENTS = Object.keys(DEPARTMENT_SPECIALTY_MAP);
+import { departmentsApi } from "../api/departments.api";
 
 interface ConsultationDetailsSectionProps {
   form: FormValues;
@@ -43,17 +40,14 @@ export const ConsultationDetailsSection: React.FC<
     });
   }, []);
 
-  const departmentOptions = useMemo(() => {
-    const set = new Set([...apiDepts, ...STATIC_DEPARTMENTS]);
-    return Array.from(set);
-  }, [apiDepts]);
+  const departmentOptions = useMemo(() => [...apiDepts], [apiDepts]);
 
   // Get specialties based on the selected primary department
   const primarySpecialties = useMemo(() => {
     if (deptSpecialtiesMap[form.primaryDepartment]?.length) {
       return deptSpecialtiesMap[form.primaryDepartment];
     }
-    return DEPARTMENT_SPECIALTY_MAP[form.primaryDepartment] || ["General Care", "Specialized Care"];
+    return [];
   }, [form.primaryDepartment, deptSpecialtiesMap]);
 
   // Get specialties based on the selected secondary department
@@ -62,7 +56,7 @@ export const ConsultationDetailsSection: React.FC<
     if (deptSpecialtiesMap[form.secondaryDepartment]?.length) {
       return deptSpecialtiesMap[form.secondaryDepartment];
     }
-    return DEPARTMENT_SPECIALTY_MAP[form.secondaryDepartment] || ["General Care", "Specialized Care"];
+    return [];
   }, [form.secondaryDepartment, deptSpecialtiesMap]);
 
   // Auto-select first primary specialty when department changes

@@ -1,66 +1,21 @@
 import { apiClient, axios } from "../../../lib/axios";
+import type {
+  ApiSpecialtyItem,
+  ApiDepartmentSpecialtiesItem,
+  ApiDepartment,
+  ApiDepartmentLookupItem,
+  ApiSpecialty,
+  DepartmentSpecialtiesPageResponse,
+} from "../types/departments.types";
 
-export interface ApiSpecialtyItem {
-  id?: number | string;
-  name?: string;
-  code?: string;
-  description?: string;
-  active?: boolean;
-}
-
-export interface ApiDepartmentSpecialtiesItem {
-  departmentId?: number | string;
-  departmentName?: string;
-  departmentCode?: string;
-  description?: string;
-  active?: boolean;
-  specialties?: ApiSpecialtyItem[];
-  // Legacy / fallback field compatibility
-  id?: number | string;
-  name?: string;
-  code?: string;
-  status?: string;
-  headOfDepartment?: string;
-  head?: string;
-  doctorsCount?: number;
-  consultationRooms?: number;
-  workingHours?: string;
-  createdDate?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export type ApiDepartment = ApiDepartmentSpecialtiesItem;
-
-export interface ApiDepartmentLookupItem {
-  departmentId: number | string;
-  departmentName: string;
-  active: boolean;
-  specialties: Array<{
-    id: number | string;
-    name: string;
-    active: boolean;
-  }>;
-}
-
-export interface ApiSpecialty {
-  id?: number | string;
-  code?: string;
-  specialtyName?: string;
-  name?: string;
-  departmentId?: number | string;
-  departmentName?: string;
-  description?: string;
-  status?: string;
-  active?: boolean;
-}
-
-export interface DepartmentSpecialtiesPageResponse {
-  totalElements?: number;
-  totalPages?: number;
-  size?: number;
-  content?: ApiDepartmentSpecialtiesItem[];
-}
+export type {
+  ApiSpecialtyItem,
+  ApiDepartmentSpecialtiesItem,
+  ApiDepartment,
+  ApiDepartmentLookupItem,
+  ApiSpecialty,
+  DepartmentSpecialtiesPageResponse,
+};
 
 const unwrapList = <T>(resData: any): T[] => {
   if (!resData) return [];
@@ -93,19 +48,33 @@ export const departmentsApi = {
       let res;
       const queryParams = new URLSearchParams();
       if (params?.search) queryParams.append("search", params.search);
-      if (params?.activeOnly !== undefined) queryParams.append("activeOnly", String(params.activeOnly));
-      if (params?.page !== undefined) queryParams.append("page", String(params.page));
-      if (params?.size !== undefined) queryParams.append("size", String(params.size));
-      const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
+      if (params?.activeOnly !== undefined)
+        queryParams.append("activeOnly", String(params.activeOnly));
+      if (params?.page !== undefined)
+        queryParams.append("page", String(params.page));
+      if (params?.size !== undefined)
+        queryParams.append("size", String(params.size));
+      const queryString = queryParams.toString()
+        ? `?${queryParams.toString()}`
+        : "";
 
       try {
-        res = await apiClient.get<any>(`/api/v1/admin/department-specialties${queryString}`);
+        res = await apiClient.get<any>(
+          `/api/v1/admin/department-specialties${queryString}`,
+        );
       } catch (err: unknown) {
-        if (axios.isAxiosError(err) && (err.response?.status === 404 || err.response?.status === 403)) {
+        if (
+          axios.isAxiosError(err) &&
+          (err.response?.status === 404 || err.response?.status === 403)
+        ) {
           try {
-            res = await apiClient.get<any>(`/api/v1/admin/departments${queryString}`);
+            res = await apiClient.get<any>(
+              `/api/v1/admin/department-specialties${queryString}`,
+            );
           } catch {
-            res = await apiClient.get<any>(`/api/v1/departments${queryString}`);
+            res = await apiClient.get<any>(
+              `/api/v1/admin/department-specialties${queryString}`,
+            );
           }
         } else {
           throw err;
@@ -126,7 +95,10 @@ export const departmentsApi = {
         })),
       }));
     } catch (error) {
-      console.warn("[departmentsApi] Failed to fetch department specialties:", error);
+      console.warn(
+        "[departmentsApi] Failed to fetch department specialties:",
+        error,
+      );
       return [];
     }
   },
@@ -135,14 +107,23 @@ export const departmentsApi = {
    * GET /api/v1/admin/department-specialties/lookup
    * Get Department and Specialties Lookup List
    */
-  async getDepartmentLookup(activeOnly = true): Promise<ApiDepartmentLookupItem[]> {
+  async getDepartmentLookup(
+    activeOnly = true,
+  ): Promise<ApiDepartmentLookupItem[]> {
     try {
       let res;
       try {
-        res = await apiClient.get<any>(`/api/v1/admin/department-specialties/lookup?activeOnly=${activeOnly}`);
+        res = await apiClient.get<any>(
+          `/api/v1/admin/department-specialties/lookup?activeOnly=${activeOnly}`,
+        );
       } catch (err: unknown) {
-        if (axios.isAxiosError(err) && (err.response?.status === 404 || err.response?.status === 403)) {
-          res = await apiClient.get<any>(`/api/v1/departments`);
+        if (
+          axios.isAxiosError(err) &&
+          (err.response?.status === 404 || err.response?.status === 403)
+        ) {
+          res = await apiClient.get<any>(
+            `/api/v1/admin/department-specialties`,
+          );
         } else {
           throw err;
         }
@@ -162,7 +143,10 @@ export const departmentsApi = {
         })),
       }));
     } catch (error) {
-      console.warn("[departmentsApi] Failed to fetch department lookup:", error);
+      console.warn(
+        "[departmentsApi] Failed to fetch department lookup:",
+        error,
+      );
       return [];
     }
   },
@@ -171,21 +155,33 @@ export const departmentsApi = {
    * GET /api/v1/admin/department-specialties/{departmentId}
    * Get Department Details
    */
-  async getDepartmentDetails(departmentId: number | string): Promise<ApiDepartmentSpecialtiesItem | null> {
+  async getDepartmentDetails(
+    departmentId: number | string,
+  ): Promise<ApiDepartmentSpecialtiesItem | null> {
     try {
       let res;
       try {
-        res = await apiClient.get<any>(`/api/v1/admin/department-specialties/${departmentId}`);
+        res = await apiClient.get<any>(
+          `/api/v1/admin/department-specialties/${departmentId}`,
+        );
       } catch (err: unknown) {
-        if (axios.isAxiosError(err) && (err.response?.status === 404 || err.response?.status === 403)) {
-          res = await apiClient.get<any>(`/api/v1/admin/departments/${departmentId}`);
+        if (
+          axios.isAxiosError(err) &&
+          (err.response?.status === 404 || err.response?.status === 403)
+        ) {
+          res = await apiClient.get<any>(
+            `/api/v1/admin/departments/${departmentId}`,
+          );
         } else {
           throw err;
         }
       }
       return res.data?.data ?? res.data ?? null;
     } catch (error) {
-      console.warn(`[departmentsApi] Failed to fetch department details for ${departmentId}:`, error);
+      console.warn(
+        `[departmentsApi] Failed to fetch department details for ${departmentId}:`,
+        error,
+      );
       return null;
     }
   },
@@ -194,30 +190,50 @@ export const departmentsApi = {
    * POST /api/v1/admin/department-specialties
    * Create Department and Specialties
    */
-  async createDepartment(payload: Partial<ApiDepartmentSpecialtiesItem>): Promise<ApiDepartmentSpecialtiesItem> {
+  async createDepartment(
+    payload: Partial<ApiDepartmentSpecialtiesItem>,
+  ): Promise<ApiDepartmentSpecialtiesItem> {
     try {
       let res;
       const deptName = payload.departmentName || payload.name || "DEPARTMENT";
       const formattedPayload = {
         departmentName: deptName,
-        departmentCode: sanitizeCode(payload.departmentCode || payload.code || deptName, "DEP"),
+        departmentCode: sanitizeCode(
+          payload.departmentCode || payload.code || deptName,
+          "DEP",
+        ),
         description: payload.description,
         active: payload.active !== undefined ? payload.active : true,
         specialties: (payload.specialties || []).map((s, idx) => ({
           ...s,
-          code: sanitizeCode(s.code || `${deptName}_${s.name || idx + 1}`, "SPEC"),
+          code: sanitizeCode(
+            s.code || `${deptName}_${s.name || idx + 1}`,
+            "SPEC",
+          ),
         })),
         headOfDepartment: payload.headOfDepartment || payload.head,
       };
 
       try {
-        res = await apiClient.post<any>("/api/v1/admin/department-specialties", formattedPayload);
+        res = await apiClient.post<any>(
+          "/api/v1/admin/department-specialties",
+          formattedPayload,
+        );
       } catch (err: unknown) {
-        if (axios.isAxiosError(err) && (err.response?.status === 404 || err.response?.status === 403)) {
+        if (
+          axios.isAxiosError(err) &&
+          (err.response?.status === 404 || err.response?.status === 403)
+        ) {
           try {
-            res = await apiClient.post<any>("/api/v1/admin/departments", formattedPayload);
+            res = await apiClient.post<any>(
+              "/api/v1/admin/department-specialties",
+              formattedPayload,
+            );
           } catch {
-            res = await apiClient.post<any>("/api/v1/departments", formattedPayload);
+            res = await apiClient.post<any>(
+              "/api/v1/admin/department-specialties",
+              formattedPayload,
+            );
           }
         } else {
           throw err;
@@ -239,30 +255,51 @@ export const departmentsApi = {
    * PUT /api/v1/admin/department-specialties/{departmentId}
    * Update Department and Specialties
    */
-  async updateDepartment(departmentId: number | string, payload: Partial<ApiDepartmentSpecialtiesItem>): Promise<ApiDepartmentSpecialtiesItem> {
+  async updateDepartment(
+    departmentId: number | string,
+    payload: Partial<ApiDepartmentSpecialtiesItem>,
+  ): Promise<ApiDepartmentSpecialtiesItem> {
     try {
       let res;
       const deptName = payload.departmentName || payload.name || "DEPARTMENT";
       const formattedPayload = {
         departmentName: deptName,
-        departmentCode: sanitizeCode(payload.departmentCode || payload.code || deptName, "DEP"),
+        departmentCode: sanitizeCode(
+          payload.departmentCode || payload.code || deptName,
+          "DEP",
+        ),
         description: payload.description,
         active: payload.active !== undefined ? payload.active : true,
         specialties: (payload.specialties || []).map((s, idx) => ({
           ...s,
-          code: sanitizeCode(s.code || `${deptName}_${s.name || idx + 1}`, "SPEC"),
+          code: sanitizeCode(
+            s.code || `${deptName}_${s.name || idx + 1}`,
+            "SPEC",
+          ),
         })),
         headOfDepartment: payload.headOfDepartment || payload.head,
       };
 
       try {
-        res = await apiClient.put<any>(`/api/v1/admin/department-specialties/${departmentId}`, formattedPayload);
+        res = await apiClient.put<any>(
+          `/api/v1/admin/department-specialties/${departmentId}`,
+          formattedPayload,
+        );
       } catch (err: unknown) {
-        if (axios.isAxiosError(err) && (err.response?.status === 404 || err.response?.status === 403)) {
+        if (
+          axios.isAxiosError(err) &&
+          (err.response?.status === 404 || err.response?.status === 403)
+        ) {
           try {
-            res = await apiClient.put<any>(`/api/v1/admin/departments/${departmentId}`, formattedPayload);
+            res = await apiClient.put<any>(
+              `/api/v1/admin/departments-specialties/${departmentId}`,
+              formattedPayload,
+            );
           } catch {
-            res = await apiClient.put<any>(`/api/v1/departments/${departmentId}`, formattedPayload);
+            res = await apiClient.put<any>(
+              `/api/v1/admin/department-specialties/${departmentId}`,
+              formattedPayload,
+            );
           }
         } else {
           throw err;
@@ -284,14 +321,23 @@ export const departmentsApi = {
    * DELETE /api/v1/admin/department-specialties/{departmentId}
    * Delete Department
    */
-  async deleteDepartment(departmentId: number | string): Promise<{ success: boolean; message?: string }> {
+  async deleteDepartment(
+    departmentId: number | string,
+  ): Promise<{ success: boolean; message?: string }> {
     try {
       let res;
       try {
-        res = await apiClient.delete<any>(`/api/v1/admin/department-specialties/${departmentId}`);
+        res = await apiClient.delete<any>(
+          `/api/v1/admin/department-specialties/${departmentId}`,
+        );
       } catch (err: unknown) {
-        if (axios.isAxiosError(err) && (err.response?.status === 404 || err.response?.status === 403)) {
-          res = await apiClient.delete<any>(`/api/v1/admin/departments/${departmentId}`);
+        if (
+          axios.isAxiosError(err) &&
+          (err.response?.status === 404 || err.response?.status === 403)
+        ) {
+          res = await apiClient.delete<any>(
+            `/api/v1/admin/department-departments/${departmentId}`,
+          );
         } else {
           throw err;
         }
@@ -308,13 +354,19 @@ export const departmentsApi = {
     }
   },
 
+  /**
+   * GET /api/v1/admin/specialties
+   */
   async getSpecialties(): Promise<ApiSpecialty[]> {
     try {
       let res;
       try {
         res = await apiClient.get<any>("/api/v1/admin/specialties");
       } catch (err: unknown) {
-        if (axios.isAxiosError(err) && (err.response?.status === 404 || err.response?.status === 403)) {
+        if (
+          axios.isAxiosError(err) &&
+          (err.response?.status === 404 || err.response?.status === 403)
+        ) {
           res = await apiClient.get<any>("/api/v1/specialties");
         } else {
           throw err;
@@ -327,13 +379,19 @@ export const departmentsApi = {
     }
   },
 
+  /**
+   * POST /api/v1/admin/specialties
+   */
   async createSpecialty(payload: Partial<ApiSpecialty>): Promise<ApiSpecialty> {
     try {
       let res;
       try {
         res = await apiClient.post<any>("/api/v1/admin/specialties", payload);
       } catch (err: unknown) {
-        if (axios.isAxiosError(err) && (err.response?.status === 404 || err.response?.status === 403)) {
+        if (
+          axios.isAxiosError(err) &&
+          (err.response?.status === 404 || err.response?.status === 403)
+        ) {
           res = await apiClient.post<any>("/api/v1/specialties", payload);
         } else {
           throw err;

@@ -25,8 +25,9 @@ import {
 } from "lucide-react";
 import DashboardHeader from "../../dashboard/components/DashboardHeader";
 import CreateStaffPage from "./CreateStaffPage";
-import { DepartmentsSpecialtiesWorkspace } from "../../../DepartmentsSpecialtiesWorkspace";
+import { DepartmentsSpecialtiesWorkspace } from "./DepartmentsSpecialtiesWorkspace";
 import { usersApi } from "../api/users.api";
+import { departmentsApi } from "../api/departments.api";
 import type { User } from "../../auth/types/auth.types";
 
 // --- Typography & Design Tokens ---
@@ -87,29 +88,6 @@ const BACKEND_TO_DISPLAY_STATUS: Record<string, AccountStatus> = {
   SUSPENDED: "Suspended",
 };
 
-// Department ID mapping helper
-const DEPARTMENT_NAME_TO_ID: Record<string, number> = {
-  Cardiology: 1,
-  "General Medicine": 2,
-  Neurology: 3,
-  Administration: 4,
-  "OPD Reception": 5,
-  "Accounts & Billing": 6,
-  "Nursing & Patient Care": 7,
-  "IT & Systems": 8,
-};
-
-const DEPARTMENT_ID_TO_NAME: Record<number, string> = {
-  1: "Cardiology",
-  2: "General Medicine",
-  3: "Neurology",
-  4: "Administration",
-  5: "OPD Reception",
-  6: "Accounts & Billing",
-  7: "Nursing & Patient Care",
-  8: "IT & Systems",
-};
-
 export const UserManagement: React.FC = () => {
   const navigate = useNavigate();
 
@@ -130,6 +108,28 @@ export const UserManagement: React.FC = () => {
   // Sorting
   const [sortColumn, setSortColumn] = useState<keyof UserRecord>("empId");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  // Departments fetched from API (replaces hardcoded DEPARTMENT_NAME_TO_ID)
+  const [apiDepartments, setApiDepartments] = useState<
+    { id: number | string; name: string }[]
+  >([]);
+
+
+  const deptNameToId = useMemo(() => {
+    const map: Record<string, number> = {};
+    apiDepartments.forEach((d) => {
+      map[d.name] = Number(d.id);
+    });
+    return map;
+  }, [apiDepartments]);
+
+  const deptIdToName = useMemo(() => {
+    const map: Record<number, string> = {};
+    apiDepartments.forEach((d) => {
+      map[Number(d.id)] = d.name;
+    });
+    return map;
+  }, [apiDepartments]);
 
   // Toast state
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -173,6 +173,29 @@ export const UserManagement: React.FC = () => {
     status: "Active" as AccountStatus,
   });
 
+  // Fetch departments from API (mirrors ConsultationDetailsSection approach)
+  useEffect(() => {
+    departmentsApi.getDepartmentLookup(true).then((lookupList) => {
+      if (lookupList && lookupList.length > 0) {
+        const mapped = lookupList.map((d) => ({
+          id: d.departmentId,
+          name: d.departmentName,
+        }));
+        setApiDepartments(mapped);
+      } else {
+        departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
+          const mapped = list
+            .map((d) => ({
+              id: d.departmentId ?? d.id ?? "",
+              name: d.departmentName || d.name || "",
+            }))
+            .filter((d) => d.name);
+          if (mapped.length > 0) setApiDepartments(mapped);
+        });
+      }
+    });
+  }, []);
+
   // Fetch Users
   const fetchUsers = async () => {
     Promise.resolve().then(() => {
@@ -192,8 +215,12 @@ export const UserManagement: React.FC = () => {
             localStatusOverrides[uid] ||
             BACKEND_TO_DISPLAY_STATUS[String(u.status).toUpperCase()] ||
             "Active";
-          const deptId = u.hospitalId || 2;
-          const deptName = DEPARTMENT_ID_TO_NAME[deptId] || "General Medicine";
+          const deptId = Number((u as any).primaryDepartmentId || (u as any).departmentId || u.hospitalId || (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2));
+          const deptName =
+            (u as any).departmentName ||
+            (u as any).department ||
+            deptIdToName[deptId] ||
+            (apiDepartments.length > 0 ? apiDepartments[0].name : "General Medicine");
 
           return {
             id: uid,
@@ -291,7 +318,7 @@ export const UserManagement: React.FC = () => {
       medicalRegistrationNumber: docProfile?.medicalRegistrationNumber || "",
       qualification: docProfile?.qualification || "",
       yearsOfExperience: docProfile?.yearsOfExperience || 0,
-      primaryDepartmentId: docProfile?.primaryDepartment?.departmentId || DEPARTMENT_NAME_TO_ID[user.department] || 2,
+      primaryDepartmentId: docProfile?.primaryDepartment?.departmentId || deptNameToId[user.department] || (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2),
       primarySpecialtyId: docProfile?.primarySpecialty?.specialtyId || 1,
       consultationFee: docProfile?.consultationFee || 500,
       followUpFee: docProfile?.followUpFee || 300,
@@ -310,7 +337,7 @@ export const UserManagement: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const deptId = editForm.primaryDepartmentId || DEPARTMENT_NAME_TO_ID[editForm.department] || 2;
+      const deptId = editForm.primaryDepartmentId || deptNameToId[editForm.department] || (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2);
       const apiStatus = DISPLAY_TO_BACKEND_STATUS[editForm.status] || "ACTIVE";
 
       const payload: import("../types/users.types").AdminUpdateStaffData = {
@@ -832,7 +859,7 @@ export const UserManagement: React.FC = () => {
                         <ArrowUpDown size={12} className="text-slate-400" />
                       </div>
                     </th>
-                    <th className="px-4 py-3.5">Department</th>
+
                     <th className="px-4 py-3.5">Email</th>
                     <th className="px-4 py-3.5">Phone</th>
                     <th
@@ -896,9 +923,7 @@ export const UserManagement: React.FC = () => {
                               <Shield size={11} /> {user.role}
                             </span>
                           </td>
-                          <td className="px-4 py-3.5 font-medium text-slate-700">
-                            {user.department}
-                          </td>
+
                           <td className="px-4 py-3.5 text-slate-600">
                             <a
                               href={`mailto:${user.email}`}
@@ -1031,7 +1056,7 @@ export const UserManagement: React.FC = () => {
                     })
                   ) : (
                     <tr>
-                      <td colSpan={9} className="py-12 text-center">
+                      <td colSpan={8} className="py-12 text-center">
                         <div className="flex flex-col items-center justify-center space-y-3">
                           <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
                             <Users size={32} />
@@ -1210,7 +1235,7 @@ export const UserManagement: React.FC = () => {
                   <select
                     value={editForm.department}
                     onChange={(e) =>
-                      setEditForm({ ...editForm, department: e.target.value, primaryDepartmentId: DEPARTMENT_NAME_TO_ID[e.target.value] || 2 })
+                      setEditForm({ ...editForm, department: e.target.value, primaryDepartmentId: deptNameToId[e.target.value] || (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2) })
                     }
                     className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
                   >

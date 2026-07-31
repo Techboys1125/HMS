@@ -39,9 +39,13 @@ export function DoctorPrescriptionsScreen({
   const [selectedDept, setSelectedDept] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [dateRange, setDateRange] = useState("All");
-  const [selectedRow, setSelectedRow] = useState<PrescriptionRecord | null>(null);
+  const [selectedRow, setSelectedRow] = useState<PrescriptionRecord | null>(
+    null,
+  );
   const [openMoreMenuId, setOpenMoreMenuId] = useState<string | null>(null);
-  const [printModalRx, setPrintModalRx] = useState<PrescriptionRecord | null>(null);
+  const [printModalRx, setPrintModalRx] = useState<PrescriptionRecord | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -143,7 +147,9 @@ export function DoctorPrescriptionsScreen({
       >
         <span className="hover:text-[#0D47A1] cursor-pointer">Doctor</span>
         <ChevronRight size={13} className="text-slate-400" />
-        <span className="hover:text-[#0D47A1] cursor-pointer">Prescriptions</span>
+        <span className="hover:text-[#0D47A1] cursor-pointer">
+          Prescriptions
+        </span>
         <ChevronRight size={13} className="text-slate-400" />
         <span className="text-[#111827] font-semibold">My Prescriptions</span>
       </div>
@@ -160,7 +166,8 @@ export function DoctorPrescriptionsScreen({
             className="text-xs text-[#64748B] mt-0.5"
             style={{ fontFamily: RB }}
           >
-            View, search, print and manage prescriptions issued during consultations.
+            View, search, print and manage prescriptions issued during
+            consultations.
           </p>
         </div>
         <button
@@ -263,10 +270,38 @@ export function DoctorPrescriptionsScreen({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { title: "Today's Prescriptions", count: "14", trend: "+12% vs yesterday", isUp: true, Icon: Pill, color: "#0D47A1" },
-          { title: "Issued Prescriptions", count: "184", trend: "92% completed", isUp: true, Icon: CheckCircle2, color: "#009688" },
-          { title: "Follow-up Cases", count: "42", trend: "+4 scheduled this wk", isUp: true, Icon: Clock, color: "#F59E0B" },
-          { title: "Recently Printed", count: "28", trend: "100% digital sync", isUp: true, Icon: Download, color: "#66BB6A" },
+          {
+            title: "Today's Prescriptions",
+            count: "14",
+            trend: "+12% vs yesterday",
+            isUp: true,
+            Icon: Pill,
+            color: "#0D47A1",
+          },
+          {
+            title: "Issued Prescriptions",
+            count: "184",
+            trend: "92% completed",
+            isUp: true,
+            Icon: CheckCircle2,
+            color: "#009688",
+          },
+          {
+            title: "Follow-up Cases",
+            count: "42",
+            trend: "+4 scheduled this wk",
+            isUp: true,
+            Icon: Clock,
+            color: "#F59E0B",
+          },
+          {
+            title: "Recently Printed",
+            count: "28",
+            trend: "100% digital sync",
+            isUp: true,
+            Icon: Download,
+            color: "#66BB6A",
+          },
         ].map((kpi, idx) => (
           <Card key={idx} className="p-4 flex items-center justify-between">
             <div>
@@ -309,7 +344,8 @@ export function DoctorPrescriptionsScreen({
               Prescription Records
             </h2>
             <p className="text-xs text-slate-500" style={{ fontFamily: RB }}>
-              Showing {filteredData.length} prescriptions issued by Dr. Arjun Mehta
+              Showing {filteredData.length} prescriptions issued by Dr. Arjun
+              Mehta
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -368,7 +404,8 @@ export function DoctorPrescriptionsScreen({
                         className="text-xs text-slate-500 max-w-xs mt-1"
                         style={{ fontFamily: RB }}
                       >
-                        No prescription records match your current filter criteria or search query.
+                        No prescription records match your current filter
+                        criteria or search query.
                       </p>
                       <button
                         onClick={handleResetFilters}
@@ -428,7 +465,9 @@ export function DoctorPrescriptionsScreen({
                           Yes ({rx.followupDate})
                         </span>
                       ) : (
-                        <span className="text-xs font-medium text-slate-400">No</span>
+                        <span className="text-xs font-medium text-slate-400">
+                          No
+                        </span>
                       )}
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap">
@@ -477,7 +516,9 @@ export function DoctorPrescriptionsScreen({
                           <Printer size={14} />
                         </button>
                         <button
-                          onClick={() => showToast(`Downloaded PDF for ${rx.id}`)}
+                          onClick={() =>
+                            showToast(`Downloaded PDF for ${rx.id}`)
+                          }
                           className="p-1.5 rounded-lg text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
                           title="Download PDF"
                         >
@@ -684,9 +725,13 @@ export function DoctorPrescriptionsScreen({
                           style={{ fontFamily: PP }}
                         >
                           {m.name}{" "}
-                          <span className="font-normal text-slate-500">({m.dose})</span>
+                          <span className="font-normal text-slate-500">
+                            ({m.dose})
+                          </span>
                         </div>
-                        <div className="text-[11px] text-slate-500">{m.freq}</div>
+                        <div className="text-[11px] text-slate-500">
+                          {m.freq}
+                        </div>
                       </div>
                       <Pill size={14} className="text-[#009688]" />
                     </div>
@@ -742,7 +787,9 @@ export function DoctorPrescriptionsScreen({
                 <Printer size={14} />
               </button>
               <button
-                onClick={() => showToast(`Downloaded PDF for ${selectedRow.id}`)}
+                onClick={() =>
+                  showToast(`Downloaded PDF for ${selectedRow.id}`)
+                }
                 className="px-3 py-2 rounded-xl bg-white border border-gray-200 text-slate-700 text-xs font-medium hover:bg-slate-100 transition-colors"
                 style={{ fontFamily: RB }}
               >
@@ -787,12 +834,22 @@ export function DoctorPrescriptionsScreen({
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div><strong>Patient:</strong> {printModalRx.patientName}</div>
-                <div><strong>MRN:</strong> {printModalRx.mrn}</div>
-                <div><strong>Doctor:</strong> {printModalRx.doctorName}</div>
-                <div><strong>Date:</strong> {printModalRx.consultationDate}</div>
+                <div>
+                  <strong>Patient:</strong> {printModalRx.patientName}
+                </div>
+                <div>
+                  <strong>MRN:</strong> {printModalRx.mrn}
+                </div>
+                <div>
+                  <strong>Doctor:</strong> {printModalRx.doctorName}
+                </div>
+                <div>
+                  <strong>Date:</strong> {printModalRx.consultationDate}
+                </div>
               </div>
-              <div><strong>Diagnosis:</strong> {printModalRx.diagnosis}</div>
+              <div>
+                <strong>Diagnosis:</strong> {printModalRx.diagnosis}
+              </div>
               <div className="pt-2 border-t border-gray-200">
                 <div className="font-bold mb-1">Medicines Rx:</div>
                 <ul className="list-disc pl-4 space-y-0.5">

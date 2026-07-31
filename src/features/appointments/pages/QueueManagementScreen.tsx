@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { PP, RB } from "../constants/appointment.constants";
 import type { ChipVariant } from "../constants/appointment.constants";
 import { Chip } from "../components/Chip";
-import { type ReceptionQueueManagementScreenProps } from "../types/appointment-screen.types";
+import { departmentsApi } from "../../users/api/departments.api";
+import { type QueueManagementScreenProps } from "../types/appointment-screen.types";
 import {
   ChevronRight,
   RefreshCw,
@@ -12,12 +13,12 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-export function ReceptionQueueManagementScreen({
+export function QueueManagementScreen({
   onBack,
   onCheckInClick,
   onPatientSearchClick,
   onPatientSelect,
-}: ReceptionQueueManagementScreenProps) {
+}: QueueManagementScreenProps) {
   // Global Search state
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -27,6 +28,22 @@ export function ReceptionQueueManagementScreen({
   const [, setSelectedDate] = useState("Today (2026-07-24)");
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
   const [selectedType, setSelectedType] = useState("All Types");
+
+  const [apiDepts, setApiDepts] = useState<string[]>([]);
+
+  useEffect(() => {
+    departmentsApi.getDepartmentLookup(true).then((lookupList) => {
+      if (lookupList && lookupList.length > 0) {
+        const names = lookupList.map((d) => d.departmentName).filter(Boolean);
+        setApiDepts(names);
+      } else {
+        departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
+          const names = list.map((d) => d.departmentName || d.name).filter((n): n is string => Boolean(n));
+          if (names.length > 0) setApiDepts(names);
+        });
+      }
+    }).catch(() => {});
+  }, []);
 
   // Selected Row for Right Context Panel
   const [selectedTokenId, setSelectedTokenId] = useState<string>("TK-086");
@@ -452,12 +469,12 @@ export function ReceptionQueueManagementScreen({
               onChange={(e) => setSelectedDept(e.target.value)}
               className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
             >
-              <option>All Departments</option>
-              <option>Cardiology</option>
-              <option>General OPD</option>
-              <option>Gynecology</option>
-              <option>Neurology</option>
-              <option>Dermatology</option>
+              <option value="All Departments">All Departments</option>
+              {apiDepts.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
             </select>
 
             <select

@@ -1,4 +1,6 @@
 import { appointmentsApi } from "../api/appointments.api";
+import { departmentsApi } from "../../users/api/departments.api";
+import { apiClient } from "../../../lib/axios";
 import type {
   AppointmentRecord,
   CreateAppointmentRequest,
@@ -8,6 +10,7 @@ import type {
   UserRole,
   DoctorSummary,
   PatientSummary,
+  Department,
 } from "../types/appointment.types";
 
 export interface AppointmentPage<T> {
@@ -52,6 +55,17 @@ export const normalizeAppointmentRecord = (
     item?.appointmentTime ||
     "") as string;
 
+  const deptObj = item?.department && typeof item.department === "object"
+    ? (item.department as Record<string, unknown>)
+    : null;
+  const resolvedDeptName = (
+    item?.departmentName ||
+    deptObj?.departmentName ||
+    deptObj?.name ||
+    (typeof item?.department === "string" ? item.department : undefined) ||
+    doctor?.departmentName
+  ) as string | undefined;
+
   return {
     id: (item?.id ?? item?.appointmentId ?? item?.appointmentNumber ?? "") as
       string | number,
@@ -78,10 +92,12 @@ export const normalizeAppointmentRecord = (
     reason: (item?.reason || item?.chiefComplaint) as string | undefined,
     symptoms: item?.symptoms as string | undefined,
     departmentId:
-      typeof item?.departmentId === "number" ? item.departmentId : undefined,
-    departmentName: (item?.departmentName ||
-      (item?.department as Record<string, unknown>)?.name) as
-      string | undefined,
+      typeof item?.departmentId === "number"
+        ? item.departmentId
+        : (typeof deptObj?.departmentId === "number" || typeof deptObj?.departmentId === "string"
+            ? Number(deptObj.departmentId)
+            : undefined),
+    departmentName: resolvedDeptName,
     patient: patient as unknown as PatientSummary,
     doctor: doctor as unknown as DoctorSummary,
     cancellationReason: item?.cancellationReason as string | undefined,
@@ -100,9 +116,7 @@ export const normalizeAppointmentRecord = (
     patientGender: item?.patientGender as string | undefined,
     patientPhone: (item?.patientPhone || patient?.phone || patient?.mobile) as
       string | undefined,
-    department: (item?.department ||
-      item?.departmentName ||
-      doctor?.departmentName) as string | undefined,
+    department: resolvedDeptName,
     doctorSpecialty: (item?.doctorSpecialty || doctor?.specialty) as
       string | undefined,
     tokenNo: (item?.tokenNo || item?.queueToken) as string | undefined,
@@ -248,9 +262,92 @@ export const appointmentService = {
     return Array.isArray(res?.data) ? res.data : [];
   },
 
+  async listDepartments(): Promise<Department[]> {
+    const data = await departmentsApi.getDepartments();
+    return (data || []).map((d) => ({
+      id: d.departmentId ?? d.id ?? "",
+      departmentName: d.departmentName ?? d.name ?? "",
+      departmentCode: d.departmentCode ?? d.code ?? "",
+    }));
+  },
+
   async listDoctors(departmentId?: string | number): Promise<DoctorSummary[]> {
-    const res = await appointmentsApi.getDoctors(departmentId);
-    return Array.isArray(res?.data) ? res.data : [];
+    try {
+      // 1. Fetch all doctors from the users database (which contains all newly created doctors)
+      const response = await apiClient.get<any>("/api/v1/admin/users?role=DOCTOR");
+      const users = response?.data?.data || response?.data || [];
+      
+      const doctorsFromUsers: DoctorSummary[] = users.map((u: any) => {
+        const profile = u.doctorProfile;
+        return {
+          id: profile?.doctorId ?? u.userId ?? "",
+          name: u.fullName.startsWith("Dr.") ? u.fullName : `Dr. ${u.fullName}`,
+          departmentName: profile?.primaryDepartment?.departmentName || "General Medicine",
+          department: profile?.primaryDepartment?.departmentName || "General Medicine",
+          departmentId: profile?.primaryDepartment?.departmentId,
+          specialty: profile?.primarySpecialty?.specialtyName || "",
+          qualification: profile?.qualification || "",
+          consultationFee: profile?.consultationFee || 100,
+          opdRoom: "OPD-101",
+        };
+      });
+
+      // 2. Fetch doctors from the appointments getDoctors API as fallback or to merge
+      let doctorsFromAppt: DoctorSummary[] = [];
+      try {
+        const res = await appointmentsApi.getDoctors(departmentId);
+        const rawList = Array.isArray(res?.data) ? res.data : [];
+        doctorsFromAppt = rawList.map((d: any) => ({
+          id: d.doctorId ?? d.id ?? "",
+          name: d.doctorName ?? d.name ?? "",
+          departmentName: d.department ?? d.departmentName ?? "",
+          department: d.department ?? d.departmentName ?? "",
+          departmentId: departmentId,
+          specialty: d.specialty ?? "",
+          qualification: d.qualification ?? "",
+          consultationFee: d.fees?.standardConsultationFee ?? d.consultationFee ?? 0,
+          opdRoom: d.opdRoom ?? "",
+        }));
+      } catch (err) {
+        console.warn("[listDoctors] Fallback getDoctors failed:", err);
+      }
+
+      // Merge both lists, prioritizing the one from admin/users (doctorsFromUsers) to ensure completeness
+      const mergedMap = new Map<string, DoctorSummary>();
+      doctorsFromAppt.forEach((d) => {
+        if (d.id) mergedMap.set(String(d.id), d);
+      });
+      doctorsFromUsers.forEach((d) => {
+        if (d.id) mergedMap.set(String(d.id), d);
+      });
+
+      const allDoctors = Array.from(mergedMap.values());
+
+      // Filter by departmentId if provided
+      if (departmentId !== undefined && departmentId !== null) {
+        return allDoctors.filter(
+          (d) =>
+            String(d.departmentId) === String(departmentId) ||
+            (d.departmentName && d.departmentName.toLowerCase() === String(departmentId).toLowerCase())
+        );
+      }
+      return allDoctors;
+    } catch (error) {
+      console.warn("[appointmentService] listDoctors failed, using basic fallback:", error);
+      // Basic fallback to legacy getDoctors
+      const res = await appointmentsApi.getDoctors(departmentId);
+      const rawList = Array.isArray(res?.data) ? res.data : [];
+      return rawList.map((d: any) => ({
+        id: d.doctorId ?? d.id ?? "",
+        name: d.doctorName ?? d.name ?? "",
+        departmentName: d.department ?? d.departmentName ?? "",
+        department: d.department ?? d.departmentName ?? "",
+        specialty: d.specialty ?? "",
+        qualification: d.qualification ?? "",
+        consultationFee: d.fees?.standardConsultationFee ?? d.consultationFee ?? 0,
+        opdRoom: d.opdRoom ?? "",
+      }));
+    }
   },
 
   async listAvailableSlots(

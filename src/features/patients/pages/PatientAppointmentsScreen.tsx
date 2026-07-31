@@ -538,13 +538,6 @@ export function PatientAppointmentsScreen() {
                 No appointments found. You don't have any appointments matching
                 your search criteria.
               </p>
-              <button
-                onClick={() => setViewMode("book")}
-                className="mt-5 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm inline-flex items-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Plus size={14} /> Book Appointment
-              </button>
             </div>
           ) : (
             <>

@@ -48,12 +48,14 @@ export interface AppointmentManagementCenterScreenProps {
   onRegisterPatientClick?: () => void;
 }
 
-export interface ReceptionBookAppointmentScreenProps {
+export interface BookAppointmentScreenProps {
   onBack?: () => void;
+  onPatientSelect?: (mrn: string) => void;
   onConfirmSuccess?: (appointmentId: string) => void;
   onRegisterNewPatientClick?: () => void;
   onViewPatientProfileClick?: (mrn: string) => void;
   initialMrn?: string;
+  onBookSuccess?: (apt: AppointmentRecord) => void;
 }
 
 export interface PatientCheckInScreenProps {
@@ -65,7 +67,7 @@ export interface PatientCheckInScreenProps {
   initialAptId?: string;
 }
 
-export interface ReceptionQueueManagementScreenProps {
+export interface QueueManagementScreenProps {
   onBack?: () => void;
   onCheckInClick?: (token?: string, mrn?: string) => void;
   onPatientSearchClick?: () => void;

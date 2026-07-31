@@ -20,8 +20,8 @@ import { UserManagementCenterScreen } from "./features/users";
 import { DoctorManagementCenterScreen } from "./features/doctors";
 import {
   AppointmentManagementCenterScreen,
-  ReceptionBookAppointmentScreen,
-  ReceptionQueueManagementScreen,
+  BookAppointmentScreen,
+  QueueManagementScreen,
 } from "./features/appointments";
 import {
   DoctorAppointmentsScreen,
@@ -2174,7 +2174,6 @@ function HMS({ onLogout }: { onLogout: () => void }) {
     useState(false);
   const [showQueueManagement, setShowQueueManagement] = useState(false);
 
-
   const [viewDetailsPrescriptionId, setViewDetailsPrescriptionId] = useState<
     string | null
   >(null);
@@ -2328,11 +2327,11 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                     }
                   }}
                   onEditPatient={() => setShowEditPatient(true)}
-                  onBookAppointment={(uhid) => {
+                  onBookAppointment={() => {
                     setActiveNav("appointments");
                     setShowBookAppointmentScreen(true);
                   }}
-                  onCheckInClick={(token, uhid) => {
+                  onCheckInClick={() => {
                     setActiveNav("appointments");
                     setShowQueueManagement(true);
                   }}
@@ -2383,18 +2382,18 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                   onBack={() => setActiveNav("dashboard")}
                   onPatientSelect={(id) => handlePatientSelect(id)}
                   onEditPatientClick={(p) => {
-                    const id = p.mrn || p.patientId || String(p.id);
+                    const id = p.mrn || String(p.id);
                     setSelectedPatient(id);
                     setShowEditPatient(true);
                   }}
                   onRegisterClick={() => {
                     setShowRegisterPatient(true);
                   }}
-                  onBookAppointmentClick={(uhid) => {
+                  onBookAppointmentClick={() => {
                     setActiveNav("appointments");
                     setShowBookAppointmentScreen(true);
                   }}
-                  onCheckInClick={(uhid) => {
+                  onCheckInClick={() => {
                     setActiveNav("appointments");
                     setShowQueueManagement(true);
                   }}
@@ -2405,7 +2404,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               showRegisterPatient && (
                 <RegisterPatientScreen
                   onBack={() => setShowRegisterPatient(false)}
-                  onBookAppointment={(uhid) => {
+                  onBookAppointment={() => {
                     setShowRegisterPatient(false);
                     setActiveNav("appointments");
                     setShowBookAppointmentScreen(true);
@@ -2420,9 +2419,10 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               <PatientAppointmentsScreen />
             )}
             {activeNav === "appointments" &&
-              role === "receptionist" &&
+              role !== "doctor" &&
+              role !== "patient" &&
               showBookAppointmentScreen && (
-                <ReceptionBookAppointmentScreen
+                <BookAppointmentScreen
                   initialMrn={undefined}
                   onBack={() => {
                     setShowBookAppointmentScreen(false);
@@ -2444,9 +2444,9 @@ function HMS({ onLogout }: { onLogout: () => void }) {
             {activeNav === "appointments" &&
               role === "receptionist" &&
               showQueueManagement && (
-                <ReceptionQueueManagementScreen
+                <QueueManagementScreen
                   onBack={() => setShowQueueManagement(false)}
-                  onCheckInClick={(token, uhid) => {
+                  onCheckInClick={() => {
                     setShowQueueManagement(true);
                   }}
                   onPatientSearchClick={() => setActiveNav("patient-search")}
@@ -2473,15 +2473,27 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                   onReceptionQueueClick={() => {
                     setShowQueueManagement(true);
                   }}
+                  onRegisterNewPatientClick={() => {
+                    setActiveNav("patients");
+                    setShowRegisterPatient(true);
+                  }}
                   userRole="Receptionist"
                 />
               )}
             {activeNav === "appointments" &&
               role !== "doctor" &&
               role !== "patient" &&
-              role !== "receptionist" && (
+              role !== "receptionist" &&
+              !showBookAppointmentScreen && (
                 <AppointmentManagementCenterScreen
                   onPatientSelect={handlePatientSelect}
+                  onBookAppointmentClick={() =>
+                    setShowBookAppointmentScreen(true)
+                  }
+                  onRegisterNewPatientClick={() => {
+                    setActiveNav("patients");
+                    setShowRegisterPatient(true);
+                  }}
                   userRole={role === "admin" ? "Hospital Admin" : "Super Admin"}
                 />
               )}

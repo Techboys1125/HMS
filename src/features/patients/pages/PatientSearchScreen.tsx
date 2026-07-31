@@ -62,7 +62,7 @@ export function PatientSearchScreen({
   // Filter Logic over DB Patients
   const filteredPatients = dbPatients.filter((p) => {
     const q = searchQuery.toLowerCase().trim();
-    const mrnStr = (p.mrn || p.patientId || String(p.id)).toLowerCase();
+    const mrnStr = (p.mrn || String(p.id)).toLowerCase();
     const nameStr = (p.patientName || p.name || "").toLowerCase();
     const phoneStr = (p.phone || "").toLowerCase();
 
@@ -96,10 +96,9 @@ export function PatientSearchScreen({
     return matchSearch && matchStatus && matchType && matchGender && matchDate;
   });
 
-  const selectedPatient =
-    dbPatients.find(
-      (p) => (p.mrn || p.patientId || String(p.id)) === selectedPatientId,
-    ) || filteredPatients[0];
+  const selectedPatient = dbPatients.find(
+    (p) => (p.mrn || String(p.id)) === selectedPatientId,
+  ) || filteredPatients[0];
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -169,7 +168,7 @@ export function PatientSearchScreen({
             <button
               onClick={() =>
                 onBookAppointmentClick(
-                  selectedPatient ? (selectedPatient.mrn || selectedPatient.patientId || String(selectedPatient.id)) : "",
+                  selectedPatient ? (selectedPatient.mrn || String(selectedPatient.id)) : "",
                 )
               }
               className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm"
@@ -387,7 +386,7 @@ export function PatientSearchScreen({
         hasActiveFilters={hasActiveFilters}
         userRole={userRole}
         onSelectRow={(p: Patient) => {
-          const id = p.mrn || p.patientId || String(p.id);
+          const id = p.mrn || String(p.id);
           setSelectedPatientId(id);
           if (onPatientSelect) onPatientSelect(id);
         }}
@@ -396,7 +395,7 @@ export function PatientSearchScreen({
           if (onPatientSelect) onPatientSelect(id);
         }}
         onEditPatient={(p) => {
-          const id = p.mrn || p.patientId || String(p.id);
+          const id = p.mrn || String(p.id);
           if (onEditPatientClick) {
             onEditPatientClick(p);
           } else if (onPatientSelect) {

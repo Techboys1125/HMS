@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   ChevronRight,
   UserPlus,
@@ -6,40 +6,39 @@ import {
   CheckCircle2,
   Printer,
   UserCheck,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
-import type { PatientSummary } from "../types/appointment.types";
-import { PP, RB, PATIENT_DATABASE } from "../constants/appointment.constants";
-import type { ReceptionBookAppointmentScreenProps } from "../types/appointment-screen.types";
+import type { PatientSummary, Department } from "../types/appointment.types";
+import { PP, RB } from "../constants/appointment.constants";
+import type { BookAppointmentScreenProps } from "../types/appointment-screen.types";
+import { appointmentService } from "../services/appointment.service";
+import { patientsApi } from "../../patients/api/patient.api";
+import { departmentsApi } from "../../users/api/departments.api";
+import { doctorsApi } from "../../doctors/api/doctors.api";
+import type { DoctorDailySlot } from "../../doctors/types/doctors.types";
 
-export function ReceptionBookAppointmentScreen({
+export function BookAppointmentScreen({
   onBack,
   onConfirmSuccess,
   onRegisterNewPatientClick,
   onViewPatientProfileClick,
+  onPatientSelect,
   initialMrn,
-}: ReceptionBookAppointmentScreenProps) {
+  onBookSuccess,
+}: BookAppointmentScreenProps) {
   // Section 01: Patient Search state
   const [patientQuery, setPatientQuery] = useState(initialMrn || "");
   const [selectedPatient, setSelectedPatient] = useState<PatientSummary | null>(
-    () => {
-      if (initialMrn) {
-        return (
-          PATIENT_DATABASE.find(
-            (p) =>
-              p.mrn?.toLowerCase() === initialMrn.toLowerCase() ||
-              String(p.id).toLowerCase() === initialMrn.toLowerCase(),
-          ) || PATIENT_DATABASE[0]
-        );
-      }
-      return PATIENT_DATABASE[0]; // default pre-selected patient for smooth demo
-    },
+    null,
   );
+  const [patientDatabase, setPatientDatabase] = useState<PatientSummary[]>([]);
 
   // Patient search dropdown options
   const searchedPatients = useMemo(() => {
-    if (!patientQuery.trim()) return PATIENT_DATABASE;
+    if (!patientQuery.trim()) return patientDatabase;
     const q = patientQuery.toLowerCase();
-    return PATIENT_DATABASE.filter(
+    return patientDatabase.filter(
       (p) =>
         (p.name || "").toLowerCase().includes(q) ||
         (p.mrn || "").toLowerCase().includes(q) ||
@@ -49,90 +48,349 @@ export function ReceptionBookAppointmentScreen({
   }, [patientQuery]);
 
   // Section 02: Department & Doctor Selection
-  const [selectedDept, setSelectedDept] = useState("Cardiology");
-  const [selectedSpecialty, setSelectedSpecialty] = useState(
-    "Interventional Cardiology",
-  );
-  const [selectedDocKey, setSelectedDocKey] = useState("Dr. Arjun Mehta");
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [selectedDept, setSelectedDept] = useState("");
+  const [selectedSpecialty, setSelectedSpecialty] = useState("");
+  const [selectedDocKey, setSelectedDocKey] = useState("");
 
-  const doctorsList = [
+  const [doctorsList, setDoctorsList] = useState<
     {
-      key: "Dr. Arjun Mehta",
-      name: "Dr. Arjun Mehta",
-      dept: "Cardiology",
-      spec: "Interventional Cardiology",
-      exp: "14 Yrs Exp",
-      fee: 800,
-      availability: "Available Today (09:00 AM - 04:00 PM)",
-    },
-    {
-      key: "Dr. Priya Sharma",
-      name: "Dr. Priya Sharma",
-      dept: "General OPD",
-      spec: "Internal Medicine",
-      exp: "10 Yrs Exp",
-      fee: 500,
-      availability: "Available Today (08:30 AM - 02:00 PM)",
-    },
-    {
-      key: "Dr. Sunita Patel",
-      name: "Dr. Sunita Patel",
-      dept: "Gynecology",
-      spec: "Obstetrics & Gynae",
-      exp: "12 Yrs Exp",
-      fee: 700,
-      availability: "Available Today (10:00 AM - 05:00 PM)",
-    },
-    {
-      key: "Dr. Rajesh Kapoor",
-      name: "Dr. Rajesh Kapoor",
-      dept: "Neurology",
-      spec: "Clinical Neurology",
-      exp: "18 Yrs Exp",
-      fee: 1000,
-      availability: "Available Today (11:00 AM - 03:00 PM)",
-    },
-  ];
+      key: string;
+      doctorId: number | string;
+      name: string;
+      dept: string;
+      spec: string;
+      fee: number;
+      availability: string;
+      exp: string;
+    }[]
+  >([]);
+  const [isLoadingDoctors, setIsLoadingDoctors] = useState(true);
 
-  const filteredDoctors = doctorsList.filter(
-    (d) => selectedDept === "All Departments" || d.dept === selectedDept,
-  );
+  const filteredDoctors = doctorsList.filter((d) => {
+    if (selectedDept && d.dept !== selectedDept) return false;
+    if (selectedSpecialty && d.spec !== selectedSpecialty) return false;
+    return true;
+  });
   const currentDoctor =
-    doctorsList.find((d) => d.key === selectedDocKey) || doctorsList[0];
+    doctorsList.find((d) => d.key === selectedDocKey) || doctorsList[0] || null;
 
-  // Section 03: Appointment Date Selection (Calendar)
-  const [selectedDate, setSelectedDate] = useState("2026-07-24");
-  const availableDates = [
-    { date: "2026-07-24", day: "Fri", label: "Today", isAvailable: true },
-    { date: "2026-07-25", day: "Sat", label: "Tomorrow", isAvailable: true },
-    { date: "2026-07-27", day: "Mon", label: "27 Jul", isAvailable: true },
-    { date: "2026-07-28", day: "Tue", label: "28 Jul", isAvailable: true },
-    { date: "2026-07-29", day: "Wed", label: "29 Jul", isAvailable: false },
-    { date: "2026-07-30", day: "Thu", label: "30 Jul", isAvailable: true },
-  ];
+  const specialties = useMemo(() => {
+    const deptDoctors = selectedDept
+      ? doctorsList.filter((d) => d.dept === selectedDept)
+      : doctorsList;
+    return Array.from(new Set(deptDoctors.map((d) => d.spec).filter(Boolean)));
+  }, [doctorsList, selectedDept]);
+
+  useEffect(() => {
+    patientsApi
+      .getAll()
+      .then((data) => {
+        const mapped: PatientSummary[] = data.map((p) => ({
+          id: p.id,
+          mrn: p.mrn,
+          name: p.name || p.patientName,
+          age: p.age,
+          gender: p.gender,
+          phone: p.phone,
+          bloodGroup: p.bloodGroup || "",
+          emergencyContact: p.emergencyContact
+            ? `${p.emergencyContact.name || p.emergencyContact.contactName || ""} (${p.emergencyContact.relationship || ""})`
+            : "",
+          assignedDoctor: p.assignedDoctor || "",
+        }));
+        setPatientDatabase(mapped);
+        if (initialMrn) {
+          const found = mapped.find(
+            (p) =>
+              p.mrn?.toLowerCase() === initialMrn.toLowerCase() ||
+              String(p.id).toLowerCase() === initialMrn.toLowerCase(),
+          );
+          if (found) setSelectedPatient(found);
+        }
+        if (!selectedPatient && mapped.length > 0 && !initialMrn) {
+          setSelectedPatient(mapped[0]);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    departmentsApi
+      .getDepartmentLookup(true)
+      .then((lookupList) => {
+        if (lookupList && lookupList.length > 0) {
+          const mapped = lookupList.map((d) => ({
+            id: d.departmentId,
+            departmentName: d.departmentName,
+          }));
+          setDepartments(mapped);
+        } else {
+          departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
+            const mapped = list
+              .map((d) => ({
+                id: d.departmentId ?? d.id ?? "",
+                departmentName: d.departmentName || d.name || "",
+              }))
+              .filter((d) => d.departmentName);
+            if (mapped.length > 0) setDepartments(mapped as Department[]);
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setIsLoadingDoctors(true);
+    const matchedDept = departments.find(
+      (d) => d.departmentName === selectedDept,
+    );
+    const deptId = matchedDept ? matchedDept.id : undefined;
+
+    appointmentService
+      .listDoctors(deptId)
+      .then((data) => {
+        const mapped = data.map((d) => ({
+          key: d.name,
+          doctorId: d.id,
+          name: d.name,
+          dept: d.departmentName || d.department || "",
+          spec: d.specialty || "",
+          fee:
+            typeof d.consultationFee === "number"
+              ? d.consultationFee
+              : Number(d.consultationFee) || 0,
+          availability: "Available Today",
+          exp: d.qualification || "",
+        }));
+        setDoctorsList(mapped);
+        if (mapped.length > 0) {
+          const currentDoc = mapped.find((d) => d.key === selectedDocKey);
+          if (!currentDoc) {
+            setSelectedDocKey(mapped[0].key);
+            setSelectedSpecialty(mapped[0].spec);
+          }
+        } else {
+          setSelectedDocKey("");
+          setSelectedSpecialty("");
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        setIsLoadingDoctors(false);
+      });
+  }, [selectedDept, departments]);
+
+  const handleDeptChange = (dept: string) => {
+    setSelectedDept(dept);
+    setSelectedSpecialty("");
+    setSelectedDocKey("");
+  };
+
+  // Section 03: Appointment Date Selection (Calendar) - Generated dynamically starting from today
+  const availableDates = useMemo(() => {
+    const dates = [];
+    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const today = new Date();
+
+    for (let i = 0; i < 6; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+
+      // Skip Sundays as they are typical hospital holidays
+      const dayOfWeek = date.getDay();
+      const isSunday = dayOfWeek === 0;
+
+      const dateStr = date.toISOString().split("T")[0];
+      let label = `${date.getDate()} ${months[date.getMonth()]}`;
+      if (i === 0) label = "Today";
+      else if (i === 1) label = "Tomorrow";
+
+      dates.push({
+        date: dateStr,
+        day: daysOfWeek[dayOfWeek],
+        label,
+        isAvailable: !isSunday,
+      });
+    }
+    return dates;
+  }, []);
+
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const todayStr = new Date().toISOString().split("T")[0];
+    const todayDay = new Date().getDay();
+    if (todayDay === 0) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return tomorrow.toISOString().split("T")[0];
+    }
+    return todayStr;
+  });
+
+  // Load doctor availability slots dynamically
+  const [apiSlots, setApiSlots] = useState<DoctorDailySlot[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+
+  useEffect(() => {
+    if (!currentDoctor || !currentDoctor.doctorId || !selectedDate) {
+      setApiSlots([]);
+      return;
+    }
+    setIsLoadingSlots(true);
+    doctorsApi
+      .getDailyAvailability(currentDoctor.doctorId, selectedDate)
+      .then((res) => {
+        if (res && res.slots) {
+          setApiSlots(res.slots);
+        } else {
+          setApiSlots([]);
+        }
+      })
+      .catch(() => {
+        setApiSlots([]);
+      })
+      .finally(() => {
+        setIsLoadingSlots(false);
+      });
+  }, [currentDoctor, selectedDate]);
+
+  const formatSlotTime = (timeStr: string) => {
+    const parts = timeStr.split(":");
+    if (parts.length < 2) return timeStr;
+    let hour = parseInt(parts[0], 10);
+    const minute = parts[1];
+    const ampm = hour >= 12 ? "PM" : "AM";
+    hour = hour % 12;
+    hour = hour ? hour : 12;
+    const strHour = hour < 10 ? `0${hour}` : `${hour}`;
+    return `${strHour}:${minute} ${ampm}`;
+  };
+
+  const isTimeSlotPassed = (slotTimeStr: string, targetDateStr: string) => {
+    const todayStr = new Date().toISOString().split("T")[0];
+    if (targetDateStr !== todayStr) return false;
+
+    let hour = 0;
+    let minute = 0;
+
+    if (slotTimeStr.includes("AM") || slotTimeStr.includes("PM")) {
+      const cleanTime = slotTimeStr.replace(/(AM|PM)/i, "").trim();
+      const parts = cleanTime.split(":");
+      hour = parseInt(parts[0] || "0", 10);
+      minute = parseInt(parts[1] || "0", 10);
+      if (slotTimeStr.toUpperCase().includes("PM") && hour < 12) {
+        hour += 12;
+      }
+      if (slotTimeStr.toUpperCase().includes("AM") && hour === 12) {
+        hour = 0;
+      }
+    } else {
+      const parts = slotTimeStr.split(":");
+      hour = parseInt(parts[0] || "0", 10);
+      minute = parseInt(parts[1] || "0", 10);
+    }
+
+    const now = new Date();
+    const slotDateTime = new Date();
+    slotDateTime.setHours(hour, minute, 0, 0);
+
+    return slotDateTime.getTime() <= now.getTime();
+  };
+
+  const dynamicTimeSlotGroups = useMemo(() => {
+    if (apiSlots.length === 0) {
+      // Default slots fallback
+      const defaultSlots = {
+        morning: [
+          { time: "09:00 AM", available: true },
+          { time: "09:30 AM", available: true },
+          { time: "10:00 AM", available: false },
+          { time: "10:30 AM", available: true },
+          { time: "11:00 AM", available: true },
+        ],
+        afternoon: [
+          { time: "12:00 PM", available: true },
+          { time: "12:30 PM", available: false },
+          { time: "01:00 PM", available: true },
+          { time: "02:00 PM", available: true },
+        ],
+        evening: [
+          { time: "04:00 PM", available: true },
+          { time: "04:30 PM", available: true },
+          { time: "05:00 PM", available: false },
+        ],
+      };
+
+      const filterGroup = (group: { time: string; available: boolean }[]) =>
+        group.map((slot) => ({
+          ...slot,
+          available: slot.available && !isTimeSlotPassed(slot.time, selectedDate),
+        }));
+
+      return {
+        morning: filterGroup(defaultSlots.morning),
+        afternoon: filterGroup(defaultSlots.afternoon),
+        evening: filterGroup(defaultSlots.evening),
+      };
+    }
+
+    const morning: { time: string; available: boolean }[] = [];
+    const afternoon: { time: string; available: boolean }[] = [];
+    const evening: { time: string; available: boolean }[] = [];
+
+    apiSlots.forEach((slot) => {
+      const timeStr = slot.startTime;
+      const parts = timeStr.split(":");
+      const hour = parseInt(parts[0], 10);
+      const formatted = formatSlotTime(timeStr);
+      const available = slot.status === "AVAILABLE" && !isTimeSlotPassed(formatted, selectedDate);
+
+      if (hour < 12) {
+        morning.push({ time: formatted, available });
+      } else if (hour >= 12 && hour < 16) {
+        afternoon.push({ time: formatted, available });
+      } else {
+        evening.push({ time: formatted, available });
+      }
+    });
+
+    return { morning, afternoon, evening };
+  }, [apiSlots, selectedDate]);
 
   // Section 04: Time Slots Grid
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("09:30 AM");
-  const timeSlotGroups = {
-    morning: [
-      { time: "09:00 AM", available: true },
-      { time: "09:30 AM", available: true },
-      { time: "10:00 AM", available: false },
-      { time: "10:30 AM", available: true },
-      { time: "11:00 AM", available: true },
-    ],
-    afternoon: [
-      { time: "12:00 PM", available: true },
-      { time: "12:30 PM", available: false },
-      { time: "01:00 PM", available: true },
-      { time: "02:00 PM", available: true },
-    ],
-    evening: [
-      { time: "04:00 PM", available: true },
-      { time: "04:30 PM", available: true },
-      { time: "05:00 PM", available: false },
-    ],
-  };
+
+  useEffect(() => {
+    const groups = [
+      dynamicTimeSlotGroups.morning,
+      dynamicTimeSlotGroups.afternoon,
+      dynamicTimeSlotGroups.evening,
+    ];
+    for (const group of groups) {
+      const avail = group.find((s) => s.available);
+      if (avail) {
+        setSelectedTimeSlot(avail.time);
+        return;
+      }
+    }
+    if (dynamicTimeSlotGroups.morning.length > 0) {
+      setSelectedTimeSlot(dynamicTimeSlotGroups.morning[0].time);
+    }
+  }, [dynamicTimeSlotGroups]);
 
   // Section 05: Visit Details
   const [visitType, setVisitType] = useState<"New Consultation" | "Follow-up">(
@@ -152,12 +410,55 @@ export function ReceptionBookAppointmentScreen({
   }>({ sms: true, email: true });
   void notificationPrefs;
 
+  const [isBooking, setIsBooking] = useState(false);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+
   // Confirm Appointment Handler
-  const handleConfirm = () => {
-    if (!selectedPatient) return;
-    const newAptId = `APT-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    setConfirmedAptId(newAptId);
-    setShowSuccessModal(true);
+  const handleConfirm = async () => {
+    if (!selectedPatient || !currentDoctor) return;
+    setIsBooking(true);
+    setBookingError(null);
+
+    const convertTo24Hour = (time12h: string): string => {
+      const [time, modifier] = time12h.split(" ");
+      let [hours, minutes] = time.split(":").map(Number);
+
+      if (modifier === "PM" && hours !== 12) {
+        hours += 12;
+      }
+
+      if (modifier === "AM" && hours === 12) {
+        hours = 0;
+      }
+
+      return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+    };
+
+    try {
+      const payload = {
+        mrn: selectedPatient.mrn || "",
+        doctorId: currentDoctor.doctorId,
+        appointmentDate: selectedDate,
+        startTime: convertTo24Hour(selectedTimeSlot),
+        appointmentType:
+          visitType === "New Consultation" ? "CONSULTATION" : "FOLLOW_UP",
+        reason: chiefComplaint,
+        symptoms: remarks,
+      };
+
+      const createdRecord = await appointmentService.bookAppointment(payload);
+      setConfirmedAptId(String(createdRecord.id));
+      setShowSuccessModal(true);
+
+      if (onBookSuccess) onBookSuccess(createdRecord);
+      if (onConfirmSuccess) onConfirmSuccess(String(createdRecord.id));
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to book appointment.";
+      setBookingError(msg);
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   return (
@@ -254,6 +555,7 @@ export function ReceptionBookAppointmentScreen({
                       onClick={() => {
                         setSelectedPatient(p);
                         setPatientQuery("");
+                        if (onPatientSelect && p.mrn) onPatientSelect(p.mrn);
                       }}
                       className="p-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between text-xs transition-colors"
                     >
@@ -374,15 +676,20 @@ export function ReceptionBookAppointmentScreen({
                 </label>
                 <select
                   value={selectedDept}
-                  onChange={(e) => setSelectedDept(e.target.value)}
+                  onChange={(e) => handleDeptChange(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#009688]"
                 >
-                  <option>Cardiology</option>
-                  <option>General OPD</option>
-                  <option>Gynecology</option>
-                  <option>Neurology</option>
-                  <option>Dermatology</option>
-                  <option>Orthopedics</option>
+                  {departments.length === 0 && (
+                    <option value="">Loading departments...</option>
+                  )}
+                  {departments.map((dept, idx) => (
+                    <option
+                      key={dept.id || dept.departmentName || idx}
+                      value={dept.departmentName}
+                    >
+                      {dept.departmentName}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -392,13 +699,25 @@ export function ReceptionBookAppointmentScreen({
                 </label>
                 <select
                   value={selectedSpecialty}
-                  onChange={(e) => setSelectedSpecialty(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedSpecialty(e.target.value);
+                    setSelectedDocKey("");
+                    const specDocs = doctorsList.filter(
+                      (d) =>
+                        d.dept === selectedDept && d.spec === e.target.value,
+                    );
+                    if (specDocs.length > 0) setSelectedDocKey(specDocs[0].key);
+                  }}
                   className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#009688]"
                 >
-                  <option>Interventional Cardiology</option>
-                  <option>Internal Medicine</option>
-                  <option>Obstetrics & Gynae</option>
-                  <option>Clinical Neurology</option>
+                  {specialties.length === 0 && (
+                    <option value="">No specialties available</option>
+                  )}
+                  {specialties.map((spec, idx) => (
+                    <option key={spec || idx} value={spec}>
+                      {spec}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -409,6 +728,21 @@ export function ReceptionBookAppointmentScreen({
                 Available Doctors *
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {isLoadingDoctors && (
+                  <div className="col-span-full p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200 flex items-center justify-center gap-2">
+                    <RefreshCw
+                      size={14}
+                      className="animate-spin text-[#0D47A1]"
+                    />{" "}
+                    Loading available doctors...
+                  </div>
+                )}
+                {!isLoadingDoctors && filteredDoctors.length === 0 && (
+                  <div className="col-span-full p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                    No doctors available for the selected department and
+                    specialty.
+                  </div>
+                )}
                 {filteredDoctors.map((doc) => {
                   const isSelected = selectedDocKey === doc.key;
                   return (
@@ -507,92 +841,100 @@ export function ReceptionBookAppointmentScreen({
                 Select Time Slot *
               </label>
 
-              {/* Morning Slots */}
-              <div className="space-y-1.5">
-                <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
-                  Morning Session
-                </span>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {timeSlotGroups.morning.map((slot) => {
-                    const isSelected = selectedTimeSlot === slot.time;
-                    return (
-                      <button
-                        key={slot.time}
-                        type="button"
-                        disabled={!slot.available}
-                        onClick={() => setSelectedTimeSlot(slot.time)}
-                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
-                          !slot.available
-                            ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
-                            : isSelected
-                              ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                              : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
-                        }`}
-                      >
-                        {slot.time}
-                      </button>
-                    );
-                  })}
+              {isLoadingSlots ? (
+                <div className="flex items-center gap-2 py-6 text-xs text-slate-400">
+                  <RefreshCw size={14} className="animate-spin text-teal-600" /> Loading availability slots...
                 </div>
-              </div>
+              ) : (
+                <>
+                  {/* Morning Slots */}
+                  <div className="space-y-1.5">
+                    <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
+                      Morning Session
+                    </span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {dynamicTimeSlotGroups.morning.map((slot) => {
+                        const isSelected = selectedTimeSlot === slot.time;
+                        return (
+                          <button
+                            key={slot.time}
+                            type="button"
+                            disabled={!slot.available}
+                            onClick={() => setSelectedTimeSlot(slot.time)}
+                            className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
+                              !slot.available
+                                ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
+                                : isSelected
+                                  ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                                  : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                            }`}
+                          >
+                            {slot.time}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-              {/* Afternoon Slots */}
-              <div className="space-y-1.5 pt-1">
-                <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
-                  Afternoon Session
-                </span>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {timeSlotGroups.afternoon.map((slot) => {
-                    const isSelected = selectedTimeSlot === slot.time;
-                    return (
-                      <button
-                        key={slot.time}
-                        type="button"
-                        disabled={!slot.available}
-                        onClick={() => setSelectedTimeSlot(slot.time)}
-                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
-                          !slot.available
-                            ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
-                            : isSelected
-                              ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                              : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
-                        }`}
-                      >
-                        {slot.time}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+                  {/* Afternoon Slots */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
+                      Afternoon Session
+                    </span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {dynamicTimeSlotGroups.afternoon.map((slot) => {
+                        const isSelected = selectedTimeSlot === slot.time;
+                        return (
+                          <button
+                            key={slot.time}
+                            type="button"
+                            disabled={!slot.available}
+                            onClick={() => setSelectedTimeSlot(slot.time)}
+                            className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
+                              !slot.available
+                                ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
+                                : isSelected
+                                  ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                                  : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                            }`}
+                          >
+                            {slot.time}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-              {/* Evening Slots */}
-              <div className="space-y-1.5 pt-1">
-                <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
-                  Evening Session
-                </span>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {timeSlotGroups.evening.map((slot) => {
-                    const isSelected = selectedTimeSlot === slot.time;
-                    return (
-                      <button
-                        key={slot.time}
-                        type="button"
-                        disabled={!slot.available}
-                        onClick={() => setSelectedTimeSlot(slot.time)}
-                        className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
-                          !slot.available
-                            ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
-                            : isSelected
-                              ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                              : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
-                        }`}
-                      >
-                        {slot.time}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+                  {/* Evening Slots */}
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
+                      Evening Session
+                    </span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {dynamicTimeSlotGroups.evening.map((slot) => {
+                        const isSelected = selectedTimeSlot === slot.time;
+                        return (
+                          <button
+                            key={slot.time}
+                            type="button"
+                            disabled={!slot.available}
+                            onClick={() => setSelectedTimeSlot(slot.time)}
+                            className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
+                              !slot.available
+                                ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
+                                : isSelected
+                                  ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                                  : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                            }`}
+                          >
+                            {slot.time}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -678,6 +1020,11 @@ export function ReceptionBookAppointmentScreen({
 
       {/* ── STICKY FOOTER ACTION BAR ── */}
       <div className="sticky bottom-0 bg-white border-t border-[#E5E7EB] p-4 rounded-2xl shadow-lg flex items-center justify-between z-10">
+        {bookingError && (
+          <div className="absolute bottom-full left-0 right-0 mb-2 mx-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-[#EF4444] font-semibold flex items-center gap-2 animate-in fade-in">
+            <AlertCircle size={14} /> {bookingError}
+          </div>
+        )}
         <button
           type="button"
           onClick={onBack}
@@ -690,11 +1037,16 @@ export function ReceptionBookAppointmentScreen({
         <button
           type="button"
           onClick={handleConfirm}
-          disabled={!selectedPatient}
+          disabled={!selectedPatient || isBooking}
           className="px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ fontFamily: PP }}
         >
-          <CheckCircle2 size={16} /> Confirm Appointment
+          {isBooking ? (
+            <RefreshCw size={16} className="animate-spin" />
+          ) : (
+            <CheckCircle2 size={16} />
+          )}
+          {isBooking ? "Booking..." : "Confirm Appointment"}
         </button>
       </div>
 
@@ -734,12 +1086,14 @@ export function ReceptionBookAppointmentScreen({
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Doctor</span>
                 <span className="font-semibold text-[#111827]">
-                  {currentDoctor.name}
+                  {currentDoctor?.name || "N/A"}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Department</span>
-                <span className="text-slate-600">{currentDoctor.dept}</span>
+                <span className="text-slate-600">
+                  {currentDoctor?.dept || "N/A"}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Date & Slot</span>

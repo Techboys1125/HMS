@@ -1,17 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Building,
   Plus,
   Search,
   RefreshCw,
-  Download,
-  Users,
-  Activity,
   CheckCircle2,
   AlertCircle,
   Eye,
   Edit2,
-  ChevronRight,
   Stethoscope,
   Network,
   BarChart2,
@@ -19,7 +15,7 @@ import {
   Loader2,
   Trash2,
 } from "lucide-react";
-import { departmentsApi, type ApiDepartment } from "./features/admin/api/departments.api";
+import { departmentsApi, type ApiDepartment } from "../api/departments.api";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -37,70 +33,8 @@ interface Department {
   description: string;
   workingHours: string;
   createdDate: string;
+  rawSpecialties?: any[];
 }
-
-const INITIAL_DEPARTMENTS: Department[] = [
-  {
-    id: "1",
-    code: "DEP-CARD-01",
-    name: "Cardiology Department",
-    specialty: "Cardiology & Cardiovascular Surgery",
-    head: "Dr. Arjun Mehta (MD, FACC)",
-    doctorsCount: 18,
-    consultationRooms: 8,
-    status: "Active",
-    lastUpdated: "Today, 10:30 AM",
-    description:
-      "Comprehensive cardiac care unit equipped with advanced cath lab and electrophysiology monitoring.",
-    workingHours: "24/7 Operational",
-    createdDate: "15 Jan 2020",
-  },
-  {
-    id: "2",
-    code: "DEP-NEUR-02",
-    name: "Neurology Department",
-    specialty: "Neurology & Neurosurgery",
-    head: "Dr. Rajesh Kapoor (DM, MCh)",
-    doctorsCount: 14,
-    consultationRooms: 6,
-    status: "Active",
-    lastUpdated: "Yesterday, 14:15",
-    description:
-      "Specialized neuro-critical care unit for stroke management, epilepsy, and brain surgery.",
-    workingHours: "Mon - Sat: 08:00 AM - 08:00 PM",
-    createdDate: "10 Feb 2020",
-  },
-  {
-    id: "3",
-    code: "DEP-PED-03",
-    name: "Pediatrics Department",
-    specialty: "Pediatrics & Neonatology (NICU)",
-    head: "Dr. Sunita Patel (MD, DCH)",
-    doctorsCount: 12,
-    consultationRooms: 5,
-    status: "Active",
-    lastUpdated: "2 days ago",
-    description:
-      "Dedicated pediatric OPD and Level-3 NICU facility for infants and child healthcare.",
-    workingHours: "24/7 Emergency / OPD 09:00 AM - 06:00 PM",
-    createdDate: "01 Mar 2020",
-  },
-  {
-    id: "4",
-    code: "DEP-ORTH-04",
-    name: "Orthopedics Department",
-    specialty: "Orthopedics & Joint Replacement",
-    head: "Dr. Vikram Shah (MS Ortho)",
-    doctorsCount: 15,
-    consultationRooms: 7,
-    status: "Active",
-    lastUpdated: "3 days ago",
-    description:
-      "Trauma care, robotic knee replacement, and sports medicine rehabilitation center.",
-    workingHours: "Mon - Sat: 09:00 AM - 07:00 PM",
-    createdDate: "20 Apr 2020",
-  },
-];
 
 export function DepartmentsSpecialtiesWorkspace() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -112,14 +46,16 @@ export function DepartmentsSpecialtiesWorkspace() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form State for Add/Edit
+  // Form State for Add
   const [newDeptName, setNewDeptName] = useState("");
   const [newDeptCode, setNewDeptCode] = useState("");
-  const [newDeptSpecialty, setNewDeptSpecialty] = useState("");
   const [newDeptDescription, setNewDeptDescription] = useState("");
   const [newDeptHead, setNewDeptHead] = useState("");
+  const [newDeptSpecialties, setNewDeptSpecialties] = useState<string[]>([]);
+  const [newSpecialtyInput, setNewSpecialtyInput] = useState("");
+  const [editSpecialtyInput, setEditSpecialtyInput] = useState("");
 
-  const [departments, setDepartments] = useState<Department[]>(INITIAL_DEPARTMENTS);
+  const [departments, setDepartments] = useState<Department[]>([]);
 
   // Toast State
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
@@ -154,12 +90,16 @@ export function DepartmentsSpecialtiesWorkspace() {
             description: d.description || `${deptName} clinical unit.`,
             workingHours: d.workingHours || "09:00 AM - 05:00 PM",
             createdDate: d.createdDate || d.createdAt?.split("T")[0] || "2024",
+            rawSpecialties: d.specialties || [],
           };
         });
         setDepartments(mapped);
+      } else {
+        setDepartments([]);
       }
     } catch (err) {
       console.warn("Failed to load departments from API:", err);
+      setDepartments([]);
     } finally {
       setIsLoading(false);
     }
@@ -177,23 +117,18 @@ export function DepartmentsSpecialtiesWorkspace() {
     setIsSubmitting(true);
     try {
       const cleanDeptCode = (newDeptCode || `DEP_${newDeptName}`).replace(/[^a-zA-Z0-9_]/g, "_").toUpperCase();
-      const cleanSpecCode = `${(newDeptCode || newDeptName).replace(/[^a-zA-Z0-9_]/g, "_").substring(0, 8).toUpperCase()}_SPEC_01`;
 
       const payload: Partial<ApiDepartment> = {
         departmentName: newDeptName,
         departmentCode: cleanDeptCode,
-        description: newDeptDescription || newDeptSpecialty,
+        description: newDeptDescription || (newDeptSpecialties.length > 0 ? newDeptSpecialties.join(", ") : ""),
         active: true,
-        specialties: newDeptSpecialty
-          ? [
-              {
-                name: newDeptSpecialty,
-                code: cleanSpecCode,
-                description: `${newDeptSpecialty} Specialty`,
-                active: true,
-              },
-            ]
-          : [],
+        specialties: newDeptSpecialties.map((spec, idx) => ({
+          name: spec,
+          code: `${cleanDeptCode}_SPEC_${idx + 1}`,
+          description: `${spec} Specialty`,
+          active: true,
+        })),
         headOfDepartment: newDeptHead,
       };
       await departmentsApi.createDepartment(payload);
@@ -201,7 +136,8 @@ export function DepartmentsSpecialtiesWorkspace() {
       setIsAddModalOpen(false);
       setNewDeptName("");
       setNewDeptCode("");
-      setNewDeptSpecialty("");
+      setNewDeptSpecialties([]);
+      setNewSpecialtyInput("");
       setNewDeptDescription("");
       setNewDeptHead("");
       loadDepartments();
@@ -223,6 +159,13 @@ export function DepartmentsSpecialtiesWorkspace() {
         description: selectedDept.description,
         active: selectedDept.status === "Active",
         headOfDepartment: selectedDept.head,
+        specialties: (selectedDept.rawSpecialties || []).map((s: any, idx: number) => ({
+          id: s.id,
+          name: s.name || s.specialtyName,
+          code: s.code || `${selectedDept.code}_SPEC_${idx + 1}`,
+          description: s.description || `${s.name || s.specialtyName} Specialty`,
+          active: s.active !== undefined ? s.active : true,
+        })),
       };
       await departmentsApi.updateDepartment(selectedDept.id, payload);
       triggerToast(`Department "${selectedDept.name}" updated successfully!`, "success");
@@ -252,72 +195,45 @@ export function DepartmentsSpecialtiesWorkspace() {
     }
   };
 
-  // Mock Specialties Card Grid Data
-  const specialties = [
-    {
-      name: "Cardiology",
-      doctors: 18,
-      department: "Cardiology Department",
-      icon: Activity,
-      color: "#EF4444",
-    },
-    {
-      name: "Neurology",
-      doctors: 14,
-      department: "Neurology Department",
-      icon: Network,
-      color: "#F59E0B",
-    },
-    {
-      name: "Orthopedics",
-      doctors: 15,
-      department: "Orthopedics Department",
-      icon: Building,
-      color: "#0D47A1",
-    },
-    {
-      name: "Pediatrics",
-      doctors: 12,
-      department: "Pediatrics Department",
-      icon: Users,
-      color: "#009688",
-    },
-    {
-      name: "Dermatology",
-      doctors: 8,
-      department: "Dermatology Department",
-      icon: Stethoscope,
-      color: "#9C27B0",
-    },
-    {
-      name: "ENT & Head Neck",
-      doctors: 9,
-      department: "ENT Department",
-      icon: Stethoscope,
-      color: "#4DB6AC",
-    },
-    {
-      name: "General Medicine",
-      doctors: 22,
-      department: "General Medicine OPD",
-      icon: Activity,
-      color: "#0D47A1",
-    },
-    {
-      name: "Gynecology",
-      doctors: 16,
-      department: "Gynecology & Obstetrics",
-      icon: Users,
-      color: "#E91E63",
-    },
-    {
-      name: "Radiology",
-      doctors: 11,
-      department: "Imaging & Radiology",
-      icon: BarChart2,
-      color: "#607D8B",
-    },
-  ];
+  // Dynamic Specialties computed from real API data
+  const specialties = useMemo(() => {
+    const list: { name: string; doctors: number; department: string; icon: any; color: string }[] = [];
+    const colors = ["#EF4444", "#F59E0B", "#0D47A1", "#009688", "#9C27B0", "#4DB6AC", "#E91E63", "#607D8B"];
+    
+    departments.forEach((dept, deptIdx) => {
+      const rawSpecs = dept.rawSpecialties || [];
+      if (rawSpecs.length > 0) {
+        rawSpecs.forEach((spec: any, specIdx: number) => {
+          list.push({
+            name: spec.name || spec.specialtyName || "Specialty",
+            doctors: dept.doctorsCount ? Math.max(1, Math.round(dept.doctorsCount / rawSpecs.length)) : 3,
+            department: dept.name,
+            icon: Stethoscope,
+            color: colors[(deptIdx + specIdx) % colors.length],
+          });
+        });
+      } else if (dept.specialty && dept.specialty !== "General Specialty") {
+        // Fallback for comma separated specialties list
+        const parts = dept.specialty.split(",").map((s) => s.trim()).filter(Boolean);
+        parts.forEach((part, partIdx) => {
+          list.push({
+            name: part,
+            doctors: dept.doctorsCount ? Math.max(1, Math.round(dept.doctorsCount / parts.length)) : 3,
+            department: dept.name,
+            icon: Stethoscope,
+            color: colors[(deptIdx + partIdx) % colors.length],
+          });
+        });
+      }
+    });
+    return list;
+  }, [departments]);
+
+  // Dynamic filter lists
+  const availableSpecialtyOptions = useMemo(() => {
+    const names = Array.from(new Set(specialties.map((s) => s.name)));
+    return names;
+  }, [specialties]);
 
   // KPI calculations
   const totalDepts = departments.length;
@@ -331,9 +247,16 @@ export function DepartmentsSpecialtiesWorkspace() {
       dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       dept.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       dept.head.toLowerCase().includes(searchTerm.toLowerCase());
+    
     const matchesStatus =
       selectedStatusFilter === "All" || dept.status === selectedStatusFilter;
-    return matchesSearch && matchesStatus;
+
+    const matchesSpecialty =
+      selectedTypeFilter === "All" ||
+      (dept.specialty && dept.specialty.toLowerCase().includes(selectedTypeFilter.toLowerCase())) ||
+      (dept.rawSpecialties && dept.rawSpecialties.some((s: any) => (s.name || "").toLowerCase() === selectedTypeFilter.toLowerCase()));
+
+    return matchesSearch && matchesStatus && matchesSpecialty;
   });
 
   return (
@@ -503,7 +426,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                 borderRadius: "4px",
               }}
             >
-              +2 this year
+              Active Sys
             </span>
           </div>
         </div>
@@ -575,7 +498,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                 borderRadius: "4px",
               }}
             >
-              100% Covered
+              100% Dynamic
             </span>
           </div>
         </div>
@@ -707,7 +630,7 @@ export function DepartmentsSpecialtiesWorkspace() {
             }}
           >
             <span style={{ fontSize: "11px", color: "#94A3B8" }}>
-              Maintenance / Review
+              Offline / Pending
             </span>
             <span
               style={{
@@ -719,99 +642,10 @@ export function DepartmentsSpecialtiesWorkspace() {
                 borderRadius: "4px",
               }}
             >
-              Review Needed
+              Reviewing
             </span>
           </div>
         </div>
-      </div>
-
-      {/* ─── QUICK ACTIONS CARDS ─────────────────────────────────────────── */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "16px",
-        }}
-      >
-        {[
-          {
-            title: "Add Department",
-            desc: "Create a new medical department unit",
-            icon: Plus,
-            action: () => setIsAddModalOpen(true),
-          },
-          {
-            title: "Add Specialty",
-            desc: "Define new specialty consultation branch",
-            icon: Stethoscope,
-            action: () => {},
-          },
-          {
-            title: "View Structure",
-            desc: "Inspect hospital organizational hierarchy",
-            icon: Network,
-            action: () => {},
-          },
-          {
-            title: "Export List",
-            desc: "Download CSV/Excel department roster",
-            icon: Download,
-            action: () => {},
-          },
-        ].map((qa, i) => {
-          const IconC = qa.icon;
-          return (
-            <div
-              key={i}
-              onClick={qa.action}
-              style={{
-                background: "#FFFFFF",
-                borderRadius: "12px",
-                border: "1px solid #E5E7EB",
-                padding: "14px 16px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                transition: "all 0.15s ease",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
-              }}
-            >
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "12px" }}
-              >
-                <div
-                  style={{
-                    width: "36px",
-                    height: "36px",
-                    borderRadius: "8px",
-                    background: "#F1F5F9",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <IconC size={18} style={{ color: "#0D47A1" }} />
-                </div>
-                <div>
-                  <div
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 700,
-                      color: "#111827",
-                    }}
-                  >
-                    {qa.title}
-                  </div>
-                  <div style={{ fontSize: "11px", color: "#64748B" }}>
-                    {qa.desc}
-                  </div>
-                </div>
-              </div>
-              <ChevronRight size={16} style={{ color: "#94A3B8" }} />
-            </div>
-          );
-        })}
       </div>
 
       {/* ─── SEARCH & FILTER BAR ─────────────────────────────────────────── */}
@@ -830,14 +664,14 @@ export function DepartmentsSpecialtiesWorkspace() {
       >
         <div style={{ flex: 1, minWidth: "240px", position: "relative" }}>
           <Search
-            size={16}
-            style={{
-              position: "absolute",
-              left: "12px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              color: "#94A3B8",
-            }}
+             size={16}
+             style={{
+               position: "absolute",
+               left: "12px",
+               top: "50%",
+               transform: "translateY(-50%)",
+               color: "#94A3B8",
+             }}
           />
           <input
             type="text"
@@ -870,10 +704,11 @@ export function DepartmentsSpecialtiesWorkspace() {
             }}
           >
             <option value="All">All Specialties</option>
-            <option value="Cardiology">Cardiology</option>
-            <option value="Neurology">Neurology</option>
-            <option value="Pediatrics">Pediatrics</option>
-            <option value="Orthopedics">Orthopedics</option>
+            {availableSpecialtyOptions.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
           </select>
 
           <select
@@ -925,8 +760,6 @@ export function DepartmentsSpecialtiesWorkspace() {
         }}
       >
         {/* SECTION 01: DEPARTMENTS DATA TABLE */}
-
-        {/* SECTION 01: DEPARTMENTS DATA TABLE */}
         <div
           style={{
             background: "#FFFFFF",
@@ -962,7 +795,6 @@ export function DepartmentsSpecialtiesWorkspace() {
           </div>
 
           {filteredDepartments.length === 0 ? (
-            /* EMPTY STATE */
             <div style={{ padding: "48px 20px", textAlign: "center" }}>
               <Building
                 size={48}
@@ -986,8 +818,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                   margin: "0 0 16px 0",
                 }}
               >
-                Click "Add Department" to create your first hospital department
-                unit.
+                Click "Add Department" to create your first hospital department unit.
               </p>
               <button
                 onClick={() => setIsAddModalOpen(true)}
@@ -1102,43 +933,45 @@ export function DepartmentsSpecialtiesWorkspace() {
                       >
                         {dept.lastUpdated}
                       </td>
-                      <td style={{ padding: "12px 16px", textAlign: "right", display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-                        <button
-                          onClick={() => setSelectedDept(dept)}
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            padding: "6px 12px",
-                            borderRadius: "6px",
-                            border: "1px solid #0D47A1",
-                            background: "#FFFFFF",
-                            color: "#0D47A1",
-                            fontSize: "12px",
-                            fontWeight: 600,
-                            cursor: "pointer",
-                          }}
-                        >
-                          <Eye size={14} /> View Details
-                        </button>
-                        <button
-                          onClick={() => handleDeleteDepartment(dept.id, dept.name)}
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            padding: "6px 10px",
-                            borderRadius: "6px",
-                            border: "1px solid #EF4444",
-                            background: "#FEF2F2",
-                            color: "#EF4444",
-                            fontSize: "12px",
-                            fontWeight: 600,
-                            cursor: "pointer",
-                          }}
-                        >
-                          <Trash2 size={14} /> Delete
-                        </button>
+                      <td style={{ padding: "12px 16px", textAlign: "right" }}>
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+                          <button
+                            onClick={() => setSelectedDept(dept)}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              padding: "6px 12px",
+                              borderRadius: "6px",
+                              border: "1px solid #0D47A1",
+                              background: "#FFFFFF",
+                              color: "#0D47A1",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            <Eye size={14} /> View Details
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDepartment(dept.id, dept.name)}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              padding: "6px 10px",
+                              borderRadius: "6px",
+                              border: "1px solid #EF4444",
+                              background: "#FEF2F2",
+                              color: "#EF4444",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            <Trash2 size={14} /> Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1148,147 +981,149 @@ export function DepartmentsSpecialtiesWorkspace() {
           )}
         </div>
 
-        {/* SECTION 03: MEDICAL SPECIALTIES CARDS GRID */}
-        <div
-          style={{
-            background: "#FFFFFF",
-            borderRadius: "16px",
-            border: "1px solid #E5E7EB",
-            padding: "20px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-          }}
-        >
-          <h3
-            style={{
-              fontFamily: PP,
-              fontSize: "16px",
-              fontWeight: 700,
-              color: "#111827",
-              margin: "0 0 16px 0",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <Stethoscope size={18} style={{ color: "#009688" }} /> Medical
-            Specialties Catalog
-          </h3>
-
+        {/* SECTION 02: MEDICAL SPECIALTIES CARDS GRID */}
+        {specialties.length > 0 && (
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "14px",
+              background: "#FFFFFF",
+              borderRadius: "16px",
+              border: "1px solid #E5E7EB",
+              padding: "20px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
             }}
           >
-            {specialties.map((sp, idx) => {
-              const IconC = sp.icon;
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    background: "#F8FAFC",
-                    borderRadius: "12px",
-                    border: "1px solid #E2E8F0",
-                    padding: "14px",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: "10px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: "34px",
-                          height: "34px",
-                          borderRadius: "8px",
-                          background: "#FFFFFF",
-                          border: "1px solid #E2E8F0",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <IconC size={16} style={{ color: sp.color }} />
-                      </div>
-                      <span
-                        style={{
-                          fontSize: "10px",
-                          fontWeight: 600,
-                          background: "#E8F5E9",
-                          color: "#2E7D32",
-                          padding: "2px 6px",
-                          borderRadius: "4px",
-                        }}
-                      >
-                        Active
-                      </span>
-                    </div>
-                    <h4
-                      style={{
-                        fontFamily: PP,
-                        fontSize: "14px",
-                        fontWeight: 700,
-                        color: "#111827",
-                        margin: "0 0 4px 0",
-                      }}
-                    >
-                      {sp.name}
-                    </h4>
-                    <p
-                      style={{ fontSize: "11px", color: "#64748B", margin: 0 }}
-                    >
-                      Dept: {sp.department}
-                    </p>
-                  </div>
+            <h3
+              style={{
+                fontFamily: PP,
+                fontSize: "16px",
+                fontWeight: 700,
+                color: "#111827",
+                margin: "0 0 16px 0",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <Stethoscope size={18} style={{ color: "#009688" }} /> Medical
+              Specialties Catalog
+            </h3>
 
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                gap: "14px",
+              }}
+            >
+              {specialties.map((sp, idx) => {
+                const IconC = sp.icon;
+                return (
                   <div
+                    key={idx}
                     style={{
-                      marginTop: "12px",
-                      paddingTop: "8px",
-                      borderTop: "1px solid #E2E8F0",
+                      background: "#F8FAFC",
+                      borderRadius: "12px",
+                      border: "1px solid #E2E8F0",
+                      padding: "14px",
                       display: "flex",
-                      alignItems: "center",
+                      flexDirection: "column",
                       justifyContent: "space-between",
                     }}
                   >
-                    <span
-                      style={{
-                        fontSize: "11px",
-                        fontWeight: 600,
-                        color: "#0D47A1",
-                      }}
-                    >
-                      {sp.doctors} Doctors
-                    </span>
-                    <button
-                      style={{
-                        border: "none",
-                        background: "transparent",
-                        color: "#0D47A1",
-                        fontSize: "11px",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                      }}
-                    >
-                      Details →
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                    <div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          marginBottom: "10px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "34px",
+                            height: "34px",
+                            borderRadius: "8px",
+                            background: "#FFFFFF",
+                            border: "1px solid #E2E8F0",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <IconC size={16} style={{ color: sp.color }} />
+                        </div>
+                        <span
+                          style={{
+                            fontSize: "10px",
+                            fontWeight: 600,
+                            background: "#E8F5E9",
+                            color: "#2E7D32",
+                            padding: "2px 6px",
+                            borderRadius: "4px",
+                          }}
+                        >
+                          Active
+                        </span>
+                      </div>
+                      <h4
+                        style={{
+                          fontFamily: PP,
+                          fontSize: "14px",
+                          fontWeight: 700,
+                          color: "#111827",
+                          margin: "0 0 4px 0",
+                        }}
+                      >
+                        {sp.name}
+                      </h4>
+                      <p
+                        style={{ fontSize: "11px", color: "#64748B", margin: 0 }}
+                      >
+                        Dept: {sp.department}
+                      </p>
+                    </div>
 
-        {/* SECTION 04: DEPARTMENT HIERARCHY ORG CHART */}
+                    <div
+                      style={{
+                        marginTop: "12px",
+                        paddingTop: "8px",
+                        borderTop: "1px solid #E2E8F0",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          color: "#0D47A1",
+                        }}
+                      >
+                        {sp.doctors} Doctors
+                      </span>
+                      <button
+                        style={{
+                          border: "none",
+                          background: "transparent",
+                          color: "#0D47A1",
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Active Unit
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* SECTION 03: DEPARTMENT HIERARCHY ORG CHART */}
         <div
           style={{
             background: "#FFFFFF",
@@ -1326,7 +1161,6 @@ export function DepartmentsSpecialtiesWorkspace() {
               border: "1px solid #E2E8F0",
             }}
           >
-            {/* Level 1: Hospital */}
             <div
               style={{
                 background: "#0D47A1",
@@ -1339,13 +1173,12 @@ export function DepartmentsSpecialtiesWorkspace() {
                 boxShadow: "0 2px 4px rgba(13,71,161,0.2)",
               }}
             >
-              🏥 St. Jude General Hospital (Master Facility Node)
+              🏥 Jude General Hospital Master Facilities Directorate
             </div>
             <div
               style={{ width: "2px", height: "16px", background: "#CBD5E1" }}
             />
 
-            {/* Level 2: Medical Services */}
             <div
               style={{
                 background: "#009688",
@@ -1362,244 +1195,211 @@ export function DepartmentsSpecialtiesWorkspace() {
               style={{ width: "2px", height: "16px", background: "#CBD5E1" }}
             />
 
-            {/* Level 3: Department Nodes */}
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
+                gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
                 gap: "12px",
                 width: "100%",
               }}
             >
-              <div
-                style={{
-                  background: "#FFFFFF",
-                  border: "1px solid #CBD5E1",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  textAlign: "center",
-                }}
-              >
+              {departments.slice(0, 4).map((d) => (
                 <div
+                  key={d.id}
                   style={{
-                    fontWeight: 700,
-                    fontSize: "12px",
-                    color: "#111827",
+                    background: "#FFFFFF",
+                    border: "1px solid #CBD5E1",
+                    padding: "10px",
+                    borderRadius: "8px",
+                    textAlign: "center",
                   }}
                 >
-                  Clinical OPD & Inpatient
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      fontSize: "12px",
+                      color: "#111827",
+                    }}
+                  >
+                    {d.name}
+                  </div>
+                  <div style={{ fontSize: "10px", color: "#64748B" }}>
+                    Code: {d.code}
+                  </div>
                 </div>
-                <div style={{ fontSize: "10px", color: "#64748B" }}>
-                  Cardiology, Neuro, Ortho
+              ))}
+              {departments.length === 0 && (
+                <div style={{ textAlign: "center", width: "100%", color: "#94A3B8", fontSize: "12px", gridColumn: "1/-1" }}>
+                  Add departments to visualize organization hierarchy nodes.
                 </div>
-              </div>
-              <div
-                style={{
-                  background: "#FFFFFF",
-                  border: "1px solid #CBD5E1",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  textAlign: "center",
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: 700,
-                    fontSize: "12px",
-                    color: "#111827",
-                  }}
-                >
-                  Surgical Services
-                </div>
-                <div style={{ fontSize: "10px", color: "#64748B" }}>
-                  OT, Anesthesia, Trauma
-                </div>
-              </div>
-              <div
-                style={{
-                  background: "#FFFFFF",
-                  border: "1px solid #CBD5E1",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  textAlign: "center",
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: 700,
-                    fontSize: "12px",
-                    color: "#111827",
-                  }}
-                >
-                  Diagnostic & Support
-                </div>
-                <div style={{ fontSize: "10px", color: "#64748B" }}>
-                  Radiology, Pathology
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* SECTION 05: DEPARTMENT STATISTICS CHARTS */}
-        <div
-          style={{
-            background: "#FFFFFF",
-            borderRadius: "16px",
-            border: "1px solid #E5E7EB",
-            padding: "20px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-          }}
-        >
-          <h3
-            style={{
-              fontFamily: PP,
-              fontSize: "16px",
-              fontWeight: 700,
-              color: "#111827",
-              margin: "0 0 16px 0",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <BarChart2 size={18} style={{ color: "#009688" }} /> Department
-            Operational Statistics
-          </h3>
-
+        {/* SECTION 04: DEPARTMENT STATISTICS CHARTS */}
+        {departments.length > 0 && (
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "16px",
+              background: "#FFFFFF",
+              borderRadius: "16px",
+              border: "1px solid #E5E7EB",
+              padding: "20px",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
             }}
           >
-            {/* Doctor Distribution Bar Mock */}
-            <div
+            <h3
               style={{
-                background: "#F8FAFC",
-                borderRadius: "12px",
-                padding: "16px",
-                border: "1px solid #E2E8F0",
+                fontFamily: PP,
+                fontSize: "16px",
+                fontWeight: 700,
+                color: "#111827",
+                margin: "0 0 16px 0",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
               }}
             >
-              <h4
-                style={{
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  color: "#111827",
-                  margin: "0 0 12px 0",
-                }}
-              >
-                Doctor Allocation per Department
-              </h4>
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: "8px" }}
-              >
-                {[
-                  { dept: "General Medicine", count: 22, color: "#0D47A1" },
-                  { dept: "Cardiology", count: 18, color: "#EF4444" },
-                  { dept: "Gynecology", count: 16, color: "#E91E63" },
-                  { dept: "Orthopedics", count: 15, color: "#009688" },
-                ].map((d, i) => (
-                  <div key={i}>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        fontSize: "11px",
-                        marginBottom: "2px",
-                      }}
-                    >
-                      <span>{d.dept}</span>
-                      <span style={{ fontWeight: 600 }}>{d.count} Docs</span>
-                    </div>
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "8px",
-                        background: "#E2E8F0",
-                        borderRadius: "4px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: `${(d.count / 25) * 100}%`,
-                          height: "100%",
-                          background: d.color,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+              <BarChart2 size={18} style={{ color: "#009688" }} /> Department
+              Operational Statistics
+            </h3>
 
-            {/* Department Utilization Pie Mock */}
             <div
               style={{
-                background: "#F8FAFC",
-                borderRadius: "12px",
-                padding: "16px",
-                border: "1px solid #E2E8F0",
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+                gap: "16px",
               }}
             >
-              <h4
-                style={{
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  color: "#111827",
-                  margin: "0 0 12px 0",
-                }}
-              >
-                OPD Consultation Utilization
-              </h4>
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "16px",
-                  height: "120px",
+                  background: "#F8FAFC",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  border: "1px solid #E2E8F0",
                 }}
               >
-                <div
+                <h4
                   style={{
-                    width: "90px",
-                    height: "90px",
-                    borderRadius: "50%",
-                    background:
-                      "conic-gradient(#0D47A1 0% 40%, #009688 40% 70%, #F59E0B 70% 90%, #EF4444 90% 100%)",
-                  }}
-                />
-                <div
-                  style={{
-                    fontSize: "11px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "4px",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    color: "#111827",
+                    margin: "0 0 12px 0",
                   }}
                 >
-                  <span style={{ color: "#0D47A1", fontWeight: 600 }}>
-                    ■ Cardiology (40%)
-                  </span>
-                  <span style={{ color: "#009688", fontWeight: 600 }}>
-                    ■ Gen Medicine (30%)
-                  </span>
-                  <span style={{ color: "#F59E0B", fontWeight: 600 }}>
-                    ■ Pediatrics (20%)
-                  </span>
-                  <span style={{ color: "#EF4444", fontWeight: 600 }}>
-                    ■ Emergency (10%)
-                  </span>
+                  Physician Distribution
+                </h4>
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: "8px" }}
+                >
+                  {departments.slice(0, 5).map((d, i) => {
+                    const colors = ["#0D47A1", "#EF4444", "#E91E63", "#009688", "#9C27B0"];
+                    const maxVal = Math.max(...departments.map(x => x.doctorsCount), 1);
+                    return (
+                      <div key={d.id}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            fontSize: "11px",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          <span>{d.name}</span>
+                          <span style={{ fontWeight: 600 }}>{d.doctorsCount} Docs</span>
+                        </div>
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "8px",
+                            background: "#E2E8F0",
+                            borderRadius: "4px",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${(d.doctorsCount / maxVal) * 100}%`,
+                              height: "100%",
+                              background: colors[i % colors.length],
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: "#F8FAFC",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  border: "1px solid #E2E8F0",
+                }}
+              >
+                <h4
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    color: "#111827",
+                    margin: "0 0 12px 0",
+                  }}
+                >
+                  OPD Suites Allocated
+                </h4>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
+                >
+                  {departments.slice(0, 5).map((d, i) => {
+                    const colors = ["#009688", "#0D47A1", "#9C27B0", "#F59E0B", "#EF4444"];
+                    const maxVal = Math.max(...departments.map(x => x.consultationRooms), 1);
+                    return (
+                      <div key={d.id}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            fontSize: "11px",
+                            marginBottom: "2px",
+                          }}
+                        >
+                          <span>{d.name}</span>
+                          <span style={{ fontWeight: 600 }}>{d.consultationRooms} OPD Suites</span>
+                        </div>
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "8px",
+                            background: "#E2E8F0",
+                            borderRadius: "4px",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${(d.consultationRooms / maxVal) * 100}%`,
+                              height: "100%",
+                              background: colors[i % colors.length],
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* ─── SECTION 02: REUSABLE HMS RIGHT DRAWER (VIEW & EDIT MODES) ─────── */}
+      {/* ─── SECTION 05: REUSABLE HMS RIGHT DRAWER (VIEW & EDIT MODES) ─────── */}
       {selectedDept && (
         <div
           style={{
@@ -1623,7 +1423,6 @@ export function DepartmentsSpecialtiesWorkspace() {
               display: "flex",
               flexDirection: "column",
               justifyContent: "space-between",
-              animation: "slideInRight 0.3s ease-out",
             }}
           >
             {/* DRAWER HEADER */}
@@ -1652,24 +1451,42 @@ export function DepartmentsSpecialtiesWorkspace() {
                   >
                     {selectedDept.name}
                   </h3>
-                  <span
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: 600,
-                      padding: "2px 8px",
-                      borderRadius: "12px",
-                      background:
-                        selectedDept.status === "Active"
-                          ? "#E8F5E9"
-                          : "#FEF3C7",
-                      color:
-                        selectedDept.status === "Active"
-                          ? "#2E7D32"
-                          : "#B45309",
-                    }}
-                  >
-                    {selectedDept.status}
-                  </span>
+                  {isEditMode ? (
+                    <select
+                      value={selectedDept.status}
+                      onChange={(e) => setSelectedDept({ ...selectedDept, status: e.target.value as "Active" | "Inactive" })}
+                      style={{
+                        padding: "2px 8px",
+                        borderRadius: "8px",
+                        border: "1px solid #CBD5E1",
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        background: "#FFFFFF",
+                      }}
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        padding: "2px 8px",
+                        borderRadius: "12px",
+                        background:
+                          selectedDept.status === "Active"
+                            ? "#E8F5E9"
+                            : "#FEF3C7",
+                        color:
+                          selectedDept.status === "Active"
+                            ? "#2E7D32"
+                            : "#B45309",
+                      }}
+                    >
+                      {selectedDept.status}
+                    </span>
+                  )}
                 </div>
                 <p
                   style={{
@@ -1776,7 +1593,8 @@ export function DepartmentsSpecialtiesWorkspace() {
                     {isEditMode ? (
                       <input
                         type="text"
-                        defaultValue={selectedDept.name}
+                        value={selectedDept.name}
+                        onChange={(e) => setSelectedDept({ ...selectedDept, name: e.target.value })}
                         style={{
                           width: "100%",
                           padding: "6px 8px",
@@ -1800,24 +1618,91 @@ export function DepartmentsSpecialtiesWorkspace() {
                         marginBottom: "2px",
                       }}
                     >
-                      Medical Specialty
+                      Medical Specialties
                     </label>
                     {isEditMode ? (
-                      <input
-                        type="text"
-                        defaultValue={selectedDept.specialty}
-                        style={{
-                          width: "100%",
-                          padding: "6px 8px",
-                          borderRadius: "6px",
-                          border: "1px solid #CBD5E1",
-                          fontSize: "12px",
-                        }}
-                      />
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <div style={{ display: "flex", gap: "6px" }}>
+                          <input
+                            type="text"
+                            value={editSpecialtyInput}
+                            onChange={(e) => setEditSpecialtyInput(e.target.value)}
+                            placeholder="Add specialty..."
+                            style={{
+                              flex: 1,
+                              padding: "4px 8px",
+                              borderRadius: "6px",
+                              border: "1px solid #CBD5E1",
+                              fontSize: "11px",
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (editSpecialtyInput.trim()) {
+                                const newSpecObj = {
+                                  name: editSpecialtyInput.trim(),
+                                  code: `${selectedDept.code}_SPEC_${Date.now().toString(36).toUpperCase()}`,
+                                  description: `${editSpecialtyInput.trim()} Specialty`,
+                                  active: true,
+                                };
+                                setSelectedDept({
+                                  ...selectedDept,
+                                  rawSpecialties: [...(selectedDept.rawSpecialties || []), newSpecObj],
+                                  specialty: [...(selectedDept.rawSpecialties || []).map((s: any) => s.name || s.specialtyName), newSpecObj.name].join(", "),
+                                });
+                                setEditSpecialtyInput("");
+                              }
+                            }}
+                            style={{
+                              padding: "4px 8px",
+                              borderRadius: "6px",
+                              border: "none",
+                              background: "#009688",
+                              color: "#FFFFFF",
+                              fontSize: "11px",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Add
+                          </button>
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                          {(selectedDept.rawSpecialties || []).map((spec: any, idx: number) => {
+                            const specName = spec.name || spec.specialtyName;
+                            return (
+                              <span key={idx} style={{ display: "inline-flex", alignItems: "center", gap: "3px", background: "#E0F2F1", color: "#009688", padding: "1px 6px", borderRadius: "6px", fontSize: "10px", fontWeight: 600 }}>
+                                {specName}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const filtered = (selectedDept.rawSpecialties || []).filter((s: any) => (s.name || s.specialtyName) !== specName);
+                                    setSelectedDept({
+                                      ...selectedDept,
+                                      rawSpecialties: filtered,
+                                      specialty: filtered.map((s: any) => s.name || s.specialtyName).join(", "),
+                                    });
+                                  }}
+                                  style={{ border: "none", background: "transparent", color: "#EF4444", cursor: "pointer", padding: "0 1px", fontSize: "9px" }}
+                                >
+                                  ✕
+                                </button>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
                     ) : (
-                      <span style={{ fontWeight: 600, color: "#009688" }}>
-                        {selectedDept.specialty}
-                      </span>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginTop: "2px" }}>
+                        {(selectedDept.rawSpecialties || []).map((spec: any, idx: number) => (
+                          <span key={idx} style={{ background: "#E0F2F1", color: "#009688", padding: "2px 6px", borderRadius: "6px", fontSize: "11px", fontWeight: 600 }}>
+                            {spec.name || spec.specialtyName}
+                          </span>
+                        ))}
+                        {(!selectedDept.rawSpecialties || selectedDept.rawSpecialties.length === 0) && (
+                          <span style={{ fontWeight: 600, color: "#94A3B8" }}>None</span>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1866,7 +1751,8 @@ export function DepartmentsSpecialtiesWorkspace() {
                     {isEditMode ? (
                       <input
                         type="text"
-                        defaultValue={selectedDept.head}
+                        value={selectedDept.head}
+                        onChange={(e) => setSelectedDept({ ...selectedDept, head: e.target.value })}
                         style={{
                           width: "100%",
                           padding: "6px 8px",
@@ -1895,7 +1781,8 @@ export function DepartmentsSpecialtiesWorkspace() {
                     {isEditMode ? (
                       <input
                         type="text"
-                        defaultValue={selectedDept.workingHours}
+                        value={selectedDept.workingHours}
+                        onChange={(e) => setSelectedDept({ ...selectedDept, workingHours: e.target.value })}
                         style={{
                           width: "100%",
                           padding: "6px 8px",
@@ -1925,7 +1812,8 @@ export function DepartmentsSpecialtiesWorkspace() {
                   {isEditMode ? (
                     <textarea
                       rows={3}
-                      defaultValue={selectedDept.description}
+                      value={selectedDept.description}
+                      onChange={(e) => setSelectedDept({ ...selectedDept, description: e.target.value })}
                       style={{
                         width: "100%",
                         padding: "8px",
@@ -2195,22 +2083,95 @@ export function DepartmentsSpecialtiesWorkspace() {
                     marginBottom: "4px",
                   }}
                 >
-                  Medical Specialty / Description
+                  Medical Specialties (Add one or more) *
                 </label>
-                <input
-                  type="text"
-                  value={newDeptSpecialty}
-                  onChange={(e) => setNewDeptSpecialty(e.target.value)}
-                  placeholder="e.g. Nephrology & Renal Care"
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    border: "1px solid #D1D5DB",
-                    fontSize: "13px",
-                    boxSizing: "border-box",
-                  }}
-                />
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <input
+                    type="text"
+                    value={newSpecialtyInput}
+                    onChange={(e) => setNewSpecialtyInput(e.target.value)}
+                    placeholder="e.g. Renal Transplantation"
+                    style={{
+                      flex: 1,
+                      padding: "8px 12px",
+                      borderRadius: "8px",
+                      border: "1px solid #D1D5DB",
+                      fontSize: "13px",
+                      boxSizing: "border-box",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newSpecialtyInput.trim()) {
+                        setNewDeptSpecialties([...newDeptSpecialties, newSpecialtyInput.trim()]);
+                        setNewSpecialtyInput("");
+                      }
+                    }}
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: "8px",
+                      border: "none",
+                      background: "#009688",
+                      color: "#FFFFFF",
+                      fontSize: "12px",
+                      fontWeight: 650,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+                {newDeptSpecialties.length > 0 && (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: "6px",
+                      marginTop: "8px",
+                      padding: "8px",
+                      borderRadius: "8px",
+                      background: "#F8FAFC",
+                      border: "1px solid #E2E8F0",
+                    }}
+                  >
+                    {newDeptSpecialties.map((spec, idx) => (
+                      <span
+                        key={idx}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px",
+                          background: "#E0F2F1",
+                          color: "#009688",
+                          padding: "2px 8px",
+                          borderRadius: "6px",
+                          fontSize: "11px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {spec}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewDeptSpecialties(newDeptSpecialties.filter((s) => s !== spec));
+                          }}
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            color: "#EF4444",
+                            cursor: "pointer",
+                            padding: "0 2px",
+                            fontSize: "10px",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>

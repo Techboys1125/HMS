@@ -122,8 +122,8 @@ export function PatientTable({
 
       switch (sortColumn) {
         case "mrn":
-          valA = a.mrn || a.patientId || String(a.id);
-          valB = b.mrn || b.patientId || String(b.id);
+          valA = a.mrn || String(a.id);
+          valB = b.mrn || String(b.id);
           break;
         case "name":
           valA = (a.patientName || a.name || "").toLowerCase();
@@ -319,7 +319,7 @@ export function PatientTable({
             </thead>
             <tbody className="divide-y divide-gray-100">
               {sortedPatients.map((p) => {
-                const mrn = p.mrn || p.patientId || String(p.id);
+                const mrn = p.mrn || String(p.id);
                 const name = (p.patientName || p.name || "").trim();
                 const age = p.age || 0;
                 const gender = p.gender === "FEMALE" || p.gender === "F" ? "Female" : "Male";

@@ -15,6 +15,12 @@ const unwrapData = <T>(response: unknown): T | null => {
 };
 
 export const patientsApi = {
+  /**
+   * cURL:
+   * curl -X GET http://192.168.1.44:8081/api/v1/patients \
+   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
+   *   -H "Content-Type: application/json"
+   */
   async getAll(params?: {
     query?: string;
     page?: number;

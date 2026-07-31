@@ -9,10 +9,10 @@ export * from "./pages/PatientPrescriptionDetailsScreen";
 export * from "./pages/PatientPrescriptionsScreen";
 export * from "./pages/PatientProfileCenterScreen";
 export * from "./pages/PatientProfileScreen";
+export { PatientProfileScreen as ReceptionPatientProfileScreen } from "./pages/PatientProfileScreen";
 export * from "./pages/PatientSearchScreen";
 export * from "./pages/PatientTimelineScreen";
 export * from "./pages/PatientVisitHistoryScreen";
-export * from "./pages/ReceptionPatientProfileScreen";
 export * from "./pages/ReceptionPatientRegistrationScreen";
 export * from "./pages/RegisterPatientScreen";
 

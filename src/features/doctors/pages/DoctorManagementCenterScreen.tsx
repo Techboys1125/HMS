@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronRight, UserPlus, RefreshCw, CheckCircle2 } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
@@ -15,6 +15,7 @@ import { AddDoctorDrawer } from "../components/AddDoctorDrawer";
 import { EditDoctorDrawer } from "../components/EditDoctorDrawer";
 import { DoctorProfileScreen } from "../components/DoctorProfileScreen";
 import { doctorsService } from "../services/doctors.service";
+import { departmentsApi } from "../../users/api/departments.api";
 
 export function DoctorManagementCenterScreen() {
   const { doctors, setDoctors, totalDoctorsCount, availableTodayCount, onLeaveCount, departmentsCoveredCount, addDoctor, replaceDoctor, deactivateDoctor } = useDoctors();
@@ -42,29 +43,37 @@ export function DoctorManagementCenterScreen() {
     }
   };
 
-  React.useEffect(() => {
+  const [departments, setDepartments] = useState<string[]>([]);
+
+  useEffect(() => {
     fetchDoctorList();
+    departmentsApi.getDepartmentLookup(true).then((list) => {
+      setDepartments(list.map(d => d.departmentName));
+    }).catch(() => {});
   }, []);
 
 
   const handleAddDoctorSubmit = (newDoctor: DoctorRecord) => {
     addDoctor(newDoctor);
-    showToast(`Doctor ${newDoctor.name} created successfully.`);
     setShowAddDrawer(false);
+    fetchDoctorList().catch(() => {});
+    showToast(`Doctor ${newDoctor.name} created successfully.`);
   };
 
   const handleSaveEditDoctor = (updatedDoc: DoctorRecord) => {
     replaceDoctor(updatedDoc);
-    showToast("Doctor information updated successfully.");
     setEditingDoctor(null);
+    fetchDoctorList().catch(() => {});
+    showToast("Doctor information updated successfully.");
   };
 
   const handleConfirmDeactivate = () => {
     if (!deactivateDialogDoctor) return;
     deactivateDoctor(deactivateDialogDoctor.id);
-    showToast(`Doctor ${deactivateDialogDoctor.name} has been deactivated.`);
     setDeactivateDialogDoctor(null);
     setEditingDoctor(null);
+    fetchDoctorList().catch(() => {});
+    showToast(`Doctor ${deactivateDialogDoctor.name} has been deactivated.`);
   };
 
   const handleResetAllFilters = () => {
@@ -138,6 +147,7 @@ export function DoctorManagementCenterScreen() {
         experienceFilter={experienceFilter}
         setExperienceFilter={setExperienceFilter}
         onResetFilters={handleResetAllFilters}
+        departments={departments}
       />
 
       <DoctorTable

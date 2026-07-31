@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { patientKeys } from "./usePatients";
 import { patientService } from "../services/patient.service";
-import type { UpdatePatientRequest } from "../types/patient.types";
+
 
 export function useUpdatePatient() {
   const queryClient = useQueryClient();

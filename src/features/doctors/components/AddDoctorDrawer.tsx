@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   UserPlus,
   X,
@@ -16,6 +16,7 @@ import {
 import type { DoctorRecord } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
 import { doctorsService } from "../services/doctors.service";
+import { departmentsApi, type ApiDepartmentLookupItem } from "../../users/api/departments.api";
 
 export interface AddDoctorDrawerProps {
   isOpen: boolean;
@@ -47,6 +48,25 @@ export function AddDoctorDrawer({
   const [department, setDepartment] = useState("Cardiology");
   const [specialty, setSpecialty] = useState("");
   const [bio, setBio] = useState("");
+
+  const [lookupList, setLookupList] = useState<ApiDepartmentLookupItem[]>([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      departmentsApi.getDepartmentLookup(true).then((list) => {
+        setLookupList(list);
+        if (list.length > 0) {
+          const cardioDept = list.find(d => d.departmentName.toLowerCase() === "cardiology") || list[0];
+          setDepartment(cardioDept.departmentName);
+          if (cardioDept.specialties && cardioDept.specialties.length > 0) {
+            setSpecialty(cardioDept.specialties[0].name);
+          } else {
+            setSpecialty("");
+          }
+        }
+      }).catch((err) => console.warn("Failed to load departments lookup:", err));
+    }
+  }, [isOpen]);
 
   const [consultationFee, setConsultationFee] = useState<number | "">(150);
   const [followUpFee, setFollowUpFee] = useState<number | "">(80);
@@ -104,6 +124,7 @@ export function AddDoctorDrawer({
   const [sendCredentialsEmail, setSendCredentialsEmail] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -171,8 +192,6 @@ export function AddDoctorDrawer({
     return true;
   };
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -197,6 +216,22 @@ export function AddDoctorDrawer({
 
     const slotMins = parseInt(slotDuration) || 15;
 
+    const cleanName = fullName.replace(/^Dr\.?\s*/i, "");
+    const doctorCode = cleanName
+      .split(" ")
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 4) || cleanName.slice(0, 2).toUpperCase();
+
+    const selectedDeptObj = lookupList.find((d) => d.departmentName === department);
+    const departmentSpecialties = selectedDeptObj ? selectedDeptObj.specialties : [];
+    const specObj = departmentSpecialties.find((s) => s.name === specialty);
+
+    const primaryDeptId = selectedDeptObj ? Number(selectedDeptObj.departmentId) : 1;
+    const primarySpecId = specObj ? Number(specObj.id) : 1;
+
     const payload = {
       fullName: fullName.startsWith("Dr.") ? fullName : `Dr. ${fullName}`,
       email,
@@ -211,9 +246,10 @@ export function AddDoctorDrawer({
       medicalRegistrationNumber: regNumber,
       qualification,
       yearsOfExperience: Number(experienceYrs) || 5,
-      primaryDepartmentId: 1,
+      doctorCode,
+      primaryDepartmentId: primaryDeptId,
       secondaryDepartmentIds: [],
-      primarySpecialtyId: 1,
+      primarySpecialtyId: primarySpecId,
       secondarySpecialtyIds: [],
       consultationFee: Number(consultationFee) || 150,
       followUpFee: Number(followUpFee) || 80,
@@ -263,6 +299,9 @@ export function AddDoctorDrawer({
       setIsSubmitting(false);
     }
   };
+
+  const selectedDeptObj = lookupList.find((d) => d.departmentName === department);
+  const departmentSpecialties = selectedDeptObj ? selectedDeptObj.specialties : [];
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
@@ -592,45 +631,51 @@ export function AddDoctorDrawer({
                 <select
                   value={department}
                   onChange={(e) => {
-                    setDepartment(e.target.value);
+                    const deptName = e.target.value;
+                    setDepartment(deptName);
                     if (errors.department)
                       setErrors({ ...errors, department: "" });
+                    const deptObj = lookupList.find((d) => d.departmentName === deptName);
+                    if (deptObj && deptObj.specialties && deptObj.specialties.length > 0) {
+                      setSpecialty(deptObj.specialties[0].name);
+                    } else {
+                      setSpecialty("");
+                    }
                   }}
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1] focus:bg-white"
                 >
-                  <option value="Cardiology">Cardiology</option>
-                  <option value="General Medicine">General Medicine</option>
-                  <option value="Neurology">Neurology</option>
-                  <option value="Orthopedics">Orthopedics</option>
-                  <option value="Pediatrics">Pediatrics</option>
-                  <option value="Obstetrics & Gynecology">
-                    Obstetrics & Gynecology
-                  </option>
-                  <option value="Dermatology">Dermatology</option>
-                  <option value="ENT">ENT</option>
-                  <option value="Ophthalmology">Ophthalmology</option>
-                  <option value="Pulmonology">Pulmonology</option>
+                  {lookupList.length === 0 && (
+                    <option value="">Loading departments...</option>
+                  )}
+                  {lookupList.map((d) => (
+                    <option key={d.departmentId} value={d.departmentName}>
+                      {d.departmentName}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-bold text-[#111827] mb-1">
                   Specialty <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Interventional Cardiology"
+                <select
                   value={specialty}
                   onChange={(e) => {
                     setSpecialty(e.target.value);
                     if (errors.specialty)
                       setErrors({ ...errors, specialty: "" });
                   }}
-                  className={`w-full px-3 py-2 text-xs bg-slate-50 border rounded-xl text-[#111827] outline-none focus:bg-white transition-colors ${
-                    errors.specialty
-                      ? "border-[#EF4444] bg-red-50/50"
-                      : "border-[#E5E7EB] focus:border-[#0D47A1]"
-                  }`}
-                />
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1] focus:bg-white"
+                >
+                  {departmentSpecialties.length === 0 && (
+                    <option value="">No specialties available</option>
+                  )}
+                  {departmentSpecialties.map((s) => (
+                    <option key={s.id} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
                 {errors.specialty && (
                   <p className="text-[11px] text-[#EF4444] font-medium mt-1">
                     {errors.specialty}

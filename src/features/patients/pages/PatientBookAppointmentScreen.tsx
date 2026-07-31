@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   RefreshCw,
   ChevronLeft,
@@ -14,7 +14,9 @@ import {
   Check,
 } from "lucide-react";
 import type { PatientAppointment } from "../types/patient.types";
-import { PP, RB, MOCK_BOOKING_DOCTORS } from "../constants/patient.mock";
+import type { DoctorSummary } from "../../appointments/types/appointment.types";
+import { PP, RB } from "../constants/patient.mock";
+import { appointmentService } from "../../appointments/services/appointment.service";
 
 export function PatientBookAppointmentScreen({
   onBack,
@@ -28,7 +30,7 @@ export function PatientBookAppointmentScreen({
   // Form State
   const [selectedDept, setSelectedDept] = useState("Cardiology");
   const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties");
-  const [selectedDoctorId, setSelectedDoctorId] = useState("DOC-1");
+  const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [selectedDate, setSelectedDate] = useState("2025-03-30");
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("10:30 AM");
   const [visitType, setVisitType] = useState<"New Consultation" | "Follow-up">(
@@ -47,9 +49,38 @@ export function PatientBookAppointmentScreen({
     null,
   );
   const [showSuccessView, setShowSuccessView] = useState(false);
+  const [doctors, setDoctors] = useState<DoctorSummary[]>([]);
+
+  useEffect(() => {
+    appointmentService.listDoctors().then((data) => {
+      setDoctors(data);
+    }).catch(() => {});
+  }, []);
+
+  const mappedDoctors = doctors.map((d) => ({
+    id: String(d.id),
+    name: d.name,
+    qualification: d.qualification || "",
+    specialization: d.specialty || "",
+    department: d.departmentName || d.department || "",
+    consultationFee: d.consultationFee ? `$${Number(d.consultationFee).toFixed(2)}` : "$0.00",
+    avatar: d.name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .replace("Dr", "")
+      .trim()
+      .slice(0, 2)
+      .toUpperCase() || d.name.slice(0, 2).toUpperCase(),
+    availableToday: true,
+    availability: "Available Today",
+    rating: "0",
+    reviewCount: 0,
+    experience: "",
+  }));
 
   // Filtered Doctors by Department & Specialty
-  const availableDoctors = MOCK_BOOKING_DOCTORS.filter((doc) => {
+  const availableDoctors = mappedDoctors.filter((doc) => {
     if (selectedDept !== "All" && doc.department !== selectedDept) return false;
     if (
       selectedSpecialty !== "All Specialties" &&
@@ -61,9 +92,9 @@ export function PatientBookAppointmentScreen({
 
   // Selected Doctor Object
   const selectedDoctor =
-    MOCK_BOOKING_DOCTORS.find((d) => d.id === selectedDoctorId) ||
+    mappedDoctors.find((d) => d.id === selectedDoctorId) ||
     availableDoctors[0] ||
-    MOCK_BOOKING_DOCTORS[0];
+    mappedDoctors[0];
 
   // Specialties mapping by department
   const departmentSpecialties: Record<string, string[]> = {
@@ -135,7 +166,7 @@ export function PatientBookAppointmentScreen({
         id: generatedId,
         date: selectedDate,
         time: selectedTimeSlot,
-        doctor: selectedDoctor ? selectedDoctor.name : "Dr. Arjun Mehta",
+        doctor: selectedDoctor?.name || "Not Selected",
         specialty: selectedDoctor
           ? selectedDoctor.specialization
           : "Senior Cardiologist",

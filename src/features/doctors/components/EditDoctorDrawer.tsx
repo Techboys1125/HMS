@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Edit,
   X,
@@ -17,6 +17,7 @@ import {
 import type { DoctorRecord, DoctorStatus } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
 import { doctorsService } from "../services/doctors.service";
+import { departmentsApi, type ApiDepartmentLookupItem } from "../../users/api/departments.api";
 
 export interface EditDoctorDrawerProps {
   isOpen: boolean;
@@ -55,6 +56,28 @@ export function EditDoctorDrawer({
   const [department, setDepartment] = useState(doctor?.department || "");
   const [specialty, setSpecialty] = useState(doctor?.specialty || "");
   const [bio, setBio] = useState(doctor?.bio || "");
+
+  const [lookupList, setLookupList] = useState<ApiDepartmentLookupItem[]>([]);
+
+  useEffect(() => {
+    if (isOpen && doctor) {
+      departmentsApi.getDepartmentLookup(true).then((list) => {
+        setLookupList(list);
+        if (doctor.department) {
+          setDepartment(doctor.department);
+          setSpecialty(doctor.specialty || "");
+        } else if (list.length > 0) {
+          const firstDept = list[0];
+          setDepartment(firstDept.departmentName);
+          if (firstDept.specialties && firstDept.specialties.length > 0) {
+            setSpecialty(firstDept.specialties[0].name);
+          } else {
+            setSpecialty("");
+          }
+        }
+      }).catch((err) => console.warn("Failed to load departments lookup:", err));
+    }
+  }, [isOpen, doctor]);
 
   const [consultationFee, setConsultationFee] = useState<number | "">(
     doctor?.consultationFee || 0,
@@ -191,6 +214,13 @@ export function EditDoctorDrawer({
 
     const slotMins = parseInt(slotDuration) || 15;
 
+    const selectedDeptObj = lookupList.find((d) => d.departmentName === department);
+    const departmentSpecialties = selectedDeptObj ? selectedDeptObj.specialties : [];
+    const specObj = departmentSpecialties.find((s) => s.name === specialty);
+
+    const primaryDeptId = selectedDeptObj ? Number(selectedDeptObj.departmentId) : undefined;
+    const primarySpecId = specObj ? Number(specObj.id) : undefined;
+
     const updatedDoctor: DoctorRecord = {
       ...doctor,
       name: fullName,
@@ -203,7 +233,9 @@ export function EditDoctorDrawer({
       qualification,
       experienceYrs: Number(experienceYrs) || doctor.experienceYrs,
       department,
+      primaryDepartmentId: primaryDeptId,
       specialty,
+      primarySpecialtyId: primarySpecId,
       bio,
       consultationFee: Number(consultationFee) || doctor.consultationFee,
       followUpFee: Number(followUpFee) || 80,
@@ -225,6 +257,8 @@ export function EditDoctorDrawer({
         medicalRegistrationNumber: regNumber,
         qualification,
         yearsOfExperience: Number(experienceYrs) || 5,
+        primaryDepartmentId: primaryDeptId,
+        primarySpecialtyId: primarySpecId,
         consultationFee: Number(consultationFee) || 150,
         followUpFee: Number(followUpFee) || 80,
         slotDurationMinutes: slotMins,
@@ -239,6 +273,9 @@ export function EditDoctorDrawer({
       setIsSubmitting(false);
     }
   };
+
+  const selectedDeptObj = lookupList.find((d) => d.departmentName === department);
+  const departmentSpecialties = selectedDeptObj ? selectedDeptObj.specialties : [];
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
@@ -579,8 +616,15 @@ export function EditDoctorDrawer({
                 <select
                   value={department}
                   onChange={(e) => {
-                    setDepartment(e.target.value);
+                    const deptName = e.target.value;
+                    setDepartment(deptName);
                     if (errors.department) setErrors({ ...errors, department: "" });
+                    const deptObj = lookupList.find((d) => d.departmentName === deptName);
+                    if (deptObj && deptObj.specialties && deptObj.specialties.length > 0) {
+                      setSpecialty(deptObj.specialties[0].name);
+                    } else {
+                      setSpecialty("");
+                    }
                   }}
                   className={`w-full px-3 py-2 text-xs border rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1] focus:bg-white ${
                     isFieldModified("department", department)
@@ -588,16 +632,14 @@ export function EditDoctorDrawer({
                       : "bg-slate-50 border-[#E5E7EB]"
                   }`}
                 >
-                  <option value="Cardiology">Cardiology</option>
-                  <option value="General Medicine">General Medicine</option>
-                  <option value="Neurology">Neurology</option>
-                  <option value="Orthopedics">Orthopedics</option>
-                  <option value="Pediatrics">Pediatrics</option>
-                  <option value="Obstetrics & Gynecology">Obstetrics & Gynecology</option>
-                  <option value="Dermatology">Dermatology</option>
-                  <option value="ENT">ENT</option>
-                  <option value="Ophthalmology">Ophthalmology</option>
-                  <option value="Pulmonology">Pulmonology</option>
+                  {lookupList.length === 0 && (
+                    <option value="">Loading departments...</option>
+                  )}
+                  {lookupList.map((d) => (
+                    <option key={d.departmentId} value={d.departmentName}>
+                      {d.departmentName}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -609,19 +651,27 @@ export function EditDoctorDrawer({
                     <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
                   )}
                 </div>
-                <input
-                  type="text"
+                <select
                   value={specialty}
                   onChange={(e) => {
                     setSpecialty(e.target.value);
                     if (errors.specialty) setErrors({ ...errors, specialty: "" });
                   }}
-                  className={`w-full px-3 py-2 text-xs border rounded-xl text-[#111827] outline-none transition-colors ${
+                  className={`w-full px-3 py-2 text-xs border rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1] focus:bg-white ${
                     isFieldModified("specialty", specialty)
                       ? "border-[#009688] bg-teal-50/20"
                       : "bg-slate-50 border-[#E5E7EB]"
-                  } ${errors.specialty ? "border-[#EF4444] bg-red-50/50" : "focus:border-[#0D47A1] focus:bg-white"}`}
-                />
+                  }`}
+                >
+                  {departmentSpecialties.length === 0 && (
+                    <option value="">No specialties available</option>
+                  )}
+                  {departmentSpecialties.map((s) => (
+                    <option key={s.id} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
                 {errors.specialty && (
                   <p className="text-[11px] text-[#EF4444] font-medium mt-1">{errors.specialty}</p>
                 )}

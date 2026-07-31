@@ -55,6 +55,7 @@ export type FamilyRelationshipEnum =
 export interface DoctorSummary {
   id: number | string;
   name: string;
+  departmentId?: number | string;
   departmentName?: string;
   department?: string;
   specialty?: string;
@@ -134,10 +135,11 @@ export interface AppointmentRecord {
   visitType?: string;
   chiefComplaint?: string;
   notes?: string;
+  feeAmount?: number;
 }
 
 export interface CreateAppointmentRequest {
-  patientId: string | number;
+  mrn: string;
   doctorId: number | string;
   appointmentDate: string;
   startTime: string;
@@ -173,6 +175,12 @@ export interface QueueActionResponse {
   appointmentTime?: string;
   consultationStartTime?: string;
   consultationEndTime?: string;
+}
+
+export interface Department {
+  id: number | string;
+  departmentName: string;
+  departmentCode?: string;
 }
 
 export interface OnboardingStatusResponse {

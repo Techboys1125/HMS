@@ -78,7 +78,7 @@ export function EditPatientScreen({
   patient?: Patient;
   patientMrn?: string;
 }) {
-  const activeMrn = patientMrn || patient?.mrn || patient?.patientId;
+  const activeMrn = patientMrn || patient?.mrn;
   const { data: fetchedPatient, isLoading: isFetching } = usePatient(
     activeMrn && !patient ? activeMrn : undefined,
   );

@@ -64,7 +64,6 @@ export interface Address {
 export interface Patient {
   id: number;
   name: string;
-  patientId: string;
   mrn: string;
   patientName: string;
   age: number;
@@ -373,14 +372,20 @@ export type ChipVariant =
   | "info"
   | "teal"
   | "default";
-export interface ReceptionPatientProfileScreenProps {
+export interface PatientProfileScreenProps {
   onBack?: () => void;
   onEditPatient?: () => void;
+  onEdit?: () => void;
   onBookAppointment?: (mrn?: string) => void;
   onCheckInClick?: (token?: string, mrn?: string) => void;
+  onStartConsultation?: () => void;
+  onRecordVitals?: () => void;
   patientMrn?: string;
   userRole?: string;
+  role?: string;
 }
+
+export type ReceptionPatientProfileScreenProps = PatientProfileScreenProps;
 
 export interface PatientPrescriptionItem {
   id: string;

@@ -1,44 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { usersApi } from "../api/users.api";
+import { departmentsApi, type ApiDepartmentLookupItem } from "../api/departments.api";
 import type {
   AdminCreateStaffData,
   AdminCreateDoctorStaffData,
 } from "../types/users.types";
-
-export const SPECIALTY_NAME_TO_ID: Record<string, number> = {
-  "General Cardiology": 1,
-  "Interventional Cardiology": 2,
-  Electrophysiology: 3,
-  "Pediatric Cardiology": 4,
-  "Cardiovascular Surgery": 5,
-  "Internal Medicine": 6,
-  "Family Medicine": 7,
-  "Geriatric Medicine": 8,
-  "Preventive Care": 9,
-  "General Practice": 10,
-  "Clinical Neurology": 11,
-  Neurosurgery: 12,
-  "Neuro-Oncology": 13,
-  "Neuro-Immunology": 14,
-  "Stroke Medicine": 15,
-  "Hospital Management": 16,
-  "Clinical Administration": 17,
-  "Operations Support": 18,
-  "Patient Coordination": 19,
-  "Outpatient Registrations": 20,
-  "Customer Relations": 21,
-  "Patient Billing": 22,
-  "Medical Insurance Auditing": 23,
-  "Financial Accounting": 24,
-  "Critical Care Nursing": 25,
-  "Emergency Care Nursing": 26,
-  "Pediatric Nursing": 27,
-  "General Ward Nursing": 28,
-  "System Administration": 29,
-  "Healthcare Informatics": 30,
-  "Network Security": 31,
-};
 
 export interface FormValues {
   fullName: string;
@@ -115,12 +82,25 @@ const getRolePrefix = (role: string) => {
   }
 };
 
+const getApiGender = (genderStr: string): "MALE" | "FEMALE" | "OTHER" => {
+  if (genderStr === "Male" || genderStr === "MALE") return "MALE";
+  if (genderStr === "Female" || genderStr === "FEMALE") return "FEMALE";
+  return "OTHER";
+};
+
 export const useCreateStaffForm = (
   triggerToast: (msg: string, type?: "success" | "error") => void,
   onSuccess?: () => void,
   onBack?: () => void,
 ) => {
   const navigate = useNavigate();
+  const [departmentsList, setDepartmentsList] = useState<ApiDepartmentLookupItem[]>([]);
+
+  useEffect(() => {
+    departmentsApi.getDepartmentLookup(true).then((list) => {
+      setDepartmentsList(list);
+    }).catch(() => {});
+  }, []);
 
   const [form, setForm] = useState<FormValues>({
     fullName: "",
@@ -495,20 +475,14 @@ export const useCreateStaffForm = (
 
     setIsSubmitting(true);
     try {
-      const departmentMapping: Record<string, number> = {
-        Cardiology: 1,
-        "General Medicine": 2,
-        Neurology: 3,
-        Administration: 4,
-        "OPD Reception": 5,
-        "Accounts & Billing": 6,
-        "Nursing & Patient Care": 7,
-        "IT & Systems": 8,
-      };
+      const matchedPrimaryDept = departmentsList.find((d) => d.departmentName === form.primaryDepartment);
+      const finalDeptId = matchedPrimaryDept ? Number(matchedPrimaryDept.departmentId) : 2;
 
-      const finalDeptId = departmentMapping[form.primaryDepartment] || 2;
-      const secondaryDeptIds = form.secondaryDepartment
-        ? [departmentMapping[form.secondaryDepartment] || 2]
+      const matchedSecondaryDept = form.secondaryDepartment
+        ? departmentsList.find((d) => d.departmentName === form.secondaryDepartment)
+        : null;
+      const secondaryDeptIds = matchedSecondaryDept
+        ? [Number(matchedSecondaryDept.departmentId)]
         : [];
       const apiRole = form.role;
 
@@ -521,6 +495,12 @@ export const useCreateStaffForm = (
         email: form.email,
         mobile: finalMobile,
         role: apiRole,
+        gender: getApiGender(form.gender),
+        dateOfBirth: form.dob || undefined,
+        residentialAddress: form.residentialAddress || undefined,
+        photoUrl: form.photoUrl || undefined,
+        photo: form.photoUrl || undefined,
+        sendCredentials: form.sendCredentials,
         departmentId: finalDeptId,
         primaryDepartmentId: finalDeptId,
         secondaryDepartmentIds: secondaryDeptIds,
@@ -533,7 +513,7 @@ export const useCreateStaffForm = (
       let response;
       if (form.role === "DOCTOR") {
         const backendAvailabilityList = Object.entries(form.availability)
-          .filter(([_, sched]) => sched.isAvailable)
+          .filter(([, sched]) => sched.isAvailable)
           .map(([day, sched]) => ({
             dayOfWeek: day.toUpperCase(),
             startTime:
@@ -569,16 +549,27 @@ export const useCreateStaffForm = (
           }),
         );
 
-        const primaryId = SPECIALTY_NAME_TO_ID[form.primarySpecialty] || 1;
-        const secondaryIds = form.secondarySpecialty
-          ? [SPECIALTY_NAME_TO_ID[form.secondarySpecialty] || 2]
-          : [];
+        let primaryId = 1;
+        if (matchedPrimaryDept && matchedPrimaryDept.specialties) {
+          const matchedSpec = matchedPrimaryDept.specialties.find((s) => s.name === form.primarySpecialty);
+          if (matchedSpec) {
+            primaryId = Number(matchedSpec.id);
+          }
+        }
+
+        let secondaryIds: number[] = [];
+        if (matchedSecondaryDept && matchedSecondaryDept.specialties && form.secondarySpecialty) {
+          const matchedSpec = matchedSecondaryDept.specialties.find((s) => s.name === form.secondarySpecialty);
+          if (matchedSpec) {
+            secondaryIds = [Number(matchedSpec.id)];
+          }
+        }
 
         const doctorPayload: AdminCreateDoctorStaffData = {
           fullName: form.fullName,
           email: form.email,
           mobile: finalMobile,
-          gender: form.gender || "MALE",
+          gender: getApiGender(form.gender),
           dateOfBirth: form.dob || form.dateOfBirth || undefined,
           photo: form.photoUrl || undefined,
           photoUrl: form.photoUrl || undefined,
@@ -659,6 +650,9 @@ export const useCreateStaffForm = (
         errMsg =
           resData?.message ||
           "Internal server error occurred on the backend. Please check staff details and try again.";
+      } else if (resData?.errors && Array.isArray(resData.errors) && resData.errors.length > 0) {
+        const details = resData.errors.map((e: any) => e.message || e.defaultMessage || JSON.stringify(e)).join(", ");
+        errMsg = `${resData.message}: ${details}`;
       } else if (resData?.message) {
         errMsg = resData.message;
       }

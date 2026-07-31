@@ -19,9 +19,11 @@ export type {
   UserRole,
   TimelineActivity,
   AppointmentManagementCenterScreenProps,
-  ReceptionBookAppointmentScreenProps,
+  BookAppointmentScreenProps,
+  BookAppointmentScreenProps as ReceptionBookAppointmentScreenProps,
   PatientCheckInScreenProps,
-  ReceptionQueueManagementScreenProps,
+  QueueManagementScreenProps,
+  QueueManagementScreenProps as ReceptionQueueManagementScreenProps,
 } from "./types/appointment-screen.types";
 export { appointmentsApi } from "./api/appointments.api";
 export { appointmentService } from "./services/appointment.service";
@@ -49,11 +51,9 @@ export {
   AppointmentManagementCenterScreen,
   AppointmentCenterScreen,
 } from "./pages/AppointmentManagementCenterScreen";
-export {
-  ReceptionBookAppointmentScreen,
-  PatientCheckInScreen,
-  ReceptionQueueManagementScreen,
-} from "../reception";
+export { BookAppointmentScreen, BookAppointmentScreen as ReceptionBookAppointmentScreen } from "./pages/BookAppointmentScreen";
+export { QueueManagementScreen, QueueManagementScreen as ReceptionQueueManagementScreen } from "./pages/QueueManagementScreen";
+export { PatientCheckInScreen } from "./pages/PatientCheckInScreen";
 
 // Reception Feature Integration
 export {

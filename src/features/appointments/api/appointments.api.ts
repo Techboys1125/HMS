@@ -22,6 +22,12 @@ const handleApiError = (error: unknown): never => {
 };
 
 export const appointmentsApi = {
+  /**
+   * cURL:
+   * curl -X GET http://192.168.1.44:8081/api/v1/appointments \
+   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
+   *   -H "Content-Type: application/json"
+   */
   getAppointments: async (params?: {
     doctorId?: string | number;
     patientId?: string | number;
@@ -55,6 +61,13 @@ export const appointmentsApi = {
     }
   },
 
+  /**
+   * cURL:
+   * curl -X POST http://192.168.1.44:8081/api/v1/appointments \
+   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
+   *   -H "Content-Type: application/json" \
+   *   -d '{"mrn":"MRN-001","doctorId":101,"appointmentDate":"2026-07-24","startTime":"09:00 AM","appointmentType":"CONSULTATION","reason":"Routine checkup","symptoms":"Mild fever"}'
+   */
   createAppointment: async (
     data: CreateAppointmentRequest,
   ): Promise<ApiResponse<AppointmentRecord>> => {
@@ -69,6 +82,12 @@ export const appointmentsApi = {
     }
   },
 
+  /**
+   * cURL:
+   * curl -X GET http://192.168.1.44:8081/api/v1/appointments/1 \
+   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
+   *   -H "Content-Type: application/json"
+   */
   getAppointmentById: async (
     appointmentId: string | number,
   ): Promise<ApiResponse<AppointmentRecord>> => {
@@ -230,17 +249,14 @@ export const appointmentsApi = {
     }
   },
 
-  getDepartments: async (): Promise<ApiResponse<unknown[]>> => {
-    try {
-      const response = await apiClient.get<ApiResponse<unknown[]>>(
-        "/api/v1/departments",
-      );
-      return response.data;
-    } catch (error: unknown) {
-      return handleApiError(error);
-    }
-  },
 
+
+  /**
+   * cURL:
+   * curl -X GET "http://192.168.1.44:8081/api/v1/doctors?departmentId=2" \
+   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
+   *   -H "Content-Type: application/json"
+   */
   getDoctors: async (
     departmentId?: string | number,
   ): Promise<ApiResponse<DoctorSummary[]>> => {
@@ -256,6 +272,12 @@ export const appointmentsApi = {
     }
   },
 
+  /**
+   * cURL:
+   * curl -X GET "http://192.168.1.44:8081/api/v1/doctors/101/slots?date=2026-07-24" \
+   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
+   *   -H "Content-Type: application/json"
+   */
   getAvailableSlots: async (
     doctorId: string | number,
     date: string,

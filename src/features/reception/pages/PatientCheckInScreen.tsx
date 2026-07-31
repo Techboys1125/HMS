@@ -6,9 +6,6 @@ import {
   CheckCircle2,
   Clock,
   Printer,
-  Shield,
-  FileText,
-  AlertCircle,
 } from "lucide-react";
 
 export interface PatientCheckInScreenProps {
@@ -33,7 +30,6 @@ export function PatientCheckInScreen({
     weight: "68",
     height: "172",
   });
-  const [notes, setNotes] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [generatedToken, setGeneratedToken] = useState("");
 

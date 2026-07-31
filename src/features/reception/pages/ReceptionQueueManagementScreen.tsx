@@ -1,5 +1,16 @@
 import { useState, useMemo } from "react";
-import { ChevronRight, RefreshCw, UserCheck, Search, CheckCircle2 } from "lucide-react";
+import {
+  ChevronRight,
+  RefreshCw,
+  UserCheck,
+  Search,
+  Users,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
+import { PP, RB } from "../../appointments/constants/appointment.constants";
+import { Chip } from "../../appointments/components/Chip";
+import type { ChipVariant } from "../../appointments/constants/appointment.constants";
 
 export interface ReceptionQueueManagementScreenProps {
   onBack?: () => void;
@@ -13,6 +24,7 @@ export interface ReceptionQueueManagementScreenProps {
 
 export function ReceptionQueueManagementScreen({
   onBack,
+  onCheckInClick,
   onPatientSearchClick,
   onPatientSelect,
 }: ReceptionQueueManagementScreenProps) {
@@ -37,8 +49,8 @@ export function ReceptionQueueManagementScreen({
   // Selected Row for Right Context Panel
   const [selectedTokenId, setSelectedTokenId] = useState<string>("TK-086");
 
-/*   // Dialog States
-  const [noShowDialogApt, setNoShowDialogApt] = useState<any | null>(null); */
+  // Dialog States
+  const [noShowDialogApt, setNoShowDialogApt] = useState<any | null>(null);
 
   // Queue Data List
   const [queueItems, setQueueItems] = useState([
@@ -256,6 +268,7 @@ export function ReceptionQueueManagementScreen({
     );
 
     triggerToast(`Patient ${targetItem.name} (${targetItem.token}) checked in successfully!`);
+    if (onCheckInClick) onCheckInClick(targetItem.token, targetItem.mrn);
   };
 
   const resetFilters = () => {
@@ -267,30 +280,55 @@ export function ReceptionQueueManagementScreen({
     setSelectedType("All Types");
   };
 
-/*   const handleMarkNoShow = (token: string) => {
+  const handleMarkNoShow = (token: string) => {
     setQueueItems((prev) =>
       prev.map((i) => (i.token === token ? { ...i, status: "No Show" } : i)),
     );
     setNoShowDialogApt(null);
-  }; */
+    triggerToast(`Appointment ${token} marked as No Show.`);
+  };
+
+  const getStatusChipVariant = (status: string): ChipVariant => {
+    switch (status) {
+      case "In Consultation":
+        return "teal";
+      case "Waiting":
+        return "warning";
+      case "Checked-In":
+        return "info";
+      case "Scheduled":
+        return "info";
+      case "Completed":
+        return "success";
+      case "No Show":
+        return "error";
+      case "Cancelled":
+        return "error";
+      default:
+        return "default";
+    }
+  };
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9] font-body relative">
+    <div
+      className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9] font-body relative"
+      style={{ fontFamily: RB }}
+    >
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-fade-in">
+        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in duration-200">
           <CheckCircle2 size={16} className="text-[#009688]" />
           <span>{toastMsg}</span>
         </div>
       )}
 
-      {/* HEADER & BREADCRUMBS */}
+      {/* HEADER & BREADCRUMBS & PRIMARY ACTIONS */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-xs">
         <div>
           <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
             <button
               onClick={onBack}
-              className="hover:text-[#0D47A1] transition-colors"
+              className="hover:text-[#0D47A1] transition-colors cursor-pointer"
             >
               Reception Management
             </button>
@@ -299,7 +337,10 @@ export function ReceptionQueueManagementScreen({
               Queue Management
             </span>
           </div>
-          <h1 className="text-2xl font-bold text-[#111827] font-heading">
+          <h1
+            className="text-2xl font-bold text-[#111827]"
+            style={{ fontFamily: PP }}
+          >
             Reception Queue Management
           </h1>
           <p className="text-xs text-[#64748B] mt-0.5">
@@ -307,11 +348,12 @@ export function ReceptionQueueManagementScreen({
           </p>
         </div>
 
-        {/* Action Buttons */}
+        {/* Primary Header Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => {}}
+            onClick={() => triggerToast("Queue refreshed successfully.")}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-xs cursor-pointer"
+            style={{ fontFamily: PP }}
           >
             <RefreshCw size={15} /> Refresh Queue
           </button>
@@ -328,25 +370,30 @@ export function ReceptionQueueManagementScreen({
               }
             }}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-xs cursor-pointer"
+            style={{ fontFamily: PP }}
           >
             <UserCheck size={15} /> Patient Check-In
           </button>
           <button
             onClick={onPatientSearchClick}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-[#111827] text-xs font-semibold hover:bg-slate-200 transition-all cursor-pointer"
+            style={{ fontFamily: PP }}
           >
             <Search size={15} /> Patient Search
           </button>
         </div>
       </div>
 
-      {/* KPI CARDS */}
+      {/* 6 SUMMARY KPI CARDS */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-xs space-y-1">
           <span className="text-[11px] text-[#64748B] font-medium block">
             Waiting Patients
           </span>
-          <div className="text-2xl font-bold text-[#F59E0B] font-heading">
+          <div
+            className="text-2xl font-bold text-[#F59E0B]"
+            style={{ fontFamily: PP }}
+          >
             {metrics.waiting}
           </div>
           <span className="text-[10px] text-amber-600 font-medium">
@@ -358,7 +405,10 @@ export function ReceptionQueueManagementScreen({
           <span className="text-[11px] text-[#64748B] font-medium block">
             Checked-In Patients
           </span>
-          <div className="text-2xl font-bold text-[#0D47A1] font-heading">
+          <div
+            className="text-2xl font-bold text-[#0D47A1]"
+            style={{ fontFamily: PP }}
+          >
             {metrics.checkedIn}
           </div>
           <span className="text-[10px] text-blue-600 font-medium">
@@ -375,7 +425,10 @@ export function ReceptionQueueManagementScreen({
               Read Only
             </span>
           </div>
-          <div className="text-2xl font-bold text-[#009688] font-heading">
+          <div
+            className="text-2xl font-bold text-[#009688]"
+            style={{ fontFamily: PP }}
+          >
             {metrics.inConsultation}
           </div>
           <span className="text-[10px] text-teal-600 font-medium">
@@ -392,7 +445,10 @@ export function ReceptionQueueManagementScreen({
               Read Only
             </span>
           </div>
-          <div className="text-2xl font-bold text-[#66BB6A] font-heading">
+          <div
+            className="text-2xl font-bold text-[#66BB6A]"
+            style={{ fontFamily: PP }}
+          >
             {metrics.completed}
           </div>
           <span className="text-[10px] text-green-600 font-medium">
@@ -404,7 +460,10 @@ export function ReceptionQueueManagementScreen({
           <span className="text-[11px] text-[#64748B] font-medium block">
             No Shows
           </span>
-          <div className="text-2xl font-bold text-[#EF4444] font-heading">
+          <div
+            className="text-2xl font-bold text-[#EF4444]"
+            style={{ fontFamily: PP }}
+          >
             {metrics.noShows}
           </div>
           <span className="text-[10px] text-red-600 font-medium">
@@ -416,7 +475,10 @@ export function ReceptionQueueManagementScreen({
           <span className="text-[11px] text-[#64748B] font-medium block">
             Avg Waiting Time
           </span>
-          <div className="text-2xl font-bold text-[#0D47A1] font-heading">
+          <div
+            className="text-2xl font-bold text-[#0D47A1]"
+            style={{ fontFamily: PP }}
+          >
             14 min
           </div>
           <span className="text-[10px] text-slate-400 font-medium">
@@ -425,7 +487,7 @@ export function ReceptionQueueManagementScreen({
         </div>
       </div>
 
-      {/* FILTER BAR */}
+      {/* GLOBAL SEARCH & FILTER BAR */}
       <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-xs space-y-3">
         <div className="relative w-full">
           <Search
@@ -437,16 +499,16 @@ export function ReceptionQueueManagementScreen({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search queue by Patient Name, MRN, Token Number or Appointment ID..."
-            className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-hidden focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
+            className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
           />
         </div>
 
         <div className="flex items-center justify-between gap-3 flex-wrap pt-1 border-t border-slate-100">
-          <div className="flex items-center gap-2 flex-wrap text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
             <select
               value={selectedDoctor}
               onChange={(e) => setSelectedDoctor(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-slate-600 font-medium cursor-pointer"
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none cursor-pointer"
             >
               <option>All Doctors</option>
               <option>Dr. Arjun Mehta</option>
@@ -458,7 +520,7 @@ export function ReceptionQueueManagementScreen({
             <select
               value={selectedDept}
               onChange={(e) => setSelectedDept(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-slate-600 font-medium cursor-pointer"
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none cursor-pointer"
             >
               <option>All Departments</option>
               <option>Cardiology</option>
@@ -468,9 +530,36 @@ export function ReceptionQueueManagementScreen({
               <option>Dermatology</option>
             </select>
 
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none cursor-pointer"
+            >
+              <option>All Statuses</option>
+              <option>Scheduled</option>
+              <option>Checked-In</option>
+              <option>Waiting</option>
+              <option>In Consultation</option>
+              <option>Completed</option>
+              <option>No Show</option>
+            </select>
+
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none cursor-pointer"
+            >
+              <option>All Types</option>
+              <option>New Visit</option>
+              <option>Follow-up</option>
+              <option>Routine</option>
+              <option>Emergency</option>
+              <option>Consultation</option>
+            </select>
+
             <button
               onClick={resetFilters}
-              className="px-3 py-2 rounded-xl text-xs text-red-500 font-semibold hover:bg-red-50 transition-colors cursor-pointer"
+              className="px-3 py-2 rounded-xl text-xs text-[#EF4444] font-semibold hover:bg-red-50 transition-colors cursor-pointer"
             >
               Reset Filters
             </button>
@@ -486,13 +575,17 @@ export function ReceptionQueueManagementScreen({
         </div>
       </div>
 
-      {/* QUEUE TABLE */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+      {/* WORKSPACE GRID */}
+      
+        {/* LEFT COLUMN: QUEUE TABLE (8 COLS) */}
         <div className="xl:col-span-8 space-y-6">
           <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <div>
-                <h2 className="text-base font-bold text-[#111827] font-heading">
+                <h2
+                  className="text-base font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
                   Today's Queue Table
                 </h2>
                 <p className="text-xs text-[#64748B]">
@@ -504,7 +597,10 @@ export function ReceptionQueueManagementScreen({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-gray-100 text-[#64748B] uppercase tracking-wider text-[10px] font-heading">
+                  <tr
+                    className="bg-slate-50 border-b border-gray-100 text-[#64748B] uppercase tracking-wider text-[10px]"
+                    style={{ fontFamily: PP }}
+                  >
                     <th className="px-4 py-3">Token</th>
                     <th className="px-4 py-3">Patient</th>
                     <th className="px-4 py-3">MRN</th>
@@ -517,114 +613,235 @@ export function ReceptionQueueManagementScreen({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
-                  {filteredQueue.map((item) => (
-                    <tr
-                      key={item.token}
-                      onClick={() => setSelectedTokenId(item.token)}
-                      className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${
-                        selectedTokenId === item.token
-                          ? "bg-blue-50/60 font-medium"
-                          : ""
-                      }`}
-                    >
-                      <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
-                        {item.token}
-                      </td>
-                      <td className="px-4 py-3.5 font-bold text-[#111827]">
-                        {item.name}
-                      </td>
-                      <td className="px-4 py-3.5 font-mono text-slate-500">
-                        {item.mrn}
-                      </td>
-                      <td className="px-4 py-3.5 font-medium">{item.doctor}</td>
-                      <td className="px-4 py-3.5 text-slate-600">
-                        {item.dept}
-                      </td>
-                      <td className="px-4 py-3.5 font-mono text-slate-500">
-                        {item.apptTime}
-                      </td>
-                      <td className="px-4 py-3.5 font-mono text-slate-500">
-                        {item.arrivalTime}
-                      </td>
-                      <td className="px-4 py-3.5 font-bold">{item.status}</td>
-                      <td
-                        className="px-4 py-3.5 text-right"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="flex items-center justify-end gap-1.5">
-                          {(item.status === "Scheduled" || item.status === "Waiting") && (
-                            <button
-                              onClick={() =>
-                                handleDirectCheckIn(item.token, item.mrn)
-                              }
-                              className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 cursor-pointer"
-                            >
-                              Check-In
-                            </button>
-                          )}
-                          <button
-                            onClick={() =>
-                              onPatientSelect && onPatientSelect(item.mrn)
-                            }
-                            className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 cursor-pointer"
+                  {filteredQueue.length > 0 ? (
+                    filteredQueue.map((item) => {
+                      const isSelected = selectedTokenId === item.token;
+                      return (
+                        <tr
+                          key={item.token}
+                          onClick={() => setSelectedTokenId(item.token)}
+                          className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${
+                            isSelected ? "bg-blue-50/60 font-medium" : ""
+                          }`}
+                        >
+                          <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
+                            {item.token}
+                          </td>
+                          <td className="px-4 py-3.5 font-bold text-[#111827]">
+                            {item.name}
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-slate-500">
+                            {item.mrn}
+                          </td>
+                          <td className="px-4 py-3.5 font-medium">
+                            {item.doctor}
+                          </td>
+                          <td className="px-4 py-3.5 text-slate-600">
+                            {item.dept}
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-slate-500">
+                            {item.apptTime}
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-slate-500">
+                            {item.arrivalTime}
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <Chip
+                              label={item.status}
+                              variant={getStatusChipVariant(item.status)}
+                            />
+                          </td>
+                          <td
+                            className="px-4 py-3.5 text-right"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            View
+                            <div className="flex items-center justify-end gap-1.5">
+                              {(item.status === "Scheduled" ||
+                                item.status === "Waiting") && (
+                                <button
+                                  onClick={() =>
+                                    handleDirectCheckIn(item.token, item.mrn)
+                                  }
+                                  className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors cursor-pointer"
+                                >
+                                  Check-In
+                                </button>
+                              )}
+
+                              <button
+                                onClick={() =>
+                                  onPatientSelect && onPatientSelect(item.mrn)
+                                }
+                                title="View Patient"
+                                className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors cursor-pointer"
+                              >
+                                View
+                              </button>
+
+                              {item.status !== "Completed" &&
+                                item.status !== "Cancelled" &&
+                                item.status !== "No Show" && (
+                                  <button
+                                    onClick={() => setNoShowDialogApt(item)}
+                                    title="Mark No Show"
+                                    className="px-2 py-1 rounded-lg bg-red-50 text-[#EF4444] text-[11px] font-semibold hover:bg-red-100 transition-colors cursor-pointer"
+                                  >
+                                    No Show
+                                  </button>
+                                )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={9} className="px-4 py-12 text-center">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Users size={32} className="text-slate-300" />
+                          <p className="text-sm font-semibold text-[#111827]">
+                            No patients are currently in today's queue.
+                          </p>
+                          <button
+                            onClick={onPatientSearchClick}
+                            className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all flex items-center gap-1.5 cursor-pointer"
+                            style={{ fontFamily: PP }}
+                          >
+                            <Search size={15} /> Patient Search
                           </button>
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         </div>
 
-        {/* RIGHT PANEL: SELECTED SUMMARY */}
-        <div className="xl:col-span-4 space-y-6">
+        {/* RIGHT COLUMN: SELECTED PATIENT SUMMARY PANEL (4 COLS) */}
+        {/* <div className="xl:col-span-4 space-y-6">
           {selectedItem && (
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-xs space-y-3">
-              <h3 className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 font-heading">
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-xs space-y-4">
+              <h3
+                className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2"
+                style={{ fontFamily: PP }}
+              >
                 Selected Patient Summary
               </h3>
-              <div className="space-y-2 text-xs">
+              <div className="space-y-2.5 text-xs">
+                <div className="flex justify-between py-1 border-b border-slate-50">
+                  <span className="text-[#64748B]">Token Number</span>
+                  <span className="font-mono font-bold text-[#0D47A1] text-sm">
+                    {selectedItem.token}
+                  </span>
+                </div>
                 <div className="flex justify-between py-1 border-b border-slate-50">
                   <span className="text-[#64748B]">Patient Name</span>
                   <span className="font-bold text-[#111827]">
-                    {selectedItem.name}
+                    {selectedItem.name} ({selectedItem.gender}/{selectedItem.age}Y)
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-50">
                   <span className="text-[#64748B]">MRN</span>
-                  <span className="font-mono font-bold text-[#0D47A1]">
+                  <span className="font-mono font-bold text-slate-700">
                     {selectedItem.mrn}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">Doctor</span>
+                  <span className="text-[#64748B]">Assigned Doctor</span>
                   <span className="font-semibold text-[#111827]">
                     {selectedItem.doctor}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#64748B]">Queue Status</span>
-                  <span className="font-bold text-[#009688]">
-                    {selectedItem.status}
+                  <span className="text-[#64748B]">Department</span>
+                  <span className="text-slate-600">{selectedItem.dept}</span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-slate-50">
+                  <span className="text-[#64748B]">Appointment Slot</span>
+                  <span className="font-mono font-medium text-[#111827]">
+                    {selectedItem.apptTime}
                   </span>
                 </div>
-                {selectedItem.status !== "Checked-In" && selectedItem.status !== "Completed" && (
-                  <button
-                    onClick={() => handleDirectCheckIn(selectedItem.token, selectedItem.mrn)}
-                    className="w-full mt-3 py-2.5 px-3 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                  >
-                    <UserCheck size={15} /> Check-In Patient
-                  </button>
-                )}
+                <div className="flex justify-between py-1 border-b border-slate-50">
+                  <span className="text-[#64748B]">Queue Status</span>
+                  <Chip
+                    label={selectedItem.status}
+                    variant={getStatusChipVariant(selectedItem.status)}
+                  />
+                </div>
+
+                {selectedItem.status !== "Checked-In" &&
+                  selectedItem.status !== "Completed" && (
+                    <button
+                      onClick={() =>
+                        handleDirectCheckIn(selectedItem.token, selectedItem.mrn)
+                      }
+                      className="w-full mt-3 py-2.5 px-3 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                      style={{ fontFamily: PP }}
+                    >
+                      <UserCheck size={15} /> Check-In Patient
+                    </button>
+                  )}
               </div>
             </div>
           )}
+        </div> */}
+     
+
+      {/* CONFIRMATION DIALOG: MARK NO SHOW */}
+      {noShowDialogApt && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in duration-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-50 text-[#EF4444] flex items-center justify-center shrink-0">
+                <AlertCircle size={20} />
+              </div>
+              <div>
+                <h3
+                  className="text-base font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  Mark Patient as No Show?
+                </h3>
+                <p className="text-xs text-[#64748B]">
+                  This patient did not arrive for the scheduled appointment.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1">
+              <p>
+                <strong>Patient:</strong> {noShowDialogApt.name} (
+                {noShowDialogApt.mrn})
+              </p>
+              <p>
+                <strong>Doctor:</strong> {noShowDialogApt.doctor} (
+                {noShowDialogApt.dept})
+              </p>
+              <p>
+                <strong>Time Slot:</strong> {noShowDialogApt.apptTime}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                onClick={() => setNoShowDialogApt(null)}
+                className="px-4 py-2 rounded-xl border border-[#E5E7EB] text-xs font-semibold text-[#64748B] hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleMarkNoShow(noShowDialogApt.token)}
+                className="px-4 py-2 rounded-xl bg-[#EF4444] text-white text-xs font-semibold hover:bg-red-600 shadow-xs cursor-pointer"
+              >
+                Confirm No Show
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
