@@ -237,6 +237,7 @@ function SectionHeader({
 function RegistrationSuccessDialog({
   mrn,
   patientName,
+  isFamilyMode = false,
   onClose,
   onBookAppointment,
   onViewProfile,
@@ -244,6 +245,7 @@ function RegistrationSuccessDialog({
 }: {
   mrn: string;
   patientName: string;
+  isFamilyMode?: boolean;
   onClose: () => void;
   onBookAppointment?: (mrn: string) => void;
   onViewProfile?: (mrn: string) => void;
@@ -259,11 +261,13 @@ function RegistrationSuccessDialog({
           className="text-xl font-bold text-[#111827] mb-2"
           style={{ fontFamily: PP }}
         >
-          Registration Successful!
+          {isFamilyMode ? "Family Member Registered!" : "Registration Successful!"}
         </h3>
         <p className="text-sm text-slate-500 mb-1" style={{ fontFamily: RB }}>
           <span className="font-semibold text-[#111827]">{patientName}</span>{" "}
-          has been registered.
+          {isFamilyMode
+            ? "has been registered successfully as a family member."
+            : "has been registered."}
         </p>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-100 mt-2 mb-6">
           <span className="text-xs text-slate-500" style={{ fontFamily: RB }}>
@@ -275,43 +279,56 @@ function RegistrationSuccessDialog({
         </div>
 
         <div className="flex flex-col gap-2.5">
-          {onSwitchToNewPatient && (
+          {isFamilyMode ? (
             <button
-              onClick={() => onSwitchToNewPatient(mrn, patientName)}
+              onClick={onClose}
               className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
               style={{ fontFamily: PP }}
             >
-              <User size={16} />
-              Switch to New Patient
+              <CheckCircle2 size={16} />
+              Return to Family Members
             </button>
+          ) : (
+            <>
+              {onSwitchToNewPatient && (
+                <button
+                  onClick={() => onSwitchToNewPatient(mrn, patientName)}
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
+                  style={{ fontFamily: PP }}
+                >
+                  <User size={16} />
+                  Switch to New Patient
+                </button>
+              )}
+              {onBookAppointment && (
+                <button
+                  onClick={() => onBookAppointment(mrn)}
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#009688] text-white text-sm font-semibold hover:bg-teal-700 transition-all shadow-sm"
+                  style={{ fontFamily: PP }}
+                >
+                  <Calendar size={16} />
+                  Book Appointment
+                </button>
+              )}
+              {onViewProfile && (
+                <button
+                  onClick={() => onViewProfile(mrn)}
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all"
+                  style={{ fontFamily: PP }}
+                >
+                  <User size={16} />
+                  View Patient Profile
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="w-full px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"
+                style={{ fontFamily: PP }}
+              >
+                Register Another Patient
+              </button>
+            </>
           )}
-          {onBookAppointment && (
-            <button
-              onClick={() => onBookAppointment(mrn)}
-              className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#009688] text-white text-sm font-semibold hover:bg-teal-700 transition-all shadow-sm"
-              style={{ fontFamily: PP }}
-            >
-              <Calendar size={16} />
-              Book Appointment
-            </button>
-          )}
-          {onViewProfile && (
-            <button
-              onClick={() => onViewProfile(mrn)}
-              className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all"
-              style={{ fontFamily: PP }}
-            >
-              <User size={16} />
-              View Patient Profile
-            </button>
-          )}
-          <button
-            onClick={onClose}
-            className="w-full px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"
-            style={{ fontFamily: PP }}
-          >
-            Register Another Patient
-          </button>
         </div>
       </div>
     </div>
@@ -553,13 +570,13 @@ export function RegisterPatientScreen({
         <RegistrationSuccessDialog
           mrn={successData.mrn}
           patientName={successData.name}
+          isFamilyMode={effectiveMode === "PATIENT_FAMILY"}
           onBookAppointment={onBookAppointment}
           onViewProfile={onViewProfile}
           onSwitchToNewPatient={onSwitchToNewPatient}
           onClose={() => {
             setSuccessData(null);
-            setForm({ ...INITIAL_FORM, relationship: initialRelationship });
-            setTouched({});
+            onBack();
           }}
         />
       )}

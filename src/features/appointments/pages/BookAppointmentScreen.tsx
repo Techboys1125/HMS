@@ -41,9 +41,9 @@ export function BookAppointmentScreen({
     const q = patientQuery.toLowerCase();
     return patientDatabase.filter(
       (p) =>
-        (p.name || "").toLowerCase().includes(q) ||
+        (p.name || "Unknown Patient").toLowerCase().includes(q) ||
         (p.mrn || "").toLowerCase().includes(q) ||
-        p.phone.includes(q) ||
+        (p.phone || "").includes(q) ||
         String(p.id).toLowerCase().includes(q),
     );
   }, [patientQuery, patientDatabase]);
@@ -91,10 +91,14 @@ export function BookAppointmentScreen({
           const mapped: PatientSummary[] = data.map((p) => ({
             id: p.id,
             mrn: p.mrn,
-            name: p.name || p.patientName,
-            age: p.age,
-            gender: p.gender,
-            phone: p.phone,
+            name:
+              p.fullName ||
+              p.patientName ||
+              p.name ||
+              "Unknown Patient",
+            age: p.age || 0,
+            gender: p.gender || "",
+            phone: p.phone || p.mobileNumber || "",
             bloodGroup: p.bloodGroup || "",
             emergencyContact: p.emergencyContact
               ? `${p.emergencyContact.name || p.emergencyContact.contactName || ""} (${p.emergencyContact.relationship || ""})`
@@ -122,10 +126,14 @@ export function BookAppointmentScreen({
           const mapped: PatientSummary[] = data.map((p) => ({
             id: p.id,
             mrn: p.mrn,
-            name: p.name || p.patientName,
-            age: p.age,
-            gender: p.gender,
-            phone: p.phone,
+            name:
+              p.fullName ||
+              p.patientName ||
+              p.name ||
+              "Unknown Patient",
+            age: p.age || 0,
+            gender: p.gender || "",
+            phone: p.phone || p.mobileNumber || "",
             bloodGroup: p.bloodGroup || "",
             emergencyContact: p.emergencyContact
               ? `${p.emergencyContact.name || p.emergencyContact.contactName || ""} (${p.emergencyContact.relationship || ""})`
@@ -620,8 +628,9 @@ export function BookAppointmentScreen({
               <div className="p-4 rounded-xl bg-slate-50 border border-blue-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-[#0D47A1] text-white flex items-center justify-center font-bold text-base shadow-sm">
-                    {selectedPatient.name
+                    {(selectedPatient.name ?? "Patient")
                       .split(" ")
+                      .filter(Boolean)
                       .map((n) => n[0])
                       .join("")
                       .slice(0, 2)

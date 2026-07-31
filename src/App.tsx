@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import safeHandsLogo from "./assets/safehandshospital_logo.webp";
-import { LoginPage, useAuthStore } from "./features/auth";
+import { LoginPage, useAuthStore } from "./features/auth/index";
 import {
   PatientProfileScreen,
   EditPatientScreen,
@@ -15,6 +15,8 @@ import {
   PatientProfileCenterScreen,
   RegisterPatientScreen,
   ReceptionPatientProfileScreen,
+  FamilyMembersManagement,
+  type FamilyMember,
 } from "./features/patients";
 import { patientsApi } from "./features/patients/api/patient.api";
 import { UserManagementCenterScreen } from "./features/users";
@@ -79,11 +81,6 @@ import AuditLogsManagementScreen from "./AuditLogsManagement";
 import { NotificationCenterManagement } from "./NotificationCenterManagement";
 import { MyProfileManagement } from "./MyProfileManagement";
 import { SettingsWorkspace } from "./SettingsWorkspace";
-import {
-  FamilyMembersManagement,
-  type FamilyMember,
-} from "./FamilyMembersManagement";
-import { INITIAL_FAMILY_MEMBERS } from "./mocks/familyMembers.mock";
 import {
   SuperAdminDashboard,
   HospitalAdminDashboard,
@@ -1757,8 +1754,21 @@ function HMS({ onLogout }: { onLogout: () => void }) {
   );
 
   const mapPatientToFamilyMember = (p: any, idx: number): FamilyMember => {
-    let rel: FamilyMember["relationship"] = "Self";
-    const r = (p.relationship || "").toUpperCase();
+    const rawRel = (
+      p.relationship ||
+      p.relation ||
+      p.relationshipType ||
+      p.patientRelationship ||
+      p.familyRelationship ||
+      p.emergencyContact?.relationship ||
+      ""
+    )
+      .toString()
+      .trim();
+
+    let rel: FamilyMember["relationship"] = "Other";
+    const r = rawRel.toUpperCase();
+
     if (r === "SELF") rel = "Self";
     else if (r === "FATHER") rel = "Father";
     else if (r === "MOTHER") rel = "Mother";
@@ -1771,7 +1781,11 @@ function HMS({ onLogout }: { onLogout: () => void }) {
     else if (r === "GRANDMOTHER") rel = "Grandmother";
     else if (r === "GUARDIAN") rel = "Guardian";
     else if (r === "OTHER") rel = "Other";
-    else if (p.relationship) rel = p.relationship as any;
+    else if (rawRel) {
+      rel = (rawRel.charAt(0).toUpperCase() + rawRel.slice(1).toLowerCase()) as any;
+    } else {
+      rel = "Other";
+    }
 
     let bg = p.bloodGroup || "";
     if (bg) {
@@ -1814,6 +1828,31 @@ function HMS({ onLogout }: { onLogout: () => void }) {
       latestBillId: "",
       latestBillAmount: 0,
     };
+  };
+
+  const refreshFamilyMembersFromBackend = async () => {
+    try {
+      const profiles = await patientsApi.getMyPatients();
+      console.log("Profiles from backend:", profiles);
+      if (profiles && Array.isArray(profiles)) {
+        profiles.forEach((p, i) => {
+          console.log(
+            `[Patient ${i}] Name: ${p.fullName || p.patientName}, relationship field =>`,
+            p.relationship,
+            p,
+          );
+        });
+        const mapped: FamilyMember[] = profiles.map((p, idx) =>
+          mapPatientToFamilyMember(p, idx),
+        );
+        setFamilyMembers(mapped);
+        if (mapped.length > 0 && !activePatient) {
+          setActivePatient(mapped[0]);
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to refresh family members from backend:", err);
+    }
   };
 
   useEffect(() => {
@@ -2211,41 +2250,38 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                   registrationMode={
                     role === "patient" ? "PATIENT_FAMILY" : "ADMIN"
                   }
-                  onBack={() => setShowRegisterPatient(false)}
-                  onSwitchToNewPatient={(mrn, name) => {
+                  onBack={() => {
                     setShowRegisterPatient(false);
                     if (role === "patient") {
-                      setPatientOnboardingLoading(true);
-                      patientsApi
-                        .getMyPatients()
-                        .then((profiles) => {
-                          if (profiles && profiles.length > 0) {
-                            const mapped: FamilyMember[] = profiles.map(
-                              (p, idx) => mapPatientToFamilyMember(p, idx),
-                            );
-                            setFamilyMembers(mapped);
-                            const found = mapped.find(
-                              (m) => m.mrn === mrn || m.patientName === name,
-                            );
-                            if (found) {
-                              setActivePatient(found);
-                            } else if (mapped.length > 0) {
-                              setActivePatient(mapped[mapped.length - 1]);
-                            }
-                          }
-                        })
-                        .catch(() => {})
-                        .finally(() => setPatientOnboardingLoading(false));
+                      setActiveNav("family-members");
+                      refreshFamilyMembersFromBackend();
+                    }
+                  }}
+                  onSwitchToNewPatient={() => {
+                    setShowRegisterPatient(false);
+                    if (role === "patient") {
+                      setActiveNav("family-members");
+                      refreshFamilyMembersFromBackend();
                     }
                   }}
                   onBookAppointment={() => {
                     setShowRegisterPatient(false);
-                    setActiveNav("appointments");
-                    setShowBookAppointmentScreen(true);
+                    if (role === "patient") {
+                      setActiveNav("family-members");
+                      refreshFamilyMembersFromBackend();
+                    } else {
+                      setActiveNav("appointments");
+                      setShowBookAppointmentScreen(true);
+                    }
                   }}
                   onViewProfile={(uhid) => {
                     setShowRegisterPatient(false);
-                    handlePatientSelect(uhid);
+                    if (role === "patient") {
+                      setActiveNav("family-members");
+                      refreshFamilyMembersFromBackend();
+                    } else {
+                      handlePatientSelect(uhid);
+                    }
                   }}
                 />
               )}
@@ -3109,27 +3145,32 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                   setActivePatient(member);
                 }}
                 onAddFamilyMember={(newMember) => {
-                  const created: FamilyMember = {
-                    id: `FM-${Date.now().toString().slice(-3)}`,
-                    patientName: newMember.patientName || "New Member",
-                    mrn:
-                      newMember.mrn ||
-                      `MRN-2026-${Math.floor(100000 + Math.random() * 900000)}`,
-                    relationship: newMember.relationship || "Mother",
-                    age: newMember.age || 40,
-                    gender: newMember.gender || "Female",
-                    bloodGroup: newMember.bloodGroup || "O+",
-                    registeredMobile:
-                      newMember.registeredMobile || "+91 98765 00000",
-                    verificationStatus: "Verified",
-                    patientStatus: "Active",
-                    lastAppointment: "Just Added",
-                    upcomingAppointmentsCount: 0,
-                    pendingBillsCount: 0,
-                    pendingBillsAmount: 0,
-                    activePrescriptionsCount: 0,
-                  };
-                  setFamilyMembers((prev) => [created, ...prev]);
+                  if (newMember && newMember.patientName) {
+                    const created: FamilyMember = {
+                      id: `FM-${Date.now().toString().slice(-3)}`,
+                      patientName: newMember.patientName || "New Member",
+                      mrn:
+                        newMember.mrn ||
+                        `MRN-2026-${Math.floor(100000 + Math.random() * 900000)}`,
+                      relationship: newMember.relationship || "Mother",
+                      age: newMember.age || 40,
+                      gender: newMember.gender || "Female",
+                      bloodGroup: newMember.bloodGroup || "O+",
+                      registeredMobile:
+                        newMember.registeredMobile || "+91 98765 00000",
+                      verificationStatus: "Verified",
+                      patientStatus: "Active",
+                      lastAppointment: "Just Added",
+                      upcomingAppointmentsCount: 0,
+                      pendingBillsCount: 0,
+                      pendingBillsAmount: 0,
+                      activePrescriptionsCount: 0,
+                    };
+                    setFamilyMembers((prev) => [created, ...prev]);
+                  } else {
+                    setShowRegisterPatient(true);
+                    setActiveNav("patients");
+                  }
                 }}
                 onRemoveFamilyMember={(id) => {
                   setFamilyMembers((prev) => prev.filter((m) => m.id !== id));

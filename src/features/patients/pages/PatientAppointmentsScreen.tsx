@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Search,
   Plus,
@@ -17,7 +17,6 @@ import {
   Building2,
   TrendingUp,
 } from "lucide-react";
-import { useEffect } from "react";
 import type { PatientAppointment } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.mock";
 import {
@@ -37,13 +36,14 @@ export function PatientAppointmentsScreen({
   const [cancellingAppt, setCancellingAppt] =
     useState<PatientAppointment | null>(null);
 
-  useEffect(() => {
+  const loadAppointments = useCallback((patient?: any) => {
+    const targetMrn = patient?.mrn || patient?.id;
+    if (!targetMrn) {
+      setAppointments([]);
+      return;
+    }
     appointmentsApi
-      .getAppointments(
-        activePatient?.id || activePatient?.mrn
-          ? { patientId: activePatient.id || activePatient.mrn }
-          : undefined,
-      )
+      .getPatientAppointments(targetMrn)
       .then((res: any) => {
         const data = res?.data || res;
         const list = Array.isArray(data)
@@ -53,26 +53,47 @@ export function PatientAppointmentsScreen({
             : [];
         if (list && list.length > 0) {
           const mapped: PatientAppointment[] = list.map(
-            (a: any, idx: number) => ({
-              id: String(a.appointmentId || a.id || `APT-${idx}`),
-              date: a.appointmentDate || a.date || "",
-              time: a.startTime || a.time || "",
-              doctor: a.doctorName || a.doctor || "Doctor",
-              specialty: a.departmentName || a.specialty || "Specialist",
-              department: a.departmentName || a.department || "General",
-              visitType: a.appointmentType || "In-Person OPD",
-              status:
-                a.status === "SCHEDULED"
+            (a: any, idx: number) => {
+              const dt = a.visitDateTime || a.appointmentDate || a.date || "";
+              const datePart = dt.includes("T") ? dt.split("T")[0] : dt;
+              const timePart = dt.includes("T")
+                ? dt.split("T")[1]?.substring(0, 5)
+                : a.startTime || a.time || "";
+
+              const doctorName =
+                typeof a.doctor === "object"
+                  ? a.doctor?.name || a.doctor?.fullName || "Doctor"
+                  : a.doctorName || a.doctor || "Doctor";
+
+              const deptName =
+                typeof a.department === "object"
+                  ? a.department?.departmentName || a.department?.name || "General"
+                  : a.departmentName || a.department || "General";
+
+              const rawStatus = a.appointmentStatus || a.status || "SCHEDULED";
+              const formattedStatus =
+                rawStatus === "SCHEDULED" || rawStatus === "BOOKED"
                   ? "Confirmed"
-                  : a.status || "Confirmed",
-              roomLocation: a.roomLocation || "OPD Room",
-              reason: a.reason || "Consultation",
-              notes: a.symptoms || a.notes || "",
-              consultationStatus: a.status || "Scheduled",
-              prescriptionStatus: "Pending",
-              billingStatus: "Paid",
-              billingAmount: "$50.00",
-            }),
+                  : rawStatus;
+
+              return {
+                id: String(a.appointmentId || a.id || `APT-${idx}`),
+                date: datePart,
+                time: timePart,
+                doctor: doctorName,
+                specialty: a.specialty || deptName,
+                department: deptName,
+                visitType: a.appointmentType || "In-Person OPD",
+                status: formattedStatus,
+                roomLocation: a.roomLocation || "OPD Room",
+                reason: a.reason || "Consultation",
+                notes: a.symptoms || a.notes || "",
+                consultationStatus: rawStatus,
+                prescriptionStatus: "Pending",
+                billingStatus: "Paid",
+                billingAmount: "$50.00",
+              };
+            },
           );
           setAppointments(mapped);
         } else {
@@ -82,7 +103,11 @@ export function PatientAppointmentsScreen({
       .catch(() => {
         setAppointments([]);
       });
-  }, [activePatient]);
+  }, []);
+
+  useEffect(() => {
+    loadAppointments(activePatient);
+  }, [activePatient, loadAppointments]);
   const [reschedulingAppt, setReschedulingAppt] =
     useState<PatientAppointment | null>(null);
   const [activeTab, setActiveTab] = useState<
@@ -124,10 +149,12 @@ export function PatientAppointmentsScreen({
     return (
       <BookAppointmentScreen
         role="patient"
+        initialMrn={activePatient?.mrn || activePatient?.id}
         onBack={() => setViewMode("list")}
         onBookSuccess={() => {
           triggerToast("Appointment booked successfully!");
           setViewMode("list");
+          loadAppointments(activePatient);
         }}
       />
     );

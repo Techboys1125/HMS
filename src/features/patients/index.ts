@@ -13,6 +13,7 @@ export * from "./pages/PatientSearchScreen";
 export * from "./pages/PatientTimelineScreen";
 export * from "./pages/PatientVisitHistoryScreen";
 export * from "./pages/RegisterPatientScreen";
+export * from "./pages/FamilyMembersManagement";
 
 // Components
 export { PatientTable } from "./components/PatientTable";

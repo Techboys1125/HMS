@@ -1,4 +1,4 @@
-import { useAuthStore } from "../features/auth";
+import { useAuthStore } from "../features/auth/index";
 
 // Permission utilities
 

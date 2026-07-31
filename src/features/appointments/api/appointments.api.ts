@@ -44,9 +44,16 @@ export const appointmentsApi = {
       const query = new URLSearchParams();
       if (params?.doctorId !== undefined)
         query.append("doctorId", String(params.doctorId));
-      if (params?.patientId !== undefined)
-        query.append("patientId", String(params.patientId));
-      if (params?.mrn) query.append("mrn", params.mrn);
+      if (params?.mrn) {
+        query.append("mrn", params.mrn);
+      } else if (params?.patientId !== undefined) {
+        const pId = String(params.patientId);
+        if (pId.startsWith("MRN-") || pId.startsWith("UHID-") || isNaN(Number(pId))) {
+          query.append("mrn", pId);
+        } else {
+          query.append("patientId", pId);
+        }
+      }
       if (params?.date) query.append("date", params.date);
       if (params?.fromDate) query.append("fromDate", params.fromDate);
       if (params?.toDate) query.append("toDate", params.toDate);
@@ -190,11 +197,17 @@ export const appointmentsApi = {
 
   getPatientAppointments: async (
     patientId: string | number,
+    page?: number,
+    size?: number,
+    sort?: string,
   ): Promise<ApiResponse<unknown>> => {
     try {
-      const response = await apiClient.get<ApiResponse<unknown>>(
-        `/api/v1/patients/${patientId}/appointments`,
-      );
+      const query = new URLSearchParams();
+      if (page !== undefined) query.append("page", String(page));
+      if (size !== undefined) query.append("size", String(size));
+      if (sort) query.append("sort", sort);
+      const url = `/api/v1/patients/${patientId}/appointments${query.toString() ? `?${query.toString()}` : ""}`;
+      const response = await apiClient.get<ApiResponse<unknown>>(url);
       return response.data;
     } catch (error: unknown) {
       return handleApiError(error);

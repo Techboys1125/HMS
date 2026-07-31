@@ -21,6 +21,7 @@ import {
   ExternalLink,
   User,
 } from "lucide-react";
+import { INITIAL_FAMILY_MEMBERS } from "../../../mocks/familyMembers.mock";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -68,8 +69,6 @@ export type LinkActivity = {
   status: "Completed" | "Pending" | "Updated";
 };
 
-import { INITIAL_FAMILY_MEMBERS } from "./mocks/familyMembers.mock";
-
 const MOCK_ACTIVITIES: LinkActivity[] = [
   {
     id: "ACT-1",
@@ -107,7 +106,6 @@ const MOCK_ACTIVITIES: LinkActivity[] = [
     status: "Completed",
   },
 ];
-
 
 interface FamilyMembersManagementProps {
   familyMembers?: FamilyMember[];
@@ -179,8 +177,6 @@ export function FamilyMembersManagement({
       statusFilter === "All" || m.verificationStatus === statusFilter;
     return matchesSearch && matchesRel && matchesStatus;
   });
-
-
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9] text-[#111827]">
@@ -553,10 +549,20 @@ export function FamilyMembersManagement({
                       {/* Relationship */}
                       <td className="py-3.5 px-4">
                         <span
-                          className="text-xs font-semibold text-[#0D47A1] bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100"
+                          className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                            m.relationship === "Self"
+                              ? "text-[#0D47A1] bg-blue-50 border-blue-100"
+                              : m.relationship === "Spouse"
+                                ? "text-rose-700 bg-rose-50 border-rose-100"
+                                : m.relationship === "Son" || m.relationship === "Daughter"
+                                  ? "text-purple-700 bg-purple-50 border-purple-100"
+                                  : m.relationship === "Father" || m.relationship === "Mother"
+                                    ? "text-amber-700 bg-amber-50 border-amber-100"
+                                    : "text-emerald-700 bg-emerald-50 border-emerald-100"
+                          }`}
                           style={{ fontFamily: PP }}
                         >
-                          {m.relationship}
+                          {m.relationship || "Other"}
                         </span>
                       </td>
 
@@ -1104,11 +1110,6 @@ export function FamilyMembersManagement({
           </div>
         </div>
       )}
-
-      {/* ══════════════════════════════════════════════════════════════════
-          ── ADD FAMILY MEMBER DRAWER ──
-          ══════════════════════════════════════════════════════════════════ */}
-    
 
       {/* ── EDIT FAMILY RELATIONSHIP DRAWER ── */}
       {editRelMember && (
