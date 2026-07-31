@@ -1,16 +1,32 @@
+// Pages
+export * from "./pages/LoginPage";
 export { default as AuthApp } from "./pages/AuthApp";
-export { default as LoginPage } from "./pages/LoginPage";
+export * from "./pages/ChangePasswordPage";
 export * from "./pages/ForgotPasswordPage";
 export * from "./pages/OTPPage";
 export * from "./pages/ResetPasswordPage";
-export * from "./pages/ChangePasswordPage";
 export * from "./pages/SuccessPage";
+
+// Store
 export * from "./store/auth.store";
-export * from "./services/auth.service";
+
+// API
 export * from "./api/auth.api";
-export * from "./types/auth.types";
-export * from "./validation/login.schema";
+
+// Services
+export * from "./services/auth.service";
+
+// Components
+export * from "./components/BrandingPanel";
+export * from "./components/LoginForm";
+export * from "./components/PatientRegisterForm";
+export * from "./components/TextField";
+
+// Hooks
 export * from "./hooks/useLogin";
-export * from "./hooks/usePatientRegister";
-export * from "./hooks/useForgotPassword";
 export * from "./hooks/useOTP";
+export * from "./hooks/useForgotPassword";
+export * from "./hooks/usePatientRegister";
+
+// Types
+export * from "./types/auth.types";

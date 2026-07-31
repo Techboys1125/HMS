@@ -45,6 +45,7 @@ export function BookAppointmentDrawer({
       {/* Full Screen BookAppointmentScreen View */}
       <div className="flex-1 overflow-y-auto">
         <BookAppointmentScreen
+          role="receptionist"
           onBack={onClose}
           onRegisterNewPatientClick={() => {
             onClose();

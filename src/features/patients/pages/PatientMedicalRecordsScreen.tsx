@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { appointmentsApi } from "../../appointments/api/appointments.api";
 import {
   Search,
   Download,
@@ -17,22 +18,61 @@ import type {
   MedicalVisitRecord,
   PrescriptionRecord,
 } from "../types/patient.types";
-import {
-  PP,
-  RB,
-  MOCK_VISIT_RECORDS,
-  MOCK_PRESCRIPTION_RECORDS,
-} from "../constants/patient.mock";
+import { PP, RB, MOCK_PRESCRIPTION_RECORDS } from "../constants/patient.mock";
 
-export function PatientMedicalRecordsScreen() {
-  const [activeTab, setActiveTab] = useState<
-    "visits" | "prescriptions"
-  >("visits");
+export function PatientMedicalRecordsScreen({
+  activePatient,
+}: {
+  activePatient?: any;
+}) {
+  const [activeTab, setActiveTab] = useState<"visits" | "prescriptions">(
+    "visits",
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [doctorFilter, setDoctorFilter] = useState("All");
   const [deptFilter, setDeptFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const [visitRecords, setVisitRecords] = useState<MedicalVisitRecord[]>([]);
+
+  useEffect(() => {
+    appointmentsApi
+      .getAppointments(
+        activePatient?.id || activePatient?.mrn
+          ? { patientId: activePatient.id || activePatient.mrn }
+          : undefined,
+      )
+      .then((res: any) => {
+        const data = res?.data || res;
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.content)
+            ? data.content
+            : [];
+        if (list && list.length > 0) {
+          const mapped: MedicalVisitRecord[] = list.map(
+            (a: any, idx: number) => ({
+              id: String(a.appointmentId || a.id || `VIS-${idx}`),
+              date: a.appointmentDate || a.date || "",
+              time: a.startTime || a.time || "",
+              department: a.departmentName || a.department || "General OPD",
+              doctor: a.doctorName || a.doctor || "Consultant",
+              specialty: a.departmentName || "Specialist",
+              diagnosis: a.reason || a.symptoms || "OPD Consultation",
+              notes: a.symptoms || "Consultation completed.",
+              prescriptions: [],
+              status:
+                a.status === "COMPLETED" ? "Completed" : a.status || "Completed",
+            }),
+          );
+          setVisitRecords(mapped);
+        } else {
+          setVisitRecords([]);
+        }
+      })
+      .catch(() => setVisitRecords([]));
+  }, [activePatient]);
 
   // Drawer states
   const [selectedRx, setSelectedRx] = useState<PrescriptionRecord | null>(null);
@@ -46,7 +86,7 @@ export function PatientMedicalRecordsScreen() {
   };
 
   // Filtered Visits
-  const filteredVisits = MOCK_VISIT_RECORDS.filter((v) => {
+  const filteredVisits = visitRecords.filter((v) => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       const match =
@@ -210,7 +250,7 @@ export function PatientMedicalRecordsScreen() {
           {
             id: "visits",
             label: "Visit History",
-            count: MOCK_VISIT_RECORDS.length,
+            count: visitRecords.length,
           },
           {
             id: "prescriptions",
@@ -429,7 +469,7 @@ export function PatientMedicalRecordsScreen() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB] text-[#111827]">
-                  {filteredPrescriptions.map((rx) => (
+                  {filteredPrescriptions.map((rx: PrescriptionRecord) => (
                     <tr
                       key={rx.id}
                       className="hover:bg-slate-50 transition-colors"
@@ -447,7 +487,7 @@ export function PatientMedicalRecordsScreen() {
 
                       <td className="px-4 py-4">
                         <div className="space-y-1">
-                          {rx.medicines.map((m, idx) => (
+                          {rx.medicines.map((m: { name: string; dosage?: string }, idx: number) => (
                             <div
                               key={idx}
                               className="font-bold text-[#111827] text-xs"

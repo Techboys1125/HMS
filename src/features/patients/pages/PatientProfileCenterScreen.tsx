@@ -13,7 +13,17 @@ import {
 } from "lucide-react";
 import { PP, RB } from "../constants/patient.mock";
 
-export function PatientProfileCenterScreen() {
+import { useEffect } from "react";
+
+export function PatientProfileCenterScreen({
+  activePatient,
+  onAddFamilyMember,
+  onSwitchPatient,
+}: {
+  activePatient?: any;
+  onAddFamilyMember?: () => void;
+  onSwitchPatient?: () => void;
+}) {
   const [activeTab, setActiveTab] = useState<"info" | "edit" | "password">(
     "info",
   );
@@ -21,18 +31,36 @@ export function PatientProfileCenterScreen() {
 
   // Profile Data State
   const [profileData, setProfileData] = useState({
-    name: "Sarah Mitchell",
-    patientId: "P-9821",
-    email: "sarah.mitchell@example.com",
-    phone: "+1 (555) 234-5678",
-    dob: "1990-06-14",
-    gender: "Female",
-    bloodGroup: "O Rh Positive (O+)",
-    address: "742 Evergreen Terrace, Apt 4B, Springfield, IL 62704",
-    emergencyName: "Robert Mitchell",
-    emergencyRelation: "Spouse",
-    emergencyPhone: "+1 (555) 876-5432",
+    name: activePatient?.patientName || activePatient?.name || "Patient",
+    patientId: activePatient?.mrn || activePatient?.id || "Generating...",
+    email: activePatient?.email || "patient@safehands.org",
+    phone: activePatient?.registeredMobile || activePatient?.phone || "",
+    dob: activePatient?.dob || "1990-06-14",
+    gender: activePatient?.gender || "Female",
+    bloodGroup: activePatient?.bloodGroup || "O+",
+    address: activePatient?.address || "Springfield",
+    emergencyName: activePatient?.emergencyContact?.name || "Family Member",
+    emergencyRelation: activePatient?.relationship || "Spouse",
+    emergencyPhone: activePatient?.emergencyContact?.mobileNumber || "",
   });
+
+  useEffect(() => {
+    if (activePatient) {
+      setProfileData({
+        name: activePatient.patientName || activePatient.name || "Patient",
+        patientId: activePatient.mrn || activePatient.id || "",
+        email: activePatient.email || "patient@safehands.org",
+        phone: activePatient.registeredMobile || activePatient.phone || "",
+        dob: activePatient.dob || "1990-06-14",
+        gender: activePatient.gender || "Female",
+        bloodGroup: activePatient.bloodGroup || "O+",
+        address: activePatient.address || "Main Street",
+        emergencyName: activePatient.emergencyContact?.name || "Emergency Contact",
+        emergencyRelation: activePatient.relationship || "Family",
+        emergencyPhone: activePatient.emergencyContact?.mobileNumber || "",
+      });
+    }
+  }, [activePatient]);
 
   // Edit Form Draft State
   const [editForm, setEditForm] = useState({ ...profileData });
@@ -177,16 +205,36 @@ export function PatientProfileCenterScreen() {
           </div>
         </div>
 
-        <button
-          onClick={() => {
-            setEditForm({ ...profileData });
-            setActiveTab("edit");
-          }}
-          className="px-4 py-2 rounded-xl bg-blue-50 text-[#0D47A1] text-xs font-bold hover:bg-blue-100 transition-colors flex items-center gap-2 shrink-0 shadow-sm"
-          style={{ fontFamily: PP }}
-        >
-          <Edit size={14} /> Edit Profile
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {onAddFamilyMember && (
+            <button
+              onClick={onAddFamilyMember}
+              className="px-4 py-2 rounded-xl bg-blue-50 text-[#0D47A1] text-xs font-bold hover:bg-blue-100 transition-colors flex items-center gap-2 shrink-0 shadow-sm"
+              style={{ fontFamily: PP }}
+            >
+              + Add Family Member
+            </button>
+          )}
+          {onSwitchPatient && (
+            <button
+              onClick={onSwitchPatient}
+              className="px-4 py-2 rounded-xl border border-gray-200 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2 shrink-0 shadow-sm"
+              style={{ fontFamily: PP }}
+            >
+              Switch Patient
+            </button>
+          )}
+          <button
+            onClick={() => {
+              setEditForm({ ...profileData });
+              setActiveTab("edit");
+            }}
+            className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 transition-colors flex items-center gap-2 shrink-0 shadow-sm"
+            style={{ fontFamily: PP }}
+          >
+            <Edit size={14} /> Edit Profile
+          </button>
+        </div>
       </div>
 
       {/* ── 3. MAIN WORKSPACE WITH RIGHT PANEL ── */}

@@ -62,26 +62,51 @@ export interface Address {
  * Patient record returned from GET /api/v1/patients
  */
 export interface Patient {
-  mobileNumber: string;
-  patientName: string;
-  id: number;
-  name: string;
+  id?: number;
   mrn: string;
   fullName: string;
-  age: number;
+  name?: string;
+  patientName?: string;
+  relationship?:
+    | "SELF"
+    | "FATHER"
+    | "MOTHER"
+    | "SPOUSE"
+    | "SON"
+    | "DAUGHTER"
+    | "BROTHER"
+    | "SISTER"
+    | "GRANDFATHER"
+    | "GRANDMOTHER"
+    | "GUARDIAN"
+    | "OTHER"
+    | string;
+  age?: number;
   gender: string;
-  phone: string;
+  phone?: string;
+  mobileNumber?: string;
   email?: string;
-  patientCategory?: string;
-  registrationType?: string;
-  status: string;
-  assignedDoctor: string;
-  registrationDate: string;
+  dateOfBirth?: string;
   dob?: string;
   bloodGroup?: string;
   maritalStatus?: string;
-  photo?: string;
+  nationalId?: string;
   photoUrl?: string;
+  photo?: string;
+  address?:
+    | string
+    | {
+        street?: string;
+        streetAddress?: string;
+        addressLine1?: string;
+        addressLine2?: string;
+        city?: string;
+        state?: string;
+        zipCode?: string;
+        postalCode?: string;
+        pincode?: string;
+        country?: string;
+      };
   emergencyContact?: {
     name?: string;
     contactName?: string;
@@ -89,21 +114,27 @@ export interface Patient {
     phone?: string;
     contactNumber?: string;
     mobile?: string;
+    mobileNumber?: string;
+    alternativeMobileNumber?: string;
   };
-  address?: {
-    street?: string;
-    streetAddress?: string;
-    addressLine1?: string;
-    city?: string;
-    state?: string;
-    zipCode?: string;
-    postalCode?: string;
-    pincode?: string;
-    country?: string;
-  };
+  patientCategory?: string;
+  registrationType?: string;
+  knownAllergies?: string[];
   allergies?: string[];
+  chronicDiseases?: string[];
   medicalHistory?: string[];
+  specialNotes?: string;
+  status?: string;
+  assignedDoctor?: string;
+  registrationDate?: string;
   version?: number;
+  updatedAt?: string;
+  updatedBy?: {
+    userId?: string;
+    employeeId?: string;
+    fullName?: string;
+    role?: string;
+  };
 }
 
 export interface PatientStatistics {
@@ -383,6 +414,8 @@ export interface PatientProfileScreenProps {
   onCheckInClick?: (token?: string, mrn?: string) => void;
   onStartConsultation?: () => void;
   onRecordVitals?: () => void;
+  onAddFamilyMember?: () => void;
+  onSwitchPatient?: () => void;
   patientMrn?: string;
   userRole?: string;
   role?: string;

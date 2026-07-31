@@ -12,7 +12,6 @@ export { PatientProfileScreen as ReceptionPatientProfileScreen } from "./pages/P
 export * from "./pages/PatientSearchScreen";
 export * from "./pages/PatientTimelineScreen";
 export * from "./pages/PatientVisitHistoryScreen";
-export * from "./pages/ReceptionPatientRegistrationScreen";
 export * from "./pages/RegisterPatientScreen";
 
 // Components
@@ -27,7 +26,11 @@ export {
 } from "./components/PatientStatusBadge";
 
 // Hooks
-export { usePatients, usePatientSearch, useMyPatients } from "./hooks/usePatients";
+export {
+  usePatients,
+  usePatientSearch,
+  useMyPatients,
+} from "./hooks/usePatients";
 export { usePatient } from "./hooks/usePatient";
 export { useCreatePatient } from "./hooks/useCreatePatient";
 export { useDuplicateCheck } from "./hooks/useDuplicateCheck";

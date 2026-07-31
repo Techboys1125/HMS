@@ -8344,10 +8344,12 @@ export function PatientMyBillsScreen({
   onBack,
   onViewInvoiceDetailsClick,
   onPrintInvoiceClick,
+  activePatient,
 }: {
   onBack: () => void;
   onViewInvoiceDetailsClick?: (invId: string) => void;
   onPrintInvoiceClick?: (invId: string) => void;
+  activePatient?: any;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
@@ -8355,13 +8357,13 @@ export function PatientMyBillsScreen({
 
   // Patient Details
   const patientProfile = {
-    name: "Sarah Mitchell",
-    mrn: "MRN-89201",
-    totalBills: 4,
-    paidBills: 3,
-    pendingBills: 1,
-    lastPaymentDate: "2026-07-25",
-    outstandingAmount: 850,
+    name: activePatient?.patientName || activePatient?.name || "Patient",
+    mrn: activePatient?.mrn || activePatient?.id || "MRN",
+    totalBills: 0,
+    paidBills: 0,
+    pendingBills: 0,
+    lastPaymentDate: "N/A",
+    outstandingAmount: 0,
   };
 
   // Patient Invoices

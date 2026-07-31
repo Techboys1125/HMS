@@ -68,9 +68,12 @@ export function AppointmentManagementCenterScreen({
   onRegisterNewPatientClick,
   onRegisterPatientClick,
 }: Props) {
+  const todayDateStr = new Date().toISOString().split("T")[0];
+  const [dateFilter, setDateFilter] = useState<string>("All");
+
   const { appointments, setAppointments, refetch } = useAppointments(
     userRole,
-    new Date().toISOString().split("T")[0],
+    dateFilter === "Today" ? todayDateStr : undefined,
   );
   const [viewMode, setViewMode] = useState<"directory" | "queue">("directory");
 
@@ -111,13 +114,11 @@ export function AppointmentManagementCenterScreen({
     URL.revokeObjectURL(url);
   };
 
-  // Search & Filter state - Default Date = TODAY
-  const todayDateStr = new Date().toISOString().split("T")[0];
+  // Search & Filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [doctorFilter, setDoctorFilter] = useState<string>("All");
   const [deptFilter, setDeptFilter] = useState<string>("All");
-  const [dateFilter, setDateFilter] = useState<string>("Today");
   const [visitTypeFilter, setVisitTypeFilter] = useState<string>("All");
   const [deptOptions, setDeptOptions] = useState<string[]>([]);
 

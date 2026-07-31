@@ -92,7 +92,9 @@ export const UserManagement: React.FC = () => {
   const navigate = useNavigate();
 
   const [isCreatingStaff, setIsCreatingStaff] = useState(false);
-  const [userMgmtTab, setUserMgmtTab] = useState<"users" | "departments">("users");
+  const [userMgmtTab, setUserMgmtTab] = useState<"users" | "departments">(
+    "users",
+  );
 
   // Main Data States
   const [users, setUsers] = useState<UserRecord[]>([]);
@@ -113,7 +115,6 @@ export const UserManagement: React.FC = () => {
   const [apiDepartments, setApiDepartments] = useState<
     { id: number | string; name: string }[]
   >([]);
-
 
   const deptNameToId = useMemo(() => {
     const map: Record<string, number> = {};
@@ -137,7 +138,9 @@ export const UserManagement: React.FC = () => {
   // Drawer States
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
   const [detailsUser, setDetailsUser] = useState<UserRecord | null>(null);
-  const [fullUserDetail, setFullUserDetail] = useState<import("../types/users.types").UserDetailData | null>(null);
+  const [fullUserDetail, setFullUserDetail] = useState<
+    import("../types/users.types").UserDetailData | null
+  >(null);
   const [isFetchingDetail, setIsFetchingDetail] = useState(false);
 
   // Dialog States
@@ -167,8 +170,10 @@ export const UserManagement: React.FC = () => {
     consultationFee: 500,
     followUpFee: 300,
     slotDurationMinutes: 15,
-    availability: [] as import("../types/users.types").BackendAvailabilityItem[],
-    scheduleExceptions: [] as import("../types/users.types").ScheduleException[],
+    availability:
+      [] as import("../types/users.types").BackendAvailabilityItem[],
+    scheduleExceptions:
+      [] as import("../types/users.types").ScheduleException[],
     department: "General Medicine",
     status: "Active" as AccountStatus,
   });
@@ -206,40 +211,51 @@ export const UserManagement: React.FC = () => {
     try {
       const response = await usersApi.adminGetUsers();
       if (response.success && response.data) {
-        const mappedUsers: UserRecord[] = response.data.map((u: User & { userId?: number }, index: number) => {
-          const userId = u.userId ?? u.id;
-          const roleDisplay =
-            BACKEND_TO_DISPLAY_ROLE[String(u.role).toUpperCase()] || "Doctor";
-          const uid = userId ? String(userId) : `user-record-${index}`;
-          const statusDisplay =
-            localStatusOverrides[uid] ||
-            BACKEND_TO_DISPLAY_STATUS[String(u.status).toUpperCase()] ||
-            "Active";
-          const deptId = Number((u as any).primaryDepartmentId || (u as any).departmentId || u.hospitalId || (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2));
-          const deptName =
-            (u as any).departmentName ||
-            (u as any).department ||
-            deptIdToName[deptId] ||
-            (apiDepartments.length > 0 ? apiDepartments[0].name : "General Medicine");
+        const mappedUsers: UserRecord[] = response.data.map(
+          (u: User & { userId?: number }, index: number) => {
+            const userId = u.userId ?? u.id;
+            const roleDisplay =
+              BACKEND_TO_DISPLAY_ROLE[String(u.role).toUpperCase()] || "Doctor";
+            const uid = userId ? String(userId) : `user-record-${index}`;
+            const statusDisplay =
+              localStatusOverrides[uid] ||
+              BACKEND_TO_DISPLAY_STATUS[String(u.status).toUpperCase()] ||
+              "Active";
+            const deptId = Number(
+              (u as any).primaryDepartmentId ||
+                (u as any).departmentId ||
+                u.hospitalId ||
+                (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2),
+            );
+            const deptName =
+              (u as any).departmentName ||
+              (u as any).department ||
+              deptIdToName[deptId] ||
+              (apiDepartments.length > 0
+                ? apiDepartments[0].name
+                : "General Medicine");
 
-          return {
-            id: uid,
-            empId:
-              u.employeeId ||
-              `EMP-${roleDisplay.substring(0, 3).toUpperCase()}-${userId ?? index}`,
-            fullName: u.fullName || "Staff User",
-            username: u.email ? u.email.split("@")[0] : `user_${userId ?? index}`,
-            email: u.email || "",
-            phone: u.mobile || "+1 (555) 000-0000",
-            role: roleDisplay,
-            department: deptName,
-            departmentId: deptId,
-            status: statusDisplay,
-            lastLogin: "Today, 10:15 AM",
-            joinedDate: "2023-11-01",
-            twoFactor: false,
-          };
-        });
+            return {
+              id: uid,
+              empId:
+                u.employeeId ||
+                `EMP-${roleDisplay.substring(0, 3).toUpperCase()}-${userId ?? index}`,
+              fullName: u.fullName || "Staff User",
+              username: u.email
+                ? u.email.split("@")[0]
+                : `user_${userId ?? index}`,
+              email: u.email || "",
+              phone: u.mobile || "+1 (555) 000-0000",
+              role: roleDisplay,
+              department: deptName,
+              departmentId: deptId,
+              status: statusDisplay,
+              lastLogin: "Today, 10:15 AM",
+              joinedDate: "2023-11-01",
+              twoFactor: false,
+            };
+          },
+        );
         setUsers(mappedUsers);
       } else {
         setErrorMsg(response.message || "Failed to retrieve staff list.");
@@ -282,7 +298,8 @@ export const UserManagement: React.FC = () => {
   // Open Edit Drawer & prefill details
   const handleOpenEditDrawer = async (user: UserRecord) => {
     setEditingUser(user);
-    let currentDetail = fullUserDetail?.userId === Number(user.id) ? fullUserDetail : null;
+    let currentDetail =
+      fullUserDetail?.userId === Number(user.id) ? fullUserDetail : null;
 
     if (!currentDetail) {
       try {
@@ -297,15 +314,16 @@ export const UserManagement: React.FC = () => {
     }
 
     const docProfile = currentDetail?.doctorProfile;
-    const existingAvailability = (docProfile?.availability && docProfile.availability.length > 0)
-      ? docProfile.availability
-      : [
-          { dayOfWeek: "MONDAY", startTime: "09:00", endTime: "17:00" },
-          { dayOfWeek: "TUESDAY", startTime: "09:00", endTime: "17:00" },
-          { dayOfWeek: "WEDNESDAY", startTime: "09:00", endTime: "17:00" },
-          { dayOfWeek: "THURSDAY", startTime: "09:00", endTime: "17:00" },
-          { dayOfWeek: "FRIDAY", startTime: "09:00", endTime: "17:00" },
-        ];
+    const existingAvailability =
+      docProfile?.availability && docProfile.availability.length > 0
+        ? docProfile.availability
+        : [
+            { dayOfWeek: "MONDAY", startTime: "09:00", endTime: "17:00" },
+            { dayOfWeek: "TUESDAY", startTime: "09:00", endTime: "17:00" },
+            { dayOfWeek: "WEDNESDAY", startTime: "09:00", endTime: "17:00" },
+            { dayOfWeek: "THURSDAY", startTime: "09:00", endTime: "17:00" },
+            { dayOfWeek: "FRIDAY", startTime: "09:00", endTime: "17:00" },
+          ];
 
     setEditForm({
       fullName: user.fullName,
@@ -318,7 +336,10 @@ export const UserManagement: React.FC = () => {
       medicalRegistrationNumber: docProfile?.medicalRegistrationNumber || "",
       qualification: docProfile?.qualification || "",
       yearsOfExperience: docProfile?.yearsOfExperience || 0,
-      primaryDepartmentId: docProfile?.primaryDepartment?.departmentId || deptNameToId[user.department] || (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2),
+      primaryDepartmentId:
+        docProfile?.primaryDepartment?.departmentId ||
+        deptNameToId[user.department] ||
+        (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2),
       primarySpecialtyId: docProfile?.primarySpecialty?.specialtyId || 1,
       consultationFee: docProfile?.consultationFee || 500,
       followUpFee: docProfile?.followUpFee || 300,
@@ -337,7 +358,10 @@ export const UserManagement: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const deptId = editForm.primaryDepartmentId || deptNameToId[editForm.department] || (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2);
+      const deptId =
+        editForm.primaryDepartmentId ||
+        deptNameToId[editForm.department] ||
+        (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2);
       const apiStatus = DISPLAY_TO_BACKEND_STATUS[editForm.status] || "ACTIVE";
 
       const payload: import("../types/users.types").AdminUpdateStaffData = {
@@ -408,7 +432,9 @@ export const UserManagement: React.FC = () => {
   };
 
   // Local override map for status persistence across backend refetches
-  const [localStatusOverrides, setLocalStatusOverrides] = useState<Record<string, AccountStatus>>({});
+  const [localStatusOverrides, setLocalStatusOverrides] = useState<
+    Record<string, AccountStatus>
+  >({});
 
   // Handle Account Status Toggles (Activate / Suspend / Deactivate)
   const handleConfirmStatusChange = async () => {
@@ -431,15 +457,16 @@ export const UserManagement: React.FC = () => {
       }
 
       if (response && response.success) {
-        const newStatus: AccountStatus = action === "Activate" ? "Active" : "Inactive";
+        const newStatus: AccountStatus =
+          action === "Activate" ? "Active" : "Inactive";
         setLocalStatusOverrides((prev) => ({ ...prev, [user.id]: newStatus }));
         setUsers((prevUsers) =>
           prevUsers.map((u) =>
-            u.id === user.id ? { ...u, status: newStatus } : u
-          )
+            u.id === user.id ? { ...u, status: newStatus } : u,
+          ),
         );
         triggerToast(
-          `User ${user.empId} account status successfully changed to "${newStatus}".`
+          `User ${user.empId} account status successfully changed to "${newStatus}".`,
         );
       } else {
         triggerToast(response?.message || "Failed to toggle account status.");
@@ -567,7 +594,11 @@ export const UserManagement: React.FC = () => {
 
         <div className="flex items-center gap-2 shrink-0">
           <button
-            onClick={() => setUserMgmtTab(userMgmtTab === "departments" ? "users" : "departments")}
+            onClick={() =>
+              setUserMgmtTab(
+                userMgmtTab === "departments" ? "users" : "departments",
+              )
+            }
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-sm cursor-pointer ${
               userMgmtTab === "departments"
                 ? "bg-[#009688] text-white"
@@ -602,517 +633,521 @@ export const UserManagement: React.FC = () => {
         <DepartmentsSpecialtiesWorkspace />
       ) : (
         <div className="bg-slate-50/50 rounded-2xl shadow-sm border border-gray-200 min-h-[700px] overflow-hidden flex flex-col font-medium animate-in fade-in zoom-in-95 duration-200 w-full space-y-6 relative p-6">
-        {/* ── 2. SUMMARY KPI CARDS ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Total Users */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-            <div>
-              <div className="text-xs text-[#64748B] font-medium">
-                Total Users
-              </div>
-              <div
-                className="text-2xl font-bold text-[#111827] mt-0.5"
-                style={{ fontFamily: PP }}
-              >
-                {totalUsersCount}
-              </div>
-              <div className="text-[11px] text-[#0D47A1] font-medium mt-1">
-                Across all departments
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#0D47A1]">
-              <Users size={20} />
-            </div>
-          </div>
-
-          {/* Active Users */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-            <div>
-              <div className="text-xs text-[#64748B] font-medium">
-                Active Users
-              </div>
-              <div
-                className="text-2xl font-bold text-[#111827] mt-0.5"
-                style={{ fontFamily: PP }}
-              >
-                {activeUsersCount}
-              </div>
-              <div className="text-[11px] text-[#66BB6A] font-medium mt-1">
-                {totalUsersCount > 0
-                  ? Math.round((activeUsersCount / totalUsersCount) * 100)
-                  : 0}
-                % of total system users
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-[#66BB6A]">
-              <UserCheck size={20} />
-            </div>
-          </div>
-
-          {/* Inactive Users */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-            <div>
-              <div className="text-xs text-[#64748B] font-medium">
-                Inactive / Suspended
-              </div>
-              <div
-                className="text-2xl font-bold text-[#111827] mt-0.5"
-                style={{ fontFamily: PP }}
-              >
-                {inactiveUsersCount}
-              </div>
-              <div className="text-[11px] text-[#EF4444] font-medium mt-1">
-                Access revoked or offboarded
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-[#EF4444]">
-              <UserX size={20} />
-            </div>
-          </div>
-
-          {/* Pending Activation */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-            <div>
-              <div className="text-xs text-[#64748B] font-medium">
-                Pending Activation
-              </div>
-              <div
-                className="text-2xl font-bold text-[#111827] mt-0.5"
-                style={{ fontFamily: PP }}
-              >
-                {pendingUsersCount}
-              </div>
-              <div className="text-[11px] text-[#F59E0B] font-medium mt-1">
-                Awaiting initial password setup
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-[#F59E0B]">
-              <Clock size={20} />
-            </div>
-          </div>
-        </div>
-
-        {/* ── 3. SEARCH & FILTERS TOOLBAR ── */}
-        <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            {/* Search Box */}
-            <div className="relative flex-1 max-w-md">
-              <Search
-                size={15}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by User Name, Employee ID, Email, Username..."
-                className="w-full pl-9 pr-3.5 py-2.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          {/* ── 2. SUMMARY KPI CARDS ── */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Total Users */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+              <div>
+                <div className="text-xs text-[#64748B] font-medium">
+                  Total Users
+                </div>
+                <div
+                  className="text-2xl font-bold text-[#111827] mt-0.5"
+                  style={{ fontFamily: PP }}
                 >
-                  <X size={13} />
-                </button>
-              )}
+                  {totalUsersCount}
+                </div>
+                <div className="text-[11px] text-[#0D47A1] font-medium mt-1">
+                  Across all departments
+                </div>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#0D47A1]">
+                <Users size={20} />
+              </div>
             </div>
 
-            {/* Filter Dropdowns */}
-            <div className="flex items-center gap-2 flex-wrap text-xs">
-              {/* Role Filter */}
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                <Shield size={13} className="text-slate-400" />
-                <span className="text-slate-500 font-medium">Role:</span>
-                <select
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                  className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
+            {/* Active Users */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+              <div>
+                <div className="text-xs text-[#64748B] font-medium">
+                  Active Users
+                </div>
+                <div
+                  className="text-2xl font-bold text-[#111827] mt-0.5"
+                  style={{ fontFamily: PP }}
                 >
-                  <option value="All">All Roles</option>
-                  <option value="Hospital Admin">Hospital Admin</option>
-                  <option value="Doctor">Doctor</option>
-                  <option value="Receptionist">Receptionist</option>
-                  <option value="Nurse">Nurse</option>
-                  <option value="Accountant">Accountant</option>
-                  <option value="Super Admin">Super Admin</option>
-                  <option value="Patient">Patient</option>
-                </select>
+                  {activeUsersCount}
+                </div>
+                <div className="text-[11px] text-[#66BB6A] font-medium mt-1">
+                  {totalUsersCount > 0
+                    ? Math.round((activeUsersCount / totalUsersCount) * 100)
+                    : 0}
+                  % of total system users
+                </div>
               </div>
+              <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-[#66BB6A]">
+                <UserCheck size={20} />
+              </div>
+            </div>
 
-              {/* Status Filter */}
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                <Filter size={13} className="text-slate-400" />
-                <span className="text-slate-500 font-medium">Status:</span>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
+            {/* Inactive Users */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+              <div>
+                <div className="text-xs text-[#64748B] font-medium">
+                  Inactive / Suspended
+                </div>
+                <div
+                  className="text-2xl font-bold text-[#111827] mt-0.5"
+                  style={{ fontFamily: PP }}
                 >
-                  <option value="All">All Statuses</option>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Suspended">Suspended</option>
-                </select>
+                  {inactiveUsersCount}
+                </div>
+                <div className="text-[11px] text-[#EF4444] font-medium mt-1">
+                  Access revoked or offboarded
+                </div>
               </div>
+              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-[#EF4444]">
+                <UserX size={20} />
+              </div>
+            </div>
 
-              {/* Department Filter */}
-              <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                <Building2 size={13} className="text-slate-400" />
-                <span className="text-slate-500 font-medium">Dept:</span>
-                <select
-                  value={deptFilter}
-                  onChange={(e) => setDeptFilter(e.target.value)}
-                  className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
+            {/* Pending Activation */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
+              <div>
+                <div className="text-xs text-[#64748B] font-medium">
+                  Pending Activation
+                </div>
+                <div
+                  className="text-2xl font-bold text-[#111827] mt-0.5"
+                  style={{ fontFamily: PP }}
                 >
-                  <option value="All">All Departments</option>
-                  <option value="Cardiology">Cardiology</option>
-                  <option value="General Medicine">General Medicine</option>
-                  <option value="Neurology">Neurology</option>
-                  <option value="Administration">Administration</option>
-                  <option value="OPD Reception">OPD Reception</option>
-                  <option value="Accounts & Billing">Accounts & Billing</option>
-                  <option value="Nursing & Patient Care">
-                    Nursing & Patient Care
-                  </option>
-                  <option value="IT & Systems">IT & Systems</option>
-                </select>
+                  {pendingUsersCount}
+                </div>
+                <div className="text-[11px] text-[#F59E0B] font-medium mt-1">
+                  Awaiting initial password setup
+                </div>
               </div>
-
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setRoleFilter("All");
-                  setStatusFilter("All");
-                  setDeptFilter("All");
-                  triggerToast("Filters reset.");
-                }}
-                className="p-2 rounded-xl border border-[#E5E7EB] bg-white text-slate-500 hover:text-[#0D47A1] hover:bg-slate-50 transition-colors cursor-pointer"
-                title="Reset Filters"
-              >
-                <RotateCcw size={14} />
-              </button>
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-[#F59E0B]">
+                <Clock size={20} />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* ── 4. MAIN USER MANAGEMENT HMS TABLE ── */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
-          {loading ? (
-            <div className="py-20 flex flex-col items-center justify-center gap-3">
-              <Loader2 className="animate-spin text-primary" size={32} />
-              <p className="text-xs text-text-muted">
-                Fetching staff data from API database...
-              </p>
-            </div>
-          ) : errorMsg ? (
-            <div className="py-20 flex flex-col items-center justify-center gap-3 text-center px-4">
-              <AlertTriangle className="text-red-500" size={32} />
-              <h3
-                className="text-sm font-bold text-[#111827]"
-                style={{ fontFamily: PP }}
-              >
-                Failed to Load Data
-              </h3>
-              <p className="text-xs text-red-650 max-w-sm">{errorMsg}</p>
-              <button
-                onClick={fetchUsers}
-                className="mt-2 btn btn-outline-primary inline-flex items-center gap-2 text-xs py-2 px-4 border rounded-xl"
-              >
-                <RotateCcw size={12} />
-                Retry Fetch
-              </button>
-            </div>
-          ) : (
-            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-              <table className="w-full border-collapse text-left text-xs">
-                <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
-                  <tr
-                    className="text-[#64748B] font-bold"
-                    style={{ fontFamily: PP }}
+          {/* ── 3. SEARCH & FILTERS TOOLBAR ── */}
+          <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              {/* Search Box */}
+              <div className="relative flex-1 max-w-md">
+                <Search
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by User Name, Employee ID, Email, Username..."
+                  className="w-full pl-9 pr-3.5 py-2.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
-                    <th
-                      onClick={() => handleSort("empId")}
-                      className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
-                    >
-                      <div className="flex items-center gap-1">
-                        <span>Employee ID</span>
-                        <ArrowUpDown size={12} className="text-slate-400" />
-                      </div>
-                    </th>
-                    <th
-                      onClick={() => handleSort("fullName")}
-                      className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
-                    >
-                      <div className="flex items-center gap-1">
-                        <span>Full Name</span>
-                        <ArrowUpDown size={12} className="text-slate-400" />
-                      </div>
-                    </th>
-                    <th
-                      onClick={() => handleSort("role")}
-                      className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
-                    >
-                      <div className="flex items-center gap-1">
-                        <span>Role</span>
-                        <ArrowUpDown size={12} className="text-slate-400" />
-                      </div>
-                    </th>
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
 
-                    <th className="px-4 py-3.5">Email</th>
-                    <th className="px-4 py-3.5">Phone</th>
-                    <th
-                      onClick={() => handleSort("status")}
-                      className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
+              {/* Filter Dropdowns */}
+              <div className="flex items-center gap-2 flex-wrap text-xs">
+                {/* Role Filter */}
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
+                  <Shield size={13} className="text-slate-400" />
+                  <span className="text-slate-500 font-medium">Role:</span>
+                  <select
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value)}
+                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
+                  >
+                    <option value="All">All Roles</option>
+                    <option value="Hospital Admin">Hospital Admin</option>
+                    <option value="Doctor">Doctor</option>
+                    <option value="Receptionist">Receptionist</option>
+                    <option value="Nurse">Nurse</option>
+                    <option value="Accountant">Accountant</option>
+                    <option value="Super Admin">Super Admin</option>
+                    <option value="Patient">Patient</option>
+                  </select>
+                </div>
+
+                {/* Status Filter */}
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
+                  <Filter size={13} className="text-slate-400" />
+                  <span className="text-slate-500 font-medium">Status:</span>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
+                  >
+                    <option value="All">All Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Suspended">Suspended</option>
+                  </select>
+                </div>
+
+                {/* Department Filter */}
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
+                  <Building2 size={13} className="text-slate-400" />
+                  <span className="text-slate-500 font-medium">Dept:</span>
+                  <select
+                    value={deptFilter}
+                    onChange={(e) => setDeptFilter(e.target.value)}
+                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
+                  >
+                    <option value="All">All Departments</option>
+                    <option value="Cardiology">Cardiology</option>
+                    <option value="General Medicine">General Medicine</option>
+                    <option value="Neurology">Neurology</option>
+                    <option value="Administration">Administration</option>
+                    <option value="OPD Reception">OPD Reception</option>
+                    <option value="Accounts & Billing">
+                      Accounts & Billing
+                    </option>
+                    <option value="Nursing & Patient Care">
+                      Nursing & Patient Care
+                    </option>
+                    <option value="IT & Systems">IT & Systems</option>
+                  </select>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setRoleFilter("All");
+                    setStatusFilter("All");
+                    setDeptFilter("All");
+                    triggerToast("Filters reset.");
+                  }}
+                  className="p-2 rounded-xl border border-[#E5E7EB] bg-white text-slate-500 hover:text-[#0D47A1] hover:bg-slate-50 transition-colors cursor-pointer"
+                  title="Reset Filters"
+                >
+                  <RotateCcw size={14} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ── 4. MAIN USER MANAGEMENT HMS TABLE ── */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
+            {loading ? (
+              <div className="py-20 flex flex-col items-center justify-center gap-3">
+                <Loader2 className="animate-spin text-primary" size={32} />
+                <p className="text-xs text-text-muted">
+                  Fetching staff data from API database...
+                </p>
+              </div>
+            ) : errorMsg ? (
+              <div className="py-20 flex flex-col items-center justify-center gap-3 text-center px-4">
+                <AlertTriangle className="text-red-500" size={32} />
+                <h3
+                  className="text-sm font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  Failed to Load Data
+                </h3>
+                <p className="text-xs text-red-650 max-w-sm">{errorMsg}</p>
+                <button
+                  onClick={fetchUsers}
+                  className="mt-2 btn btn-outline-primary inline-flex items-center gap-2 text-xs py-2 px-4 border rounded-xl"
+                >
+                  <RotateCcw size={12} />
+                  Retry Fetch
+                </button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+                <table className="w-full border-collapse text-left text-xs">
+                  <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
+                    <tr
+                      className="text-[#64748B] font-bold"
+                      style={{ fontFamily: PP }}
                     >
-                      <div className="flex items-center gap-1">
-                        <span>Status</span>
-                        <ArrowUpDown size={12} className="text-slate-400" />
-                      </div>
-                    </th>
-                    <th className="px-4 py-3.5">Last Login</th>
-                    <th className="px-5 py-3.5 text-right">Actions</th>
-                  </tr>
-                </thead>
+                      <th
+                        onClick={() => handleSort("empId")}
+                        className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Employee ID</span>
+                          <ArrowUpDown size={12} className="text-slate-400" />
+                        </div>
+                      </th>
+                      <th
+                        onClick={() => handleSort("fullName")}
+                        className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Full Name</span>
+                          <ArrowUpDown size={12} className="text-slate-400" />
+                        </div>
+                      </th>
+                      <th
+                        onClick={() => handleSort("role")}
+                        className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Role</span>
+                          <ArrowUpDown size={12} className="text-slate-400" />
+                        </div>
+                      </th>
 
-                <tbody className="divide-y divide-gray-100 text-[#111827]">
-                  {filteredUsers.length > 0 ? (
-                    filteredUsers.map((user, idx) => {
-                      const initials = user.fullName
-                        .split(" ")
-                        .filter((n) => n.length > 0)
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()
-                        .slice(0, 2);
+                      <th className="px-4 py-3.5">Email</th>
+                      <th className="px-4 py-3.5">Phone</th>
+                      <th
+                        onClick={() => handleSort("status")}
+                        className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
+                      >
+                        <div className="flex items-center gap-1">
+                          <span>Status</span>
+                          <ArrowUpDown size={12} className="text-slate-400" />
+                        </div>
+                      </th>
+                      <th className="px-4 py-3.5">Last Login</th>
+                      <th className="px-5 py-3.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
 
-                      return (
-                        <tr
-                          key={user.id || user.empId || `user-row-${idx}`}
-                          className="hover:bg-slate-50/80 transition-colors group"
-                        >
-                          <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
-                            {user.empId}
-                          </td>
-                          <td className="px-4 py-3.5">
-                            <div className="flex items-center gap-3">
-                              <div
-                                className="w-8 h-8 rounded-xl bg-blue-100 text-[#0D47A1] font-bold text-xs flex items-center justify-center shrink-0"
-                                style={{ fontFamily: PP }}
-                              >
-                                {initials}
-                              </div>
-                              <div>
-                                <span
-                                  className="font-bold text-[#111827] block"
+                  <tbody className="divide-y divide-gray-100 text-[#111827]">
+                    {filteredUsers.length > 0 ? (
+                      filteredUsers.map((user, idx) => {
+                        const initials = user.fullName
+                          .split(" ")
+                          .filter((n) => n.length > 0)
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()
+                          .slice(0, 2);
+
+                        return (
+                          <tr
+                            key={user.id || user.empId || `user-row-${idx}`}
+                            className="hover:bg-slate-50/80 transition-colors group"
+                          >
+                            <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
+                              {user.empId}
+                            </td>
+                            <td className="px-4 py-3.5">
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className="w-8 h-8 rounded-xl bg-blue-100 text-[#0D47A1] font-bold text-xs flex items-center justify-center shrink-0"
                                   style={{ fontFamily: PP }}
                                 >
-                                  {user.fullName}
-                                </span>
-                                <span className="text-[10px] text-[#64748B]">
-                                  @{user.username}
-                                </span>
+                                  {initials}
+                                </div>
+                                <div>
+                                  <span
+                                    className="font-bold text-[#111827] block"
+                                    style={{ fontFamily: PP }}
+                                  >
+                                    {user.fullName}
+                                  </span>
+                                  <span className="text-[10px] text-[#64748B]">
+                                    @{user.username}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3.5">
-                            <span
-                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${getRoleBadgeStyle(user.role)}`}
-                            >
-                              <Shield size={11} /> {user.role}
-                            </span>
-                          </td>
-
-                          <td className="px-4 py-3.5 text-slate-600">
-                            <a
-                              href={`mailto:${user.email}`}
-                              className="hover:text-[#0D47A1] hover:underline flex items-center gap-1"
-                            >
-                              <Mail
-                                size={12}
-                                className="text-slate-400 shrink-0"
-                              />
-                              <span className="truncate max-w-[160px]">
-                                {user.email}
-                              </span>
-                            </a>
-                          </td>
-                          <td className="px-4 py-3.5 text-slate-600 font-mono">
-                            {user.phone}
-                          </td>
-                          <td className="px-4 py-3.5">
-                            <span
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                user.status === "Active"
-                                  ? "bg-green-50 text-[#66BB6A]"
-                                  : user.status === "Pending"
-                                    ? "bg-amber-50 text-[#F59E0B]"
-                                    : user.status === "Suspended"
-                                      ? "bg-orange-50 text-orange-600"
-                                      : "bg-red-50 text-[#EF4444]"
-                              }`}
-                            >
+                            </td>
+                            <td className="px-4 py-3.5">
                               <span
-                                className={`w-1.5 h-1.5 rounded-full ${
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${getRoleBadgeStyle(user.role)}`}
+                              >
+                                <Shield size={11} /> {user.role}
+                              </span>
+                            </td>
+
+                            <td className="px-4 py-3.5 text-slate-600">
+                              <a
+                                href={`mailto:${user.email}`}
+                                className="hover:text-[#0D47A1] hover:underline flex items-center gap-1"
+                              >
+                                <Mail
+                                  size={12}
+                                  className="text-slate-400 shrink-0"
+                                />
+                                <span className="truncate max-w-[160px]">
+                                  {user.email}
+                                </span>
+                              </a>
+                            </td>
+                            <td className="px-4 py-3.5 text-slate-600 font-mono">
+                              {user.phone}
+                            </td>
+                            <td className="px-4 py-3.5">
+                              <span
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
                                   user.status === "Active"
-                                    ? "bg-[#66BB6A]"
+                                    ? "bg-green-50 text-[#66BB6A]"
                                     : user.status === "Pending"
-                                      ? "bg-[#F59E0B]"
+                                      ? "bg-amber-50 text-[#F59E0B]"
                                       : user.status === "Suspended"
-                                        ? "bg-orange-500"
-                                        : "bg-[#EF4444]"
+                                        ? "bg-orange-50 text-orange-600"
+                                        : "bg-red-50 text-[#EF4444]"
                                 }`}
-                              />
-                              {user.status}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3.5 text-slate-500 text-[11px]">
-                            {user.lastLogin}
-                          </td>
-                          <td className="px-5 py-3.5 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              {/* View Details */}
-                              <button
-                                onClick={() => handleOpenDetailsDrawer(user)}
-                                className="p-1.5 text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                                title="View User Details"
                               >
-                                <Eye size={15} />
-                              </button>
-
-                              {/* Edit User */}
-                              <button
-                                onClick={() => handleOpenEditDrawer(user)}
-                                className="p-1.5 text-slate-500 hover:text-[#009688] hover:bg-teal-50 rounded-lg transition-colors cursor-pointer"
-                                title="Edit User Information"
-                              >
-                                <Edit size={15} />
-                              </button>
-
-                              {/* Reset Password */}
-                              <button
-                                onClick={() => {
-                                  setResetPassUser(user);
-                                }}
-                                className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
-                                title="Reset Password"
-                              >
-                                <Key size={15} />
-                              </button>
-
-                              {/* Status Change Toggles */}
-                              {user.status === "Active" ? (
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    user.status === "Active"
+                                      ? "bg-[#66BB6A]"
+                                      : user.status === "Pending"
+                                        ? "bg-[#F59E0B]"
+                                        : user.status === "Suspended"
+                                          ? "bg-orange-500"
+                                          : "bg-[#EF4444]"
+                                  }`}
+                                />
+                                {user.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3.5 text-slate-500 text-[11px]">
+                              {user.lastLogin}
+                            </td>
+                            <td className="px-5 py-3.5 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                {/* View Details */}
                                 <button
-                                  onClick={() =>
-                                    setStatusDialogUser({
-                                      user,
-                                      action: "Deactivate",
-                                    })
-                                  }
-                                  disabled={
-                                    actionLoadingId === `suspend-${user.id}`
-                                  }
-                                  className="p-1.5 text-slate-400 hover:text-[#EF4444] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                                  title="Suspend Account"
+                                  onClick={() => handleOpenDetailsDrawer(user)}
+                                  className="p-1.5 text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                  title="View User Details"
                                 >
-                                  {actionLoadingId === `suspend-${user.id}` ? (
-                                    <Loader2
-                                      size={14}
-                                      className="animate-spin text-red-500"
-                                    />
-                                  ) : (
-                                    <UserX size={15} />
-                                  )}
+                                  <Eye size={15} />
                                 </button>
-                              ) : (
+
+                                {/* Edit User */}
                                 <button
-                                  onClick={() =>
-                                    setStatusDialogUser({
-                                      user,
-                                      action: "Activate",
-                                    })
-                                  }
-                                  disabled={
-                                    actionLoadingId === `activate-${user.id}`
-                                  }
-                                  className="p-1.5 text-slate-400 hover:text-[#66BB6A] hover:bg-green-50 rounded-lg transition-colors cursor-pointer"
-                                  title="Activate Account"
+                                  onClick={() => handleOpenEditDrawer(user)}
+                                  className="p-1.5 text-slate-500 hover:text-[#009688] hover:bg-teal-50 rounded-lg transition-colors cursor-pointer"
+                                  title="Edit User Information"
                                 >
-                                  {actionLoadingId === `activate-${user.id}` ? (
-                                    <Loader2
-                                      size={14}
-                                      className="animate-spin text-green-500"
-                                    />
-                                  ) : (
-                                    <UserCheck size={15} />
-                                  )}
+                                  <Edit size={15} />
                                 </button>
-                              )}
+
+                                {/* Reset Password */}
+                                <button
+                                  onClick={() => {
+                                    setResetPassUser(user);
+                                  }}
+                                  className="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                                  title="Reset Password"
+                                >
+                                  <Key size={15} />
+                                </button>
+
+                                {/* Status Change Toggles */}
+                                {user.status === "Active" ? (
+                                  <button
+                                    onClick={() =>
+                                      setStatusDialogUser({
+                                        user,
+                                        action: "Deactivate",
+                                      })
+                                    }
+                                    disabled={
+                                      actionLoadingId === `suspend-${user.id}`
+                                    }
+                                    className="p-1.5 text-slate-400 hover:text-[#EF4444] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                    title="Suspend Account"
+                                  >
+                                    {actionLoadingId ===
+                                    `suspend-${user.id}` ? (
+                                      <Loader2
+                                        size={14}
+                                        className="animate-spin text-red-500"
+                                      />
+                                    ) : (
+                                      <UserX size={15} />
+                                    )}
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() =>
+                                      setStatusDialogUser({
+                                        user,
+                                        action: "Activate",
+                                      })
+                                    }
+                                    disabled={
+                                      actionLoadingId === `activate-${user.id}`
+                                    }
+                                    className="p-1.5 text-slate-400 hover:text-[#66BB6A] hover:bg-green-50 rounded-lg transition-colors cursor-pointer"
+                                    title="Activate Account"
+                                  >
+                                    {actionLoadingId ===
+                                    `activate-${user.id}` ? (
+                                      <Loader2
+                                        size={14}
+                                        className="animate-spin text-green-500"
+                                      />
+                                    ) : (
+                                      <UserCheck size={15} />
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={8} className="py-12 text-center">
+                          <div className="flex flex-col items-center justify-center space-y-3">
+                            <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
+                              <Users size={32} />
                             </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={8} className="py-12 text-center">
-                        <div className="flex flex-col items-center justify-center space-y-3">
-                          <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
-                            <Users size={32} />
+                            <div>
+                              <h3
+                                className="text-sm font-bold text-[#111827]"
+                                style={{ fontFamily: PP }}
+                              >
+                                No users found
+                              </h3>
+                              <p className="text-xs text-[#64748B]">
+                                No user records match your search or filter
+                                criteria.
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <h3
-                              className="text-sm font-bold text-[#111827]"
-                              style={{ fontFamily: PP }}
-                            >
-                              No users found
-                            </h3>
-                            <p className="text-xs text-[#64748B]">
-                              No user records match your search or filter
-                              criteria.
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-          {/* Table Footer */}
-          <div className="p-4 border-t border-[#E5E7EB] bg-white flex items-center justify-between">
-            <div className="text-xs text-[#64748B]">
-              Showing{" "}
-              <span className="font-bold text-[#111827]">
-                {filteredUsers.length}
-              </span>{" "}
-              of{" "}
-              <span className="font-bold text-[#111827]">{users.length}</span>{" "}
-              total users
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                disabled
-                className="px-3 py-1.5 text-xs text-slate-400 bg-slate-50 rounded-lg font-medium"
-              >
-                Previous
-              </button>
-              <button className="w-7 h-7 bg-[#0D47A1] text-white rounded-lg text-xs font-bold">
-                1
-              </button>
-              <button
-                disabled
-                className="px-3 py-1.5 text-xs text-slate-400 bg-slate-50 rounded-lg font-medium"
-              >
-                Next
-              </button>
+            {/* Table Footer */}
+            <div className="p-4 border-t border-[#E5E7EB] bg-white flex items-center justify-between">
+              <div className="text-xs text-[#64748B]">
+                Showing{" "}
+                <span className="font-bold text-[#111827]">
+                  {filteredUsers.length}
+                </span>{" "}
+                of{" "}
+                <span className="font-bold text-[#111827]">{users.length}</span>{" "}
+                total users
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  disabled
+                  className="px-3 py-1.5 text-xs text-slate-400 bg-slate-50 rounded-lg font-medium"
+                >
+                  Previous
+                </button>
+                <button className="w-7 h-7 bg-[#0D47A1] text-white rounded-lg text-xs font-bold">
+                  1
+                </button>
+                <button
+                  disabled
+                  className="px-3 py-1.5 text-xs text-slate-400 bg-slate-50 rounded-lg font-medium"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* ── 6. RIGHT DRAWER: EDIT USER ── */}
@@ -1235,7 +1270,15 @@ export const UserManagement: React.FC = () => {
                   <select
                     value={editForm.department}
                     onChange={(e) =>
-                      setEditForm({ ...editForm, department: e.target.value, primaryDepartmentId: deptNameToId[e.target.value] || (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2) })
+                      setEditForm({
+                        ...editForm,
+                        department: e.target.value,
+                        primaryDepartmentId:
+                          deptNameToId[e.target.value] ||
+                          (apiDepartments.length > 0
+                            ? Number(apiDepartments[0].id)
+                            : 2),
+                      })
                     }
                     className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
                   >
@@ -1270,7 +1313,10 @@ export const UserManagement: React.FC = () => {
                           type="text"
                           value={editForm.medicalRegistrationNumber}
                           onChange={(e) =>
-                            setEditForm({ ...editForm, medicalRegistrationNumber: e.target.value })
+                            setEditForm({
+                              ...editForm,
+                              medicalRegistrationNumber: e.target.value,
+                            })
                           }
                           className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
                         />
@@ -1283,7 +1329,10 @@ export const UserManagement: React.FC = () => {
                           type="text"
                           value={editForm.qualification}
                           onChange={(e) =>
-                            setEditForm({ ...editForm, qualification: e.target.value })
+                            setEditForm({
+                              ...editForm,
+                              qualification: e.target.value,
+                            })
                           }
                           className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
                         />
@@ -1299,7 +1348,10 @@ export const UserManagement: React.FC = () => {
                           type="number"
                           value={editForm.yearsOfExperience}
                           onChange={(e) =>
-                            setEditForm({ ...editForm, yearsOfExperience: Number(e.target.value) })
+                            setEditForm({
+                              ...editForm,
+                              yearsOfExperience: Number(e.target.value),
+                            })
                           }
                           className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
                         />
@@ -1312,7 +1364,10 @@ export const UserManagement: React.FC = () => {
                           type="number"
                           value={editForm.consultationFee}
                           onChange={(e) =>
-                            setEditForm({ ...editForm, consultationFee: Number(e.target.value) })
+                            setEditForm({
+                              ...editForm,
+                              consultationFee: Number(e.target.value),
+                            })
                           }
                           className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
                         />
@@ -1325,7 +1380,10 @@ export const UserManagement: React.FC = () => {
                           type="number"
                           value={editForm.followUpFee}
                           onChange={(e) =>
-                            setEditForm({ ...editForm, followUpFee: Number(e.target.value) })
+                            setEditForm({
+                              ...editForm,
+                              followUpFee: Number(e.target.value),
+                            })
                           }
                           className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
                         />
@@ -1340,7 +1398,10 @@ export const UserManagement: React.FC = () => {
                         type="number"
                         value={editForm.slotDurationMinutes}
                         onChange={(e) =>
-                          setEditForm({ ...editForm, slotDurationMinutes: Number(e.target.value) })
+                          setEditForm({
+                            ...editForm,
+                            slotDurationMinutes: Number(e.target.value),
+                          })
                         }
                         className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
                       />
@@ -1352,21 +1413,34 @@ export const UserManagement: React.FC = () => {
                         <label className="block text-xs font-bold text-[#111827]">
                           Doctor Weekly Availability Schedule
                         </label>
-                        <span className="text-[10px] text-slate-400 font-semibold uppercase">HH:mm Format</span>
+                        <span className="text-[10px] text-slate-400 font-semibold uppercase">
+                          HH:mm Format
+                        </span>
                       </div>
 
                       <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                         {editForm.availability.map((item, index) => (
-                          <div key={index} className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 text-xs">
-                            <span className="w-20 font-bold text-slate-700">{item.dayOfWeek}</span>
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 text-xs"
+                          >
+                            <span className="w-20 font-bold text-slate-700">
+                              {item.dayOfWeek}
+                            </span>
                             <input
                               type="text"
                               value={item.startTime}
                               placeholder="09:00"
                               onChange={(e) => {
                                 const newArr = [...editForm.availability];
-                                newArr[index] = { ...newArr[index], startTime: e.target.value };
-                                setEditForm({ ...editForm, availability: newArr });
+                                newArr[index] = {
+                                  ...newArr[index],
+                                  startTime: e.target.value,
+                                };
+                                setEditForm({
+                                  ...editForm,
+                                  availability: newArr,
+                                });
                               }}
                               className="w-20 px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-mono text-center"
                             />
@@ -1377,8 +1451,14 @@ export const UserManagement: React.FC = () => {
                               placeholder="17:00"
                               onChange={(e) => {
                                 const newArr = [...editForm.availability];
-                                newArr[index] = { ...newArr[index], endTime: e.target.value };
-                                setEditForm({ ...editForm, availability: newArr });
+                                newArr[index] = {
+                                  ...newArr[index],
+                                  endTime: e.target.value,
+                                };
+                                setEditForm({
+                                  ...editForm,
+                                  availability: newArr,
+                                });
                               }}
                               className="w-20 px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-mono text-center"
                             />
@@ -1495,7 +1575,8 @@ export const UserManagement: React.FC = () => {
 
                   {isFetchingDetail ? (
                     <div className="flex items-center justify-center py-6 text-slate-400 gap-2 text-xs">
-                      <Loader2 size={16} className="animate-spin" /> Fetching complete profile...
+                      <Loader2 size={16} className="animate-spin" /> Fetching
+                      complete profile...
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-4 text-xs">
@@ -1512,7 +1593,8 @@ export const UserManagement: React.FC = () => {
                           Department Unit
                         </span>
                         <span className="font-bold text-slate-900 mt-1 block">
-                          {fullUserDetail?.doctorProfile?.primaryDepartment?.departmentName || detailsUser.department}
+                          {fullUserDetail?.doctorProfile?.primaryDepartment
+                            ?.departmentName || detailsUser.department}
                         </span>
                       </div>
                       <div>
@@ -1528,7 +1610,10 @@ export const UserManagement: React.FC = () => {
                           Gender & Date of Birth
                         </span>
                         <span className="font-bold text-slate-900 mt-1 block">
-                          {fullUserDetail?.gender || "N/A"} {fullUserDetail?.dateOfBirth ? `(${fullUserDetail.dateOfBirth})` : ""}
+                          {fullUserDetail?.gender || "N/A"}{" "}
+                          {fullUserDetail?.dateOfBirth
+                            ? `(${fullUserDetail.dateOfBirth})`
+                            : ""}
                         </span>
                       </div>
                       <div>
@@ -1570,62 +1655,91 @@ export const UserManagement: React.FC = () => {
 
                     <div className="grid grid-cols-2 gap-4 text-xs">
                       <div>
-                        <span className="text-slate-400 block font-medium">Registration No.</span>
+                        <span className="text-slate-400 block font-medium">
+                          Registration No.
+                        </span>
                         <span className="font-bold text-slate-900 mt-1 block font-mono">
-                          {fullUserDetail.doctorProfile.medicalRegistrationNumber || "N/A"}
+                          {fullUserDetail.doctorProfile
+                            .medicalRegistrationNumber || "N/A"}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-400 block font-medium">Qualification</span>
+                        <span className="text-slate-400 block font-medium">
+                          Qualification
+                        </span>
                         <span className="font-bold text-slate-900 mt-1 block">
                           {fullUserDetail.doctorProfile.qualification || "N/A"}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-400 block font-medium">Experience (Years)</span>
+                        <span className="text-slate-400 block font-medium">
+                          Experience (Years)
+                        </span>
                         <span className="font-bold text-slate-900 mt-1 block font-mono">
-                          {fullUserDetail.doctorProfile.yearsOfExperience ?? "N/A"} yrs
+                          {fullUserDetail.doctorProfile.yearsOfExperience ??
+                            "N/A"}{" "}
+                          yrs
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-400 block font-medium">Primary Specialty</span>
+                        <span className="text-slate-400 block font-medium">
+                          Primary Specialty
+                        </span>
                         <span className="font-bold text-teal-700 mt-1 block">
-                          {fullUserDetail.doctorProfile.primarySpecialty?.specialtyName || "General Cardiology"}
+                          {fullUserDetail.doctorProfile.primarySpecialty
+                            ?.specialtyName || "General Cardiology"}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-400 block font-medium">Consultation Fee</span>
+                        <span className="text-slate-400 block font-medium">
+                          Consultation Fee
+                        </span>
                         <span className="font-bold text-slate-900 mt-1 block font-mono text-teal-600">
                           ₹{fullUserDetail.doctorProfile.consultationFee ?? 0}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-400 block font-medium">Follow-Up Fee</span>
+                        <span className="text-slate-400 block font-medium">
+                          Follow-Up Fee
+                        </span>
                         <span className="font-bold text-slate-900 mt-1 block font-mono">
                           ₹{fullUserDetail.doctorProfile.followUpFee ?? 0}
                         </span>
                       </div>
                       <div className="col-span-2">
-                        <span className="text-slate-400 block font-medium">Slot Duration</span>
+                        <span className="text-slate-400 block font-medium">
+                          Slot Duration
+                        </span>
                         <span className="font-bold text-slate-900 mt-1 block font-mono">
-                          {fullUserDetail.doctorProfile.slotDurationMinutes || 15} minutes / patient slot
+                          {fullUserDetail.doctorProfile.slotDurationMinutes ||
+                            15}{" "}
+                          minutes / patient slot
                         </span>
                       </div>
                     </div>
 
                     {/* Weekly Availability Schedule */}
-                    {fullUserDetail.doctorProfile.availability && fullUserDetail.doctorProfile.availability.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-slate-100">
-                        <span className="text-slate-400 block font-bold text-[11px] mb-2 uppercase">Weekly Availability</span>
-                        <div className="flex flex-wrap gap-2">
-                          {fullUserDetail.doctorProfile.availability.map((slot, idx) => (
-                            <span key={idx} className="bg-teal-50 border border-teal-200 text-teal-800 text-[11px] font-semibold px-2.5 py-1 rounded-lg">
-                              {slot.dayOfWeek}: {slot.startTime} - {slot.endTime}
-                            </span>
-                          ))}
+                    {fullUserDetail.doctorProfile.availability &&
+                      fullUserDetail.doctorProfile.availability.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-slate-100">
+                          <span className="text-slate-400 block font-bold text-[11px] mb-2 uppercase">
+                            Weekly Availability
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {fullUserDetail.doctorProfile.availability.map(
+                              (slot, idx) => (
+                                <span
+                                  key={idx}
+                                  className="bg-teal-50 border border-teal-200 text-teal-800 text-[11px] font-semibold px-2.5 py-1 rounded-lg"
+                                >
+                                  {slot.dayOfWeek}: {slot.startTime} -{" "}
+                                  {slot.endTime}
+                                </span>
+                              ),
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                   </div>
                 )}
 
@@ -1783,7 +1897,9 @@ export const UserManagement: React.FC = () => {
                     className="shrink-0 text-red-600 mt-0.5"
                   />
                   <p className="leading-relaxed">
-                    This action will immediately deactivate the user account and revoke their active session. They will be logged out and unable to log back in until re-activated.
+                    This action will immediately deactivate the user account and
+                    revoke their active session. They will be logged out and
+                    unable to log back in until re-activated.
                   </p>
                 </div>
               )}
@@ -1795,7 +1911,8 @@ export const UserManagement: React.FC = () => {
                     className="shrink-0 text-green-600 mt-0.5"
                   />
                   <p className="leading-relaxed">
-                    This action will re-activate the user account and restore their system login privileges.
+                    This action will re-activate the user account and restore
+                    their system login privileges.
                   </p>
                 </div>
               )}

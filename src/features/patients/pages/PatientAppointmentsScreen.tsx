@@ -17,25 +17,72 @@ import {
   Building2,
   TrendingUp,
 } from "lucide-react";
+import { useEffect } from "react";
 import type { PatientAppointment } from "../types/patient.types";
-import {
-  PP,
-  RB,
-  INITIAL_PATIENT_APPOINTMENTS,
-} from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.mock";
 import {
   PatientCancelAppointmentDialog,
   PatientRescheduleAppointmentDialog,
 } from "../components/PatientDialogs";
 import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentScreen";
+import { appointmentsApi } from "../../appointments/api/appointments.api";
 
-export function PatientAppointmentsScreen() {
-  const [appointments, setAppointments] = useState<PatientAppointment[]>(
-    INITIAL_PATIENT_APPOINTMENTS,
-  );
+export function PatientAppointmentsScreen({
+  activePatient,
+}: {
+  activePatient?: any;
+}) {
+  const [appointments, setAppointments] = useState<PatientAppointment[]>([]);
   const [viewMode, setViewMode] = useState<"list" | "book">("list");
   const [cancellingAppt, setCancellingAppt] =
     useState<PatientAppointment | null>(null);
+
+  useEffect(() => {
+    appointmentsApi
+      .getAppointments(
+        activePatient?.id || activePatient?.mrn
+          ? { patientId: activePatient.id || activePatient.mrn }
+          : undefined,
+      )
+      .then((res: any) => {
+        const data = res?.data || res;
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.content)
+            ? data.content
+            : [];
+        if (list && list.length > 0) {
+          const mapped: PatientAppointment[] = list.map(
+            (a: any, idx: number) => ({
+              id: String(a.appointmentId || a.id || `APT-${idx}`),
+              date: a.appointmentDate || a.date || "",
+              time: a.startTime || a.time || "",
+              doctor: a.doctorName || a.doctor || "Doctor",
+              specialty: a.departmentName || a.specialty || "Specialist",
+              department: a.departmentName || a.department || "General",
+              visitType: a.appointmentType || "In-Person OPD",
+              status:
+                a.status === "SCHEDULED"
+                  ? "Confirmed"
+                  : a.status || "Confirmed",
+              roomLocation: a.roomLocation || "OPD Room",
+              reason: a.reason || "Consultation",
+              notes: a.symptoms || a.notes || "",
+              consultationStatus: a.status || "Scheduled",
+              prescriptionStatus: "Pending",
+              billingStatus: "Paid",
+              billingAmount: "$50.00",
+            }),
+          );
+          setAppointments(mapped);
+        } else {
+          setAppointments([]);
+        }
+      })
+      .catch(() => {
+        setAppointments([]);
+      });
+  }, [activePatient]);
   const [reschedulingAppt, setReschedulingAppt] =
     useState<PatientAppointment | null>(null);
   const [activeTab, setActiveTab] = useState<

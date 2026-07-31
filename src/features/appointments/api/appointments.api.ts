@@ -31,6 +31,7 @@ export const appointmentsApi = {
   getAppointments: async (params?: {
     doctorId?: string | number;
     patientId?: string | number;
+    mrn?: string;
     date?: string;
     fromDate?: string;
     toDate?: string;
@@ -45,6 +46,7 @@ export const appointmentsApi = {
         query.append("doctorId", String(params.doctorId));
       if (params?.patientId !== undefined)
         query.append("patientId", String(params.patientId));
+      if (params?.mrn) query.append("mrn", params.mrn);
       if (params?.date) query.append("date", params.date);
       if (params?.fromDate) query.append("fromDate", params.fromDate);
       if (params?.toDate) query.append("toDate", params.toDate);
@@ -54,6 +56,8 @@ export const appointmentsApi = {
       if (params?.sort) query.append("sort", params.sort);
 
       const url = `/api/v1/appointments${query.toString() ? `?${query.toString()}` : ""}`;
+      console.log("Appointment params:", params);
+      console.log("Appointment URL:", url);
       const response = await apiClient.get<ApiResponse<unknown>>(url);
       return response.data;
     } catch (error: unknown) {

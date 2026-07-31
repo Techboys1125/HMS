@@ -16,9 +16,12 @@ import { PP, RB } from "../constants/patient.mock";
 
 export function PatientPrescriptionsScreen({
   onViewDetails,
+  activePatient,
 }: {
   onViewDetails?: (rxId: string) => void;
+  activePatient?: any;
 }) {
+  const patientName = activePatient?.patientName || activePatient?.name || "Patient";
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedDateRange, setSelectedDateRange] = useState("All");
@@ -36,157 +39,9 @@ export function PatientPrescriptionsScreen({
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  // Patient Mock Prescriptions Data (Only Patient's Own Prescriptions)
-  const patientPrescriptionsData: PatientPrescriptionItem[] = [
-    {
-      id: "RX-2026-0891",
-      consultationId: "CNS-1001",
-      consultationDate: "24 Jul 2026",
-      doctorName: "Dr. Arjun Mehta",
-      department: "Cardiology",
-      diagnosisSummary: "Angina Pectoris, unspecified (ICD: I20.9)",
-      followupDate: "31 Jul 2026",
-      status: "Issued",
-      medicines: [
-        {
-          name: "Amlodipine",
-          strength: "5mg",
-          route: "Oral",
-          dosage: "1 Tablet",
-          frequency: "Once Daily (OD)",
-          duration: "30 Days",
-          instructions: "Take after breakfast",
-        },
-        {
-          name: "Metformin",
-          strength: "500mg",
-          route: "Oral",
-          dosage: "1 Tablet",
-          frequency: "Twice Daily (BD)",
-          duration: "30 Days",
-          instructions: "Take with morning & evening meals",
-        },
-        {
-          name: "Atorvastatin",
-          strength: "20mg",
-          route: "Oral",
-          dosage: "1 Tablet",
-          frequency: "Once Nightly (HS)",
-          duration: "30 Days",
-          instructions: "Take before sleeping",
-        },
-        {
-          name: "Aspirin",
-          strength: "75mg",
-          route: "Oral",
-          dosage: "1 Tablet",
-          frequency: "Once Daily (OD)",
-          duration: "30 Days",
-          instructions: "Take after lunch",
-        },
-      ],
-    },
-    {
-      id: "RX-2026-0412",
-      consultationId: "CNS-0842",
-      consultationDate: "10 Apr 2026",
-      doctorName: "Dr. Arjun Mehta",
-      department: "Cardiology",
-      diagnosisSummary: "Essential (primary) hypertension (ICD: I10)",
-      followupDate: "10 Jul 2026",
-      status: "Completed",
-      medicines: [
-        {
-          name: "Amlodipine",
-          strength: "5mg",
-          route: "Oral",
-          dosage: "1 Tablet",
-          frequency: "Once Daily (OD)",
-          duration: "90 Days",
-          instructions: "Take after breakfast",
-        },
-        {
-          name: "Metformin",
-          strength: "500mg",
-          route: "Oral",
-          dosage: "1 Tablet",
-          frequency: "Twice Daily (BD)",
-          duration: "90 Days",
-          instructions: "Take with meals",
-        },
-        {
-          name: "Atorvastatin",
-          strength: "10mg",
-          route: "Oral",
-          dosage: "1 Tablet",
-          frequency: "Once Nightly (HS)",
-          duration: "90 Days",
-          instructions: "Take at bedtime",
-        },
-      ],
-    },
-    {
-      id: "RX-2025-1108",
-      consultationId: "CNS-0512",
-      consultationDate: "15 Nov 2025",
-      doctorName: "Dr. Priya Sharma",
-      department: "General Medicine",
-      diagnosisSummary:
-        "Type 2 diabetes mellitus without complications (ICD: E11.9)",
-      followupDate: "15 Feb 2026",
-      status: "Completed",
-      medicines: [
-        {
-          name: "Metformin",
-          strength: "500mg",
-          route: "Oral",
-          dosage: "1 Tablet",
-          frequency: "Twice Daily (BD)",
-          duration: "90 Days",
-          instructions: "Take immediately with meals",
-        },
-        {
-          name: "Amlodipine",
-          strength: "2.5mg",
-          route: "Oral",
-          dosage: "1 Tablet",
-          frequency: "Once Daily (OD)",
-          duration: "90 Days",
-          instructions: "Take after breakfast",
-        },
-      ],
-    },
-    {
-      id: "RX-2024-0210",
-      consultationId: "CNS-0105",
-      consultationDate: "14 Feb 2024",
-      doctorName: "Dr. Priya Sharma",
-      department: "General Medicine",
-      diagnosisSummary: "Acute upper respiratory infection (ICD: J06.9)",
-      followupDate: "21 Feb 2024",
-      status: "Archived",
-      medicines: [
-        {
-          name: "Amoxicillin",
-          strength: "500mg",
-          route: "Oral",
-          dosage: "1 Capsule",
-          frequency: "Thrice Daily (TDS)",
-          duration: "7 Days",
-          instructions: "Complete full course",
-        },
-        {
-          name: "Paracetamol",
-          strength: "650mg",
-          route: "Oral",
-          dosage: "1 Tablet",
-          frequency: "PRN fever",
-          duration: "5 Days",
-          instructions: "Take as needed for fever",
-        },
-      ],
-    },
-  ];
+  const [patientPrescriptionsData] = useState<
+    PatientPrescriptionItem[]
+  >([]);
 
   // Search & Filter Logic
   const handleResetFilters = () => {
@@ -286,7 +141,7 @@ export function PatientPrescriptionsScreen({
               className="text-2xl font-bold text-[#111827]"
               style={{ fontFamily: PP }}
             >
-              My Prescriptions
+              My Prescriptions ({patientName})
             </h1>
             <p
               className="text-xs text-[#64748B] mt-0.5"

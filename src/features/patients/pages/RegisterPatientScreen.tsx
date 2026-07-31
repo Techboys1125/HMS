@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   ChevronRight,
   User,
@@ -15,6 +15,7 @@ import {
 import { PP, RB } from "../constants/patient.mock";
 import { useCreatePatient } from "../hooks/useCreatePatient";
 import type { CreatePatientRequest } from "../types/patient.types";
+import { useAuthStore } from "../../auth";
 
 /* ─────────────────── Design Tokens ─────────────────── */
 const inputBase =
@@ -239,12 +240,14 @@ function RegistrationSuccessDialog({
   onClose,
   onBookAppointment,
   onViewProfile,
+  onSwitchToNewPatient,
 }: {
   mrn: string;
   patientName: string;
   onClose: () => void;
   onBookAppointment?: (mrn: string) => void;
   onViewProfile?: (mrn: string) => void;
+  onSwitchToNewPatient?: (mrn: string, patientName: string) => void;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
@@ -272,6 +275,16 @@ function RegistrationSuccessDialog({
         </div>
 
         <div className="flex flex-col gap-2.5">
+          {onSwitchToNewPatient && (
+            <button
+              onClick={() => onSwitchToNewPatient(mrn, patientName)}
+              className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
+              style={{ fontFamily: PP }}
+            >
+              <User size={16} />
+              Switch to New Patient
+            </button>
+          )}
           {onBookAppointment && (
             <button
               onClick={() => onBookAppointment(mrn)}
@@ -285,7 +298,7 @@ function RegistrationSuccessDialog({
           {onViewProfile && (
             <button
               onClick={() => onViewProfile(mrn)}
-              className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
+              className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all"
               style={{ fontFamily: PP }}
             >
               <User size={16} />
@@ -305,6 +318,8 @@ function RegistrationSuccessDialog({
   );
 }
 
+export type RegistrationMode = "ADMIN" | "PATIENT_SELF" | "PATIENT_FAMILY";
+
 /* ═══════════════════════════════════════════════════════
    MAIN COMPONENT
    ═══════════════════════════════════════════════════════ */
@@ -312,14 +327,49 @@ export function RegisterPatientScreen({
   onBack,
   onBookAppointment,
   onViewProfile,
+  onSwitchToNewPatient,
+  registrationMode = "ADMIN",
   isFamilyMode = false,
 }: {
   onBack: () => void;
   onBookAppointment?: (mrn: string) => void;
   onViewProfile?: (mrn: string) => void;
+  onSwitchToNewPatient?: (mrn: string, patientName: string) => void;
+  registrationMode?: RegistrationMode;
   isFamilyMode?: boolean;
 }) {
-  const [form, setForm] = useState<RegistrationFormState>({ ...INITIAL_FORM });
+  const effectiveMode = isFamilyMode ? "PATIENT_FAMILY" : registrationMode;
+  const showRelationship =
+    effectiveMode === "PATIENT_SELF" || effectiveMode === "PATIENT_FAMILY";
+
+  const initialRelationship =
+    effectiveMode === "PATIENT_SELF"
+      ? "SELF"
+      : effectiveMode === "PATIENT_FAMILY"
+        ? ""
+        : "SELF";
+
+  const user = useAuthStore((state) => state.user);
+
+  const [form, setForm] = useState<RegistrationFormState>(() => ({
+    ...INITIAL_FORM,
+    relationship: initialRelationship,
+    fullName: user?.fullName || "",
+    email: user?.email || "",
+    mobileNumber: user?.mobile || "",
+  }));
+
+  useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        ...prev,
+        fullName: prev.fullName || user.fullName || "",
+        email: prev.email || user.email || "",
+        mobileNumber: prev.mobileNumber || user.mobile || "",
+      }));
+    }
+  }, [user]);
+
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<{
     message: string;
@@ -365,8 +415,10 @@ export function RegisterPatientScreen({
       e.email = "Enter a valid email address";
     if (form.pincode && !/^\d{5,10}$/.test(form.pincode.trim()))
       e.pincode = "Enter a valid pincode";
+    if (showRelationship && effectiveMode === "PATIENT_FAMILY" && !form.relationship)
+      e.relationship = "Relationship is required";
     return e;
-  }, [form]);
+  }, [form, showRelationship, effectiveMode]);
 
   const isValid = useMemo(() => Object.keys(errors).length === 0, [errors]);
 
@@ -388,6 +440,7 @@ export function RegisterPatientScreen({
       mobileNumber: true,
       email: true,
       pincode: true,
+      relationship: true,
     });
 
     if (!isValid) {
@@ -402,7 +455,9 @@ export function RegisterPatientScreen({
       fullName: form.fullName.trim(),
       gender: form.gender,
       mobileNumber: form.mobileNumber.trim(),
-      relationship: isFamilyMode ? form.relationship : "SELF",
+      relationship: showRelationship
+        ? form.relationship || (effectiveMode === "PATIENT_SELF" ? "SELF" : "OTHER")
+        : "SELF",
     };
 
     if (form.dateOfBirth) payload.dateOfBirth = form.dateOfBirth;
@@ -479,12 +534,18 @@ export function RegisterPatientScreen({
         type: "error",
       });
     }
-  }, [form, isValid, createPatient]);
+  }, [form, isValid, createPatient, showRelationship, effectiveMode]);
 
   const handleClear = useCallback(() => {
-    setForm({ ...INITIAL_FORM });
+    setForm({
+      ...INITIAL_FORM,
+      relationship: initialRelationship,
+      fullName: user?.fullName || "",
+      email: user?.email || "",
+      mobileNumber: user?.mobile || "",
+    });
     setTouched({});
-  }, []);
+  }, [initialRelationship, user]);
 
   return (
     <div className="flex-1 min-h-screen bg-[#F4F6F9] overflow-y-auto">
@@ -494,9 +555,10 @@ export function RegisterPatientScreen({
           patientName={successData.name}
           onBookAppointment={onBookAppointment}
           onViewProfile={onViewProfile}
+          onSwitchToNewPatient={onSwitchToNewPatient}
           onClose={() => {
             setSuccessData(null);
-            setForm({ ...INITIAL_FORM });
+            setForm({ ...INITIAL_FORM, relationship: initialRelationship });
             setTouched({});
           }}
         />
@@ -520,11 +582,15 @@ export function RegisterPatientScreen({
               onClick={onBack}
               className="hover:text-[#0D47A1] transition-colors"
             >
-              Reception Management
+              {effectiveMode === "PATIENT_FAMILY"
+                ? "Family Members"
+                : "Reception Management"}
             </button>
             <ChevronRight size={13} className="text-slate-300" />
             <span className="font-medium text-[#111827]">
-              Patient Registration
+              {effectiveMode === "PATIENT_FAMILY"
+                ? "Add Family Member"
+                : "Patient Registration"}
             </span>
           </div>
 
@@ -532,10 +598,14 @@ export function RegisterPatientScreen({
             className="text-2xl font-bold text-[#111827] mb-1"
             style={{ fontFamily: PP }}
           >
-            Patient Registration
+            {effectiveMode === "PATIENT_FAMILY"
+              ? "Add Family Member"
+              : "Patient Registration"}
           </h1>
           <p className="text-sm text-slate-500" style={{ fontFamily: RB }}>
-            Create a new patient record for hospital services.
+            {effectiveMode === "PATIENT_FAMILY"
+              ? "Register a new family member under your patient account."
+              : "Create a new patient record for hospital services."}
           </p>
         </div>
 
@@ -550,16 +620,21 @@ export function RegisterPatientScreen({
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                {isFamilyMode && (
+                {showRelationship && (
                   <div className="md:col-span-2">
                     <label className={labelBase}>
-                      Relationship to Account Holder <span className="text-red-500">*</span>
+                      Relationship to Account Holder{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={form.relationship}
                       onChange={(e) => set("relationship", e.target.value)}
+                      onBlur={() => markTouched("relationship")}
                       className={fClass("relationship")}
                     >
+                      {effectiveMode === "PATIENT_FAMILY" && (
+                        <option value="">Select Relationship</option>
+                      )}
                       <option value="SELF">Self</option>
                       <option value="FATHER">Father</option>
                       <option value="MOTHER">Mother</option>
@@ -573,6 +648,7 @@ export function RegisterPatientScreen({
                       <option value="GUARDIAN">Guardian</option>
                       <option value="OTHER">Other</option>
                     </select>
+                    {fieldError("relationship")}
                   </div>
                 )}
 

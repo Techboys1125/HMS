@@ -419,7 +419,15 @@ const HA_QUICK_ACTIONS = [
   },
 ];
 
-export function HospitalAdminDashboard() {
+interface HospitalAdminDashboardProps {
+  onRegisterPatient?: () => void;
+  onNavigateNav?: (nav: string) => void;
+}
+
+export function HospitalAdminDashboard({
+  onRegisterPatient,
+  onNavigateNav,
+}: HospitalAdminDashboardProps = {}) {
   const totalRevenue = HA_REVENUE_DIST.reduce(
     (acc, curr) => acc + curr.value,
     0,
@@ -438,9 +446,20 @@ export function HospitalAdminDashboard() {
         >
           Quick Actions
         </span>
-        {HA_QUICK_ACTIONS.map(({ label, Icon, color }) => (
+        {onRegisterPatient && (
+          <button
+            onClick={onRegisterPatient}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#1565C0] transition-all shadow-sm"
+            style={{ fontFamily: PP }}
+          >
+            <UserPlus size={13} />
+            Register Patient
+          </button>
+        )}
+        {HA_QUICK_ACTIONS.map(({ label, Icon, color, nav }) => (
           <button
             key={label}
+            onClick={() => onNavigateNav?.(nav)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#0D47A1]/40 hover:text-[#0D47A1] hover:bg-blue-50 transition-all shadow-sm"
             style={{ fontFamily: RB }}
           >

@@ -19,6 +19,7 @@ import { doctorsApi } from "../../doctors/api/doctors.api";
 import type { DoctorDailySlot } from "../../doctors/types/doctors.types";
 
 export function BookAppointmentScreen({
+  role = "receptionist",
   onBack,
   onConfirmSuccess,
   onRegisterNewPatientClick,
@@ -45,7 +46,7 @@ export function BookAppointmentScreen({
         p.phone.includes(q) ||
         String(p.id).toLowerCase().includes(q),
     );
-  }, [patientQuery]);
+  }, [patientQuery, patientDatabase]);
 
   // Section 02: Department & Doctor Selection
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -83,37 +84,70 @@ export function BookAppointmentScreen({
   }, [doctorsList, selectedDept]);
 
   useEffect(() => {
-    patientsApi
-      .getAll()
-      .then((data) => {
-        const mapped: PatientSummary[] = data.map((p) => ({
-          id: p.id,
-          mrn: p.mrn,
-          name: p.name || p.patientName,
-          age: p.age,
-          gender: p.gender,
-          phone: p.phone,
-          bloodGroup: p.bloodGroup || "",
-          emergencyContact: p.emergencyContact
-            ? `${p.emergencyContact.name || p.emergencyContact.contactName || ""} (${p.emergencyContact.relationship || ""})`
-            : "",
-          assignedDoctor: p.assignedDoctor || "",
-        }));
-        setPatientDatabase(mapped);
-        if (initialMrn) {
-          const found = mapped.find(
-            (p) =>
-              p.mrn?.toLowerCase() === initialMrn.toLowerCase() ||
-              String(p.id).toLowerCase() === initialMrn.toLowerCase(),
-          );
-          if (found) setSelectedPatient(found);
-        }
-        if (!selectedPatient && mapped.length > 0 && !initialMrn) {
-          setSelectedPatient(mapped[0]);
-        }
-      })
-      .catch(() => {});
-  }, []);
+    if (role === "patient") {
+      patientsApi
+        .getMyPatients()
+        .then((data) => {
+          const mapped: PatientSummary[] = data.map((p) => ({
+            id: p.id,
+            mrn: p.mrn,
+            name: p.name || p.patientName,
+            age: p.age,
+            gender: p.gender,
+            phone: p.phone,
+            bloodGroup: p.bloodGroup || "",
+            emergencyContact: p.emergencyContact
+              ? `${p.emergencyContact.name || p.emergencyContact.contactName || ""} (${p.emergencyContact.relationship || ""})`
+              : "",
+            assignedDoctor: p.assignedDoctor || "",
+          }));
+          setPatientDatabase(mapped);
+          if (initialMrn) {
+            const found = mapped.find(
+              (p) =>
+                p.mrn?.toLowerCase() === initialMrn.toLowerCase() ||
+                String(p.id).toLowerCase() === initialMrn.toLowerCase(),
+            );
+            if (found) setSelectedPatient(found);
+            else if (mapped.length > 0) setSelectedPatient(mapped[0]);
+          } else if (mapped.length > 0) {
+            setSelectedPatient(mapped[0]);
+          }
+        })
+        .catch(() => {});
+    } else {
+      patientsApi
+        .getAll()
+        .then((data) => {
+          const mapped: PatientSummary[] = data.map((p) => ({
+            id: p.id,
+            mrn: p.mrn,
+            name: p.name || p.patientName,
+            age: p.age,
+            gender: p.gender,
+            phone: p.phone,
+            bloodGroup: p.bloodGroup || "",
+            emergencyContact: p.emergencyContact
+              ? `${p.emergencyContact.name || p.emergencyContact.contactName || ""} (${p.emergencyContact.relationship || ""})`
+              : "",
+            assignedDoctor: p.assignedDoctor || "",
+          }));
+          setPatientDatabase(mapped);
+          if (initialMrn) {
+            const found = mapped.find(
+              (p) =>
+                p.mrn?.toLowerCase() === initialMrn.toLowerCase() ||
+                String(p.id).toLowerCase() === initialMrn.toLowerCase(),
+            );
+            if (found) setSelectedPatient(found);
+          }
+          if (!selectedPatient && mapped.length > 0 && !initialMrn) {
+            setSelectedPatient(mapped[0]);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [initialMrn, role]);
 
   useEffect(() => {
     departmentsApi
@@ -150,19 +184,22 @@ export function BookAppointmentScreen({
     appointmentService
       .listDoctors(deptId)
       .then((data) => {
-        const mapped = data.map((d) => ({
-          key: d.name,
-          doctorId: d.id,
-          name: d.name,
-          dept: d.departmentName || d.department || "",
-          spec: d.specialty || "",
-          fee:
-            typeof d.consultationFee === "number"
-              ? d.consultationFee
-              : Number(d.consultationFee) || 0,
-          availability: "Available Today",
-          exp: d.qualification || "",
-        }));
+        const mapped = data.map((d) => {
+          const uniqueKey = d.id ? String(d.id) : `${d.name}-${Math.random()}`;
+          return {
+            key: uniqueKey,
+            doctorId: d.id,
+            name: d.name,
+            dept: d.departmentName || d.department || "",
+            spec: d.specialty || "",
+            fee:
+              typeof d.consultationFee === "number"
+                ? d.consultationFee
+                : Number(d.consultationFee) || 0,
+            availability: "Available Today",
+            exp: d.qualification || "",
+          };
+        });
         setDoctorsList(mapped);
         if (mapped.length > 0) {
           const currentDoc = mapped.find((d) => d.key === selectedDocKey);
@@ -179,7 +216,7 @@ export function BookAppointmentScreen({
       .finally(() => {
         setIsLoadingDoctors(false);
       });
-  }, [selectedDept, departments]);
+  }, [selectedDept, departments, selectedDocKey]);
 
   const handleDeptChange = (dept: string) => {
     setSelectedDept(dept);
@@ -187,7 +224,6 @@ export function BookAppointmentScreen({
     setSelectedDocKey("");
   };
 
-  // Section 03: Appointment Date Selection (Calendar) - Generated dynamically starting from today
   const availableDates = useMemo(() => {
     const dates = [];
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -211,7 +247,6 @@ export function BookAppointmentScreen({
       const date = new Date(today);
       date.setDate(today.getDate() + i);
 
-      // Skip Sundays as they are typical hospital holidays
       const dayOfWeek = date.getDay();
       const isSunday = dayOfWeek === 0;
 
@@ -241,7 +276,6 @@ export function BookAppointmentScreen({
     return todayStr;
   });
 
-  // Load doctor availability slots dynamically
   const [apiSlots, setApiSlots] = useState<DoctorDailySlot[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
@@ -313,7 +347,6 @@ export function BookAppointmentScreen({
 
   const dynamicTimeSlotGroups = useMemo(() => {
     if (apiSlots.length === 0) {
-      // Default slots fallback
       const defaultSlots = {
         morning: [
           { time: "09:00 AM", available: true },
@@ -338,7 +371,8 @@ export function BookAppointmentScreen({
       const filterGroup = (group: { time: string; available: boolean }[]) =>
         group.map((slot) => ({
           ...slot,
-          available: slot.available && !isTimeSlotPassed(slot.time, selectedDate),
+          available:
+            slot.available && !isTimeSlotPassed(slot.time, selectedDate),
         }));
 
       return {
@@ -357,7 +391,9 @@ export function BookAppointmentScreen({
       const parts = timeStr.split(":");
       const hour = parseInt(parts[0], 10);
       const formatted = formatSlotTime(timeStr);
-      const available = slot.status === "AVAILABLE" && !isTimeSlotPassed(formatted, selectedDate);
+      const available =
+        slot.status === "AVAILABLE" &&
+        !isTimeSlotPassed(formatted, selectedDate);
 
       if (hour < 12) {
         morning.push({ time: formatted, available });
@@ -371,7 +407,6 @@ export function BookAppointmentScreen({
     return { morning, afternoon, evening };
   }, [apiSlots, selectedDate]);
 
-  // Section 04: Time Slots Grid
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("09:30 AM");
 
   useEffect(() => {
@@ -392,7 +427,6 @@ export function BookAppointmentScreen({
     }
   }, [dynamicTimeSlotGroups]);
 
-  // Section 05: Visit Details
   const [visitType, setVisitType] = useState<"New Consultation" | "Follow-up">(
     "New Consultation",
   );
@@ -401,7 +435,6 @@ export function BookAppointmentScreen({
   );
   const [remarks, setRemarks] = useState("");
 
-  // Modal & Confirmation State
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [confirmedAptId, setConfirmedAptId] = useState("");
   const [notificationPrefs] = useState<{
@@ -413,7 +446,6 @@ export function BookAppointmentScreen({
   const [isBooking, setIsBooking] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
 
-  // Confirm Appointment Handler
   const handleConfirm = async () => {
     if (!selectedPatient || !currentDoctor) return;
     setIsBooking(true);
@@ -466,7 +498,6 @@ export function BookAppointmentScreen({
       className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9]"
       style={{ fontFamily: RB }}
     >
-      {/* ── HEADER & BREADCRUMBS ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm">
         <div>
           <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
@@ -492,7 +523,6 @@ export function BookAppointmentScreen({
           </p>
         </div>
 
-        {/* Header Action Shortcuts */}
         <div className="flex items-center gap-2">
           <button
             onClick={onRegisterNewPatientClick}
@@ -504,11 +534,8 @@ export function BookAppointmentScreen({
         </div>
       </div>
 
-      {/* ── MAIN WORKSPACE GRID ── */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        {/* LEFT COLUMN: APPOINTMENT BOOKING FORM (8 COLS) */}
         <div className="xl:col-span-12 space-y-6">
-          {/* SECTION 01: PATIENT SEARCH */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div className="flex items-center gap-2">
@@ -522,7 +549,7 @@ export function BookAppointmentScreen({
                   className="text-base font-bold text-[#111827]"
                   style={{ fontFamily: PP }}
                 >
-                  Patient Search & Selection
+                  {role === "patient" ? "Active Patient (Read Only)" : "Patient Search & Selection"}
                 </h2>
               </div>
               <span className="text-xs text-red-500 font-semibold">
@@ -530,22 +557,22 @@ export function BookAppointmentScreen({
               </span>
             </div>
 
-            {/* Patient Search Input */}
-            <div className="relative">
-              <Search
-                size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-              <input
-                type="text"
-                value={patientQuery}
-                onChange={(e) => setPatientQuery(e.target.value)}
-                placeholder="Search patient by MRN, Patient Name, Mobile Number or Appointment ID..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
-              />
-            </div>
+            {role !== "patient" && (
+              <div className="relative">
+                <Search
+                  size={18}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+                <input
+                  type="text"
+                  value={patientQuery}
+                  onChange={(e) => setPatientQuery(e.target.value)}
+                  placeholder="Search patient by MRN, Patient Name, Mobile Number or Appointment ID..."
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
+                />
+              </div>
+            )}
 
-            {/* Instant Search Results Dropdown List */}
             {patientQuery.trim() !== "" && (
               <div className="max-h-48 overflow-y-auto border border-[#E5E7EB] rounded-xl divide-y divide-gray-100 bg-white shadow-lg">
                 {searchedPatients.length > 0 ? (
@@ -589,7 +616,6 @@ export function BookAppointmentScreen({
               </div>
             )}
 
-            {/* Selected Patient Card Display */}
             {selectedPatient ? (
               <div className="p-4 rounded-xl bg-slate-50 border border-blue-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -649,7 +675,6 @@ export function BookAppointmentScreen({
             )}
           </div>
 
-          {/* SECTION 02: DEPARTMENT & DOCTOR SELECTION */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div className="flex items-center gap-2">
@@ -668,7 +693,6 @@ export function BookAppointmentScreen({
               </div>
             </div>
 
-            {/* Department Dropdown */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div>
                 <label className="block font-semibold text-[#111827] mb-1">
@@ -722,7 +746,6 @@ export function BookAppointmentScreen({
               </div>
             </div>
 
-            {/* Doctor Cards Selection */}
             <div className="space-y-2 pt-2">
               <label className="block text-xs font-semibold text-[#111827]">
                 Available Doctors *
@@ -782,7 +805,6 @@ export function BookAppointmentScreen({
             </div>
           </div>
 
-          {/* SECTION 03 & 04: CALENDAR DATE & TIME SLOTS */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-5">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div className="flex items-center gap-2">
@@ -801,7 +823,6 @@ export function BookAppointmentScreen({
               </div>
             </div>
 
-            {/* Date Selector Row */}
             <div>
               <label className="block text-xs font-semibold text-[#111827] mb-2">
                 Select Date *
@@ -835,7 +856,6 @@ export function BookAppointmentScreen({
               </div>
             </div>
 
-            {/* Time Slot Grid */}
             <div className="space-y-3 pt-2">
               <label className="block text-xs font-semibold text-[#111827]">
                 Select Time Slot *
@@ -843,11 +863,11 @@ export function BookAppointmentScreen({
 
               {isLoadingSlots ? (
                 <div className="flex items-center gap-2 py-6 text-xs text-slate-400">
-                  <RefreshCw size={14} className="animate-spin text-teal-600" /> Loading availability slots...
+                  <RefreshCw size={14} className="animate-spin text-teal-600" />{" "}
+                  Loading availability slots...
                 </div>
               ) : (
                 <>
-                  {/* Morning Slots */}
                   <div className="space-y-1.5">
                     <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
                       Morning Session
@@ -876,7 +896,6 @@ export function BookAppointmentScreen({
                     </div>
                   </div>
 
-                  {/* Afternoon Slots */}
                   <div className="space-y-1.5 pt-1">
                     <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
                       Afternoon Session
@@ -905,7 +924,6 @@ export function BookAppointmentScreen({
                     </div>
                   </div>
 
-                  {/* Evening Slots */}
                   <div className="space-y-1.5 pt-1">
                     <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
                       Evening Session
@@ -938,7 +956,6 @@ export function BookAppointmentScreen({
             </div>
           </div>
 
-          {/* SECTION 05: VISIT DETAILS */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div className="flex items-center gap-2">
@@ -957,7 +974,6 @@ export function BookAppointmentScreen({
               </div>
             </div>
 
-            {/* Visit Type Radio Selection */}
             <div>
               <label className="block text-xs font-semibold text-[#111827] mb-2">
                 Visit Type *
@@ -987,7 +1003,6 @@ export function BookAppointmentScreen({
               </div>
             </div>
 
-            {/* Chief Complaint */}
             <div className="text-xs">
               <label className="block font-semibold text-[#111827] mb-1">
                 Chief Complaint / Symptoms *
@@ -1001,7 +1016,6 @@ export function BookAppointmentScreen({
               />
             </div>
 
-            {/* Remarks */}
             <div className="text-xs">
               <label className="block font-semibold text-[#111827] mb-1">
                 Receptionist Remarks (Optional)
@@ -1018,7 +1032,6 @@ export function BookAppointmentScreen({
         </div>
       </div>
 
-      {/* ── STICKY FOOTER ACTION BAR ── */}
       <div className="sticky bottom-0 bg-white border-t border-[#E5E7EB] p-4 rounded-2xl shadow-lg flex items-center justify-between z-10">
         {bookingError && (
           <div className="absolute bottom-full left-0 right-0 mb-2 mx-4 p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-[#EF4444] font-semibold flex items-center gap-2 animate-in fade-in">
@@ -1050,7 +1063,6 @@ export function BookAppointmentScreen({
         </button>
       </div>
 
-      {/* ── SUCCESS DIALOG MODAL ── */}
       {showSuccessModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
@@ -1069,7 +1081,6 @@ export function BookAppointmentScreen({
               </p>
             </div>
 
-            {/* Confirmed Details Card */}
             <div className="p-4 rounded-xl bg-slate-50 border border-[#E5E7EB] space-y-2 text-xs">
               <div className="flex justify-between items-center pb-2 border-b border-slate-200">
                 <span className="text-[#64748B]">Appointment ID</span>
@@ -1107,7 +1118,6 @@ export function BookAppointmentScreen({
               </div>
             </div>
 
-            {/* Modal Action Buttons */}
             <div className="space-y-2 pt-1">
               <button
                 onClick={() => {
