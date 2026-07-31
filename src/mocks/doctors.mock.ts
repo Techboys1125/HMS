@@ -1,5 +1,10 @@
 import { CheckCircle2, Clock, Edit, FileText, Stethoscope } from "lucide-react";
-import type { DoctorRecord } from "../features/doctors/types/doctors.types";
+import type {
+  DoctorRecord,
+  PrescriptionRecord,
+  VitalSign,
+  Medication,
+} from "../features/doctors/types/doctors.types";
 
 export const INITIAL_DOCTORS: DoctorRecord[] = [
   {
@@ -459,3 +464,254 @@ export const MOCK_DOCTOR_TIMELINE = [
 // ──────────────────────────────────────────────────────────────────────────
 // REUSABLE CONFIRMATION DIALOG: DEACTIVATE DOCTOR
 // ──────────────────────────────────────────────────────────────────────────
+
+export const DEPARTMENTS = [
+  "Cardiology",
+  "General Medicine",
+  "Neurology",
+  "Orthopedics",
+  "Pediatrics",
+  "Obstetrics & Gynecology",
+  "Dermatology",
+  "ENT",
+  "Ophthalmology",
+  "Pulmonology",
+];
+
+export const SPECIALTIES = [
+  "Interventional Cardiology",
+  "Internal Medicine",
+  "Clinical Neurology",
+  "Pediatric Care & Neonatology",
+  "Orthopedic Surgery & Joint Replacement",
+  "Reproductive Health & Maternal Care",
+  "Clinical & Aesthetic Dermatology",
+  "Otolaryngology & Head-Neck Surgery",
+  "Cornea & Refractive Surgery",
+  "Respiratory Medicine",
+];
+
+export const VITALS_DATA: VitalSign[] = [
+  {
+    label: "Blood Pressure",
+    value: "145/92",
+    unit: "mmHg",
+    Icon: CheckCircle2,
+    status: "high",
+    color: "#EF4444",
+    normal: "120/80",
+  },
+  {
+    label: "Heart Rate",
+    value: "88",
+    unit: "bpm",
+    Icon: CheckCircle2,
+    status: "normal",
+    color: "#009688",
+    normal: "60–100",
+  },
+  {
+    label: "Temperature",
+    value: "37.2",
+    unit: "°C",
+    Icon: CheckCircle2,
+    status: "normal",
+    color: "#009688",
+    normal: "36.5–37.5",
+  },
+  {
+    label: "SpO₂",
+    value: "97",
+    unit: "%",
+    Icon: CheckCircle2,
+    status: "normal",
+    color: "#009688",
+    normal: ">95",
+  },
+];
+
+export const MEDICATIONS: Medication[] = [
+  {
+    id: 1,
+    name: "Amlodipine",
+    dose: "5mg",
+    freq: "Once daily",
+    route: "Oral",
+    status: "active",
+    refill: "22 days",
+  },
+  {
+    id: 2,
+    name: "Metformin",
+    dose: "500mg",
+    freq: "Twice daily",
+    route: "Oral",
+    status: "active",
+    refill: "15 days",
+  },
+  {
+    id: 3,
+    name: "Atorvastatin",
+    dose: "20mg",
+    freq: "Once nightly",
+    route: "Oral",
+    status: "active",
+    refill: "30 days",
+  },
+  {
+    id: 4,
+    name: "Aspirin",
+    dose: "75mg",
+    freq: "Once daily",
+    route: "Oral",
+    status: "active",
+    refill: "28 days",
+  },
+  {
+    id: 5,
+    name: "GTN Spray",
+    dose: "0.4mg",
+    freq: "PRN chest pain",
+    route: "Sublingual",
+    status: "prn",
+    refill: "60 days",
+  },
+];
+
+export const WEEKLY_CONSULTATIONS = [
+  { day: "Mon", count: 18 },
+  { day: "Tue", count: 22 },
+  { day: "Wed", count: 17 },
+  { day: "Thu", count: 25 },
+  { day: "Fri", count: 21 },
+  { day: "Sat", count: 9 },
+  { day: "Sun", count: 0 },
+];
+
+export const TIMELINE = [
+  {
+    time: "08:45",
+    event: "Patient registered at reception",
+    by: "Receptionist",
+  },
+  { time: "09:00", event: "Appointment confirmed", by: "System" },
+  { time: "09:05", event: "Checked in — OPD Wing A", by: "Receptionist" },
+  {
+    time: "09:12",
+    event: "Vitals recorded by nursing staff",
+    by: "Nurse R. Singh",
+  },
+  { time: "09:20", event: "Consultation started", by: "Dr. A. Mehta" },
+];
+
+export const MY_PRESCRIPTIONS_DATA: PrescriptionRecord[] = [
+  {
+    id: "RX-2026-0891",
+    patientName: "Sarah Mitchell",
+    mrn: "MRN-892101",
+    consultationId: "CNS-1001",
+    department: "Cardiology",
+    consultationDate: "24 Jul 2026",
+    medicineCount: 4,
+    followup: true,
+    followupDate: "31 Jul 2026",
+    status: "Issued",
+    doctorName: "Dr. Arjun Mehta",
+    diagnosis: "Angina Pectoris, unspecified (I20.9)",
+    medicinesList: [
+      { name: "Amlodipine", dose: "5mg", freq: "Once Daily" },
+      { name: "Metformin", dose: "500mg", freq: "Twice Daily" },
+      { name: "Atorvastatin", dose: "20mg", freq: "Once Nightly" },
+      { name: "Aspirin", dose: "75mg", freq: "Once Daily" },
+    ],
+  },
+  {
+    id: "RX-2026-0888",
+    patientName: "James Thornton",
+    mrn: "MRN-772102",
+    consultationId: "CNS-1004",
+    department: "Cardiology",
+    consultationDate: "24 Jul 2026",
+    medicineCount: 2,
+    followup: true,
+    followupDate: "07 Aug 2026",
+    status: "Draft",
+    doctorName: "Dr. Arjun Mehta",
+    diagnosis: "Essential Hypertension (I10)",
+    medicinesList: [
+      { name: "Ramipril", dose: "2.5mg", freq: "Once Daily" },
+      {
+        name: "Hydrochlorothiazide",
+        dose: "12.5mg",
+        freq: "Once Daily Morning",
+      },
+    ],
+  },
+  {
+    id: "RX-2026-0872",
+    patientName: "Marcus Brown",
+    mrn: "MRN-551980",
+    consultationId: "CNS-0988",
+    department: "Cardiology",
+    consultationDate: "23 Jul 2026",
+    medicineCount: 3,
+    followup: false,
+    status: "Completed",
+    doctorName: "Dr. Arjun Mehta",
+    diagnosis: "Type 2 Diabetes Mellitus (E11.9)",
+    medicinesList: [
+      { name: "Glyburide", dose: "5mg", freq: "Twice Daily" },
+      { name: "Metformin", dose: "1000mg", freq: "Twice Daily" },
+      { name: "Empagliflozin", dose: "10mg", freq: "Once Daily" },
+    ],
+  },
+  {
+    id: "RX-2026-0865",
+    patientName: "Robert Chen",
+    mrn: "MRN-442890",
+    consultationId: "CNS-0975",
+    department: "Cardiology",
+    consultationDate: "22 Jul 2026",
+    medicineCount: 2,
+    followup: true,
+    followupDate: "05 Aug 2026",
+    status: "Issued",
+    doctorName: "Dr. Arjun Mehta",
+    diagnosis: "Hyperlipidemia, unspecified (E78.5)",
+    medicinesList: [
+      { name: "Rosuvastatin", dose: "10mg", freq: "Once Nightly" },
+      { name: "Ezetimibe", dose: "10mg", freq: "Once Daily" },
+    ],
+  },
+  {
+    id: "RX-2026-0850",
+    patientName: "Emma Reyes",
+    mrn: "MRN-331002",
+    consultationId: "CNS-0960",
+    department: "Cardiology",
+    consultationDate: "21 Jul 2026",
+    medicineCount: 5,
+    followup: false,
+    status: "Cancelled",
+    doctorName: "Dr. Arjun Mehta",
+    diagnosis: "Chest Pain, unspecified (R07.9)",
+    medicinesList: [
+      { name: "Pantoprazole", dose: "40mg", freq: "Once Daily" },
+      { name: "Antacid Gel", dose: "10ml", freq: "TID PRN" },
+    ],
+  },
+  {
+    id: "RX-2026-0812",
+    patientName: "David Walsh",
+    mrn: "MRN-112093",
+    consultationId: "CNS-0910",
+    department: "Cardiology",
+    consultationDate: "18 Jul 2026",
+    medicineCount: 1,
+    followup: false,
+    status: "Archived",
+    doctorName: "Dr. Arjun Mehta",
+    diagnosis: "Acute Coronary Syndrome follow up",
+    medicinesList: [{ name: "Clopidogrel", dose: "75mg", freq: "Once Daily" }],
+  },
+];

@@ -20,7 +20,6 @@ export type {
   TimelineActivity,
   AppointmentManagementCenterScreenProps,
   BookAppointmentScreenProps,
-  BookAppointmentScreenProps as ReceptionBookAppointmentScreenProps,
   PatientCheckInScreenProps,
   QueueManagementScreenProps,
   QueueManagementScreenProps as ReceptionQueueManagementScreenProps,
@@ -51,7 +50,7 @@ export {
   AppointmentManagementCenterScreen,
   AppointmentCenterScreen,
 } from "./pages/AppointmentManagementCenterScreen";
-export { BookAppointmentScreen, BookAppointmentScreen as ReceptionBookAppointmentScreen } from "./pages/BookAppointmentScreen";
+export { BookAppointmentScreen } from "./pages/BookAppointmentScreen";
 export { QueueManagementScreen, QueueManagementScreen as ReceptionQueueManagementScreen } from "./pages/QueueManagementScreen";
 export { PatientCheckInScreen } from "./pages/PatientCheckInScreen";
 

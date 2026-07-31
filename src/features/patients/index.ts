@@ -3,7 +3,6 @@ export * from "./pages/EditPatientScreen";
 export * from "./pages/MedicalHistoryScreen";
 export * from "./pages/PatientAppointmentsScreen";
 export * from "./pages/PatientBillingScreen";
-export * from "./pages/PatientBookAppointmentScreen";
 export * from "./pages/PatientMedicalRecordsScreen";
 export * from "./pages/PatientPrescriptionDetailsScreen";
 export * from "./pages/PatientPrescriptionsScreen";
@@ -28,7 +27,7 @@ export {
 } from "./components/PatientStatusBadge";
 
 // Hooks
-export { usePatients, usePatientSearch } from "./hooks/usePatients";
+export { usePatients, usePatientSearch, useMyPatients } from "./hooks/usePatients";
 export { usePatient } from "./hooks/usePatient";
 export { useCreatePatient } from "./hooks/useCreatePatient";
 export { useDuplicateCheck } from "./hooks/useDuplicateCheck";

@@ -20,6 +20,13 @@ export function usePatients(params?: {
   });
 }
 
+export function useMyPatients(relationship?: string) {
+  return useQuery({
+    queryKey: [...patientKeys.all, "my", relationship ?? ""],
+    queryFn: () => patientService.getMyPatients(relationship),
+  });
+}
+
 export function usePatientSearch(query: string) {
   return useQuery({
     queryKey: patientKeys.search(query),

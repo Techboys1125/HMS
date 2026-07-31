@@ -9,8 +9,6 @@ import type {
   DoctorDailyAvailabilityData,
   ApiScheduleExceptionItem,
 } from "../types/doctors.types";
-import { INITIAL_DOCTORS } from "../constants/doctors.constants";
-
 export const mapApiUserToDoctorRecord = (u: ApiUserDoctorRecord): DoctorRecord => {
   const profile = u.doctorProfile;
   const primaryDept = profile?.primaryDepartment?.departmentName || "General Medicine";
@@ -66,8 +64,6 @@ export const mapApiUserToDoctorRecord = (u: ApiUserDoctorRecord): DoctorRecord =
   };
 };
 
-let fallbackDoctors = [...INITIAL_DOCTORS];
-
 export const doctorsApi = {
   /**
    * cURL command for testing GET Doctor/Staff List:
@@ -117,29 +113,13 @@ export const doctorsApi = {
         totalPages: Math.ceil(total / limit) || 1,
       };
     } catch (error) {
-      console.warn("[doctorsApi] Falling back to local state due to API error:", error);
-      let filtered = [...fallbackDoctors];
-      if (params?.search) {
-        const q = params.search.toLowerCase();
-        filtered = filtered.filter(
-          (d) =>
-            d.name.toLowerCase().includes(q) || d.id.toLowerCase().includes(q)
-        );
-      }
-      if (params?.department && params.department !== "All") {
-        filtered = filtered.filter((d) => d.department === params.department);
-      }
-      const page = params?.page || 1;
-      const limit = params?.limit || 10;
-      const total = filtered.length;
-      const start = (page - 1) * limit;
-      const items = filtered.slice(start, start + limit);
+      console.error("[doctorsApi] API error fetching doctor list:", error);
       return {
-        items,
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit) || 1,
+        items: [],
+        total: 0,
+        page: params?.page || 1,
+        limit: params?.limit || 10,
+        totalPages: 1,
       };
     }
   },
@@ -152,20 +132,14 @@ export const doctorsApi = {
    *   -H 'Authorization: Bearer <TOKEN>'
    */
   getById: async (id: string): Promise<DoctorRecord> => {
-    try {
-      const numericUserId = id.startsWith("DOC-") ? id.replace("DOC-", "") : id;
-      const response = await apiClient.get<DoctorApiResponse<ApiUserDoctorRecord>>(
-        `/api/v1/admin/users/${numericUserId}`
-      );
-      if (response.data.data) {
-        return mapApiUserToDoctorRecord(response.data.data);
-      }
-      throw new Error(`User ${id} not found in response`);
-    } catch {
-      const doctor = fallbackDoctors.find((d) => d.id === id);
-      if (!doctor) throw new Error(`Doctor ${id} not found`);
-      return doctor;
+    const numericUserId = id.startsWith("DOC-") ? id.replace("DOC-", "") : id;
+    const response = await apiClient.get<DoctorApiResponse<ApiUserDoctorRecord>>(
+      `/api/v1/admin/users/${numericUserId}`
+    );
+    if (response.data.data) {
+      return mapApiUserToDoctorRecord(response.data.data);
     }
+    throw new Error(`User ${id} not found in response`);
   },
 
   /**
@@ -200,44 +174,14 @@ export const doctorsApi = {
    *   }'
    */
   create: async (payload: CreateDoctorPayload): Promise<DoctorRecord> => {
-    try {
-      const response = await apiClient.post<DoctorApiResponse<ApiUserDoctorRecord>>(
-        "/api/v1/admin/users",
-        payload
-      );
-      if (response.data.data) {
-        return mapApiUserToDoctorRecord(response.data.data);
-      }
-      throw new Error("Failed to create doctor staff account");
-    } catch (error) {
-      console.warn("[doctorsApi] Create user API failed, using fallback:", error);
-      const newDoctor: DoctorRecord = {
-        id: `DOC-${1000 + fallbackDoctors.length + 1}`,
-        empId: `EMP-${1000 + fallbackDoctors.length + 1}`,
-        regNumber: payload.medicalRegistrationNumber,
-        name: payload.fullName.startsWith("Dr.") ? payload.fullName : `Dr. ${payload.fullName}`,
-        gender: (payload.gender as "Male" | "Female" | "Other") || "Male",
-        department: "General Medicine",
-        specialty: "General Physician",
-        qualification: payload.qualification,
-        experienceYrs: payload.yearsOfExperience,
-        consultationFee: payload.consultationFee,
-        followUpFee: payload.followUpFee,
-        slotDuration: `${payload.slotDurationMinutes} mins`,
-        availability: "Available Today",
-        status: "Active",
-        email: payload.email,
-        phone: payload.mobile,
-        opdRoom: "OPD-101",
-        joinedDate: new Date().toISOString().split("T")[0],
-        shiftTimings: "09:00 AM - 05:00 PM",
-        workingDays: ["MON", "TUE", "WED", "THU", "FRI"],
-        bio: payload.professionalBio,
-        scheduleExceptions: payload.scheduleExceptions || [],
-      };
-      fallbackDoctors = [newDoctor, ...fallbackDoctors];
-      return newDoctor;
+    const response = await apiClient.post<DoctorApiResponse<ApiUserDoctorRecord>>(
+      "/api/v1/admin/users",
+      payload
+    );
+    if (response.data.data) {
+      return mapApiUserToDoctorRecord(response.data.data);
     }
+    throw new Error("Failed to create doctor staff account");
   },
 
   /**
@@ -259,31 +203,15 @@ export const doctorsApi = {
     userId: number | string,
     payload: UpdateDoctorPayload
   ): Promise<DoctorApiResponse<unknown>> => {
-    try {
-      const numericUserId = typeof userId === "string" && userId.startsWith("DOC-")
-        ? userId.replace("DOC-", "")
-        : userId;
+    const numericUserId = typeof userId === "string" && userId.startsWith("DOC-")
+      ? userId.replace("DOC-", "")
+      : userId;
 
-      const response = await apiClient.put<DoctorApiResponse<unknown>>(
-        `/api/v1/admin/users/${numericUserId}`,
-        payload
-      );
-      return response.data;
-    } catch (error) {
-      console.warn("[doctorsApi] Update API failed, updating local fallback:", error);
-      const strId = String(userId);
-      const index = fallbackDoctors.findIndex((d) => d.id === strId || d.userId === Number(strId));
-      if (index !== -1) {
-        if (payload.fullName) fallbackDoctors[index].name = payload.fullName;
-        if (payload.consultationFee) fallbackDoctors[index].consultationFee = payload.consultationFee;
-        if (payload.followUpFee) fallbackDoctors[index].followUpFee = payload.followUpFee;
-      }
-      return {
-        success: true,
-        message: "Doctor details updated locally (fallback)",
-        data: {},
-      };
-    }
+    const response = await apiClient.put<DoctorApiResponse<unknown>>(
+      `/api/v1/admin/users/${numericUserId}`,
+      payload
+    );
+    return response.data;
   },
 
   /**
@@ -330,32 +258,14 @@ export const doctorsApi = {
   },
 
   delete: async (id: string): Promise<boolean> => {
-    try {
-      await apiClient.delete(`/api/v1/doctors/${id}`);
-      return true;
-    } catch {
-      fallbackDoctors = fallbackDoctors.filter((d) => d.id !== id);
-      return true;
-    }
+    await apiClient.delete(`/api/v1/doctors/${id}`);
+    return true;
   },
 
   deactivate: async (id: string): Promise<DoctorRecord> => {
-    try {
-      const response = await apiClient.patch<DoctorApiResponse<DoctorRecord>>(
-        `/api/v1/doctors/${id}/deactivate`
-      );
-      return response.data.data as DoctorRecord;
-    } catch {
-      const index = fallbackDoctors.findIndex((d) => d.id === id);
-      if (index !== -1) {
-        fallbackDoctors[index] = {
-          ...fallbackDoctors[index],
-          status: "Inactive",
-          availability: "Out of Office",
-        };
-        return fallbackDoctors[index];
-      }
-      throw new Error(`Doctor ${id} not found`);
-    }
+    const response = await apiClient.patch<DoctorApiResponse<DoctorRecord>>(
+      `/api/v1/doctors/${id}/deactivate`
+    );
+    return response.data.data as DoctorRecord;
   },
 };

@@ -1,7 +1,6 @@
 export { ReceptionManagementCenterScreen } from "./pages/ReceptionManagementCenterScreen";
 export { default as ReceptionCenterScreen } from "./pages/ReceptionManagementCenterScreen";
 export { ReceptionQueueManagementScreen } from "./pages/ReceptionQueueManagementScreen";
-export { ReceptionBookAppointmentScreen } from "./pages/ReceptionBookAppointmentScreen";
 export { PatientCheckInScreen } from "./pages/PatientCheckInScreen";
 export * from "./types/reception.types";
 export * from "./permissions/reception.permissions";

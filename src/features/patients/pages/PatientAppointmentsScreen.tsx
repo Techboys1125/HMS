@@ -27,7 +27,7 @@ import {
   PatientCancelAppointmentDialog,
   PatientRescheduleAppointmentDialog,
 } from "../components/PatientDialogs";
-import { PatientBookAppointmentScreen } from "./PatientBookAppointmentScreen";
+import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentScreen";
 
 export function PatientAppointmentsScreen() {
   const [appointments, setAppointments] = useState<PatientAppointment[]>(
@@ -75,14 +75,11 @@ export function PatientAppointmentsScreen() {
 
   if (viewMode === "book") {
     return (
-      <PatientBookAppointmentScreen
+      <BookAppointmentScreen
+        role="patient"
         onBack={() => setViewMode("list")}
-        onAppointmentBooked={(newAppt) => {
-          setAppointments([newAppt, ...appointments]);
-          triggerToast(`New appointment ${newAppt.id} booked successfully!`);
-        }}
-        onViewDetails={(appt) => {
-          setSelectedDetailsAppt(appt);
+        onBookSuccess={() => {
+          triggerToast("Appointment booked successfully!");
           setViewMode("list");
         }}
       />

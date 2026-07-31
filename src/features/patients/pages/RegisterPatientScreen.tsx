@@ -127,6 +127,7 @@ interface RegistrationFormState {
   chronicDiseases: string;
   specialNotes: string;
   registrationDate: string;
+  relationship: string;
 }
 
 const today = new Date();
@@ -159,6 +160,7 @@ const INITIAL_FORM: RegistrationFormState = {
   chronicDiseases: "",
   specialNotes: "",
   registrationDate: todayStr,
+  relationship: "SELF",
 };
 
 /* ─────────────────── Toast ─────────────────── */
@@ -310,10 +312,12 @@ export function RegisterPatientScreen({
   onBack,
   onBookAppointment,
   onViewProfile,
+  isFamilyMode = false,
 }: {
   onBack: () => void;
   onBookAppointment?: (mrn: string) => void;
   onViewProfile?: (mrn: string) => void;
+  isFamilyMode?: boolean;
 }) {
   const [form, setForm] = useState<RegistrationFormState>({ ...INITIAL_FORM });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -358,13 +362,13 @@ export function RegisterPatientScreen({
     else if (!/^[\d+\s()-]{7,15}$/.test(form.mobileNumber.trim()))
       e.mobileNumber = "Enter a valid mobile number";
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      e.email = "Enter a valid email";
-    if (form.pincode && !/^\d{6}$/.test(form.pincode))
-      e.pincode = "Pincode must be 6 digits";
+      e.email = "Enter a valid email address";
+    if (form.pincode && !/^\d{5,10}$/.test(form.pincode.trim()))
+      e.pincode = "Enter a valid pincode";
     return e;
   }, [form]);
 
-  const isValid = Object.keys(errors).length === 0;
+  const isValid = useMemo(() => Object.keys(errors).length === 0, [errors]);
 
   const fieldError = (field: string) =>
     touched[field] && errors[field] ? (
@@ -398,6 +402,7 @@ export function RegisterPatientScreen({
       fullName: form.fullName.trim(),
       gender: form.gender,
       mobileNumber: form.mobileNumber.trim(),
+      relationship: isFamilyMode ? form.relationship : "SELF",
     };
 
     if (form.dateOfBirth) payload.dateOfBirth = form.dateOfBirth;
@@ -545,6 +550,32 @@ export function RegisterPatientScreen({
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                {isFamilyMode && (
+                  <div className="md:col-span-2">
+                    <label className={labelBase}>
+                      Relationship to Account Holder <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={form.relationship}
+                      onChange={(e) => set("relationship", e.target.value)}
+                      className={fClass("relationship")}
+                    >
+                      <option value="SELF">Self</option>
+                      <option value="FATHER">Father</option>
+                      <option value="MOTHER">Mother</option>
+                      <option value="SPOUSE">Spouse</option>
+                      <option value="SON">Son</option>
+                      <option value="DAUGHTER">Daughter</option>
+                      <option value="BROTHER">Brother</option>
+                      <option value="SISTER">Sister</option>
+                      <option value="GRANDFATHER">Grandfather</option>
+                      <option value="GRANDMOTHER">Grandmother</option>
+                      <option value="GUARDIAN">Guardian</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+                )}
+
                 <div className="md:col-span-2">
                   <label className={labelBase}>
                     Full Name <span className="text-red-500">*</span>

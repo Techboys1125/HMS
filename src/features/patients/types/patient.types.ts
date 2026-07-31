@@ -62,10 +62,12 @@ export interface Address {
  * Patient record returned from GET /api/v1/patients
  */
 export interface Patient {
+  mobileNumber: string;
+  patientName: string;
   id: number;
   name: string;
   mrn: string;
-  patientName: string;
+  fullName: string;
   age: number;
   gender: string;
   phone: string;
@@ -145,6 +147,7 @@ export interface CreatePatientRequest {
   maritalStatus?: string;
   nationalId?: string;
   photoUrl?: string;
+  relationship?: string;
   address?:
     | {
         value?: string;

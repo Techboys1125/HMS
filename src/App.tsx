@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import safeHandsLogo from "./assets/safehandshospital_logo.webp";
 import { LoginPage, useAuthStore } from "./features/auth";
 import {
@@ -16,6 +16,7 @@ import {
   RegisterPatientScreen,
   ReceptionPatientProfileScreen,
 } from "./features/patients";
+import { patientsApi } from "./features/patients/api/patient.api";
 import { UserManagementCenterScreen } from "./features/users";
 import { DoctorManagementCenterScreen } from "./features/doctors";
 import {
@@ -2160,6 +2161,67 @@ function HMS({ onLogout }: { onLogout: () => void }) {
   );
   const [showRegisterPatient, setShowRegisterPatient] = useState(false);
   const [showEditPatient, setShowEditPatient] = useState(false);
+  const [patientOnboardingDone, setPatientOnboardingDone] = useState(false);
+  const [patientOnboardingLoading, setPatientOnboardingLoading] = useState(role === "patient");
+
+  // Patient Portal Onboarding: fetch /api/v1/patients/my after login
+  useEffect(() => {
+    if (role !== "patient") {
+      setPatientOnboardingDone(true);
+      setPatientOnboardingLoading(false);
+      return;
+    }
+    setPatientOnboardingLoading(true);
+    patientsApi
+      .getMyPatients()
+      .then((profiles) => {
+        if (profiles && profiles.length > 0) {
+          // Map backend profiles to FamilyMember shape
+          const mapped: FamilyMember[] = profiles.map((p, idx) => ({
+            id: p.mrn || String(p.id) || `FM-${idx}`,
+            patientName: p.name || p.fullName || p.patientName || "Patient",
+            mrn: p.mrn || "",
+            relationship: (p as any).relationship || "Self",
+            age: p.age || 0,
+            gender:
+              p.gender?.toUpperCase() === "MALE"
+                ? "Male"
+                : p.gender?.toUpperCase() === "FEMALE"
+                  ? "Female"
+                  : "Other",
+            bloodGroup: p.bloodGroup || "",
+            registeredMobile: p.phone || p.mobileNumber || "",
+            verificationStatus: "Verified" as const,
+            patientStatus: "Active" as const,
+            lastAppointment: "",
+            upcomingAppointmentsCount: 0,
+            pendingBillsCount: 0,
+            pendingBillsAmount: 0,
+            activePrescriptionsCount: 0,
+            lastConsultationDate: "",
+            primaryDoctor: "",
+            latestBillId: "",
+            latestBillAmount: 0,
+          }));
+          setFamilyMembers(mapped);
+          setActivePatient(mapped[0]);
+          setActiveNav("dashboard");
+          setPatientOnboardingDone(true);
+        } else {
+          // No profiles → redirect to registration
+          setPatientOnboardingDone(false);
+          setShowRegisterPatient(true);
+          setActiveNav("patients");
+        }
+      })
+      .catch(() => {
+        // API failure → show registration as fallback
+        setPatientOnboardingDone(false);
+        setShowRegisterPatient(true);
+        setActiveNav("patients");
+      })
+      .finally(() => setPatientOnboardingLoading(false));
+  }, [role]);
   const [activeConsultationId, setActiveConsultationId] = useState<
     string | null
   >(null);
@@ -2233,6 +2295,129 @@ function HMS({ onLogout }: { onLogout: () => void }) {
 
   const showPatientWorkspace =
     selectedPatient !== null && activeNav === "patients";
+
+  // Patient onboarding: show loading screen while checking profiles
+  if (role === "patient" && patientOnboardingLoading) {
+    return (
+      <div className="flex flex-col h-screen bg-[#F1F5F9] items-center justify-center">
+        <div className="animate-spin w-10 h-10 border-4 border-[#0D47A1] border-t-transparent rounded-full mb-4" />
+        <p className="text-sm text-slate-600 font-medium">Loading your patient portal...</p>
+      </div>
+    );
+  }
+
+  // Patient onboarding: if no profiles found, show registration
+  if (role === "patient" && !patientOnboardingDone && showRegisterPatient) {
+    return (
+      <div className="flex flex-col h-screen bg-[#F1F5F9] font-sans text-[#111827] antialiased">
+        <Header
+          activeNav={activeNav}
+          role={role}
+          onLogout={onLogout}
+          onNavigateNav={(nav) => setActiveNav(nav)}
+          activePatient={activePatient}
+          familyMembers={familyMembers}
+          onSwitchActivePatient={(member) => setActivePatient(member)}
+        />
+        <div className="flex flex-1 overflow-y-auto">
+          <RegisterPatientScreen
+            onBack={() => {
+              // After registration, re-check /api/v1/patients/my
+              setShowRegisterPatient(false);
+              setPatientOnboardingLoading(true);
+              patientsApi
+                .getMyPatients()
+                .then((profiles) => {
+                  if (profiles && profiles.length > 0) {
+                    const mapped: FamilyMember[] = profiles.map((p, idx) => ({
+                      id: p.mrn || String(p.id) || `FM-${idx}`,
+                      patientName: p.name || p.fullName || p.patientName || "Patient",
+                      mrn: p.mrn || "",
+                      relationship: (p as any).relationship || "Self",
+                      age: p.age || 0,
+                      gender:
+                        p.gender?.toUpperCase() === "MALE"
+                          ? "Male"
+                          : p.gender?.toUpperCase() === "FEMALE"
+                            ? "Female"
+                            : "Other",
+                      bloodGroup: p.bloodGroup || "",
+                      registeredMobile: p.phone || p.mobileNumber || "",
+                      verificationStatus: "Verified" as const,
+                      patientStatus: "Active" as const,
+                      lastAppointment: "",
+                      upcomingAppointmentsCount: 0,
+                      pendingBillsCount: 0,
+                      pendingBillsAmount: 0,
+                      activePrescriptionsCount: 0,
+                      lastConsultationDate: "",
+                      primaryDoctor: "",
+                      latestBillId: "",
+                      latestBillAmount: 0,
+                    }));
+                    setFamilyMembers(mapped);
+                    setActivePatient(mapped[0]);
+                    setActiveNav("dashboard");
+                    setPatientOnboardingDone(true);
+                  }
+                })
+                .catch(() => {})
+                .finally(() => setPatientOnboardingLoading(false));
+            }}
+            onBookAppointment={(_mrn) => {
+              // After registration success → re-fetch and go to booking
+              setShowRegisterPatient(false);
+              setPatientOnboardingLoading(true);
+              patientsApi
+                .getMyPatients()
+                .then((profiles) => {
+                  if (profiles && profiles.length > 0) {
+                    const mapped: FamilyMember[] = profiles.map((p, idx) => ({
+                      id: p.mrn || String(p.id) || `FM-${idx}`,
+                      patientName: p.name || p.fullName || p.patientName || "Patient",
+                      mrn: p.mrn || "",
+                      relationship: (p as any).relationship || "Self",
+                      age: p.age || 0,
+                      gender:
+                        p.gender?.toUpperCase() === "MALE"
+                          ? "Male"
+                          : p.gender?.toUpperCase() === "FEMALE"
+                            ? "Female"
+                            : "Other",
+                      bloodGroup: p.bloodGroup || "",
+                      registeredMobile: p.phone || p.mobileNumber || "",
+                      verificationStatus: "Verified" as const,
+                      patientStatus: "Active" as const,
+                      lastAppointment: "",
+                      upcomingAppointmentsCount: 0,
+                      pendingBillsCount: 0,
+                      pendingBillsAmount: 0,
+                      activePrescriptionsCount: 0,
+                      lastConsultationDate: "",
+                      primaryDoctor: "",
+                      latestBillId: "",
+                      latestBillAmount: 0,
+                    }));
+                    setFamilyMembers(mapped);
+                    setActivePatient(mapped[0]);
+                    setPatientOnboardingDone(true);
+                    setActiveNav("appointments");
+                  }
+                })
+                .catch(() => {})
+                .finally(() => setPatientOnboardingLoading(false));
+            }}
+            onViewProfile={() => {
+              // Same as onBack - re-fetch
+              setShowRegisterPatient(false);
+              setPatientOnboardingDone(true);
+              setActiveNav("dashboard");
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-[#F1F5F9] font-sans text-[#111827] antialiased">
@@ -2423,6 +2608,7 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               role !== "patient" &&
               showBookAppointmentScreen && (
                 <BookAppointmentScreen
+                  role={role}
                   initialMrn={undefined}
                   onBack={() => {
                     setShowBookAppointmentScreen(false);

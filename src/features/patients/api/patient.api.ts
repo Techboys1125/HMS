@@ -260,6 +260,28 @@ export const patientsApi = {
     }
   },
 
+  async getMyPatients(relationship?: string): Promise<Patient[]> {
+    try {
+      const search = new URLSearchParams();
+      if (relationship) search.append("relationship", relationship);
+      const url = `/api/v1/patients/my${search.toString() ? `?${search.toString()}` : ""}`;
+      const res = await apiClient.get<unknown>(url);
+      let data = res.data as any;
+      if (data && typeof data === "object" && "data" in data) {
+        data = data.data;
+      }
+      return Array.isArray(data) ? data : [];
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
+      }
+      throw error;
+    }
+  },
+
   async getStatistics(): Promise<PatientStatistics> {
     try {
       const res = await apiClient.get<PatientStatistics>(

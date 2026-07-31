@@ -18,6 +18,10 @@ export const patientService = {
     return patientsApi.getAll(params);
   },
 
+  async getMyPatients(relationship?: string): Promise<Patient[]> {
+    return patientsApi.getMyPatients(relationship);
+  },
+
   async searchPatients(query: string): Promise<Patient[]> {
     return patientsApi.search(query);
   },
