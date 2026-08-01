@@ -67,7 +67,9 @@ export function PatientAppointmentsScreen({
 
               const deptName =
                 typeof a.department === "object"
-                  ? a.department?.departmentName || a.department?.name || "General"
+                  ? a.department?.departmentName ||
+                    a.department?.name ||
+                    "General"
                   : a.departmentName || a.department || "General";
 
               const rawStatus = a.appointmentStatus || a.status || "SCHEDULED";

@@ -1782,7 +1782,8 @@ function HMS({ onLogout }: { onLogout: () => void }) {
     else if (r === "GUARDIAN") rel = "Guardian";
     else if (r === "OTHER") rel = "Other";
     else if (rawRel) {
-      rel = (rawRel.charAt(0).toUpperCase() + rawRel.slice(1).toLowerCase()) as any;
+      rel = (rawRel.charAt(0).toUpperCase() +
+        rawRel.slice(1).toLowerCase()) as any;
     } else {
       rel = "Other";
     }

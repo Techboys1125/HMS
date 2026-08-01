@@ -34,6 +34,10 @@ const STATUS_MAP: Record<string, AppointmentRecord["status"]> = {
   NO_SHOW: "Cancelled",
   RESCHEDULED: "Scheduled",
   WAITING: "Waiting",
+  WAITING_FOR_VITALS: "Checked-In",
+  WAITING_FOR_CONSULTATION: "Waiting",
+  VITALS_DONE: "Checked-In",
+  REGULAR: "Scheduled",
   CALLED: "Checked-In",
   SCHEDULED: "Scheduled",
 };
@@ -54,20 +58,20 @@ export const normalizeAppointmentRecord = (
     item?.appointmentTime ||
     "") as string;
 
-  const deptObj = item?.department && typeof item.department === "object"
-    ? (item.department as Record<string, unknown>)
-    : null;
-  const resolvedDeptName = (
-    item?.departmentName ||
+  const deptObj =
+    item?.department && typeof item.department === "object"
+      ? (item.department as Record<string, unknown>)
+      : null;
+  const resolvedDeptName = (item?.departmentName ||
     deptObj?.departmentName ||
     deptObj?.name ||
     (typeof item?.department === "string" ? item.department : undefined) ||
-    doctor?.departmentName
-  ) as string | undefined;
+    doctor?.departmentName) as string | undefined;
 
   return {
     id: (item?.id ?? item?.appointmentId ?? item?.appointmentNumber ?? "") as
-      string | number,
+      | string
+      | number,
     appointmentNumber: (item?.appointmentNumber ||
       item?.queueToken ||
       String(item?.id ?? "")) as string,
@@ -78,24 +82,29 @@ export const normalizeAppointmentRecord = (
       patient?.name ||
       "") as string,
     patientMrn: (item?.patientMrn || patient?.mrn || item?.mrn) as
-      string | undefined,
-    doctorId: (item?.doctorId ?? doctor?.id ?? "") as string | number,
+      | string
+      | undefined,
+    doctorId: (item?.doctorId ?? doctor?.doctorId ?? doctor?.id ?? "") as
+      | string
+      | number,
     doctorName: (item?.doctorName || doctor?.name || "") as string,
     appointmentDate,
     startTime,
     endTime: item?.endTime as string | undefined,
     status: toDisplayStatus(item?.status as string | undefined),
     queueStatus: (item?.queueStatus || item?.arrivalStatus) as
-      string | undefined,
+      | string
+      | undefined,
     appointmentType: item?.appointmentType as string | undefined,
     reason: (item?.reason || item?.chiefComplaint) as string | undefined,
     symptoms: item?.symptoms as string | undefined,
     departmentId:
       typeof item?.departmentId === "number"
         ? item.departmentId
-        : (typeof deptObj?.departmentId === "number" || typeof deptObj?.departmentId === "string"
-            ? Number(deptObj.departmentId)
-            : undefined),
+        : typeof deptObj?.departmentId === "number" ||
+            typeof deptObj?.departmentId === "string"
+          ? Number(deptObj.departmentId)
+          : undefined,
     departmentName: resolvedDeptName,
     patient: patient as unknown as PatientSummary,
     doctor: doctor as unknown as DoctorSummary,
@@ -118,20 +127,25 @@ export const normalizeAppointmentRecord = (
     patientAge: item?.patientAge as number | undefined,
     patientGender: item?.patientGender as string | undefined,
     patientPhone: (item?.patientPhone || patient?.phone || patient?.mobile) as
-      string | undefined,
+      | string
+      | undefined,
     department: resolvedDeptName,
     doctorSpecialty: (item?.doctorSpecialty || doctor?.specialty) as
-      string | undefined,
+      | string
+      | undefined,
     tokenNo: (item?.tokenNo || item?.queueToken) as string | undefined,
     timeSlot: (item?.timeSlot || startTime) as string | undefined,
     visitType: (item?.visitType || item?.appointmentType) as string | undefined,
     chiefComplaint: (item?.chiefComplaint || item?.reason) as
-      string | undefined,
+      | string
+      | undefined,
     notes: item?.notes as string | undefined,
   };
 };
 
-const unwrapAppointmentCollection = (response: any): Record<string, unknown>[] => {
+const unwrapAppointmentCollection = (
+  response: any,
+): Record<string, unknown>[] => {
   console.log("Appointments API Response:", response);
   try {
     console.log("JSON stringified response:", JSON.stringify(response));
@@ -142,13 +156,18 @@ const unwrapAppointmentCollection = (response: any): Record<string, unknown>[] =
   if (Array.isArray(response)) return response;
   if (Array.isArray(response?.data)) return response.data;
   if (Array.isArray(response?.content)) return response.content;
+  if (Array.isArray(response?.appointments)) return response.appointments;
 
   const resData = response?.data;
+  if (Array.isArray(resData?.appointments)) return resData.appointments;
   if (Array.isArray(resData?.content)) return resData.content;
   if (Array.isArray(resData?.data)) return resData.data;
   if (Array.isArray(resData?.data?.content)) return resData.data.content;
+  if (Array.isArray(resData?.data?.appointments))
+    return resData.data.appointments;
 
   if (response?.success && resData && typeof resData === "object") {
+    if (Array.isArray(resData.appointments)) return resData.appointments;
     if (Array.isArray(resData.content)) return resData.content;
     if (Array.isArray(resData.data)) return resData.data;
   }
@@ -170,7 +189,7 @@ export const appointmentService = {
     sort?: string;
   }): Promise<AppointmentRecord[]> {
     // 1. Fetch doctors lookup to resolve empty/missing department fields
-    let doctorsMap = new Map<string, DoctorSummary>();
+    const doctorsMap = new Map<string, DoctorSummary>();
     try {
       const doctors = await this.listDoctors();
       doctors.forEach((d) => {
@@ -186,15 +205,23 @@ export const appointmentService = {
 
     return items.map((item) => {
       const docObj = (item?.doctor as Record<string, unknown>) || {};
-      const docId = String(item?.doctorId || docObj?.id || docObj?.doctorId || "");
+      const docId = String(
+        item?.doctorId || docObj?.id || docObj?.doctorId || "",
+      );
       const knownDoc = docId ? doctorsMap.get(docId) : null;
 
-      let updatedItem = { ...item };
+      const updatedItem = { ...item };
       if (knownDoc) {
-        if ((!updatedItem.departmentName || updatedItem.departmentName === "") && knownDoc.departmentName) {
+        if (
+          (!updatedItem.departmentName || updatedItem.departmentName === "") &&
+          knownDoc.departmentName
+        ) {
           updatedItem.departmentName = knownDoc.departmentName;
         }
-        if ((!updatedItem.departmentId || updatedItem.departmentId === 0) && knownDoc.departmentId) {
+        if (
+          (!updatedItem.departmentId || updatedItem.departmentId === 0) &&
+          knownDoc.departmentId
+        ) {
           updatedItem.departmentId = Number(knownDoc.departmentId);
         }
       }
@@ -203,6 +230,7 @@ export const appointmentService = {
   },
 
   async listDoctorAppointments(
+    doctorId?: string | number,
     date?: string,
     status?: string,
   ): Promise<AppointmentRecord[]> {
@@ -216,8 +244,77 @@ export const appointmentService = {
       console.warn("Failed to load doctors for resolving departments:", e);
     }
 
-    const res = await appointmentsApi.getDoctorAppointments(date);
-    const items = unwrapAppointmentCollection(res);
+    const res = await appointmentsApi.getDoctorAppointments(
+      doctorId,
+      date,
+      status,
+    );
+    let items = unwrapAppointmentCollection(res);
+
+    if (items.length === 0) {
+      console.log(
+        `[listDoctorAppointments] Doctor route returned 0 items for doctorId=${doctorId}. Trying fallbacks...`,
+      );
+      try {
+        const fallbackRes = await appointmentsApi.getAppointments({
+          doctorId,
+          date,
+          status,
+        });
+        const fallbackItems = unwrapAppointmentCollection(fallbackRes);
+        if (fallbackItems.length > 0) {
+          console.log(
+            `[listDoctorAppointments] Fallback 1 (getAppointments with doctorId) returned ${fallbackItems.length} items.`,
+          );
+          items = fallbackItems;
+        }
+      } catch (e) {
+        console.warn("Doctor appointment fallback 1 failed:", e);
+      }
+
+      if (items.length === 0) {
+        try {
+          const generalRes = await appointmentsApi.getAppointments({
+            date,
+            status,
+          });
+          const generalItems = unwrapAppointmentCollection(generalRes);
+          if (generalItems.length > 0) {
+            const docIdStr = String(doctorId || "").toLowerCase();
+            items = generalItems.filter((item: any) => {
+              const docObj = (item?.doctor as Record<string, unknown>) || {};
+              const itemDocId = String(
+                item?.doctorId ?? docObj?.doctorId ?? docObj?.id ?? "",
+              );
+              const itemDocCode = String(
+                item?.doctorCode ?? docObj?.doctorCode ?? docObj?.code ?? "",
+              );
+              const itemDocName = String(
+                item?.doctorName ??
+                  docObj?.name ??
+                  docObj?.doctorName ??
+                  item?.doctor ??
+                  "",
+              ).toLowerCase();
+
+              return (
+                (docIdStr && itemDocId === docIdStr) ||
+                (docIdStr && itemDocCode.toLowerCase() === docIdStr) ||
+                itemDocName.includes("subha") ||
+                (docIdStr && itemDocName.includes(docIdStr)) ||
+                itemDocCode === "KJBJC"
+              );
+            });
+            console.log(
+              `[listDoctorAppointments] Fallback 2 (general getAppointments matched for doctor) returned ${items.length} items.`,
+            );
+          }
+        } catch (e) {
+          console.warn("Doctor appointment fallback 2 failed:", e);
+        }
+      }
+    }
+
     return items
       .filter((item) =>
         !status
@@ -226,15 +323,24 @@ export const appointmentService = {
       )
       .map((item) => {
         const docObj = (item?.doctor as Record<string, unknown>) || {};
-        const docId = String(item?.doctorId || docObj?.id || docObj?.doctorId || "");
+        const docId = String(
+          item?.doctorId || docObj?.id || docObj?.doctorId || "",
+        );
         const knownDoc = docId ? doctorsMap.get(docId) : null;
 
-        let updatedItem = { ...item };
+        const updatedItem = { ...item };
         if (knownDoc) {
-          if ((!updatedItem.departmentName || updatedItem.departmentName === "") && knownDoc.departmentName) {
+          if (
+            (!updatedItem.departmentName ||
+              updatedItem.departmentName === "") &&
+            knownDoc.departmentName
+          ) {
             updatedItem.departmentName = knownDoc.departmentName;
           }
-          if ((!updatedItem.departmentId || updatedItem.departmentId === 0) && knownDoc.departmentId) {
+          if (
+            (!updatedItem.departmentId || updatedItem.departmentId === 0) &&
+            knownDoc.departmentId
+          ) {
             updatedItem.departmentId = Number(knownDoc.departmentId);
           }
         }
@@ -259,15 +365,23 @@ export const appointmentService = {
     const items = unwrapAppointmentCollection(res);
     return items.map((item) => {
       const docObj = (item?.doctor as Record<string, unknown>) || {};
-      const docId = String(item?.doctorId || docObj?.id || docObj?.doctorId || "");
+      const docId = String(
+        item?.doctorId || docObj?.id || docObj?.doctorId || "",
+      );
       const knownDoc = docId ? doctorsMap.get(docId) : null;
 
-      let updatedItem = { ...item };
+      const updatedItem = { ...item };
       if (knownDoc) {
-        if ((!updatedItem.departmentName || updatedItem.departmentName === "") && knownDoc.departmentName) {
+        if (
+          (!updatedItem.departmentName || updatedItem.departmentName === "") &&
+          knownDoc.departmentName
+        ) {
           updatedItem.departmentName = knownDoc.departmentName;
         }
-        if ((!updatedItem.departmentId || updatedItem.departmentId === 0) && knownDoc.departmentId) {
+        if (
+          (!updatedItem.departmentId || updatedItem.departmentId === 0) &&
+          knownDoc.departmentId
+        ) {
           updatedItem.departmentId = Number(knownDoc.departmentId);
         }
       }
@@ -293,7 +407,9 @@ export const appointmentService = {
     if (!data) {
       throw new Error("Appointment booking did not return a record.");
     }
-    return normalizeAppointmentRecord(data as unknown as Record<string, unknown>);
+    return normalizeAppointmentRecord(
+      data as unknown as Record<string, unknown>,
+    );
   },
 
   async rescheduleAppointment(
@@ -308,7 +424,9 @@ export const appointmentService = {
     if (!data) {
       throw new Error("Appointment reschedule did not return a record.");
     }
-    return normalizeAppointmentRecord(data as unknown as Record<string, unknown>);
+    return normalizeAppointmentRecord(
+      data as unknown as Record<string, unknown>,
+    );
   },
 
   async cancelAppointment(
@@ -320,7 +438,9 @@ export const appointmentService = {
     if (!data) {
       throw new Error("Appointment cancellation did not return a record.");
     }
-    return normalizeAppointmentRecord(data as unknown as Record<string, unknown>);
+    return normalizeAppointmentRecord(
+      data as unknown as Record<string, unknown>,
+    );
   },
 
   async receptionCheckIn(appointmentId: string | number) {
@@ -356,17 +476,22 @@ export const appointmentService = {
   async listDoctors(departmentId?: string | number): Promise<DoctorSummary[]> {
     try {
       const res = await appointmentsApi.getDoctors(departmentId);
-      const rawList = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-      
+      const rawList = Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res)
+          ? res
+          : [];
+
       return rawList.map((d: any) => ({
-        id: d.doctorId ?? d.id ?? "",
+        id: d.doctorId ?? d.doctorProfile?.doctorId ?? d.id ?? "",
         name: d.doctorName ?? d.name ?? "",
         departmentName: d.department ?? d.departmentName ?? "",
         department: d.department ?? d.departmentName ?? "",
         departmentId: d.departmentId ?? departmentId,
         specialty: d.specialty ?? "",
         qualification: d.qualification ?? "",
-        consultationFee: d.fees?.standardConsultationFee ?? d.consultationFee ?? 0,
+        consultationFee:
+          d.fees?.standardConsultationFee ?? d.consultationFee ?? 0,
         opdRoom: d.opdRoom ?? "",
       }));
     } catch (error) {

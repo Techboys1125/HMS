@@ -48,7 +48,11 @@ export const appointmentsApi = {
         query.append("mrn", params.mrn);
       } else if (params?.patientId !== undefined) {
         const pId = String(params.patientId);
-        if (pId.startsWith("MRN-") || pId.startsWith("UHID-") || isNaN(Number(pId))) {
+        if (
+          pId.startsWith("MRN-") ||
+          pId.startsWith("UHID-") ||
+          isNaN(Number(pId))
+        ) {
           query.append("mrn", pId);
         } else {
           query.append("patientId", pId);
@@ -143,12 +147,21 @@ export const appointmentsApi = {
   },
 
   getDoctorAppointments: async (
+    doctorId?: string | number,
     date?: string,
+    status?: string,
   ): Promise<ApiResponse<unknown>> => {
     try {
-      const url = date
-        ? `/api/v1/doctor/appointments?date=${encodeURIComponent(date)}`
-        : "/api/v1/doctor/appointments";
+      const query = new URLSearchParams();
+      if (date) query.append("date", date);
+      if (status) query.append("status", status);
+      const queryString = query.toString();
+
+      const endpoint = doctorId
+        ? `/api/v1/doctors/${doctorId}/appointments`
+        : `/api/v1/doctor/appointments`;
+      const url = `${endpoint}${queryString ? `?${queryString}` : ""}`;
+
       const response = await apiClient.get<ApiResponse<unknown>>(url);
       return response.data;
     } catch (error: unknown) {
@@ -265,8 +278,6 @@ export const appointmentsApi = {
       return handleApiError(error);
     }
   },
-
-
 
   /**
    * cURL:

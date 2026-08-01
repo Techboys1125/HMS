@@ -40,7 +40,10 @@ export function useAppointments(
             date,
             params?.status,
           );
-        } else if (userRole === "Patient" && (params?.patientId || params?.mrn)) {
+        } else if (
+          userRole === "Patient" &&
+          (params?.patientId || params?.mrn)
+        ) {
           items = await appointmentService.listPatientAppointments(
             params.patientId || params.mrn || "",
           );

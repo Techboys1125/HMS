@@ -261,7 +261,9 @@ function RegistrationSuccessDialog({
           className="text-xl font-bold text-[#111827] mb-2"
           style={{ fontFamily: PP }}
         >
-          {isFamilyMode ? "Family Member Registered!" : "Registration Successful!"}
+          {isFamilyMode
+            ? "Family Member Registered!"
+            : "Registration Successful!"}
         </h3>
         <p className="text-sm text-slate-500 mb-1" style={{ fontFamily: RB }}>
           <span className="font-semibold text-[#111827]">{patientName}</span>{" "}
@@ -432,7 +434,11 @@ export function RegisterPatientScreen({
       e.email = "Enter a valid email address";
     if (form.pincode && !/^\d{5,10}$/.test(form.pincode.trim()))
       e.pincode = "Enter a valid pincode";
-    if (showRelationship && effectiveMode === "PATIENT_FAMILY" && !form.relationship)
+    if (
+      showRelationship &&
+      effectiveMode === "PATIENT_FAMILY" &&
+      !form.relationship
+    )
       e.relationship = "Relationship is required";
     return e;
   }, [form, showRelationship, effectiveMode]);
@@ -473,7 +479,8 @@ export function RegisterPatientScreen({
       gender: form.gender,
       mobileNumber: form.mobileNumber.trim(),
       relationship: showRelationship
-        ? form.relationship || (effectiveMode === "PATIENT_SELF" ? "SELF" : "OTHER")
+        ? form.relationship ||
+          (effectiveMode === "PATIENT_SELF" ? "SELF" : "OTHER")
         : "SELF",
     };
 

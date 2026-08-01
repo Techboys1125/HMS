@@ -554,9 +554,11 @@ export function FamilyMembersManagement({
                               ? "text-[#0D47A1] bg-blue-50 border-blue-100"
                               : m.relationship === "Spouse"
                                 ? "text-rose-700 bg-rose-50 border-rose-100"
-                                : m.relationship === "Son" || m.relationship === "Daughter"
+                                : m.relationship === "Son" ||
+                                    m.relationship === "Daughter"
                                   ? "text-purple-700 bg-purple-50 border-purple-100"
-                                  : m.relationship === "Father" || m.relationship === "Mother"
+                                  : m.relationship === "Father" ||
+                                      m.relationship === "Mother"
                                     ? "text-amber-700 bg-amber-50 border-amber-100"
                                     : "text-emerald-700 bg-emerald-50 border-emerald-100"
                           }`}

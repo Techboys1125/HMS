@@ -91,11 +91,7 @@ export function BookAppointmentScreen({
           const mapped: PatientSummary[] = data.map((p) => ({
             id: p.id,
             mrn: p.mrn,
-            name:
-              p.fullName ||
-              p.patientName ||
-              p.name ||
-              "Unknown Patient",
+            name: p.fullName || p.patientName || p.name || "Unknown Patient",
             age: p.age || 0,
             gender: p.gender || "",
             phone: p.phone || p.mobileNumber || "",
@@ -126,11 +122,7 @@ export function BookAppointmentScreen({
           const mapped: PatientSummary[] = data.map((p) => ({
             id: p.id,
             mrn: p.mrn,
-            name:
-              p.fullName ||
-              p.patientName ||
-              p.name ||
-              "Unknown Patient",
+            name: p.fullName || p.patientName || p.name || "Unknown Patient",
             age: p.age || 0,
             gender: p.gender || "",
             phone: p.phone || p.mobileNumber || "",
@@ -557,7 +549,9 @@ export function BookAppointmentScreen({
                   className="text-base font-bold text-[#111827]"
                   style={{ fontFamily: PP }}
                 >
-                  {role === "patient" ? "Active Patient (Read Only)" : "Patient Search & Selection"}
+                  {role === "patient"
+                    ? "Active Patient (Read Only)"
+                    : "Patient Search & Selection"}
                 </h2>
               </div>
               <span className="text-xs text-red-500 font-semibold">

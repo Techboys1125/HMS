@@ -123,10 +123,13 @@ export function AppointmentManagementCenterScreen({
   const [deptOptions, setDeptOptions] = useState<string[]>([]);
 
   useEffect(() => {
-    appointmentService.listDepartments().then((data) => {
-      const names = data.map((d) => d.departmentName).filter(Boolean);
-      setDeptOptions(names);
-    }).catch(() => {});
+    appointmentService
+      .listDepartments()
+      .then((data) => {
+        const names = data.map((d) => d.departmentName).filter(Boolean);
+        setDeptOptions(names);
+      })
+      .catch(() => {});
   }, []);
 
   // Sorting - Default Appointment Time Ascending
@@ -158,7 +161,7 @@ export function AppointmentManagementCenterScreen({
   // --- ROLE-BASED APPOINTMENT FILTERING ---
   const roleAppointments = useMemo(() => {
     if (userRole === "Doctor") {
-      return appointments.filter((a) => a.doctorName === "Dr. Arjun Mehta");
+      return appointments;
     }
     if (userRole === "Nurse") {
       return appointments.filter(
@@ -197,9 +200,10 @@ export function AppointmentManagementCenterScreen({
 
   // Doctor List
   const doctorsList = useMemo(() => {
-    const filteredByDept = deptFilter !== "All"
-      ? appointments.filter((a) => a.department === deptFilter)
-      : appointments;
+    const filteredByDept =
+      deptFilter !== "All"
+        ? appointments.filter((a) => a.department === deptFilter)
+        : appointments;
     return Array.from(new Set(filteredByDept.map((a) => a.doctorName)));
   }, [appointments, deptFilter]);
 
@@ -951,7 +955,9 @@ export function AppointmentManagementCenterScreen({
                       setDeptFilter(selectedDeptVal);
                       if (selectedDeptVal !== "All" && doctorFilter !== "All") {
                         const doctorInDept = appointments.some(
-                          (a) => a.department === selectedDeptVal && a.doctorName === doctorFilter
+                          (a) =>
+                            a.department === selectedDeptVal &&
+                            a.doctorName === doctorFilter,
                         );
                         if (!doctorInDept) {
                           setDoctorFilter("All");
