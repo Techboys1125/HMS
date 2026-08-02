@@ -320,4 +320,41 @@ export const patientsApi = {
       throw error;
     }
   },
+
+  /**
+   * GET /api/v1/patients/me/queue
+   * Fetch current patient's queue status
+   */
+  async getMyQueue(): Promise<{
+    appointmentId: number;
+    token: string;
+    position: number;
+    patientsAhead: number;
+    estimatedWaitMinutes: number;
+    status: string;
+    doctorName: string;
+    departmentName: string;
+  } | null> {
+    try {
+      const res = await apiClient.get<any>("/api/v1/patients/me/queue");
+      const data = res.data?.data || res.data;
+      if (data && typeof data === "object") {
+        return {
+          appointmentId: data.appointmentId || 0,
+          token: data.token || data.tokenNumber || "TK-001",
+          position: data.position ?? 1,
+          patientsAhead: data.patientsAhead ?? 0,
+          estimatedWaitMinutes: data.estimatedWaitMinutes ?? 15,
+          status: data.status || data.queueStatus || "WAITING",
+          doctorName: data.doctorName || "Duty Doctor",
+          departmentName: data.departmentName || "General OPD",
+        };
+      }
+      return null;
+    } catch (error) {
+      console.warn("[patientApi] Fallback for getMyQueue:", error);
+      return null;
+    }
+  },
 };
+

@@ -11,6 +11,8 @@ import {
 import { PP, RB } from "../../appointments/constants/appointment.constants";
 import { Chip } from "../../appointments/components/Chip";
 import type { ChipVariant } from "../../appointments/constants/appointment.constants";
+import { CheckInConfirmationModal } from "../components/CheckInConfirmationModal";
+import { receptionService } from "../services/reception.service";
 
 export interface ReceptionQueueManagementScreenProps {
   onBack?: () => void;
@@ -237,38 +239,78 @@ export function ReceptionQueueManagementScreen({
     return { waiting, checkedIn, inConsultation, completed, noShows };
   }, [queueItems]);
 
-  const handleDirectCheckIn = (token?: string, mrn?: string) => {
+  // Check-In Confirmation Modal State
+  const [checkInModalData, setCheckInModalData] = useState<{
+    isOpen: boolean;
+    tokenNumber: string;
+    patientName: string;
+    patientMrn: string;
+    doctorName?: string;
+    departmentName?: string;
+    appointmentTime?: string;
+    status?: string;
+  } | null>(null);
+
+  const handleDirectCheckIn = async (token?: string, mrn?: string) => {
     const targetToken = token || selectedTokenId;
     const targetItem = queueItems.find(
       (i) => i.token === targetToken || i.mrn === mrn,
     );
     if (!targetItem) return;
 
-    if (targetItem.status === "Checked-In") {
-      triggerToast(`Patient ${targetItem.name} (${targetItem.token}) is already checked in.`);
+    if (
+      targetItem.status === "Waiting for Vitals" ||
+      targetItem.status === "Checked-In"
+    ) {
+      triggerToast(
+        `Patient ${targetItem.name} (${targetItem.token}) is already checked in.`,
+      );
       return;
     }
 
-    setQueueItems((prev) =>
-      prev.map((i) =>
-        i.token === targetItem.token || (mrn && i.mrn === mrn)
-          ? {
-              ...i,
-              status: "Checked-In",
-              arrivalTime:
-                i.arrivalTime && i.arrivalTime !== "—"
-                  ? i.arrivalTime
-                  : new Date().toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }),
-            }
-          : i,
-      ),
-    );
+    try {
+      // Call reception service API to patch check-in & transition status to Waiting for Vitals
+      const res = await receptionService.checkInPatient(
+        targetItem.aptId || targetItem.token,
+      );
 
-    triggerToast(`Patient ${targetItem.name} (${targetItem.token}) checked in successfully!`);
-    if (onCheckInClick) onCheckInClick(targetItem.token, targetItem.mrn);
+      const generatedToken = res.tokenNumber || targetItem.token;
+
+      setQueueItems((prev) =>
+        prev.map((i) =>
+          i.token === targetItem.token || (mrn && i.mrn === mrn)
+            ? {
+                ...i,
+                token: generatedToken,
+                status: "Waiting for Vitals",
+                arrivalTime:
+                  i.arrivalTime && i.arrivalTime !== "—"
+                    ? i.arrivalTime
+                    : new Date().toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }),
+              }
+            : i,
+        ),
+      );
+
+      // Show Centered Confirmation Modal
+      setCheckInModalData({
+        isOpen: true,
+        tokenNumber: generatedToken,
+        patientName: targetItem.name,
+        patientMrn: targetItem.mrn,
+        doctorName: targetItem.doctor,
+        departmentName: targetItem.dept,
+        appointmentTime: targetItem.apptTime,
+        status: "Waiting for Vitals",
+      });
+
+      if (onCheckInClick) onCheckInClick(generatedToken, targetItem.mrn);
+    } catch (err: any) {
+      triggerToast(err?.message || "Check-in failed for this appointment.");
+    }
   };
 
   const resetFilters = () => {
@@ -576,151 +618,152 @@ export function ReceptionQueueManagementScreen({
       </div>
 
       {/* WORKSPACE GRID */}
-      
-        {/* LEFT COLUMN: QUEUE TABLE (8 COLS) */}
-        <div className="xl:col-span-8 space-y-6">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
-              <div>
-                <h2
-                  className="text-base font-bold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  Today's Queue Table
-                </h2>
-                <p className="text-xs text-[#64748B]">
-                  Real-time patient flow and arrival management
-                </p>
-              </div>
-            </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr
-                    className="bg-slate-50 border-b border-gray-100 text-[#64748B] uppercase tracking-wider text-[10px]"
-                    style={{ fontFamily: PP }}
-                  >
-                    <th className="px-4 py-3">Token</th>
-                    <th className="px-4 py-3">Patient</th>
-                    <th className="px-4 py-3">MRN</th>
-                    <th className="px-4 py-3">Doctor</th>
-                    <th className="px-4 py-3">Department</th>
-                    <th className="px-4 py-3">Appt Time</th>
-                    <th className="px-4 py-3">Arrival Time</th>
-                    <th className="px-4 py-3">Queue Status</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-[#111827]">
-                  {filteredQueue.length > 0 ? (
-                    filteredQueue.map((item) => {
-                      const isSelected = selectedTokenId === item.token;
-                      return (
-                        <tr
-                          key={item.token}
-                          onClick={() => setSelectedTokenId(item.token)}
-                          className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${
-                            isSelected ? "bg-blue-50/60 font-medium" : ""
-                          }`}
-                        >
-                          <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
-                            {item.token}
-                          </td>
-                          <td className="px-4 py-3.5 font-bold text-[#111827]">
-                            {item.name}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {item.mrn}
-                          </td>
-                          <td className="px-4 py-3.5 font-medium">
-                            {item.doctor}
-                          </td>
-                          <td className="px-4 py-3.5 text-slate-600">
-                            {item.dept}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {item.apptTime}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {item.arrivalTime}
-                          </td>
-                          <td className="px-4 py-3.5">
-                            <Chip
-                              label={item.status}
-                              variant={getStatusChipVariant(item.status)}
-                            />
-                          </td>
-                          <td
-                            className="px-4 py-3.5 text-right"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="flex items-center justify-end gap-1.5">
-                              {(item.status === "Scheduled" ||
-                                item.status === "Waiting") && (
-                                <button
-                                  onClick={() =>
-                                    handleDirectCheckIn(item.token, item.mrn)
-                                  }
-                                  className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors cursor-pointer"
-                                >
-                                  Check-In
-                                </button>
-                              )}
-
-                              <button
-                                onClick={() =>
-                                  onPatientSelect && onPatientSelect(item.mrn)
-                                }
-                                title="View Patient"
-                                className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors cursor-pointer"
-                              >
-                                View
-                              </button>
-
-                              {item.status !== "Completed" &&
-                                item.status !== "Cancelled" &&
-                                item.status !== "No Show" && (
-                                  <button
-                                    onClick={() => setNoShowDialogApt(item)}
-                                    title="Mark No Show"
-                                    className="px-2 py-1 rounded-lg bg-red-50 text-[#EF4444] text-[11px] font-semibold hover:bg-red-100 transition-colors cursor-pointer"
-                                  >
-                                    No Show
-                                  </button>
-                                )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={9} className="px-4 py-12 text-center">
-                        <div className="flex flex-col items-center justify-center gap-2">
-                          <Users size={32} className="text-slate-300" />
-                          <p className="text-sm font-semibold text-[#111827]">
-                            No patients are currently in today's queue.
-                          </p>
-                          <button
-                            onClick={onPatientSearchClick}
-                            className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all flex items-center gap-1.5 cursor-pointer"
-                            style={{ fontFamily: PP }}
-                          >
-                            <Search size={15} /> Patient Search
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+      {/* LEFT COLUMN: QUEUE TABLE (8 COLS) */}
+      <div className="xl:col-span-8 space-y-6">
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden">
+          <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+            <div>
+              <h2
+                className="text-base font-bold text-[#111827]"
+                style={{ fontFamily: PP }}
+              >
+                Today's Queue Table
+              </h2>
+              <p className="text-xs text-[#64748B]">
+                Real-time patient flow and arrival management
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* RIGHT COLUMN: SELECTED PATIENT SUMMARY PANEL (4 COLS) */}
-        {/* <div className="xl:col-span-4 space-y-6">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr
+                  className="bg-slate-50 border-b border-gray-100 text-[#64748B] uppercase tracking-wider text-[10px]"
+                  style={{ fontFamily: PP }}
+                >
+                  <th className="px-4 py-3">Token</th>
+                  <th className="px-4 py-3">Patient</th>
+                  <th className="px-4 py-3">MRN</th>
+                  <th className="px-4 py-3">Doctor</th>
+                  <th className="px-4 py-3">Department</th>
+                  <th className="px-4 py-3">Appt Time</th>
+                  <th className="px-4 py-3">Arrival Time</th>
+                  <th className="px-4 py-3">Queue Status</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-[#111827]">
+                {filteredQueue.length > 0 ? (
+                  filteredQueue.map((item) => {
+                    const isSelected = selectedTokenId === item.token;
+                    return (
+                      <tr
+                        key={item.token}
+                        onClick={() => setSelectedTokenId(item.token)}
+                        className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${
+                          isSelected ? "bg-blue-50/60 font-medium" : ""
+                        }`}
+                      >
+                        <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
+                          {item.token}
+                        </td>
+                        <td className="px-4 py-3.5 font-bold text-[#111827]">
+                          {item.name}
+                        </td>
+                        <td className="px-4 py-3.5 font-mono text-slate-500">
+                          {item.mrn}
+                        </td>
+                        <td className="px-4 py-3.5 font-medium">
+                          {item.doctor}
+                        </td>
+                        <td className="px-4 py-3.5 text-slate-600">
+                          {item.dept}
+                        </td>
+                        <td className="px-4 py-3.5 font-mono text-slate-500">
+                          {item.apptTime}
+                        </td>
+                        <td className="px-4 py-3.5 font-mono text-slate-500">
+                          {item.arrivalTime}
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <Chip
+                            label={item.status}
+                            variant={getStatusChipVariant(item.status)}
+                          />
+                        </td>
+                        <td
+                          className="px-4 py-3.5 text-right"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center justify-end gap-1.5">
+                            {(item.status === "Scheduled" ||
+                              item.status === "Waiting") && (
+                              <button
+                                onClick={() =>
+                                  handleDirectCheckIn(item.token, item.mrn)
+                                }
+                                className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors bg-[#009688] text-white hover:bg-teal-700 cursor-pointer"
+                                title="Check-In Patient"
+                              >
+                                Check-In
+                              </button>
+                            )}
+
+                            <button
+                              onClick={() =>
+                                onPatientSelect && onPatientSelect(item.mrn)
+                              }
+                              title="View Patient"
+                              className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors cursor-pointer"
+                            >
+                              View
+                            </button>
+
+                            {item.status !== "Completed" &&
+                              item.status !== "Cancelled" &&
+                              item.status !== "No Show" && (
+                                <button
+                                  onClick={() => setNoShowDialogApt(item)}
+                                  title="Mark No Show"
+                                  className="px-2 py-1 rounded-lg bg-red-50 text-[#EF4444] text-[11px] font-semibold hover:bg-red-100 transition-colors cursor-pointer"
+                                >
+                                  No Show
+                                </button>
+                              )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={9} className="px-4 py-12 text-center">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Users size={32} className="text-slate-300" />
+                        <p className="text-sm font-semibold text-[#111827]">
+                          No patients are currently in today's queue.
+                        </p>
+                        <button
+                          onClick={onPatientSearchClick}
+                          className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all flex items-center gap-1.5 cursor-pointer"
+                          style={{ fontFamily: PP }}
+                        >
+                          <Search size={15} /> Patient Search
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT COLUMN: SELECTED PATIENT SUMMARY PANEL (4 COLS) */}
+      {/* <div className="xl:col-span-4 space-y-6">
           {selectedItem && (
             <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-xs space-y-4">
               <h3
@@ -788,7 +831,6 @@ export function ReceptionQueueManagementScreen({
             </div>
           )}
         </div> */}
-     
 
       {/* CONFIRMATION DIALOG: MARK NO SHOW */}
       {noShowDialogApt && (
@@ -841,6 +883,21 @@ export function ReceptionQueueManagementScreen({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Centered Check-In Confirmation Modal */}
+      {checkInModalData && (
+        <CheckInConfirmationModal
+          isOpen={checkInModalData.isOpen}
+          onClose={() => setCheckInModalData(null)}
+          tokenNumber={checkInModalData.tokenNumber}
+          patientName={checkInModalData.patientName}
+          patientMrn={checkInModalData.patientMrn}
+          doctorName={checkInModalData.doctorName}
+          departmentName={checkInModalData.departmentName}
+          appointmentTime={checkInModalData.appointmentTime}
+          status={checkInModalData.status || "Waiting for Vitals"}
+        />
       )}
     </div>
   );

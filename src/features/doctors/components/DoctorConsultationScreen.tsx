@@ -31,7 +31,7 @@ import {
   VITALS_DATA,
   MEDICATIONS,
   TIMELINE,
-} from "../../../mocks/doctors.mock";
+} from "../constants/doctors.constants";
 import { PP, RB } from "../constants/doctors.constants";
 import { Card } from "./Card";
 import { Avatar } from "./Avatar";

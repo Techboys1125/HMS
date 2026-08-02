@@ -66,21 +66,24 @@ export function BookAppointmentScreen({
       exp: string;
     }[]
   >([]);
-  const [isLoadingDoctors, setIsLoadingDoctors] = useState(true);
+  const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
 
-  const filteredDoctors = doctorsList.filter((d) => {
-    if (selectedDept && d.dept !== selectedDept) return false;
-    if (selectedSpecialty && d.spec !== selectedSpecialty) return false;
-    return true;
-  });
-  const currentDoctor =
-    doctorsList.find((d) => d.key === selectedDocKey) || doctorsList[0] || null;
+  const filteredDoctors = useMemo(() => {
+    if (!selectedDept) return [];
+    return doctorsList.filter((d) => {
+      if (selectedSpecialty && d.spec !== selectedSpecialty) return false;
+      return true;
+    });
+  }, [doctorsList, selectedDept, selectedSpecialty]);
+
+  const currentDoctor = useMemo(() => {
+    if (!selectedDept || !selectedDocKey) return null;
+    return doctorsList.find((d) => d.key === selectedDocKey) || null;
+  }, [doctorsList, selectedDept, selectedDocKey]);
 
   const specialties = useMemo(() => {
-    const deptDoctors = selectedDept
-      ? doctorsList.filter((d) => d.dept === selectedDept)
-      : doctorsList;
-    return Array.from(new Set(deptDoctors.map((d) => d.spec).filter(Boolean)));
+    if (!selectedDept) return [];
+    return Array.from(new Set(doctorsList.map((d) => d.spec).filter(Boolean)));
   }, [doctorsList, selectedDept]);
 
   useEffect(() => {
@@ -175,22 +178,60 @@ export function BookAppointmentScreen({
   }, []);
 
   useEffect(() => {
+    if (!selectedDept) {
+      setDoctorsList([]);
+      setSelectedDocKey("");
+      setSelectedSpecialty("");
+      setIsLoadingDoctors(false);
+      return;
+    }
+
     setIsLoadingDoctors(true);
     const matchedDept = departments.find(
-      (d) => d.departmentName === selectedDept,
+      (d) => d.departmentName === selectedDept || String(d.id) === selectedDept,
     );
     const deptId = matchedDept ? matchedDept.id : undefined;
 
     appointmentService
       .listDoctors(deptId)
       .then((data) => {
-        const mapped = data.map((d) => {
+        const targetDeptName = selectedDept.trim().toLowerCase();
+        const targetDeptId =
+          deptId !== undefined && deptId !== null ? String(deptId) : "";
+
+        // Strictly filter doctors belonging to the selected department
+        const matchingDoctors = data.filter((d) => {
+          if (!d.name || !d.name.trim()) return false;
+
+          const docDeptId =
+            d.departmentId !== undefined && d.departmentId !== null
+              ? String(d.departmentId)
+              : "";
+          const docDeptName = (d.departmentName || d.department || "")
+            .trim()
+            .toLowerCase();
+
+          if (targetDeptId && docDeptId) {
+            return docDeptId === targetDeptId;
+          }
+          if (docDeptName && targetDeptName) {
+            return (
+              docDeptName === targetDeptName ||
+              docDeptName.includes(targetDeptName) ||
+              targetDeptName.includes(docDeptName)
+            );
+          }
+          // If department info is not returned, keep doctors returned by listDoctors(deptId) if deptId was passed
+          return Boolean(deptId);
+        });
+
+        const mapped = matchingDoctors.map((d) => {
           const uniqueKey = d.id ? String(d.id) : `${d.name}-${Math.random()}`;
           return {
             key: uniqueKey,
             doctorId: d.id,
             name: d.name,
-            dept: d.departmentName || d.department || "",
+            dept: d.departmentName || d.department || selectedDept,
             spec: d.specialty || "",
             fee:
               typeof d.consultationFee === "number"
@@ -202,26 +243,29 @@ export function BookAppointmentScreen({
         });
         setDoctorsList(mapped);
         if (mapped.length > 0) {
-          const currentDoc = mapped.find((d) => d.key === selectedDocKey);
-          if (!currentDoc) {
-            setSelectedDocKey(mapped[0].key);
-            setSelectedSpecialty(mapped[0].spec);
-          }
+          setSelectedDocKey(mapped[0].key);
+          setSelectedSpecialty(mapped[0].spec || "");
         } else {
           setSelectedDocKey("");
           setSelectedSpecialty("");
         }
       })
-      .catch(() => {})
+      .catch((err) => {
+        console.warn("Failed to load doctors for department from API:", err);
+        setDoctorsList([]);
+        setSelectedDocKey("");
+        setSelectedSpecialty("");
+      })
       .finally(() => {
         setIsLoadingDoctors(false);
       });
-  }, [selectedDept, departments, selectedDocKey]);
+  }, [selectedDept, departments]);
 
   const handleDeptChange = (dept: string) => {
     setSelectedDept(dept);
     setSelectedSpecialty("");
     setSelectedDocKey("");
+    setDoctorsList([]);
   };
 
   const availableDates = useMemo(() => {
@@ -391,8 +435,9 @@ export function BookAppointmentScreen({
       const parts = timeStr.split(":");
       const hour = parseInt(parts[0], 10);
       const formatted = formatSlotTime(timeStr);
+      const statusUpper = (slot.status || "").toUpperCase();
       const available =
-        slot.status === "AVAILABLE" &&
+        (statusUpper === "AVAILABLE" || statusUpper === "OPEN" || statusUpper === "FREE") &&
         !isTimeSlotPassed(formatted, selectedDate);
 
       if (hour < 12) {
@@ -578,9 +623,9 @@ export function BookAppointmentScreen({
             {patientQuery.trim() !== "" && (
               <div className="max-h-48 overflow-y-auto border border-[#E5E7EB] rounded-xl divide-y divide-gray-100 bg-white shadow-lg">
                 {searchedPatients.length > 0 ? (
-                  searchedPatients.map((p) => (
+                  searchedPatients.map((p, idx) => (
                     <div
-                      key={p.id}
+                      key={p.id || p.mrn || `patient-search-${idx}-${p.name}`}
                       onClick={() => {
                         setSelectedPatient(p);
                         setPatientQuery("");
@@ -704,11 +749,9 @@ export function BookAppointmentScreen({
                 <select
                   value={selectedDept}
                   onChange={(e) => handleDeptChange(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#009688]"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#009688] font-medium"
                 >
-                  {departments.length === 0 && (
-                    <option value="">Loading departments...</option>
-                  )}
+                  <option value="">-- Select Department --</option>
                   {departments.map((dept, idx) => (
                     <option
                       key={dept.id || dept.departmentName || idx}
@@ -722,29 +765,38 @@ export function BookAppointmentScreen({
 
               <div>
                 <label className="block font-semibold text-[#111827] mb-1">
-                  Specialty *
+                  Specialty
                 </label>
                 <select
                   value={selectedSpecialty}
+                  disabled={!selectedDept}
                   onChange={(e) => {
-                    setSelectedSpecialty(e.target.value);
+                    const newSpec = e.target.value;
+                    setSelectedSpecialty(newSpec);
                     setSelectedDocKey("");
                     const specDocs = doctorsList.filter(
-                      (d) =>
-                        d.dept === selectedDept && d.spec === e.target.value,
+                      (d) => !newSpec || d.spec === newSpec,
                     );
                     if (specDocs.length > 0) setSelectedDocKey(specDocs[0].key);
                   }}
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#009688]"
+                  className={`w-full px-3 py-2.5 rounded-xl border text-xs text-[#111827] focus:outline-none focus:border-[#009688] font-medium ${
+                    !selectedDept
+                      ? "bg-slate-100 border-[#E5E7EB] text-slate-400 cursor-not-allowed"
+                      : "bg-slate-50 border-[#E5E7EB]"
+                  }`}
                 >
-                  {specialties.length === 0 && (
-                    <option value="">No specialties available</option>
+                  {!selectedDept ? (
+                    <option value="">Select Department First</option>
+                  ) : (
+                    <>
+                      <option value="">All Specialties</option>
+                      {specialties.map((spec, idx) => (
+                        <option key={spec || idx} value={spec}>
+                          {spec}
+                        </option>
+                      ))}
+                    </>
                   )}
-                  {specialties.map((spec, idx) => (
-                    <option key={spec || idx} value={spec}>
-                      {spec}
-                    </option>
-                  ))}
                 </select>
               </div>
             </div>
@@ -754,56 +806,69 @@ export function BookAppointmentScreen({
                 Available Doctors *
               </label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {isLoadingDoctors && (
-                  <div className="col-span-full p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200 flex items-center justify-center gap-2">
+                {!selectedDept ? (
+                  <div className="col-span-full p-6 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200 flex flex-col items-center justify-center gap-1">
+                    <span className="font-semibold text-slate-700">
+                      No Department Selected
+                    </span>
+                    <span>
+                      Please select a department above to view available
+                      doctors.
+                    </span>
+                  </div>
+                ) : isLoadingDoctors ? (
+                  <div className="col-span-full p-6 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200 flex items-center justify-center gap-2">
                     <RefreshCw
                       size={14}
-                      className="animate-spin text-[#0D47A1]"
+                      className="animate-spin text-[#009688]"
                     />{" "}
-                    Loading available doctors...
+                    Fetching doctors from database...
                   </div>
-                )}
-                {!isLoadingDoctors && filteredDoctors.length === 0 && (
-                  <div className="col-span-full p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                    No doctors available for the selected department and
-                    specialty.
+                ) : filteredDoctors.length === 0 ? (
+                  <div className="col-span-full p-6 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                    No doctors found in database for {selectedDept}.
                   </div>
-                )}
-                {filteredDoctors.map((doc) => {
-                  const isSelected = selectedDocKey === doc.key;
-                  return (
-                    <div
-                      key={doc.key}
-                      onClick={() => setSelectedDocKey(doc.key)}
-                      className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
-                        isSelected
-                          ? "border-[#009688] bg-teal-50/50 shadow-sm ring-1 ring-[#009688]"
-                          : "border-[#E5E7EB] bg-white hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
-                        {doc.name.replace("Dr. ", "").slice(0, 2).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0 text-xs">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-bold text-[#111827] truncate">
-                            {doc.name}
-                          </h4>
-                          <span className="font-bold text-[#0D47A1]">
-                            ₹{doc.fee}
-                          </span>
+                ) : (
+                  filteredDoctors.map((doc) => {
+                    const isSelected = selectedDocKey === doc.key;
+                    return (
+                      <div
+                        key={doc.key}
+                        onClick={() => setSelectedDocKey(doc.key)}
+                        className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
+                          isSelected
+                            ? "border-[#009688] bg-teal-50/50 shadow-sm ring-1 ring-[#009688]"
+                            : "border-[#E5E7EB] bg-white hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                          {doc.name
+                            .replace("Dr. ", "")
+                            .slice(0, 2)
+                            .toUpperCase()}
                         </div>
-                        <p className="text-[11px] text-[#64748B]">
-                          {doc.dept} · {doc.spec}
-                        </p>
-                        <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#66BB6A]" />
-                          {doc.availability}
-                        </p>
+                        <div className="flex-1 min-w-0 text-xs">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-bold text-[#111827] truncate">
+                              {doc.name}
+                            </h4>
+                            <span className="font-bold text-[#0D47A1]">
+                              ₹{doc.fee}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-[#64748B]">
+                            {doc.dept} {doc.spec ? `· ${doc.spec}` : ""}
+                          </p>
+                          {doc.exp && (
+                            <p className="text-[10px] text-slate-500 mt-1">
+                              {doc.exp}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>
@@ -1053,7 +1118,7 @@ export function BookAppointmentScreen({
         <button
           type="button"
           onClick={handleConfirm}
-          disabled={!selectedPatient || isBooking}
+          disabled={!selectedPatient || !currentDoctor || isBooking}
           className="px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ fontFamily: PP }}
         >

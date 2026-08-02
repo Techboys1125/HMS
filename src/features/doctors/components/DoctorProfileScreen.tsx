@@ -27,7 +27,7 @@ import {
   MOCK_DOCTOR_PATIENTS,
   MOCK_WEEKLY_SCHEDULE,
   MOCK_DOCTOR_TIMELINE,
-} from "../../../mocks/doctors.mock";
+} from "../constants/doctors.constants";
 import { PP, RB } from "../constants/doctors.constants";
 import { EditDoctorDrawer } from "./EditDoctorDrawer";
 import { DeactivateDoctorDialog } from "./DeactivateDoctorDialog";

@@ -1,6 +1,5 @@
 export * from "./users.mock";
 export * from "./appointments.mock";
-export * from "./doctors.mock";
 export * from "./dashboard.mock";
 export * from "./patients.mock";
 export * from "./vitals.mock";

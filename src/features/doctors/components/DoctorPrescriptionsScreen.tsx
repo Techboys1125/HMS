@@ -16,7 +16,7 @@ import {
   FileText,
 } from "lucide-react";
 import type { PrescriptionRecord, RxStatus } from "../types/doctors.types";
-import { MY_PRESCRIPTIONS_DATA } from "../../../mocks/doctors.mock";
+import { MY_PRESCRIPTIONS_DATA } from "../constants/doctors.constants";
 import { PP, RB } from "../constants/doctors.constants";
 import { Card } from "./Card";
 import { Avatar } from "./Avatar";

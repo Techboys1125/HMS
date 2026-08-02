@@ -1,5 +1,12 @@
 import { doctorsApi } from "../api/doctors.api";
-import type { DoctorRecord, PaginatedResponse, CreateDoctorPayload, UpdateDoctorPayload } from "../types/doctors.types";
+import { prescriptionsApi } from "../api/prescriptions.api";
+import type {
+  DoctorRecord,
+  PaginatedResponse,
+  CreateDoctorPayload,
+  UpdateDoctorPayload,
+  FinalizePrescriptionRequest,
+} from "../types/doctors.types";
 
 export const doctorsService = {
   async getAll(params?: { page?: number; limit?: number; search?: string; department?: string }): Promise<PaginatedResponse<DoctorRecord>> {
@@ -22,6 +29,10 @@ export const doctorsService = {
     return doctorsApi.getDailyAvailability(doctorId, date);
   },
 
+  async getMonthlyCalendarAvailability(doctorId: number | string, month: string) {
+    return doctorsApi.getMonthlyCalendarAvailability(doctorId, month);
+  },
+
   async getScheduleExceptions(doctorId: number | string) {
     return doctorsApi.getScheduleExceptions(doctorId);
   },
@@ -32,5 +43,12 @@ export const doctorsService = {
 
   async deactivate(id: string) {
     return doctorsApi.deactivate(id);
+  },
+
+  async finalizePrescription(
+    prescriptionId: string | number,
+    payload: FinalizePrescriptionRequest = { confirmation: true }
+  ) {
+    return prescriptionsApi.finalizePrescription(prescriptionId, payload);
   },
 };

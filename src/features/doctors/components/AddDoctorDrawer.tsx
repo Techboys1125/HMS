@@ -192,6 +192,22 @@ export function AddDoctorDrawer({
     return true;
   };
 
+  const to24HourHHMM = (time: string) => {
+    if (!time) return "09:00";
+    const trimmed = time.trim();
+    if (!trimmed.includes("AM") && !trimmed.includes("PM")) {
+      return trimmed.slice(0, 5);
+    }
+    const parts = trimmed.split(":");
+    if (parts.length < 2) return trimmed.slice(0, 5);
+    let hour = parseInt(parts[0], 10);
+    const isPM = trimmed.toUpperCase().includes("PM");
+    const minute = parts[1].replace(/[^0-9]/g, "").slice(0, 2);
+    if (isPM && hour !== 12) hour += 12;
+    if (!isPM && hour === 12) hour = 0;
+    return `${String(hour).padStart(2, "0")}:${minute.padStart(2, "0")}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -199,19 +215,10 @@ export function AddDoctorDrawer({
     setIsSubmitting(true);
     const activeAvailability = schedule
       .filter((s) => s.available)
-      .map((s, idx) => ({
-        availabilityId: idx + 1,
+      .map((s) => ({
         dayOfWeek: s.day.toUpperCase(),
-        startTime: s.startTime.includes("AM") || s.startTime.includes("PM")
-          ? (s.startTime.includes("PM") && !s.startTime.startsWith("12")
-              ? `${Number(s.startTime.split(":")[0]) + 12}:${s.startTime.split(":")[1].replace(" PM", "")}:00`
-              : `${s.startTime.replace(" AM", "").replace(" PM", "")}:00`)
-          : s.startTime,
-        endTime: s.endTime.includes("AM") || s.endTime.includes("PM")
-          ? (s.endTime.includes("PM") && !s.endTime.startsWith("12")
-              ? `${Number(s.endTime.split(":")[0]) + 12}:${s.endTime.split(":")[1].replace(" PM", "")}:00`
-              : `${s.endTime.replace(" AM", "").replace(" PM", "")}:00`)
-          : s.endTime,
+        startTime: to24HourHHMM(s.startTime),
+        endTime: to24HourHHMM(s.endTime),
       }));
 
     const slotMins = parseInt(slotDuration) || 15;

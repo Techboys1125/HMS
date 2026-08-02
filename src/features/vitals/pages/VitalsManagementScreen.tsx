@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+
 import {
   Activity,
   Heart,
@@ -9,7 +10,6 @@ import {
   Clock,
   User,
   Check,
-  Save,
   AlertCircle,
   FileText,
   ShieldAlert,
@@ -22,6 +22,12 @@ import {
   Stethoscope,
 } from "lucide-react";
 import type { AppointmentRecord } from "../../appointments";
+import { vitalsService } from "../services/vitals.service";
+import { vitalsApi } from "../api/vitals.api";
+import type { RecordedVitalsData } from "../types/vitals.types";
+
+
+
 
 // --- Typography Tokens ---
 const PP = "Poppins, sans-serif";
@@ -63,25 +69,6 @@ interface Props {
   initialViewMode?: "center" | "record" | "details";
 }
 
-// Recorded Vitals Data Structure
-export interface RecordedVitalsData {
-  height: string;
-  weight: string;
-  bmi: string;
-  temp: string;
-  systolic: string;
-  diastolic: string;
-  pulse: string;
-  resp: string;
-  spo2: string;
-  sugar: string;
-  pain: number;
-  appearance: string;
-  consciousness: string;
-  observation: string;
-  recordedBy: string;
-  recordedAt: string;
-}
 
 const DEFAULT_RECORDED_VITALS: RecordedVitalsData = {
   height: "172",
@@ -793,97 +780,56 @@ export function RecordPatientVitalsForm({
   onPatientSelect?: (id: number | string) => void;
   onMarkReady: (aptId: string) => void;
 }) {
-  const [height, setHeight] = useState("172");
-  const [weight, setWeight] = useState("68");
-  const [temp, setTemp] = useState("36.8");
-  const [systolic, setSystolic] = useState("120");
-  const [diastolic, setDiastolic] = useState("80");
-  const [pulse, setPulse] = useState("72");
-  const [resp, setResp] = useState("16");
-  const [spo2, setSpo2] = useState("98");
-  const [sugar, setSugar] = useState("96");
-  const [pain, setPain] = useState(2);
-
-  const [appearance, setAppearance] = useState("Normal / Healthy");
-  const [consciousness, setConsciousness] = useState("Alert & Oriented");
-  const [observation, setObservation] = useState(
-    "Patient is comfortable. No acute respiratory distress noted.",
+  const [chiefComplaint, setChiefComplaint] = useState(
+    activeApt.chiefComplaint || activeApt.reason || ""
   );
+  const [symptoms, setSymptoms] = useState("");
+  const [diagnosis, setDiagnosis] = useState("");
+  const [clinicalNotes, setClinicalNotes] = useState("");
 
-  const [checklist, setChecklist] = useState({
-    identityVerified: true,
-    vitalsRecorded: true,
-    patientInformed: true,
-    doctorNotified: false,
-  });
+  const [height, setHeight] = useState("170");
+  const [weight, setWeight] = useState("70");
+  const [temperature, setTemperature] = useState("98.6");
+  const [bloodPressure, setBloodPressure] = useState("120/80");
+  const [pulse, setPulse] = useState("72");
+  const [spo2, setSpo2] = useState("98");
 
   const [toast, setToast] = useState<{
     message: string;
     type: "success" | "info" | "error";
   } | null>(null);
+
   const triggerToast = (
     message: string,
-    type: "success" | "info" | "error" = "success",
+    type: "success" | "info" | "error" = "success"
   ) => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  const patientInfo = useMemo(() => {
-    return (
-      activeApt.patient || {
-        id: activeApt.patientId,
-        mrn: activeApt.mrn,
-        name: activeApt.patientName,
-        age: activeApt.patientAge,
-        gender: activeApt.patientGender,
-        bloodGroup: "O+",
-        phone: activeApt.patientPhone,
-        emergencyContact: "+1 (555) 987-6543 (Spouse)",
-      }
-    );
-  }, [activeApt]);
+  const handleSaveVitals = async () => {
+    try {
+      const payload = {
+        chiefComplaint,
+        symptoms,
+        diagnosis,
+        clinicalNotes,
+        temperature: Number(temperature),
+        weight: Number(weight),
+        height: Number(height),
+        bloodPressure,
+        pulse: Number(pulse),
+        spo2: Number(spo2),
+      };
 
-  const calculatedBmi = useMemo(() => {
-    const h = parseFloat(height) / 100;
-    const w = parseFloat(weight);
-    if (h > 0 && w > 0) {
-      return (w / (h * h)).toFixed(1);
+      await vitalsService.submitVitals(activeApt.id, payload);
+
+      triggerToast("Vitals recorded successfully!", "success");
+
+      onMarkReady(String(activeApt.id));
+    } catch (error) {
+      triggerToast("Unable to record vitals.", "error");
     }
-    return "";
-  }, [height, weight]);
-
-  const handleSaveDraft = () => {
-    triggerToast("Draft saved successfully", "info");
-  };
-
-  const handleSaveVitals = () => {
-    if (!systolic || !diastolic || !pulse || !temp || !spo2) {
-      triggerToast("Please fill out required vital signs fields.", "error");
-      return;
-    }
-    triggerToast("Vitals saved successfully", "success");
-    setChecklist((prev) => ({ ...prev, vitalsRecorded: true }));
-  };
-
-  const handleMarkReadyAction = () => {
-    if (!systolic || !diastolic || !pulse || !temp || !spo2) {
-      triggerToast(
-        "Please record vitals before marking patient ready.",
-        "error",
-      );
-      return;
-    }
-    if (!checklist.identityVerified) {
-      triggerToast("Please verify patient identity first.", "error");
-      return;
-    }
-
-    onMarkReady(String(activeApt.id));
-    triggerToast(
-      `Patient ${activeApt.patientName} is ready for Doctor consultation!`,
-      "success",
-    );
   };
 
   return (
@@ -894,12 +840,13 @@ export function RecordPatientVitalsForm({
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${toast.type === "success"
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${
+            toast.type === "success"
               ? "bg-[#66BB6A] border-green-300"
               : toast.type === "error"
-                ? "bg-[#EF4444] border-red-300"
-                : "bg-[#0D47A1] border-blue-300"
-            }`}
+              ? "bg-[#EF4444] border-red-300"
+              : "bg-[#0D47A1] border-blue-300"
+          }`}
         >
           <AlertCircle size={16} />
           {toast.message}
@@ -922,8 +869,7 @@ export function RecordPatientVitalsForm({
             Record Patient Vitals
           </h1>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Record and verify patient vital signs before outpatient
-            consultation.
+            Record and verify patient vital signs before outpatient consultation.
           </p>
         </div>
 
@@ -959,10 +905,9 @@ export function RecordPatientVitalsForm({
               {activeApt.patientName}
             </h2>
             <div className="text-xs text-blue-100 mt-0.5">
-              {activeApt.mrn} · {activeApt.patientAge}y /{" "}
-              {activeApt.patientGender} · Blood Group:{" "}
-              <strong className="text-white">O+</strong> · Doctor:{" "}
-              <strong className="text-white">{activeApt.doctorName}</strong>
+              MRN: {activeApt.mrn} · {activeApt.patientAge}y / {activeApt.patientGender} · Doctor:{" "}
+              <strong className="text-white">{activeApt.doctorName}</strong> · Dept:{" "}
+              <strong className="text-white">{activeApt.department}</strong>
             </div>
           </div>
         </div>
@@ -980,548 +925,212 @@ export function RecordPatientVitalsForm({
         </div>
       </div>
 
-      {/* MAIN TWO-COLUMN WORKSPACE */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div className="lg:col-span-8 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* SECTION 01: Patient Information */}
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-                style={{ fontFamily: PP }}
-              >
-                <User size={14} className="text-[#0D47A1]" /> Patient
-                Information
-              </h3>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Full Name</span>
-                  <strong className="text-slate-700">
-                    {activeApt.patientName}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">MRN</span>
-                  <strong className="text-slate-700 font-mono">
-                    {activeApt.mrn}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Age / Gender</span>
-                  <strong className="text-slate-700">
-                    {activeApt.patientAge}y / {activeApt.patientGender}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Blood Group</span>
-                  <strong className="text-slate-700">
-                    {patientInfo?.bloodGroup || "O+"}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Mobile Number</span>
-                  <strong className="text-slate-700 font-mono">
-                    {activeApt.patientPhone}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Emergency Contact</span>
-                  <strong className="text-slate-700">
-                    {patientInfo?.emergencyContact || "Spouse"}
-                  </strong>
-                </div>
-              </div>
+      {/* FORM WORKSPACE */}
+      <div className="space-y-6">
+        {/* SECTION 01: Patient Information (Read Only) */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
+          <h3
+            className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
+            style={{ fontFamily: PP }}
+          >
+            <User size={14} className="text-[#0D47A1]" /> Patient Information (Read Only)
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-xs">
+            <div>
+              <span className="text-slate-400 block text-[11px]">Patient Name</span>
+              <strong className="text-slate-800 text-sm font-semibold">{activeApt.patientName}</strong>
             </div>
-
-            {/* SECTION 02: Appointment Information */}
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-                style={{ fontFamily: PP }}
-              >
-                <Clock size={14} className="text-[#0D47A1]" /> Appointment
-                Information
-              </h3>
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Appointment ID</span>
-                  <strong className="text-slate-700 font-mono">
-                    {activeApt.id}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Date & Slot</span>
-                  <strong className="text-slate-700">
-                    {activeApt.appointmentDate} at {activeApt.timeSlot}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Assigned Doctor</span>
-                  <strong className="text-slate-700">
-                    {activeApt.doctorName}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Department</span>
-                  <strong className="text-slate-700">
-                    {activeApt.department}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Visit Type</span>
-                  <strong className="text-[#009688] font-bold">
-                    {activeApt.visitType}
-                  </strong>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Token Number</span>
-                  <strong className="text-[#0D47A1] font-bold">
-                    {activeApt.tokenNo}
-                  </strong>
-                </div>
-              </div>
+            <div>
+              <span className="text-slate-400 block text-[11px]">MRN</span>
+              <strong className="text-slate-800 font-mono text-xs">{activeApt.mrn}</strong>
             </div>
-          </div>
-
-          {/* SECTION 03: Patient Vitals Form */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-              style={{ fontFamily: PP }}
-            >
-              <Heart size={14} className="text-[#EF4444]" /> Patient Vital Signs
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#64748B] block">
-                  Height (cm) *
-                </label>
-                <input
-                  type="number"
-                  value={height}
-                  onChange={(e) => setHeight(e.target.value)}
-                  placeholder="e.g. 170"
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#64748B] block">
-                  Weight (kg) *
-                </label>
-                <input
-                  type="number"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  placeholder="e.g. 70"
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#64748B] block">
-                  BMI (Body Mass Index)
-                </label>
-                <input
-                  type="text"
-                  value={calculatedBmi}
-                  readOnly
-                  placeholder="Auto calculated"
-                  className="w-full px-3 py-2 text-xs bg-slate-100 border border-[#E5E7EB] rounded-xl outline-none font-semibold text-slate-700"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#64748B] block">
-                  Temperature (°C) *
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={temp}
-                  onChange={(e) => setTemp(e.target.value)}
-                  placeholder="e.g. 36.8"
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#64748B] block">
-                  BP Systolic (mmHg) *
-                </label>
-                <input
-                  type="number"
-                  value={systolic}
-                  onChange={(e) => setSystolic(e.target.value)}
-                  placeholder="e.g. 120"
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#64748B] block">
-                  BP Diastolic (mmHg) *
-                </label>
-                <input
-                  type="number"
-                  value={diastolic}
-                  onChange={(e) => setDiastolic(e.target.value)}
-                  placeholder="e.g. 80"
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#64748B] block">
-                  Pulse Rate (bpm) *
-                </label>
-                <input
-                  type="number"
-                  value={pulse}
-                  onChange={(e) => setPulse(e.target.value)}
-                  placeholder="e.g. 72"
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#64748B] block">
-                  Respiratory Rate (cpm)
-                </label>
-                <input
-                  type="number"
-                  value={resp}
-                  onChange={(e) => setResp(e.target.value)}
-                  placeholder="e.g. 16"
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#64748B] block">
-                  Oxygen Saturation SpO₂ (%) *
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={spo2}
-                  onChange={(e) => setSpo2(e.target.value)}
-                  placeholder="e.g. 98"
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#64748B] block">
-                  Blood Sugar (mg/dL) - Optional
-                </label>
-                <input
-                  type="number"
-                  value={sugar}
-                  onChange={(e) => setSugar(e.target.value)}
-                  placeholder="e.g. 96"
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                />
-              </div>
-
-              <div className="space-y-1 md:col-span-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-[10px] font-bold text-[#64748B] block">
-                    Pain Score (0 - 10)
-                  </label>
-                  <span className="text-xs font-bold text-[#EF4444] bg-red-50 px-2 py-0.5 rounded">
-                    {pain} / 10
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  value={pain}
-                  onChange={(e) => setPain(parseInt(e.target.value))}
-                  className="w-full accent-[#EF4444] h-2 bg-slate-100 rounded-lg cursor-pointer mt-2"
-                />
-              </div>
+            <div>
+              <span className="text-slate-400 block text-[11px]">Appointment ID</span>
+              <strong className="text-slate-800 font-mono text-xs">{activeApt.id}</strong>
             </div>
-          </div>
-
-          {/* SECTION 04: Clinical Observation */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-              style={{ fontFamily: PP }}
-            >
-              <FileText size={14} className="text-[#0D47A1]" /> Clinical
-              Observation
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#64748B] block">
-                  General Appearance
-                </label>
-                <select
-                  value={appearance}
-                  onChange={(e) => setAppearance(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 font-medium"
-                >
-                  <option value="Normal / Healthy">Normal / Healthy</option>
-                  <option value="Weak / Pale">Weak / Pale</option>
-                  <option value="Distressed / Pain">Distressed / Pain</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-[#64748B] block">
-                  Consciousness Level
-                </label>
-                <select
-                  value={consciousness}
-                  onChange={(e) => setConsciousness(e.target.value)}
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 font-medium"
-                >
-                  <option value="Alert & Oriented">Alert & Oriented</option>
-                  <option value="Drowsy / Somnolent">Drowsy / Somnolent</option>
-                  <option value="Responsive to voice">
-                    Responsive to voice
-                  </option>
-                  <option value="Unresponsive">Unresponsive</option>
-                </select>
-              </div>
-
-              <div className="md:col-span-2 space-y-1">
-                <label className="text-[10px] font-bold text-[#64748B] block">
-                  Chief Complaint (Read Only)
-                </label>
-                <textarea
-                  value={activeApt.chiefComplaint}
-                  readOnly
-                  rows={2}
-                  className="w-full px-3 py-2 text-xs bg-slate-100 border border-[#E5E7EB] rounded-xl outline-none text-slate-600 resize-none"
-                />
-              </div>
-
-              <div className="md:col-span-2 space-y-1">
-                <label className="text-[10px] font-bold text-[#64748B] block">
-                  Nursing Observation / Prep Notes
-                </label>
-                <textarea
-                  value={observation}
-                  onChange={(e) => setObservation(e.target.value)}
-                  rows={3}
-                  placeholder="Enter observations, details about complaints or other relevant clinical preparations..."
-                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-                />
-              </div>
+            <div>
+              <span className="text-slate-400 block text-[11px]">Doctor</span>
+              <strong className="text-slate-800 font-semibold">{activeApt.doctorName}</strong>
             </div>
-          </div>
-
-          {/* SECTION 05: Patient Alerts */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
-              style={{ fontFamily: PP }}
-            >
-              <ShieldAlert size={14} className="text-[#EF4444]" /> Patient
-              Clinical Alerts
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="bg-red-50/70 border border-red-100 p-3 rounded-xl space-y-1">
-                <strong
-                  className="text-red-900 block font-bold"
-                  style={{ fontFamily: PP }}
-                >
-                  Known Allergies
-                </strong>
-                <p className="text-red-950/80 font-medium">
-                  Drug Allergy: Penicillin & NSAIDs. Severe reaction history.
-                </p>
-              </div>
-              <div className="bg-amber-50/70 border border-amber-100 p-3 rounded-xl space-y-1">
-                <strong
-                  className="text-amber-900 block font-bold"
-                  style={{ fontFamily: PP }}
-                >
-                  High Risk Indicators
-                </strong>
-                <p className="text-amber-950/80 font-medium">
-                  Hypertensive crisis history. Borderline diabetic precaution.
-                </p>
-              </div>
+            <div>
+              <span className="text-slate-400 block text-[11px]">Department</span>
+              <strong className="text-slate-800 font-semibold">{activeApt.department}</strong>
+            </div>
+            <div>
+              <span className="text-slate-400 block text-[11px]">Token</span>
+              <strong className="text-[#0D47A1] font-bold font-mono text-xs bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                {activeApt.tokenNo}
+              </strong>
             </div>
           </div>
         </div>
 
-        {/* RIGHT CONTEXT PANEL */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-              style={{ fontFamily: PP }}
-            >
-              <User size={15} className="text-[#009688]" /> Current Patient
-            </h3>
+        {/* SECTION 02: Clinical Information */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
+          <h3
+            className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
+            style={{ fontFamily: PP }}
+          >
+            <FileText size={14} className="text-[#0D47A1]" /> Clinical Information
+          </h3>
 
-            <div className="space-y-2.5 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Patient Name</span>
-                <strong className="text-[#111827]">
-                  {activeApt.patientName}
-                </strong>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Token Number</span>
-                <strong className="font-mono text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                  {activeApt.tokenNo}
-                </strong>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Assigned Doctor</span>
-                <strong className="text-slate-700">
-                  {activeApt.doctorName}
-                </strong>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Time Slot</span>
-                <strong className="font-mono text-slate-700">
-                  {activeApt.timeSlot}
-                </strong>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-[#64748B] block">
+                Chief Complaint
+              </label>
+              <textarea
+                value={chiefComplaint}
+                onChange={(e) => setChiefComplaint(e.target.value)}
+                placeholder="Enter chief complaint"
+                rows={3}
+                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 resize-y"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-[#64748B] block">
+                Symptoms
+              </label>
+              <textarea
+                value={symptoms}
+                onChange={(e) => setSymptoms(e.target.value)}
+                placeholder="Enter symptoms"
+                rows={3}
+                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 resize-y"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-[#64748B] block">
+                Diagnosis
+              </label>
+              <textarea
+                value={diagnosis}
+                onChange={(e) => setDiagnosis(e.target.value)}
+                placeholder="Provisional diagnosis"
+                rows={3}
+                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 resize-y"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-[#64748B] block">
+                Clinical Notes
+              </label>
+              <textarea
+                value={clinicalNotes}
+                onChange={(e) => setClinicalNotes(e.target.value)}
+                placeholder="Clinical observations"
+                rows={3}
+                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 resize-y"
+              />
             </div>
           </div>
+        </div>
 
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-              style={{ fontFamily: PP }}
-            >
-              <CheckCircle2 size={15} className="text-[#009688]" /> Quick
-              Checklist
-            </h3>
+        {/* SECTION 03: Vital Signs */}
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
+          <h3
+            className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
+            style={{ fontFamily: PP }}
+          >
+            <Heart size={14} className="text-[#EF4444]" /> Vital Signs
+          </h3>
 
-            <div className="space-y-2 text-xs">
-              <label className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors border border-transparent">
-                <input
-                  type="checkbox"
-                  checked={checklist.identityVerified}
-                  onChange={(e) =>
-                    setChecklist((prev) => ({
-                      ...prev,
-                      identityVerified: e.target.checked,
-                    }))
-                  }
-                  className="w-4 h-4 rounded text-[#0D47A1] accent-[#0D47A1] cursor-pointer"
-                />
-                <span className="text-slate-700 font-medium">
-                  Patient Identity Verified
-                </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-[#64748B] block">
+                Height (cm)
               </label>
-
-              <label className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors border border-transparent">
-                <input
-                  type="checkbox"
-                  checked={checklist.vitalsRecorded}
-                  onChange={(e) =>
-                    setChecklist((prev) => ({
-                      ...prev,
-                      vitalsRecorded: e.target.checked,
-                    }))
-                  }
-                  className="w-4 h-4 rounded text-[#0D47A1] accent-[#0D47A1] cursor-pointer"
-                />
-                <span className="text-slate-700 font-medium">
-                  Vitals Recorded & Verified
-                </span>
-              </label>
-
-              <label className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors border border-transparent">
-                <input
-                  type="checkbox"
-                  checked={checklist.patientInformed}
-                  onChange={(e) =>
-                    setChecklist((prev) => ({
-                      ...prev,
-                      patientInformed: e.target.checked,
-                    }))
-                  }
-                  className="w-4 h-4 rounded text-[#0D47A1] accent-[#0D47A1] cursor-pointer"
-                />
-                <span className="text-slate-700 font-medium">
-                  Patient Informed of Process
-                </span>
-              </label>
-
-              <label className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors border border-transparent">
-                <input
-                  type="checkbox"
-                  checked={checklist.doctorNotified}
-                  onChange={(e) =>
-                    setChecklist((prev) => ({
-                      ...prev,
-                      doctorNotified: e.target.checked,
-                    }))
-                  }
-                  className="w-4 h-4 rounded text-[#0D47A1] accent-[#0D47A1] cursor-pointer"
-                />
-                <span className="text-slate-700 font-medium">
-                  Doctor Room Notified
-                </span>
-              </label>
+              <input
+                type="number"
+                value={height}
+                onChange={(e) => setHeight(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
+              />
             </div>
-          </div>
 
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-              style={{ fontFamily: PP }}
-            >
-              <Activity size={15} className="text-[#0D47A1]" /> Quick Actions
-            </h3>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-[#64748B] block">
+                Weight (kg)
+              </label>
+              <input
+                type="number"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
+              />
+            </div>
 
-            <div className="space-y-2">
-              {onPatientSelect && (
-                <button
-                  onClick={() => onPatientSelect(activeApt.patientId)}
-                  className="w-full py-2.5 px-3 rounded-xl border border-[#E5E7EB] bg-slate-50 text-slate-700 text-xs font-semibold hover:bg-slate-100 transition-colors flex items-center justify-center gap-2"
-                  style={{ fontFamily: PP }}
-                >
-                  <User size={14} className="text-[#0D47A1]" /> View Patient
-                  Profile
-                </button>
-              )}
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-[#64748B] block">
+                Temperature
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                value={temperature}
+                onChange={(e) => setTemperature(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-[#64748B] block">
+                Blood Pressure
+              </label>
+              <input
+                value={bloodPressure}
+                placeholder="120/80"
+                onChange={(e) => setBloodPressure(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 font-mono"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-[#64748B] block">
+                Pulse
+              </label>
+              <input
+                type="number"
+                value={pulse}
+                onChange={(e) => setPulse(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-[#64748B] block">
+                SpO₂
+              </label>
+              <input
+                type="number"
+                value={spo2}
+                onChange={(e) => setSpo2(e.target.value)}
+                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
+              />
             </div>
           </div>
         </div>
 
         {/* STICKY FOOTER ACTION BAR */}
-        <div className="lg:col-span-12 bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-md flex items-center justify-between gap-3 sticky bottom-4 z-40">
+        <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-md flex items-center justify-between gap-3 sticky bottom-4 z-40">
           <button
-            onClick={handleSaveDraft}
+            onClick={onBack}
             className="px-5 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-bold text-[#64748B] hover:bg-slate-100 transition-colors flex items-center gap-1.5"
             style={{ fontFamily: PP }}
           >
-            <Save size={14} /> Save Draft
+            <ArrowLeft size={14} /> Back
           </button>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleSaveVitals}
-              className="px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5 shadow-sm"
-              style={{ fontFamily: PP }}
-            >
-              <Check size={14} /> Save Vitals
-            </button>
-
-            <button
-              onClick={handleMarkReadyAction}
-              className="px-5 py-2.5 rounded-xl bg-[#66BB6A] text-white text-xs font-bold hover:bg-[#55a858] transition-colors flex items-center gap-1.5 shadow-sm border border-green-400"
-              style={{ fontFamily: PP }}
-            >
-              <CheckCircle2 size={14} /> Mark Patient Ready
-            </button>
-          </div>
+          <button
+            onClick={handleSaveVitals}
+            className="px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5 shadow-sm"
+            style={{ fontFamily: PP }}
+          >
+            <Check size={14} /> Save Vitals
+          </button>
         </div>
       </div>
     </div>
@@ -1541,6 +1150,56 @@ export function RecordPatientVitalsScreen({
   const [viewMode, setViewMode] = useState<"center" | "record" | "details">(
     initialViewMode,
   );
+
+  useEffect(() => {
+    vitalsApi.getWaitingPatients().then((list) => {
+      if (Array.isArray(list) && list.length > 0) {
+        const mapped: AppointmentRecord[] = list.map((item: any, idx: number) => ({
+          id: item.appointmentId || item.id || `apt-${idx + 1}`,
+          appointmentNumber: item.appointmentNumber || item.tokenNumber || `TK-${100 + idx}`,
+          tokenNo: item.tokenNumber || item.token || `TK-${100 + idx}`,
+          patientId: item.patientId || item.patient?.id || `P-${idx + 1}`,
+          patientName: item.patientName || item.patient?.name || item.patient?.fullName || "Patient",
+          patientAge: Number(item.age || item.patient?.age || 30),
+          patientGender: (item.gender || item.patient?.gender || "Male") as any,
+          patientPhone: item.contact || item.patient?.contact || item.phone || "N/A",
+          mrn: item.mrn || item.patient?.mrn || `MRN-${1000 + idx}`,
+          doctorId: item.doctorId || item.doctor?.doctorId || 1,
+          doctorName: item.doctorName || item.doctor?.name || "Duty Doctor",
+          department:
+            item.departmentName ||
+            (typeof item.department === "object"
+              ? item.department?.departmentName || item.department?.name || item.department?.departmentCode
+              : undefined) ||
+            (typeof item.department === "string" ? item.department : undefined) ||
+            item.doctor?.departmentName ||
+            item.doctor?.department ||
+            "Cardiology",
+          departmentName:
+            item.departmentName ||
+            (typeof item.department === "object"
+              ? item.department?.departmentName || item.department?.name || item.department?.departmentCode
+              : undefined) ||
+            (typeof item.department === "string" ? item.department : undefined) ||
+            item.doctor?.departmentName ||
+            item.doctor?.department ||
+            "Cardiology",
+
+          appointmentDate: new Date().toISOString().split("T")[0],
+          appointmentTime: item.checkInTime || "Now",
+          timeSlot: item.checkInTime || "Now",
+          status: "Waiting for Vitals" as any,
+          queueStatus: item.status || "WAITING_FOR_VITALS",
+          visitType: "Regular",
+          reason: "Pre-consultation Vitals Check",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }));
+        setAppointments(mapped);
+      }
+    }).catch((err) => console.warn("Waiting list fetch warning:", err));
+  }, []);
+
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -1572,9 +1231,18 @@ export function RecordPatientVitalsScreen({
     setTimeout(() => setToast(null), 3000);
   };
 
+  // Dynamic Doctor list from appointments
+  const dynamicDoctors = useMemo(() => {
+    const list = appointments
+      .map((a) => a.doctorName)
+      .filter((name): name is string => Boolean(name && name.trim()));
+    return Array.from(new Set(list));
+  }, [appointments]);
+
   // Active Selected Appointment Record
   const activeApt = useMemo(() => {
-    return appointments.find((a) => a.id === selectedAptId) || null;
+    if (!selectedAptId) return null;
+    return appointments.find((a) => String(a.id) === String(selectedAptId)) || null;
   }, [appointments, selectedAptId]);
 
   // Today's Queue list
@@ -1679,7 +1347,7 @@ export function RecordPatientVitalsScreen({
   const handleMarkPatientReady = (aptId: string) => {
     setAppointments((prev) =>
       prev.map((a) =>
-        a.id === aptId
+        String(a.id) === String(aptId)
           ? { ...a, status: "Checked-In", waitingTimeMinutes: 0 }
           : a,
       ),
@@ -1945,10 +1613,11 @@ export function RecordPatientVitalsScreen({
                   className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
                 >
                   <option value="All">All Doctors</option>
-                  <option value="Dr. Arjun Mehta">Dr. Arjun Mehta</option>
-                  <option value="Dr. Priya Sharma">Dr. Priya Sharma</option>
-                  <option value="Dr. Rajesh Kapoor">Dr. Rajesh Kapoor</option>
-                  <option value="Dr. Sunita Patel">Dr. Sunita Patel</option>
+                  {dynamicDoctors.map((doc) => (
+                    <option key={doc} value={doc}>
+                      {doc}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -2147,8 +1816,15 @@ export function RecordPatientVitalsScreen({
                           {apt.doctorName}
                         </td>
                         <td className="px-4 py-3.5 text-slate-500">
-                          {apt.department}
+                          {typeof apt.department === "string" && apt.department
+                            ? apt.department
+                            : apt.departmentName ||
+                              (apt.department as any)?.departmentName ||
+                              (apt.department as any)?.name ||
+                              (apt.department as any)?.departmentCode ||
+                              "Cardiology"}
                         </td>
+
                         <td className="px-4 py-3.5 font-mono text-[#0D47A1] font-bold">
                           {apt.timeSlot}
                         </td>

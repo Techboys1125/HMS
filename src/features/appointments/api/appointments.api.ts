@@ -257,7 +257,9 @@ export const appointmentsApi = {
     try {
       const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
         `/api/v1/reception/appointments/${appointmentId}/check-in`,
+        {},
       );
+
       return response.data;
     } catch (error: unknown) {
       return handleApiError(error);

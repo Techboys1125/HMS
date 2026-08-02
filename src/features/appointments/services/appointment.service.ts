@@ -65,8 +65,11 @@ export const normalizeAppointmentRecord = (
   const resolvedDeptName = (item?.departmentName ||
     deptObj?.departmentName ||
     deptObj?.name ||
+    deptObj?.departmentCode ||
     (typeof item?.department === "string" ? item.department : undefined) ||
-    doctor?.departmentName) as string | undefined;
+    doctor?.departmentName ||
+    doctor?.department ||
+    "General Medicine") as string;
 
   return {
     id: (item?.id ?? item?.appointmentId ?? item?.appointmentNumber ?? "") as
@@ -106,6 +109,8 @@ export const normalizeAppointmentRecord = (
           ? Number(deptObj.departmentId)
           : undefined,
     departmentName: resolvedDeptName,
+    department: resolvedDeptName,
+
     patient: patient as unknown as PatientSummary,
     doctor: doctor as unknown as DoctorSummary,
     cancellationReason: item?.cancellationReason as string | undefined,
@@ -129,7 +134,6 @@ export const normalizeAppointmentRecord = (
     patientPhone: (item?.patientPhone || patient?.phone || patient?.mobile) as
       | string
       | undefined,
-    department: resolvedDeptName,
     doctorSpecialty: (item?.doctorSpecialty || doctor?.specialty) as
       | string
       | undefined,
@@ -483,15 +487,32 @@ export const appointmentService = {
           : [];
 
       return rawList.map((d: any) => ({
-        id: d.doctorId ?? d.doctorProfile?.doctorId ?? d.id ?? "",
-        name: d.doctorName ?? d.name ?? "",
-        departmentName: d.department ?? d.departmentName ?? "",
-        department: d.department ?? d.departmentName ?? "",
-        departmentId: d.departmentId ?? departmentId,
-        specialty: d.specialty ?? "",
-        qualification: d.qualification ?? "",
+        id: d.doctorId ?? d.doctorProfile?.doctorId ?? d.userId ?? d.id ?? "",
+        doctorId: d.doctorId ?? d.doctorProfile?.doctorId ?? d.id ?? "",
+        name: d.doctorName ?? d.fullName ?? d.name ?? "",
+        departmentName:
+          d.departmentName ??
+          d.department ??
+          d.primaryDepartment?.departmentName ??
+          "",
+        department:
+          d.departmentName ??
+          d.department ??
+          d.primaryDepartment?.departmentName ??
+          "",
+        departmentId:
+          d.departmentId ?? d.primaryDepartment?.departmentId ?? departmentId,
+        specialty:
+          d.specialty ??
+          d.primarySpecialty?.specialtyName ??
+          d.doctorProfile?.primarySpecialty?.specialtyName ??
+          "",
+        qualification: d.qualification ?? d.doctorProfile?.qualification ?? "",
         consultationFee:
-          d.fees?.standardConsultationFee ?? d.consultationFee ?? 0,
+          d.fees?.standardConsultationFee ??
+          d.consultationFee ??
+          d.doctorProfile?.consultationFee ??
+          0,
         opdRoom: d.opdRoom ?? "",
       }));
     } catch (error) {

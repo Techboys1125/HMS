@@ -516,14 +516,8 @@ export const useCreateStaffForm = (
           .filter(([, sched]) => sched.isAvailable)
           .map(([day, sched]) => ({
             dayOfWeek: day.toUpperCase(),
-            startTime:
-              sched.startTime.includes(":") && sched.startTime.split(":").length === 2
-                ? sched.startTime
-                : `${sched.startTime}:00`,
-            endTime:
-              sched.endTime.includes(":") && sched.endTime.split(":").length === 2
-                ? sched.endTime
-                : `${sched.endTime}:00`,
+            startTime: (sched.startTime || "").slice(0, 5),
+            endTime: (sched.endTime || "").slice(0, 5),
           }));
 
         const legacyAvailabilityList = Object.entries(form.availability).map(
@@ -533,16 +527,8 @@ export const useCreateStaffForm = (
             slots: sched.isAvailable
               ? [
                   {
-                    startTime:
-                      sched.startTime.includes(":") &&
-                      sched.startTime.split(":").length === 2
-                        ? `${sched.startTime}:00`
-                        : sched.startTime,
-                    endTime:
-                      sched.endTime.includes(":") &&
-                      sched.endTime.split(":").length === 2
-                        ? `${sched.endTime}:00`
-                        : sched.endTime,
+                    startTime: (sched.startTime || "").slice(0, 5),
+                    endTime: (sched.endTime || "").slice(0, 5),
                   },
                 ]
               : [],

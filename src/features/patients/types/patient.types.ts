@@ -443,3 +443,31 @@ export interface PatientPrescriptionItem {
   status: "Issued" | "Completed" | "Archived";
   downloadCount?: number;
 }
+
+export interface PatientQueueData {
+  appointmentId: number;
+  appointmentNumber?: string;
+  token: string;
+  tokenNumber?: string;
+  queueNumber?: number;
+  position: number;
+  patientsAhead: number;
+  estimatedWaitMinutes: number;
+  appointmentStatus?: string;
+  queueStatus?: string;
+  status: string;
+  appointmentDate?: string;
+  appointmentTime?: string;
+  doctorName: string;
+  departmentName: string;
+}
+
+export interface PatientQueueApiResponse {
+  success: boolean;
+  code?: string;
+  message?: string;
+  timestamp?: string;
+  data: PatientQueueData;
+  errors?: Record<string, unknown>;
+}
+

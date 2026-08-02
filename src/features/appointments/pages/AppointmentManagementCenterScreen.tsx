@@ -37,6 +37,7 @@ import { RescheduleAppointmentConfirmationDialog } from "../components/Reschedul
 import { CancelAppointmentConfirmationDialog } from "../components/CancelAppointmentConfirmationDialog";
 import { StatusBadge } from "../components/StatusBadge";
 import { Avatar } from "../components/Avatar";
+import { CheckInConfirmationModal } from "../../reception/components/CheckInConfirmationModal";
 
 export interface Props {
   onPatientSelect?: (id: number | string) => void;
@@ -152,6 +153,10 @@ export function AppointmentManagementCenterScreen({
     null,
   );
   const [cancelApt, setCancelApt] = useState<AppointmentRecord | null>(null);
+  const [checkInConfirmationApt, setCheckInConfirmationApt] =
+    useState<AppointmentRecord | null>(null);
+  const [checkInConfirmationToken, setCheckInConfirmationToken] =
+    useState<string>("");
 
   const triggerToast = (msg: string) => {
     setToastMsg(msg);
@@ -314,10 +319,38 @@ export function AppointmentManagementCenterScreen({
     setCancelApt(null);
   };
 
-  const handleCheckInPatient = async (aptId: string | number) => {
-    await appointmentService.receptionCheckIn(aptId);
-    await refetch();
-    triggerToast(`Patient checked in successfully.`);
+  const handleCheckInPatient = async (
+    aptOrId: AppointmentRecord | string | number,
+  ) => {
+    const targetApt =
+      typeof aptOrId === "object"
+        ? aptOrId
+        : appointments.find((a) => String(a.id) === String(aptOrId)) || null;
+    const aptId = typeof aptOrId === "object" ? aptOrId.id : aptOrId;
+
+    try {
+      const res = await appointmentService.receptionCheckIn(aptId);
+      await refetch();
+
+      const tokenNo =
+        (res as any)?.tokenNumber ||
+        (res as any)?.token ||
+        (res as any)?.data?.tokenNumber ||
+        (res as any)?.data?.token ||
+        targetApt?.tokenNo ||
+        `TK-${aptId}`;
+
+      if (targetApt) {
+        setCheckInConfirmationApt(targetApt);
+        setCheckInConfirmationToken(String(tokenNo));
+      }
+
+      triggerToast(`Patient checked in successfully.`);
+    } catch (err: any) {
+      triggerToast(
+        err?.message || "Check-in is only allowed on the appointment date.",
+      );
+    }
   };
 
   const handleCallNextPatient = async (aptId: string | number) => {
@@ -1244,19 +1277,26 @@ export function AppointmentManagementCenterScreen({
                                 </button>
 
                                 {userRole === "Nurse" ? (
-                                  <>
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <button
+                                      onClick={() => setDetailsApt(apt)}
+                                      className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[10px] font-bold border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
+                                      title="View Appointment Details"
+                                    >
+                                      <Eye size={12} /> View
+                                    </button>
                                     {onPatientSelect && (
                                       <button
                                         onClick={() =>
                                           onPatientSelect(apt.patientId)
                                         }
-                                        className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors"
+                                        className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200 hover:bg-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
                                         title="View Patient Profile"
                                       >
-                                        <User size={14} />
+                                        <User size={12} /> Profile
                                       </button>
                                     )}
-                                  </>
+                                  </div>
                                 ) : userRole === "Doctor" ? (
                                   <button
                                     onClick={() => {
@@ -1288,9 +1328,9 @@ export function AppointmentManagementCenterScreen({
                                     {apt.status === "Scheduled" && (
                                       <button
                                         onClick={() =>
-                                          handleCheckInPatient(apt.id)
+                                          handleCheckInPatient(apt)
                                         }
-                                        className="px-2 py-1 rounded-lg bg-[#0D47A1] text-white text-[10px] font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1 shadow-xs"
+                                        className="px-2 py-1 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-1 shadow-xs bg-[#0D47A1] text-white hover:bg-[#0c3d8a] cursor-pointer"
                                         title="Check-In Patient"
                                       >
                                         <CheckCircle2 size={12} /> Check-In
@@ -1813,6 +1853,25 @@ export function AppointmentManagementCenterScreen({
         onClose={() => setCancelApt(null)}
         onConfirmCancel={handleConfirmCancelWithDetails}
       />
+
+      {/* Check-In Confirmation Centered Modal Popup */}
+      {checkInConfirmationApt && (
+        <CheckInConfirmationModal
+          isOpen={!!checkInConfirmationApt}
+          onClose={() => setCheckInConfirmationApt(null)}
+          tokenNumber={
+            checkInConfirmationToken ||
+            checkInConfirmationApt.tokenNo ||
+            `TK-${checkInConfirmationApt.id}`
+          }
+          patientName={checkInConfirmationApt.patientName}
+          patientMrn={checkInConfirmationApt.mrn}
+          doctorName={checkInConfirmationApt.doctorName}
+          departmentName={checkInConfirmationApt.department}
+          appointmentTime={checkInConfirmationApt.timeSlot}
+          status="Waiting for Vitals"
+        />
+      )}
     </div>
   );
 }

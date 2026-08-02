@@ -92,3 +92,27 @@ export interface ReceptionPermissions {
   canCancelQueueItem: boolean;
   canViewClinicalNotes: boolean;
 }
+
+export interface ReceptionCheckInResponse {
+  additionalProp1?: Record<string, unknown>;
+  additionalProp2?: Record<string, unknown>;
+  additionalProp3?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface ReceptionTokenResponse {
+  additionalProp1?: Record<string, unknown>;
+  additionalProp2?: Record<string, unknown>;
+  additionalProp3?: Record<string, unknown>;
+  tokenNumber?: string;
+  token?: string;
+  [key: string]: unknown;
+}
+
+export type ReceptionQueueResponse = Array<{
+  additionalProp1?: Record<string, unknown>;
+  additionalProp2?: Record<string, unknown>;
+  additionalProp3?: Record<string, unknown>;
+  [key: string]: unknown;
+}>;
+

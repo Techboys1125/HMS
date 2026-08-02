@@ -26,7 +26,7 @@ export {
   WEEKLY_CONSULTATIONS,
   TIMELINE,
   MY_PRESCRIPTIONS_DATA,
-} from "../../mocks/doctors.mock";
+} from "./constants/doctors.constants";
 
 export { useDoctors, useDoctorFilters, useToast } from "./hooks";
 export { Avatar, Card, SectionHeader, StatusBadge } from "./components";

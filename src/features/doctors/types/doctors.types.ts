@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export type DoctorAvailability =
   | "Available Today"
   | "On Duty"
@@ -80,6 +82,8 @@ export interface WeeklySchedule {
 }
 
 export interface DoctorTimeline {
+  by: ReactNode;
+  event: ReactNode;
   time: string;
   title: string;
   desc: string;
@@ -281,6 +285,21 @@ export interface DoctorDailyAvailabilityData {
   slots: DoctorDailySlot[];
 }
 
+export interface DoctorCalendarDayItem {
+  date: string;
+  status: string;
+  totalSlots: number;
+  availableSlots: number;
+  bookedSlots: number;
+  blockedSlots: number;
+}
+
+export interface DoctorMonthlyAvailabilityData {
+  doctorId: number;
+  month: string;
+  days: DoctorCalendarDayItem[];
+}
+
 export interface DoctorApiResponse<T> {
   success: boolean;
   message: string;
@@ -297,4 +316,97 @@ export interface PaginatedResponse<T> {
   limit: number;
   totalPages: number;
 }
+
+export interface DoctorQueueSummary {
+  waitingCount?: number;
+  inConsultationCount?: number;
+  completedCount?: number;
+  [key: string]: unknown;
+}
+
+export interface DoctorQueueItem {
+  queueId: number;
+  appointmentId: number;
+  appointmentNumber: string;
+  token: string;
+  queueNumber: number;
+  position: number;
+  priority: string;
+  status: string;
+  checkInTime: string;
+  patient: {
+    name: string;
+    mrn: string;
+    age: number;
+    gender: string;
+    contact?: string;
+  };
+  doctor?: {
+    doctorId: number;
+    name: string;
+    doctorCode: string;
+    department: string;
+    specialty: string;
+  };
+}
+
+export interface DoctorQueueResponse {
+  success: boolean;
+  code: string;
+  message: string;
+  timestamp: string;
+  data: {
+    summary?: DoctorQueueSummary;
+    content?: DoctorQueueItem[];
+    page?: Record<string, unknown>;
+  };
+  errors: Record<string, unknown>;
+}
+
+export interface DoctorCallNextResponse {
+  action: string;
+  appointmentId: number;
+  appointmentNumber: string;
+  tokenNumber: string;
+  queueNumber: number;
+  appointmentStatus: string;
+  queueStatus: string;
+  queueSkipReason?: string;
+  doctor?: {
+    doctorId: number;
+    doctorCode: string;
+    name: string;
+  };
+  patient?: {
+    fullName: string;
+    mrn: string;
+    gender: string;
+    age: string | number;
+  };
+  appointmentDate?: string;
+  appointmentTime?: string;
+  consultationStartTime?: string;
+  consultationEndTime?: string;
+  version?: number;
+}
+
+export type CurrentPatient = DoctorQueueItem | null;
+export type NextPatient = DoctorQueueItem | null;
+
+export interface FinalizePrescriptionRequest {
+  confirmation: boolean;
+}
+
+export interface FinalizePrescriptionResponse {
+  prescriptionId: string;
+  status: string;
+  version: number;
+  issuedAt: string;
+  issuedBy: {
+    doctorId: string;
+    fullName: string;
+    registrationNumber: string;
+  };
+}
+
 

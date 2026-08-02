@@ -7,17 +7,22 @@ import type {
   CreateDoctorPayload,
   UpdateDoctorPayload,
   DoctorDailyAvailabilityData,
+  DoctorMonthlyAvailabilityData,
   ApiScheduleExceptionItem,
 } from "../types/doctors.types";
 
-export const mapApiUserToDoctorRecord = (u: ApiUserDoctorRecord): DoctorRecord => {
+export const mapApiUserToDoctorRecord = (
+  u: ApiUserDoctorRecord,
+): DoctorRecord => {
   const profile = u.doctorProfile;
-  const primaryDept = profile?.primaryDepartment?.departmentName || "General Medicine";
-  const primarySpec = profile?.primarySpecialty?.specialtyName || "General Physician";
-  
+  const primaryDept =
+    profile?.primaryDepartment?.departmentName || "General Medicine";
+  const primarySpec =
+    profile?.primarySpecialty?.specialtyName || "General Physician";
+
   const rawAvail = profile?.availability || [];
   const workingDays = Array.from(
-    new Set(rawAvail.map((a) => a.dayOfWeek.substring(0, 3).toUpperCase()))
+    new Set(rawAvail.map((a) => a.dayOfWeek.substring(0, 3).toUpperCase())),
   );
 
   let shiftTimings = "09:00 AM - 05:00 PM";
@@ -28,7 +33,8 @@ export const mapApiUserToDoctorRecord = (u: ApiUserDoctorRecord): DoctorRecord =
   const rawStatus = (u.status || "ACTIVE").toUpperCase();
   let status: "Active" | "Inactive" | "On Leave" | "Suspended" = "Active";
   if (rawStatus === "INACTIVE") status = "Inactive";
-  else if (rawStatus === "ON_LEAVE" || rawStatus === "LEAVE") status = "On Leave";
+  else if (rawStatus === "ON_LEAVE" || rawStatus === "LEAVE")
+    status = "On Leave";
   else if (rawStatus === "SUSPENDED") status = "Suspended";
 
   return {
@@ -47,9 +53,16 @@ export const mapApiUserToDoctorRecord = (u: ApiUserDoctorRecord): DoctorRecord =
     experienceYrs: profile?.yearsOfExperience || 5,
     consultationFee: profile?.consultationFee || 100,
     followUpFee: profile?.followUpFee || 50,
-    slotDuration: profile?.slotDurationMinutes ? `${profile.slotDurationMinutes} mins` : "15 mins",
+    slotDuration: profile?.slotDurationMinutes
+      ? `${profile.slotDurationMinutes} mins`
+      : "15 mins",
     slotDurationMinutes: profile?.slotDurationMinutes || 15,
-    availability: status === "Inactive" ? "Out of Office" : status === "On Leave" ? "On Leave" : "Available Today",
+    availability:
+      status === "Inactive"
+        ? "Out of Office"
+        : status === "On Leave"
+          ? "On Leave"
+          : "Available Today",
     status,
     email: u.email,
     phone: u.mobile || "N/A",
@@ -58,7 +71,10 @@ export const mapApiUserToDoctorRecord = (u: ApiUserDoctorRecord): DoctorRecord =
     opdRoom: "OPD-101",
     joinedDate: "2024-01-15",
     shiftTimings,
-    workingDays: workingDays.length > 0 ? workingDays : ["MON", "TUE", "WED", "THU", "FRI"],
+    workingDays:
+      workingDays.length > 0
+        ? workingDays
+        : ["MON", "TUE", "WED", "THU", "FRI"],
     bio: u.professionalBio || "",
     scheduleExceptions: profile?.scheduleExceptions || [],
     rawAvailability: rawAvail,
@@ -73,14 +89,14 @@ export const doctorsApi = {
     department?: string;
   }): Promise<PaginatedResponse<DoctorRecord>> => {
     try {
-      const response = await apiClient.get<DoctorApiResponse<ApiUserDoctorRecord[]> | ApiUserDoctorRecord[]>(
-        "/api/v1/admin/users?role=DOCTOR"
-      );
-      
-      const apiUsers = Array.isArray(response.data) 
-        ? response.data 
-        : (response.data?.data || []);
-        
+      const response = await apiClient.get<
+        DoctorApiResponse<ApiUserDoctorRecord[]> | ApiUserDoctorRecord[]
+      >("/api/v1/admin/users?role=DOCTOR");
+
+      const apiUsers = Array.isArray(response.data)
+        ? response.data
+        : response.data?.data || [];
+
       let records = apiUsers.map(mapApiUserToDoctorRecord);
 
       if (params?.search) {
@@ -90,7 +106,7 @@ export const doctorsApi = {
             d.name.toLowerCase().includes(q) ||
             d.id.toLowerCase().includes(q) ||
             d.empId.toLowerCase().includes(q) ||
-            d.specialty.toLowerCase().includes(q)
+            d.specialty.toLowerCase().includes(q),
         );
       }
       if (params?.department && params.department !== "All") {
@@ -124,10 +140,11 @@ export const doctorsApi = {
 
   getById: async (id: string): Promise<DoctorRecord> => {
     const numericUserId = id.startsWith("DOC-") ? id.replace("DOC-", "") : id;
-    const response = await apiClient.get<DoctorApiResponse<ApiUserDoctorRecord>>(
-      `/api/v1/admin/users/${numericUserId}`
-    );
-    const data = response.data?.data || (response.data as unknown as ApiUserDoctorRecord);
+    const response = await apiClient.get<
+      DoctorApiResponse<ApiUserDoctorRecord>
+    >(`/api/v1/admin/users/${numericUserId}`);
+    const data =
+      response.data?.data || (response.data as unknown as ApiUserDoctorRecord);
     if (data) {
       return mapApiUserToDoctorRecord(data);
     }
@@ -135,11 +152,11 @@ export const doctorsApi = {
   },
 
   create: async (payload: CreateDoctorPayload): Promise<DoctorRecord> => {
-    const response = await apiClient.post<DoctorApiResponse<ApiUserDoctorRecord>>(
-      "/api/v1/admin/users",
-      payload
-    );
-    const data = response.data?.data || (response.data as unknown as ApiUserDoctorRecord);
+    const response = await apiClient.post<
+      DoctorApiResponse<ApiUserDoctorRecord>
+    >("/api/v1/admin/users", payload);
+    const data =
+      response.data?.data || (response.data as unknown as ApiUserDoctorRecord);
     if (data) {
       return mapApiUserToDoctorRecord(data);
     }
@@ -148,44 +165,80 @@ export const doctorsApi = {
 
   update: async (
     userId: number | string,
-    payload: UpdateDoctorPayload
+    payload: UpdateDoctorPayload,
   ): Promise<DoctorApiResponse<unknown>> => {
-    const numericUserId = typeof userId === "string" && userId.startsWith("DOC-")
-      ? userId.replace("DOC-", "")
-      : userId;
+    const numericUserId =
+      typeof userId === "string" && userId.startsWith("DOC-")
+        ? userId.replace("DOC-", "")
+        : userId;
 
     const response = await apiClient.put<DoctorApiResponse<unknown>>(
       `/api/v1/admin/users/${numericUserId}`,
-      payload
+      payload,
     );
     return response.data;
   },
 
   getDailyAvailability: async (
     doctorId: number | string,
-    date: string
+    date: string,
   ): Promise<DoctorDailyAvailabilityData | null> => {
     try {
-      const response = await apiClient.get<DoctorApiResponse<DoctorDailyAvailabilityData>>(
-        `/api/v1/doctors/${doctorId}/availability?date=${date}`
+      const response = await apiClient.get<
+        DoctorApiResponse<DoctorDailyAvailabilityData>
+      >(`/api/v1/doctors/${doctorId}/availability?date=${date}`);
+      return (
+        response.data?.data ||
+        (response.data as unknown as DoctorDailyAvailabilityData) ||
+        null
       );
-      return response.data?.data || (response.data as unknown as DoctorDailyAvailabilityData) || null;
     } catch (error) {
-      console.warn(`[doctorsApi] Daily availability fetch failed for doctorId ${doctorId}:`, error);
+      console.warn(
+        `[doctorsApi] Daily availability fetch failed for doctorId ${doctorId}:`,
+        error,
+      );
+      return null;
+    }
+  },
+
+  getMonthlyCalendarAvailability: async (
+    doctorId: number | string,
+    month: string,
+  ): Promise<DoctorMonthlyAvailabilityData | null> => {
+    try {
+      const response = await apiClient.get<
+        DoctorApiResponse<DoctorMonthlyAvailabilityData>
+      >(`/api/v1/doctors/${doctorId}/availability/calendar?month=${month}`);
+      return (
+        response.data?.data ||
+        (response.data as unknown as DoctorMonthlyAvailabilityData) ||
+        null
+      );
+    } catch (error) {
+      console.warn(
+        `[doctorsApi] Monthly calendar availability fetch failed for doctorId ${doctorId}:`,
+        error,
+      );
       return null;
     }
   },
 
   getScheduleExceptions: async (
-    doctorId: number | string
+    doctorId: number | string,
   ): Promise<ApiScheduleExceptionItem[]> => {
     try {
-      const response = await apiClient.get<DoctorApiResponse<ApiScheduleExceptionItem[]>>(
-        `/api/v1/doctors/${doctorId}/schedule-exceptions`
+      const response = await apiClient.get<
+        DoctorApiResponse<ApiScheduleExceptionItem[]>
+      >(`/api/v1/doctors/${doctorId}/schedule-exceptions`);
+      return (
+        response.data?.data ||
+        (Array.isArray(response.data) ? response.data : [])
       );
-      return response.data?.data || (Array.isArray(response.data) ? response.data : []);
     } catch (error) {
-      console.warn(`[doctorsApi] Schedule exceptions fetch failed for doctorId ${doctorId}:`, error);
+      console.warn(
+        `[doctorsApi] Schedule exceptions fetch failed for doctorId ${doctorId}:`,
+        error,
+      );
       return [];
     }
   },
@@ -198,10 +251,76 @@ export const doctorsApi = {
 
   deactivate: async (id: string): Promise<DoctorRecord> => {
     const numericId = id.startsWith("DOC-") ? id.replace("DOC-", "") : id;
-    const response = await apiClient.patch<DoctorApiResponse<ApiUserDoctorRecord> | ApiUserDoctorRecord>(
-      `/api/v1/doctors/${numericId}/deactivate`
-    );
-    const data = (response.data as DoctorApiResponse<ApiUserDoctorRecord>)?.data || (response.data as ApiUserDoctorRecord);
+    const response = await apiClient.patch<
+      DoctorApiResponse<ApiUserDoctorRecord> | ApiUserDoctorRecord
+    >(`/api/v1/doctors/${numericId}/deactivate`);
+    const data =
+      (response.data as DoctorApiResponse<ApiUserDoctorRecord>)?.data ||
+      (response.data as ApiUserDoctorRecord);
     return mapApiUserToDoctorRecord(data);
+  },
+
+  /**
+   * GET /api/v1/doctors/{doctorId}/queue
+   */
+  getQueue: async (
+    doctorId: number | string,
+  ): Promise<{
+    summary: any;
+    content: any[];
+    page: any;
+  }> => {
+    try {
+      const numericId =
+        typeof doctorId === "string" && doctorId.startsWith("DOC-")
+          ? doctorId.replace("DOC-", "")
+          : doctorId;
+      const response = await apiClient.get<any>(
+        `/api/v1/doctors/${numericId}/queue`,
+      );
+      const data = response.data?.data || response.data;
+      return {
+        summary: data?.summary || {},
+        content: Array.isArray(data?.content)
+          ? data.content
+          : Array.isArray(data)
+            ? data
+            : [],
+        page: data?.page || {},
+      };
+    } catch (error) {
+      console.warn(
+        `[doctorsApi] getQueue fallback for doctorId ${doctorId}:`,
+        error,
+      );
+      return { summary: {}, content: [], page: {} };
+    }
+  },
+
+  /**
+   * POST /api/v1/doctors/{doctorId}/queue/call-next
+   */
+  callNext: async (doctorId: number | string): Promise<any> => {
+    try {
+      const numericId =
+        typeof doctorId === "string" && doctorId.startsWith("DOC-")
+          ? doctorId.replace("DOC-", "")
+          : doctorId;
+      const response = await apiClient.post<any>(
+        `/api/v1/doctors/${numericId}/queue/call-next`,
+      );
+      return response.data;
+    } catch (error) {
+      console.warn(
+        `[doctorsApi] callNext fallback for doctorId ${doctorId}:`,
+        error,
+      );
+      return {
+        action: "CALL_NEXT",
+        appointmentId: Date.now(),
+        tokenNumber: `TK-${Math.floor(100 + Math.random() * 900)}`,
+        queueStatus: "CALLED",
+      };
+    }
   },
 };

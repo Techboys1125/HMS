@@ -1,3 +1,12 @@
+import type {
+  DoctorRecord,
+  DoctorAppointment,
+  DoctorPatient,
+  WeeklySchedule,
+  DoctorTimeline,
+  PrescriptionRecord,
+} from "../types/doctors.types";
+
 export const PP = "Poppins, sans-serif";
 export const RB = "Roboto, sans-serif";
 
@@ -38,3 +47,16 @@ export const COMMON_MEDICINES = [
   "Paracetamol",
   "Ibuprofen",
 ];
+
+export const INITIAL_DOCTORS: DoctorRecord[] = [];
+export const MOCK_DOCTOR_APPOINTMENTS: DoctorAppointment[] = [];
+export const MOCK_DOCTOR_PATIENTS: DoctorPatient[] = [];
+export const MOCK_WEEKLY_SCHEDULE: WeeklySchedule[] = [];
+export const MOCK_DOCTOR_TIMELINE: DoctorTimeline[] = [];
+export const DEPARTMENTS: string[] = [];
+export const SPECIALTIES: string[] = [];
+export const VITALS_DATA: any[] = [];
+export const MEDICATIONS: any[] = [];
+export const WEEKLY_CONSULTATIONS: any[] = [];
+export const TIMELINE: DoctorTimeline[] = [];
+export const MY_PRESCRIPTIONS_DATA: PrescriptionRecord[] = [];
