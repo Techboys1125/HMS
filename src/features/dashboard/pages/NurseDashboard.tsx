@@ -1,6 +1,5 @@
 import {
   Activity,
-  CheckSquare,
   Clock,
   ClipboardList,
   TrendingDown,
@@ -9,12 +8,17 @@ import {
   Users,
   Stethoscope,
   Search,
+  AlertTriangle,
 } from "lucide-react";
 import {
   AreaChart,
   Area,
   BarChart,
   Bar,
+  PieChart,
+  Pie,
+  LineChart,
+  Line,
   Cell,
   ResponsiveContainer,
   XAxis,
@@ -207,25 +211,20 @@ function SH({
     </div>
   );
 }
-const NURSE_VITALS_PROGRESS = [
-  { hour: "08 AM", assisted: 5 },
-  { hour: "09 AM", assisted: 12 },
-  { hour: "10 AM", assisted: 18 },
-  { hour: "11 AM", assisted: 25 },
-  { hour: "12 PM", assisted: 31 },
-  { hour: "01 PM", assisted: 36 },
-  { hour: "02 PM", assisted: 42 },
-  { hour: "03 PM", assisted: 47 },
-  { hour: "04 PM", assisted: 51 },
-  { hour: "05 PM", assisted: 54 },
+// Section 02: Current Patient Pipeline (Doughnut Chart)
+const NURSE_PATIENT_PIPELINE = [
+  { name: "Waiting For Vitals", value: 8, color: "#F59E0B" },
+  { name: "Vitals In Progress", value: 3, color: "#4DB6AC" },
+  { name: "Ready For Consultation", value: 15, color: "#0D47A1" },
+  { name: "Consultation Completed", value: 38, color: "#66BB6A" },
 ];
 
-// Section 02: Patient Preparation Status (Donut Chart)
-const NURSE_PREP_STATUS_DIST = [
-  { name: "Waiting for Vitals", value: 8, color: "#F59E0B" },
-  { name: "Vitals Completed", value: 14, color: "#009688" },
-  { name: "Ready for Consultation", value: 18, color: "#0D47A1" },
-  { name: "Consultation Completed", value: 24, color: "#66BB6A" },
+// Section 04: Patient Visit Type Distribution (Doughnut Chart)
+const NURSE_VISIT_TYPE_DIST = [
+  { name: "First Visit", value: 18, percentage: "28%", color: "#0D47A1" },
+  { name: "Follow-up", value: 29, percentage: "45%", color: "#009688" },
+  { name: "Consultation", value: 12, percentage: "19%", color: "#4DB6AC" },
+  { name: "Walk-in", value: 5, percentage: "8%", color: "#F59E0B" },
 ];
 
 // Section 03: Current Nursing Queue Table
@@ -312,54 +311,6 @@ const NURSE_DEPT_DIST = [
   { department: "Gynecology", assisted: 9 },
 ];
 
-// Section 06: Vitals Completion Summary (Pie / Bar Chart)
-const NURSE_VITALS_STATUS_DIST = [
-  { name: "Completed", count: 42, color: "#66BB6A" },
-  { name: "Pending", count: 8, color: "#F59E0B" },
-  { name: "Delayed", count: 3, color: "#EF4444" },
-  { name: "Not Required", count: 5, color: "#64748B" },
-];
-
-// Section 09: Today's Nursing Performance (Statistics Table)
-const NURSE_PERFORMANCE_METRICS = [
-  {
-    metric: "Patients Assisted",
-    today: "64",
-    yesterday: "58",
-    status: "Ahead (+10.3%)",
-  },
-  {
-    metric: "Vitals Recorded",
-    today: "54",
-    yesterday: "49",
-    status: "Optimal (+10.2%)",
-  },
-  {
-    metric: "Patients Prepared",
-    today: "48",
-    yesterday: "44",
-    status: "Ahead (+9.1%)",
-  },
-  {
-    metric: "Doctor Assistance",
-    today: "36",
-    yesterday: "32",
-    status: "High (+12.5%)",
-  },
-  {
-    metric: "Average Preparation Time",
-    today: "6.5 min",
-    yesterday: "7.2 min",
-    status: "Faster (-9.7%)",
-  },
-  {
-    metric: "Completed Tasks",
-    today: "52",
-    yesterday: "46",
-    status: "Optimal (+13.0%)",
-  },
-];
-
 const NURSE_STATUS_CHIP: Record<
   string,
   "success" | "warning" | "info" | "error" | "teal" | "default"
@@ -415,7 +366,7 @@ export function NurseDashboard({
   onViewQueueClick?: () => void;
   onNavigateNav?: (nav: string) => void;
 }) {
-  const totalPrepPatients = NURSE_PREP_STATUS_DIST.reduce(
+  const totalPrepPatients = NURSE_PATIENT_PIPELINE.reduce(
     (acc, curr) => acc + curr.value,
     0,
   );
@@ -520,46 +471,46 @@ export function NurseDashboard({
           Icon={Clock}
         />
         <DKpi
-          title="Doctor Assistance"
-          value="36"
-          sub="Consultations Assisted Today"
-          trend="92.3% Completion Rate"
-          up={true}
+          title="Waiting for Doctor"
+          value="14"
+          sub="Vitals Done, Awaiting Consult"
+          trend="Current Queue Count"
+          up={false}
           data={[
-            { v: 22 },
-            { v: 26 },
-            { v: 28 },
-            { v: 31 },
-            { v: 34 },
-            { v: 36 },
+            { v: 18 },
+            { v: 16 },
+            { v: 15 },
+            { v: 14 },
+            { v: 14 },
+            { v: 14 },
           ]}
-          color="#66BB6A"
+          color="#009688"
           gid="nr4"
           Icon={Stethoscope}
         />
         <DKpi
-          title="Completed Nursing Tasks"
-          value="52"
-          sub="Daily Nursing Activities"
-          trend="89.6% Progress"
-          up={true}
+          title="Critical Patients"
+          value="3"
+          sub="High Priority / Immediate Care"
+          trend="Requires Urgent Attention"
+          up={false}
           data={[
-            { v: 30 },
-            { v: 36 },
-            { v: 40 },
-            { v: 44 },
-            { v: 48 },
-            { v: 52 },
+            { v: 5 },
+            { v: 4 },
+            { v: 4 },
+            { v: 3 },
+            { v: 3 },
+            { v: 3 },
           ]}
-          color="#4DB6AC"
+          color="#EF4444"
           gid="nr5"
-          Icon={CheckSquare}
+          Icon={AlertTriangle}
         />
       </div>
 
       {/* ── Main Clinical Operations Grid 1 ── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-        {/* Section 01: Vitals Recording Progress (Large Line Chart) */}
+        {/* Section 01: Today's Nursing Workload Trend (Line Chart) */}
         <div className="xl:col-span-2 bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -567,39 +518,38 @@ export function NurseDashboard({
                 className="text-sm font-semibold text-[#111827]"
                 style={{ fontFamily: PP }}
               >
-                Vitals Recorded Throughout the Day
+                Today's Nursing Workload Trend
               </div>
               <div
                 className="text-xs text-[#64748B] mt-0.5"
                 style={{ fontFamily: RB }}
               >
-                Monitors hourly patient vital recordings (08 AM - 05 PM)
+                Hourly patients handled by nursing team throughout OPD session (08 AM - 05 PM)
               </div>
             </div>
             <span
-              className="text-[10px] font-semibold text-[#009688] bg-teal-50 px-2 py-0.5 rounded-full"
+              className="text-[10px] font-semibold text-[#0D47A1] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100"
               style={{ fontFamily: RB }}
             >
-              Completed: 54 Vitals
+              64 Patients Total Today
             </span>
           </div>
           <ResponsiveContainer width="100%" height={210}>
-            <AreaChart
-              data={NURSE_VITALS_PROGRESS}
-              margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+            <LineChart
+              data={[
+                { hour: "08 AM", assisted: 4 },
+                { hour: "09 AM", assisted: 8 },
+                { hour: "10 AM", assisted: 14 },
+                { hour: "11 AM", assisted: 11 },
+                { hour: "12 PM", assisted: 7 },
+                { hour: "01 PM", assisted: 4 },
+                { hour: "02 PM", assisted: 6 },
+                { hour: "03 PM", assisted: 5 },
+                { hour: "04 PM", assisted: 3 },
+                { hour: "05 PM", assisted: 2 },
+              ]}
+              margin={{ top: 10, right: 15, left: -15, bottom: 0 }}
             >
-              <defs>
-                <linearGradient
-                  id="nurseVitalsGrad"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop offset="0%" stopColor="#009688" stopOpacity={0.25} />
-                  <stop offset="100%" stopColor="#009688" stopOpacity={0} />
-                </linearGradient>
-              </defs>
               <XAxis
                 dataKey="hour"
                 tick={{ fontSize: 11, fill: "#64748B", fontFamily: RB }}
@@ -620,94 +570,107 @@ export function NurseDashboard({
                 }}
                 formatter={(val: unknown) => [
                   `${val} Patients`,
-                  "Completed Vitals",
+                  "Assisted",
                 ]}
               />
-              <Area
+              <Line
                 type="monotone"
                 dataKey="assisted"
-                stroke="#009688"
+                stroke="#0D47A1"
                 strokeWidth={2.5}
-                fill="url(#nurseVitalsGrad)"
-                dot={{ r: 3, fill: "#009688" }}
+                dot={{ r: 4, fill: "#0D47A1" }}
+                activeDot={{ r: 6 }}
               />
-            </AreaChart>
+            </LineChart>
           </ResponsiveContainer>
           <div
-            className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-[#64748B]"
+            className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-3 gap-2 text-xs"
             style={{ fontFamily: RB }}
           >
-            <span>
-              Peak Nursing Workload: 10 AM - 11 AM (13 Vitals Processed)
-            </span>
-            <span className="font-semibold text-[#111827]">
-              54 Total Recorded
-            </span>
+            <div className="bg-slate-50 p-2 rounded-xl text-center">
+              <span className="text-[#64748B] text-[10px] block">Peak Workload Time</span>
+              <strong className="text-[#0D47A1] font-bold text-xs" style={{ fontFamily: PP }}>10 AM – 11 AM</strong>
+              <span className="text-[10px] text-[#64748B] block">14 Patients</span>
+            </div>
+            <div className="bg-slate-50 p-2 rounded-xl text-center">
+              <span className="text-[#64748B] text-[10px] block">Average Patients</span>
+              <strong className="text-[#009688] font-bold text-xs" style={{ fontFamily: PP }}>6 / Hour</strong>
+              <span className="text-[10px] text-[#64748B] block">Steady OPD Pace</span>
+            </div>
+            <div className="bg-slate-50 p-2 rounded-xl text-center">
+              <span className="text-[#64748B] text-[10px] block">Current Hour Progress</span>
+              <strong className="text-[#111827] font-bold text-xs" style={{ fontFamily: PP }}>5 This Hour</strong>
+              <span className="text-[10px] text-[#66BB6A] block">Active Session</span>
+            </div>
           </div>
         </div>
 
-        {/* Section 02: Patient Preparation Status (Donut / Bar Chart) */}
+        {/* Section 02: Current Patient Pipeline (Doughnut Chart) */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
           <SH
-            title="Patient Preparation Status"
-            sub="Quick Understanding of Patient Readiness"
+            title="Current Patient Pipeline"
+            sub="Real-time OPD Patient Flow Breakdown"
           />
-          <ResponsiveContainer width="100%" height={170}>
-            <BarChart
-              data={NURSE_PREP_STATUS_DIST}
-              layout="vertical"
-              margin={{ top: 0, right: 15, left: 10, bottom: 0 }}
-            >
-              <XAxis type="number" hide />
-              <YAxis
-                dataKey="name"
-                type="category"
-                tick={{ fontSize: 10, fill: "#111827", fontFamily: RB }}
-                axisLine={false}
-                tickLine={false}
-                width={115}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: "#fff",
-                  border: "1px solid #E5E7EB",
-                  borderRadius: 12,
-                  fontSize: 12,
-                }}
-                formatter={(v: unknown) => [`${v} Patients`, "Count"]}
-              />
-              <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={13}>
-                {NURSE_PREP_STATUS_DIST.map((entry, idx) => (
-                  <Cell key={idx} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-          <div
-            className="grid grid-cols-2 gap-1.5 mt-2 pt-3 border-t border-gray-50 text-xs"
-            style={{ fontFamily: RB }}
-          >
-            {NURSE_PREP_STATUS_DIST.map((m) => (
-              <div
-                key={m.name}
-                className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50"
-              >
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ background: m.color }}
-                  />
-                  <span className="text-[#64748B] text-[10px]">{m.name}</span>
-                </div>
-                <span className="font-bold text-[#111827]">{m.value}</span>
-              </div>
-            ))}
+          <div className="h-44 relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={NURSE_PATIENT_PIPELINE}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={50}
+                  outerRadius={75}
+                  paddingAngle={3}
+                  dataKey="value"
+                >
+                  {NURSE_PATIENT_PIPELINE.map((entry, idx) => (
+                    <Cell key={idx} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    background: "#fff",
+                    border: "1px solid #E5E7EB",
+                    borderRadius: 12,
+                    fontSize: 12,
+                  }}
+                  formatter={(v: unknown) => [`${v} Patients`, "Count"]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <span className="text-xl font-bold text-[#111827]" style={{ fontFamily: PP }}>64</span>
+              <span className="text-[10px] text-[#64748B]">Total Flow</span>
+            </div>
           </div>
+
           <div
-            className="mt-2 text-[11px] text-center text-[#64748B]"
+            className="grid grid-cols-2 gap-1.5 mt-2 pt-3 border-t border-gray-100 text-xs"
             style={{ fontFamily: RB }}
           >
-            Total Patients in Pipeline: {totalPrepPatients}
+            <div className="flex items-center justify-between p-1.5 rounded-lg bg-amber-50/60 border border-amber-100">
+              <span className="text-[#64748B] text-[10px]">Waiting For Vitals:</span>
+              <span className="font-bold text-[#F59E0B]">8</span>
+            </div>
+            <div className="flex items-center justify-between p-1.5 rounded-lg bg-teal-50/60 border border-teal-100">
+              <span className="text-[#64748B] text-[10px]">Patients Recorded:</span>
+              <span className="font-bold text-[#4DB6AC]">3</span>
+            </div>
+            <div className="flex items-center justify-between p-1.5 rounded-lg bg-blue-50/60 border border-blue-100">
+              <span className="text-[#64748B] text-[10px]">Ready for Doctor:</span>
+              <span className="font-bold text-[#0D47A1]">15</span>
+            </div>
+            <div className="flex items-center justify-between p-1.5 rounded-lg bg-green-50/60 border border-green-100">
+              <span className="text-[#64748B] text-[10px]">Completed Today:</span>
+              <span className="font-bold text-[#66BB6A]">38</span>
+            </div>
+          </div>
+
+          <div
+            className="mt-2 text-[11px] text-center font-medium text-[#0D47A1]"
+            style={{ fontFamily: PP }}
+          >
+            Total Patients in Queue: 26 (Active OPD)
           </div>
         </div>
       </div>
@@ -818,81 +781,90 @@ export function NurseDashboard({
         </div>
       </div>
 
-      {/* ── Section 04, 05 & 06: Doctor Assistance, Dept Distribution & Vitals Summary ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-        {/* Section 04: Doctor Assistance Summary (Reusable Summary Cards) */}
+      {/* ── Section 04 & 05: Nursing Analytics Grid ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Section 04: Patient Visit Type Distribution (Doughnut Chart) */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
           <SH
-            title="Doctor Assistance Summary"
-            sub="Real-time Nursing Support Metrics"
+            title="Patient Visit Type Distribution"
+            sub="Today's OPD Patient Visit Mix"
           />
-          <div className="space-y-3 my-auto">
-            <div className="flex items-center justify-between p-2.5 rounded-xl border border-blue-100 bg-blue-50/50">
-              <span
-                className="text-xs text-[#64748B]"
-                style={{ fontFamily: RB }}
-              >
-                Doctors Assisted Today
-              </span>
-              <span
-                className="text-sm font-bold text-[#0D47A1]"
-                style={{ fontFamily: PP }}
-              >
-                8 Doctors
-              </span>
+          <div className="flex items-center gap-4 my-auto">
+            {/* Doughnut Chart */}
+            <div className="w-36 h-36 relative shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={NURSE_VISIT_TYPE_DIST}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={65}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {NURSE_VISIT_TYPE_DIST.map((entry, idx) => (
+                      <Cell key={idx} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      background: "#fff",
+                      border: "1px solid #E5E7EB",
+                      borderRadius: 12,
+                      fontSize: 11,
+                    }}
+                    formatter={(v: unknown) => [`${v} Patients`, "Count"]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="text-lg font-bold text-[#111827]" style={{ fontFamily: PP }}>64</span>
+                <span className="text-[9px] text-[#64748B]">Total</span>
+              </div>
             </div>
-            <div className="flex items-center justify-between p-2.5 rounded-xl border border-teal-100 bg-teal-50/50">
-              <span
-                className="text-xs text-[#64748B]"
-                style={{ fontFamily: RB }}
-              >
-                Patients Prepared
-              </span>
-              <span
-                className="text-sm font-bold text-[#009688]"
-                style={{ fontFamily: PP }}
-              >
-                48 Patients
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 bg-slate-50">
-              <span
-                className="text-xs text-[#64748B]"
-                style={{ fontFamily: RB }}
-              >
-                Average Preparation Time
-              </span>
-              <span
-                className="text-sm font-bold text-[#111827]"
-                style={{ fontFamily: PP }}
-              >
-                6.5 Mins
-              </span>
-            </div>
-            <div className="flex items-center justify-between p-2.5 rounded-xl border border-green-100 bg-green-50/50">
-              <span
-                className="text-xs text-[#64748B]"
-                style={{ fontFamily: RB }}
-              >
-                Current Active Consultations
-              </span>
-              <span
-                className="text-sm font-bold text-[#66BB6A]"
-                style={{ fontFamily: PP }}
-              >
-                12 Active
-              </span>
+
+            {/* Vertical Legend */}
+            <div className="flex-1 space-y-1.5 text-xs" style={{ fontFamily: RB }}>
+              {NURSE_VISIT_TYPE_DIST.map((item) => (
+                <div key={item.name} className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: item.color }} />
+                    <span className="text-[#111827] font-medium text-[11px]">{item.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <strong className="text-[#111827] text-xs font-bold">{item.value}</strong>
+                    <span className="text-[10px] text-[#64748B] font-semibold w-7 text-right">{item.percentage}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
+
+          {/* Bottom Compact Summary Cards */}
           <div
-            className="mt-3 pt-2 text-xs text-[#64748B] text-center"
+            className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-gray-100 text-xs"
             style={{ fontFamily: RB }}
           >
-            Optimal nursing support flow across OPD consultations
+            <div className="bg-slate-50 p-2 rounded-xl text-center border border-slate-100">
+              <span className="text-[#64748B] text-[9px] block mb-0.5">Most Common Visit</span>
+              <strong className="text-[#009688] font-bold text-xs block" style={{ fontFamily: PP }}>Follow-up</strong>
+              <span className="text-[9px] text-[#009688] font-semibold">45% of OPD</span>
+            </div>
+            <div className="bg-slate-50 p-2 rounded-xl text-center border border-slate-100">
+              <span className="text-[#64748B] text-[9px] block mb-0.5">New Patients Today</span>
+              <strong className="text-[#0D47A1] font-bold text-xs block" style={{ fontFamily: PP }}>18</strong>
+              <span className="text-[9px] text-[#64748B]">First Visits</span>
+            </div>
+            <div className="bg-slate-50 p-2 rounded-xl text-center border border-slate-100">
+              <span className="text-[#64748B] text-[9px] block mb-0.5">Returning Patients</span>
+              <strong className="text-[#111827] font-bold text-xs block" style={{ fontFamily: PP }}>46</strong>
+              <span className="text-[9px] text-[#64748B]">Follow-up & Consult</span>
+            </div>
           </div>
         </div>
 
-        {/* Section 05: Patient Distribution by Department (Horizontal Bar Chart) */}
+        {/* Section 05: Patient Distribution by Department (UNTOUCHED) */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
           <SH
             title="Patients Assisted by Dept"
@@ -946,138 +918,8 @@ export function NurseDashboard({
           </div>
         </div>
 
-        {/* Section 06: Vitals Completion Summary (Pie / Bar Chart) */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
-          <SH
-            title="Vitals Recording Status"
-            sub="Quick Overview of Vitals Task Completion"
-          />
-          <ResponsiveContainer width="100%" height={160}>
-            <BarChart
-              data={NURSE_VITALS_STATUS_DIST}
-              margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
-            >
-              <XAxis
-                dataKey="name"
-                tick={{ fontSize: 10, fill: "#64748B", fontFamily: RB }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 10, fill: "#94A3B8" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: "#fff",
-                  border: "1px solid #E5E7EB",
-                  borderRadius: 12,
-                  fontSize: 12,
-                }}
-                formatter={(v: unknown) => [`${v} Patients`, "Count"]}
-              />
-              <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={22}>
-                {NURSE_VITALS_STATUS_DIST.map((entry, idx) => (
-                  <Cell key={idx} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-          <div
-            className="grid grid-cols-2 gap-1.5 mt-2 pt-2 border-t border-gray-50 text-xs"
-            style={{ fontFamily: RB }}
-          >
-            {NURSE_VITALS_STATUS_DIST.map((r) => (
-              <div key={r.name} className="flex items-center justify-between">
-                <span className="text-[#64748B] text-[11px]">{r.name}:</span>
-                <span className="font-bold text-[#111827]">{r.count}</span>
-              </div>
-            ))}
-          </div>
-          <div
-            className="mt-2 text-xs font-semibold text-center text-[#009688]"
-            style={{ fontFamily: PP }}
-          >
-            Total Vitals Logged Today: 58
-          </div>
-        </div>
       </div>
 
-      {/* ── Section 09: Today's Nursing Performance ── */}
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
-          <div>
-            <div
-              className="text-sm font-semibold text-[#111827]"
-              style={{ fontFamily: PP }}
-            >
-              Today's Nursing Performance
-            </div>
-            <div
-              className="text-xs text-[#64748B] mt-0.5"
-              style={{ fontFamily: RB }}
-            >
-              Clinical support operations & vitals assessment metrics
-            </div>
-          </div>
-          <button
-            className="text-xs text-[#0D47A1] font-semibold hover:underline"
-            style={{ fontFamily: RB }}
-          >
-            Export Nursing Summary →
-          </button>
-        </div>
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-50 bg-slate-50/50">
-              {["Metric", "Today", "Yesterday", "Status"].map((h) => (
-                <th
-                  key={h}
-                  className="px-5 py-3 text-left text-xs font-semibold text-[#64748B]"
-                  style={{ fontFamily: RB }}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {NURSE_PERFORMANCE_METRICS.map((m) => (
-              <tr
-                key={m.metric}
-                className="hover:bg-slate-50 transition-colors"
-              >
-                <td
-                  className="px-5 py-3 text-xs font-medium text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  {m.metric}
-                </td>
-                <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                  {m.today}
-                </td>
-                <td className="px-5 py-3 font-mono text-xs font-semibold text-[#64748B]">
-                  {m.yesterday}
-                </td>
-                <td className="px-5 py-3">
-                  <Chip
-                    label={m.status}
-                    variant={
-                      m.status.includes("Ahead") ||
-                      m.status.includes("Optimal") ||
-                      m.status.includes("High") ||
-                      m.status.includes("Faster")
-                        ? "success"
-                        : "warning"
-                    }
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }

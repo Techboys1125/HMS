@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import {
-  Calendar, Users, Clock, UserCheck, RefreshCw, Download,
-  Search, Eye, Shield, Activity, BarChart2,
-  Building2, UserPlus, Check, ChevronRight, XCircle, ArrowUpRight,
-  FileText, User, UserCheck as UserCheckIcon, ClipboardList
+  Calendar, Clock, UserCheck, RefreshCw, Download,
+  Search,
+  XCircle, ArrowUpRight,
+  UserCheck as CheckCircle2
 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -211,16 +211,6 @@ const QUEUE_STATUS_DONUT_DATA = [
 
 const TOTAL_QUEUE_PATIENTS = QUEUE_STATUS_DONUT_DATA.reduce((acc, curr) => acc + curr.count, 0)
 
-// ─── PATIENT FLOW WORKFLOW DATA ───
-const PATIENT_FLOW_STAGES = [
-  { stage: 'Appointment Booked', count: 145, color: '#0D47A1' },
-  { stage: 'Checked-In', count: 108, color: '#009688' },
-  { stage: 'Waiting for Nurse', count: 24, color: '#4DB6AC' },
-  { stage: 'Ready for Consultation', count: 18, color: '#009688' },
-  { stage: 'Doctor Consultation', count: 16, color: '#0D47A1' },
-  { stage: 'Billing', count: 12, color: '#F59E0B' },
-  { stage: 'Completed', count: 82, color: '#66BB6A' }
-]
 
 // Helper Chip Component for consistent badge design
 function StatusChip({ label, variant }: { label: string; variant: 'success' | 'teal' | 'warning' | 'error' | 'info' | 'default' }) {
@@ -239,20 +229,13 @@ function StatusChip({ label, variant }: { label: string; variant: 'success' | 't
   )
 }
 
-export function ReceptionManagementCenter({ onNavigate }: { onNavigate?: (screen: string) => void }) {
+export function ReceptionManagementCenter({ }: { onNavigate?: (screen: string) => void }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [departmentFilter, setDepartmentFilter] = useState('All')
   const [statusFilter, setStatusFilter] = useState('All')
   const [staffSearch, setStaffSearch] = useState('')
   const [selectedStaff, setSelectedStaff] = useState<ReceptionStaffMember | null>(null)
   const [selectedAppointment, setSelectedAppointment] = useState<TodayAppointmentSummary | null>(null)
-
-  // Quick Action Handler
-  const handleQuickAction = (navKey: string) => {
-    if (onNavigate) {
-      onNavigate(navKey)
-    }
-  }
 
   // Filtered Appointments
   const filteredAppointments = useMemo(() => {
@@ -277,7 +260,7 @@ export function ReceptionManagementCenter({ onNavigate }: { onNavigate?: (screen
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6" style={{ background: '#F1F5F9' }}>
-      
+
       {/* ── 1. PAGE HEADER ── */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -292,7 +275,7 @@ export function ReceptionManagementCenter({ onNavigate }: { onNavigate?: (screen
         {/* Top Right Actions */}
         <div className="flex items-center gap-3 shrink-0">
           <button
-            onClick={() => {}}
+            onClick={() => { }}
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-semibold text-[#64748B] hover:bg-slate-50 transition-all shadow-sm"
             style={{ fontFamily: PP }}
           >
@@ -300,7 +283,7 @@ export function ReceptionManagementCenter({ onNavigate }: { onNavigate?: (screen
             Refresh Dashboard
           </button>
           <button
-            onClick={() => {}}
+            onClick={() => { }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm shadow-blue-900/10"
             style={{ fontFamily: PP }}
           >
@@ -372,30 +355,30 @@ export function ReceptionManagementCenter({ onNavigate }: { onNavigate?: (screen
           </div>
         </div>
 
-        {/* Reception Staff On Duty */}
+        {/* Completed Consultations */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-[#64748B]" style={{ fontFamily: PP }}>Reception Staff On Duty</span>
-            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
-              <Users size={18} className="text-[#0D47A1]" />
+            <span className="text-xs font-semibold text-[#64748B]" style={{ fontFamily: PP }}>Completed Consultations</span>
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <CheckCircle2 size={18} className="text-[#66BB6A]" />
             </div>
           </div>
           <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-bold text-[#111827]" style={{ fontFamily: PP }}>4 / 5</span>
+            <span className="text-2xl font-bold text-[#111827]" style={{ fontFamily: PP }}>82</span>
             <span className="text-xs font-semibold text-[#66BB6A] bg-emerald-50 px-2 py-0.5 rounded-full" style={{ fontFamily: RB }}>
-              3 Active · 1 Break
+              56.5% Completed
             </span>
           </div>
           <div className="text-xs text-[#64748B] mt-2 pt-2 border-t border-slate-100 flex justify-between" style={{ fontFamily: RB }}>
-            <span>Offline Receptionists</span>
-            <span className="font-semibold text-[#111827]">1 Staff</span>
+            <span>Today's Discharges</span>
+            <span className="font-semibold text-[#111827]">82 Patients</span>
           </div>
         </div>
       </div>
 
       {/* ── 4 & 5. RECEPTION ACTIVITY OVERVIEW & CURRENT OPD QUEUE STATUS CHART ── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-        
+
         {/* 4. Reception Activity Today (Bar Chart) */}
         <div className="xl:col-span-2 bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
@@ -654,9 +637,9 @@ export function ReceptionManagementCenter({ onNavigate }: { onNavigate?: (screen
                       label={apt.status}
                       variant={
                         apt.status === 'Completed' ? 'success' :
-                        apt.status === 'In Doctor' || apt.status === 'Checked-In' ? 'teal' :
-                        apt.status === 'Billing' || apt.status === 'Waiting Nurse' ? 'warning' :
-                        apt.status === 'Cancelled' ? 'error' : 'info'
+                          apt.status === 'In Doctor' || apt.status === 'Checked-In' ? 'teal' :
+                            apt.status === 'Billing' || apt.status === 'Waiting Nurse' ? 'warning' :
+                              apt.status === 'Cancelled' ? 'error' : 'info'
                       }
                     />
                   </td>
@@ -802,8 +785,8 @@ export function ReceptionManagementCenter({ onNavigate }: { onNavigate?: (screen
                   label={selectedAppointment.status}
                   variant={
                     selectedAppointment.status === 'Completed' ? 'success' :
-                    selectedAppointment.status === 'In Doctor' || selectedAppointment.status === 'Checked-In' ? 'teal' :
-                    selectedAppointment.status === 'Billing' ? 'warning' : 'info'
+                      selectedAppointment.status === 'In Doctor' || selectedAppointment.status === 'Checked-In' ? 'teal' :
+                        selectedAppointment.status === 'Billing' ? 'warning' : 'info'
                   }
                 />
               </div>
