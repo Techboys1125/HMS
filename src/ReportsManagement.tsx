@@ -461,19 +461,19 @@ export function ReportsDashboardScreen({
     return [...DOCTOR_PERFORMANCE_SUMMARY_DATA].sort((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
-      
+
       if (typeof aVal === "string" && typeof bVal === "string") {
         return sortOrder === "asc"
           ? aVal.localeCompare(bVal)
           : bVal.localeCompare(aVal);
       }
-      
+
       if (typeof aVal === "number" && typeof bVal === "number") {
         return sortOrder === "asc"
           ? aVal - bVal
           : bVal - aVal;
       }
-      
+
       return 0;
     });
   }, [sortField, sortOrder]);
@@ -599,7 +599,7 @@ export function ReportsDashboardScreen({
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
             {/* Card 1: Daily Appointments */}
             <div
-              onClick={() => onOpenKpiDetail?.("Total OPD Appointments")}
+              onClick={() => onOpenReport?.("REP-001")}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -642,7 +642,7 @@ export function ReportsDashboardScreen({
 
             {/* Card 2: Patient Registrations */}
             <div
-              onClick={() => onOpenKpiDetail?.("Patient Registrations")}
+              onClick={() => onOpenReport?.("REP-003")}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -685,7 +685,7 @@ export function ReportsDashboardScreen({
 
             {/* Card 3: Daily Revenue */}
             <div
-              onClick={() => onOpenKpiDetail?.("Today's Revenue")}
+              onClick={() => onOpenReport?.("REP-002")}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -724,7 +724,7 @@ export function ReportsDashboardScreen({
 
             {/* Card 4: Invoices Summary */}
             <div
-              onClick={() => onOpenKpiDetail?.("Invoices Generated")}
+              onClick={() => onOpenReport?.("REP-005")}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -767,9 +767,7 @@ export function ReportsDashboardScreen({
 
             {/* Card 5: Doctor Performance */}
             <div
-              onClick={() =>
-                onOpenKpiDetail?.("Doctor Workload Performance")
-              }
+              onClick={() => onOpenReport?.("REP-004")}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -808,7 +806,7 @@ export function ReportsDashboardScreen({
 
             {/* Card 6: Collection Rate Circular */}
             <div
-              onClick={() => onOpenKpiDetail?.("Collected Payments")}
+              onClick={() => onOpenKpiDetail?.()}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between cursor-pointer group"
             >
               <div>
@@ -1048,7 +1046,7 @@ export function ReportsDashboardScreen({
                       className="text-lg font-bold text-[#111827]"
                       style={{ fontFamily: PP }}
                     >
-                       Reports
+                      Reports
                     </h2>
                     <p className="text-xs text-[#64748B]">
                       Select any verified report to view details, print, or
@@ -3016,201 +3014,6 @@ export function DailyAppointmentReportScreen({
                 </div>
               </div>
 
-              {/* RECENT APPOINTMENT ACTIVITIES TIMELINE */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-                <h3
-                  className="text-base font-bold text-[#111827] mb-4"
-                  style={{ fontFamily: PP }}
-                >
-                  Recent Appointment Activity Log
-                </h3>
-                <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {RECENT_APPOINTMENT_TIMELINE.map((act) => (
-                    <div
-                      key={act.id}
-                      className="flex items-start gap-4 relative z-10"
-                    >
-                      <div className="w-7 h-7 rounded-full bg-white border-2 border-[#009688] flex items-center justify-center text-[#009688] shrink-0">
-                        <Activity className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-bold text-[#111827]">
-                            Patient: {act.patient}
-                          </span>
-                          <span className="text-[11px] text-[#64748B]">
-                            {act.time}
-                          </span>
-                        </div>
-                        <p className="text-[#64748B]">
-                          Action:{" "}
-                          <strong className="text-[#0D47A1]">{act.type}</strong>{" "}
-                          with{" "}
-                          <span className="font-semibold text-[#111827]">
-                            {act.doctor}
-                          </span>
-                          .
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm sticky top-20 space-y-6">
-                {/* Header */}
-                <div>
-                  <h3
-                    className="text-base font-bold text-[#111827] flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Shield className="w-4 h-4 text-[#0D47A1]" />
-                    <span>Appointment Summary</span>
-                  </h3>
-                  <p className="text-[11px] text-[#64748B]">
-                    Live OPD performance highlights
-                  </p>
-                </div>
-
-                {/* Active Scope Summary */}
-                <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] text-xs space-y-1.5">
-                  <div className="text-[11px] font-bold text-[#64748B] uppercase">
-                    Scope Overview
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Selected Range:</span>
-                    <span className="font-semibold text-[#111827]">
-                      {dateRange}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Department:</span>
-                    <span className="font-semibold text-[#111827]">
-                      {deptFilter}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Total Booked:</span>
-                    <span className="font-bold text-[#0D47A1]">184</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Completed:</span>
-                    <span className="font-bold text-[#66BB6A]">142</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Cancelled:</span>
-                    <span className="font-bold text-[#EF4444]">18</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">No Shows:</span>
-                    <span className="font-bold text-[#F59E0B]">12</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Walk-ins:</span>
-                    <span className="font-bold text-[#009688]">34</span>
-                  </div>
-                </div>
-
-                {/* Average SLA Metrics */}
-                <div className="space-y-2.5">
-                  <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
-                    <div className="text-[11px] text-[#64748B]">
-                      Average Queue Wait Time
-                    </div>
-                    <div
-                      className="text-base font-bold text-[#0D47A1]"
-                      style={{ fontFamily: PP }}
-                    >
-                      14.2 Minutes
-                    </div>
-                  </div>
-                  <div className="p-3 bg-teal-50 rounded-xl border border-teal-100">
-                    <div className="text-[11px] text-[#64748B]">
-                      Average Consultation Duration
-                    </div>
-                    <div
-                      className="text-base font-bold text-[#009688]"
-                      style={{ fontFamily: PP }}
-                    >
-                      18.4 Minutes
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div>
-                  <h4
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    Quick Actions
-                  </h4>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => alert("Exporting PDF...")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#0D47A1]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                        <span>Export PDF Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    <button
-                      onClick={() => window.print()}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Printer className="w-3.5 h-3.5 text-[#64748B]" />
-                        <span>Print Summary</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    {onOpenPatientReport && (
-                      <button
-                        onClick={onOpenPatientReport}
-                        className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Users className="w-3.5 h-3.5 text-[#4DB6AC]" />
-                          <span>Open Patient Report</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                      </button>
-                    )}
-
-                    {onOpenDoctorReport && (
-                      <button
-                        onClick={onOpenDoctorReport}
-                        className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <UserCheck className="w-3.5 h-3.5 text-[#66BB6A]" />
-                          <span>Open Doctor Report</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Compliance Note */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-[#E5E7EB] text-[11px] text-[#64748B]">
-                  <div className="flex items-center gap-1 text-[#009688] font-bold mb-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>OPD Module RBAC Verified</span>
-                  </div>
-                  <span>
-                    Hospital Admin role has read-only analytical access for
-                    appointment performance tracking.
-                  </span>
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -4619,187 +4422,8 @@ export function DailyRevenueReportScreen({
                 </div>
               </div>
 
-              {/* RECENT BILLING ACTIVITIES TIMELINE */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-                <h3
-                  className="text-base font-bold text-[#111827] mb-4"
-                  style={{ fontFamily: PP }}
-                >
-                  Recent Billing & Collection Log
-                </h3>
-                <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {DAILY_REVENUE_RECENT_TIMELINE.map((act) => (
-                    <div
-                      key={act.id}
-                      className="flex items-start gap-4 relative z-10"
-                    >
-                      <div className="w-7 h-7 rounded-full bg-white border-2 border-[#66BB6A] flex items-center justify-center text-[#66BB6A] shrink-0">
-                        <DollarSign className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-bold text-[#111827]">
-                            {act.invoiceNo} - {act.patient}
-                          </span>
-                          <span className="text-[11px] text-[#64748B]">
-                            {act.time}
-                          </span>
-                        </div>
-                        <p className="text-[#64748B]">
-                          Action:{" "}
-                          <strong className="text-[#0D47A1]">
-                            {act.action}
-                          </strong>{" "}
-                          of amount{" "}
-                          <span className="font-semibold text-[#66BB6A]">
-                            {formatCurrency(act.amount)}
-                          </span>
-                          .
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
 
-            {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm sticky top-20 space-y-6">
-                {/* Header */}
-                <div>
-                  <h3
-                    className="text-base font-bold text-[#111827] flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Shield className="w-4 h-4 text-[#0D47A1]" />
-                    <span>Revenue Summary</span>
-                  </h3>
-                  <p className="text-[11px] text-[#64748B]">
-                    Live financial position highlights
-                  </p>
-                </div>
-
-                {/* Active Scope Summary */}
-                <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] text-xs space-y-1.5">
-                  <div className="text-[11px] font-bold text-[#64748B] uppercase">
-                    Financial Overview
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Selected Range:</span>
-                    <span className="font-semibold text-[#111827]">
-                      {dateRange}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Total Revenue:</span>
-                    <span className="font-bold text-[#0D47A1]">₹72,000</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Collected:</span>
-                    <span className="font-bold text-[#66BB6A]">₹68,500</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Outstanding:</span>
-                    <span className="font-bold text-[#F59E0B]">₹3,500</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Invoices Generated:</span>
-                    <span className="font-bold text-[#111827]">142</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Paid Invoices:</span>
-                    <span className="font-bold text-[#66BB6A]">128</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Pending Invoices:</span>
-                    <span className="font-bold text-[#F59E0B]">10</span>
-                  </div>
-                </div>
-
-                {/* Collection Performance Badge */}
-                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 text-xs">
-                  <div className="text-[11px] text-[#64748B]">
-                    Collection Efficiency
-                  </div>
-                  <div
-                    className="text-lg font-bold text-[#009688]"
-                    style={{ fontFamily: PP }}
-                  >
-                    95.1% Target Met
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div>
-                  <h4
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    Quick Actions
-                  </h4>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => alert("Exporting PDF...")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#0D47A1]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                        <span>Export PDF Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    <button
-                      onClick={() => alert("Exporting Excel...")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#009688]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <FileSpreadsheet className="w-3.5 h-3.5 text-[#009688]" />
-                        <span>Export Excel Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    <button
-                      onClick={() => window.print()}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Printer className="w-3.5 h-3.5 text-[#64748B]" />
-                        <span>Print Summary</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    {onOpenBillingReport && (
-                      <button
-                        onClick={onOpenBillingReport}
-                        className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="w-3.5 h-3.5 text-[#F59E0B]" />
-                          <span>Open Billing Audit Report</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Compliance Note */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-[#E5E7EB] text-[11px] text-[#64748B]">
-                  <div className="flex items-center gap-1 text-[#009688] font-bold mb-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Financial RBAC Verified</span>
-                  </div>
-                  <span>
-                    Read-only analytics access granted for Hospital Admin
-                    financial oversight.
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
@@ -9287,175 +8911,9 @@ export function BillingReportScreen({
               </div>
 
               {/* RECENT BILLING ACTIVITIES TIMELINE */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-                <h3
-                  className="text-base font-bold text-[#111827] mb-4"
-                  style={{ fontFamily: PP }}
-                >
-                  Recent Billing & Settlement Activity
-                </h3>
-                <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {BILLING_REPORT_RECENT_TIMELINE.map((act) => (
-                    <div
-                      key={act.id}
-                      className="flex items-start gap-4 relative z-10"
-                    >
-                      <div className="w-7 h-7 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center text-[#0D47A1] shrink-0">
-                        <DollarSign className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-bold text-[#111827]">
-                            {act.invoice} ({act.patient})
-                          </span>
-                          <span className="text-[11px] text-[#64748B]">
-                            {act.time}
-                          </span>
-                        </div>
-                        <p className="text-[#64748B]">
-                          Status:{" "}
-                          <strong className="text-[#0D47A1]">{act.type}</strong>{" "}
-                          of{" "}
-                          <span className="font-semibold text-[#111827]">
-                            {act.amount}
-                          </span>{" "}
-                          via {act.method}.
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+
             </div>
 
-            {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm sticky top-20 space-y-6">
-                {/* Header */}
-                <div>
-                  <h3
-                    className="text-base font-bold text-[#111827] flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Shield className="w-4 h-4 text-[#0D47A1]" />
-                    <span>Billing Summary</span>
-                  </h3>
-                  <p className="text-[11px] text-[#64748B]">
-                    Live OPD billing position
-                  </p>
-                </div>
-
-                {/* Active Scope Summary */}
-                <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] text-xs space-y-1.5">
-                  <div className="text-[11px] font-bold text-[#64748B] uppercase">
-                    Financial Overview
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Selected Range:</span>
-                    <span className="font-semibold text-[#111827]">
-                      {dateRange}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Billed Revenue:</span>
-                    <span className="font-bold text-[#0D47A1]">₹72,000</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Collections:</span>
-                    <span className="font-bold text-[#009688]">₹68,500</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Outstanding:</span>
-                    <span className="font-bold text-[#F59E0B]">₹3,500</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Invoices Generated:</span>
-                    <span className="font-bold text-[#111827]">142</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Paid Invoices:</span>
-                    <span className="font-bold text-[#66BB6A]">128</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Pending Invoices:</span>
-                    <span className="font-bold text-[#F59E0B]">10</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Collection Rate:</span>
-                    <span className="font-bold text-[#009688]">95.1%</span>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div>
-                  <h4
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    Quick Actions
-                  </h4>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => alert("Exporting PDF...")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#0D47A1]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                        <span>Export PDF Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    <button
-                      onClick={() => alert("Exporting Excel...")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#009688]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <FileSpreadsheet className="w-3.5 h-3.5 text-[#009688]" />
-                        <span>Export Excel Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    <button
-                      onClick={() => window.print()}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Printer className="w-3.5 h-3.5 text-[#64748B]" />
-                        <span>Print Summary</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    {onOpenRevenueReport && (
-                      <button
-                        onClick={onOpenRevenueReport}
-                        className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="w-3.5 h-3.5 text-[#0D47A1]" />
-                          <span>Open Revenue Report</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Compliance Note */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-[#E5E7EB] text-[11px] text-[#64748B]">
-                  <div className="flex items-center gap-1 text-[#009688] font-bold mb-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Billing RBAC Verified</span>
-                  </div>
-                  <span>
-                    Read-only analytics access granted for Hospital Admin
-                    billing oversight.
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
@@ -12229,158 +11687,11 @@ export function DoctorReportsDashboardScreen({
               </div>
 
               {/* RECENT ACTIVITIES TIMELINE */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-                <h3
-                  className="text-base font-bold text-[#111827] mb-4"
-                  style={{ fontFamily: PP }}
-                >
-                  Recent Doctor Activity Timeline
-                </h3>
-                <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {DOCTOR_RECENT_ACTIVITIES.map((act) => (
-                    <div
-                      key={act.id}
-                      className="flex items-start gap-4 relative z-10"
-                    >
-                      <div className="w-7 h-7 rounded-full bg-white border-2 border-[#009688] flex items-center justify-center text-[#009688] shrink-0">
-                        <Activity className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-bold text-[#111827]">
-                            {act.action}
-                          </span>
-                          <span className="text-[11px] text-[#64748B]">
-                            {act.time}
-                          </span>
-                        </div>
-                        <p className="text-[#64748B]">{act.detail}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+
             </div>
 
             {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm sticky top-20 space-y-6">
-                {/* Header */}
-                <div>
-                  <h3
-                    className="text-base font-bold text-[#111827] flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Shield className="w-4 h-4 text-[#0D47A1]" />
-                    <span>Doctor Summary</span>
-                  </h3>
-                  <p className="text-[11px] text-[#64748B]">
-                    Personal consultation overview
-                  </p>
-                </div>
 
-                {/* Metrics Overview */}
-                <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] text-xs space-y-2">
-                  <div className="text-[11px] font-bold text-[#64748B] uppercase">
-                    Today's Workload
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Appointments:</span>
-                    <span className="font-bold text-[#111827]">32 Total</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Completed:</span>
-                    <span className="font-bold text-[#66BB6A]">28 Done</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Pending:</span>
-                    <span className="font-bold text-[#F59E0B]">
-                      2 Remaining
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Cancelled:</span>
-                    <span className="font-bold text-[#EF4444]">
-                      2 Cancelled
-                    </span>
-                  </div>
-                  <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
-                    <span className="text-[#64748B]">Today's Patients:</span>
-                    <span className="font-semibold text-[#009688]">
-                      58 Intake
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Avg Consult Time:</span>
-                    <span className="font-semibold text-[#0D47A1]">
-                      18.4 min
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Satisfaction:</span>
-                    <span className="font-semibold text-[#66BB6A]">
-                      4.90 / 5
-                    </span>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div>
-                  <h4
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    Quick Actions
-                  </h4>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => onOpenReport?.("REP-001")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#0D47A1]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-3.5 h-3.5 text-[#0D47A1]" />
-                        <span>Open Appointment Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    <button
-                      onClick={() => onOpenReport?.("REP-003")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#009688]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Users className="w-3.5 h-3.5 text-[#009688]" />
-                        <span>Open Patient Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    <button
-                      onClick={() => onOpenReport?.("REP-004")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#0D47A1]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <UserCheck className="w-3.5 h-3.5 text-[#0D47A1]" />
-                        <span>Open Doctor Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Compliance Note */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-[#E5E7EB] text-[11px] text-[#64748B]">
-                  <div className="flex items-center gap-1 text-[#009688] font-bold mb-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Doctor RBAC Active</span>
-                  </div>
-                  <span>
-                    Hospital revenue and billing data filtered out for doctor
-                    privacy compliance.
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
@@ -25337,142 +24648,6 @@ export function AccountantDailyRevenueReportScreen({
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
-            </div>
-
-            {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm sticky top-20 space-y-6">
-                {/* Header */}
-                <div>
-                  <h3
-                    className="text-base font-bold text-[#111827] flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Shield className="w-4 h-4 text-[#0D47A1]" />
-                    <span>Daily Revenue Summary</span>
-                  </h3>
-                  <p className="text-[11px] text-[#64748B]">
-                    Selected date revenue overview
-                  </p>
-                </div>
-
-                {/* Metrics Overview */}
-                <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] text-xs space-y-2">
-                  <div className="text-[11px] font-bold text-[#64748B] uppercase">
-                    Today's Performance
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Today's Revenue:</span>
-                    <span className="font-bold text-[#0D47A1]">$14,850</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Today's Collections:</span>
-                    <span className="font-bold text-[#66BB6A]">$14,100</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">
-                      Outstanding Payments:
-                    </span>
-                    <span className="font-bold text-[#F59E0B]">$3,250</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Paid Invoices:</span>
-                    <span className="font-bold text-[#111827]">42 Paid</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Refunded Amount:</span>
-                    <span className="font-bold text-[#EF4444]">$450</span>
-                  </div>
-                  <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
-                    <span className="text-[#64748B]">Average Invoice:</span>
-                    <span className="font-semibold text-[#009688]">
-                      $309.38
-                    </span>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div>
-                  <h4
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    Quick Actions
-                  </h4>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => alert("Exporting PDF...")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#0D47A1]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                        <span>Export PDF Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    <button
-                      onClick={() => alert("Exporting Excel...")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#009688]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <FileSpreadsheet className="w-3.5 h-3.5 text-[#009688]" />
-                        <span>Export Excel Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    <button
-                      onClick={() => window.print()}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Printer className="w-3.5 h-3.5 text-[#64748B]" />
-                        <span>Print Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    {onOpenBillingReport && (
-                      <button
-                        onClick={onOpenBillingReport}
-                        className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#009688]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="w-3.5 h-3.5 text-[#009688]" />
-                          <span>Open Billing Report</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                      </button>
-                    )}
-
-                    {onBack && (
-                      <button
-                        onClick={onBack}
-                        className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#64748B]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <ChevronLeft className="w-3.5 h-3.5 text-[#64748B]" />
-                          <span>Back to Reports Dashboard</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Compliance Note */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-[#E5E7EB] text-[11px] text-[#64748B]">
-                  <div className="flex items-center gap-1 text-[#009688] font-bold mb-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Accountant Scope Verified</span>
-                  </div>
-                  <span>
-                    Read-only revenue collections data for hospital financial
-                    operations tracking.
-                  </span>
                 </div>
               </div>
             </div>

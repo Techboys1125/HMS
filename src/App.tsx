@@ -24,6 +24,7 @@ import {
   PatientCheckInScreen,
   ReceptionQueueManagementScreen,
 } from "./features/appointments";
+import { ReceptionManagementCenter } from "./ReceptionManagementCenter";
 import {
   DoctorAppointmentsScreen,
   DoctorPrescriptionsScreen,
@@ -2787,6 +2788,8 @@ function HMS({ onLogout }: { onLogout: () => void }) {
                       setActiveReportView("doctor-report");
                     } else if (reportId === "REP-005") {
                       setActiveReportView("billing-report");
+                    } else if (reportId === "REP-006") {
+                      setActiveReportView("kpi-detail");
                     }
                   }}
                   onOpenKpiDetail={() => {
@@ -3265,14 +3268,49 @@ function HMS({ onLogout }: { onLogout: () => void }) {
               />
             )}
             {activeNav === "doctors" && <DoctorManagementCenterScreen />}
-            {activeNav === "reception" && (
+            {activeNav === "reception" && (role === "admin" || role === "super-admin") && (
+              <ReceptionManagementCenter
+                onNavigate={(navKey) => {
+                  if (navKey === "appointments") setActiveNav("appointments");
+                  else if (navKey === "patient-registration") {
+                    setActiveNav("patients");
+                    setShowRegisterPatient(true);
+                  } else if (navKey === "queue-management") {
+                    setActiveNav("appointments");
+                    setShowQueueManagement(true);
+                  } else if (navKey === "reception-staff" || navKey === "user-management") {
+                    setActiveNav("user-management");
+                  } else if (navKey === "daily-report" || navKey === "export-report") {
+                    setActiveNav("reports");
+                  }
+                }}
+              />
+            )}
+            {activeNav === "reception" && role !== "admin" && role !== "super-admin" && (
               <ReceptionDashboard
+                userRole={role}
+                onNavigateNav={(nav) => setActiveNav(nav as NavId)}
                 onRegisterPatient={() => {
                   setActiveNav("patients");
                   setShowRegisterPatient(true);
                 }}
                 onPatientSearch={() => {
                   setActiveNav("patient-search");
+                }}
+                onCheckInClick={(token, uhid) => {
+                  if (uhid) setCheckInUhid(uhid);
+                  if (token) setCheckInAptId(token);
+                  setActiveNav("appointments");
+                  setShowCheckInScreen(true);
+                }}
+                onPatientSelect={(uhid) => handlePatientSelect(uhid)}
+                onEditPatient={(uhid) => {
+                  handlePatientSelect(uhid);
+                  setShowEditPatient(true);
+                }}
+                onCreateInvoiceClick={() => {
+                  setActiveNav("billing");
+                  setShowCreateInvoiceWorkspace(true);
                 }}
               />
             )}

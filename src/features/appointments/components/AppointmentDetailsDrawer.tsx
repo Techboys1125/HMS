@@ -30,6 +30,7 @@ export function AppointmentDetailsDrawer({
   onEditClick,
   onPrintClick,
   onPatientSelect,
+  isDetailsLoading,
   userRole = "Receptionist",
   onStartConsultation,
 }: {

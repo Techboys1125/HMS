@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   Stethoscope,
   FileText,
-  X,
   Pill,
   Activity,
   Plus,

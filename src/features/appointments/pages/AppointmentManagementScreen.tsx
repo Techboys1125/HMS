@@ -4407,7 +4407,9 @@ export function AppointmentManagementCenterScreen({
 
                             {userRole !== "Doctor" && (
                               <td className="px-4 py-3.5 font-medium text-slate-700">
-                                {apt.department}
+                                {typeof apt.department === "object" && apt.department !== null
+                                  ? (apt.department as any).departmentName || (apt.department as any).name || ""
+                                  : apt.department || apt.departmentName || "—"}
                               </td>
                             )}
 

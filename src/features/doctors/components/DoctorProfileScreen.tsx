@@ -1102,7 +1102,6 @@ export function DoctorProfileScreen({
             </div>
           </div>
         </div>
-      </div>
 
       {selectedApptDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">

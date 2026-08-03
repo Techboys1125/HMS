@@ -78,17 +78,30 @@ export const normalizeAppointmentRecord = (
     reason: (item?.reason || item?.chiefComplaint) as string | undefined,
     symptoms: item?.symptoms as string | undefined,
     departmentId:
-      typeof item?.departmentId === "number" ? item.departmentId : undefined,
-    departmentName: (item?.departmentName ||
-      (item?.department as Record<string, unknown>)?.name) as
-      string | undefined,
+      typeof item?.departmentId === "number"
+        ? item.departmentId
+        : typeof (item?.department as Record<string, unknown>)?.departmentId === "number"
+        ? ((item?.department as Record<string, unknown>)?.departmentId as number)
+        : undefined,
+    departmentName:
+      (typeof item?.departmentName === "string" && item.departmentName) ||
+      (typeof item?.department === "object" && item?.department !== null
+        ? ((item.department as Record<string, unknown>)?.departmentName ||
+           (item.department as Record<string, unknown>)?.name) as string
+        : undefined) ||
+      (typeof item?.department === "string" ? item.department : undefined) ||
+      (doctor?.departmentName as string | undefined),
     patient: patient as unknown as PatientSummary,
     doctor: doctor as unknown as DoctorSummary,
     cancellationReason: item?.cancellationReason as string | undefined,
     rescheduleReason: item?.rescheduleReason as string | undefined,
     vitalsRecorded: item?.vitalsRecorded as boolean | undefined,
     paymentStatus: item?.paymentStatus as
-      "PAID" | "UNPAID" | "PARTIAL" | "PENDING" | undefined,
+      | "PAID"
+      | "UNPAID"
+      | "PARTIAL"
+      | "PENDING"
+      | undefined,
     priority: item?.priority as string | undefined,
     arrivalStatus: item?.arrivalStatus as string | undefined,
     opdRoom: (item?.opdRoom || doctor?.opdRoom) as string | undefined,
@@ -100,9 +113,15 @@ export const normalizeAppointmentRecord = (
     patientGender: item?.patientGender as string | undefined,
     patientPhone: (item?.patientPhone || patient?.phone || patient?.mobile) as
       string | undefined,
-    department: (item?.department ||
-      item?.departmentName ||
-      doctor?.departmentName) as string | undefined,
+    department:
+      ((typeof item?.department === "string"
+        ? item.department
+        : typeof item?.department === "object" && item?.department !== null
+        ? (((item.department as Record<string, unknown>)?.departmentName ||
+            (item.department as Record<string, unknown>)?.name) as string)
+        : undefined) ||
+      (item?.departmentName as string | undefined) ||
+      (doctor?.departmentName as string | undefined)) as string | undefined,
     doctorSpecialty: (item?.doctorSpecialty || doctor?.specialty) as
       string | undefined,
     tokenNo: (item?.tokenNo || item?.queueToken) as string | undefined,

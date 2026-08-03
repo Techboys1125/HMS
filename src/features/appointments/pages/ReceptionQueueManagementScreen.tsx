@@ -593,7 +593,7 @@ export function ReceptionQueueManagementScreen({
                           >
                             <div className="flex items-center justify-end gap-1.5">
                               {item.status === "Scheduled" ||
-                              item.status === "Registered" ? (
+                                item.status === "Registered" ? (
                                 <button
                                   onClick={() =>
                                     onCheckInClick &&

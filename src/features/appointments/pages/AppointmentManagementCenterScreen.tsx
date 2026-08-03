@@ -78,7 +78,9 @@ export function AppointmentManagementCenterScreen({
       a.patientName,
       a.mrn,
       a.doctorName,
-      a.department,
+      typeof a.department === "object" && a.department !== null
+        ? (a.department as any).departmentName || (a.department as any).name || ""
+        : a.department || a.departmentName || "",
       a.date,
       a.timeSlot,
       a.visitType,
@@ -1144,7 +1146,9 @@ export function AppointmentManagementCenterScreen({
 
                             {userRole !== "Doctor" && (
                               <td className="px-4 py-3.5 font-medium text-slate-700">
-                                {apt.department}
+                                {typeof apt.department === "object" && apt.department !== null
+                                  ? (apt.department as any).departmentName || (apt.department as any).name || ""
+                                  : apt.department || apt.departmentName || "—"}
                               </td>
                             )}
 
