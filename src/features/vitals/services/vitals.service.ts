@@ -25,13 +25,7 @@ export const vitalsService = {
     if ("bloodPressure" in formData && typeof (formData as NurseVitalsPayload).temperature === "number") {
       payload = formData as NurseVitalsPayload;
     } else {
-      const f = formData as RecordedVitalsData & {
-        chiefComplaint?: string;
-        symptoms?: string;
-        diagnosis?: string;
-        clinicalNotes?: string;
-        notes?: string;
-      };
+      const f = formData as any;
       payload = {
         chiefComplaint: f.chiefComplaint || f.notes || "Pre-consultation routine vitals check",
         symptoms: f.symptoms || "None reported",

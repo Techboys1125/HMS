@@ -92,7 +92,7 @@ export function BookAppointmentScreen({
         .getMyPatients()
         .then((data) => {
           const mapped: PatientSummary[] = data.map((p) => ({
-            id: p.id,
+            id: p.id ?? "",
             mrn: p.mrn,
             name: p.fullName || p.patientName || p.name || "Unknown Patient",
             age: p.age || 0,
@@ -123,7 +123,7 @@ export function BookAppointmentScreen({
         .getAll()
         .then((data) => {
           const mapped: PatientSummary[] = data.map((p) => ({
-            id: p.id,
+            id: p.id ?? "",
             mrn: p.mrn,
             name: p.fullName || p.patientName || p.name || "Unknown Patient",
             age: p.age || 0,

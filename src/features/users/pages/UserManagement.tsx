@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { ROUTES } from "../../../app/routes/routes";
 import {
   Users,
   UserCheck,
@@ -615,7 +616,7 @@ export const UserManagement: React.FC = () => {
               setIsCreatingStaff(true);
               if (navigate) {
                 try {
-                  navigate("/dashboard/admin/users/create");
+                  navigate(ROUTES.USER_MANAGEMENT);
                 } catch (e) {
                   console.log(e);
                 }

@@ -11,13 +11,13 @@ import { useForgotPassword } from "../hooks/useForgotPassword";
 import logoImage from "../../../assets/safehandshospital_logo.webp";
 
 interface ForgotPasswordPageProps {
-  onBackToLogin: () => void;
-  onSendOTP: (email: string) => void;
+  onBackToLogin?: () => void;
+  onSendOTP?: (email: string) => void;
 }
 
 export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({
-  onBackToLogin,
-  onSendOTP,
+  onBackToLogin = () => {},
+  onSendOTP = () => {},
 }) => {
   const [email, setEmail] = useState("");
   const { sendResetLink, loading, error } = useForgotPassword(onSendOTP);

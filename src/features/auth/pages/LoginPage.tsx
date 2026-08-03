@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuthStore } from "../store/auth.store";
+import { ROUTES } from "../../../app/routes/routes";
 import { BrandingPanel } from "../components/BrandingPanel";
 import { LoginForm } from "../components/LoginForm";
 import { PatientRegisterForm } from "../components/PatientRegisterForm";
@@ -204,7 +205,7 @@ export const LoginPage: React.FC = () => {
                 setSuccessInfo(null);
                 if (isAuthenticated) {
                   if (navigate) {
-                    navigate("/dashboard");
+                    navigate(ROUTES.DASHBOARD);
                   }
                 } else {
                   setCurrentScreen("login");

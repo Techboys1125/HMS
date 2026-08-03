@@ -142,11 +142,16 @@ export function EditPatientScreen({
       }
 
       if (currentPatient.address) {
-        setAddressLine(currentPatient.address.streetAddress || currentPatient.address.street || "");
-        setCity(currentPatient.address.city || "");
-        setState(currentPatient.address.state || "");
-        setPostalCode(currentPatient.address.postalCode || currentPatient.address.zipCode || "");
-        setCountry(currentPatient.address.country || "India");
+        if (typeof currentPatient.address === "object" && currentPatient.address !== null) {
+          const addr = currentPatient.address as Record<string, any>;
+          setAddressLine(addr.streetAddress || addr.street || addr.addressLine1 || "");
+          setCity(addr.city || "");
+          setState(addr.state || "");
+          setPostalCode(addr.postalCode || addr.zipCode || "");
+          setCountry(addr.country || "India");
+        } else if (typeof currentPatient.address === "string") {
+          setAddressLine(currentPatient.address);
+        }
       }
 
       setRegistrationType(currentPatient.registrationType || "WALK_IN");

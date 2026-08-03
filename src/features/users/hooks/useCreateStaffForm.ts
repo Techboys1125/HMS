@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { ROUTES } from "../../../app/routes/routes";
 import { usersApi } from "../api/users.api";
 import { departmentsApi, type ApiDepartmentLookupItem } from "../api/departments.api";
 import type {
@@ -267,7 +268,7 @@ export const useCreateStaffForm = (
       if (onBack) {
         onBack();
       } else if (navigate) {
-        navigate("/dashboard/admin/users");
+        navigate(ROUTES.USER_MANAGEMENT);
       }
     }
   };
@@ -612,7 +613,7 @@ export const useCreateStaffForm = (
         if (onSuccess) {
           onSuccess();
         } else if (navigate) {
-          navigate("/dashboard/admin/users");
+          navigate(ROUTES.USER_MANAGEMENT);
         }
       } else {
         triggerToast(

@@ -350,7 +350,7 @@ export function RegisterPatientScreen({
   registrationMode = "ADMIN",
   isFamilyMode = false,
 }: {
-  onBack: () => void;
+  onBack?: () => void;
   onBookAppointment?: (mrn: string) => void;
   onViewProfile?: (mrn: string) => void;
   onSwitchToNewPatient?: (mrn: string, patientName: string) => void;
@@ -583,7 +583,7 @@ export function RegisterPatientScreen({
           onSwitchToNewPatient={onSwitchToNewPatient}
           onClose={() => {
             setSuccessData(null);
-            onBack();
+            onBack?.();
           }}
         />
       )}
@@ -603,7 +603,7 @@ export function RegisterPatientScreen({
             style={{ fontFamily: RB }}
           >
             <button
-              onClick={onBack}
+              onClick={() => onBack?.()}
               className="hover:text-[#0D47A1] transition-colors"
             >
               {effectiveMode === "PATIENT_FAMILY"
@@ -1029,7 +1029,7 @@ export function RegisterPatientScreen({
             <div className="flex items-center justify-end gap-3 pt-4">
               <button
                 type="button"
-                onClick={onBack}
+                onClick={() => onBack?.()}
                 className="px-6 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"
                 style={{ fontFamily: PP }}
               >

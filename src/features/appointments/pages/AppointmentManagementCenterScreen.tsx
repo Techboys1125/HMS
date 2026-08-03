@@ -47,6 +47,7 @@ export interface Props {
   onBookAppointmentClick?: () => void;
   onReceptionQueueClick?: () => void;
   userRole?: UserRole;
+  doctorId?: number | string;
   onBack?: () => void;
   onConfirmSuccess?: (uhid: string | number) => void;
   onRegisterNewPatientClick?: () => void;
@@ -1865,7 +1866,7 @@ export function AppointmentManagementCenterScreen({
             `TK-${checkInConfirmationApt.id}`
           }
           patientName={checkInConfirmationApt.patientName}
-          patientMrn={checkInConfirmationApt.mrn}
+          patientMrn={checkInConfirmationApt.mrn || ""}
           doctorName={checkInConfirmationApt.doctorName}
           departmentName={checkInConfirmationApt.department}
           appointmentTime={checkInConfirmationApt.timeSlot}

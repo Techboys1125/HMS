@@ -1,0 +1,51 @@
+import { useAuthStore } from "../../features/auth";
+import {
+  SuperAdminDashboard,
+  HospitalAdminDashboard,
+  DoctorDashboard,
+  NurseDashboard,
+  ReceptionDashboard,
+  AccountantDashboard,
+  PatientDashboard,
+} from "../../features/dashboard";
+
+export function DashboardDispatcher() {
+  const user = useAuthStore((s) => s.user);
+
+  if (!user || !user.role) {
+    return <HospitalAdminDashboard />;
+  }
+
+  const role = String(user.role).toUpperCase();
+
+  switch (role) {
+    case "SUPER_ADMIN":
+    case "SUPER-ADMIN":
+      return <SuperAdminDashboard />;
+
+    case "ADMIN":
+    case "HOSPITAL_ADMIN":
+    case "HOSPITAL-ADMIN":
+      return <HospitalAdminDashboard />;
+
+    case "DOCTOR":
+      return <DoctorDashboard />;
+
+    case "NURSE":
+      return <NurseDashboard />;
+
+    case "RECEPTIONIST":
+      return <ReceptionDashboard />;
+
+    case "ACCOUNTANT":
+      return <AccountantDashboard />;
+
+    case "PATIENT":
+      return <PatientDashboard />;
+
+    default:
+      return <HospitalAdminDashboard />;
+  }
+}
+
+export default DashboardDispatcher;

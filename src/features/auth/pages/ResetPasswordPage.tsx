@@ -4,11 +4,11 @@ import { TextField } from "../components/TextField";
 import logoImage from "../../../assets/safehandshospital_logo.webp";
 
 interface ResetPasswordPageProps {
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({
-  onSuccess,
+  onSuccess = () => {},
 }) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

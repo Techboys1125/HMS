@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ChevronRight,
   Edit,
@@ -12,18 +12,31 @@ import {
   Save,
 } from "lucide-react";
 import { PP, RB } from "../constants/patient.mock";
-
-import { useEffect } from "react";
+import { PatientSearchScreen } from "./PatientSearchScreen";
 
 export function PatientProfileCenterScreen({
   activePatient,
   onAddFamilyMember,
   onSwitchPatient,
+  onPatientSelect,
+  onRegisterPatient,
 }: {
   activePatient?: any;
   onAddFamilyMember?: () => void;
   onSwitchPatient?: () => void;
+  onPatientSelect?: (id: number | string) => void;
+  onRegisterPatient?: () => void;
 }) {
+  // If no specific single patient profile is passed, render Patient Management & Patient Table!
+  if (!activePatient) {
+    return (
+      <PatientSearchScreen
+        onPatientSelect={onPatientSelect}
+        onRegisterClick={onRegisterPatient}
+      />
+    );
+  }
+
   const [activeTab, setActiveTab] = useState<"info" | "edit" | "password">(
     "info",
   );
@@ -706,3 +719,5 @@ export function PatientProfileCenterScreen({
     </div>
   );
 }
+
+export default PatientProfileCenterScreen;

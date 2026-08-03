@@ -57,7 +57,7 @@ type Role =
   | "patient";
 
 export interface BookAppointmentScreenProps {
-  role:Role;
+  role?: Role;
      onBack?: () => void;
   onConfirmSuccess?: (appointmentId: string) => void;
   onRegisterNewPatientClick?: () => void;

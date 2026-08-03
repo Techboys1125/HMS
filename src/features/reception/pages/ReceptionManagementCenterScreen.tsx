@@ -6,7 +6,8 @@ import { ReceptionWorklistTable } from "../components/ReceptionWorklistTable";
 import { PatientCheckInModal } from "../components/PatientCheckInModal";
 import { VisitSlipModal } from "../components/VisitSlipModal";
 import { WalkInRegistrationModal } from "../components/WalkInRegistrationModal";
-import type { ReceptionQueueItem } from "../types/reception.types";
+import { receptionService } from "../services/reception.service";
+import type { ReceptionQueueItem, ReceptionFilters, ArrivalCheckInPayload, WalkInRegistrationPayload, QueueStatus } from "../types/reception.types";
 import {
   Users,
   UserCheck,
@@ -27,17 +28,47 @@ export const ReceptionManagementCenterScreen: React.FC<ReceptionManagementCenter
   onNavigateToPatientDetails,
 }) => {
   const permissions = getReceptionPermissions(userRole);
-  const {
-    filteredQueue,
-    loading,
-    filters,
-    setFilters,
-    stats,
-    loadWorklist,
-    handleCheckIn,
-    handleRegisterWalkIn,
-    handleUpdateStatus,
-  } = useReceptionQueue();
+  const { items = [], loading, refresh } = useReceptionQueue();
+  const [filters, setFilters] = useState<ReceptionFilters>({
+    searchQuery: "",
+    queueStatus: "ALL",
+    billingStatus: "ALL",
+    departmentId: "ALL",
+    doctorId: "ALL",
+    date: new Date().toISOString().split("T")[0],
+  });
+
+  const filteredQueue = items.filter((item) => {
+    if (filters.searchQuery && !item.patientName?.toLowerCase().includes(filters.searchQuery.toLowerCase()) && !item.mrn?.toLowerCase().includes(filters.searchQuery.toLowerCase())) return false;
+    if (filters.queueStatus && filters.queueStatus !== "ALL" && item.queueStatus !== filters.queueStatus) return false;
+    if (filters.billingStatus && filters.billingStatus !== "ALL" && item.billingStatus !== filters.billingStatus) return false;
+    return true;
+  });
+
+  const stats = {
+    totalToday: items.length,
+    waiting: items.filter((i) => i.queueStatus === "WAITING").length,
+    inConsultation: items.filter((i) => i.queueStatus === "IN_CONSULTATION").length,
+    completed: items.filter((i) => i.queueStatus === "COMPLETED").length,
+    billingPending: items.filter((i) => i.billingStatus === "PENDING").length,
+  };
+
+  const loadWorklist = refresh;
+  const handleCheckIn = async (data: ArrivalCheckInPayload) => {
+    const res = await receptionService.checkInPatient(data.appointmentId || data.queueItemId);
+    refresh();
+    return res;
+  };
+  const handleRegisterWalkIn = async (data: WalkInRegistrationPayload) => {
+    const res = await receptionService.registerWalkIn(data);
+    refresh();
+    return res;
+  };
+  const handleUpdateStatus = async (id: string | number, status: QueueStatus) => {
+    const res = await receptionService.updateStatus(id, status);
+    refresh();
+    return res;
+  };
 
   // Modals state
   const [checkInItem, setCheckInItem] = useState<ReceptionQueueItem | null>(null);

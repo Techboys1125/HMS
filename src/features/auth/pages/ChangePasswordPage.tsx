@@ -12,11 +12,11 @@ import { authService } from "../services/auth.service";
 import logoImage from "../../../assets/safehandshospital_logo.webp";
 
 interface ChangePasswordPageProps {
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
 export const ChangePasswordPage: React.FC<ChangePasswordPageProps> = ({
-  onSuccess,
+  onSuccess = () => {},
 }) => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");

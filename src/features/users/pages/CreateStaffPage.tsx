@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
+import { ROUTES } from "../../../app/routes/routes";
 import {
   ArrowLeft,
   ArrowRight,
@@ -84,7 +85,7 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
     if (onBack) {
       onBack();
     } else if (navigate) {
-      navigate("/dashboard/admin/users");
+      navigate(ROUTES.USER_MANAGEMENT);
     }
   };
 
