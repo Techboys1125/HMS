@@ -10,12 +10,14 @@ export function PatientSearchScreen({
   onPatientSelect,
   onRegisterClick,
   onBookAppointmentClick,
+  onEditPatientClick,
   userRole,
 }: {
   onBack?: () => void;
   onPatientSelect?: (mrn: string) => void;
   onRegisterClick?: () => void;
   onBookAppointmentClick?: (mrn: string) => void;
+  onEditPatientClick?: (patient: Patient) => void;
   onCheckInClick?: (mrn: string) => void;
   userRole?: string;
 }) {
@@ -60,7 +62,7 @@ export function PatientSearchScreen({
   // Filter Logic over DB Patients
   const filteredPatients = dbPatients.filter((p) => {
     const q = searchQuery.toLowerCase().trim();
-    const mrnStr = (p.mrn || p.patientId || String(p.id)).toLowerCase();
+    const mrnStr = (p.mrn || String(p.id)).toLowerCase();
     const nameStr = (p.patientName || p.name || "").toLowerCase();
     const phoneStr = (p.phone || "").toLowerCase();
 
@@ -94,10 +96,9 @@ export function PatientSearchScreen({
     return matchSearch && matchStatus && matchType && matchGender && matchDate;
   });
 
-  const selectedPatient =
-    dbPatients.find(
-      (p) => (p.mrn || p.patientId || String(p.id)) === selectedPatientId,
-    ) || filteredPatients[0];
+  const selectedPatient = dbPatients.find(
+    (p) => (p.mrn || String(p.id)) === selectedPatientId,
+  ) || filteredPatients[0];
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -167,7 +168,7 @@ export function PatientSearchScreen({
             <button
               onClick={() =>
                 onBookAppointmentClick(
-                  selectedPatient ? (selectedPatient.mrn || selectedPatient.patientId || String(selectedPatient.id)) : "",
+                  selectedPatient ? (selectedPatient.mrn || String(selectedPatient.id)) : "",
                 )
               }
               className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm"
@@ -384,9 +385,9 @@ export function PatientSearchScreen({
         activeActionMenuId={activeActionMenuId}
         hasActiveFilters={hasActiveFilters}
         userRole={userRole}
-        onSelectRow={(p: Patient) => setSelectedPatientId(p.mrn || p.patientId || String(p.id))}
-        onOpenQuickView={(p: Patient) => {
-          const id = p.mrn || p.patientId || String(p.id);
+        onSelectRow={(p: Patient) => {
+          const id = p.mrn || String(p.id);
+          setSelectedPatientId(id);
           if (onPatientSelect) onPatientSelect(id);
         }}
         onToggleActionMenu={(id) => setActiveActionMenuId(id)}
@@ -394,8 +395,12 @@ export function PatientSearchScreen({
           if (onPatientSelect) onPatientSelect(id);
         }}
         onEditPatient={(p) => {
-          const id = p.mrn || p.patientId || String(p.id);
-          if (onPatientSelect) onPatientSelect(id);
+          const id = p.mrn || String(p.id);
+          if (onEditPatientClick) {
+            onEditPatientClick(p);
+          } else if (onPatientSelect) {
+            onPatientSelect(id);
+          }
         }}
         onViewMedicalHistory={(id) => {
           if (onPatientSelect) onPatientSelect(id);

@@ -14,6 +14,7 @@ export function useAppointments(
   params?: {
     doctorId?: string | number;
     patientId?: string | number;
+    mrn?: string;
     status?: string;
     fromDate?: string;
     toDate?: string;
@@ -26,8 +27,6 @@ export function useAppointments(
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const todayStr = date || new Date().toISOString().split("T")[0];
-
   useEffect(() => {
     let active = true;
 
@@ -38,18 +37,22 @@ export function useAppointments(
         let items: AppointmentRecord[] = [];
         if (userRole === "Doctor") {
           items = await appointmentService.listDoctorAppointments(
-            todayStr,
+            date,
             params?.status,
           );
-        } else if (userRole === "Patient" && params?.patientId) {
+        } else if (
+          userRole === "Patient" &&
+          (params?.patientId || params?.mrn)
+        ) {
           items = await appointmentService.listPatientAppointments(
-            params.patientId,
+            params.patientId || params.mrn || "",
           );
         } else {
           items = await appointmentService.listAppointments({
             doctorId: params?.doctorId,
             patientId: params?.patientId,
-            date: todayStr,
+            mrn: params?.mrn,
+            date: date,
             fromDate: params?.fromDate,
             toDate: params?.toDate,
             status: params?.status,
@@ -82,7 +85,7 @@ export function useAppointments(
     return () => {
       active = false;
     };
-  }, [userRole, todayStr, params]);
+  }, [userRole, date, params]);
 
   const refetch = useCallback(async () => {
     setIsLoading(true);
@@ -91,18 +94,19 @@ export function useAppointments(
       let items: AppointmentRecord[] = [];
       if (userRole === "Doctor") {
         items = await appointmentService.listDoctorAppointments(
-          todayStr,
+          date,
           params?.status,
         );
-      } else if (userRole === "Patient" && params?.patientId) {
+      } else if (userRole === "Patient" && (params?.patientId || params?.mrn)) {
         items = await appointmentService.listPatientAppointments(
-          params.patientId,
+          params.patientId || params.mrn || "",
         );
       } else {
         items = await appointmentService.listAppointments({
           doctorId: params?.doctorId,
           patientId: params?.patientId,
-          date: todayStr,
+          mrn: params?.mrn,
+          date: date,
           fromDate: params?.fromDate,
           toDate: params?.toDate,
           status: params?.status,
@@ -122,7 +126,7 @@ export function useAppointments(
     } finally {
       setIsLoading(false);
     }
-  }, [userRole, todayStr, params]);
+  }, [userRole, date, params]);
 
   return {
     appointments,

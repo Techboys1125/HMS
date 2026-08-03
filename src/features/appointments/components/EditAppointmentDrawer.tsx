@@ -8,7 +8,7 @@ import {
   Calendar as CalendarIcon,
   Ban,
 } from "lucide-react";
-import type { AppointmentRecord } from "../types/appointment.types";
+import type { AppointmentRecord, DoctorSummary } from "../types/appointment.types";
 import type { VisitType, AppointmentStatus } from "../types/appointment-screen.types";
 import { Avatar } from "./Avatar";
 import {
@@ -17,6 +17,8 @@ import {
   EMPTY_AVAILABILITY,
   appointmentToPatientSummary,
 } from "../constants/appointment.constants";
+import { appointmentService } from "../services/appointment.service";
+import { departmentsApi, type ApiDepartmentLookupItem } from "../../users/api/departments.api";
 
 export function EditAppointmentDrawer({
   apt,
@@ -43,8 +45,47 @@ export function EditAppointmentDrawer({
   const [reasonForVisit, setReasonForVisit] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [, setErrors] = useState<Record<string, string>>({});
   const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const [doctors, setDoctors] = useState<DoctorSummary[]>([]);
+  const [departments, setDepartments] = useState<ApiDepartmentLookupItem[]>([]);
+
+  useEffect(() => {
+    departmentsApi.getDepartmentLookup(true).then((lookupList) => {
+      if (lookupList && lookupList.length > 0) {
+        setDepartments(lookupList);
+      } else {
+        departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
+          const lookupMapped = list.map((d) => ({
+            departmentId: d.departmentId ?? d.id ?? "",
+            departmentName: d.departmentName || d.name || "",
+            active: true,
+            specialties: [],
+          }));
+          setDepartments(lookupMapped);
+        });
+      }
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const matchedDept = departments.find((d) => d.departmentName === department);
+    const deptId = matchedDept ? matchedDept.departmentId : undefined;
+    appointmentService
+      .listDoctors(deptId)
+      .then((data) => {
+        setDoctors(data);
+        if (data.length > 0) {
+          const currentDoc = data.find((d) => d.name === doctorName);
+          if (!currentDoc) {
+            setDoctorName(data[0].name);
+          }
+        } else {
+          setDoctorName("");
+        }
+      })
+      .catch(() => {});
+  }, [department, departments]);
 
   useEffect(() => {
     if (apt) {
@@ -213,10 +254,14 @@ export function EditAppointmentDrawer({
                     onChange={(e) => setDepartment(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
                   >
-                    <option value="Cardiology">Cardiology</option>
-                    <option value="General Medicine">General Medicine</option>
-                    <option value="Neurology">Neurology</option>
-                    <option value="Gynecology">Gynecology</option>
+                    {departments.length === 0 && (
+                      <option value="">Loading departments...</option>
+                    )}
+                    {departments.map((dept) => (
+                      <option key={dept.departmentId} value={dept.departmentName}>
+                        {dept.departmentName}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -229,18 +274,14 @@ export function EditAppointmentDrawer({
                     onChange={(e) => handleDoctorChange(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none"
                   >
-                    <option value="Dr. Arjun Mehta">
-                      Dr. Arjun Mehta (Cardiology)
-                    </option>
-                    <option value="Dr. Priya Sharma">
-                      Dr. Priya Sharma (General Med)
-                    </option>
-                    <option value="Dr. Rajesh Kapoor">
-                      Dr. Rajesh Kapoor (Neurology)
-                    </option>
-                    <option value="Dr. Sunita Patel">
-                      Dr. Sunita Patel (Gynecology)
-                    </option>
+                    {doctors.length === 0 && (
+                      <option value="">Loading doctors...</option>
+                    )}
+                    {doctors.map((doc) => (
+                      <option key={doc.id} value={doc.name}>
+                        {doc.name} ({doc.departmentName || doc.department || ""})
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

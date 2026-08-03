@@ -39,15 +39,34 @@ export const LoginPage: React.FC = () => {
   const handleLoginSuccess = (response: LoginResponse) => {
     const resAny = response as unknown as Record<string, unknown>;
     const authData = (response.data || resAny) as Record<string, unknown>;
-    const loggedInUser =
-      (authData.user as typeof response.data.user) ||
-      useAuthStore.getState().user;
+    const rawUser = (authData.user || resAny.user || {}) as Record<
+      string,
+      unknown
+    >;
+
+    let loggedInUser: User | null = null;
+    if (rawUser && rawUser.id) {
+      const docId =
+        rawUser.doctorId ??
+        (rawUser.doctorProfile as { doctorId?: number })?.doctorId;
+      loggedInUser = {
+        ...rawUser,
+        doctorId: docId ? Number(docId) : undefined,
+        doctorProfile:
+          (rawUser.doctorProfile as { doctorId?: number }) ||
+          (docId ? { doctorId: Number(docId) } : undefined),
+      } as User;
+    } else {
+      loggedInUser = useAuthStore.getState().user;
+    }
 
     if (loggedInUser) {
       setPendingUser(loggedInUser);
       setPendingTokens({
         accessToken: String(authData.accessToken || resAny.accessToken || ""),
-        refreshToken: String(authData.refreshToken || resAny.refreshToken || ""),
+        refreshToken: String(
+          authData.refreshToken || resAny.refreshToken || "",
+        ),
         tokenType: String(authData.tokenType || resAny.tokenType || "Bearer"),
         expiresIn: Number(authData.expiresIn || resAny.expiresIn || 86400),
       });

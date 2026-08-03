@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   UserPlus,
   X,
@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
+import { doctorsService } from "../services/doctors.service";
+import { departmentsApi, type ApiDepartmentLookupItem } from "../../users/api/departments.api";
 
 export interface AddDoctorDrawerProps {
   isOpen: boolean;
@@ -46,6 +48,25 @@ export function AddDoctorDrawer({
   const [department, setDepartment] = useState("Cardiology");
   const [specialty, setSpecialty] = useState("");
   const [bio, setBio] = useState("");
+
+  const [lookupList, setLookupList] = useState<ApiDepartmentLookupItem[]>([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      departmentsApi.getDepartmentLookup(true).then((list) => {
+        setLookupList(list);
+        if (list.length > 0) {
+          const cardioDept = list.find(d => d.departmentName.toLowerCase() === "cardiology") || list[0];
+          setDepartment(cardioDept.departmentName);
+          if (cardioDept.specialties && cardioDept.specialties.length > 0) {
+            setSpecialty(cardioDept.specialties[0].name);
+          } else {
+            setSpecialty("");
+          }
+        }
+      }).catch((err) => console.warn("Failed to load departments lookup:", err));
+    }
+  }, [isOpen]);
 
   const [consultationFee, setConsultationFee] = useState<number | "">(150);
   const [followUpFee, setFollowUpFee] = useState<number | "">(80);
@@ -103,6 +124,7 @@ export function AddDoctorDrawer({
   const [sendCredentialsEmail, setSendCredentialsEmail] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -170,50 +192,123 @@ export function AddDoctorDrawer({
     return true;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const to24HourHHMM = (time: string) => {
+    if (!time) return "09:00";
+    const trimmed = time.trim();
+    if (!trimmed.includes("AM") && !trimmed.includes("PM")) {
+      return trimmed.slice(0, 5);
+    }
+    const parts = trimmed.split(":");
+    if (parts.length < 2) return trimmed.slice(0, 5);
+    let hour = parseInt(parts[0], 10);
+    const isPM = trimmed.toUpperCase().includes("PM");
+    const minute = parts[1].replace(/[^0-9]/g, "").slice(0, 2);
+    if (isPM && hour !== 12) hour += 12;
+    if (!isPM && hour === 12) hour = 0;
+    return `${String(hour).padStart(2, "0")}:${minute.padStart(2, "0")}`;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const formattedName = fullName.startsWith("Dr.")
-      ? fullName
-      : `Dr. ${fullName}`;
-    const activeWorkingDays = schedule
+    setIsSubmitting(true);
+    const activeAvailability = schedule
       .filter((s) => s.available)
-      .map((s) => s.day.slice(0, 3));
+      .map((s) => ({
+        dayOfWeek: s.day.toUpperCase(),
+        startTime: to24HourHHMM(s.startTime),
+        endTime: to24HourHHMM(s.endTime),
+      }));
 
-    const newDoctor: DoctorRecord = {
-      id: `DOC-10${totalDoctorCount + 1}`,
-      empId: autoEmpId,
-      regNumber: regNumber,
-      name: formattedName,
-      gender: gender,
-      department: department,
-      specialty: specialty,
-      qualification: qualification,
-      experienceYrs: Number(experienceYrs) || 5,
+    const slotMins = parseInt(slotDuration) || 15;
+
+    const cleanName = fullName.replace(/^Dr\.?\s*/i, "");
+    const doctorCode = cleanName
+      .split(" ")
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 4) || cleanName.slice(0, 2).toUpperCase();
+
+    const selectedDeptObj = lookupList.find((d) => d.departmentName === department);
+    const departmentSpecialties = selectedDeptObj ? selectedDeptObj.specialties : [];
+    const specObj = departmentSpecialties.find((s) => s.name === specialty);
+
+    const primaryDeptId = selectedDeptObj ? Number(selectedDeptObj.departmentId) : 1;
+    const primarySpecId = specObj ? Number(specObj.id) : 1;
+
+    const payload = {
+      fullName: fullName.startsWith("Dr.") ? fullName : `Dr. ${fullName}`,
+      email,
+      mobile: phone,
+      gender,
+      dateOfBirth: dob,
+      photo: "photo.jpg",
+      photoUrl: photoPreview || undefined,
+      residentialAddress: address,
+      professionalBio: bio || `Dr. ${fullName} specializing in ${specialty}.`,
+      role: "DOCTOR" as const,
+      medicalRegistrationNumber: regNumber,
+      qualification,
+      yearsOfExperience: Number(experienceYrs) || 5,
+      doctorCode,
+      primaryDepartmentId: primaryDeptId,
+      secondaryDepartmentIds: [],
+      primarySpecialtyId: primarySpecId,
+      secondarySpecialtyIds: [],
       consultationFee: Number(consultationFee) || 150,
       followUpFee: Number(followUpFee) || 80,
-      slotDuration: slotDuration,
-      availability: "Available Today",
-      status: "Active",
-      email: email,
-      phone: phone,
-      address: address,
-      dob: dob,
-      opdRoom: `OPD Room ${101 + totalDoctorCount}`,
-      joinedDate: new Date().toISOString().split("T")[0],
-      shiftTimings: "09:00 AM - 04:00 PM",
-      workingDays:
-        activeWorkingDays.length > 0
-          ? activeWorkingDays
-          : ["Mon", "Tue", "Wed", "Thu", "Fri"],
-      bio:
-        bio ||
-        `${formattedName} is a practitioner in ${department} specializing in ${specialty}.`,
+      slotDurationMinutes: slotMins,
+      availability: activeAvailability,
+      scheduleExceptions: [],
+      sendCredentials: sendCredentialsEmail,
     };
 
-    onSubmit(newDoctor);
+    try {
+      const createdDoctorRecord = await doctorsService.create(payload);
+      onSubmit(createdDoctorRecord);
+    } catch (err) {
+      console.warn("Failed to create doctor via API:", err);
+      // Fallback local submission
+      const activeWorkingDays = schedule
+        .filter((s) => s.available)
+        .map((s) => s.day.slice(0, 3));
+
+      const newDoctor: DoctorRecord = {
+        id: `DOC-10${totalDoctorCount + 1}`,
+        empId: autoEmpId,
+        regNumber,
+        name: payload.fullName,
+        gender,
+        department,
+        specialty,
+        qualification,
+        experienceYrs: Number(experienceYrs) || 5,
+        consultationFee: Number(consultationFee) || 150,
+        followUpFee: Number(followUpFee) || 80,
+        slotDuration,
+        availability: "Available Today",
+        status: "Active",
+        email,
+        phone,
+        address,
+        dob,
+        opdRoom: `OPD Room ${101 + totalDoctorCount}`,
+        joinedDate: new Date().toISOString().split("T")[0],
+        shiftTimings: "09:00 AM - 04:00 PM",
+        workingDays: activeWorkingDays.length > 0 ? activeWorkingDays : ["Mon", "Tue", "Wed", "Thu", "Fri"],
+        bio: payload.professionalBio,
+      };
+      onSubmit(newDoctor);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const selectedDeptObj = lookupList.find((d) => d.departmentName === department);
+  const departmentSpecialties = selectedDeptObj ? selectedDeptObj.specialties : [];
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
@@ -543,45 +638,51 @@ export function AddDoctorDrawer({
                 <select
                   value={department}
                   onChange={(e) => {
-                    setDepartment(e.target.value);
+                    const deptName = e.target.value;
+                    setDepartment(deptName);
                     if (errors.department)
                       setErrors({ ...errors, department: "" });
+                    const deptObj = lookupList.find((d) => d.departmentName === deptName);
+                    if (deptObj && deptObj.specialties && deptObj.specialties.length > 0) {
+                      setSpecialty(deptObj.specialties[0].name);
+                    } else {
+                      setSpecialty("");
+                    }
                   }}
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1] focus:bg-white"
                 >
-                  <option value="Cardiology">Cardiology</option>
-                  <option value="General Medicine">General Medicine</option>
-                  <option value="Neurology">Neurology</option>
-                  <option value="Orthopedics">Orthopedics</option>
-                  <option value="Pediatrics">Pediatrics</option>
-                  <option value="Obstetrics & Gynecology">
-                    Obstetrics & Gynecology
-                  </option>
-                  <option value="Dermatology">Dermatology</option>
-                  <option value="ENT">ENT</option>
-                  <option value="Ophthalmology">Ophthalmology</option>
-                  <option value="Pulmonology">Pulmonology</option>
+                  {lookupList.length === 0 && (
+                    <option value="">Loading departments...</option>
+                  )}
+                  {lookupList.map((d) => (
+                    <option key={d.departmentId} value={d.departmentName}>
+                      {d.departmentName}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-bold text-[#111827] mb-1">
                   Specialty <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Interventional Cardiology"
+                <select
                   value={specialty}
                   onChange={(e) => {
                     setSpecialty(e.target.value);
                     if (errors.specialty)
                       setErrors({ ...errors, specialty: "" });
                   }}
-                  className={`w-full px-3 py-2 text-xs bg-slate-50 border rounded-xl text-[#111827] outline-none focus:bg-white transition-colors ${
-                    errors.specialty
-                      ? "border-[#EF4444] bg-red-50/50"
-                      : "border-[#E5E7EB] focus:border-[#0D47A1]"
-                  }`}
-                />
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1] focus:bg-white"
+                >
+                  {departmentSpecialties.length === 0 && (
+                    <option value="">No specialties available</option>
+                  )}
+                  {departmentSpecialties.map((s) => (
+                    <option key={s.id} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
                 {errors.specialty && (
                   <p className="text-[11px] text-[#EF4444] font-medium mt-1">
                     {errors.specialty}
@@ -890,10 +991,16 @@ export function AddDoctorDrawer({
           <button
             type="submit"
             form="add-doctor-form"
-            className="px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-2 shadow-sm"
+            disabled={isSubmitting}
+            className="px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ fontFamily: PP }}
           >
-            <UserPlus size={15} /> Create Doctor
+            {isSubmitting ? (
+              <RefreshCw size={15} className="animate-spin" />
+            ) : (
+              <UserPlus size={15} />
+            )}
+            <span>{isSubmitting ? "Creating Doctor..." : "Create Doctor"}</span>
           </button>
         </div>
       </div>

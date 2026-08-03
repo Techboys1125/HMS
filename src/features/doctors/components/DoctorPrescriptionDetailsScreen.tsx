@@ -71,49 +71,109 @@ export function DoctorPrescriptionDetailsScreen({
     consultationNotes:
       "Patient presented with acute exertional chest discomfort. Electrocardiogram (ECG) performed in clinic. High cardiovascular risk profile noted.",
     medicines: [
-      { id: "1", name: "Amlodipine", strength: "5mg", route: "Oral", dosage: "1 Tablet", frequency: "Once Daily (OD)", duration: "30 Days", quantity: "30 Tabs", instructions: "Take after breakfast with full glass of water" },
-      { id: "2", name: "Metformin", strength: "500mg", route: "Oral", dosage: "1 Tablet", frequency: "Twice Daily (BD)", duration: "30 Days", quantity: "60 Tabs", instructions: "Take immediately with morning & evening meals" },
-      { id: "3", name: "Atorvastatin", strength: "20mg", route: "Oral", dosage: "1 Tablet", frequency: "Once Nightly (HS)", duration: "30 Days", quantity: "30 Tabs", instructions: "Take before sleeping" },
-      { id: "4", name: "Aspirin", strength: "75mg", route: "Oral", dosage: "1 Tablet", frequency: "Once Daily (OD)", duration: "30 Days", quantity: "30 Tabs", instructions: "Take after lunch" },
+      {
+        id: "1",
+        name: "Amlodipine",
+        strength: "5mg",
+        route: "Oral",
+        dosage: "1 Tablet",
+        frequency: "Once Daily (OD)",
+        duration: "30 Days",
+        quantity: "30 Tabs",
+        instructions: "Take after breakfast with full glass of water",
+      },
+      {
+        id: "2",
+        name: "Metformin",
+        strength: "500mg",
+        route: "Oral",
+        dosage: "1 Tablet",
+        frequency: "Twice Daily (BD)",
+        duration: "30 Days",
+        quantity: "60 Tabs",
+        instructions: "Take immediately with morning & evening meals",
+      },
+      {
+        id: "3",
+        name: "Atorvastatin",
+        strength: "20mg",
+        route: "Oral",
+        dosage: "1 Tablet",
+        frequency: "Once Nightly (HS)",
+        duration: "30 Days",
+        quantity: "30 Tabs",
+        instructions: "Take before sleeping",
+      },
+      {
+        id: "4",
+        name: "Aspirin",
+        strength: "75mg",
+        route: "Oral",
+        dosage: "1 Tablet",
+        frequency: "Once Daily (OD)",
+        duration: "30 Days",
+        quantity: "30 Tabs",
+        instructions: "Take after lunch",
+      },
     ],
-    dietAdvice: "Strict low-sodium (< 2g/day), low saturated fat diet. Increase fiber intake and fresh vegetables.",
-    lifestyleAdvice: "Smoking cessation strictly advised. Avoid stress and maintain regular sleep hygiene (7-8 hours).",
-    exerciseAdvice: "Daily light 20-30 min walking after 1 week. Avoid strenuous physical weight lifting until follow-up.",
-    specialInstructions: "If chest pain recurs or intensifies, use sublingual GTN spray immediately and report to ER.",
+    dietAdvice:
+      "Strict low-sodium (< 2g/day), low saturated fat diet. Increase fiber intake and fresh vegetables.",
+    lifestyleAdvice:
+      "Smoking cessation strictly advised. Avoid stress and maintain regular sleep hygiene (7-8 hours).",
+    exerciseAdvice:
+      "Daily light 20-30 min walking after 1 week. Avoid strenuous physical weight lifting until follow-up.",
+    specialInstructions:
+      "If chest pain recurs or intensifies, use sublingual GTN spray immediately and report to ER.",
     followupRequired: "Yes",
     nextVisitDate: "31 Jul 2026",
-    followupNotes: "Review ECG & Troponin-I laboratory reports. Re-evaluate blood pressure control and adjust anti-hypertensive dosage if needed.",
+    followupNotes:
+      "Review ECG & Troponin-I laboratory reports. Re-evaluate blood pressure control and adjust anti-hypertensive dosage if needed.",
   };
 
   const renderStatusChip = (status: RxStatus) => {
     switch (status) {
       case "Draft":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200" style={{ fontFamily: PP }}>
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200"
+            style={{ fontFamily: PP }}
+          >
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Draft
           </span>
         );
       case "Issued":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#0D47A1] border border-blue-200" style={{ fontFamily: PP }}>
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#0D47A1] border border-blue-200"
+            style={{ fontFamily: PP }}
+          >
             <span className="w-1.5 h-1.5 rounded-full bg-[#0D47A1]" /> Issued
           </span>
         );
       case "Completed":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-[#66BB6A] border border-emerald-200" style={{ fontFamily: PP }}>
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-[#66BB6A] border border-emerald-200"
+            style={{ fontFamily: PP }}
+          >
             <span className="w-1.5 h-1.5 rounded-full bg-[#66BB6A]" /> Completed
           </span>
         );
       case "Cancelled":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-[#EF4444] border border-red-200" style={{ fontFamily: PP }}>
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-[#EF4444] border border-red-200"
+            style={{ fontFamily: PP }}
+          >
             <span className="w-1.5 h-1.5 rounded-full bg-[#EF4444]" /> Cancelled
           </span>
         );
       case "Archived":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200" style={{ fontFamily: PP }}>
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200"
+            style={{ fontFamily: PP }}
+          >
             <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> Archived
           </span>
         );
@@ -143,7 +203,9 @@ export function DoctorPrescriptionDetailsScreen({
               <ChevronRight size={12} className="text-slate-400" />
               <span>Prescriptions</span>
               <ChevronRight size={12} className="text-slate-400" />
-              <span className="font-semibold text-[#0D47A1]">Prescription Details</span>
+              <span className="font-semibold text-[#0D47A1]">
+                Prescription Details
+              </span>
             </div>
             <div className="flex items-center gap-3">
               <h1
@@ -241,11 +303,23 @@ export function DoctorPrescriptionDetailsScreen({
                 className="flex items-center gap-3 text-xs text-[#64748B] mt-0.5"
                 style={{ fontFamily: RB }}
               >
-                <span>{rxRecord.age} yrs / {rxRecord.gender}</span>
+                <span>
+                  {rxRecord.age} yrs / {rxRecord.gender}
+                </span>
                 <span>•</span>
-                <span>Blood Group: <strong className="text-[#111827]">{rxRecord.bloodGroup}</strong></span>
+                <span>
+                  Blood Group:{" "}
+                  <strong className="text-[#111827]">
+                    {rxRecord.bloodGroup}
+                  </strong>
+                </span>
                 <span>•</span>
-                <span>Consultation Date: <strong className="text-[#111827]">{rxRecord.consultationDate}</strong></span>
+                <span>
+                  Consultation Date:{" "}
+                  <strong className="text-[#111827]">
+                    {rxRecord.consultationDate}
+                  </strong>
+                </span>
               </div>
             </div>
             <div
@@ -291,39 +365,98 @@ export function DoctorPrescriptionDetailsScreen({
               </div>
               <div className="space-y-3 text-xs" style={{ fontFamily: RB }}>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>MRN</span>
-                  <span className="font-mono font-bold text-[#0D47A1] text-sm">{rxRecord.mrn}</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block"
+                    style={{ fontFamily: PP }}
+                  >
+                    MRN
+                  </span>
+                  <span className="font-mono font-bold text-[#0D47A1] text-sm">
+                    {rxRecord.mrn}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>Mobile Number</span>
-                  <span className="font-semibold text-slate-700">{rxRecord.mobileNumber}</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block"
+                    style={{ fontFamily: PP }}
+                  >
+                    Mobile Number
+                  </span>
+                  <span className="font-semibold text-slate-700">
+                    {rxRecord.mobileNumber}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>Department</span>
-                  <span className="font-medium text-slate-700">{rxRecord.department}</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block"
+                    style={{ fontFamily: PP }}
+                  >
+                    Department
+                  </span>
+                  <span className="font-medium text-slate-700">
+                    {rxRecord.department}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>Attending Doctor</span>
-                  <span className="font-semibold text-slate-800">{rxRecord.doctorName}</span>
-                  <span className="text-[10px] text-slate-400 block">{rxRecord.doctorSpecialty}</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block"
+                    style={{ fontFamily: PP }}
+                  >
+                    Attending Doctor
+                  </span>
+                  <span className="font-semibold text-slate-800">
+                    {rxRecord.doctorName}
+                  </span>
+                  <span className="text-[10px] text-slate-400 block">
+                    {rxRecord.doctorSpecialty}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>Visit Date</span>
-                  <span className="font-medium text-slate-700">{rxRecord.visitDate}</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block"
+                    style={{ fontFamily: PP }}
+                  >
+                    Visit Date
+                  </span>
+                  <span className="font-medium text-slate-700">
+                    {rxRecord.visitDate}
+                  </span>
                 </div>
                 <div className="pt-2 border-t border-gray-100">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1" style={{ fontFamily: PP }}>Allergies</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                    style={{ fontFamily: PP }}
+                  >
+                    Allergies
+                  </span>
                   <div className="flex flex-wrap gap-1">
                     {rxRecord.allergies.map((a) => (
-                      <span key={a} className="px-2 py-0.5 bg-red-50 text-red-600 border border-red-100 rounded text-[10px] font-semibold" style={{ fontFamily: PP }}>⚠ {a}</span>
+                      <span
+                        key={a}
+                        className="px-2 py-0.5 bg-red-50 text-red-600 border border-red-100 rounded text-[10px] font-semibold"
+                        style={{ fontFamily: PP }}
+                      >
+                        ⚠ {a}
+                      </span>
                     ))}
                   </div>
                 </div>
                 <div className="pt-2 border-t border-gray-100">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1" style={{ fontFamily: PP }}>Known Conditions</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                    style={{ fontFamily: PP }}
+                  >
+                    Known Conditions
+                  </span>
                   <div className="flex flex-wrap gap-1">
                     {rxRecord.knownConditions.map((c) => (
-                      <span key={c} className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-medium" style={{ fontFamily: RB }}>{c}</span>
+                      <span
+                        key={c}
+                        className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-medium"
+                        style={{ fontFamily: RB }}
+                      >
+                        {c}
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -334,31 +467,76 @@ export function DoctorPrescriptionDetailsScreen({
           <div className="lg:col-span-6 space-y-5">
             <Card className="p-5">
               <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
-                <div className="w-6 h-6 rounded-md bg-blue-50 text-[#0D47A1] flex items-center justify-center font-bold text-xs">01</div>
-                <h3 className="text-sm font-bold text-[#111827]" style={{ fontFamily: PP }}>Diagnosis Summary</h3>
+                <div className="w-6 h-6 rounded-md bg-blue-50 text-[#0D47A1] flex items-center justify-center font-bold text-xs">
+                  01
+                </div>
+                <h3
+                  className="text-sm font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  Diagnosis Summary
+                </h3>
               </div>
               <div className="space-y-4 text-xs" style={{ fontFamily: RB }}>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5" style={{ fontFamily: PP }}>Chief Complaint</span>
-                  <p className="p-2.5 bg-slate-50 rounded-xl text-slate-800 font-medium border border-gray-100">{rxRecord.chiefComplaint}</p>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    Chief Complaint
+                  </span>
+                  <p className="p-2.5 bg-slate-50 rounded-xl text-slate-800 font-medium border border-gray-100">
+                    {rxRecord.chiefComplaint}
+                  </p>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5" style={{ fontFamily: PP }}>Clinical Findings</span>
-                  <p className="p-2.5 bg-slate-50 rounded-xl text-slate-700 border border-gray-100">{rxRecord.clinicalFindings}</p>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    Clinical Findings
+                  </span>
+                  <p className="p-2.5 bg-slate-50 rounded-xl text-slate-700 border border-gray-100">
+                    {rxRecord.clinicalFindings}
+                  </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5" style={{ fontFamily: PP }}>Final Diagnosis</span>
-                    <p className="font-bold text-[#111827]" style={{ fontFamily: PP }}>{rxRecord.finalDiagnosis}</p>
+                    <span
+                      className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5"
+                      style={{ fontFamily: PP }}
+                    >
+                      Final Diagnosis
+                    </span>
+                    <p
+                      className="font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      {rxRecord.finalDiagnosis}
+                    </p>
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5" style={{ fontFamily: PP }}>ICD Code</span>
-                    <p className="font-mono font-semibold text-[#0D47A1] bg-blue-50 px-2.5 py-1 rounded-lg inline-block">{rxRecord.icdCode}</p>
+                    <span
+                      className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5"
+                      style={{ fontFamily: PP }}
+                    >
+                      ICD Code
+                    </span>
+                    <p className="font-mono font-semibold text-[#0D47A1] bg-blue-50 px-2.5 py-1 rounded-lg inline-block">
+                      {rxRecord.icdCode}
+                    </p>
                   </div>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5" style={{ fontFamily: PP }}>Consultation Notes</span>
-                  <p className="text-slate-600 leading-relaxed italic">{rxRecord.consultationNotes}</p>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5"
+                    style={{ fontFamily: PP }}
+                  >
+                    Consultation Notes
+                  </span>
+                  <p className="text-slate-600 leading-relaxed italic">
+                    {rxRecord.consultationNotes}
+                  </p>
                 </div>
               </div>
             </Card>
@@ -366,17 +544,31 @@ export function DoctorPrescriptionDetailsScreen({
             <Card className="overflow-hidden">
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-slate-50/50">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-6 h-6 rounded-md bg-teal-50 text-[#009688] flex items-center justify-center font-bold text-xs">02</div>
-                  <h3 className="text-sm font-bold text-[#111827]" style={{ fontFamily: PP }}>Prescribed Medicines</h3>
+                  <div className="w-6 h-6 rounded-md bg-teal-50 text-[#009688] flex items-center justify-center font-bold text-xs">
+                    02
+                  </div>
+                  <h3
+                    className="text-sm font-bold text-[#111827]"
+                    style={{ fontFamily: PP }}
+                  >
+                    Prescribed Medicines
+                  </h3>
                 </div>
-                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-teal-50 text-[#009688] border border-teal-100" style={{ fontFamily: PP }}>
-                  <Pill size={12} className="inline mr-1" />{rxRecord.medicines.length} Medicines
+                <span
+                  className="px-2.5 py-1 rounded-full text-xs font-bold bg-teal-50 text-[#009688] border border-teal-100"
+                  style={{ fontFamily: PP }}
+                >
+                  <Pill size={12} className="inline mr-1" />
+                  {rxRecord.medicines.length} Medicines
                 </span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-gray-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider" style={{ fontFamily: PP }}>
+                    <tr
+                      className="bg-slate-50 border-b border-gray-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider"
+                      style={{ fontFamily: PP }}
+                    >
                       <th className="px-4 py-3">Medicine</th>
                       <th className="px-3 py-3">Strength</th>
                       <th className="px-3 py-3">Route</th>
@@ -387,19 +579,47 @@ export function DoctorPrescriptionDetailsScreen({
                       <th className="px-4 py-3">Instructions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 text-xs text-[#111827]" style={{ fontFamily: RB }}>
+                  <tbody
+                    className="divide-y divide-gray-100 text-xs text-[#111827]"
+                    style={{ fontFamily: RB }}
+                  >
                     {rxRecord.medicines.map((m) => (
-                      <tr key={m.id} className="hover:bg-slate-50/60 transition-colors">
-                        <td className="px-4 py-3 font-bold text-[#111827] whitespace-nowrap" style={{ fontFamily: PP }}>{m.name}</td>
-                        <td className="px-3 py-3 font-medium text-slate-700 whitespace-nowrap">{m.strength}</td>
-                        <td className="px-3 py-3 text-slate-500 whitespace-nowrap">{m.route}</td>
-                        <td className="px-3 py-3 text-slate-700 whitespace-nowrap">{m.dosage}</td>
-                        <td className="px-3 py-3 whitespace-nowrap">
-                          <span className="px-2 py-0.5 bg-blue-50 text-[#0D47A1] rounded font-semibold text-[11px]" style={{ fontFamily: PP }}>{m.frequency}</span>
+                      <tr
+                        key={m.id}
+                        className="hover:bg-slate-50/60 transition-colors"
+                      >
+                        <td
+                          className="px-4 py-3 font-bold text-[#111827] whitespace-nowrap"
+                          style={{ fontFamily: PP }}
+                        >
+                          {m.name}
                         </td>
-                        <td className="px-3 py-3 text-slate-600 whitespace-nowrap">{m.duration}</td>
-                        <td className="px-3 py-3 font-mono font-medium text-slate-800 whitespace-nowrap">{m.quantity}</td>
-                        <td className="px-4 py-3 text-slate-500 italic max-w-xs">{m.instructions}</td>
+                        <td className="px-3 py-3 font-medium text-slate-700 whitespace-nowrap">
+                          {m.strength}
+                        </td>
+                        <td className="px-3 py-3 text-slate-500 whitespace-nowrap">
+                          {m.route}
+                        </td>
+                        <td className="px-3 py-3 text-slate-700 whitespace-nowrap">
+                          {m.dosage}
+                        </td>
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <span
+                            className="px-2 py-0.5 bg-blue-50 text-[#0D47A1] rounded font-semibold text-[11px]"
+                            style={{ fontFamily: PP }}
+                          >
+                            {m.frequency}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-slate-600 whitespace-nowrap">
+                          {m.duration}
+                        </td>
+                        <td className="px-3 py-3 font-mono font-medium text-slate-800 whitespace-nowrap">
+                          {m.quantity}
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 italic max-w-xs">
+                          {m.instructions}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -409,75 +629,182 @@ export function DoctorPrescriptionDetailsScreen({
 
             <Card className="p-5">
               <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
-                <div className="w-6 h-6 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xs">03</div>
-                <h3 className="text-sm font-bold text-[#111827]" style={{ fontFamily: PP }}>General Advice & Recommendations</h3>
+                <div className="w-6 h-6 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xs">
+                  03
+                </div>
+                <h3
+                  className="text-sm font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  General Advice & Recommendations
+                </h3>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs" style={{ fontFamily: RB }}>
+              <div
+                className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs"
+                style={{ fontFamily: RB }}
+              >
                 <div className="p-3 bg-slate-50 rounded-xl border border-gray-100">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1" style={{ fontFamily: PP }}>Diet Advice</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                    style={{ fontFamily: PP }}
+                  >
+                    Diet Advice
+                  </span>
                   <p className="text-slate-700">{rxRecord.dietAdvice}</p>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-xl border border-gray-100">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1" style={{ fontFamily: PP }}>Lifestyle Advice</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                    style={{ fontFamily: PP }}
+                  >
+                    Lifestyle Advice
+                  </span>
                   <p className="text-slate-700">{rxRecord.lifestyleAdvice}</p>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-xl border border-gray-100">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1" style={{ fontFamily: PP }}>Exercise Advice</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                    style={{ fontFamily: PP }}
+                  >
+                    Exercise Advice
+                  </span>
                   <p className="text-slate-700">{rxRecord.exerciseAdvice}</p>
                 </div>
                 <div className="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl">
-                  <span className="text-[10px] font-bold text-amber-800 uppercase block mb-1" style={{ fontFamily: PP }}>Special Instructions</span>
-                  <p className="text-amber-900 font-medium">{rxRecord.specialInstructions}</p>
+                  <span
+                    className="text-[10px] font-bold text-amber-800 uppercase block mb-1"
+                    style={{ fontFamily: PP }}
+                  >
+                    Special Instructions
+                  </span>
+                  <p className="text-amber-900 font-medium">
+                    {rxRecord.specialInstructions}
+                  </p>
                 </div>
               </div>
             </Card>
 
             <Card className="p-5">
               <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
-                <div className="w-6 h-6 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs">04</div>
-                <h3 className="text-sm font-bold text-[#111827]" style={{ fontFamily: PP }}>Follow-up Details</h3>
+                <div className="w-6 h-6 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs">
+                  04
+                </div>
+                <h3
+                  className="text-sm font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  Follow-up Details
+                </h3>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs mb-3" style={{ fontFamily: RB }}>
+              <div
+                className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs mb-3"
+                style={{ fontFamily: RB }}
+              >
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>Follow-up Required</span>
-                  <span className="inline-block mt-0.5 px-2.5 py-0.5 rounded font-bold bg-amber-50 text-amber-700 border border-amber-200">{rxRecord.followupRequired}</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block"
+                    style={{ fontFamily: PP }}
+                  >
+                    Follow-up Required
+                  </span>
+                  <span className="inline-block mt-0.5 px-2.5 py-0.5 rounded font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                    {rxRecord.followupRequired}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>Next Visit Date</span>
-                  <span className="font-bold text-[#111827] text-sm mt-0.5 block">{rxRecord.nextVisitDate}</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block"
+                    style={{ fontFamily: PP }}
+                  >
+                    Next Visit Date
+                  </span>
+                  <span className="font-bold text-[#111827] text-sm mt-0.5 block">
+                    {rxRecord.nextVisitDate}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>Time Frame</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block"
+                    style={{ fontFamily: PP }}
+                  >
+                    Time Frame
+                  </span>
                   <span className="text-slate-600 mt-0.5 block">In 7 Days</span>
                 </div>
               </div>
               <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1" style={{ fontFamily: PP }}>Follow-up Notes</span>
-                <p className="p-3 bg-slate-50 rounded-xl border border-gray-100 text-xs text-slate-700" style={{ fontFamily: RB }}>{rxRecord.followupNotes}</p>
+                <span
+                  className="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  Follow-up Notes
+                </span>
+                <p
+                  className="p-3 bg-slate-50 rounded-xl border border-gray-100 text-xs text-slate-700"
+                  style={{ fontFamily: RB }}
+                >
+                  {rxRecord.followupNotes}
+                </p>
               </div>
             </Card>
 
             <Card className="p-5">
               <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
-                <div className="w-6 h-6 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs">05</div>
-                <h3 className="text-sm font-bold text-[#111827]" style={{ fontFamily: PP }}>Prescription Technical Summary</h3>
+                <div className="w-6 h-6 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs">
+                  05
+                </div>
+                <h3
+                  className="text-sm font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  Prescription Technical Summary
+                </h3>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs" style={{ fontFamily: RB }}>
+              <div
+                className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs"
+                style={{ fontFamily: RB }}
+              >
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>Prescription ID</span>
-                  <span className="font-mono font-bold text-[#0D47A1]">{rxRecord.id}</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block"
+                    style={{ fontFamily: PP }}
+                  >
+                    Prescription ID
+                  </span>
+                  <span className="font-mono font-bold text-[#0D47A1]">
+                    {rxRecord.id}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>Consultation ID</span>
-                  <span className="font-mono font-semibold text-slate-700">{rxRecord.consultationId}</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block"
+                    style={{ fontFamily: PP }}
+                  >
+                    Consultation ID
+                  </span>
+                  <span className="font-mono font-semibold text-slate-700">
+                    {rxRecord.consultationId}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>Issued Date</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block"
+                    style={{ fontFamily: PP }}
+                  >
+                    Issued Date
+                  </span>
                   <span className="text-slate-700">{rxRecord.issuedDate}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>Total Medicines</span>
-                  <span className="font-bold text-[#009688]">{rxRecord.medicines.length} Medicines</span>
+                  <span
+                    className="text-[10px] font-bold text-slate-400 uppercase block"
+                    style={{ fontFamily: PP }}
+                  >
+                    Total Medicines
+                  </span>
+                  <span className="font-bold text-[#009688]">
+                    {rxRecord.medicines.length} Medicines
+                  </span>
                 </div>
               </div>
             </Card>
@@ -485,48 +812,101 @@ export function DoctorPrescriptionDetailsScreen({
 
           <div className="lg:col-span-3 space-y-4">
             <Card className="p-4">
-              <h4 className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-3 pb-2 border-b border-gray-100" style={{ fontFamily: PP }}>Quick Actions</h4>
+              <h4
+                className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-3 pb-2 border-b border-gray-100"
+                style={{ fontFamily: PP }}
+              >
+                Quick Actions
+              </h4>
               <div className="space-y-2">
                 {rxRecord.status === "Draft" ? (
-                  <button onClick={() => onEditPrescription?.(rxRecord.id)} className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold transition-colors" style={{ fontFamily: PP }}>
-                    <span className="flex items-center gap-2"><Edit3 size={14} /> Edit Prescription</span>
+                  <button
+                    onClick={() => onEditPrescription?.(rxRecord.id)}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold transition-colors"
+                    style={{ fontFamily: PP }}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Edit3 size={14} /> Edit Prescription
+                    </span>
                     <ChevronRight size={13} />
                   </button>
                 ) : (
-                  <button disabled className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 text-slate-400 text-xs font-semibold cursor-not-allowed opacity-60" style={{ fontFamily: PP }} title="Issued prescriptions cannot be modified">
-                    <span className="flex items-center gap-2"><Edit3 size={14} /> Edit Prescription</span>
-                    <span className="text-[10px] text-slate-400 font-normal">Locked</span>
+                  <button
+                    disabled
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 text-slate-400 text-xs font-semibold cursor-not-allowed opacity-60"
+                    style={{ fontFamily: PP }}
+                    title="Issued prescriptions cannot be modified"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Edit3 size={14} /> Edit Prescription
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      Locked
+                    </span>
                   </button>
                 )}
-                <button onClick={() => setPrintModalOpen(true)} className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-[#009688] text-xs font-semibold transition-colors" style={{ fontFamily: PP }}>
-                  <span className="flex items-center gap-2"><Printer size={14} /> Print Prescription</span>
+                <button
+                  onClick={() => setPrintModalOpen(true)}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 text-[#009688] text-xs font-semibold transition-colors"
+                  style={{ fontFamily: PP }}
+                >
+                  <span className="flex items-center gap-2">
+                    <Printer size={14} /> Print Prescription
+                  </span>
                   <ChevronRight size={13} />
                 </button>
-                <button onClick={() => showToast(`Downloaded PDF for ${rxRecord.id}`)} className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0D47A1] text-xs font-semibold transition-colors" style={{ fontFamily: PP }}>
-                  <span className="flex items-center gap-2"><Download size={14} /> Download PDF</span>
+                <button
+                  onClick={() => showToast(`Downloaded PDF for ${rxRecord.id}`)}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0D47A1] text-xs font-semibold transition-colors"
+                  style={{ fontFamily: PP }}
+                >
+                  <span className="flex items-center gap-2">
+                    <Download size={14} /> Download PDF
+                  </span>
                   <ChevronRight size={13} />
                 </button>
-                <button onClick={() => onViewHistory?.(rxRecord.mrn)} className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold transition-colors" style={{ fontFamily: PP }}>
-                  <span className="flex items-center gap-2"><Clock size={14} /> Prescription History</span>
+                <button
+                  onClick={() => onViewHistory?.(rxRecord.mrn)}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold transition-colors"
+                  style={{ fontFamily: PP }}
+                >
+                  <span className="flex items-center gap-2">
+                    <Clock size={14} /> Prescription History
+                  </span>
                   <ChevronRight size={13} />
                 </button>
-                <button onClick={() => onViewConsultation?.(rxRecord.consultationId)} className="w-full flex items-center justify-between px-3 py-2 rounded-xl border border-gray-200 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors" style={{ fontFamily: RB }}>
-                  <span className="flex items-center gap-2"><FileText size={14} /> View Consultation</span>
+                <button
+                  onClick={() => onViewConsultation?.(rxRecord.consultationId)}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl border border-gray-200 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors"
+                  style={{ fontFamily: RB }}
+                >
+                  <span className="flex items-center gap-2">
+                    <FileText size={14} /> View Consultation
+                  </span>
                   <ChevronRight size={13} />
                 </button>
               </div>
             </Card>
 
             <Card className="p-4">
-              <h4 className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-3 pb-2 border-b border-gray-100" style={{ fontFamily: PP }}>Prescription Summary</h4>
+              <h4
+                className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-3 pb-2 border-b border-gray-100"
+                style={{ fontFamily: PP }}
+              >
+                Prescription Summary
+              </h4>
               <div className="space-y-2.5 text-xs" style={{ fontFamily: RB }}>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500">Issued By</span>
-                  <span className="font-semibold text-slate-800">{rxRecord.doctorName}</span>
+                  <span className="font-semibold text-slate-800">
+                    {rxRecord.doctorName}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500">Issue Date</span>
-                  <span className="font-medium text-slate-700">{rxRecord.issuedDate}</span>
+                  <span className="font-medium text-slate-700">
+                    {rxRecord.issuedDate}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500">Status</span>
@@ -534,29 +914,73 @@ export function DoctorPrescriptionDetailsScreen({
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                   <span className="text-slate-500">Follow-up Date</span>
-                  <span className="font-bold text-[#111827]">{rxRecord.nextVisitDate}</span>
+                  <span className="font-bold text-[#111827]">
+                    {rxRecord.nextVisitDate}
+                  </span>
                 </div>
               </div>
             </Card>
 
             <Card className="p-4">
-              <h4 className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-3 pb-2 border-b border-gray-100" style={{ fontFamily: PP }}>Activity Timeline</h4>
+              <h4
+                className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-3 pb-2 border-b border-gray-100"
+                style={{ fontFamily: PP }}
+              >
+                Activity Timeline
+              </h4>
               <div className="space-y-3">
                 {[
-                  { title: "Consultation Completed", time: "09:40 AM", date: "24 Jul 2026", done: true },
-                  { title: "Prescription Drafted", time: "09:41 AM", date: "24 Jul 2026", done: true },
-                  { title: "Prescription Issued", time: "09:42 AM", date: "24 Jul 2026", done: true },
-                  { title: "Prescription Printed", time: "09:45 AM", date: "24 Jul 2026", done: true },
-                  { title: "Prescription Downloaded", time: "09:50 AM", date: "24 Jul 2026", done: true },
+                  {
+                    title: "Consultation Completed",
+                    time: "09:40 AM",
+                    date: "24 Jul 2026",
+                    done: true,
+                  },
+                  {
+                    title: "Prescription Drafted",
+                    time: "09:41 AM",
+                    date: "24 Jul 2026",
+                    done: true,
+                  },
+                  {
+                    title: "Prescription Issued",
+                    time: "09:42 AM",
+                    date: "24 Jul 2026",
+                    done: true,
+                  },
+                  {
+                    title: "Prescription Printed",
+                    time: "09:45 AM",
+                    date: "24 Jul 2026",
+                    done: true,
+                  },
+                  {
+                    title: "Prescription Downloaded",
+                    time: "09:50 AM",
+                    date: "24 Jul 2026",
+                    done: true,
+                  },
                 ].map((ev, i, arr) => (
                   <div key={i} className="flex gap-2.5 items-start">
                     <div className="flex flex-col items-center">
                       <div className="w-2 h-2 rounded-full bg-[#009688] mt-1 shrink-0" />
-                      {i < arr.length - 1 && <div className="w-px flex-1 bg-gray-200 my-1 h-4" />}
+                      {i < arr.length - 1 && (
+                        <div className="w-px flex-1 bg-gray-200 my-1 h-4" />
+                      )}
                     </div>
                     <div>
-                      <div className="text-xs font-semibold text-[#111827]" style={{ fontFamily: PP }}>{ev.title}</div>
-                      <div className="text-[10px] text-slate-400" style={{ fontFamily: RB }}>{ev.date} at {ev.time}</div>
+                      <div
+                        className="text-xs font-semibold text-[#111827]"
+                        style={{ fontFamily: PP }}
+                      >
+                        {ev.title}
+                      </div>
+                      <div
+                        className="text-[10px] text-slate-400"
+                        style={{ fontFamily: RB }}
+                      >
+                        {ev.date} at {ev.time}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -572,34 +996,78 @@ export function DoctorPrescriptionDetailsScreen({
             <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
               <div className="flex items-center gap-2">
                 <Printer size={18} className="text-[#0D47A1]" />
-                <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>Print Prescription Preview</h3>
+                <h3
+                  className="text-base font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  Print Prescription Preview
+                </h3>
               </div>
-              <button onClick={() => setPrintModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+              <button
+                onClick={() => setPrintModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X size={18} />
+              </button>
             </div>
-            <div className="p-4 bg-slate-50 rounded-xl border border-gray-200 mb-5 text-xs text-slate-700 space-y-3" style={{ fontFamily: RB }}>
+            <div
+              className="p-4 bg-slate-50 rounded-xl border border-gray-200 mb-5 text-xs text-slate-700 space-y-3"
+              style={{ fontFamily: RB }}
+            >
               <div className="flex justify-between border-b border-gray-200 pb-2">
-                <span className="font-bold text-[#0D47A1]">HMS Hospital & Research Center</span>
+                <span className="font-bold text-[#0D47A1]">
+                  HMS Hospital & Research Center
+                </span>
                 <span className="font-mono text-slate-500">{rxRecord.id}</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div><strong>Patient:</strong> {rxRecord.patientName}</div>
-                <div><strong>MRN:</strong> {rxRecord.mrn}</div>
-                <div><strong>Doctor:</strong> {rxRecord.doctorName}</div>
-                <div><strong>Date:</strong> {rxRecord.consultationDate}</div>
+                <div>
+                  <strong>Patient:</strong> {rxRecord.patientName}
+                </div>
+                <div>
+                  <strong>MRN:</strong> {rxRecord.mrn}
+                </div>
+                <div>
+                  <strong>Doctor:</strong> {rxRecord.doctorName}
+                </div>
+                <div>
+                  <strong>Date:</strong> {rxRecord.consultationDate}
+                </div>
               </div>
-              <div><strong>Diagnosis:</strong> {rxRecord.finalDiagnosis}</div>
+              <div>
+                <strong>Diagnosis:</strong> {rxRecord.finalDiagnosis}
+              </div>
               <div className="pt-2 border-t border-gray-200">
-                <div className="font-bold mb-1">Medicines ({rxRecord.medicines.length}):</div>
+                <div className="font-bold mb-1">
+                  Medicines ({rxRecord.medicines.length}):
+                </div>
                 <ul className="list-disc pl-4 space-y-0.5">
                   {rxRecord.medicines.map((m) => (
-                    <li key={m.id}>{m.name} {m.strength} — {m.frequency} ({m.instructions})</li>
+                    <li key={m.id}>
+                      {m.name} {m.strength} — {m.frequency} ({m.instructions})
+                    </li>
                   ))}
                 </ul>
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setPrintModalOpen(false)} className="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl" style={{ fontFamily: RB }}>Cancel</button>
-              <button onClick={() => { setPrintModalOpen(false); showToast(`Prescription ${rxRecord.id} sent to printer`); }} className="px-4 py-2 text-xs font-semibold bg-[#0D47A1] text-white rounded-xl hover:bg-[#0c3d8a]" style={{ fontFamily: PP }}>Print Document</button>
+              <button
+                onClick={() => setPrintModalOpen(false)}
+                className="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl"
+                style={{ fontFamily: RB }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setPrintModalOpen(false);
+                  showToast(`Prescription ${rxRecord.id} sent to printer`);
+                }}
+                className="px-4 py-2 text-xs font-semibold bg-[#0D47A1] text-white rounded-xl hover:bg-[#0c3d8a]"
+                style={{ fontFamily: PP }}
+              >
+                Print Document
+              </button>
             </div>
           </div>
         </div>

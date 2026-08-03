@@ -6,7 +6,6 @@ import type {
   MergePatientsRequest,
   Patient,
   PatientStatistics,
-  UpdatePatientRequest,
 } from "../types/patient.types";
 
 const unwrapData = <T>(response: unknown): T | null => {
@@ -16,6 +15,12 @@ const unwrapData = <T>(response: unknown): T | null => {
 };
 
 export const patientsApi = {
+  /**
+   * cURL:
+   * curl -X GET http://192.168.1.44:8081/api/v1/patients \
+   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
+   *   -H "Content-Type: application/json"
+   */
   async getAll(params?: {
     query?: string;
     page?: number;
@@ -150,18 +155,26 @@ export const patientsApi = {
   },
 
   async update(
-    mrn: string,
-    payload: UpdatePatientRequest,
-    version: number,
+    userIdOrMrn: string | number,
+    payload: Record<string, unknown>,
   ): Promise<Patient> {
     try {
-      const res = await apiClient.patch<Patient>(
-        `/api/v1/patients/${encodeURIComponent(mrn)}`,
-        {
-          ...payload,
-          version,
-        },
-      );
+      let res;
+      try {
+        res = await apiClient.put<Patient>(
+          `/api/v1/admin/users/${userIdOrMrn}`,
+          payload,
+        );
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+          res = await apiClient.put<Patient>(
+            `/api/v1/patients/${encodeURIComponent(String(userIdOrMrn))}`,
+            payload,
+          );
+        } else {
+          throw err;
+        }
+      }
       const raw = res.data;
       if (raw && typeof raw === "object" && "data" in raw && "success" in raw) {
         return raw.data as Patient;
@@ -247,6 +260,28 @@ export const patientsApi = {
     }
   },
 
+  async getMyPatients(relationship?: string): Promise<Patient[]> {
+    try {
+      const search = new URLSearchParams();
+      if (relationship) search.append("relationship", relationship);
+      const url = `/api/v1/patients/my${search.toString() ? `?${search.toString()}` : ""}`;
+      const res = await apiClient.get<unknown>(url);
+      let data = res.data as any;
+      if (data && typeof data === "object" && "data" in data) {
+        data = data.data;
+      }
+      return Array.isArray(data) ? data : [];
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
+      }
+      throw error;
+    }
+  },
+
   async getStatistics(): Promise<PatientStatistics> {
     try {
       const res = await apiClient.get<PatientStatistics>(
@@ -285,4 +320,41 @@ export const patientsApi = {
       throw error;
     }
   },
+
+  /**
+   * GET /api/v1/patients/me/queue
+   * Fetch current patient's queue status
+   */
+  async getMyQueue(): Promise<{
+    appointmentId: number;
+    token: string;
+    position: number;
+    patientsAhead: number;
+    estimatedWaitMinutes: number;
+    status: string;
+    doctorName: string;
+    departmentName: string;
+  } | null> {
+    try {
+      const res = await apiClient.get<any>("/api/v1/patients/me/queue");
+      const data = res.data?.data || res.data;
+      if (data && typeof data === "object") {
+        return {
+          appointmentId: data.appointmentId || 0,
+          token: data.token || data.tokenNumber || "TK-001",
+          position: data.position ?? 1,
+          patientsAhead: data.patientsAhead ?? 0,
+          estimatedWaitMinutes: data.estimatedWaitMinutes ?? 15,
+          status: data.status || data.queueStatus || "WAITING",
+          doctorName: data.doctorName || "Duty Doctor",
+          departmentName: data.departmentName || "General OPD",
+        };
+      }
+      return null;
+    } catch (error) {
+      console.warn("[patientApi] Fallback for getMyQueue:", error);
+      return null;
+    }
+  },
 };
+

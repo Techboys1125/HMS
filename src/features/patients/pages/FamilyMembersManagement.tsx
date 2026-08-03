@@ -10,7 +10,6 @@ import {
   CreditCard,
   Pill,
   ChevronRight,
-  ChevronDown,
   Eye,
   Edit3,
   UserX,
@@ -21,9 +20,8 @@ import {
   Stethoscope,
   ExternalLink,
   User,
-  Phone,
-  Hash,
 } from "lucide-react";
+import { INITIAL_FAMILY_MEMBERS } from "../../../mocks/familyMembers.mock";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -33,18 +31,18 @@ export type FamilyMember = {
   patientName: string;
   mrn: string;
   relationship:
-  | "Self"
-  | "Mother"
-  | "Father"
-  | "Spouse"
-  | "Son"
-  | "Daughter"
-  | "Brother"
-  | "Sister"
-  | "Grandfather"
-  | "Grandmother"
-  | "Guardian"
-  | "Other";
+    | "Self"
+    | "Mother"
+    | "Father"
+    | "Spouse"
+    | "Son"
+    | "Daughter"
+    | "Brother"
+    | "Sister"
+    | "Grandfather"
+    | "Grandmother"
+    | "Guardian"
+    | "Other";
   age: number;
   gender: "Male" | "Female" | "Other";
   bloodGroup?: string;
@@ -70,8 +68,6 @@ export type LinkActivity = {
   activity: string;
   status: "Completed" | "Pending" | "Updated";
 };
-
-import { INITIAL_FAMILY_MEMBERS } from "./mocks/familyMembers.mock";
 
 const MOCK_ACTIVITIES: LinkActivity[] = [
   {
@@ -111,98 +107,11 @@ const MOCK_ACTIVITIES: LinkActivity[] = [
   },
 ];
 
-// Mock search database (simulating registered patients in the hospital)
-const REGISTERED_PATIENTS_DB = [
-  {
-    patientName: "Meena Devi Kumar",
-    mrn: "MRN-2026-000230",
-    age: 62,
-    gender: "Female" as const,
-    bloodGroup: "O+",
-    mobile: "+91 98765 88990",
-    patientStatus: "Active" as const,
-    verificationStatus: "Verified" as const,
-  },
-  {
-    patientName: "Suresh Kumar",
-    mrn: "MRN-2026-000045",
-    age: 55,
-    gender: "Male" as const,
-    bloodGroup: "A+",
-    mobile: "+91 97654 11234",
-    patientStatus: "Active" as const,
-    verificationStatus: "Verified" as const,
-  },
-  {
-    patientName: "Priya Sharma",
-    mrn: "MRN-2026-000312",
-    age: 30,
-    gender: "Female" as const,
-    bloodGroup: "B-",
-    mobile: "+91 96543 22345",
-    patientStatus: "Active" as const,
-    verificationStatus: "Verified" as const,
-  },
-  {
-    patientName: "Vikram Singh",
-    mrn: "MRN-2026-000078",
-    age: 45,
-    gender: "Male" as const,
-    bloodGroup: "AB+",
-    mobile: "+91 95432 33456",
-    patientStatus: "Inactive" as const,
-    verificationStatus: "Verified" as const,
-  },
-];
-
-type SearchMethod = "MRN" | "Mobile" | "Patient Name";
-type RelationshipOption = Exclude<FamilyMember["relationship"], "Self">;
-
-const RELATIONSHIP_OPTIONS: RelationshipOption[] = [
-  "Father",
-  "Mother",
-  "Spouse",
-  "Son",
-  "Daughter",
-  "Brother",
-  "Sister",
-  "Grandfather",
-  "Grandmother",
-  "Guardian",
-  "Other",
-];
-
-type SearchResultType = {
-  found: boolean;
-  patientName: string;
-  mrn: string;
-  age: number;
-  gender: "Male" | "Female";
-  bloodGroup: string;
-  mobile: string;
-  patientStatus: "Active" | "Inactive";
-  verificationStatus: "Verified" | "Pending";
-};
-
-type ValidationError = {
-  type:
-  | "mrn-not-found"
-  | "mobile-not-found"
-  | "name-not-found"
-  | "already-linked"
-  | "cannot-link-self"
-  | "relationship-exists"
-  | "duplicate-pending"
-  | "inactive-patient"
-  | "empty-field";
-  message: string;
-};
-
 interface FamilyMembersManagementProps {
   familyMembers?: FamilyMember[];
   activeFamilyMember?: FamilyMember;
   onSwitchProfile?: (member: FamilyMember) => void;
-  onAddFamilyMember?: (newMember: Partial<FamilyMember>) => void;
+  onAddFamilyMember?: (newMember?: Partial<FamilyMember>) => void;
   onRemoveFamilyMember?: (id: string) => void;
   onUpdateRelationship?: (
     id: string,
@@ -213,6 +122,7 @@ interface FamilyMembersManagementProps {
 export function FamilyMembersManagement({
   familyMembers = INITIAL_FAMILY_MEMBERS,
   activeFamilyMember = INITIAL_FAMILY_MEMBERS[0],
+  onSwitchProfile,
   onAddFamilyMember,
   onRemoveFamilyMember,
   onUpdateRelationship,
@@ -225,7 +135,6 @@ export function FamilyMembersManagement({
   const [viewDrawerMember, setViewDrawerMember] = useState<FamilyMember | null>(
     null,
   );
-  const [showAddDrawer, setShowAddDrawer] = useState(false);
   const [editRelMember, setEditRelMember] = useState<FamilyMember | null>(null);
   const [editFormRel, setEditFormRel] =
     useState<FamilyMember["relationship"]>("Mother");
@@ -237,18 +146,6 @@ export function FamilyMembersManagement({
   const [removeDialogMember, setRemoveDialogMember] =
     useState<FamilyMember | null>(null);
   const [removeFromDrawer, setRemoveFromDrawer] = useState(false);
-
-  // Add Drawer Form State
-  const [addRel, setAddRel] = useState<RelationshipOption>("Mother");
-  const [searchMethod, setSearchMethod] = useState<SearchMethod>("MRN");
-  const [searchValue, setSearchValue] = useState("");
-  const [searchResult, setSearchResult] = useState<SearchResultType | null>(
-    null,
-  );
-  const [searchPerformed, setSearchPerformed] = useState(false);
-  const [validationError, setValidationError] =
-    useState<ValidationError | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
 
   // Top Summary Metrics
   const totalLinked = familyMembers.length;
@@ -281,192 +178,6 @@ export function FamilyMembersManagement({
     return matchesSearch && matchesRel && matchesStatus;
   });
 
-  // Validate & search patient
-  const handleSearchPatient = () => {
-    if (!searchValue.trim()) {
-      setValidationError({
-        type: "empty-field",
-        message: `Please enter a ${searchMethod === "MRN" ? "MRN" : searchMethod === "Mobile" ? "mobile number" : "patient name"} to search.`,
-      });
-      setSearchResult(null);
-      setSearchPerformed(false);
-      return;
-    }
-
-    setValidationError(null);
-    setIsSearching(true);
-    setSearchPerformed(false);
-
-    // Simulate search delay
-    setTimeout(() => {
-      let found: (typeof REGISTERED_PATIENTS_DB)[0] | undefined;
-
-      if (searchMethod === "MRN") {
-        found = REGISTERED_PATIENTS_DB.find(
-          (p) => p.mrn.toLowerCase() === searchValue.toLowerCase(),
-        );
-      } else if (searchMethod === "Mobile") {
-        found = REGISTERED_PATIENTS_DB.find((p) =>
-          p.mobile.replace(/\s/g, "").includes(searchValue.replace(/\s/g, "")),
-        );
-      } else {
-        found = REGISTERED_PATIENTS_DB.find((p) =>
-          p.patientName.toLowerCase().includes(searchValue.toLowerCase()),
-        );
-      }
-
-      setIsSearching(false);
-      setSearchPerformed(true);
-
-      if (!found) {
-        setSearchResult(null);
-        const errorType =
-          searchMethod === "MRN"
-            ? "mrn-not-found"
-            : searchMethod === "Mobile"
-              ? "mobile-not-found"
-              : "name-not-found";
-        const errorMsg =
-          searchMethod === "MRN"
-            ? "No registered patient found with this MRN."
-            : searchMethod === "Mobile"
-              ? "No registered patient found with this mobile number."
-              : "No registered patient found with this name.";
-        setValidationError({ type: errorType, message: errorMsg });
-        return;
-      }
-
-      // Check if patient is the current logged-in user
-      if (found.mrn === activeFamilyMember?.mrn) {
-        setSearchResult(null);
-        setValidationError({
-          type: "cannot-link-self",
-          message: "You cannot link yourself as a family member.",
-        });
-        return;
-      }
-
-      // Check if patient already linked
-      const alreadyLinked = familyMembers.find((m) => m.mrn === found!.mrn);
-      if (alreadyLinked) {
-        setSearchResult(null);
-        setValidationError({
-          type: "already-linked",
-          message: `${found.patientName} is already linked as ${alreadyLinked.relationship}.`,
-        });
-        return;
-      }
-
-      // Check if relationship already exists (same relationship type)
-      const sameRelExists = familyMembers.find(
-        (m) => m.relationship === addRel && addRel !== "Other",
-      );
-      if (sameRelExists && ["Father", "Mother", "Spouse"].includes(addRel)) {
-        setSearchResult(null);
-        setValidationError({
-          type: "relationship-exists",
-          message: `A ${addRel} relationship already exists with ${sameRelExists.patientName}.`,
-        });
-        return;
-      }
-
-      // Check if inactive
-      if (found.patientStatus === "Inactive") {
-        setSearchResult({
-          found: true,
-          patientName: found.patientName,
-          mrn: found.mrn,
-          age: found.age,
-          gender: found.gender,
-          bloodGroup: found.bloodGroup,
-          mobile: found.mobile,
-          patientStatus: found.patientStatus,
-          verificationStatus: found.verificationStatus,
-        });
-        setValidationError({
-          type: "inactive-patient",
-          message:
-            "This patient account is currently inactive. Only active patients can be linked.",
-        });
-        return;
-      }
-
-      setSearchResult({
-        found: true,
-        patientName: found.patientName,
-        mrn: found.mrn,
-        age: found.age,
-        gender: found.gender,
-        bloodGroup: found.bloodGroup,
-        mobile: found.mobile,
-        patientStatus: found.patientStatus,
-        verificationStatus: found.verificationStatus,
-      });
-      setValidationError(null);
-    }, 600);
-  };
-
-  const handleSendLinkRequest = () => {
-    if (!searchResult || searchResult.patientStatus === "Inactive") return;
-    onAddFamilyMember?.({
-      patientName: searchResult.patientName,
-      mrn: searchResult.mrn,
-      relationship: addRel,
-      age: searchResult.age,
-      gender: searchResult.gender,
-      bloodGroup: searchResult.bloodGroup,
-      registeredMobile: searchResult.mobile,
-      verificationStatus: "Pending",
-      patientStatus: searchResult.patientStatus,
-      lastAppointment: "Awaiting Verification",
-      upcomingAppointmentsCount: 0,
-      pendingBillsCount: 0,
-      pendingBillsAmount: 0,
-      activePrescriptionsCount: 0,
-    });
-    resetAddDrawer();
-  };
-
-  const resetAddDrawer = () => {
-    setShowAddDrawer(false);
-    setSearchResult(null);
-    setSearchValue("");
-    setSearchPerformed(false);
-    setValidationError(null);
-    setAddRel("Mother");
-    setSearchMethod("MRN");
-  };
-
-  const canLink =
-    searchResult &&
-    searchResult.found &&
-    searchResult.patientStatus === "Active" &&
-    !validationError;
-
-  // Get search placeholder based on method
-  const getSearchPlaceholder = () => {
-    switch (searchMethod) {
-      case "MRN":
-        return "Enter Patient MRN";
-      case "Mobile":
-        return "Enter Registered Mobile Number";
-      case "Patient Name":
-        return "Enter Patient Name";
-    }
-  };
-
-  // Get search icon based on method
-  const getSearchIcon = () => {
-    switch (searchMethod) {
-      case "MRN":
-        return <Hash size={15} />;
-      case "Mobile":
-        return <Phone size={15} />;
-      case "Patient Name":
-        return <User size={15} />;
-    }
-  };
-
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9] text-[#111827]">
       {/* ── SCREEN HEADER ── */}
@@ -498,7 +209,7 @@ export function FamilyMembersManagement({
         </div>
 
         <button
-          onClick={() => setShowAddDrawer(true)}
+          onClick={() => onAddFamilyMember?.()}
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm shadow-[#0D47A1]/20 active:scale-[0.98] shrink-0"
           style={{ fontFamily: PP }}
         >
@@ -751,7 +462,7 @@ export function FamilyMembersManagement({
             Link your parents, spouse, or children for easy access.
           </p>
           <button
-            onClick={() => setShowAddDrawer(true)}
+            onClick={() => onAddFamilyMember?.()}
             className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
             style={{ fontFamily: PP }}
           >
@@ -838,10 +549,22 @@ export function FamilyMembersManagement({
                       {/* Relationship */}
                       <td className="py-3.5 px-4">
                         <span
-                          className="text-xs font-semibold text-[#0D47A1] bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100"
+                          className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                            m.relationship === "Self"
+                              ? "text-[#0D47A1] bg-blue-50 border-blue-100"
+                              : m.relationship === "Spouse"
+                                ? "text-rose-700 bg-rose-50 border-rose-100"
+                                : m.relationship === "Son" ||
+                                    m.relationship === "Daughter"
+                                  ? "text-purple-700 bg-purple-50 border-purple-100"
+                                  : m.relationship === "Father" ||
+                                      m.relationship === "Mother"
+                                    ? "text-amber-700 bg-amber-50 border-amber-100"
+                                    : "text-emerald-700 bg-emerald-50 border-emerald-100"
+                          }`}
                           style={{ fontFamily: PP }}
                         >
-                          {m.relationship}
+                          {m.relationship || "Other"}
                         </span>
                       </td>
 
@@ -919,7 +642,7 @@ export function FamilyMembersManagement({
                           </button>
 
                           {/* Active Profile Badge on current member */}
-                          {isCurrentActive && (
+                          {isCurrentActive ? (
                             <span
                               className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-[#0D47A1] rounded-lg text-xs font-bold border border-[#0D47A1]"
                               style={{ fontFamily: PP }}
@@ -930,6 +653,16 @@ export function FamilyMembersManagement({
                               />
                               Active Profile
                             </span>
+                          ) : (
+                            onSwitchProfile && (
+                              <button
+                                onClick={() => onSwitchProfile(m)}
+                                className="px-2.5 py-1 bg-white border border-[#0D47A1] text-[#0D47A1] hover:bg-blue-50 rounded-lg text-xs font-bold transition-colors"
+                                style={{ fontFamily: PP }}
+                              >
+                                Set Active
+                              </button>
+                            )
                           )}
 
                           {/* Remove Link */}
@@ -989,12 +722,13 @@ export function FamilyMembersManagement({
                 </div>
               </div>
               <span
-                className={`px-2 py-0.5 rounded-md text-[10px] font-semibold shrink-0 ${act.status === "Completed"
-                  ? "bg-emerald-50 text-[#66BB6A]"
-                  : act.status === "Pending"
-                    ? "bg-amber-50 text-[#F59E0B]"
-                    : "bg-blue-50 text-[#0D47A1]"
-                  }`}
+                className={`px-2 py-0.5 rounded-md text-[10px] font-semibold shrink-0 ${
+                  act.status === "Completed"
+                    ? "bg-emerald-50 text-[#66BB6A]"
+                    : act.status === "Pending"
+                      ? "bg-amber-50 text-[#F59E0B]"
+                      : "bg-blue-50 text-[#0D47A1]"
+                }`}
               >
                 {act.status}
               </span>
@@ -1051,12 +785,13 @@ export function FamilyMembersManagement({
                       {viewDrawerMember.relationship}
                     </span>
                     <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${viewDrawerMember.verificationStatus === "Verified"
-                        ? "bg-emerald-50 text-[#66BB6A] border border-emerald-100"
-                        : viewDrawerMember.verificationStatus === "Pending"
-                          ? "bg-amber-50 text-[#F59E0B] border border-amber-100"
-                          : "bg-slate-100 text-[#64748B] border border-slate-200"
-                        }`}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                        viewDrawerMember.verificationStatus === "Verified"
+                          ? "bg-emerald-50 text-[#66BB6A] border border-emerald-100"
+                          : viewDrawerMember.verificationStatus === "Pending"
+                            ? "bg-amber-50 text-[#F59E0B] border border-amber-100"
+                            : "bg-slate-100 text-[#64748B] border border-slate-200"
+                      }`}
                     >
                       {viewDrawerMember.verificationStatus === "Verified" && (
                         <CheckCircle2 size={10} />
@@ -1117,12 +852,13 @@ export function FamilyMembersManagement({
                   <div className="flex justify-between items-center">
                     <span className="text-[#64748B]">Verification Status:</span>
                     <span
-                      className={`px-2 py-0.5 rounded-full font-semibold ${viewDrawerMember.verificationStatus === "Verified"
-                        ? "bg-emerald-100 text-[#66BB6A]"
-                        : viewDrawerMember.verificationStatus === "Pending"
-                          ? "bg-amber-100 text-[#F59E0B]"
-                          : "bg-slate-100 text-[#64748B]"
-                        }`}
+                      className={`px-2 py-0.5 rounded-full font-semibold ${
+                        viewDrawerMember.verificationStatus === "Verified"
+                          ? "bg-emerald-100 text-[#66BB6A]"
+                          : viewDrawerMember.verificationStatus === "Pending"
+                            ? "bg-amber-100 text-[#F59E0B]"
+                            : "bg-slate-100 text-[#64748B]"
+                      }`}
                     >
                       {viewDrawerMember.verificationStatus}
                     </span>
@@ -1377,427 +1113,6 @@ export function FamilyMembersManagement({
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════
-          ── ADD FAMILY MEMBER DRAWER ──
-          ══════════════════════════════════════════════════════════════════ */}
-      {showAddDrawer && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between overflow-hidden animate-in slide-in-from-right duration-200">
-            {/* ── Header ── */}
-            <div className="p-5 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50">
-              <div>
-                <h3
-                  className="text-base font-bold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  Add Family Member
-                </h3>
-                <p
-                  className="text-xs text-[#64748B] mt-0.5"
-                  style={{ fontFamily: RB }}
-                >
-                  Link an existing registered patient to your Patient Portal
-                  account.
-                </p>
-              </div>
-              <button
-                onClick={resetAddDrawer}
-                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* ── Form Body ── */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Section 1: Relationship */}
-              <div>
-                <label
-                  className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
-                  style={{ fontFamily: PP }}
-                >
-                  1. Relationship
-                </label>
-                <p
-                  className="text-xs text-[#64748B] mb-2"
-                  style={{ fontFamily: RB }}
-                >
-                  Select the relationship of the patient you want to link.
-                </p>
-                <div className="relative">
-                  <select
-                    value={addRel}
-                    onChange={(e) => {
-                      setAddRel(e.target.value as RelationshipOption);
-                      // Clear previous search results when relationship changes
-                      if (searchResult) {
-                        setValidationError(null);
-                      }
-                    }}
-                    className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-sm font-semibold text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors appearance-none pr-10"
-                    style={{ fontFamily: RB }}
-                  >
-                    {RELATIONSHIP_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={16}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] pointer-events-none"
-                  />
-                </div>
-              </div>
-
-              {/* Section 2: Search Registered Patient */}
-              <div>
-                <label
-                  className="block text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
-                  style={{ fontFamily: PP }}
-                >
-                  2. Search Registered Patient
-                </label>
-                <p
-                  className="text-xs text-[#64748B] mb-3"
-                  style={{ fontFamily: RB }}
-                >
-                  Search for an existing hospital-registered patient to link.
-                </p>
-
-                {/* Search Method Radio Buttons */}
-                <div className="flex items-center gap-1 mb-3 p-1 bg-slate-50 rounded-xl border border-[#E5E7EB]">
-                  {(["MRN", "Mobile", "Patient Name"] as SearchMethod[]).map(
-                    (method) => (
-                      <button
-                        key={method}
-                        onClick={() => {
-                          setSearchMethod(method);
-                          setSearchValue("");
-                          setSearchResult(null);
-                          setSearchPerformed(false);
-                          setValidationError(null);
-                        }}
-                        className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${searchMethod === method
-                          ? "bg-white text-[#0D47A1] shadow-sm border border-blue-100"
-                          : "text-[#64748B] hover:text-[#111827]"
-                          }`}
-                        style={{ fontFamily: PP }}
-                      >
-                        {method === "MRN" && <Hash size={13} />}
-                        {method === "Mobile" && <Phone size={13} />}
-                        {method === "Patient Name" && <User size={13} />}
-                        {method}
-                      </button>
-                    ),
-                  )}
-                </div>
-
-                {/* Dynamic Search Input + Button */}
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]">
-                      {getSearchIcon()}
-                    </div>
-                    <input
-                      type="text"
-                      value={searchValue}
-                      onChange={(e) => {
-                        setSearchValue(e.target.value);
-                        if (validationError?.type === "empty-field")
-                          setValidationError(null);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleSearchPatient();
-                      }}
-                      placeholder={getSearchPlaceholder()}
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-sm text-[#111827] placeholder-[#64748B] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                      style={{ fontFamily: RB }}
-                    />
-                    {searchValue && (
-                      <button
-                        onClick={() => {
-                          setSearchValue("");
-                          setSearchResult(null);
-                          setSearchPerformed(false);
-                          setValidationError(null);
-                        }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                      >
-                        <X size={14} />
-                      </button>
-                    )}
-                  </div>
-                  <button
-                    onClick={handleSearchPatient}
-                    disabled={isSearching}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#0D47A1] text-white rounded-xl text-xs font-semibold hover:bg-[#0c3d8a] disabled:opacity-60 transition-all shrink-0"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Search size={14} />
-                    {isSearching ? "Searching..." : "Search"}
-                  </button>
-                </div>
-              </div>
-
-              {/* Inline Validation Error */}
-              {validationError && (
-                <div
-                  className={`flex items-start gap-2.5 p-3 rounded-xl border text-xs ${validationError.type === "inactive-patient"
-                    ? "bg-amber-50 border-amber-200 text-[#F59E0B]"
-                    : "bg-red-50 border-red-200 text-[#EF4444]"
-                    }`}
-                >
-                  <AlertCircle size={16} className="shrink-0 mt-0.5" />
-                  <span className="font-medium" style={{ fontFamily: RB }}>
-                    {validationError.message}
-                  </span>
-                </div>
-              )}
-
-              {/* No Patient Found — Empty State */}
-              {searchPerformed && !searchResult && !validationError && (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4 text-[#64748B]">
-                    <Users size={32} />
-                  </div>
-                  <h4
-                    className="text-sm font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    No registered patient found.
-                  </h4>
-                  <p
-                    className="text-xs text-[#64748B] max-w-xs mx-auto"
-                    style={{ fontFamily: RB }}
-                  >
-                    Register the patient first before linking to your family
-                    account.
-                  </p>
-                  <button
-                    className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#0D47A1] text-white rounded-xl text-xs font-semibold hover:bg-[#0c3d8a] transition-all"
-                    style={{ fontFamily: PP }}
-                  >
-                    <UserPlus size={14} />
-                    Register Patient
-                  </button>
-                </div>
-              )}
-
-              {/* ── Patient Preview Card ── */}
-              {searchResult && searchResult.found && (
-                <div className="space-y-4">
-                  <div className="p-4 bg-white rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span
-                        className="text-xs font-bold text-[#0D47A1] uppercase tracking-wider"
-                        style={{ fontFamily: PP }}
-                      >
-                        Patient Record Found
-                      </span>
-                      <div className="flex items-center gap-2">
-                        {/* Patient Status Badge */}
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${searchResult.patientStatus === "Active"
-                            ? "bg-emerald-50 text-[#66BB6A] border border-emerald-100"
-                            : "bg-slate-100 text-[#64748B] border border-slate-200"
-                            }`}
-                        >
-                          {searchResult.patientStatus}
-                        </span>
-                        {/* Verification Badge */}
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${searchResult.verificationStatus === "Verified"
-                            ? "bg-emerald-50 text-[#66BB6A] border border-emerald-100"
-                            : "bg-amber-50 text-[#F59E0B] border border-amber-100"
-                            }`}
-                        >
-                          {searchResult.verificationStatus === "Verified" ? (
-                            <CheckCircle2 size={10} />
-                          ) : (
-                            <Clock size={10} />
-                          )}
-                          {searchResult.verificationStatus}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Patient Info */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-full bg-[#0D47A1] text-white font-bold flex items-center justify-center text-sm shrink-0">
-                        {searchResult.patientName
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .slice(0, 2)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div
-                          className="text-sm font-bold text-[#111827]"
-                          style={{ fontFamily: PP }}
-                        >
-                          {searchResult.patientName}
-                        </div>
-                        <div className="font-mono text-xs text-[#64748B] mt-0.5">
-                          {searchResult.mrn}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs pt-2 border-t border-slate-100">
-                      <div className="flex justify-between">
-                        <span className="text-[#64748B]">Age:</span>
-                        <span className="font-semibold text-[#111827]">
-                          {searchResult.age} yrs
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#64748B]">Gender:</span>
-                        <span className="font-semibold text-[#111827]">
-                          {searchResult.gender}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#64748B]">Blood Group:</span>
-                        <span className="font-semibold text-[#EF4444]">
-                          {searchResult.bloodGroup}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-[#64748B]">Mobile:</span>
-                        <span className="font-mono font-semibold text-[#111827] text-[11px]">
-                          {searchResult.mobile}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Relationship selected */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-                      <span className="text-xs text-[#64748B]">
-                        Relationship:
-                      </span>
-                      <span
-                        className="text-xs font-semibold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100"
-                        style={{ fontFamily: PP }}
-                      >
-                        {addRel}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* ── Relationship Confirmation Flow ── */}
-                  {searchResult.patientStatus === "Active" && (
-                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                      <div
-                        className="text-xs font-bold text-[#64748B] uppercase tracking-wider mb-3"
-                        style={{ fontFamily: PP }}
-                      >
-                        You are linking
-                      </div>
-                      <div className="flex items-center justify-center gap-3">
-                        {/* Current Patient */}
-                        <div className="flex flex-col items-center text-center">
-                          <div className="w-10 h-10 rounded-full bg-[#0D47A1] text-white font-bold flex items-center justify-center text-xs">
-                            {activeFamilyMember?.patientName
-                              ?.split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .slice(0, 2) || "U"}
-                          </div>
-                          <span
-                            className="text-xs font-semibold text-[#111827] mt-1.5 max-w-[90px] truncate"
-                            style={{ fontFamily: PP }}
-                          >
-                            {activeFamilyMember?.patientName || "You"}
-                          </span>
-                          <span className="text-[10px] text-[#64748B]">
-                            You
-                          </span>
-                        </div>
-
-                        {/* Arrow with Relationship */}
-                        <div className="flex flex-col items-center px-2">
-                          <div className="w-px h-3 bg-[#E5E7EB]" />
-                          <span
-                            className="text-[10px] font-bold text-white bg-[#0D47A1] px-2.5 py-1 rounded-full my-1"
-                            style={{ fontFamily: PP }}
-                          >
-                            {addRel}
-                          </span>
-                          <div className="flex items-center text-[#0D47A1]">
-                            <ChevronDown size={16} />
-                          </div>
-                        </div>
-
-                        {/* Found Patient */}
-                        <div className="flex flex-col items-center text-center">
-                          <div className="w-10 h-10 rounded-full bg-[#009688] text-white font-bold flex items-center justify-center text-xs">
-                            {searchResult.patientName
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .slice(0, 2)}
-                          </div>
-                          <span
-                            className="text-xs font-semibold text-[#111827] mt-1.5 max-w-[90px] truncate"
-                            style={{ fontFamily: PP }}
-                          >
-                            {searchResult.patientName}
-                          </span>
-                          <span className="text-[10px] text-[#64748B]">
-                            {addRel}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ── Verification Notice ── */}
-                  {searchResult.patientStatus === "Active" && (
-                    <div className="flex items-start gap-2.5 p-3 bg-blue-50 rounded-xl border border-blue-100 text-xs">
-                      <Info
-                        size={16}
-                        className="text-[#0D47A1] shrink-0 mt-0.5"
-                      />
-                      <div style={{ fontFamily: RB }}>
-                        <span className="font-semibold text-[#0D47A1]">
-                          Verification Notice:
-                        </span>{" "}
-                        <span className="text-[#64748B]">
-                          The selected patient will receive a relationship
-                          request in their Patient Portal. The relationship
-                          becomes active only after approval.
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* ── Footer Buttons ── */}
-            <div className="p-4 border-t border-[#E5E7EB] bg-slate-50 flex items-center justify-end gap-3">
-              <button
-                onClick={resetAddDrawer}
-                className="px-4 py-2 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-colors"
-                style={{ fontFamily: PP }}
-              >
-                Cancel
-              </button>
-              <button
-                disabled={!canLink}
-                onClick={handleSendLinkRequest}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0D47A1] text-white rounded-xl text-xs font-semibold hover:bg-[#0c3d8a] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                style={{ fontFamily: PP }}
-              >
-                <UserPlus size={14} />
-                Link Patient
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ── EDIT FAMILY RELATIONSHIP DRAWER ── */}
       {editRelMember && (
         <div className="fixed inset-0 z-50 overflow-hidden">
@@ -1914,10 +1229,11 @@ export function FamilyMembersManagement({
                         );
                         setRelFormError(null);
                       }}
-                      className={`w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-medium text-[#111827] outline-none transition-colors ${relFormError
-                        ? "border-red-400 bg-red-50/20"
-                        : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
-                        }`}
+                      className={`w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-medium text-[#111827] outline-none transition-colors ${
+                        relFormError
+                          ? "border-red-400 bg-red-50/20"
+                          : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
+                      }`}
                       style={{ fontFamily: RB }}
                     >
                       <option value="Mother">Mother</option>
@@ -1979,12 +1295,14 @@ export function FamilyMembersManagement({
                     <button
                       type="button"
                       onClick={() => setIsPrimary(!isPrimary)}
-                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isPrimary ? "bg-[#0D47A1]" : "bg-slate-300"
-                        }`}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        isPrimary ? "bg-[#0D47A1]" : "bg-slate-300"
+                      }`}
                     >
                       <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isPrimary ? "translate-x-4" : "translate-x-0"
-                          }`}
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          isPrimary ? "translate-x-4" : "translate-x-0"
+                        }`}
                       />
                     </button>
                   </div>
@@ -2009,12 +1327,14 @@ export function FamilyMembersManagement({
                     <button
                       type="button"
                       onClick={() => setIsEmergency(!isEmergency)}
-                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isEmergency ? "bg-[#009688]" : "bg-slate-300"
-                        }`}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        isEmergency ? "bg-[#009688]" : "bg-slate-300"
+                      }`}
                     >
                       <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${isEmergency ? "translate-x-4" : "translate-x-0"
-                          }`}
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                          isEmergency ? "translate-x-4" : "translate-x-0"
+                        }`}
                       />
                     </button>
                   </div>

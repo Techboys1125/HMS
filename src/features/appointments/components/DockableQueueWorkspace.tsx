@@ -46,8 +46,8 @@ export function DockableQueueWorkspace({
   onStartConsultation?: (apt?: AppointmentRecord | null) => void;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [doctorFilter, setDoctorFilter] = useState("All");
-  const [deptFilter, setDeptFilter] = useState("All");
+  const [doctorFilter] = useState("All");
+  const [deptFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [visitTypeFilter, setVisitTypeFilter] = useState("All");
   const [timeFilter, setTimeFilter] = useState("All");

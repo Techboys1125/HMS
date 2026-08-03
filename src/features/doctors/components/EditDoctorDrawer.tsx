@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Edit,
   X,
@@ -16,6 +16,11 @@ import {
 } from "lucide-react";
 import type { DoctorRecord, DoctorStatus } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
+import { doctorsService } from "../services/doctors.service";
+import {
+  departmentsApi,
+  type ApiDepartmentLookupItem,
+} from "../../users/api/departments.api";
 
 export interface EditDoctorDrawerProps {
   isOpen: boolean;
@@ -42,7 +47,7 @@ export function EditDoctorDrawer({
   const [dob, setDob] = useState(doctor?.dob || "1985-05-14");
   const [phone, setPhone] = useState(doctor?.phone || "");
   const [email, setEmail] = useState(doctor?.email || "");
-  const [address] = useState(doctor?.address || "");
+  const [address, setAddress] = useState(doctor?.address || "");
 
   const [regNumber, setRegNumber] = useState(doctor?.regNumber || "");
   const [qualification, setQualification] = useState(
@@ -54,6 +59,48 @@ export function EditDoctorDrawer({
   const [department, setDepartment] = useState(doctor?.department || "");
   const [specialty, setSpecialty] = useState(doctor?.specialty || "");
   const [bio, setBio] = useState(doctor?.bio || "");
+
+  const [lookupList, setLookupList] = useState<ApiDepartmentLookupItem[]>([]);
+
+  useEffect(() => {
+    if (isOpen && doctor) {
+      setFullName(doctor.name || "");
+      setGender(doctor.gender || "Male");
+      setDob(doctor.dob || "1985-05-14");
+      setPhone(doctor.phone || "");
+      setEmail(doctor.email || "");
+      setAddress(doctor.address || "");
+      setRegNumber(doctor.regNumber || "");
+      setQualification(doctor.qualification || "");
+      setExperienceYrs(doctor.experienceYrs || 0);
+      setConsultationFee(doctor.consultationFee || 0);
+      setFollowUpFee(doctor.followUpFee || 80);
+      setSlotDuration(doctor.slotDuration || "15 Minutes");
+      setAccountStatus(doctor.status || "Active");
+      setBio(doctor.bio || "");
+
+      departmentsApi
+        .getDepartmentLookup(true)
+        .then((list) => {
+          setLookupList(list);
+          if (doctor.department) {
+            setDepartment(doctor.department);
+            setSpecialty(doctor.specialty || "");
+          } else if (list.length > 0) {
+            const firstDept = list[0];
+            setDepartment(firstDept.departmentName);
+            if (firstDept.specialties && firstDept.specialties.length > 0) {
+              setSpecialty(firstDept.specialties[0].name);
+            } else {
+              setSpecialty("");
+            }
+          }
+        })
+        .catch((err) =>
+          console.warn("Failed to load departments lookup:", err),
+        );
+    }
+  }, [isOpen, doctor]);
 
   const [consultationFee, setConsultationFee] = useState<number | "">(
     doctor?.consultationFee || 0,
@@ -71,17 +118,53 @@ export function EditDoctorDrawer({
   const [forcePassChange, setForcePassChange] = useState(true);
 
   const [schedule, setSchedule] = useState([
-    { day: "Monday", available: doctor?.workingDays.includes("Mon") ?? true, startTime: "09:00 AM", endTime: "04:00 PM" },
-    { day: "Tuesday", available: doctor?.workingDays.includes("Tue") ?? true, startTime: "09:00 AM", endTime: "04:00 PM" },
-    { day: "Wednesday", available: doctor?.workingDays.includes("Wed") ?? true, startTime: "09:00 AM", endTime: "04:00 PM" },
-    { day: "Thursday", available: doctor?.workingDays.includes("Thu") ?? true, startTime: "09:00 AM", endTime: "04:00 PM" },
-    { day: "Friday", available: doctor?.workingDays.includes("Fri") ?? true, startTime: "09:00 AM", endTime: "04:00 PM" },
-    { day: "Saturday", available: doctor?.workingDays.includes("Sat") ?? false, startTime: "09:00 AM", endTime: "01:00 PM" },
-    { day: "Sunday", available: doctor?.workingDays.includes("Sun") ?? false, startTime: "09:00 AM", endTime: "01:00 PM" },
+    {
+      day: "Monday",
+      available: doctor?.workingDays.includes("Mon") ?? true,
+      startTime: "09:00 AM",
+      endTime: "04:00 PM",
+    },
+    {
+      day: "Tuesday",
+      available: doctor?.workingDays.includes("Tue") ?? true,
+      startTime: "09:00 AM",
+      endTime: "04:00 PM",
+    },
+    {
+      day: "Wednesday",
+      available: doctor?.workingDays.includes("Wed") ?? true,
+      startTime: "09:00 AM",
+      endTime: "04:00 PM",
+    },
+    {
+      day: "Thursday",
+      available: doctor?.workingDays.includes("Thu") ?? true,
+      startTime: "09:00 AM",
+      endTime: "04:00 PM",
+    },
+    {
+      day: "Friday",
+      available: doctor?.workingDays.includes("Fri") ?? true,
+      startTime: "09:00 AM",
+      endTime: "04:00 PM",
+    },
+    {
+      day: "Saturday",
+      available: doctor?.workingDays.includes("Sat") ?? false,
+      startTime: "09:00 AM",
+      endTime: "01:00 PM",
+    },
+    {
+      day: "Sunday",
+      available: doctor?.workingDays.includes("Sun") ?? false,
+      startTime: "09:00 AM",
+      endTime: "01:00 PM",
+    },
   ]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen || !doctor) return null;
 
@@ -94,7 +177,7 @@ export function EditDoctorDrawer({
   const isFieldModified = (
     fieldName: keyof DoctorRecord,
     currentValue: unknown,
-  ) => doctor ? doctor[fieldName] !== currentValue : false;
+  ) => (doctor ? doctor[fieldName] !== currentValue : false);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -160,38 +243,114 @@ export function EditDoctorDrawer({
     return true;
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const to24HourHHMM = (time: string) => {
+    if (!time) return "09:00";
+    const trimmed = time.trim();
+    if (!trimmed.includes("AM") && !trimmed.includes("PM")) {
+      return trimmed.slice(0, 5);
+    }
+    const parts = trimmed.split(":");
+    if (parts.length < 2) return trimmed.slice(0, 5);
+    let hour = parseInt(parts[0], 10);
+    const isPM = trimmed.toUpperCase().includes("PM");
+    const minute = parts[1].replace(/[^0-9]/g, "").slice(0, 2);
+    if (isPM && hour !== 12) hour += 12;
+    if (!isPM && hour === 12) hour = 0;
+    return `${String(hour).padStart(2, "0")}:${minute.padStart(2, "0")}`;
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    setIsSubmitting(true);
     const activeWorkingDays = schedule
       .filter((s) => s.available)
       .map((s) => s.day.slice(0, 3));
 
+    const activeAvailability = schedule
+      .filter((s) => s.available)
+      .map((s) => ({
+        dayOfWeek: s.day.toUpperCase(),
+        startTime: to24HourHHMM(s.startTime),
+        endTime: to24HourHHMM(s.endTime),
+      }));
+
+    const slotMins = parseInt(slotDuration) || 15;
+
+    const selectedDeptObj = lookupList.find(
+      (d) => d.departmentName === department,
+    );
+    const departmentSpecialties = selectedDeptObj
+      ? selectedDeptObj.specialties
+      : [];
+    const specObj = departmentSpecialties.find((s) => s.name === specialty);
+
+    const primaryDeptId = selectedDeptObj
+      ? Number(selectedDeptObj.departmentId)
+      : undefined;
+    const primarySpecId = specObj ? Number(specObj.id) : undefined;
+
     const updatedDoctor: DoctorRecord = {
       ...doctor,
       name: fullName,
-      gender: gender,
-      dob: dob,
-      phone: phone,
-      email: email,
-      address: address,
-      regNumber: regNumber,
-      qualification: qualification,
+      gender,
+      dob,
+      phone,
+      email,
+      address,
+      regNumber,
+      qualification,
       experienceYrs: Number(experienceYrs) || doctor.experienceYrs,
-      department: department,
-      specialty: specialty,
-      bio: bio,
+      department,
+      primaryDepartmentId: primaryDeptId,
+      specialty,
+      primarySpecialtyId: primarySpecId,
+      bio,
       consultationFee: Number(consultationFee) || doctor.consultationFee,
       followUpFee: Number(followUpFee) || 80,
-      slotDuration: slotDuration,
+      slotDuration,
       status: accountStatus,
       workingDays:
         activeWorkingDays.length > 0 ? activeWorkingDays : doctor.workingDays,
     };
 
-    onSave(updatedDoctor);
+    try {
+      const targetUserId = doctor.userId || doctor.id.replace("DOC-", "");
+      await doctorsService.update(targetUserId, {
+        fullName,
+        email,
+        mobile: phone,
+        gender,
+        dateOfBirth: dob,
+        residentialAddress: address,
+        professionalBio: bio,
+        medicalRegistrationNumber: regNumber,
+        qualification,
+        yearsOfExperience: Number(experienceYrs) || 5,
+        primaryDepartmentId: primaryDeptId,
+        primarySpecialtyId: primarySpecId,
+        consultationFee: Number(consultationFee) || 150,
+        followUpFee: Number(followUpFee) || 80,
+        slotDurationMinutes: slotMins,
+        availability: activeAvailability,
+        changeReason: "Admin updated doctor profile details.",
+      });
+      onSave(updatedDoctor);
+    } catch (err) {
+      console.warn("Failed to update doctor via API:", err);
+      onSave(updatedDoctor);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const selectedDeptObj = lookupList.find(
+    (d) => d.departmentName === department,
+  );
+  const departmentSpecialties = selectedDeptObj
+    ? selectedDeptObj.specialties
+    : [];
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
@@ -239,7 +398,8 @@ export function EditDoctorDrawer({
               className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 pb-2.5"
               style={{ fontFamily: PP }}
             >
-              <User size={15} className="text-[#0D47A1]" /> Section 01: Personal Information
+              <User size={15} className="text-[#0D47A1]" /> Section 01: Personal
+              Information
             </h3>
 
             <div className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
@@ -248,7 +408,11 @@ export function EditDoctorDrawer({
                 style={{ fontFamily: PP }}
               >
                 {photoPreview ? (
-                  <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                  <img
+                    src={photoPreview}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   fullName
                     .replace("Dr. ", "")
@@ -260,11 +424,20 @@ export function EditDoctorDrawer({
                 )}
               </div>
               <div className="space-y-1">
-                <span className="text-xs font-bold text-[#111827] block">Doctor Photo</span>
-                <p className="text-[11px] text-[#64748B]">Update profile photo for patient directory.</p>
+                <span className="text-xs font-bold text-[#111827] block">
+                  Doctor Photo
+                </span>
+                <p className="text-[11px] text-[#64748B]">
+                  Update profile photo for patient directory.
+                </p>
                 <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#E5E7EB] text-xs font-semibold text-[#0D47A1] hover:bg-blue-50 cursor-pointer transition-colors shadow-xs">
                   <Upload size={13} /> Change Photo
-                  <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
                 </label>
               </div>
             </div>
@@ -275,7 +448,9 @@ export function EditDoctorDrawer({
                   Full Name <span className="text-red-500">*</span>
                 </label>
                 {isFieldModified("name", fullName) && (
-                  <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                  <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                    Modified
+                  </span>
                 )}
               </div>
               <input
@@ -292,7 +467,9 @@ export function EditDoctorDrawer({
                 } ${errors.fullName ? "border-[#EF4444] bg-red-50/50" : "focus:border-[#0D47A1] focus:bg-white"}`}
               />
               {errors.fullName && (
-                <p className="text-[11px] text-[#EF4444] font-medium mt-1">{errors.fullName}</p>
+                <p className="text-[11px] text-[#EF4444] font-medium mt-1">
+                  {errors.fullName}
+                </p>
               )}
             </div>
 
@@ -303,12 +480,16 @@ export function EditDoctorDrawer({
                     Gender <span className="text-red-500">*</span>
                   </label>
                   {isFieldModified("gender", gender) && (
-                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                      Modified
+                    </span>
                   )}
                 </div>
                 <select
                   value={gender}
-                  onChange={(e) => setGender(e.target.value as "Male" | "Female" | "Other")}
+                  onChange={(e) =>
+                    setGender(e.target.value as "Male" | "Female" | "Other")
+                  }
                   className={`w-full px-3 py-2 text-xs border rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white ${
                     isFieldModified("gender", gender)
                       ? "border-[#009688] bg-teal-50/20"
@@ -322,9 +503,13 @@ export function EditDoctorDrawer({
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-bold text-[#111827]">Date of Birth</label>
+                  <label className="block text-xs font-bold text-[#111827]">
+                    Date of Birth
+                  </label>
                   {isFieldModified("dob", dob) && (
-                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                      Modified
+                    </span>
                   )}
                 </div>
                 <input
@@ -347,7 +532,9 @@ export function EditDoctorDrawer({
                     Phone Number <span className="text-red-500">*</span>
                   </label>
                   {isFieldModified("phone", phone) && (
-                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                      Modified
+                    </span>
                   )}
                 </div>
                 <input
@@ -364,7 +551,9 @@ export function EditDoctorDrawer({
                   } ${errors.phone ? "border-[#EF4444] bg-red-50/50" : "focus:border-[#0D47A1] focus:bg-white"}`}
                 />
                 {errors.phone && (
-                  <p className="text-[11px] text-[#EF4444] font-medium mt-1">{errors.phone}</p>
+                  <p className="text-[11px] text-[#EF4444] font-medium mt-1">
+                    {errors.phone}
+                  </p>
                 )}
               </div>
               <div>
@@ -373,7 +562,9 @@ export function EditDoctorDrawer({
                     Email Address <span className="text-red-500">*</span>
                   </label>
                   {isFieldModified("email", email) && (
-                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                      Modified
+                    </span>
                   )}
                 </div>
                 <input
@@ -390,7 +581,9 @@ export function EditDoctorDrawer({
                   } ${errors.email ? "border-[#EF4444] bg-red-50/50" : "focus:border-[#0D47A1] focus:bg-white"}`}
                 />
                 {errors.email && (
-                  <p className="text-[11px] text-[#EF4444] font-medium mt-1">{errors.email}</p>
+                  <p className="text-[11px] text-[#EF4444] font-medium mt-1">
+                    {errors.email}
+                  </p>
                 )}
               </div>
             </div>
@@ -420,13 +613,17 @@ export function EditDoctorDrawer({
               className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 pb-2.5"
               style={{ fontFamily: PP }}
             >
-              <Stethoscope size={15} className="text-[#009688]" /> Section 02: Professional Information
+              <Stethoscope size={15} className="text-[#009688]" /> Section 02:
+              Professional Information
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-[#111827] mb-1">
-                  Employee ID <span className="text-slate-400 font-normal">(Read Only)</span>
+                  Employee ID{" "}
+                  <span className="text-slate-400 font-normal">
+                    (Read Only)
+                  </span>
                 </label>
                 <input
                   type="text"
@@ -438,10 +635,13 @@ export function EditDoctorDrawer({
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-bold text-[#111827]">
-                    Medical Registration No. <span className="text-red-500">*</span>
+                    Medical Registration No.{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   {isFieldModified("regNumber", regNumber) && (
-                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                      Modified
+                    </span>
                   )}
                 </div>
                 <input
@@ -449,7 +649,8 @@ export function EditDoctorDrawer({
                   value={regNumber}
                   onChange={(e) => {
                     setRegNumber(e.target.value);
-                    if (errors.regNumber) setErrors({ ...errors, regNumber: "" });
+                    if (errors.regNumber)
+                      setErrors({ ...errors, regNumber: "" });
                   }}
                   className={`w-full px-3 py-2 text-xs border rounded-xl font-mono text-[#111827] outline-none transition-colors ${
                     isFieldModified("regNumber", regNumber)
@@ -458,7 +659,9 @@ export function EditDoctorDrawer({
                   } ${errors.regNumber ? "border-[#EF4444] bg-red-50/50" : "focus:border-[#0D47A1] focus:bg-white"}`}
                 />
                 {errors.regNumber && (
-                  <p className="text-[11px] text-[#EF4444] font-medium mt-1">{errors.regNumber}</p>
+                  <p className="text-[11px] text-[#EF4444] font-medium mt-1">
+                    {errors.regNumber}
+                  </p>
                 )}
               </div>
             </div>
@@ -470,7 +673,9 @@ export function EditDoctorDrawer({
                     Qualification <span className="text-red-500">*</span>
                   </label>
                   {isFieldModified("qualification", qualification) && (
-                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                      Modified
+                    </span>
                   )}
                 </div>
                 <input
@@ -478,7 +683,8 @@ export function EditDoctorDrawer({
                   value={qualification}
                   onChange={(e) => {
                     setQualification(e.target.value);
-                    if (errors.qualification) setErrors({ ...errors, qualification: "" });
+                    if (errors.qualification)
+                      setErrors({ ...errors, qualification: "" });
                   }}
                   className={`w-full px-3 py-2 text-xs border rounded-xl text-[#111827] outline-none transition-colors ${
                     isFieldModified("qualification", qualification)
@@ -487,7 +693,9 @@ export function EditDoctorDrawer({
                   } ${errors.qualification ? "border-[#EF4444] bg-red-50/50" : "focus:border-[#0D47A1] focus:bg-white"}`}
                 />
                 {errors.qualification && (
-                  <p className="text-[11px] text-[#EF4444] font-medium mt-1">{errors.qualification}</p>
+                  <p className="text-[11px] text-[#EF4444] font-medium mt-1">
+                    {errors.qualification}
+                  </p>
                 )}
               </div>
               <div>
@@ -496,7 +704,9 @@ export function EditDoctorDrawer({
                     Years of Experience <span className="text-red-500">*</span>
                   </label>
                   {isFieldModified("experienceYrs", Number(experienceYrs)) && (
-                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                      Modified
+                    </span>
                   )}
                 </div>
                 <input
@@ -504,8 +714,11 @@ export function EditDoctorDrawer({
                   min="0"
                   value={experienceYrs}
                   onChange={(e) => {
-                    setExperienceYrs(e.target.value === "" ? "" : Number(e.target.value));
-                    if (errors.experienceYrs) setErrors({ ...errors, experienceYrs: "" });
+                    setExperienceYrs(
+                      e.target.value === "" ? "" : Number(e.target.value),
+                    );
+                    if (errors.experienceYrs)
+                      setErrors({ ...errors, experienceYrs: "" });
                   }}
                   className={`w-full px-3 py-2 text-xs border rounded-xl text-[#111827] outline-none transition-colors ${
                     isFieldModified("experienceYrs", Number(experienceYrs))
@@ -514,7 +727,9 @@ export function EditDoctorDrawer({
                   } ${errors.experienceYrs ? "border-[#EF4444] bg-red-50/50" : "focus:border-[#0D47A1] focus:bg-white"}`}
                 />
                 {errors.experienceYrs && (
-                  <p className="text-[11px] text-[#EF4444] font-medium mt-1">{errors.experienceYrs}</p>
+                  <p className="text-[11px] text-[#EF4444] font-medium mt-1">
+                    {errors.experienceYrs}
+                  </p>
                 )}
               </div>
             </div>
@@ -526,14 +741,30 @@ export function EditDoctorDrawer({
                     Department <span className="text-red-500">*</span>
                   </label>
                   {isFieldModified("department", department) && (
-                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                      Modified
+                    </span>
                   )}
                 </div>
                 <select
                   value={department}
                   onChange={(e) => {
-                    setDepartment(e.target.value);
-                    if (errors.department) setErrors({ ...errors, department: "" });
+                    const deptName = e.target.value;
+                    setDepartment(deptName);
+                    if (errors.department)
+                      setErrors({ ...errors, department: "" });
+                    const deptObj = lookupList.find(
+                      (d) => d.departmentName === deptName,
+                    );
+                    if (
+                      deptObj &&
+                      deptObj.specialties &&
+                      deptObj.specialties.length > 0
+                    ) {
+                      setSpecialty(deptObj.specialties[0].name);
+                    } else {
+                      setSpecialty("");
+                    }
                   }}
                   className={`w-full px-3 py-2 text-xs border rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1] focus:bg-white ${
                     isFieldModified("department", department)
@@ -541,16 +772,14 @@ export function EditDoctorDrawer({
                       : "bg-slate-50 border-[#E5E7EB]"
                   }`}
                 >
-                  <option value="Cardiology">Cardiology</option>
-                  <option value="General Medicine">General Medicine</option>
-                  <option value="Neurology">Neurology</option>
-                  <option value="Orthopedics">Orthopedics</option>
-                  <option value="Pediatrics">Pediatrics</option>
-                  <option value="Obstetrics & Gynecology">Obstetrics & Gynecology</option>
-                  <option value="Dermatology">Dermatology</option>
-                  <option value="ENT">ENT</option>
-                  <option value="Ophthalmology">Ophthalmology</option>
-                  <option value="Pulmonology">Pulmonology</option>
+                  {lookupList.length === 0 && (
+                    <option value="">Loading departments...</option>
+                  )}
+                  {lookupList.map((d) => (
+                    <option key={d.departmentId} value={d.departmentName}>
+                      {d.departmentName}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -559,33 +788,50 @@ export function EditDoctorDrawer({
                     Specialty <span className="text-red-500">*</span>
                   </label>
                   {isFieldModified("specialty", specialty) && (
-                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                      Modified
+                    </span>
                   )}
                 </div>
-                <input
-                  type="text"
+                <select
                   value={specialty}
                   onChange={(e) => {
                     setSpecialty(e.target.value);
-                    if (errors.specialty) setErrors({ ...errors, specialty: "" });
+                    if (errors.specialty)
+                      setErrors({ ...errors, specialty: "" });
                   }}
-                  className={`w-full px-3 py-2 text-xs border rounded-xl text-[#111827] outline-none transition-colors ${
+                  className={`w-full px-3 py-2 text-xs border rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1] focus:bg-white ${
                     isFieldModified("specialty", specialty)
                       ? "border-[#009688] bg-teal-50/20"
                       : "bg-slate-50 border-[#E5E7EB]"
-                  } ${errors.specialty ? "border-[#EF4444] bg-red-50/50" : "focus:border-[#0D47A1] focus:bg-white"}`}
-                />
+                  }`}
+                >
+                  {departmentSpecialties.length === 0 && (
+                    <option value="">No specialties available</option>
+                  )}
+                  {departmentSpecialties.map((s) => (
+                    <option key={s.id} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
                 {errors.specialty && (
-                  <p className="text-[11px] text-[#EF4444] font-medium mt-1">{errors.specialty}</p>
+                  <p className="text-[11px] text-[#EF4444] font-medium mt-1">
+                    {errors.specialty}
+                  </p>
                 )}
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-bold text-[#111827]">Professional Bio</label>
+                <label className="block text-xs font-bold text-[#111827]">
+                  Professional Bio
+                </label>
                 {isFieldModified("bio", bio) && (
-                  <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                  <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                    Modified
+                  </span>
                 )}
               </div>
               <textarea
@@ -606,7 +852,8 @@ export function EditDoctorDrawer({
               className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 pb-2.5"
               style={{ fontFamily: PP }}
             >
-              <DollarSign size={15} className="text-[#F59E0B]" /> Section 03: Consultation Details
+              <DollarSign size={15} className="text-[#F59E0B]" /> Section 03:
+              Consultation Details
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -615,8 +862,13 @@ export function EditDoctorDrawer({
                   <label className="block text-xs font-bold text-[#111827]">
                     Consultation Fee ($) <span className="text-red-500">*</span>
                   </label>
-                  {isFieldModified("consultationFee", Number(consultationFee)) && (
-                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                  {isFieldModified(
+                    "consultationFee",
+                    Number(consultationFee),
+                  ) && (
+                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                      Modified
+                    </span>
                   )}
                 </div>
                 <input
@@ -624,8 +876,11 @@ export function EditDoctorDrawer({
                   min="0"
                   value={consultationFee}
                   onChange={(e) => {
-                    setConsultationFee(e.target.value === "" ? "" : Number(e.target.value));
-                    if (errors.consultationFee) setErrors({ ...errors, consultationFee: "" });
+                    setConsultationFee(
+                      e.target.value === "" ? "" : Number(e.target.value),
+                    );
+                    if (errors.consultationFee)
+                      setErrors({ ...errors, consultationFee: "" });
                   }}
                   className={`w-full px-3 py-2 text-xs border rounded-xl text-[#111827] font-bold outline-none transition-colors ${
                     isFieldModified("consultationFee", Number(consultationFee))
@@ -634,21 +889,31 @@ export function EditDoctorDrawer({
                   } ${errors.consultationFee ? "border-[#EF4444] bg-red-50/50" : "focus:border-[#0D47A1] focus:bg-white"}`}
                 />
                 {errors.consultationFee && (
-                  <p className="text-[11px] text-[#EF4444] font-medium mt-1">{errors.consultationFee}</p>
+                  <p className="text-[11px] text-[#EF4444] font-medium mt-1">
+                    {errors.consultationFee}
+                  </p>
                 )}
               </div>
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-bold text-[#111827]">Follow-up Fee ($)</label>
+                  <label className="block text-xs font-bold text-[#111827]">
+                    Follow-up Fee ($)
+                  </label>
                   {isFieldModified("followUpFee", Number(followUpFee)) && (
-                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                    <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                      Modified
+                    </span>
                   )}
                 </div>
                 <input
                   type="number"
                   min="0"
                   value={followUpFee}
-                  onChange={(e) => setFollowUpFee(e.target.value === "" ? "" : Number(e.target.value))}
+                  onChange={(e) =>
+                    setFollowUpFee(
+                      e.target.value === "" ? "" : Number(e.target.value),
+                    )
+                  }
                   className={`w-full px-3 py-2 text-xs border rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1] focus:bg-white ${
                     isFieldModified("followUpFee", Number(followUpFee))
                       ? "border-[#009688] bg-teal-50/20"
@@ -661,10 +926,13 @@ export function EditDoctorDrawer({
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-xs font-bold text-[#111827]">
-                  Appointment Slot Duration <span className="text-red-500">*</span>
+                  Appointment Slot Duration{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 {isFieldModified("slotDuration", slotDuration) && (
-                  <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                  <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                    Modified
+                  </span>
                 )}
               </div>
               <select
@@ -686,12 +954,17 @@ export function EditDoctorDrawer({
             </div>
 
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-              <span className="text-xs font-bold text-[#111827] block">Consultation Mode</span>
+              <span className="text-xs font-bold text-[#111827] block">
+                Consultation Mode
+              </span>
               <div className="flex items-center gap-2 text-xs font-bold text-[#0D47A1]">
                 <CheckSquare size={16} className="text-[#0D47A1]" />
                 <span>In-Person OPD Consultations</span>
               </div>
-              <p className="text-[11px] text-[#64748B]">All consultations conducted on-site in assigned OPD cabinet room.</p>
+              <p className="text-[11px] text-[#64748B]">
+                All consultations conducted on-site in assigned OPD cabinet
+                room.
+              </p>
             </div>
           </div>
 
@@ -700,13 +973,17 @@ export function EditDoctorDrawer({
               className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 pb-2.5"
               style={{ fontFamily: PP }}
             >
-              <Clock size={15} className="text-[#009688]" /> Section 04: Availability Schedule
+              <Clock size={15} className="text-[#009688]" /> Section 04:
+              Availability Schedule
             </h3>
 
             <div className="border border-[#E5E7EB] rounded-xl overflow-hidden text-xs">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-50 border-b border-[#E5E7EB]">
-                  <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
+                  <tr
+                    className="text-[#64748B] font-bold"
+                    style={{ fontFamily: PP }}
+                  >
                     <th className="px-3.5 py-2.5">Day</th>
                     <th className="px-3.5 py-2.5">Available</th>
                     <th className="px-3.5 py-2.5">Start Time</th>
@@ -716,7 +993,10 @@ export function EditDoctorDrawer({
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
                   {schedule.map((item, idx) => (
-                    <tr key={item.day} className="hover:bg-slate-50 transition-colors">
+                    <tr
+                      key={item.day}
+                      className="hover:bg-slate-50 transition-colors"
+                    >
                       <td className="px-3.5 py-2.5 font-bold">{item.day}</td>
                       <td className="px-3.5 py-2.5">
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -733,7 +1013,13 @@ export function EditDoctorDrawer({
                         <select
                           disabled={!item.available}
                           value={item.startTime}
-                          onChange={(e) => handleScheduleTimeChange(idx, "startTime", e.target.value)}
+                          onChange={(e) =>
+                            handleScheduleTimeChange(
+                              idx,
+                              "startTime",
+                              e.target.value,
+                            )
+                          }
                           className="bg-slate-50 border border-[#E5E7EB] px-2 py-1 rounded-lg outline-none font-medium disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <option value="08:00 AM">08:00 AM</option>
@@ -747,7 +1033,13 @@ export function EditDoctorDrawer({
                         <select
                           disabled={!item.available}
                           value={item.endTime}
-                          onChange={(e) => handleScheduleTimeChange(idx, "endTime", e.target.value)}
+                          onChange={(e) =>
+                            handleScheduleTimeChange(
+                              idx,
+                              "endTime",
+                              e.target.value,
+                            )
+                          }
                           className="bg-slate-50 border border-[#E5E7EB] px-2 py-1 rounded-lg outline-none font-medium disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <option value="01:00 PM">01:00 PM</option>
@@ -758,7 +1050,9 @@ export function EditDoctorDrawer({
                           <option value="06:00 PM">06:00 PM</option>
                         </select>
                       </td>
-                      <td className="px-3.5 py-2.5 font-semibold text-[#0D47A1]">{slotDuration}</td>
+                      <td className="px-3.5 py-2.5 font-semibold text-[#0D47A1]">
+                        {slotDuration}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -771,13 +1065,19 @@ export function EditDoctorDrawer({
               className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2 border-b border-gray-100 pb-2.5"
               style={{ fontFamily: PP }}
             >
-              <Lock size={15} className="text-[#0D47A1]" /> Section 05: Account & Access
+              <Lock size={15} className="text-[#0D47A1]" /> Section 05: Account
+              & Access
             </h3>
 
             <div className="p-3 bg-slate-100 rounded-xl border border-slate-200 flex items-center justify-between">
               <div>
-                <span className="text-[11px] text-[#64748B] block font-semibold">Assigned System Role (Read Only)</span>
-                <span className="font-bold text-[#111827] text-xs flex items-center gap-1.5 mt-0.5" style={{ fontFamily: PP }}>
+                <span className="text-[11px] text-[#64748B] block font-semibold">
+                  Assigned System Role (Read Only)
+                </span>
+                <span
+                  className="font-bold text-[#111827] text-xs flex items-center gap-1.5 mt-0.5"
+                  style={{ fontFamily: PP }}
+                >
                   <Shield size={14} className="text-[#0D47A1]" /> Doctor
                 </span>
               </div>
@@ -788,7 +1088,9 @@ export function EditDoctorDrawer({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div>
-                <label className="block font-bold text-[#111827] mb-1">Username (Read Only)</label>
+                <label className="block font-bold text-[#111827] mb-1">
+                  Username (Read Only)
+                </label>
                 <input
                   type="text"
                   readOnly
@@ -797,7 +1099,9 @@ export function EditDoctorDrawer({
                 />
               </div>
               <div>
-                <label className="block font-bold text-[#111827] mb-1">Login Email (Read Only)</label>
+                <label className="block font-bold text-[#111827] mb-1">
+                  Login Email (Read Only)
+                </label>
                 <input
                   type="text"
                   readOnly
@@ -809,14 +1113,20 @@ export function EditDoctorDrawer({
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-bold text-[#111827]">Account Status</label>
+                <label className="block text-xs font-bold text-[#111827]">
+                  Account Status
+                </label>
                 {isFieldModified("status", accountStatus) && (
-                  <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">Modified</span>
+                  <span className="text-[10px] font-bold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
+                    Modified
+                  </span>
                 )}
               </div>
               <select
                 value={accountStatus}
-                onChange={(e) => setAccountStatus(e.target.value as DoctorStatus)}
+                onChange={(e) =>
+                  setAccountStatus(e.target.value as DoctorStatus)
+                }
                 className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] font-bold outline-none focus:border-[#0D47A1]"
               >
                 <option value="Active">Active</option>
@@ -828,8 +1138,12 @@ export function EditDoctorDrawer({
             <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-[#111827] block">Password & Credentials</span>
-                  <span className="text-[11px] text-[#64748B]">Trigger password reset for doctor account</span>
+                  <span className="text-xs font-bold text-[#111827] block">
+                    Password & Credentials
+                  </span>
+                  <span className="text-[11px] text-[#64748B]">
+                    Trigger password reset for doctor account
+                  </span>
                 </div>
                 <button
                   type="button"
@@ -846,7 +1160,9 @@ export function EditDoctorDrawer({
                   onChange={(e) => setForcePassChange(e.target.checked)}
                   className="rounded text-[#0D47A1] focus:ring-[#0D47A1] w-4 h-4"
                 />
-                <span className="font-medium text-xs text-[#111827]">Force password change on next login</span>
+                <span className="font-medium text-xs text-[#111827]">
+                  Force password change on next login
+                </span>
               </label>
             </div>
           </div>
@@ -876,10 +1192,12 @@ export function EditDoctorDrawer({
             <button
               type="submit"
               form="edit-doctor-form"
-              className="px-6 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-[#00796b] transition-colors flex items-center gap-2 shadow-sm"
+              disabled={isSubmitting}
+              className="px-6 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-[#00796b] transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: PP }}
             >
-              <Check size={15} /> Save Changes
+              <Check size={15} />
+              <span>{isSubmitting ? "Saving Changes..." : "Save Changes"}</span>
             </button>
           </div>
         </div>

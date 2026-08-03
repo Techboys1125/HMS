@@ -22,9 +22,16 @@ const handleApiError = (error: unknown): never => {
 };
 
 export const appointmentsApi = {
+  /**
+   * cURL:
+   * curl -X GET http://192.168.1.44:8081/api/v1/appointments \
+   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
+   *   -H "Content-Type: application/json"
+   */
   getAppointments: async (params?: {
     doctorId?: string | number;
     patientId?: string | number;
+    mrn?: string;
     date?: string;
     fromDate?: string;
     toDate?: string;
@@ -37,8 +44,20 @@ export const appointmentsApi = {
       const query = new URLSearchParams();
       if (params?.doctorId !== undefined)
         query.append("doctorId", String(params.doctorId));
-      if (params?.patientId !== undefined)
-        query.append("patientId", String(params.patientId));
+      if (params?.mrn) {
+        query.append("mrn", params.mrn);
+      } else if (params?.patientId !== undefined) {
+        const pId = String(params.patientId);
+        if (
+          pId.startsWith("MRN-") ||
+          pId.startsWith("UHID-") ||
+          isNaN(Number(pId))
+        ) {
+          query.append("mrn", pId);
+        } else {
+          query.append("patientId", pId);
+        }
+      }
       if (params?.date) query.append("date", params.date);
       if (params?.fromDate) query.append("fromDate", params.fromDate);
       if (params?.toDate) query.append("toDate", params.toDate);
@@ -48,6 +67,8 @@ export const appointmentsApi = {
       if (params?.sort) query.append("sort", params.sort);
 
       const url = `/api/v1/appointments${query.toString() ? `?${query.toString()}` : ""}`;
+      console.log("Appointment params:", params);
+      console.log("Appointment URL:", url);
       const response = await apiClient.get<ApiResponse<unknown>>(url);
       return response.data;
     } catch (error: unknown) {
@@ -55,6 +76,13 @@ export const appointmentsApi = {
     }
   },
 
+  /**
+   * cURL:
+   * curl -X POST http://192.168.1.44:8081/api/v1/appointments \
+   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
+   *   -H "Content-Type: application/json" \
+   *   -d '{"mrn":"MRN-001","doctorId":101,"appointmentDate":"2026-07-24","startTime":"09:00 AM","appointmentType":"CONSULTATION","reason":"Routine checkup","symptoms":"Mild fever"}'
+   */
   createAppointment: async (
     data: CreateAppointmentRequest,
   ): Promise<ApiResponse<AppointmentRecord>> => {
@@ -69,6 +97,12 @@ export const appointmentsApi = {
     }
   },
 
+  /**
+   * cURL:
+   * curl -X GET http://192.168.1.44:8081/api/v1/appointments/1 \
+   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
+   *   -H "Content-Type: application/json"
+   */
   getAppointmentById: async (
     appointmentId: string | number,
   ): Promise<ApiResponse<AppointmentRecord>> => {
@@ -113,12 +147,21 @@ export const appointmentsApi = {
   },
 
   getDoctorAppointments: async (
+    doctorId?: string | number,
     date?: string,
+    status?: string,
   ): Promise<ApiResponse<unknown>> => {
     try {
-      const url = date
-        ? `/api/v1/doctor/appointments?date=${encodeURIComponent(date)}`
-        : "/api/v1/doctor/appointments";
+      const query = new URLSearchParams();
+      if (date) query.append("date", date);
+      if (status) query.append("status", status);
+      const queryString = query.toString();
+
+      const endpoint = doctorId
+        ? `/api/v1/doctors/${doctorId}/appointments`
+        : `/api/v1/doctor/appointments`;
+      const url = `${endpoint}${queryString ? `?${queryString}` : ""}`;
+
       const response = await apiClient.get<ApiResponse<unknown>>(url);
       return response.data;
     } catch (error: unknown) {
@@ -167,11 +210,17 @@ export const appointmentsApi = {
 
   getPatientAppointments: async (
     patientId: string | number,
+    page?: number,
+    size?: number,
+    sort?: string,
   ): Promise<ApiResponse<unknown>> => {
     try {
-      const response = await apiClient.get<ApiResponse<unknown>>(
-        `/api/v1/patients/${patientId}/appointments`,
-      );
+      const query = new URLSearchParams();
+      if (page !== undefined) query.append("page", String(page));
+      if (size !== undefined) query.append("size", String(size));
+      if (sort) query.append("sort", sort);
+      const url = `/api/v1/patients/${patientId}/appointments${query.toString() ? `?${query.toString()}` : ""}`;
+      const response = await apiClient.get<ApiResponse<unknown>>(url);
       return response.data;
     } catch (error: unknown) {
       return handleApiError(error);
@@ -208,7 +257,9 @@ export const appointmentsApi = {
     try {
       const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
         `/api/v1/reception/appointments/${appointmentId}/check-in`,
+        {},
       );
+
       return response.data;
     } catch (error: unknown) {
       return handleApiError(error);
@@ -230,17 +281,12 @@ export const appointmentsApi = {
     }
   },
 
-  getDepartments: async (): Promise<ApiResponse<unknown[]>> => {
-    try {
-      const response = await apiClient.get<ApiResponse<unknown[]>>(
-        "/api/v1/departments",
-      );
-      return response.data;
-    } catch (error: unknown) {
-      return handleApiError(error);
-    }
-  },
-
+  /**
+   * cURL:
+   * curl -X GET "http://192.168.1.44:8081/api/v1/doctors?departmentId=2" \
+   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
+   *   -H "Content-Type: application/json"
+   */
   getDoctors: async (
     departmentId?: string | number,
   ): Promise<ApiResponse<DoctorSummary[]>> => {
@@ -256,6 +302,12 @@ export const appointmentsApi = {
     }
   },
 
+  /**
+   * cURL:
+   * curl -X GET "http://192.168.1.44:8081/api/v1/doctors/101/slots?date=2026-07-24" \
+   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
+   *   -H "Content-Type: application/json"
+   */
   getAvailableSlots: async (
     doctorId: string | number,
     date: string,

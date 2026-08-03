@@ -8,57 +8,9 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://192.168.1.44:8081",
+        target: "https://safe-hands-hms-backend.onrender.com",
         changeOrigin: true,
         secure: false,
-      },
-    },
-  },
-  build: {
-    chunkSizeWarningLimit: 1000,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes("ReportsManagement")) {
-            return "reports-management";
-          }
-          if (id.includes("BillingManagement")) {
-            return "billing-management";
-          }
-          if (id.includes("FamilyMembersManagement")) {
-            return "family-members-management";
-          }
-          if (id.includes("AuditLogsManagement")) {
-            return "audit-logs-management";
-          }
-          if (id.includes("features/patients")) {
-            return "feature-patients";
-          }
-          if (id.includes("features/opd")) {
-            return "feature-opd";
-          }
-          if (id.includes("features/appointments")) {
-            return "feature-appointments";
-          }
-          if (id.includes("features/doctors")) {
-            return "feature-doctors";
-          }
-          if (id.includes("node_modules")) {
-            if (id.includes("recharts")) {
-              return "vendor-recharts";
-            }
-            if (id.includes("lucide-react")) {
-              return "vendor-lucide";
-            }
-            if (id.includes("react") || id.includes("react-dom")) {
-              return "vendor-core";
-            }
-            if (id.includes("@tanstack")) {
-              return "vendor-query";
-            }
-            return "vendor";
-          }
-        },
       },
     },
   },

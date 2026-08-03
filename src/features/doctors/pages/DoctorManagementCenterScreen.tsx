@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronRight, UserPlus, RefreshCw, CheckCircle2 } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
@@ -14,9 +14,11 @@ import { DeactivateDoctorDialog } from "../components/DeactivateDoctorDialog";
 import { AddDoctorDrawer } from "../components/AddDoctorDrawer";
 import { EditDoctorDrawer } from "../components/EditDoctorDrawer";
 import { DoctorProfileScreen } from "../components/DoctorProfileScreen";
+import { doctorsService } from "../services/doctors.service";
+import { departmentsApi } from "../../users/api/departments.api";
 
 export function DoctorManagementCenterScreen() {
-  const { doctors, totalDoctorsCount, availableTodayCount, onLeaveCount, departmentsCoveredCount, addDoctor, replaceDoctor, deactivateDoctor } = useDoctors();
+  const { doctors, setDoctors, totalDoctorsCount, availableTodayCount, onLeaveCount, departmentsCoveredCount, addDoctor, replaceDoctor, deactivateDoctor } = useDoctors();
   const { toastMsg, showToast } = useToast();
   const { searchDoctorQuery, setSearchDoctorQuery, searchEmpIdQuery, setSearchEmpIdQuery, searchRegNoQuery, setSearchRegNoQuery, deptFilter, setDeptFilter, specialtyFilter, setSpecialtyFilter, availabilityFilter, setAvailabilityFilter, statusFilter, setStatusFilter, experienceFilter, setExperienceFilter, sortColumn, sortDirection, filteredDoctors, handleSort, resetFilters } = useDoctorFilters(doctors);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,24 +29,51 @@ export function DoctorManagementCenterScreen() {
   const [fullProfileDoctor, setFullProfileDoctor] = useState<DoctorRecord | null>(null);
   const [deactivateDialogDoctor, setDeactivateDialogDoctor] = useState<DoctorRecord | null>(null);
 
+  const fetchDoctorList = async () => {
+    setIsLoading(true);
+    try {
+      const response = await doctorsService.getAll();
+      if (response && response.items) {
+        setDoctors(response.items);
+      }
+    } catch (err) {
+      console.warn("Failed to fetch doctors:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const [departments, setDepartments] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchDoctorList();
+    departmentsApi.getDepartmentLookup(true).then((list) => {
+      setDepartments(list.map(d => d.departmentName));
+    }).catch(() => {});
+  }, []);
+
+
   const handleAddDoctorSubmit = (newDoctor: DoctorRecord) => {
     addDoctor(newDoctor);
-    showToast(`Doctor ${newDoctor.name} created successfully.`);
     setShowAddDrawer(false);
+    fetchDoctorList().catch(() => {});
+    showToast(`Doctor ${newDoctor.name} created successfully.`);
   };
 
   const handleSaveEditDoctor = (updatedDoc: DoctorRecord) => {
     replaceDoctor(updatedDoc);
-    showToast("Doctor information updated successfully.");
     setEditingDoctor(null);
+    fetchDoctorList().catch(() => {});
+    showToast("Doctor information updated successfully.");
   };
 
   const handleConfirmDeactivate = () => {
     if (!deactivateDialogDoctor) return;
     deactivateDoctor(deactivateDialogDoctor.id);
-    showToast(`Doctor ${deactivateDialogDoctor.name} has been deactivated.`);
     setDeactivateDialogDoctor(null);
     setEditingDoctor(null);
+    fetchDoctorList().catch(() => {});
+    showToast(`Doctor ${deactivateDialogDoctor.name} has been deactivated.`);
   };
 
   const handleResetAllFilters = () => {
@@ -82,11 +111,11 @@ export function DoctorManagementCenterScreen() {
         </div>
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
-            onClick={() => { setIsLoading(prev => !prev); showToast(isLoading ? "Loading completed." : "Simulating loading skeletons..."); }}
+            onClick={() => { fetchDoctorList(); showToast("Refreshing doctor records from backend..."); }}
             className="px-3 py-2 rounded-xl bg-white border border-[#E5E7EB] text-slate-600 hover:text-[#0D47A1] text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm"
           >
             <RefreshCw size={13} className={isLoading ? "animate-spin text-[#0D47A1]" : ""} />
-            <span>{isLoading ? "Loading Active" : "Simulate Loading"}</span>
+            <span>{isLoading ? "Refreshing..." : "Refresh List"}</span>
           </button>
           <button
             onClick={() => setShowAddDrawer(true)}
@@ -118,6 +147,7 @@ export function DoctorManagementCenterScreen() {
         experienceFilter={experienceFilter}
         setExperienceFilter={setExperienceFilter}
         onResetFilters={handleResetAllFilters}
+        departments={departments}
       />
 
       <DoctorTable

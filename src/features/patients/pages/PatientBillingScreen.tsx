@@ -12,15 +12,15 @@ import {
   CreditCard,
 } from "lucide-react";
 import type { PatientInvoice } from "../types/patient.types";
-import {
-  PP,
-  RB,
-  INITIAL_INVOICES,
-  PAYMENT_HISTORY_RECORDS,
-} from "../constants/patient.mock";
+import { PP, RB, PAYMENT_HISTORY_RECORDS } from "../constants/patient.mock";
 
-export function PatientBillingScreen() {
-  const [invoices, setInvoices] = useState<PatientInvoice[]>(INITIAL_INVOICES);
+export function PatientBillingScreen({
+  activePatient,
+}: {
+  activePatient?: any;
+}) {
+  const patientName = activePatient?.patientName || activePatient?.name || "Patient";
+  const [invoices, setInvoices] = useState<PatientInvoice[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("All");
@@ -130,7 +130,7 @@ export function PatientBillingScreen() {
             className="text-xl font-bold text-[#111827]"
             style={{ fontFamily: PP }}
           >
-            Billing & Payments
+            Billing & Payments ({patientName})
           </h1>
           <div
             className="flex items-center gap-1.5 text-xs text-[#64748B] mt-1"

@@ -4,10 +4,18 @@ import type {
   AdminCreateStaffData,
   AdminCreateStaffResponse,
   AdminUpdateStaffData,
+  UserDetailData,
 } from "../types/users.types";
 
 export const usersApi = {
   // 1. Admin Creates Staff User (POST /api/v1/admin/users)
+  /**
+   * cURL:
+   * curl -X POST http://192.168.1.44:8081/api/v1/admin/users \
+   *   -H "Content-Type: application/json" \
+   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
+   *   -d '{"email":"doctor@gmail.com","password":"Password@123","fullName":"Dr. Arjun Mehta","role":"DOCTOR","mobile":"+919876543210","gender":"MALE","dateOfBirth":"1980-05-15","residentialAddress":"123 Main St, City","doctorProfile":{"medicalRegistrationNumber":"MED12345","qualification":"MBBS, MD","yearsOfExperience":15,"primaryDepartmentId":2,"primarySpecialtyId":1,"consultationFee":800,"followUpFee":500,"slotDurationMinutes":15,"availability":[{"dayOfWeek":"MONDAY","startTime":"09:00","endTime":"17:00"}]}}'
+   */
   adminCreateStaff: async (
     data: AdminCreateStaffData,
   ): Promise<AdminCreateStaffResponse> => {
@@ -86,9 +94,9 @@ export const usersApi = {
   adminUpdateStaff: async (
     userId: number | string,
     data: AdminUpdateStaffData,
-  ): Promise<ApiResponse<User>> => {
+  ): Promise<ApiResponse<UserDetailData>> => {
     try {
-      const response = await apiClient.put<ApiResponse<User>>(
+      const response = await apiClient.put<ApiResponse<UserDetailData>>(
         `/api/v1/admin/users/${userId}`,
         data,
       );
@@ -161,9 +169,9 @@ export const usersApi = {
   // 7. Admin Gets User By ID (GET /api/v1/admin/users/{userId})
   adminGetUserById: async (
     userId: number | string,
-  ): Promise<ApiResponse<User>> => {
+  ): Promise<ApiResponse<UserDetailData>> => {
     try {
-      const response = await apiClient.get<ApiResponse<User>>(
+      const response = await apiClient.get<ApiResponse<UserDetailData>>(
         `/api/v1/admin/users/${userId}`,
       );
       return response.data;
@@ -182,3 +190,4 @@ export const usersApi = {
     }
   },
 };
+

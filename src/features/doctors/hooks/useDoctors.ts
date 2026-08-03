@@ -1,9 +1,8 @@
 import { useState, useMemo } from "react";
 import type { DoctorRecord, DoctorAvailability, DoctorStatus } from "../types/doctors.types";
-import { INITIAL_DOCTORS } from "../constants/doctors.constants";
 
 export function useDoctors() {
-  const [doctors, setDoctors] = useState<DoctorRecord[]>([...INITIAL_DOCTORS]);
+  const [doctors, setDoctors] = useState<DoctorRecord[]>([]);
   
   const totalDoctorsCount = doctors.length;
   const availableTodayCount = doctors.filter(

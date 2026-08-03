@@ -1,13 +1,15 @@
+import { useState, useMemo } from "react";
 import {
-  Eye,
   MoreVertical,
-  User,
   Edit,
   FileText,
   Calendar,
   Receipt,
   Users,
   UserCheck,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import type { Patient } from "../types/patient.types";
 import { usePermissions } from "../../../permissions";
@@ -62,7 +64,6 @@ export function PatientTable({
   activeActionMenuId,
   hasActiveFilters,
   onSelectRow,
-  onOpenQuickView,
   onToggleActionMenu,
   onViewProfile,
   onEditPatient,
@@ -79,7 +80,7 @@ export function PatientTable({
   activeActionMenuId: string | null;
   hasActiveFilters: boolean;
   onSelectRow: (p: Patient) => void;
-  onOpenQuickView: (p: Patient) => void;
+  onOpenQuickView?: (p: Patient) => void;
   onToggleActionMenu: (id: string | null) => void;
   onViewProfile: (id: string) => void;
   onEditPatient?: (p: Patient) => void;
@@ -91,6 +92,88 @@ export function PatientTable({
 }) {
   const permissions = usePermissions();
   const activeRole = (userRole || permissions.role || "RECEPTIONIST").toUpperCase();
+
+  // Sorting state
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (key: string) => {
+    if (key === "actions") return;
+    if (sortColumn === key) {
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else {
+        setSortColumn(null);
+        setSortDirection("asc");
+      }
+    } else {
+      setSortColumn(key);
+      setSortDirection("asc");
+    }
+  };
+
+  // Sorted Patients
+  const sortedPatients = useMemo(() => {
+    if (!sortColumn) return patients;
+
+    return [...patients].sort((a, b) => {
+      let valA: string | number = "";
+      let valB: string | number = "";
+
+      switch (sortColumn) {
+        case "mrn":
+          valA = a.mrn || String(a.id);
+          valB = b.mrn || String(b.id);
+          break;
+        case "name":
+          valA = (a.patientName || a.name || "").toLowerCase();
+          valB = (b.patientName || b.name || "").toLowerCase();
+          break;
+        case "age_gender":
+          valA = a.age || 0;
+          valB = b.age || 0;
+          break;
+        case "phone":
+          valA = a.phone || "";
+          valB = b.phone || "";
+          break;
+        case "email":
+          valA = (a.email || "").toLowerCase();
+          valB = (b.email || "").toLowerCase();
+          break;
+        case "blood_group":
+          valA = a.bloodGroup || "";
+          valB = b.bloodGroup || "";
+          break;
+        case "category":
+          valA = (a.patientCategory || "").toLowerCase();
+          valB = (b.patientCategory || "").toLowerCase();
+          break;
+        case "reg_type":
+          valA = (a.registrationType || "").toLowerCase();
+          valB = (b.registrationType || "").toLowerCase();
+          break;
+        case "assigned_doctor":
+          valA = (a.assignedDoctor || "").toLowerCase();
+          valB = (b.assignedDoctor || "").toLowerCase();
+          break;
+        case "reg_date":
+          valA = a.registrationDate || "";
+          valB = b.registrationDate || "";
+          break;
+        case "status":
+          valA = (a.status || "").toLowerCase();
+          valB = (b.status || "").toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+
+      if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+      if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [patients, sortColumn, sortDirection]);
 
   // Column definitions & role-based visibility
   const isDoctor = activeRole === "DOCTOR";
@@ -118,7 +201,15 @@ export function PatientTable({
   const canBilling = permissions.can("BILLING_CREATE") || permissions.can("BILLING_VIEW");
 
   return (
-    <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden">
+    <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden relative">
+      {/* Click-outside Backdrop for Actions Dropdown */}
+      {activeActionMenuId && (
+        <div
+          className="fixed inset-0 z-20 bg-transparent"
+          onClick={() => onToggleActionMenu(null)}
+        />
+      )}
+
       {/* Table Header Section */}
       <div className="px-6 py-4 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50/50">
         <h2
@@ -128,7 +219,7 @@ export function PatientTable({
           <Users size={18} className="text-[#0D47A1]" /> All Patients
         </h2>
         <div className="text-xs font-semibold text-[#64748B] bg-white px-2.5 py-1 rounded-lg border border-[#E5E7EB] shadow-sm">
-          Showing {patients.length} of {totalCount}{" "}
+          Showing {sortedPatients.length} of {totalCount}{" "}
           {totalCount === 1 ? "entity" : "entities"}
         </div>
       </div>
@@ -150,7 +241,7 @@ export function PatientTable({
             </div>
           ))}
         </div>
-      ) : patients.length === 0 ? (
+      ) : sortedPatients.length === 0 ? (
         /* EMPTY STATE */
         <div className="flex-1 p-12 flex flex-col items-center justify-center text-center">
           <div className="w-16 h-16 rounded-full bg-blue-50 text-[#0D47A1] flex items-center justify-center mb-4 shadow-inner">
@@ -186,20 +277,49 @@ export function PatientTable({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#F1F5F9]/80 border-b border-[#E5E7EB]">
-                {columns.map((col) => (
-                  <th
-                    key={col.key}
-                    className={`px-4 py-3.5 text-xs font-bold text-[#64748B] uppercase tracking-wider whitespace-nowrap ${col.key === "actions" ? "text-right" : ""}`}
-                    style={{ fontFamily: PP }}
-                  >
-                    {col.label}
-                  </th>
-                ))}
+                {columns.map((col) => {
+                  const isSorted = sortColumn === col.key;
+                  const isActions = col.key === "actions";
+
+                  return (
+                    <th
+                      key={col.key}
+                      onClick={() => handleSort(col.key)}
+                      className={`px-4 py-3.5 text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors select-none ${
+                        isActions
+                          ? "text-right cursor-default"
+                          : "text-[#64748B] hover:text-[#0D47A1] cursor-pointer"
+                      }`}
+                      style={{ fontFamily: PP }}
+                    >
+                      <div
+                        className={`flex items-center gap-1.5 ${
+                          isActions ? "justify-end" : "justify-start"
+                        }`}
+                      >
+                        <span>{col.label}</span>
+                        {!isActions && (
+                          <span className="text-slate-400">
+                            {isSorted ? (
+                              sortDirection === "asc" ? (
+                                <ArrowUp size={13} className="text-[#0D47A1]" />
+                              ) : (
+                                <ArrowDown size={13} className="text-[#0D47A1]" />
+                              )
+                            ) : (
+                              <ArrowUpDown size={12} className="opacity-50 hover:opacity-100" />
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {patients.map((p) => {
-                const mrn = p.mrn || p.patientId || String(p.id);
+              {sortedPatients.map((p) => {
+                const mrn = p.mrn || String(p.id);
                 const name = (p.patientName || p.name || "").trim();
                 const age = p.age || 0;
                 const gender = p.gender === "FEMALE" || p.gender === "F" ? "Female" : "Male";
@@ -264,7 +384,7 @@ export function PatientTable({
 
                     {columns.some((c) => c.key === "blood_group") && (
                       <td className="px-4 py-3.5 whitespace-nowrap text-xs font-bold text-[#009688]">
-                        O+
+                        {p.bloodGroup || "O+"}
                       </td>
                     )}
 
@@ -305,17 +425,10 @@ export function PatientTable({
 
                     {columns.some((c) => c.key === "actions") && (
                       <td
-                        className="px-4 py-3.5 whitespace-nowrap text-right relative"
+                        className="px-4 py-3.5 whitespace-nowrap text-right relative z-30"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => onOpenQuickView(p)}
-                            className="p-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Quick Drawer View"
-                          >
-                            <Eye size={15} />
-                          </button>
                           <div className="relative">
                             <button
                               onClick={() =>
@@ -330,16 +443,6 @@ export function PatientTable({
                             </button>
                             {activeActionMenuId === mrn && (
                               <div className="absolute right-0 top-8 z-30 w-48 bg-white border border-[#E5E7EB] rounded-xl shadow-xl py-1.5 animate-in fade-in zoom-in-95 duration-150 text-left">
-                                <button
-                                  onClick={() => {
-                                    onToggleActionMenu(null);
-                                    onViewProfile(mrn);
-                                  }}
-                                  className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
-                                >
-                                  <User size={14} className="text-[#0D47A1]" /> View
-                                  Profile
-                                </button>
                                 {canEdit && onEditPatient && (
                                   <button
                                     onClick={() => {

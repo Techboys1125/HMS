@@ -1,13 +1,18 @@
 import { AppointmentManagementCenterScreen } from "../../appointments";
+import { useAuthStore } from "../../auth/store/auth.store";
 
 export function DoctorAppointmentsScreen({
   onStartConsultation,
 }: {
   onStartConsultation?: (id: number) => void;
 }) {
+  const { user } = useAuthStore();
+  const doctorId = user?.doctorProfile?.doctorId ?? user?.doctorId;
+
   return (
     <AppointmentManagementCenterScreen
       userRole="Doctor"
+      doctorId={doctorId}
       onStartConsultation={() => onStartConsultation?.(1)}
     />
   );

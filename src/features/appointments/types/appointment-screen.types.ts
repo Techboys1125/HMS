@@ -47,13 +47,26 @@ export interface AppointmentManagementCenterScreenProps {
   onPatientSearchClick?: () => void;
   onRegisterPatientClick?: () => void;
 }
+type Role =
+  | "super-admin"
+  | "admin"
+  | "doctor"
+  | "nurse"
+  | "receptionist"
+  | "accountant"
+  | "patient";
 
-export interface ReceptionBookAppointmentScreenProps {
-  onBack?: () => void;
+export interface BookAppointmentScreenProps {
+  role:Role;
+     onBack?: () => void;
   onConfirmSuccess?: (appointmentId: string) => void;
   onRegisterNewPatientClick?: () => void;
   onViewPatientProfileClick?: (mrn: string) => void;
+
+  onPatientSelect?: (mrn: string) => void;
+  onBookSuccess?: (appointment: AppointmentRecord) => void;
   initialMrn?: string;
+    
 }
 
 export interface PatientCheckInScreenProps {
@@ -65,7 +78,7 @@ export interface PatientCheckInScreenProps {
   initialAptId?: string;
 }
 
-export interface ReceptionQueueManagementScreenProps {
+export interface QueueManagementScreenProps {
   onBack?: () => void;
   onCheckInClick?: (token?: string, mrn?: string) => void;
   onPatientSearchClick?: () => void;

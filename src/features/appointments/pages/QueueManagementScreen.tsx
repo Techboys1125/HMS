@@ -1,8 +1,13 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { PP, RB } from "../constants/appointment.constants";
 import type { ChipVariant } from "../constants/appointment.constants";
 import { Chip } from "../components/Chip";
-import { type ReceptionQueueManagementScreenProps } from "../types/appointment-screen.types";
+import { CheckInConfirmationModal } from "../../reception/components/CheckInConfirmationModal";
+import { receptionService } from "../../reception/services/reception.service";
+import { departmentsApi } from "../../users/api/departments.api";
+
+import { type QueueManagementScreenProps } from "../types/appointment-screen.types";
+import { usePermissions } from "../../../permissions";
 import {
   ChevronRight,
   RefreshCw,
@@ -12,12 +17,16 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-export function ReceptionQueueManagementScreen({
+export function QueueManagementScreen({
   onBack,
   onCheckInClick,
   onPatientSearchClick,
   onPatientSelect,
-}: ReceptionQueueManagementScreenProps) {
+}: QueueManagementScreenProps) {
+  const { can } = usePermissions();
+  const canCheckIn = can("APPOINTMENT_CHECK_IN") || can("CHECKIN_CREATE");
+  const canRecordVitals = can("VITALS_CREATE");
+
   // Global Search state
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -28,11 +37,84 @@ export function ReceptionQueueManagementScreen({
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
   const [selectedType, setSelectedType] = useState("All Types");
 
+  const [apiDepts, setApiDepts] = useState<string[]>([]);
+
+  useEffect(() => {
+    departmentsApi
+      .getDepartmentLookup(true)
+      .then((lookupList) => {
+        if (lookupList && lookupList.length > 0) {
+          const names = lookupList.map((d) => d.departmentName).filter(Boolean);
+          setApiDepts(names);
+        } else {
+          departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
+            const names = list
+              .map((d) => d.departmentName || d.name)
+              .filter((n): n is string => Boolean(n));
+            if (names.length > 0) setApiDepts(names);
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Selected Row for Right Context Panel
   const [selectedTokenId, setSelectedTokenId] = useState<string>("TK-086");
 
   // Dialog States
   const [noShowDialogApt, setNoShowDialogApt] = useState<any | null>(null);
+  const [checkInModalData, setCheckInModalData] = useState<{
+    isOpen: boolean;
+    tokenNumber: string;
+    patientName: string;
+    patientMrn: string;
+    doctorName?: string;
+    departmentName?: string;
+    appointmentTime?: string;
+    status?: string;
+  } | null>(null);
+
+  const handleExecuteCheckIn = async (item: any) => {
+    try {
+      const res = await receptionService.checkInPatient(
+        item.aptId || item.token,
+      );
+      const genToken = res.tokenNumber || item.token;
+
+      setQueueItems((prev) =>
+        prev.map((i) =>
+          i.token === item.token || i.aptId === item.aptId
+            ? {
+                ...i,
+                token: genToken,
+                status: "Waiting for Vitals",
+                arrivalTime: new Date().toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+              }
+            : i,
+        ),
+      );
+
+      setCheckInModalData({
+        isOpen: true,
+        tokenNumber: genToken,
+        patientName: item.name,
+        patientMrn: item.mrn,
+        doctorName: item.doctor,
+        departmentName: item.dept,
+        appointmentTime: item.apptTime,
+        status: "Waiting for Vitals",
+      });
+
+      if (onCheckInClick) onCheckInClick(genToken, item.mrn);
+    } catch (err: any) {
+      alert(
+        err?.message || "Check-in is only allowed on the appointment date.",
+      );
+    }
+  };
 
   // Queue Data List
   const [queueItems, setQueueItems] = useState([
@@ -196,7 +278,6 @@ export function ReceptionQueueManagementScreen({
     selectedStatus,
     selectedType,
   ]);
-
 
   // Summary KPI Metrics
   const metrics = useMemo(() => {
@@ -452,12 +533,12 @@ export function ReceptionQueueManagementScreen({
               onChange={(e) => setSelectedDept(e.target.value)}
               className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
             >
-              <option>All Departments</option>
-              <option>Cardiology</option>
-              <option>General OPD</option>
-              <option>Gynecology</option>
-              <option>Neurology</option>
-              <option>Dermatology</option>
+              <option value="All Departments">All Departments</option>
+              {apiDepts.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
             </select>
 
             <select
@@ -592,17 +673,23 @@ export function ReceptionQueueManagementScreen({
                             onClick={(e) => e.stopPropagation()}
                           >
                             <div className="flex items-center justify-end gap-1.5">
-                              {item.status === "Scheduled" ||
-                                item.status === "Registered" ? (
-                                <button
-                                  onClick={() =>
-                                    onCheckInClick &&
-                                    onCheckInClick(item.token, item.mrn)
-                                  }
-                                  className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
-                                >
-                                  Check-In
-                                </button>
+                              {(item.status === "Scheduled" ||
+                                item.status === "Registered") &&
+                                canCheckIn && (
+                                  <button
+                                    onClick={() => handleExecuteCheckIn(item)}
+                                    className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors shadow-xs bg-[#009688] text-white hover:bg-teal-700 cursor-pointer"
+                                    title="Check-In Patient"
+                                  >
+                                    Check-In
+                                  </button>
+                                )}
+
+                              {item.status === "Checked-In" &&
+                              canRecordVitals ? (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                                  Vitals Pending
+                                </span>
                               ) : null}
 
                               <button
@@ -677,7 +764,6 @@ export function ReceptionQueueManagementScreen({
             </div>
           </div>
         </div>
-
       </div>
 
       {/* ── CONFIRMATION DIALOG: MARK NO SHOW ── */}
@@ -731,6 +817,21 @@ export function ReceptionQueueManagementScreen({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Centered Check-In Confirmation Modal */}
+      {checkInModalData && (
+        <CheckInConfirmationModal
+          isOpen={checkInModalData.isOpen}
+          onClose={() => setCheckInModalData(null)}
+          tokenNumber={checkInModalData.tokenNumber}
+          patientName={checkInModalData.patientName}
+          patientMrn={checkInModalData.patientMrn}
+          doctorName={checkInModalData.doctorName}
+          departmentName={checkInModalData.departmentName}
+          appointmentTime={checkInModalData.appointmentTime}
+          status={checkInModalData.status || "Waiting for Vitals"}
+        />
       )}
     </div>
   );

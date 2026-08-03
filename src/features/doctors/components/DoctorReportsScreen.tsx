@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { TrendingUp, TrendingDown, Download } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from "recharts";
-import { PP, RB, WEEKLY_CONSULTATIONS } from "../constants/doctors.constants";
+import { WEEKLY_CONSULTATIONS } from "../constants/doctors.constants";
+import { PP, RB } from "../constants/doctors.constants";
 import { Card } from "./Card";
 import { SectionHeader } from "./SectionHeader";
 

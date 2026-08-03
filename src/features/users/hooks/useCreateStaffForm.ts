@@ -1,44 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { usersApi } from "../api/users.api";
+import { departmentsApi, type ApiDepartmentLookupItem } from "../api/departments.api";
 import type {
   AdminCreateStaffData,
   AdminCreateDoctorStaffData,
 } from "../types/users.types";
-
-export const SPECIALTY_NAME_TO_ID: Record<string, number> = {
-  "General Cardiology": 1,
-  "Interventional Cardiology": 2,
-  Electrophysiology: 3,
-  "Pediatric Cardiology": 4,
-  "Cardiovascular Surgery": 5,
-  "Internal Medicine": 6,
-  "Family Medicine": 7,
-  "Geriatric Medicine": 8,
-  "Preventive Care": 9,
-  "General Practice": 10,
-  "Clinical Neurology": 11,
-  Neurosurgery: 12,
-  "Neuro-Oncology": 13,
-  "Neuro-Immunology": 14,
-  "Stroke Medicine": 15,
-  "Hospital Management": 16,
-  "Clinical Administration": 17,
-  "Operations Support": 18,
-  "Patient Coordination": 19,
-  "Outpatient Registrations": 20,
-  "Customer Relations": 21,
-  "Patient Billing": 22,
-  "Medical Insurance Auditing": 23,
-  "Financial Accounting": 24,
-  "Critical Care Nursing": 25,
-  "Emergency Care Nursing": 26,
-  "Pediatric Nursing": 27,
-  "General Ward Nursing": 28,
-  "System Administration": 29,
-  "Healthcare Informatics": 30,
-  "Network Security": 31,
-};
 
 export interface FormValues {
   fullName: string;
@@ -46,6 +13,7 @@ export interface FormValues {
   phone: string;
   gender: string;
   dob: string;
+  dateOfBirth?: string;
   role: "DOCTOR" | "RECEPTIONIST" | "NURSE" | "ACCOUNTANT" | "";
   professionalIdentity: string;
   registrationNumber: string;
@@ -114,12 +82,25 @@ const getRolePrefix = (role: string) => {
   }
 };
 
+const getApiGender = (genderStr: string): "MALE" | "FEMALE" | "OTHER" => {
+  if (genderStr === "Male" || genderStr === "MALE") return "MALE";
+  if (genderStr === "Female" || genderStr === "FEMALE") return "FEMALE";
+  return "OTHER";
+};
+
 export const useCreateStaffForm = (
   triggerToast: (msg: string, type?: "success" | "error") => void,
   onSuccess?: () => void,
   onBack?: () => void,
 ) => {
   const navigate = useNavigate();
+  const [departmentsList, setDepartmentsList] = useState<ApiDepartmentLookupItem[]>([]);
+
+  useEffect(() => {
+    departmentsApi.getDepartmentLookup(true).then((list) => {
+      setDepartmentsList(list);
+    }).catch(() => {});
+  }, []);
 
   const [form, setForm] = useState<FormValues>({
     fullName: "",
@@ -494,20 +475,14 @@ export const useCreateStaffForm = (
 
     setIsSubmitting(true);
     try {
-      const departmentMapping: Record<string, number> = {
-        Cardiology: 1,
-        "General Medicine": 2,
-        Neurology: 3,
-        Administration: 4,
-        "OPD Reception": 5,
-        "Accounts & Billing": 6,
-        "Nursing & Patient Care": 7,
-        "IT & Systems": 8,
-      };
+      const matchedPrimaryDept = departmentsList.find((d) => d.departmentName === form.primaryDepartment);
+      const finalDeptId = matchedPrimaryDept ? Number(matchedPrimaryDept.departmentId) : 2;
 
-      const finalDeptId = departmentMapping[form.primaryDepartment] || 2;
-      const secondaryDeptIds = form.secondaryDepartment
-        ? [departmentMapping[form.secondaryDepartment] || 2]
+      const matchedSecondaryDept = form.secondaryDepartment
+        ? departmentsList.find((d) => d.departmentName === form.secondaryDepartment)
+        : null;
+      const secondaryDeptIds = matchedSecondaryDept
+        ? [Number(matchedSecondaryDept.departmentId)]
         : [];
       const apiRole = form.role;
 
@@ -520,6 +495,12 @@ export const useCreateStaffForm = (
         email: form.email,
         mobile: finalMobile,
         role: apiRole,
+        gender: getApiGender(form.gender),
+        dateOfBirth: form.dob || undefined,
+        residentialAddress: form.residentialAddress || undefined,
+        photoUrl: form.photoUrl || undefined,
+        photo: form.photoUrl || undefined,
+        sendCredentials: form.sendCredentials,
         departmentId: finalDeptId,
         primaryDepartmentId: finalDeptId,
         secondaryDepartmentIds: secondaryDeptIds,
@@ -531,51 +512,72 @@ export const useCreateStaffForm = (
 
       let response;
       if (form.role === "DOCTOR") {
-        const availabilityList = Object.entries(form.availability).map(
+        const backendAvailabilityList = Object.entries(form.availability)
+          .filter(([, sched]) => sched.isAvailable)
+          .map(([day, sched]) => ({
+            dayOfWeek: day.toUpperCase(),
+            startTime: (sched.startTime || "").slice(0, 5),
+            endTime: (sched.endTime || "").slice(0, 5),
+          }));
+
+        const legacyAvailabilityList = Object.entries(form.availability).map(
           ([day, sched]) => ({
             day: day.toUpperCase(),
             available: sched.isAvailable,
             slots: sched.isAvailable
               ? [
                   {
-                    startTime:
-                      sched.startTime.includes(":") &&
-                      sched.startTime.split(":").length === 2
-                        ? `${sched.startTime}:00`
-                        : sched.startTime,
-                    endTime:
-                      sched.endTime.includes(":") &&
-                      sched.endTime.split(":").length === 2
-                        ? `${sched.endTime}:00`
-                        : sched.endTime,
+                    startTime: (sched.startTime || "").slice(0, 5),
+                    endTime: (sched.endTime || "").slice(0, 5),
                   },
                 ]
               : [],
           }),
         );
 
-        const primaryId = SPECIALTY_NAME_TO_ID[form.primarySpecialty] || 1;
-        const secondaryIds = form.secondarySpecialty
-          ? [SPECIALTY_NAME_TO_ID[form.secondarySpecialty] || 2]
-          : [];
+        let primaryId = 1;
+        if (matchedPrimaryDept && matchedPrimaryDept.specialties) {
+          const matchedSpec = matchedPrimaryDept.specialties.find((s) => s.name === form.primarySpecialty);
+          if (matchedSpec) {
+            primaryId = Number(matchedSpec.id);
+          }
+        }
+
+        let secondaryIds: number[] = [];
+        if (matchedSecondaryDept && matchedSecondaryDept.specialties && form.secondarySpecialty) {
+          const matchedSpec = matchedSecondaryDept.specialties.find((s) => s.name === form.secondarySpecialty);
+          if (matchedSpec) {
+            secondaryIds = [Number(matchedSpec.id)];
+          }
+        }
 
         const doctorPayload: AdminCreateDoctorStaffData = {
-          ...basePayload,
+          fullName: form.fullName,
+          email: form.email,
+          mobile: finalMobile,
+          gender: getApiGender(form.gender),
+          dateOfBirth: form.dob || form.dateOfBirth || undefined,
+          photo: form.photoUrl || undefined,
+          photoUrl: form.photoUrl || undefined,
+          residentialAddress: form.residentialAddress || undefined,
+          professionalBio: form.professionalBio || undefined,
+          role: apiRole,
+          medicalRegistrationNumber: form.registrationNumber || undefined,
+          qualification: form.qualification || undefined,
+          yearsOfExperience: form.yearsOfExperience ? Number(form.yearsOfExperience) : undefined,
+          doctorCode: form.doctorCode || undefined,
           primaryDepartmentId: finalDeptId,
           secondaryDepartmentIds: secondaryDeptIds,
           primarySpecialtyId: primaryId,
           secondarySpecialtyIds: secondaryIds,
-          photoUrl: form.photoUrl || undefined,
-          residentialAddress: form.residentialAddress || undefined,
-          professionalBio: form.professionalBio || undefined,
-          qualification: form.qualification || undefined,
-          yearsOfExperience: form.yearsOfExperience ? Number(form.yearsOfExperience) : undefined,
-          doctorCode: form.doctorCode || undefined,
-          medicalRegistrationNumber: form.registrationNumber || undefined,
           consultationFee: Number(form.consultationFee) || 0,
-          followUpFee: form.followUpFee ? Number(form.followUpFee) : undefined,
+          followUpFee: form.followUpFee ? Number(form.followUpFee) : 0,
           slotDurationMinutes: Number(form.slotDurationMinutes) || 15,
+          availability: backendAvailabilityList,
           sendCredentials: form.sendCredentials,
+          // Legacy backward compatibility
+          departmentId: finalDeptId,
+          designation: form.primarySpecialty || "Doctor",
           doctorProfile: {
             registrationNumber: form.registrationNumber,
             medicalRegistrationNumber: form.registrationNumber,
@@ -590,7 +592,7 @@ export const useCreateStaffForm = (
             followUpFee: form.followUpFee ? Number(form.followUpFee) : 0,
             slotDurationMinutes: Number(form.slotDurationMinutes) || 15,
             consultationTypes: ["IN_PERSON"],
-            availability: availabilityList,
+            availability: legacyAvailabilityList,
             residentialAddress: form.residentialAddress || undefined,
             professionalBio: form.professionalBio || undefined,
             photoUrl: form.photoUrl || undefined,
@@ -619,14 +621,26 @@ export const useCreateStaffForm = (
         );
       }
     } catch (err: unknown) {
-      let errMsg = "Error submitting form";
+      let errMsg = "Failed to create staff account.";
       if (err instanceof Error) {
         errMsg = err.message;
       }
-      const axiosErr = err as { cause?: { response?: { status?: number } } };
-      if (axiosErr?.cause?.response?.status === 403) {
+      const apiErr = err as { response?: { status?: number; data?: { message?: string; errors?: any } } };
+      const status = apiErr?.response?.status;
+      const resData = apiErr?.response?.data;
+
+      if (status === 403) {
         errMsg =
           "Access denied. Your account does not have ADMIN permissions to create staff. Please log in with an admin account.";
+      } else if (status === 500) {
+        errMsg =
+          resData?.message ||
+          "Internal server error occurred on the backend. Please check staff details and try again.";
+      } else if (resData?.errors && Array.isArray(resData.errors) && resData.errors.length > 0) {
+        const details = resData.errors.map((e: any) => e.message || e.defaultMessage || JSON.stringify(e)).join(", ");
+        errMsg = `${resData.message}: ${details}`;
+      } else if (resData?.message) {
+        errMsg = resData.message;
       }
       console.error("[CreateStaff] Error:", err);
       triggerToast(errMsg, "error");

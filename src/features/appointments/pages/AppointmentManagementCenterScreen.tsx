@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   CheckCircle2,
   ChevronRight,
@@ -37,10 +37,13 @@ import { RescheduleAppointmentConfirmationDialog } from "../components/Reschedul
 import { CancelAppointmentConfirmationDialog } from "../components/CancelAppointmentConfirmationDialog";
 import { StatusBadge } from "../components/StatusBadge";
 import { Avatar } from "../components/Avatar";
+import { CheckInConfirmationModal } from "../../reception/components/CheckInConfirmationModal";
 
 export interface Props {
   onPatientSelect?: (id: number | string) => void;
-  onStartConsultation?: (apt?: AppointmentRecord | null | string | number) => void;
+  onStartConsultation?: (
+    apt?: AppointmentRecord | null | string | number,
+  ) => void;
   onBookAppointmentClick?: () => void;
   onReceptionQueueClick?: () => void;
   userRole?: UserRole;
@@ -63,16 +66,31 @@ export function AppointmentManagementCenterScreen({
   onBookAppointmentClick,
   onReceptionQueueClick,
   userRole = "Receptionist",
+  onRegisterNewPatientClick,
+  onRegisterPatientClick,
 }: Props) {
-  const {
-    appointments,
-    setAppointments,
-    refetch,
-  } = useAppointments(userRole, new Date().toISOString().split("T")[0]);
+  const todayDateStr = new Date().toISOString().split("T")[0];
+  const [dateFilter, setDateFilter] = useState<string>("All");
+
+  const { appointments, setAppointments, refetch } = useAppointments(
+    userRole,
+    dateFilter === "Today" ? todayDateStr : undefined,
+  );
   const [viewMode, setViewMode] = useState<"directory" | "queue">("directory");
 
   const handleExportCSV = () => {
-    const headers = ["ID", "Patient Name", "MRN", "Doctor", "Department", "Date", "Time Slot", "Visit Type", "Status", "Phone"];
+    const headers = [
+      "ID",
+      "Patient Name",
+      "MRN",
+      "Doctor",
+      "Department",
+      "Date",
+      "Time Slot",
+      "Visit Type",
+      "Status",
+      "Phone",
+    ];
     const rows = filteredAppointments.map((a) => [
       a.id,
       a.patientName,
@@ -87,7 +105,9 @@ export function AppointmentManagementCenterScreen({
       a.status,
       a.patientPhone ?? "",
     ]);
-    const csv = [headers, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const csv = [headers, ...rows]
+      .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -97,14 +117,23 @@ export function AppointmentManagementCenterScreen({
     URL.revokeObjectURL(url);
   };
 
-  // Search & Filter state - Default Date = TODAY
-  const todayDateStr = new Date().toISOString().split("T")[0];
+  // Search & Filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [doctorFilter, setDoctorFilter] = useState<string>("All");
   const [deptFilter, setDeptFilter] = useState<string>("All");
-  const [dateFilter, setDateFilter] = useState<string>("Today");
   const [visitTypeFilter, setVisitTypeFilter] = useState<string>("All");
+  const [deptOptions, setDeptOptions] = useState<string[]>([]);
+
+  useEffect(() => {
+    appointmentService
+      .listDepartments()
+      .then((data) => {
+        const names = data.map((d) => d.departmentName).filter(Boolean);
+        setDeptOptions(names);
+      })
+      .catch(() => {});
+  }, []);
 
   // Sorting - Default Appointment Time Ascending
   const [sortColumn, setSortColumn] =
@@ -126,6 +155,10 @@ export function AppointmentManagementCenterScreen({
     null,
   );
   const [cancelApt, setCancelApt] = useState<AppointmentRecord | null>(null);
+  const [checkInConfirmationApt, setCheckInConfirmationApt] =
+    useState<AppointmentRecord | null>(null);
+  const [checkInConfirmationToken, setCheckInConfirmationToken] =
+    useState<string>("");
 
   const triggerToast = (msg: string) => {
     setToastMsg(msg);
@@ -135,7 +168,7 @@ export function AppointmentManagementCenterScreen({
   // --- ROLE-BASED APPOINTMENT FILTERING ---
   const roleAppointments = useMemo(() => {
     if (userRole === "Doctor") {
-      return appointments.filter((a) => a.doctorName === "Dr. Arjun Mehta");
+      return appointments;
     }
     if (userRole === "Nurse") {
       return appointments.filter(
@@ -173,38 +206,41 @@ export function AppointmentManagementCenterScreen({
   ).length;
 
   // Doctor List
-  const doctorsList = useMemo(
-    () => Array.from(new Set(appointments.map((a) => a.doctorName))),
-    [appointments],
-  );
+  const doctorsList = useMemo(() => {
+    const filteredByDept =
+      deptFilter !== "All"
+        ? appointments.filter((a) => a.department === deptFilter)
+        : appointments;
+    return Array.from(new Set(filteredByDept.map((a) => a.doctorName)));
+  }, [appointments, deptFilter]);
 
   // --- Filtered & Sorted Appointments ---
   const filteredAppointments = useMemo(() => {
     const filtered = roleAppointments.filter((apt) => {
-        if (searchQuery) {
-          const q = searchQuery.toLowerCase();
-          const match =
-            String(apt.id).toLowerCase().includes(q) ||
-            apt.patientName.toLowerCase().includes(q) ||
-            apt.doctorName.toLowerCase().includes(q) ||
-            String(apt.patientPhone || "")
-              .toLowerCase()
-              .includes(q) ||
-            String(apt.mrn || "")
-              .toLowerCase()
-              .includes(q);
-          if (!match) return false;
-        }
-        if (statusFilter !== "All" && apt.status !== statusFilter) return false;
-        if (doctorFilter !== "All" && apt.doctorName !== doctorFilter)
-          return false;
-        if (deptFilter !== "All" && apt.department !== deptFilter) return false;
-        if (dateFilter === "Today" && apt.appointmentDate !== todayDateStr)
-          return false;
-        if (visitTypeFilter !== "All" && apt.visitType !== visitTypeFilter)
-          return false;
-        return true;
-      });
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const match =
+          String(apt.id).toLowerCase().includes(q) ||
+          apt.patientName.toLowerCase().includes(q) ||
+          apt.doctorName.toLowerCase().includes(q) ||
+          String(apt.patientPhone || "")
+            .toLowerCase()
+            .includes(q) ||
+          String(apt.mrn || "")
+            .toLowerCase()
+            .includes(q);
+        if (!match) return false;
+      }
+      if (statusFilter !== "All" && apt.status !== statusFilter) return false;
+      if (doctorFilter !== "All" && apt.doctorName !== doctorFilter)
+        return false;
+      if (deptFilter !== "All" && apt.department !== deptFilter) return false;
+      if (dateFilter === "Today" && apt.appointmentDate !== todayDateStr)
+        return false;
+      if (visitTypeFilter !== "All" && apt.visitType !== visitTypeFilter)
+        return false;
+      return true;
+    });
 
     return [...filtered].sort((a, b) => {
       let valA = (a as unknown as Record<string, unknown>)[sortColumn];
@@ -285,10 +321,38 @@ export function AppointmentManagementCenterScreen({
     setCancelApt(null);
   };
 
-  const handleCheckInPatient = async (aptId: string | number) => {
-    await appointmentService.receptionCheckIn(aptId);
-    await refetch();
-    triggerToast(`Patient checked in successfully.`);
+  const handleCheckInPatient = async (
+    aptOrId: AppointmentRecord | string | number,
+  ) => {
+    const targetApt =
+      typeof aptOrId === "object"
+        ? aptOrId
+        : appointments.find((a) => String(a.id) === String(aptOrId)) || null;
+    const aptId = typeof aptOrId === "object" ? aptOrId.id : aptOrId;
+
+    try {
+      const res = await appointmentService.receptionCheckIn(aptId);
+      await refetch();
+
+      const tokenNo =
+        (res as any)?.tokenNumber ||
+        (res as any)?.token ||
+        (res as any)?.data?.tokenNumber ||
+        (res as any)?.data?.token ||
+        targetApt?.tokenNo ||
+        `TK-${aptId}`;
+
+      if (targetApt) {
+        setCheckInConfirmationApt(targetApt);
+        setCheckInConfirmationToken(String(tokenNo));
+      }
+
+      triggerToast(`Patient checked in successfully.`);
+    } catch (err: any) {
+      triggerToast(
+        err?.message || "Check-in is only allowed on the appointment date.",
+      );
+    }
   };
 
   const handleCallNextPatient = async (aptId: string | number) => {
@@ -918,6 +982,36 @@ export function AppointmentManagementCenterScreen({
 
                 <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
                   <Building2 size={13} className="text-slate-400" />
+                  <span className="text-slate-500 font-medium">Dept:</span>
+                  <select
+                    value={deptFilter}
+                    onChange={(e) => {
+                      const selectedDeptVal = e.target.value;
+                      setDeptFilter(selectedDeptVal);
+                      if (selectedDeptVal !== "All" && doctorFilter !== "All") {
+                        const doctorInDept = appointments.some(
+                          (a) =>
+                            a.department === selectedDeptVal &&
+                            a.doctorName === doctorFilter,
+                        );
+                        if (!doctorInDept) {
+                          setDoctorFilter("All");
+                        }
+                      }
+                    }}
+                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
+                  >
+                    <option value="All">All Departments</option>
+                    {deptOptions.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
+                  <Building2 size={13} className="text-slate-400" />
                   <span className="text-slate-500 font-medium">
                     Visit Type:
                   </span>
@@ -1018,9 +1112,7 @@ export function AppointmentManagementCenterScreen({
           {/* ── 4. MAIN WORKSPACE GRID: ENTERPRISE DATA TABLE + RIGHT CONTEXT PANEL ── */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Main Table Column */}
-            <div
-              className="lg:col-span-4 space-y-6"
-            >
+            <div className="lg:col-span-4 space-y-6">
               <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
                 <div className="p-4 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50/50">
                   <h3
@@ -1189,19 +1281,26 @@ export function AppointmentManagementCenterScreen({
                                 </button>
 
                                 {userRole === "Nurse" ? (
-                                  <>
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    <button
+                                      onClick={() => setDetailsApt(apt)}
+                                      className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[10px] font-bold border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
+                                      title="View Appointment Details"
+                                    >
+                                      <Eye size={12} /> View
+                                    </button>
                                     {onPatientSelect && (
                                       <button
                                         onClick={() =>
                                           onPatientSelect(apt.patientId)
                                         }
-                                        className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors"
+                                        className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200 hover:bg-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
                                         title="View Patient Profile"
                                       >
-                                        <User size={14} />
+                                        <User size={12} /> Profile
                                       </button>
                                     )}
-                                  </>
+                                  </div>
                                 ) : userRole === "Doctor" ? (
                                   <button
                                     onClick={() => {
@@ -1233,9 +1332,9 @@ export function AppointmentManagementCenterScreen({
                                     {apt.status === "Scheduled" && (
                                       <button
                                         onClick={() =>
-                                          handleCheckInPatient(apt.id)
+                                          handleCheckInPatient(apt)
                                         }
-                                        className="px-2 py-1 rounded-lg bg-[#0D47A1] text-white text-[10px] font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1 shadow-xs"
+                                        className="px-2 py-1 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-1 shadow-xs bg-[#0D47A1] text-white hover:bg-[#0c3d8a] cursor-pointer"
                                         title="Check-In Patient"
                                       >
                                         <CheckCircle2 size={12} /> Check-In
@@ -1299,18 +1398,6 @@ export function AppointmentManagementCenterScreen({
                         appointments match filters.
                       </p>
                     </div>
-                    {userRole !== "Doctor" && (
-                      <button
-                        onClick={() => {
-                          setIsWalkInPreset(false);
-                          setShowBookDrawer(true);
-                        }}
-                        className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors inline-flex items-center gap-2 mt-2"
-                        style={{ fontFamily: PP }}
-                      >
-                        <Plus size={14} /> Book Appointment
-                      </button>
-                    )}
                   </div>
                 )}
               </div>
@@ -1701,9 +1788,7 @@ export function AppointmentManagementCenterScreen({
                 </div>
               </div>
             ) : userRole !== "Receptionist" ? (
-              <div className="space-y-6">
-
-              </div>
+              <div className="space-y-6"></div>
             ) : null}
           </div>
         </>
@@ -1718,6 +1803,10 @@ export function AppointmentManagementCenterScreen({
         }}
         onBookSuccess={handleBookSuccess}
         onPatientSelect={onPatientSelect}
+        onRegisterNewPatientClick={() => {
+          if (onRegisterNewPatientClick) onRegisterNewPatientClick();
+          else if (onRegisterPatientClick) onRegisterPatientClick();
+        }}
         isWalkInPreset={isWalkInPreset}
       />
 
@@ -1768,6 +1857,25 @@ export function AppointmentManagementCenterScreen({
         onClose={() => setCancelApt(null)}
         onConfirmCancel={handleConfirmCancelWithDetails}
       />
+
+      {/* Check-In Confirmation Centered Modal Popup */}
+      {checkInConfirmationApt && (
+        <CheckInConfirmationModal
+          isOpen={!!checkInConfirmationApt}
+          onClose={() => setCheckInConfirmationApt(null)}
+          tokenNumber={
+            checkInConfirmationToken ||
+            checkInConfirmationApt.tokenNo ||
+            `TK-${checkInConfirmationApt.id}`
+          }
+          patientName={checkInConfirmationApt.patientName}
+          patientMrn={checkInConfirmationApt.mrn}
+          doctorName={checkInConfirmationApt.doctorName}
+          departmentName={checkInConfirmationApt.department}
+          appointmentTime={checkInConfirmationApt.timeSlot}
+          status="Waiting for Vitals"
+        />
+      )}
     </div>
   );
 }

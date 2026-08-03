@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { appointmentsApi } from "../../appointments/api/appointments.api";
 import {
   Calendar,
   Clock,
@@ -323,11 +325,50 @@ export function PatientDashboard({
   onBookAppointmentClick,
   onViewBillsClick,
   onNavigateNav,
+  activePatient,
+  familyMembers = [],
+  onSwitchPatient,
+  onAddFamilyMember,
 }: {
   onBookAppointmentClick?: () => void;
   onViewBillsClick?: () => void;
   onNavigateNav?: (nav: string) => void;
+  activePatient?: any;
+  familyMembers?: any[];
+  onSwitchPatient?: (member: any) => void;
+  onAddFamilyMember?: () => void;
 }) {
+  const [appointmentsList, setAppointmentsList] = useState<any[]>([]);
+
+  useEffect(() => {
+    appointmentsApi
+      .getAppointments(
+        activePatient?.id || activePatient?.mrn
+          ? { patientId: activePatient.id || activePatient.mrn }
+          : undefined,
+      )
+      .then((res: any) => {
+        const data = res?.data || res;
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.content)
+            ? data.content
+            : [];
+        setAppointmentsList(list);
+      })
+      .catch(() => {
+        setAppointmentsList([]);
+      });
+  }, [activePatient]);
+
+  const upcomingApt = appointmentsList.find(
+    (a) => a.status === "SCHEDULED" || a.status === "Confirmed",
+  );
+
+  const upcomingStr = upcomingApt
+    ? `${upcomingApt.appointmentDate || upcomingApt.date} ${upcomingApt.startTime || upcomingApt.time || ""}`
+    : "No Upcoming Visit";
+
   const totalBillsAmount = PAT_BILLING_SUMMARY.reduce(
     (acc, curr) => acc + curr.amount,
     0,
@@ -338,6 +379,48 @@ export function PatientDashboard({
       className="flex-1 overflow-y-auto p-6 space-y-6"
       style={{ background: "#F1F5F9" }}
     >
+      {/* ── ACTIVE PATIENT CONTEXT BANNER ── */}
+      {activePatient && (
+        <div className="bg-white rounded-2xl border border-blue-100 p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#0D47A1] text-white flex items-center justify-center font-bold text-sm">
+              {(activePatient.patientName || activePatient.name || "P")[0]}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold text-[#111827]">
+                  Active Patient: {activePatient.patientName || activePatient.name}
+                </h2>
+                <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#0D47A1] text-[10px] font-semibold border border-blue-100">
+                  {activePatient.relationship || "Self"}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-mono">
+                MRN: {activePatient.mrn || "Generating..."}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {onAddFamilyMember && (
+              <button
+                onClick={onAddFamilyMember}
+                className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0D47A1] text-xs font-semibold transition-colors flex items-center gap-1"
+              >
+                + Add Family Member
+              </button>
+            )}
+            {onSwitchPatient && familyMembers.length > 1 && (
+              <button
+                onClick={() => onSwitchPatient(familyMembers[0])}
+                className="px-3 py-1.5 rounded-xl border border-gray-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors"
+              >
+                Switch Patient
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── HEADER & QUICK ACTIONS ── */}
       <div className="flex items-center gap-3 flex-wrap">
         <span
@@ -380,7 +463,7 @@ export function PatientDashboard({
       <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
         <DKpi
           title="Upcoming Appointment"
-          value="Mar 15, 10:30 AM"
+          value={upcomingStr}
           sub="Dr. Arjun Mehta (Cardiology)"
           trend="Confirmed Slot"
           up={true}

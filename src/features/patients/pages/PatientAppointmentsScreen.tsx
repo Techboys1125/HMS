@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Search,
   Plus,
@@ -18,24 +18,98 @@ import {
   TrendingUp,
 } from "lucide-react";
 import type { PatientAppointment } from "../types/patient.types";
-import {
-  PP,
-  RB,
-  INITIAL_PATIENT_APPOINTMENTS,
-} from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.mock";
 import {
   PatientCancelAppointmentDialog,
   PatientRescheduleAppointmentDialog,
 } from "../components/PatientDialogs";
-import { PatientBookAppointmentScreen } from "./PatientBookAppointmentScreen";
+import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentScreen";
+import { appointmentsApi } from "../../appointments/api/appointments.api";
 
-export function PatientAppointmentsScreen() {
-  const [appointments, setAppointments] = useState<PatientAppointment[]>(
-    INITIAL_PATIENT_APPOINTMENTS,
-  );
+export function PatientAppointmentsScreen({
+  activePatient,
+}: {
+  activePatient?: any;
+}) {
+  const [appointments, setAppointments] = useState<PatientAppointment[]>([]);
   const [viewMode, setViewMode] = useState<"list" | "book">("list");
   const [cancellingAppt, setCancellingAppt] =
     useState<PatientAppointment | null>(null);
+
+  const loadAppointments = useCallback((patient?: any) => {
+    const targetMrn = patient?.mrn || patient?.id;
+    if (!targetMrn) {
+      setAppointments([]);
+      return;
+    }
+    appointmentsApi
+      .getPatientAppointments(targetMrn)
+      .then((res: any) => {
+        const data = res?.data || res;
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.content)
+            ? data.content
+            : [];
+        if (list && list.length > 0) {
+          const mapped: PatientAppointment[] = list.map(
+            (a: any, idx: number) => {
+              const dt = a.visitDateTime || a.appointmentDate || a.date || "";
+              const datePart = dt.includes("T") ? dt.split("T")[0] : dt;
+              const timePart = dt.includes("T")
+                ? dt.split("T")[1]?.substring(0, 5)
+                : a.startTime || a.time || "";
+
+              const doctorName =
+                typeof a.doctor === "object"
+                  ? a.doctor?.name || a.doctor?.fullName || "Doctor"
+                  : a.doctorName || a.doctor || "Doctor";
+
+              const deptName =
+                typeof a.department === "object"
+                  ? a.department?.departmentName ||
+                    a.department?.name ||
+                    "General"
+                  : a.departmentName || a.department || "General";
+
+              const rawStatus = a.appointmentStatus || a.status || "SCHEDULED";
+              const formattedStatus =
+                rawStatus === "SCHEDULED" || rawStatus === "BOOKED"
+                  ? "Confirmed"
+                  : rawStatus;
+
+              return {
+                id: String(a.appointmentId || a.id || `APT-${idx}`),
+                date: datePart,
+                time: timePart,
+                doctor: doctorName,
+                specialty: a.specialty || deptName,
+                department: deptName,
+                visitType: a.appointmentType || "In-Person OPD",
+                status: formattedStatus,
+                roomLocation: a.roomLocation || "OPD Room",
+                reason: a.reason || "Consultation",
+                notes: a.symptoms || a.notes || "",
+                consultationStatus: rawStatus,
+                prescriptionStatus: "Pending",
+                billingStatus: "Paid",
+                billingAmount: "$50.00",
+              };
+            },
+          );
+          setAppointments(mapped);
+        } else {
+          setAppointments([]);
+        }
+      })
+      .catch(() => {
+        setAppointments([]);
+      });
+  }, []);
+
+  useEffect(() => {
+    loadAppointments(activePatient);
+  }, [activePatient, loadAppointments]);
   const [reschedulingAppt, setReschedulingAppt] =
     useState<PatientAppointment | null>(null);
   const [activeTab, setActiveTab] = useState<
@@ -75,15 +149,14 @@ export function PatientAppointmentsScreen() {
 
   if (viewMode === "book") {
     return (
-      <PatientBookAppointmentScreen
+      <BookAppointmentScreen
+        role="patient"
+        initialMrn={activePatient?.mrn || activePatient?.id}
         onBack={() => setViewMode("list")}
-        onAppointmentBooked={(newAppt) => {
-          setAppointments([newAppt, ...appointments]);
-          triggerToast(`New appointment ${newAppt.id} booked successfully!`);
-        }}
-        onViewDetails={(appt) => {
-          setSelectedDetailsAppt(appt);
+        onBookSuccess={() => {
+          triggerToast("Appointment booked successfully!");
           setViewMode("list");
+          loadAppointments(activePatient);
         }}
       />
     );
@@ -538,13 +611,6 @@ export function PatientAppointmentsScreen() {
                 No appointments found. You don't have any appointments matching
                 your search criteria.
               </p>
-              <button
-                onClick={() => setViewMode("book")}
-                className="mt-5 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm inline-flex items-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Plus size={14} /> Book Appointment
-              </button>
             </div>
           ) : (
             <>

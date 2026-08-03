@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   ChevronRight,
   User,
@@ -15,6 +15,7 @@ import {
 import { PP, RB } from "../constants/patient.mock";
 import { useCreatePatient } from "../hooks/useCreatePatient";
 import type { CreatePatientRequest } from "../types/patient.types";
+import { useAuthStore } from "../../auth";
 
 /* ─────────────────── Design Tokens ─────────────────── */
 const inputBase =
@@ -127,6 +128,7 @@ interface RegistrationFormState {
   chronicDiseases: string;
   specialNotes: string;
   registrationDate: string;
+  relationship: string;
 }
 
 const today = new Date();
@@ -159,6 +161,7 @@ const INITIAL_FORM: RegistrationFormState = {
   chronicDiseases: "",
   specialNotes: "",
   registrationDate: todayStr,
+  relationship: "SELF",
 };
 
 /* ─────────────────── Toast ─────────────────── */
@@ -173,10 +176,11 @@ function Toast({
 }) {
   return (
     <div
-      className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border text-sm font-medium max-w-md animate-[slideIn_0.35s_ease-out] ${type === "success"
-        ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-        : "bg-red-50 border-red-200 text-red-800"
-        }`}
+      className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl border text-sm font-medium max-w-md animate-[slideIn_0.35s_ease-out] ${
+        type === "success"
+          ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+          : "bg-red-50 border-red-200 text-red-800"
+      }`}
     >
       {type === "success" ? (
         <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
@@ -233,15 +237,19 @@ function SectionHeader({
 function RegistrationSuccessDialog({
   mrn,
   patientName,
+  isFamilyMode = false,
   onClose,
   onBookAppointment,
   onViewProfile,
+  onSwitchToNewPatient,
 }: {
   mrn: string;
   patientName: string;
+  isFamilyMode?: boolean;
   onClose: () => void;
   onBookAppointment?: (mrn: string) => void;
   onViewProfile?: (mrn: string) => void;
+  onSwitchToNewPatient?: (mrn: string, patientName: string) => void;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]">
@@ -253,11 +261,15 @@ function RegistrationSuccessDialog({
           className="text-xl font-bold text-[#111827] mb-2"
           style={{ fontFamily: PP }}
         >
-          Registration Successful!
+          {isFamilyMode
+            ? "Family Member Registered!"
+            : "Registration Successful!"}
         </h3>
         <p className="text-sm text-slate-500 mb-1" style={{ fontFamily: RB }}>
           <span className="font-semibold text-[#111827]">{patientName}</span>{" "}
-          has been registered.
+          {isFamilyMode
+            ? "has been registered successfully as a family member."
+            : "has been registered."}
         </p>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-100 mt-2 mb-6">
           <span className="text-xs text-slate-500" style={{ fontFamily: RB }}>
@@ -269,38 +281,63 @@ function RegistrationSuccessDialog({
         </div>
 
         <div className="flex flex-col gap-2.5">
-          {onBookAppointment && (
+          {isFamilyMode ? (
             <button
-              onClick={() => onBookAppointment(mrn)}
-              className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#009688] text-white text-sm font-semibold hover:bg-teal-700 transition-all shadow-sm"
-              style={{ fontFamily: PP }}
-            >
-              <Calendar size={16} />
-              Book Appointment
-            </button>
-          )}
-          {onViewProfile && (
-            <button
-              onClick={() => onViewProfile(mrn)}
+              onClick={onClose}
               className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
               style={{ fontFamily: PP }}
             >
-              <User size={16} />
-              View Patient Profile
+              <CheckCircle2 size={16} />
+              Return to Family Members
             </button>
+          ) : (
+            <>
+              {onSwitchToNewPatient && (
+                <button
+                  onClick={() => onSwitchToNewPatient(mrn, patientName)}
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
+                  style={{ fontFamily: PP }}
+                >
+                  <User size={16} />
+                  Switch to New Patient
+                </button>
+              )}
+              {onBookAppointment && (
+                <button
+                  onClick={() => onBookAppointment(mrn)}
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#009688] text-white text-sm font-semibold hover:bg-teal-700 transition-all shadow-sm"
+                  style={{ fontFamily: PP }}
+                >
+                  <Calendar size={16} />
+                  Book Appointment
+                </button>
+              )}
+              {onViewProfile && (
+                <button
+                  onClick={() => onViewProfile(mrn)}
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all"
+                  style={{ fontFamily: PP }}
+                >
+                  <User size={16} />
+                  View Patient Profile
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="w-full px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"
+                style={{ fontFamily: PP }}
+              >
+                Register Another Patient
+              </button>
+            </>
           )}
-          <button
-            onClick={onClose}
-            className="w-full px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"
-            style={{ fontFamily: PP }}
-          >
-            Register Another Patient
-          </button>
         </div>
       </div>
     </div>
   );
 }
+
+export type RegistrationMode = "ADMIN" | "PATIENT_SELF" | "PATIENT_FAMILY";
 
 /* ═══════════════════════════════════════════════════════
    MAIN COMPONENT
@@ -309,12 +346,49 @@ export function RegisterPatientScreen({
   onBack,
   onBookAppointment,
   onViewProfile,
+  onSwitchToNewPatient,
+  registrationMode = "ADMIN",
+  isFamilyMode = false,
 }: {
   onBack: () => void;
   onBookAppointment?: (mrn: string) => void;
   onViewProfile?: (mrn: string) => void;
+  onSwitchToNewPatient?: (mrn: string, patientName: string) => void;
+  registrationMode?: RegistrationMode;
+  isFamilyMode?: boolean;
 }) {
-  const [form, setForm] = useState<RegistrationFormState>({ ...INITIAL_FORM });
+  const effectiveMode = isFamilyMode ? "PATIENT_FAMILY" : registrationMode;
+  const showRelationship =
+    effectiveMode === "PATIENT_SELF" || effectiveMode === "PATIENT_FAMILY";
+
+  const initialRelationship =
+    effectiveMode === "PATIENT_SELF"
+      ? "SELF"
+      : effectiveMode === "PATIENT_FAMILY"
+        ? ""
+        : "SELF";
+
+  const user = useAuthStore((state) => state.user);
+
+  const [form, setForm] = useState<RegistrationFormState>(() => ({
+    ...INITIAL_FORM,
+    relationship: initialRelationship,
+    fullName: user?.fullName || "",
+    email: user?.email || "",
+    mobileNumber: user?.mobile || "",
+  }));
+
+  useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        ...prev,
+        fullName: prev.fullName || user.fullName || "",
+        email: prev.email || user.email || "",
+        mobileNumber: prev.mobileNumber || user.mobile || "",
+      }));
+    }
+  }, [user]);
+
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<{
     message: string;
@@ -357,13 +431,19 @@ export function RegisterPatientScreen({
     else if (!/^[\d+\s()-]{7,15}$/.test(form.mobileNumber.trim()))
       e.mobileNumber = "Enter a valid mobile number";
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      e.email = "Enter a valid email";
-    if (form.pincode && !/^\d{6}$/.test(form.pincode))
-      e.pincode = "Pincode must be 6 digits";
+      e.email = "Enter a valid email address";
+    if (form.pincode && !/^\d{5,10}$/.test(form.pincode.trim()))
+      e.pincode = "Enter a valid pincode";
+    if (
+      showRelationship &&
+      effectiveMode === "PATIENT_FAMILY" &&
+      !form.relationship
+    )
+      e.relationship = "Relationship is required";
     return e;
-  }, [form]);
+  }, [form, showRelationship, effectiveMode]);
 
-  const isValid = Object.keys(errors).length === 0;
+  const isValid = useMemo(() => Object.keys(errors).length === 0, [errors]);
 
   const fieldError = (field: string) =>
     touched[field] && errors[field] ? (
@@ -383,6 +463,7 @@ export function RegisterPatientScreen({
       mobileNumber: true,
       email: true,
       pincode: true,
+      relationship: true,
     });
 
     if (!isValid) {
@@ -397,6 +478,10 @@ export function RegisterPatientScreen({
       fullName: form.fullName.trim(),
       gender: form.gender,
       mobileNumber: form.mobileNumber.trim(),
+      relationship: showRelationship
+        ? form.relationship ||
+          (effectiveMode === "PATIENT_SELF" ? "SELF" : "OTHER")
+        : "SELF",
     };
 
     if (form.dateOfBirth) payload.dateOfBirth = form.dateOfBirth;
@@ -473,12 +558,18 @@ export function RegisterPatientScreen({
         type: "error",
       });
     }
-  }, [form, isValid, createPatient]);
+  }, [form, isValid, createPatient, showRelationship, effectiveMode]);
 
   const handleClear = useCallback(() => {
-    setForm({ ...INITIAL_FORM });
+    setForm({
+      ...INITIAL_FORM,
+      relationship: initialRelationship,
+      fullName: user?.fullName || "",
+      email: user?.email || "",
+      mobileNumber: user?.mobile || "",
+    });
     setTouched({});
-  }, []);
+  }, [initialRelationship, user]);
 
   return (
     <div className="flex-1 min-h-screen bg-[#F4F6F9] overflow-y-auto">
@@ -486,12 +577,13 @@ export function RegisterPatientScreen({
         <RegistrationSuccessDialog
           mrn={successData.mrn}
           patientName={successData.name}
+          isFamilyMode={effectiveMode === "PATIENT_FAMILY"}
           onBookAppointment={onBookAppointment}
           onViewProfile={onViewProfile}
+          onSwitchToNewPatient={onSwitchToNewPatient}
           onClose={() => {
             setSuccessData(null);
-            setForm({ ...INITIAL_FORM });
-            setTouched({});
+            onBack();
           }}
         />
       )}
@@ -514,11 +606,15 @@ export function RegisterPatientScreen({
               onClick={onBack}
               className="hover:text-[#0D47A1] transition-colors"
             >
-              Reception Management
+              {effectiveMode === "PATIENT_FAMILY"
+                ? "Family Members"
+                : "Reception Management"}
             </button>
             <ChevronRight size={13} className="text-slate-300" />
             <span className="font-medium text-[#111827]">
-              Patient Registration
+              {effectiveMode === "PATIENT_FAMILY"
+                ? "Add Family Member"
+                : "Patient Registration"}
             </span>
           </div>
 
@@ -526,10 +622,14 @@ export function RegisterPatientScreen({
             className="text-2xl font-bold text-[#111827] mb-1"
             style={{ fontFamily: PP }}
           >
-            Patient Registration
+            {effectiveMode === "PATIENT_FAMILY"
+              ? "Add Family Member"
+              : "Patient Registration"}
           </h1>
           <p className="text-sm text-slate-500" style={{ fontFamily: RB }}>
-            Create a new patient record for hospital services.
+            {effectiveMode === "PATIENT_FAMILY"
+              ? "Register a new family member under your patient account."
+              : "Create a new patient record for hospital services."}
           </p>
         </div>
 
@@ -544,6 +644,38 @@ export function RegisterPatientScreen({
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                {showRelationship && (
+                  <div className="md:col-span-2">
+                    <label className={labelBase}>
+                      Relationship to Account Holder{" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={form.relationship}
+                      onChange={(e) => set("relationship", e.target.value)}
+                      onBlur={() => markTouched("relationship")}
+                      className={fClass("relationship")}
+                    >
+                      {effectiveMode === "PATIENT_FAMILY" && (
+                        <option value="">Select Relationship</option>
+                      )}
+                      <option value="SELF">Self</option>
+                      <option value="FATHER">Father</option>
+                      <option value="MOTHER">Mother</option>
+                      <option value="SPOUSE">Spouse</option>
+                      <option value="SON">Son</option>
+                      <option value="DAUGHTER">Daughter</option>
+                      <option value="BROTHER">Brother</option>
+                      <option value="SISTER">Sister</option>
+                      <option value="GRANDFATHER">Grandfather</option>
+                      <option value="GRANDMOTHER">Grandmother</option>
+                      <option value="GUARDIAN">Guardian</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                    {fieldError("relationship")}
+                  </div>
+                )}
+
                 <div className="md:col-span-2">
                   <label className={labelBase}>
                     Full Name <span className="text-red-500">*</span>

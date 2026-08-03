@@ -31,9 +31,8 @@ import {
   VITALS_DATA,
   MEDICATIONS,
   TIMELINE,
-  PP,
-  RB,
 } from "../constants/doctors.constants";
+import { PP, RB } from "../constants/doctors.constants";
 import { Card } from "./Card";
 import { Avatar } from "./Avatar";
 

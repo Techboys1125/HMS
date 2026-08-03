@@ -1,14 +1,37 @@
-// Admin user management types
+export interface BackendAvailabilityItem {
+  availabilityId?: number;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+}
 
 export interface AdminCreateStaffData {
   fullName: string;
   email: string;
   mobile: string;
   role: string;
-  departmentId: number;
+  gender?: string;
+  dateOfBirth?: string;
+  photo?: string;
+  photoUrl?: string;
+  residentialAddress?: string;
+  professionalBio?: string;
+  medicalRegistrationNumber?: string;
+  qualification?: string;
+  yearsOfExperience?: number;
+  doctorCode?: string;
   primaryDepartmentId?: number;
   secondaryDepartmentIds?: number[];
-  designation: string;
+  primarySpecialtyId?: number;
+  secondarySpecialtyIds?: number[];
+  consultationFee?: number;
+  followUpFee?: number;
+  slotDurationMinutes?: number;
+  availability?: BackendAvailabilityItem[] | DoctorAvailability[];
+  scheduleExceptions?: ScheduleException[];
+  sendCredentials?: boolean;
+  departmentId?: number;
+  designation?: string;
 }
 
 export interface AdminCreateStaffResponse {
@@ -16,12 +39,15 @@ export interface AdminCreateStaffResponse {
   message: string;
   data: {
     userId: number;
-    employeeId: string;
+    employeeId?: string;
     fullName: string;
     email: string;
+    mobile?: string;
     role: string;
-    status: string;
-    mustChangePassword: boolean;
+    doctorId?: number;
+    status?: string;
+    mustChangePassword?: boolean;
+    credentialsSent?: boolean;
   };
 }
 
@@ -29,9 +55,73 @@ export interface AdminUpdateStaffData {
   fullName?: string;
   email?: string;
   mobile?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  photo?: string;
+  photoUrl?: string;
+  residentialAddress?: string;
+  professionalBio?: string;
+  medicalRegistrationNumber?: string;
+  qualification?: string;
+  yearsOfExperience?: number;
+  primaryDepartmentId?: number;
+  secondaryDepartmentIds?: number[];
+  primarySpecialtyId?: number;
+  secondarySpecialtyIds?: number[];
+  consultationFee?: number;
+  followUpFee?: number;
+  slotDurationMinutes?: number;
+  availability?: BackendAvailabilityItem[];
+  scheduleExceptions?: ScheduleException[];
+  version?: number;
+  changeReason?: string;
   departmentId?: number;
   status?: string;
 }
+
+export interface DepartmentInfo {
+  departmentId: number;
+  departmentName: string;
+}
+
+export interface SpecialtyInfo {
+  specialtyId: number;
+  specialtyName: string;
+}
+
+export interface DoctorProfileDetail {
+  doctorId: number;
+  medicalRegistrationNumber?: string;
+  qualification?: string;
+  yearsOfExperience?: number;
+  primaryDepartment?: DepartmentInfo;
+  secondaryDepartments?: DepartmentInfo[];
+  primarySpecialty?: SpecialtyInfo;
+  secondarySpecialties?: SpecialtyInfo[];
+  consultationFee?: number;
+  followUpFee?: number;
+  slotDurationMinutes?: number;
+  availability?: BackendAvailabilityItem[];
+  scheduleExceptions?: ScheduleException[];
+}
+
+export interface UserDetailData {
+  userId: number;
+  employeeId?: string;
+  fullName: string;
+  email: string;
+  mobile?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  photo?: string;
+  photoUrl?: string;
+  residentialAddress?: string;
+  professionalBio?: string;
+  role: string;
+  status: string;
+  doctorProfile?: DoctorProfileDetail | null;
+}
+
 
 export interface SlotRequest {
   startTime: string;
@@ -71,21 +161,5 @@ export interface DoctorProfile {
 }
 
 export interface AdminCreateDoctorStaffData extends AdminCreateStaffData {
-  doctorProfile: DoctorProfile;
-  primaryDepartmentId?: number;
-  secondaryDepartmentIds?: number[];
-  primarySpecialtyId?: number;
-  secondarySpecialtyIds?: number[];
-  photoUrl?: string;
-  residentialAddress?: string;
-  professionalBio?: string;
-  qualification?: string;
-  yearsOfExperience?: number;
-  doctorCode?: string;
-  medicalRegistrationNumber?: string;
-  consultationFee?: number;
-  followUpFee?: number;
-  slotDurationMinutes?: number;
-  scheduleExceptions?: ScheduleException[];
-  sendCredentials?: boolean;
+  doctorProfile?: DoctorProfile;
 }

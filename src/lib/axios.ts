@@ -1,6 +1,6 @@
 export const API_BASE_URL =
   (import.meta.env && import.meta.env.VITE_API_BASE_URL) ||
-  "http://192.168.1.44:8081";
+  "https://safe-hands-hms-backend.onrender.com";
 
 export interface ApiResponseData<T = unknown> {
   data: T;

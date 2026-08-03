@@ -62,20 +62,79 @@ export interface Address {
  * Patient record returned from GET /api/v1/patients
  */
 export interface Patient {
-  id: number;
-  name: string;
-  patientId: string;
+  id?: number;
   mrn: string;
-  patientName: string;
-  age: number;
+  fullName: string;
+  name?: string;
+  patientName?: string;
+  relationship?:
+    | "SELF"
+    | "FATHER"
+    | "MOTHER"
+    | "SPOUSE"
+    | "SON"
+    | "DAUGHTER"
+    | "BROTHER"
+    | "SISTER"
+    | "GRANDFATHER"
+    | "GRANDMOTHER"
+    | "GUARDIAN"
+    | "OTHER"
+    | string;
+  age?: number;
   gender: string;
-  phone: string;
+  phone?: string;
+  mobileNumber?: string;
   email?: string;
+  dateOfBirth?: string;
+  dob?: string;
+  bloodGroup?: string;
+  maritalStatus?: string;
+  nationalId?: string;
+  photoUrl?: string;
+  photo?: string;
+  address?:
+    | string
+    | {
+        street?: string;
+        streetAddress?: string;
+        addressLine1?: string;
+        addressLine2?: string;
+        city?: string;
+        state?: string;
+        zipCode?: string;
+        postalCode?: string;
+        pincode?: string;
+        country?: string;
+      };
+  emergencyContact?: {
+    name?: string;
+    contactName?: string;
+    relationship?: string;
+    phone?: string;
+    contactNumber?: string;
+    mobile?: string;
+    mobileNumber?: string;
+    alternativeMobileNumber?: string;
+  };
   patientCategory?: string;
   registrationType?: string;
-  status: string;
-  assignedDoctor: string;
-  registrationDate: string;
+  knownAllergies?: string[];
+  allergies?: string[];
+  chronicDiseases?: string[];
+  medicalHistory?: string[];
+  specialNotes?: string;
+  status?: string;
+  assignedDoctor?: string;
+  registrationDate?: string;
+  version?: number;
+  updatedAt?: string;
+  updatedBy?: {
+    userId?: string;
+    employeeId?: string;
+    fullName?: string;
+    role?: string;
+  };
 }
 
 export interface PatientStatistics {
@@ -119,6 +178,7 @@ export interface CreatePatientRequest {
   maritalStatus?: string;
   nationalId?: string;
   photoUrl?: string;
+  relationship?: string;
   address?:
     | {
         value?: string;
@@ -346,14 +406,22 @@ export type ChipVariant =
   | "info"
   | "teal"
   | "default";
-export interface ReceptionPatientProfileScreenProps {
+export interface PatientProfileScreenProps {
   onBack?: () => void;
   onEditPatient?: () => void;
+  onEdit?: () => void;
   onBookAppointment?: (mrn?: string) => void;
   onCheckInClick?: (token?: string, mrn?: string) => void;
+  onStartConsultation?: () => void;
+  onRecordVitals?: () => void;
+  onAddFamilyMember?: () => void;
+  onSwitchPatient?: () => void;
   patientMrn?: string;
   userRole?: string;
+  role?: string;
 }
+
+export type ReceptionPatientProfileScreenProps = PatientProfileScreenProps;
 
 export interface PatientPrescriptionItem {
   id: string;
@@ -375,3 +443,31 @@ export interface PatientPrescriptionItem {
   status: "Issued" | "Completed" | "Archived";
   downloadCount?: number;
 }
+
+export interface PatientQueueData {
+  appointmentId: number;
+  appointmentNumber?: string;
+  token: string;
+  tokenNumber?: string;
+  queueNumber?: number;
+  position: number;
+  patientsAhead: number;
+  estimatedWaitMinutes: number;
+  appointmentStatus?: string;
+  queueStatus?: string;
+  status: string;
+  appointmentDate?: string;
+  appointmentTime?: string;
+  doctorName: string;
+  departmentName: string;
+}
+
+export interface PatientQueueApiResponse {
+  success: boolean;
+  code?: string;
+  message?: string;
+  timestamp?: string;
+  data: PatientQueueData;
+  errors?: Record<string, unknown>;
+}
+

@@ -3,18 +3,17 @@ export * from "./pages/EditPatientScreen";
 export * from "./pages/MedicalHistoryScreen";
 export * from "./pages/PatientAppointmentsScreen";
 export * from "./pages/PatientBillingScreen";
-export * from "./pages/PatientBookAppointmentScreen";
 export * from "./pages/PatientMedicalRecordsScreen";
 export * from "./pages/PatientPrescriptionDetailsScreen";
 export * from "./pages/PatientPrescriptionsScreen";
 export * from "./pages/PatientProfileCenterScreen";
 export * from "./pages/PatientProfileScreen";
+export { PatientProfileScreen as ReceptionPatientProfileScreen } from "./pages/PatientProfileScreen";
 export * from "./pages/PatientSearchScreen";
 export * from "./pages/PatientTimelineScreen";
 export * from "./pages/PatientVisitHistoryScreen";
-export * from "./pages/ReceptionPatientProfileScreen";
-export * from "./pages/ReceptionPatientRegistrationScreen";
 export * from "./pages/RegisterPatientScreen";
+export * from "./pages/FamilyMembersManagement";
 
 // Components
 export { PatientTable } from "./components/PatientTable";
@@ -28,7 +27,11 @@ export {
 } from "./components/PatientStatusBadge";
 
 // Hooks
-export { usePatients, usePatientSearch } from "./hooks/usePatients";
+export {
+  usePatients,
+  usePatientSearch,
+  useMyPatients,
+} from "./hooks/usePatients";
 export { usePatient } from "./hooks/usePatient";
 export { useCreatePatient } from "./hooks/useCreatePatient";
 export { useDuplicateCheck } from "./hooks/useDuplicateCheck";

@@ -19,9 +19,10 @@ export type {
   UserRole,
   TimelineActivity,
   AppointmentManagementCenterScreenProps,
-  ReceptionBookAppointmentScreenProps,
+  BookAppointmentScreenProps,
   PatientCheckInScreenProps,
-  ReceptionQueueManagementScreenProps,
+  QueueManagementScreenProps,
+  QueueManagementScreenProps as ReceptionQueueManagementScreenProps,
 } from "./types/appointment-screen.types";
 export { appointmentsApi } from "./api/appointments.api";
 export { appointmentService } from "./services/appointment.service";
@@ -45,10 +46,19 @@ export { AppointmentDetailsDrawer } from "./components/AppointmentDetailsDrawer"
 export { DockableQueueWorkspace } from "./components/DockableQueueWorkspace";
 
 // Pages
-export { AppointmentManagementCenterScreen, AppointmentCenterScreen } from "./pages/AppointmentManagementCenterScreen";
-export { ReceptionBookAppointmentScreen } from "./pages/ReceptionBookAppointmentScreen";
+export {
+  AppointmentManagementCenterScreen,
+  AppointmentCenterScreen,
+} from "./pages/AppointmentManagementCenterScreen";
+export { BookAppointmentScreen } from "./pages/BookAppointmentScreen";
+export { QueueManagementScreen, QueueManagementScreen as ReceptionQueueManagementScreen } from "./pages/QueueManagementScreen";
 export { PatientCheckInScreen } from "./pages/PatientCheckInScreen";
-export { ReceptionQueueManagementScreen } from "./pages/ReceptionQueueManagementScreen";
+
+// Reception Feature Integration
+export {
+  ReceptionManagementCenterScreen,
+  ReceptionCenterScreen,
+} from "../reception";
 
 // Legacy alias
 export { AppointmentManagementCenterScreen as AppointmentManagementScreen } from "./pages/AppointmentManagementCenterScreen";

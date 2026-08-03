@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import type { DoctorRecord } from "../types/doctors.types";
-import { INITIAL_DOCTORS } from "../constants/doctors.constants";
-
-let currentDoctors = [...INITIAL_DOCTORS];
+let currentDoctors: DoctorRecord[] = [];
 const listeners = new Set<() => void>();
 
 function notify() {
