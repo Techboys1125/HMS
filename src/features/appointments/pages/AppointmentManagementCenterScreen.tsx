@@ -97,7 +97,9 @@ export function AppointmentManagementCenterScreen({
       a.patientName,
       a.mrn,
       a.doctorName,
-      a.department,
+      typeof a.department === "object" && a.department !== null
+        ? (a.department as any).departmentName || (a.department as any).name || ""
+        : a.department || a.departmentName || "",
       a.date,
       a.timeSlot,
       a.visitType,
