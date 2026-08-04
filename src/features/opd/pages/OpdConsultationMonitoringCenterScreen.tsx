@@ -927,7 +927,6 @@ export function OpdConsultationMonitoringCenterScreen({
                               <StatusChip status={item.status} />
                             </td>
 
-
                             <td className="py-3.5 px-4 text-right relative">
                               <div className="flex items-center justify-end gap-1.5">
                                 <button

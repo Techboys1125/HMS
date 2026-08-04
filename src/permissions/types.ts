@@ -1,4 +1,3 @@
-
 // Supported Roles
 export type Role =
   | "SUPER_ADMIN"
@@ -29,7 +28,7 @@ export type AppPermission =
   | "USER_CREATE"
   | "USER_EDIT"
   | "USER_DEACTIVATE"
-  
+
   // Patient Management
   | "PATIENT_VIEW"
   | "PATIENT_VIEW_MINIMAL"
@@ -42,6 +41,9 @@ export type AppPermission =
   | "PATIENT_MERGE"
   | "PATIENT_VIEW_SELF"
   | "PATIENT_EDIT_SELF"
+  | "PATIENT_MEDICAL_RECORDS_VIEW"
+  | "PATIENT_REPORTS_VIEW"
+  | "PATIENT_SWITCH_ACCOUNT"
 
   // Doctor Management
   | "DOCTOR_VIEW"
@@ -126,4 +128,5 @@ export type AppPermission =
   // Family Members (Patient Portal)
   | "FAMILY_MEMBER_VIEW"
   | "FAMILY_MEMBER_CREATE"
-  | "FAMILY_MEMBER_UPDATE";
+  | "FAMILY_MEMBER_UPDATE"
+  | "FAMILY_MEMBER_DELETE";

@@ -71,7 +71,8 @@ export const VitalsDetailsScreen: React.FC<VitalsDetailsScreenProps> = ({
     pain: 2,
     appearance: "Normal / Healthy",
     consciousness: "Alert & Oriented",
-    observation: "Patient is comfortable. No acute respiratory distress noted. Pre-consultation prep completed.",
+    observation:
+      "Patient is comfortable. No acute respiratory distress noted. Pre-consultation prep completed.",
     recordedBy: "Nurse Clara Oswald (RN-402)",
     recordedAt: "Today, 08:50 AM",
   },

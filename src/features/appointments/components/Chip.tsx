@@ -1,7 +1,13 @@
 import type { ChipVariant } from "../constants/appointment.constants";
 import { RB } from "../constants/appointment.constants";
 
-export function Chip({ label, variant = "default" }: { label: string; variant?: ChipVariant }) {
+export function Chip({
+  label,
+  variant = "default",
+}: {
+  label: string;
+  variant?: ChipVariant;
+}) {
   const map: Record<ChipVariant, string> = {
     success: "bg-green-50 text-[#66BB6A]",
     warning: "bg-amber-50 text-[#F59E0B]",

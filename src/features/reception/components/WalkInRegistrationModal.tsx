@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import type { WalkInRegistrationPayload } from "../types/reception.types";
 import { validateWalkInRegistration } from "../validation/reception.validation";
-import { UserPlus, X, CheckCircle2} from "lucide-react";
+import { UserPlus, X, CheckCircle2 } from "lucide-react";
 
 interface WalkInRegistrationModalProps {
   isOpen: boolean;
@@ -11,7 +11,9 @@ interface WalkInRegistrationModalProps {
   doctors?: Array<{ id: string | number; name: string }>;
 }
 
-export const WalkInRegistrationModal: React.FC<WalkInRegistrationModalProps> = ({
+export const WalkInRegistrationModal: React.FC<
+  WalkInRegistrationModalProps
+> = ({
   isOpen,
   onClose,
   onRegister,
@@ -73,13 +75,19 @@ export const WalkInRegistrationModal: React.FC<WalkInRegistrationModalProps> = (
           <h3 className="font-bold text-sm flex items-center gap-2">
             <UserPlus size={18} /> Walk-In Patient Registration & Token
           </h3>
-          <button onClick={onClose} className="text-white/80 hover:text-white cursor-pointer">
+          <button
+            onClick={onClose}
+            className="text-white/80 hover:text-white cursor-pointer"
+          >
             <X size={18} />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs font-medium">
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 space-y-4 text-xs font-medium"
+        >
           {/* Full Name & Mobile */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -94,7 +102,11 @@ export const WalkInRegistrationModal: React.FC<WalkInRegistrationModalProps> = (
                 onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-[#0D47A1] focus:bg-white"
               />
-              {errors.fullName && <p className="text-red-500 text-[10px] mt-0.5">{errors.fullName}</p>}
+              {errors.fullName && (
+                <p className="text-red-500 text-[10px] mt-0.5">
+                  {errors.fullName}
+                </p>
+              )}
             </div>
 
             <div>
@@ -109,14 +121,20 @@ export const WalkInRegistrationModal: React.FC<WalkInRegistrationModalProps> = (
                 onChange={(e) => setForm({ ...form, mobile: e.target.value })}
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-[#0D47A1] focus:bg-white"
               />
-              {errors.mobile && <p className="text-red-500 text-[10px] mt-0.5">{errors.mobile}</p>}
+              {errors.mobile && (
+                <p className="text-red-500 text-[10px] mt-0.5">
+                  {errors.mobile}
+                </p>
+              )}
             </div>
           </div>
 
           {/* Gender & Age */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-slate-700 font-bold mb-1">Gender</label>
+              <label className="block text-slate-700 font-bold mb-1">
+                Gender
+              </label>
               <select
                 value={form.gender}
                 onChange={(e) => setForm({ ...form, gender: e.target.value })}
@@ -129,13 +147,17 @@ export const WalkInRegistrationModal: React.FC<WalkInRegistrationModalProps> = (
             </div>
 
             <div>
-              <label className="block text-slate-700 font-bold mb-1">Age (Years)</label>
+              <label className="block text-slate-700 font-bold mb-1">
+                Age (Years)
+              </label>
               <input
                 type="number"
                 min="0"
                 max="120"
                 value={form.age || 30}
-                onChange={(e) => setForm({ ...form, age: Number(e.target.value) })}
+                onChange={(e) =>
+                  setForm({ ...form, age: Number(e.target.value) })
+                }
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-[#0D47A1] focus:bg-white"
               />
             </div>
@@ -149,7 +171,9 @@ export const WalkInRegistrationModal: React.FC<WalkInRegistrationModalProps> = (
               </label>
               <select
                 value={form.departmentId}
-                onChange={(e) => setForm({ ...form, departmentId: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, departmentId: e.target.value })
+                }
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-[#0D47A1] focus:bg-white cursor-pointer"
               >
                 {departments.map((d) => (
@@ -181,20 +205,28 @@ export const WalkInRegistrationModal: React.FC<WalkInRegistrationModalProps> = (
           {/* Consultation Fee & Payment Mode */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-slate-700 font-bold mb-1">Consultation Fee (₹)</label>
+              <label className="block text-slate-700 font-bold mb-1">
+                Consultation Fee (₹)
+              </label>
               <input
                 type="number"
                 value={form.consultationFee}
-                onChange={(e) => setForm({ ...form, consultationFee: Number(e.target.value) })}
+                onChange={(e) =>
+                  setForm({ ...form, consultationFee: Number(e.target.value) })
+                }
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-[#0D47A1] focus:bg-white font-bold"
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 font-bold mb-1">Payment Mode</label>
+              <label className="block text-slate-700 font-bold mb-1">
+                Payment Mode
+              </label>
               <select
                 value={form.paymentMode}
-                onChange={(e) => setForm({ ...form, paymentMode: e.target.value as any })}
+                onChange={(e) =>
+                  setForm({ ...form, paymentMode: e.target.value as any })
+                }
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-[#0D47A1] focus:bg-white cursor-pointer"
               >
                 <option value="CASH">Cash</option>

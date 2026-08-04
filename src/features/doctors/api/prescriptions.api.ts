@@ -14,12 +14,13 @@ export const prescriptionsApi = {
     payload: FinalizePrescriptionRequest = { confirmation: true },
   ): Promise<FinalizePrescriptionResponse> => {
     const response = await apiClient.post<
-      DoctorApiResponse<FinalizePrescriptionResponse> | FinalizePrescriptionResponse
+      | DoctorApiResponse<FinalizePrescriptionResponse>
+      | FinalizePrescriptionResponse
     >(`/api/v1/prescriptions/${prescriptionId}/finalize`, payload);
 
     const data =
-      (response.data as DoctorApiResponse<FinalizePrescriptionResponse>)?.data ||
-      (response.data as FinalizePrescriptionResponse);
+      (response.data as DoctorApiResponse<FinalizePrescriptionResponse>)
+        ?.data || (response.data as FinalizePrescriptionResponse);
 
     return data;
   },

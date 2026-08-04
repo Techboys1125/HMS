@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import type { ReceptionQueueItem } from "../types/reception.types";
-import { UserCheck, X, Clock, CheckCircle2} from "lucide-react";
+import { UserCheck, X, Clock, CheckCircle2 } from "lucide-react";
 
 interface PatientCheckInModalProps {
   item: ReceptionQueueItem | null;
   onClose: () => void;
-  onConfirmCheckIn: (queueItemId: string | number, notes?: string) => Promise<void>;
+  onConfirmCheckIn: (
+    queueItemId: string | number,
+    notes?: string,
+  ) => Promise<void>;
 }
 
 export const PatientCheckInModal: React.FC<PatientCheckInModalProps> = ({
@@ -38,7 +41,10 @@ export const PatientCheckInModal: React.FC<PatientCheckInModalProps> = ({
           <h3 className="font-bold text-sm flex items-center gap-2">
             <UserCheck size={18} /> Arrival Check-In Confirmation
           </h3>
-          <button onClick={onClose} className="text-white/80 hover:text-white cursor-pointer">
+          <button
+            onClick={onClose}
+            className="text-white/80 hover:text-white cursor-pointer"
+          >
             <X size={18} />
           </button>
         </div>
@@ -47,22 +53,34 @@ export const PatientCheckInModal: React.FC<PatientCheckInModalProps> = ({
         <div className="p-6 space-y-4 text-xs">
           <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-slate-500 font-semibold">Patient Name:</span>
-              <span className="font-bold text-slate-900 text-sm">{item.patientName}</span>
+              <span className="text-slate-500 font-semibold">
+                Patient Name:
+              </span>
+              <span className="font-bold text-slate-900 text-sm">
+                {item.patientName}
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-slate-500 font-semibold">MRN:</span>
-              <span className="font-mono font-bold text-slate-800">{item.mrn}</span>
+              <span className="font-mono font-bold text-slate-800">
+                {item.mrn}
+              </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-500 font-semibold">Doctor & Dept:</span>
+              <span className="text-slate-500 font-semibold">
+                Doctor & Dept:
+              </span>
               <span className="font-medium text-slate-800">
                 {item.doctorName} ({item.departmentName})
               </span>
             </div>
             <div className="flex justify-between items-center pt-2 border-t border-teal-200">
-              <span className="text-slate-500 font-semibold">Scheduled Time:</span>
-              <span className="font-bold text-[#0D47A1]">{item.appointmentTime}</span>
+              <span className="text-slate-500 font-semibold">
+                Scheduled Time:
+              </span>
+              <span className="font-bold text-[#0D47A1]">
+                {item.appointmentTime}
+              </span>
             </div>
           </div>
 
@@ -81,7 +99,10 @@ export const PatientCheckInModal: React.FC<PatientCheckInModalProps> = ({
 
           <div className="flex items-center gap-2 text-slate-500 text-[11px] bg-slate-50 p-2.5 rounded-xl border border-slate-200">
             <Clock size={14} className="text-[#009688] shrink-0" />
-            <span>Server Check-In Timestamp will be recorded automatically upon confirmation.</span>
+            <span>
+              Server Check-In Timestamp will be recorded automatically upon
+              confirmation.
+            </span>
           </div>
 
           {/* Action Buttons */}

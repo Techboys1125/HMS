@@ -28,37 +28,64 @@ export function DailyAvailabilityTab({ doctor }: DailyAvailabilityTabProps) {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    doctorsService.getDailyAvailability(doctor.id, date)
+    doctorsService
+      .getDailyAvailability(doctor.id, date)
       .then((data) => {
         if (!cancelled && data) setSlots(data.slots || []);
       })
       .catch(() => {})
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [doctor.id, date]);
 
   if (loading) {
-    return <div className="flex items-center justify-center p-8 text-xs text-[#64748B]">Loading availability...</div>;
+    return (
+      <div className="flex items-center justify-center p-8 text-xs text-[#64748B]">
+        Loading availability...
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Clock size={16} className="text-[#0D47A1]" />
-        <h3 className="text-sm font-bold text-[#111827]" style={{ fontFamily: PP }}>Today's Slot-by-Slot Availability</h3>
+        <h3
+          className="text-sm font-bold text-[#111827]"
+          style={{ fontFamily: PP }}
+        >
+          Today's Slot-by-Slot Availability
+        </h3>
       </div>
 
       {slots.length === 0 ? (
-        <div className="text-center py-8 text-xs text-[#64748B]">No availability data for today.</div>
+        <div className="text-center py-8 text-xs text-[#64748B]">
+          No availability data for today.
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {slots.map((slot, idx) => (
-            <div key={idx} className={`px-3 py-2 rounded-xl border text-xs font-medium ${SLOT_STATUS_STYLE[slot.status] || "bg-slate-50 text-slate-600 border-slate-200"}`}>
+            <div
+              key={idx}
+              className={`px-3 py-2 rounded-xl border text-xs font-medium ${SLOT_STATUS_STYLE[slot.status] || "bg-slate-50 text-slate-600 border-slate-200"}`}
+            >
               <div className="flex items-center justify-between">
-                <span>{slot.startTime} - {slot.endTime}</span>
-                <span className="capitalize">{slot.status.replace("_", " ")}</span>
+                <span>
+                  {slot.startTime} - {slot.endTime}
+                </span>
+                <span className="capitalize">
+                  {slot.status.replace("_", " ")}
+                </span>
               </div>
-              {slot.reason && <div className="text-[10px] mt-0.5 opacity-70">{slot.reason}</div>}
+              {slot.reason && (
+                <div className="text-[10px] mt-0.5 opacity-70">
+                  {slot.reason}
+                </div>
+              )}
             </div>
           ))}
         </div>

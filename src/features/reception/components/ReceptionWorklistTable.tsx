@@ -1,5 +1,9 @@
 import React from "react";
-import type { ReceptionQueueItem, ReceptionPermissions, QueueStatus } from "../types/reception.types";
+import type {
+  ReceptionQueueItem,
+  ReceptionPermissions,
+  QueueStatus,
+} from "../types/reception.types";
 import { QueueTokenBadge } from "./QueueTokenBadge";
 import { BillingStatusIndicator } from "./BillingStatusIndicator";
 import { UserCheck, Printer, XCircle, Clock } from "lucide-react";
@@ -63,17 +67,25 @@ export const ReceptionWorklistTable: React.FC<ReceptionWorklistTableProps> = ({
                       <div className="flex items-center gap-2 text-[11px] text-slate-500 font-mono mt-0.5">
                         <span>{item.mrn}</span>
                         <span>•</span>
-                        <span>{item.gender} ({item.age || 30}y)</span>
+                        <span>
+                          {item.gender} ({item.age || 30}y)
+                        </span>
                       </div>
-                      <span className="text-[11px] text-slate-500">{item.mobile}</span>
+                      <span className="text-[11px] text-slate-500">
+                        {item.mobile}
+                      </span>
                     </div>
                   </td>
 
                   {/* Department & Doctor */}
                   <td className="px-4 py-3.5">
                     <div className="flex flex-col">
-                      <span className="font-bold text-slate-800">{item.departmentName}</span>
-                      <span className="text-slate-500 text-[11px] mt-0.5">{item.doctorName}</span>
+                      <span className="font-bold text-slate-800">
+                        {item.departmentName}
+                      </span>
+                      <span className="text-slate-500 text-[11px] mt-0.5">
+                        {item.doctorName}
+                      </span>
                     </div>
                   </td>
 
@@ -81,7 +93,8 @@ export const ReceptionWorklistTable: React.FC<ReceptionWorklistTableProps> = ({
                   <td className="px-4 py-3.5">
                     <div className="flex flex-col">
                       <span className="font-semibold text-slate-800 flex items-center gap-1">
-                        <Clock size={12} className="text-slate-400" /> {item.appointmentTime}
+                        <Clock size={12} className="text-slate-400" />{" "}
+                        {item.appointmentTime}
                       </span>
                       {item.arrivalTime ? (
                         <span className="text-[11px] text-emerald-600 font-semibold mt-0.5">
@@ -97,21 +110,29 @@ export const ReceptionWorklistTable: React.FC<ReceptionWorklistTableProps> = ({
 
                   {/* Billing */}
                   <td className="px-4 py-3.5">
-                    <BillingStatusIndicator status={item.billingStatus} amount={item.consultationFee} />
+                    <BillingStatusIndicator
+                      status={item.billingStatus}
+                      amount={item.consultationFee}
+                    />
                   </td>
 
                   {/* Action Buttons */}
-                  <td className="px-4 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
+                  <td
+                    className="px-4 py-3.5 text-right"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <div className="flex items-center justify-end gap-1.5">
-                      {permissions.canCheckInPatient && item.queueStatus === "WAITING" && !item.arrivalTime && (
-                        <button
-                          onClick={() => onCheckIn(item)}
-                          className="px-3 py-1.5 bg-[#009688] hover:bg-[#00796B] text-white text-[11px] font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer shadow-xs"
-                          title="Arrival Check-In"
-                        >
-                          <UserCheck size={13} /> Check-In
-                        </button>
-                      )}
+                      {permissions.canCheckInPatient &&
+                        item.queueStatus === "WAITING" &&
+                        !item.arrivalTime && (
+                          <button
+                            onClick={() => onCheckIn(item)}
+                            className="px-3 py-1.5 bg-[#009688] hover:bg-[#00796B] text-white text-[11px] font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer shadow-xs"
+                            title="Arrival Check-In"
+                          >
+                            <UserCheck size={13} /> Check-In
+                          </button>
+                        )}
 
                       {permissions.canPrintVisitSlip && (
                         <button
@@ -123,22 +144,27 @@ export const ReceptionWorklistTable: React.FC<ReceptionWorklistTableProps> = ({
                         </button>
                       )}
 
-                      {permissions.canCancelQueueItem && item.queueStatus !== "CANCELLED" && item.queueStatus !== "COMPLETED" && (
-                        <button
-                          onClick={() => onUpdateStatus(item.id, "CANCELLED")}
-                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                          title="Cancel Queue Item"
-                        >
-                          <XCircle size={15} />
-                        </button>
-                      )}
+                      {permissions.canCancelQueueItem &&
+                        item.queueStatus !== "CANCELLED" &&
+                        item.queueStatus !== "COMPLETED" && (
+                          <button
+                            onClick={() => onUpdateStatus(item.id, "CANCELLED")}
+                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            title="Cancel Queue Item"
+                          >
+                            <XCircle size={15} />
+                          </button>
+                        )}
                     </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-slate-400 font-medium">
+                <td
+                  colSpan={6}
+                  className="px-6 py-12 text-center text-slate-400 font-medium"
+                >
                   No reception queue items found matching the current filters.
                 </td>
               </tr>

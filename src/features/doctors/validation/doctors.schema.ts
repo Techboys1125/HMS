@@ -1,6 +1,8 @@
 import type { DoctorRecord } from "../types/doctors.types";
 
-export function validateDoctorForm(data: Partial<DoctorRecord>): Record<string, string> {
+export function validateDoctorForm(
+  data: Partial<DoctorRecord>,
+): Record<string, string> {
   const errors: Record<string, string> = {};
 
   if (!data.name?.trim()) errors.name = "Full Name is required.";
@@ -23,17 +25,25 @@ export function validateDoctorForm(data: Partial<DoctorRecord>): Record<string, 
 
 export function validatePrescriptionForm(data: {
   diagnosis?: string;
-  medicines?: Array<{ name?: string; dosage?: string; frequency?: string; duration?: string }>;
+  medicines?: Array<{
+    name?: string;
+    dosage?: string;
+    frequency?: string;
+    duration?: string;
+  }>;
 }): Record<string, string> {
   const errors: Record<string, string> = {};
 
   if (!data.diagnosis?.trim()) errors.diagnosis = "Diagnosis is required";
 
   data.medicines?.forEach((m, idx) => {
-    if (!m.name?.trim()) errors[`med_${idx}_name`] = `Medicine #${idx + 1} name required`;
+    if (!m.name?.trim())
+      errors[`med_${idx}_name`] = `Medicine #${idx + 1} name required`;
     if (!m.dosage?.trim()) errors[`med_${idx}_dosage`] = `Dosage required`;
-    if (!m.frequency?.trim()) errors[`med_${idx}_frequency`] = `Frequency required`;
-    if (!m.duration?.trim()) errors[`med_${idx}_duration`] = `Duration required`;
+    if (!m.frequency?.trim())
+      errors[`med_${idx}_frequency`] = `Frequency required`;
+    if (!m.duration?.trim())
+      errors[`med_${idx}_duration`] = `Duration required`;
   });
 
   return errors;

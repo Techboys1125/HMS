@@ -15,15 +15,21 @@ export const departmentsService = {
     return departmentsApi.getDepartments(params);
   },
 
-  async getDepartmentLookup(activeOnly = true): Promise<ApiDepartmentLookupItem[]> {
+  async getDepartmentLookup(
+    activeOnly = true,
+  ): Promise<ApiDepartmentLookupItem[]> {
     return departmentsApi.getDepartmentLookup(activeOnly);
   },
 
-  async getDepartmentDetails(departmentId: number | string): Promise<ApiDepartmentSpecialtiesItem | null> {
+  async getDepartmentDetails(
+    departmentId: number | string,
+  ): Promise<ApiDepartmentSpecialtiesItem | null> {
     return departmentsApi.getDepartmentDetails(departmentId);
   },
 
-  async createDepartment(payload: Partial<ApiDepartmentSpecialtiesItem>): Promise<ApiDepartmentSpecialtiesItem> {
+  async createDepartment(
+    payload: Partial<ApiDepartmentSpecialtiesItem>,
+  ): Promise<ApiDepartmentSpecialtiesItem> {
     return departmentsApi.createDepartment(payload);
   },
 
@@ -34,7 +40,9 @@ export const departmentsService = {
     return departmentsApi.updateDepartment(departmentId, payload);
   },
 
-  async deleteDepartment(departmentId: number | string): Promise<{ success: boolean; message?: string }> {
+  async deleteDepartment(
+    departmentId: number | string,
+  ): Promise<{ success: boolean; message?: string }> {
     return departmentsApi.deleteDepartment(departmentId);
   },
 

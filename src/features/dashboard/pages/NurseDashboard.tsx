@@ -366,11 +366,6 @@ export function NurseDashboard({
   onViewQueueClick?: () => void;
   onNavigateNav?: (nav: string) => void;
 }) {
-  const totalPrepPatients = NURSE_PATIENT_PIPELINE.reduce(
-    (acc, curr) => acc + curr.value,
-    0,
-  );
-
   return (
     <div
       className="flex-1 overflow-y-auto p-6 space-y-6"
@@ -494,14 +489,7 @@ export function NurseDashboard({
           sub="High Priority / Immediate Care"
           trend="Requires Urgent Attention"
           up={false}
-          data={[
-            { v: 5 },
-            { v: 4 },
-            { v: 4 },
-            { v: 3 },
-            { v: 3 },
-            { v: 3 },
-          ]}
+          data={[{ v: 5 }, { v: 4 }, { v: 4 }, { v: 3 }, { v: 3 }, { v: 3 }]}
           color="#EF4444"
           gid="nr5"
           Icon={AlertTriangle}
@@ -524,7 +512,8 @@ export function NurseDashboard({
                 className="text-xs text-[#64748B] mt-0.5"
                 style={{ fontFamily: RB }}
               >
-                Hourly patients handled by nursing team throughout OPD session (08 AM - 05 PM)
+                Hourly patients handled by nursing team throughout OPD session
+                (08 AM - 05 PM)
               </div>
             </div>
             <span
@@ -568,10 +557,7 @@ export function NurseDashboard({
                   borderRadius: 12,
                   fontSize: 12,
                 }}
-                formatter={(val: unknown) => [
-                  `${val} Patients`,
-                  "Assisted",
-                ]}
+                formatter={(val: unknown) => [`${val} Patients`, "Assisted"]}
               />
               <Line
                 type="monotone"
@@ -588,19 +574,46 @@ export function NurseDashboard({
             style={{ fontFamily: RB }}
           >
             <div className="bg-slate-50 p-2 rounded-xl text-center">
-              <span className="text-[#64748B] text-[10px] block">Peak Workload Time</span>
-              <strong className="text-[#0D47A1] font-bold text-xs" style={{ fontFamily: PP }}>10 AM – 11 AM</strong>
-              <span className="text-[10px] text-[#64748B] block">14 Patients</span>
+              <span className="text-[#64748B] text-[10px] block">
+                Peak Workload Time
+              </span>
+              <strong
+                className="text-[#0D47A1] font-bold text-xs"
+                style={{ fontFamily: PP }}
+              >
+                10 AM – 11 AM
+              </strong>
+              <span className="text-[10px] text-[#64748B] block">
+                14 Patients
+              </span>
             </div>
             <div className="bg-slate-50 p-2 rounded-xl text-center">
-              <span className="text-[#64748B] text-[10px] block">Average Patients</span>
-              <strong className="text-[#009688] font-bold text-xs" style={{ fontFamily: PP }}>6 / Hour</strong>
-              <span className="text-[10px] text-[#64748B] block">Steady OPD Pace</span>
+              <span className="text-[#64748B] text-[10px] block">
+                Average Patients
+              </span>
+              <strong
+                className="text-[#009688] font-bold text-xs"
+                style={{ fontFamily: PP }}
+              >
+                6 / Hour
+              </strong>
+              <span className="text-[10px] text-[#64748B] block">
+                Steady OPD Pace
+              </span>
             </div>
             <div className="bg-slate-50 p-2 rounded-xl text-center">
-              <span className="text-[#64748B] text-[10px] block">Current Hour Progress</span>
-              <strong className="text-[#111827] font-bold text-xs" style={{ fontFamily: PP }}>5 This Hour</strong>
-              <span className="text-[10px] text-[#66BB6A] block">Active Session</span>
+              <span className="text-[#64748B] text-[10px] block">
+                Current Hour Progress
+              </span>
+              <strong
+                className="text-[#111827] font-bold text-xs"
+                style={{ fontFamily: PP }}
+              >
+                5 This Hour
+              </strong>
+              <span className="text-[10px] text-[#66BB6A] block">
+                Active Session
+              </span>
             </div>
           </div>
         </div>
@@ -639,7 +652,12 @@ export function NurseDashboard({
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-xl font-bold text-[#111827]" style={{ fontFamily: PP }}>64</span>
+              <span
+                className="text-xl font-bold text-[#111827]"
+                style={{ fontFamily: PP }}
+              >
+                64
+              </span>
               <span className="text-[10px] text-[#64748B]">Total Flow</span>
             </div>
           </div>
@@ -649,19 +667,27 @@ export function NurseDashboard({
             style={{ fontFamily: RB }}
           >
             <div className="flex items-center justify-between p-1.5 rounded-lg bg-amber-50/60 border border-amber-100">
-              <span className="text-[#64748B] text-[10px]">Waiting For Vitals:</span>
+              <span className="text-[#64748B] text-[10px]">
+                Waiting For Vitals:
+              </span>
               <span className="font-bold text-[#F59E0B]">8</span>
             </div>
             <div className="flex items-center justify-between p-1.5 rounded-lg bg-teal-50/60 border border-teal-100">
-              <span className="text-[#64748B] text-[10px]">Patients Recorded:</span>
+              <span className="text-[#64748B] text-[10px]">
+                Patients Recorded:
+              </span>
               <span className="font-bold text-[#4DB6AC]">3</span>
             </div>
             <div className="flex items-center justify-between p-1.5 rounded-lg bg-blue-50/60 border border-blue-100">
-              <span className="text-[#64748B] text-[10px]">Ready for Doctor:</span>
+              <span className="text-[#64748B] text-[10px]">
+                Ready for Doctor:
+              </span>
               <span className="font-bold text-[#0D47A1]">15</span>
             </div>
             <div className="flex items-center justify-between p-1.5 rounded-lg bg-green-50/60 border border-green-100">
-              <span className="text-[#64748B] text-[10px]">Completed Today:</span>
+              <span className="text-[#64748B] text-[10px]">
+                Completed Today:
+              </span>
               <span className="font-bold text-[#66BB6A]">38</span>
             </div>
           </div>
@@ -819,22 +845,42 @@ export function NurseDashboard({
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-lg font-bold text-[#111827]" style={{ fontFamily: PP }}>64</span>
+                <span
+                  className="text-lg font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  64
+                </span>
                 <span className="text-[9px] text-[#64748B]">Total</span>
               </div>
             </div>
 
             {/* Vertical Legend */}
-            <div className="flex-1 space-y-1.5 text-xs" style={{ fontFamily: RB }}>
+            <div
+              className="flex-1 space-y-1.5 text-xs"
+              style={{ fontFamily: RB }}
+            >
               {NURSE_VISIT_TYPE_DIST.map((item) => (
-                <div key={item.name} className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                <div
+                  key={item.name}
+                  className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50 border border-slate-100"
+                >
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: item.color }} />
-                    <span className="text-[#111827] font-medium text-[11px]">{item.name}</span>
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ background: item.color }}
+                    />
+                    <span className="text-[#111827] font-medium text-[11px]">
+                      {item.name}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <strong className="text-[#111827] text-xs font-bold">{item.value}</strong>
-                    <span className="text-[10px] text-[#64748B] font-semibold w-7 text-right">{item.percentage}</span>
+                    <strong className="text-[#111827] text-xs font-bold">
+                      {item.value}
+                    </strong>
+                    <span className="text-[10px] text-[#64748B] font-semibold w-7 text-right">
+                      {item.percentage}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -847,19 +893,44 @@ export function NurseDashboard({
             style={{ fontFamily: RB }}
           >
             <div className="bg-slate-50 p-2 rounded-xl text-center border border-slate-100">
-              <span className="text-[#64748B] text-[9px] block mb-0.5">Most Common Visit</span>
-              <strong className="text-[#009688] font-bold text-xs block" style={{ fontFamily: PP }}>Follow-up</strong>
-              <span className="text-[9px] text-[#009688] font-semibold">45% of OPD</span>
+              <span className="text-[#64748B] text-[9px] block mb-0.5">
+                Most Common Visit
+              </span>
+              <strong
+                className="text-[#009688] font-bold text-xs block"
+                style={{ fontFamily: PP }}
+              >
+                Follow-up
+              </strong>
+              <span className="text-[9px] text-[#009688] font-semibold">
+                45% of OPD
+              </span>
             </div>
             <div className="bg-slate-50 p-2 rounded-xl text-center border border-slate-100">
-              <span className="text-[#64748B] text-[9px] block mb-0.5">New Patients Today</span>
-              <strong className="text-[#0D47A1] font-bold text-xs block" style={{ fontFamily: PP }}>18</strong>
+              <span className="text-[#64748B] text-[9px] block mb-0.5">
+                New Patients Today
+              </span>
+              <strong
+                className="text-[#0D47A1] font-bold text-xs block"
+                style={{ fontFamily: PP }}
+              >
+                18
+              </strong>
               <span className="text-[9px] text-[#64748B]">First Visits</span>
             </div>
             <div className="bg-slate-50 p-2 rounded-xl text-center border border-slate-100">
-              <span className="text-[#64748B] text-[9px] block mb-0.5">Returning Patients</span>
-              <strong className="text-[#111827] font-bold text-xs block" style={{ fontFamily: PP }}>46</strong>
-              <span className="text-[9px] text-[#64748B]">Follow-up & Consult</span>
+              <span className="text-[#64748B] text-[9px] block mb-0.5">
+                Returning Patients
+              </span>
+              <strong
+                className="text-[#111827] font-bold text-xs block"
+                style={{ fontFamily: PP }}
+              >
+                46
+              </strong>
+              <span className="text-[9px] text-[#64748B]">
+                Follow-up & Consult
+              </span>
             </div>
           </div>
         </div>
@@ -917,9 +988,7 @@ export function NurseDashboard({
             </span>
           </div>
         </div>
-
       </div>
-
     </div>
   );
 }

@@ -153,9 +153,15 @@ export const usersApi = {
         return {
           success: true,
           data: resData,
+          message: "",
         };
       }
-      if (resData && typeof resData === "object" && "data" in resData && Array.isArray(resData.data)) {
+      if (
+        resData &&
+        typeof resData === "object" &&
+        "data" in resData &&
+        Array.isArray(resData.data)
+      ) {
         return {
           success: resData.success !== false,
           data: resData.data,
@@ -165,6 +171,7 @@ export const usersApi = {
       return {
         success: true,
         data: [],
+        message: "",
       };
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -207,4 +214,3 @@ export const usersApi = {
     }
   },
 };
-

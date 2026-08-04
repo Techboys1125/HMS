@@ -7,23 +7,43 @@ export function mapApiPatientToPatientRecord(
 
   return {
     ...patient,
-    mrn: patient.mrn || `MRN-${String(patient.id ?? "000000").padStart(6, "0")}`,
-    fullName: patient.fullName || patient.name || patient.patientName || "Unknown Patient",
-    name: patient.fullName || patient.name || patient.patientName || "Unknown Patient",
+    mrn:
+      patient.mrn || `MRN-${String(patient.id ?? "000000").padStart(6, "0")}`,
+    fullName:
+      patient.fullName ||
+      patient.name ||
+      patient.patientName ||
+      "Unknown Patient",
+    name:
+      patient.fullName ||
+      patient.name ||
+      patient.patientName ||
+      "Unknown Patient",
     gender: patient.gender || "Unknown",
     phone: patient.phone || patient.mobileNumber || patient.mobile || "N/A",
-    mobileNumber: patient.mobileNumber || patient.mobile || patient.phone || "N/A",
+    mobileNumber:
+      patient.mobileNumber || patient.mobile || patient.phone || "N/A",
     dateOfBirth: patient.dateOfBirth || patient.dob || "",
     dob: patient.dateOfBirth || patient.dob || "",
     bloodGroup: patient.bloodGroup || patient.blood_type || "UNKNOWN",
     status: (patient.status as Patient["status"]) || "ACTIVE",
     age: patient.age ?? calculateAge(patient.dateOfBirth || patient.dob),
-    address: typeof patient.address === "string" ? patient.address : (patient.address?.addressLine1 || patient.address?.street || ""),
+    address:
+      typeof patient.address === "string"
+        ? patient.address
+        : patient.address?.addressLine1 || patient.address?.street || "",
     emergencyContact: patient.emergencyContact
       ? {
-          name: patient.emergencyContact.name || patient.emergencyContact.contactName || "",
+          name:
+            patient.emergencyContact.name ||
+            patient.emergencyContact.contactName ||
+            "",
           relationship: patient.emergencyContact.relationship || "",
-          mobile: patient.emergencyContact.mobile || patient.emergencyContact.contactNumber || patient.emergencyContact.mobileNumber || "N/A",
+          mobile:
+            patient.emergencyContact.mobile ||
+            patient.emergencyContact.contactNumber ||
+            patient.emergencyContact.mobileNumber ||
+            "N/A",
         }
       : undefined,
     email: patient.email || "",

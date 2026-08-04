@@ -150,11 +150,13 @@ export const departmentsApi = {
         departmentId: item.departmentId,
         departmentName: item.departmentName ?? "",
         active: item.active !== undefined ? item.active : true,
-        specialties: (item.specialties || []).map((s: ApiSpecialtyItem & ApiSpecialty) => ({
-          id: s.id ?? "",
-          name: s.name || s.specialtyName || "",
-          active: s.active !== undefined ? s.active : true,
-        })),
+        specialties: (item.specialties || []).map(
+          (s: ApiSpecialtyItem & ApiSpecialty) => ({
+            id: s.id ?? "",
+            name: s.name || s.specialtyName || "",
+            active: s.active !== undefined ? s.active : true,
+          }),
+        ),
       }));
     } catch (error) {
       console.warn(
@@ -175,17 +177,18 @@ export const departmentsApi = {
     try {
       let res;
       try {
-        res = await apiClient.get<ApiDepartmentSpecialtiesItem | { data: ApiDepartmentSpecialtiesItem }>(
-          `/api/v1/admin/department-specialties/${departmentId}`,
-        );
+        res = await apiClient.get<
+          ApiDepartmentSpecialtiesItem | { data: ApiDepartmentSpecialtiesItem }
+        >(`/api/v1/admin/department-specialties/${departmentId}`);
       } catch (err: unknown) {
         if (
           axios.isAxiosError(err) &&
           (err.response?.status === 404 || err.response?.status === 403)
         ) {
-          res = await apiClient.get<ApiDepartmentSpecialtiesItem | { data: ApiDepartmentSpecialtiesItem }>(
-            `/api/v1/admin/departments/${departmentId}`,
-          );
+          res = await apiClient.get<
+            | ApiDepartmentSpecialtiesItem
+            | { data: ApiDepartmentSpecialtiesItem }
+          >(`/api/v1/admin/departments/${departmentId}`);
         } else {
           throw err;
         }
@@ -234,25 +237,24 @@ export const departmentsApi = {
       };
 
       try {
-        res = await apiClient.post<ApiDepartmentSpecialtiesItem | { data: ApiDepartmentSpecialtiesItem }>(
-          "/api/v1/admin/department-specialties",
-          formattedPayload,
-        );
+        res = await apiClient.post<
+          ApiDepartmentSpecialtiesItem | { data: ApiDepartmentSpecialtiesItem }
+        >("/api/v1/admin/department-specialties", formattedPayload);
       } catch (err: unknown) {
         if (
           axios.isAxiosError(err) &&
           (err.response?.status === 404 || err.response?.status === 403)
         ) {
           try {
-            res = await apiClient.post<ApiDepartmentSpecialtiesItem | { data: ApiDepartmentSpecialtiesItem }>(
-              "/api/v1/admin/department-specialties",
-              formattedPayload,
-            );
+            res = await apiClient.post<
+              | ApiDepartmentSpecialtiesItem
+              | { data: ApiDepartmentSpecialtiesItem }
+            >("/api/v1/admin/department-specialties", formattedPayload);
           } catch {
-            res = await apiClient.post<ApiDepartmentSpecialtiesItem | { data: ApiDepartmentSpecialtiesItem }>(
-              "/api/v1/admin/department-specialties",
-              formattedPayload,
-            );
+            res = await apiClient.post<
+              | ApiDepartmentSpecialtiesItem
+              | { data: ApiDepartmentSpecialtiesItem }
+            >("/api/v1/admin/department-specialties", formattedPayload);
           }
         } else {
           throw err;
@@ -304,7 +306,9 @@ export const departmentsApi = {
       };
 
       try {
-        res = await apiClient.put<ApiDepartmentSpecialtiesItem | { data: ApiDepartmentSpecialtiesItem }>(
+        res = await apiClient.put<
+          ApiDepartmentSpecialtiesItem | { data: ApiDepartmentSpecialtiesItem }
+        >(
           `/api/v1/admin/department-specialties/${departmentId}`,
           formattedPayload,
         );
@@ -314,12 +318,18 @@ export const departmentsApi = {
           (err.response?.status === 404 || err.response?.status === 403)
         ) {
           try {
-            res = await apiClient.put<ApiDepartmentSpecialtiesItem | { data: ApiDepartmentSpecialtiesItem }>(
+            res = await apiClient.put<
+              | ApiDepartmentSpecialtiesItem
+              | { data: ApiDepartmentSpecialtiesItem }
+            >(
               `/api/v1/admin/departments-specialties/${departmentId}`,
               formattedPayload,
             );
           } catch {
-            res = await apiClient.put<ApiDepartmentSpecialtiesItem | { data: ApiDepartmentSpecialtiesItem }>(
+            res = await apiClient.put<
+              | ApiDepartmentSpecialtiesItem
+              | { data: ApiDepartmentSpecialtiesItem }
+            >(
               `/api/v1/admin/department-specialties/${departmentId}`,
               formattedPayload,
             );
@@ -413,13 +423,19 @@ export const departmentsApi = {
     try {
       let res;
       try {
-        res = await apiClient.post<ApiSpecialty | { data: ApiSpecialty }>("/api/v1/admin/specialties", payload);
+        res = await apiClient.post<ApiSpecialty | { data: ApiSpecialty }>(
+          "/api/v1/admin/specialties",
+          payload,
+        );
       } catch (err: unknown) {
         if (
           axios.isAxiosError(err) &&
           (err.response?.status === 404 || err.response?.status === 403)
         ) {
-          res = await apiClient.post<ApiSpecialty | { data: ApiSpecialty }>("/api/v1/specialties", payload);
+          res = await apiClient.post<ApiSpecialty | { data: ApiSpecialty }>(
+            "/api/v1/specialties",
+            payload,
+          );
         } else {
           throw err;
         }

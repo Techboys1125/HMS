@@ -39,8 +39,16 @@ const WEEK_DAYS: { api: DayOfWeek; short: string; label: string }[] = [
 ];
 
 const BREAK_TYPES: BreakType[] = ["LUNCH", "TEA", "MEETING", "PERSONAL"];
-const EXCEPTION_TYPES: ExceptionType[] = ["LEAVE", "SURGERY", "MEETING", "PERSONAL"];
-const EXCEPTION_ACTIONS: ExceptionAction[] = ["BLOCK_APPOINTMENTS", "REDUCE_SLOTS"];
+const EXCEPTION_TYPES: ExceptionType[] = [
+  "LEAVE",
+  "SURGERY",
+  "MEETING",
+  "PERSONAL",
+];
+const EXCEPTION_ACTIONS: ExceptionAction[] = [
+  "BLOCK_APPOINTMENTS",
+  "REDUCE_SLOTS",
+];
 
 const EXCEPTION_TYPE_META: Record<string, string> = {
   LEAVE: "bg-amber-100 text-amber-700",
@@ -112,7 +120,8 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
   const [draft, setDraft] = useState<UpdateScheduleDayPayload | null>(null);
 
   const [exceptionFormOpen, setExceptionFormOpen] = useState(false);
-  const [editingException, setEditingException] = useState<ApiScheduleExceptionItem | null>(null);
+  const [editingException, setEditingException] =
+    useState<ApiScheduleExceptionItem | null>(null);
   const [exceptionForm, setExceptionForm] = useState(EMPTY_EXCEPTION_FORM);
 
   const [confirmDeleteException, setConfirmDeleteException] =
@@ -207,7 +216,11 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
         .filter((p) => p.startTime && p.endTime),
     };
     setIsSaving(true);
-    const ok = await doctorsApi.updateWeeklyScheduleDay(doctorId, editingDay, cleaned);
+    const ok = await doctorsApi.updateWeeklyScheduleDay(
+      doctorId,
+      editingDay,
+      cleaned,
+    );
     setIsSaving(false);
     if (ok) {
       showToast(`${editingDay} schedule updated successfully.`);
@@ -239,12 +252,21 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
 
   const openEditException = (ex: ApiScheduleExceptionItem) => {
     const isFullDay =
-      ex.isFullDay === true || ex.fullDay === true || (!ex.startTime && !ex.endTime);
+      ex.isFullDay === true ||
+      ex.fullDay === true ||
+      (!ex.startTime && !ex.endTime);
     setEditingException(ex);
     setExceptionForm({
       exceptionType: (ex.exceptionType as ExceptionType) || "LEAVE",
-      startDate: ex.startDate || ex.exceptionDate || new Date().toISOString().slice(0, 10),
-      endDate: ex.endDate || ex.startDate || ex.exceptionDate || new Date().toISOString().slice(0, 10),
+      startDate:
+        ex.startDate ||
+        ex.exceptionDate ||
+        new Date().toISOString().slice(0, 10),
+      endDate:
+        ex.endDate ||
+        ex.startDate ||
+        ex.exceptionDate ||
+        new Date().toISOString().slice(0, 10),
       startTime: ex.startTime || "14:00",
       endTime: ex.endTime || "15:00",
       isFullDay,
@@ -260,7 +282,9 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
       exceptionType: exceptionForm.exceptionType,
       startDate: exceptionForm.startDate,
       endDate: exceptionForm.endDate,
-      startTime: exceptionForm.isFullDay ? null : exceptionForm.startTime || null,
+      startTime: exceptionForm.isFullDay
+        ? null
+        : exceptionForm.startTime || null,
       endTime: exceptionForm.isFullDay ? null : exceptionForm.endTime || null,
       isFullDay: exceptionForm.isFullDay,
       reason: exceptionForm.reason.trim() || undefined,
@@ -268,7 +292,11 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
     };
     setIsSaving(true);
     const ok = editingException?.id
-      ? await doctorsApi.updateScheduleException(doctorId, editingException.id, payload)
+      ? await doctorsApi.updateScheduleException(
+          doctorId,
+          editingException.id,
+          payload,
+        )
       : await doctorsApi.createScheduleException(doctorId, payload);
     setIsSaving(false);
     if (ok) {
@@ -370,7 +398,11 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
           ...p,
           breaks: [
             ...(p.breaks || []),
-            { startTime: "13:00", endTime: "14:00", breakType: "LUNCH" as BreakType },
+            {
+              startTime: "13:00",
+              endTime: "14:00",
+              breakType: "LUNCH" as BreakType,
+            },
           ],
         };
       });
@@ -383,7 +415,10 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
       if (!prev) return prev;
       const workingPeriods = prev.workingPeriods.map((p, i) => {
         if (i !== periodIndex) return p;
-        return { ...p, breaks: (p.breaks || []).filter((_, bi) => bi !== breakIndex) };
+        return {
+          ...p,
+          breaks: (p.breaks || []).filter((_, bi) => bi !== breakIndex),
+        };
       });
       return { ...prev, workingPeriods };
     });
@@ -472,9 +507,12 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
 
               {!weekly && (
                 <div className="text-center py-10 bg-slate-50 rounded-xl border border-[#E5E7EB]">
-                  <p className="text-sm text-[#64748B]" style={{ fontFamily: RB }}>
-                    No weekly schedule configured yet. Click "Edit" on any day to
-                    get started.
+                  <p
+                    className="text-sm text-[#64748B]"
+                    style={{ fontFamily: RB }}
+                  >
+                    No weekly schedule configured yet. Click "Edit" on any day
+                    to get started.
                   </p>
                 </div>
               )}
@@ -485,7 +523,9 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                     (d) => d.dayOfWeek === day.api,
                   );
                   const isWorking = Boolean(dayData?.workingDay);
-                  const periods = isWorking ? dayData?.workingPeriods || [] : [];
+                  const periods = isWorking
+                    ? dayData?.workingPeriods || []
+                    : [];
                   const isEditing = editingDay === day.api;
                   return (
                     <div
@@ -531,7 +571,10 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                               onChange={(e) =>
                                 setDraft((prev) =>
                                   prev
-                                    ? { ...prev, isWorkingDay: e.target.checked }
+                                    ? {
+                                        ...prev,
+                                        isWorkingDay: e.target.checked,
+                                      }
                                     : prev,
                                 )
                               }
@@ -560,7 +603,9 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                                       }
                                       className={inputClass}
                                     />
-                                    <span className="text-[10px] text-[#94A3B8]">to</span>
+                                    <span className="text-[10px] text-[#94A3B8]">
+                                      to
+                                    </span>
                                     <input
                                       type="time"
                                       value={period.endTime}
@@ -591,10 +636,8 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                                       value={period.slotDurationMinutes}
                                       onChange={(e) =>
                                         setDraftPeriod(pIdx, {
-                                          slotDurationMinutes: parseInt(
-                                            e.target.value,
-                                            10,
-                                          ) || 15,
+                                          slotDurationMinutes:
+                                            parseInt(e.target.value, 10) || 15,
                                         })
                                       }
                                       className={`${inputClass} w-20`}
@@ -606,58 +649,63 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                                       <div className="text-[10px] font-bold text-[#64748B] flex items-center gap-1">
                                         <Coffee size={11} /> Breaks
                                       </div>
-                                      {(period.breaks || []).map((brk, bIdx) => (
-                                        <div
-                                          key={bIdx}
-                                          className="flex items-center gap-1.5"
-                                        >
-                                          <select
-                                            value={brk.breakType}
-                                            onChange={(e) =>
-                                              setDraftBreak(pIdx, bIdx, {
-                                                breakType: e.target.value as BreakType,
-                                              })
-                                            }
-                                            className={inputClass}
+                                      {(period.breaks || []).map(
+                                        (brk, bIdx) => (
+                                          <div
+                                            key={bIdx}
+                                            className="flex items-center gap-1.5"
                                           >
-                                            {BREAK_TYPES.map((bt) => (
-                                              <option key={bt} value={bt}>
-                                                {bt}
-                                              </option>
-                                            ))}
-                                          </select>
-                                          <input
-                                            type="time"
-                                            value={brk.startTime}
-                                            onChange={(e) =>
-                                              setDraftBreak(pIdx, bIdx, {
-                                                startTime: e.target.value,
-                                              })
-                                            }
-                                            className={inputClass}
-                                          />
-                                          <span className="text-[10px] text-[#94A3B8]">
-                                            to
-                                          </span>
-                                          <input
-                                            type="time"
-                                            value={brk.endTime}
-                                            onChange={(e) =>
-                                              setDraftBreak(pIdx, bIdx, {
-                                                endTime: e.target.value,
-                                              })
-                                            }
-                                            className={inputClass}
-                                          />
-                                          <button
-                                            onClick={() => removeBreak(pIdx, bIdx)}
-                                            className="p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition-colors shrink-0"
-                                            title="Remove break"
-                                          >
-                                            <X size={12} />
-                                          </button>
-                                        </div>
-                                      ))}
+                                            <select
+                                              value={brk.breakType}
+                                              onChange={(e) =>
+                                                setDraftBreak(pIdx, bIdx, {
+                                                  breakType: e.target
+                                                    .value as BreakType,
+                                                })
+                                              }
+                                              className={inputClass}
+                                            >
+                                              {BREAK_TYPES.map((bt) => (
+                                                <option key={bt} value={bt}>
+                                                  {bt}
+                                                </option>
+                                              ))}
+                                            </select>
+                                            <input
+                                              type="time"
+                                              value={brk.startTime}
+                                              onChange={(e) =>
+                                                setDraftBreak(pIdx, bIdx, {
+                                                  startTime: e.target.value,
+                                                })
+                                              }
+                                              className={inputClass}
+                                            />
+                                            <span className="text-[10px] text-[#94A3B8]">
+                                              to
+                                            </span>
+                                            <input
+                                              type="time"
+                                              value={brk.endTime}
+                                              onChange={(e) =>
+                                                setDraftBreak(pIdx, bIdx, {
+                                                  endTime: e.target.value,
+                                                })
+                                              }
+                                              className={inputClass}
+                                            />
+                                            <button
+                                              onClick={() =>
+                                                removeBreak(pIdx, bIdx)
+                                              }
+                                              className="p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition-colors shrink-0"
+                                              title="Remove break"
+                                            >
+                                              <X size={12} />
+                                            </button>
+                                          </div>
+                                        ),
+                                      )}
                                     </div>
                                   )}
 
@@ -779,8 +827,8 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                     Schedule Exceptions
                   </h4>
                   <p className="text-xs text-[#64748B]">
-                    Leaves, surgeries, meetings, or personal blocks that override
-                    the weekly schedule.
+                    Leaves, surgeries, meetings, or personal blocks that
+                    override the weekly schedule.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -803,7 +851,10 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
               {exceptions.length === 0 ? (
                 <div className="text-center py-12 bg-slate-50 rounded-xl border border-[#E5E7EB]">
                   <Calendar size={36} className="mx-auto text-slate-300 mb-2" />
-                  <p className="text-sm text-[#64748B]" style={{ fontFamily: RB }}>
+                  <p
+                    className="text-sm text-[#64748B]"
+                    style={{ fontFamily: RB }}
+                  >
                     No schedule exceptions. Click "Add Exception" to create one.
                   </p>
                 </div>
@@ -1079,7 +1130,11 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                 </button>
                 <button
                   onClick={submitException}
-                  disabled={isSaving || !exceptionForm.startDate || !exceptionForm.endDate}
+                  disabled={
+                    isSaving ||
+                    !exceptionForm.startDate ||
+                    !exceptionForm.endDate
+                  }
                   className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors disabled:opacity-50 flex items-center gap-1.5"
                 >
                   <Save size={13} />
@@ -1109,7 +1164,10 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                     Delete Schedule Exception?
                   </h4>
                 </div>
-                <p className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>
+                <p
+                  className="text-xs text-[#64748B]"
+                  style={{ fontFamily: RB }}
+                >
                   This will cancel the{" "}
                   <span className="font-semibold text-[#111827]">
                     {confirmDeleteException.exceptionType || "exception"}
@@ -1122,7 +1180,8 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                     confirmDeleteException.endDate !==
                       confirmDeleteException.startDate &&
                     ` - ${confirmDeleteException.endDate}`}
-                  . Appointments already booked for this period are not affected.
+                  . Appointments already booked for this period are not
+                  affected.
                 </p>
               </div>
               <div className="p-4 border-t border-[#E5E7EB] bg-slate-50 flex items-center justify-end gap-2">
@@ -1158,13 +1217,16 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                     Delete Working Period?
                   </h4>
                 </div>
-                <p className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>
+                <p
+                  className="text-xs text-[#64748B]"
+                  style={{ fontFamily: RB }}
+                >
                   This working session on{" "}
                   <span className="font-semibold text-[#111827]">
                     {confirmDeletePeriod.day}
                   </span>{" "}
-                  will be removed from the weekly schedule. Existing appointments
-                  for that day are not affected.
+                  will be removed from the weekly schedule. Existing
+                  appointments for that day are not affected.
                 </p>
               </div>
               <div className="p-4 border-t border-[#E5E7EB] bg-slate-50 flex items-center justify-end gap-2">

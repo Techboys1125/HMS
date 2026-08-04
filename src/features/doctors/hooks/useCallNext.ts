@@ -9,7 +9,9 @@ export function useCallNext() {
   const callNext = useCallback(
     async (
       doctorId: number | string,
-    ): Promise<(Partial<DoctorCallNextResponse> & { token?: string }) | null> => {
+    ): Promise<
+      (Partial<DoctorCallNextResponse> & { token?: string }) | null
+    > => {
       try {
         setCalling(true);
         setError(null);

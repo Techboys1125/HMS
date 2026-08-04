@@ -441,7 +441,9 @@ export function BookAppointmentScreen({
       const formatted = formatSlotTime(timeStr);
       const statusUpper = (slot.status || "").toUpperCase();
       const available =
-        (statusUpper === "AVAILABLE" || statusUpper === "OPEN" || statusUpper === "FREE") &&
+        (statusUpper === "AVAILABLE" ||
+          statusUpper === "OPEN" ||
+          statusUpper === "FREE") &&
         !isTimeSlotPassed(formatted, selectedDate);
 
       if (hour < 12) {

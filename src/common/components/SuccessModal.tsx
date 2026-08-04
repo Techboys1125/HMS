@@ -33,7 +33,9 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
           <div className="w-14 h-14 bg-green-50 rounded-full flex items-center justify-center text-green-600 mb-4 border border-green-100">
             <CheckCircle2 size={32} />
           </div>
-          <h3 className="font-bold text-[#1E293B] text-base leading-snug">{title}</h3>
+          <h3 className="font-bold text-[#1E293B] text-base leading-snug">
+            {title}
+          </h3>
           <p className="text-xs text-[#64748B] font-medium leading-relaxed mt-2 max-w-xs">
             {message}
           </p>

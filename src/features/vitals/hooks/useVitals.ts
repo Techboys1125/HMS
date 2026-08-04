@@ -1,9 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { vitalsService } from "../services/vitals.service";
-import type { NurseWaitingPatient, RecordedVitalsData, NurseVitalsPayload } from "../types/vitals.types";
+import type {
+  NurseWaitingPatient,
+  RecordedVitalsData,
+  NurseVitalsPayload,
+} from "../types/vitals.types";
 
 export function useVitals() {
-  const [waitingPatients, setWaitingPatients] = useState<NurseWaitingPatient[]>([]);
+  const [waitingPatients, setWaitingPatients] = useState<NurseWaitingPatient[]>(
+    [],
+  );
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,18 +30,23 @@ export function useVitals() {
   const recordVitals = useCallback(
     async (
       appointmentId: string | number,
-      formData: NurseVitalsPayload | (RecordedVitalsData & {
-        chiefComplaint?: string;
-        symptoms?: string;
-        diagnosis?: string;
-        clinicalNotes?: string;
-        notes?: string;
-      })
+      formData:
+        | NurseVitalsPayload
+        | (RecordedVitalsData & {
+            chiefComplaint?: string;
+            symptoms?: string;
+            diagnosis?: string;
+            clinicalNotes?: string;
+            notes?: string;
+          }),
     ) => {
       try {
         setSubmitting(true);
         setError(null);
-        const success = await vitalsService.submitVitals(appointmentId, formData);
+        const success = await vitalsService.submitVitals(
+          appointmentId,
+          formData,
+        );
         if (success) {
           await fetchWaitingPatients();
         }
@@ -47,7 +58,7 @@ export function useVitals() {
         setSubmitting(false);
       }
     },
-    [fetchWaitingPatients]
+    [fetchWaitingPatients],
   );
 
   useEffect(() => {

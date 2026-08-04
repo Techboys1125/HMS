@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import {RefreshCw, Eye } from "lucide-react";
+import { RefreshCw, Eye } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
 import { doctorsService } from "../services/doctors.service";
@@ -10,7 +10,9 @@ import { DoctorProfilePage } from "./DoctorProfilePage";
 export function ReceptionistDoctorListPage() {
   const [doctors, setDoctors] = useState<DoctorRecord[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState<DoctorRecord | null>(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<DoctorRecord | null>(
+    null,
+  );
 
   const {
     searchDoctorQuery,
@@ -37,7 +39,9 @@ export function ReceptionistDoctorListPage() {
     setLoading(true);
     try {
       const res = await doctorsService.getAll();
-      const overrides = JSON.parse(localStorage.getItem("doctor_status_overrides") || "{}");
+      const overrides = JSON.parse(
+        localStorage.getItem("doctor_status_overrides") || "{}",
+      );
       const updated = res.items.map((r: DoctorRecord) => {
         if (overrides[r.id]) {
           return {
@@ -85,7 +89,8 @@ export function ReceptionistDoctorListPage() {
             Doctor Management
           </h1>
           <p className="text-xs text-[#64748B] mt-1">
-            View doctor profiles, schedules, daily availability, and appointment status.
+            View doctor profiles, schedules, daily availability, and appointment
+            status.
           </p>
         </div>
         <button
@@ -136,20 +141,31 @@ export function ReceptionistDoctorListPage() {
             <tbody className="divide-y divide-[#E5E7EB]">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-[#64748B]">
+                  <td
+                    colSpan={6}
+                    className="px-4 py-8 text-center text-[#64748B]"
+                  >
                     Loading doctors...
                   </td>
                 </tr>
               ) : filteredDoctors.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-[#64748B]">
+                  <td
+                    colSpan={6}
+                    className="px-4 py-8 text-center text-[#64748B]"
+                  >
                     No doctors found matching criteria.
                   </td>
                 </tr>
               ) : (
                 filteredDoctors.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-4 py-3 font-semibold text-[#111827]">{doc.name}</td>
+                  <tr
+                    key={doc.id}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
+                    <td className="px-4 py-3 font-semibold text-[#111827]">
+                      {doc.name}
+                    </td>
                     <td className="px-4 py-3 text-[#64748B]">{doc.empId}</td>
                     <td className="px-4 py-3">{doc.department}</td>
                     <td className="px-4 py-3">{doc.specialty}</td>

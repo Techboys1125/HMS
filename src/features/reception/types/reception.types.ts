@@ -7,7 +7,12 @@ export type QueueStatus =
   | "NO_SHOW"
   | "CHECKED_IN";
 
-export type BillingStatus = "PAID" | "PENDING" | "PARTIAL" | "EXEMPT" | "REFUNDED";
+export type BillingStatus =
+  | "PAID"
+  | "PENDING"
+  | "PARTIAL"
+  | "EXEMPT"
+  | "REFUNDED";
 
 export interface ReceptionQueueItem {
   id: string | number;
@@ -119,4 +124,3 @@ export type ReceptionQueueResponse = Array<{
   additionalProp3?: Record<string, unknown>;
   [key: string]: unknown;
 }>;
-

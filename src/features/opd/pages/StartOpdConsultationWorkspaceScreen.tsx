@@ -562,7 +562,8 @@ export function StartOpdConsultationWorkspaceScreen({
                         onChange={(e) =>
                           setFormData((prev) => ({
                             ...prev,
-                            visitType: e.target.value as ConsultationFormData["visitType"],
+                            visitType: e.target
+                              .value as ConsultationFormData["visitType"],
                           }))
                         }
                         className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
@@ -959,7 +960,7 @@ export function StartOpdConsultationWorkspaceScreen({
                           showIcdDropdown
                             ? icdSearchQuery
                             : formData.icdCode ||
-                            "I20.9 — Angina Pectoris, unspecified"
+                              "I20.9 — Angina Pectoris, unspecified"
                         }
                         onFocus={() => setShowIcdDropdown(true)}
                         onChange={(e) => {
@@ -1216,7 +1217,11 @@ export function StartOpdConsultationWorkspaceScreen({
                         >
                           <input
                             type="checkbox"
-                            checked={Boolean(formData.investigations[item.key as keyof typeof formData.investigations])}
+                            checked={Boolean(
+                              formData.investigations[
+                                item.key as keyof typeof formData.investigations
+                              ],
+                            )}
                             onChange={(e) =>
                               setFormData((prev) => ({
                                 ...prev,

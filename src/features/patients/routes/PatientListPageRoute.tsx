@@ -1,4 +1,3 @@
-import { useParams } from "react-router";
 import { PatientListPage } from "../pages/PatientListPage";
 import { useAuthStore } from "../../auth/index";
 import { useState, useEffect } from "react";

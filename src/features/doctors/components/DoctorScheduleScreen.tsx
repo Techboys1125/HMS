@@ -73,7 +73,11 @@ const SCHEDULE_STATUS_META: Record<
     badge: "bg-red-100 text-red-700",
     dot: "bg-red-500",
   },
-  OFF_DAY: { label: "Off Day", badge: "bg-slate-100 text-slate-600", dot: "bg-slate-400" },
+  OFF_DAY: {
+    label: "Off Day",
+    badge: "bg-slate-100 text-slate-600",
+    dot: "bg-slate-400",
+  },
   ON_LEAVE: {
     label: "On Leave",
     badge: "bg-purple-100 text-purple-700",
@@ -172,15 +176,25 @@ const FALLBACK_WEEKLY: ApiWeeklyScheduleData = {
   weeklySchedule: WEEK_DAYS.map((day) => ({
     dayOfWeek: day.api,
     workingDay:
-      day.api === "MONDAY" || day.api === "TUESDAY" || day.api === "WEDNESDAY" || day.api === "THURSDAY" || day.api === "FRIDAY",
+      day.api === "MONDAY" ||
+      day.api === "TUESDAY" ||
+      day.api === "WEDNESDAY" ||
+      day.api === "THURSDAY" ||
+      day.api === "FRIDAY",
     workingPeriods:
-      day.api === "MONDAY" || day.api === "TUESDAY" || day.api === "WEDNESDAY" || day.api === "THURSDAY" || day.api === "FRIDAY"
+      day.api === "MONDAY" ||
+      day.api === "TUESDAY" ||
+      day.api === "WEDNESDAY" ||
+      day.api === "THURSDAY" ||
+      day.api === "FRIDAY"
         ? [
             {
               startTime: "09:00",
               endTime: "17:00",
               slotDurationMinutes: 15,
-              breaks: [{ startTime: "13:00", endTime: "14:00", breakType: "LUNCH" }],
+              breaks: [
+                { startTime: "13:00", endTime: "14:00", breakType: "LUNCH" },
+              ],
             },
           ]
         : [],
@@ -192,11 +206,15 @@ export function DoctorScheduleScreen() {
   const doctorId = user?.doctorId || user?.doctorProfile?.doctorId;
   const [activeTab, setActiveTab] = useState<ScheduleTab>("weekly");
   const [isLoading, setIsLoading] = useState(false);
-  const [weeklySchedule, setWeeklySchedule] = useState<ApiWeeklyScheduleData | null>(null);
-  const [scheduleExceptions, setScheduleExceptions] = useState<ApiScheduleExceptionItem[]>([]);
+  const [weeklySchedule, setWeeklySchedule] =
+    useState<ApiWeeklyScheduleData | null>(null);
+  const [scheduleExceptions, setScheduleExceptions] = useState<
+    ApiScheduleExceptionItem[]
+  >([]);
   const [dailyAvailability, setDailyAvailability] =
     useState<DoctorDailyAvailabilityData | null>(null);
-  const [monthlyCalendar, setMonthlyCalendar] = useState<DoctorMonthlyAvailabilityData | null>(null);
+  const [monthlyCalendar, setMonthlyCalendar] =
+    useState<DoctorMonthlyAvailabilityData | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(() =>
     new Date().toISOString().slice(0, 7),
   );
@@ -298,7 +316,9 @@ export function DoctorScheduleScreen() {
   };
 
   const calendarDaysByDate = new Map<string, DoctorCalendarDayItem>();
-  (monthlyCalendar?.days || []).forEach((d) => calendarDaysByDate.set(d.date, d));
+  (monthlyCalendar?.days || []).forEach((d) =>
+    calendarDaysByDate.set(d.date, d),
+  );
 
   const buildCalendarGrid = () => {
     const [year, month] = calendarMonth.split("-").map(Number);
@@ -329,7 +349,9 @@ export function DoctorScheduleScreen() {
           </p>
         </div>
         <button
-          onClick={() => triggerToast("Schedule management is handled by hospital admin.")}
+          onClick={() =>
+            triggerToast("Schedule management is handled by hospital admin.")
+          }
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-sm font-semibold text-[#64748B] hover:bg-slate-50 transition-colors"
           style={{ fontFamily: PP }}
         >
@@ -342,7 +364,11 @@ export function DoctorScheduleScreen() {
         <div className="flex items-center gap-1 p-2 border-b border-[#E5E7EB] overflow-x-auto">
           {[
             { id: "weekly", label: "Weekly Schedule", Icon: CalendarDays },
-            { id: "exceptions", label: "Leave & Exceptions", Icon: AlertTriangle },
+            {
+              id: "exceptions",
+              label: "Leave & Exceptions",
+              Icon: AlertTriangle,
+            },
             { id: "availability", label: "Daily Availability", Icon: Clock },
             { id: "monthly", label: "Monthly Calendar", Icon: CalendarRange },
           ].map((tab) => (
@@ -367,7 +393,10 @@ export function DoctorScheduleScreen() {
             <div>
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <RefreshCw size={20} className="animate-spin text-[#0D47A1]" />
+                  <RefreshCw
+                    size={20}
+                    className="animate-spin text-[#0D47A1]"
+                  />
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4">
@@ -375,9 +404,14 @@ export function DoctorScheduleScreen() {
                     const dayData =
                       weeklySchedule?.weeklySchedule?.find(
                         (d) => d.dayOfWeek === day.api,
-                      ) || FALLBACK_WEEKLY.weeklySchedule.find((d) => d.dayOfWeek === day.api);
+                      ) ||
+                      FALLBACK_WEEKLY.weeklySchedule.find(
+                        (d) => d.dayOfWeek === day.api,
+                      );
                     const isWorking = Boolean(dayData?.workingDay);
-                    const periods = isWorking ? dayData?.workingPeriods || [] : [];
+                    const periods = isWorking
+                      ? dayData?.workingPeriods || []
+                      : [];
                     return (
                       <div
                         key={day.api}
@@ -396,7 +430,10 @@ export function DoctorScheduleScreen() {
                         {isWorking ? (
                           <div className="space-y-2.5">
                             <div className="flex items-center gap-2">
-                              <CheckCircle2 size={14} className="text-emerald-600" />
+                              <CheckCircle2
+                                size={14}
+                                className="text-emerald-600"
+                              />
                               <span
                                 className="text-xs font-semibold text-emerald-700"
                                 style={{ fontFamily: PP }}
@@ -428,7 +465,8 @@ export function DoctorScheduleScreen() {
                                         key={bIdx}
                                         className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-100 text-[9px] font-semibold"
                                       >
-                                        {brk.breakType} {formatTime(brk.startTime)}-
+                                        {brk.breakType}{" "}
+                                        {formatTime(brk.startTime)}-
                                         {formatTime(brk.endTime)}
                                       </span>
                                     ))}
@@ -439,7 +477,10 @@ export function DoctorScheduleScreen() {
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <AlertTriangle size={14} className="text-amber-500" />
+                            <AlertTriangle
+                              size={14}
+                              className="text-amber-500"
+                            />
                             <span
                               className="text-xs font-medium text-amber-700"
                               style={{ fontFamily: PP }}
@@ -460,24 +501,38 @@ export function DoctorScheduleScreen() {
             <div>
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <RefreshCw size={20} className="animate-spin text-[#0D47A1]" />
+                  <RefreshCw
+                    size={20}
+                    className="animate-spin text-[#0D47A1]"
+                  />
                 </div>
               ) : scheduleExceptions.length === 0 ? (
                 <div className="text-center py-12">
-                  <CalendarDays size={40} className="mx-auto text-slate-300 mb-3" />
-                  <p className="text-sm text-[#64748B]" style={{ fontFamily: RB }}>
+                  <CalendarDays
+                    size={40}
+                    className="mx-auto text-slate-300 mb-3"
+                  />
+                  <p
+                    className="text-sm text-[#64748B]"
+                    style={{ fontFamily: RB }}
+                  >
                     No leave or schedule exceptions found.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {scheduleExceptions.map((ex, idx) => {
-                    const type = (ex.type || ex.exceptionType || "LEAVE").toUpperCase();
+                    const type = (
+                      ex.type ||
+                      ex.exceptionType ||
+                      "LEAVE"
+                    ).toUpperCase();
                     const status = (ex.status || "ACTIVE").toUpperCase();
                     const typeClass =
                       EXCEPTION_TYPE_META[type] || "bg-blue-100 text-blue-700";
                     const statusClass =
-                      EXCEPTION_STATUS_META[status] || "bg-emerald-100 text-emerald-700";
+                      EXCEPTION_STATUS_META[status] ||
+                      "bg-emerald-100 text-emerald-700";
                     const isFullDay =
                       ex.isFullDay === true ||
                       ex.fullDay === true ||
@@ -561,12 +616,18 @@ export function DoctorScheduleScreen() {
             <div>
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <RefreshCw size={20} className="animate-spin text-[#0D47A1]" />
+                  <RefreshCw
+                    size={20}
+                    className="animate-spin text-[#0D47A1]"
+                  />
                 </div>
               ) : dailyAvailability ? (
                 <div>
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="text-sm font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                    <div
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
                       {new Date(today).toLocaleDateString("en-US", {
                         weekday: "long",
                         month: "short",
@@ -574,34 +635,53 @@ export function DoctorScheduleScreen() {
                       })}
                     </div>
                     {(SCHEDULE_STATUS_META[
-                      String(dailyAvailability.scheduleStatus || "").toUpperCase()
-                    ] || SCHEDULE_STATUS_META.AVAILABLE) && (
+                      String(
+                        dailyAvailability.scheduleStatus || "",
+                      ).toUpperCase()
+                    ] ||
+                      SCHEDULE_STATUS_META.AVAILABLE) && (
                       <span
                         className={`px-3 py-1 rounded-full text-[10px] font-bold ${
                           SCHEDULE_STATUS_META[
-                            String(dailyAvailability.scheduleStatus || "").toUpperCase()
+                            String(
+                              dailyAvailability.scheduleStatus || "",
+                            ).toUpperCase()
                           ]?.badge || "bg-emerald-100 text-emerald-700"
                         }`}
                         style={{ fontFamily: PP }}
                       >
                         {SCHEDULE_STATUS_META[
-                          String(dailyAvailability.scheduleStatus || "").toUpperCase()
-                        ]?.label || dailyAvailability.scheduleStatus || "Available"}
+                          String(
+                            dailyAvailability.scheduleStatus || "",
+                          ).toUpperCase()
+                        ]?.label ||
+                          dailyAvailability.scheduleStatus ||
+                          "Available"}
                       </span>
                     )}
                   </div>
                   {(dailyAvailability.slots || []).length === 0 ? (
                     <div className="text-center py-12">
-                      <Clock size={40} className="mx-auto text-slate-300 mb-3" />
-                      <p className="text-sm text-[#64748B]" style={{ fontFamily: RB }}>
+                      <Clock
+                        size={40}
+                        className="mx-auto text-slate-300 mb-3"
+                      />
+                      <p
+                        className="text-sm text-[#64748B]"
+                        style={{ fontFamily: RB }}
+                      >
                         No slots available for this day.
                       </p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                       {dailyAvailability.slots.map((slot, idx) => {
-                        const status = (slot.status || "AVAILABLE").toUpperCase();
-                        const meta = SLOT_STATUS_META[status] || SLOT_STATUS_META.AVAILABLE;
+                        const status = (
+                          slot.status || "AVAILABLE"
+                        ).toUpperCase();
+                        const meta =
+                          SLOT_STATUS_META[status] ||
+                          SLOT_STATUS_META.AVAILABLE;
                         const Icon = meta.icon;
                         return (
                           <div
@@ -621,7 +701,8 @@ export function DoctorScheduleScreen() {
                               className="text-xs font-mono"
                               style={{ fontFamily: RB }}
                             >
-                              {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
+                              {formatTime(slot.startTime)} -{" "}
+                              {formatTime(slot.endTime)}
                             </div>
                             {(slot.reason || status === "BREAK") && (
                               <div
@@ -641,7 +722,10 @@ export function DoctorScheduleScreen() {
               ) : (
                 <div className="text-center py-12">
                   <Clock size={40} className="mx-auto text-slate-300 mb-3" />
-                  <p className="text-sm text-[#64748B]" style={{ fontFamily: RB }}>
+                  <p
+                    className="text-sm text-[#64748B]"
+                    style={{ fontFamily: RB }}
+                  >
                     No availability data for today.
                   </p>
                 </div>
@@ -657,13 +741,20 @@ export function DoctorScheduleScreen() {
                     className="text-base font-bold text-[#111827]"
                     style={{ fontFamily: PP }}
                   >
-                    {new Date(`${calendarMonth}-01`).toLocaleDateString("en-US", {
-                      month: "long",
-                      year: "numeric",
-                    })}
+                    {new Date(`${calendarMonth}-01`).toLocaleDateString(
+                      "en-US",
+                      {
+                        month: "long",
+                        year: "numeric",
+                      },
+                    )}
                   </h3>
-                  <p className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>
-                    Daily booking status for {doctorId ? `doctor #${doctorId}` : "your profile"}.
+                  <p
+                    className="text-xs text-[#64748B]"
+                    style={{ fontFamily: RB }}
+                  >
+                    Daily booking status for{" "}
+                    {doctorId ? `doctor #${doctorId}` : "your profile"}.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -683,20 +774,25 @@ export function DoctorScheduleScreen() {
               </div>
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <RefreshCw size={20} className="animate-spin text-[#0D47A1]" />
+                  <RefreshCw
+                    size={20}
+                    className="animate-spin text-[#0D47A1]"
+                  />
                 </div>
               ) : (
                 <div>
                   <div className="grid grid-cols-7 gap-2 mb-2">
-                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-                      <div
-                        key={d}
-                        className="text-center text-[11px] font-bold text-[#94A3B8]"
-                        style={{ fontFamily: PP }}
-                      >
-                        {d}
-                      </div>
-                    ))}
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                      (d) => (
+                        <div
+                          key={d}
+                          className="text-center text-[11px] font-bold text-[#94A3B8]"
+                          style={{ fontFamily: PP }}
+                        >
+                          {d}
+                        </div>
+                      ),
+                    )}
                   </div>
                   <div className="grid grid-cols-7 gap-2">
                     {buildCalendarGrid().map((dayNum, idx) => {
@@ -705,7 +801,9 @@ export function DoctorScheduleScreen() {
                       }
                       const dateStr = `${calendarMonth}-${String(dayNum).padStart(2, "0")}`;
                       const dayInfo = calendarDaysByDate.get(dateStr);
-                      const status = String(dayInfo?.status || "").toUpperCase();
+                      const status = String(
+                        dayInfo?.status || "",
+                      ).toUpperCase();
                       const meta = CALENDAR_DAY_META[status];
                       return (
                         <div

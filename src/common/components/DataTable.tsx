@@ -60,7 +60,9 @@ export function DataTable<T>({
                   key={idx}
                   onClick={() => isSortable && onSort(col.sortKey)}
                   className={`px-4 py-3.5 ${
-                    isSortable ? "cursor-pointer hover:text-[#0D47A1] select-none" : ""
+                    isSortable
+                      ? "cursor-pointer hover:text-[#0D47A1] select-none"
+                      : ""
                   } ${col.className || ""}`}
                 >
                   <div className="flex items-center gap-1">
@@ -94,7 +96,10 @@ export function DataTable<T>({
                     : (row[col.accessor] as React.ReactNode);
 
                 return (
-                  <td key={cIdx} className={`px-4 py-3.5 ${col.className || ""}`}>
+                  <td
+                    key={cIdx}
+                    className={`px-4 py-3.5 ${col.className || ""}`}
+                  >
                     {cellVal}
                   </td>
                 );

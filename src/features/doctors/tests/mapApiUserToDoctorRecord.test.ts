@@ -1,4 +1,7 @@
-import { mapApiUserToDoctorRecord, mapDoctorToUpdatePayload } from "../api/mapApiUserToDoctorRecord";
+import {
+  mapApiUserToDoctorRecord,
+  mapDoctorToUpdatePayload,
+} from "../api/mapApiUserToDoctorRecord";
 import type { ApiUserDoctorRecord } from "../types/doctors.types";
 
 function assert(condition: boolean, message: string) {
@@ -52,22 +55,37 @@ export function runMapApiUserToDoctorRecordTests() {
   assert(record.userId === 101, "userId should be 101");
   assert(record.doctorId === 501, "doctorId should be 501");
   assert(record.empId === "EMP-101", "empId should match employeeId");
-  assert(record.regNumber === "REG-99988", "regNumber should match medicalRegistrationNumber");
+  assert(
+    record.regNumber === "REG-99988",
+    "regNumber should match medicalRegistrationNumber",
+  );
   assert(record.name === "Dr. John Doe", "name should add Dr. prefix");
   assert(record.department === "Cardiology", "department should be Cardiology");
-  assert(record.specialty === "Interventional Cardiology", "specialty should match");
-  assert(record.qualification === "MD, Cardiology", "qualification should match");
+  assert(
+    record.specialty === "Interventional Cardiology",
+    "specialty should match",
+  );
+  assert(
+    record.qualification === "MD, Cardiology",
+    "qualification should match",
+  );
   assert(record.experienceYrs === 12, "experienceYrs should match");
   assert(record.consultationFee === 200, "consultationFee should match");
   assert(record.status === "Active", "status should map to Active");
-  assert(record.availability === "Available Today", "availability should map to Available Today");
+  assert(
+    record.availability === "Available Today",
+    "availability should map to Available Today",
+  );
 
   // Test reverse mapping for update payload
   const payload = mapDoctorToUpdatePayload(record);
   assert(payload.fullName === "John Doe", "fullName should remove Dr. prefix");
   assert(payload.email === "john.doe@hospital.com", "email should match");
   assert(payload.consultationFee === 200, "consultationFee should match");
-  assert(payload.qualification === "MD, Cardiology", "qualification should match");
+  assert(
+    payload.qualification === "MD, Cardiology",
+    "qualification should match",
+  );
 
   console.log("✅ mapApiUserToDoctorRecord tests passed!");
 }

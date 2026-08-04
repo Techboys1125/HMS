@@ -11,8 +11,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { PP, RB } from "../constants/patient.mock";
-import { usePatient } from "../hooks/usePatient";
-import { useUpdatePatient } from "../hooks/useUpdatePatient";
+import { usePatient, useUpdatePatient } from "../hooks/usePatients";
 import type { Patient } from "../types/patient.types";
 
 const BLOOD_GROUPS = [
@@ -80,14 +79,19 @@ export function EditPatientScreen({
 }) {
   const activeMrn = patientMrn || patient?.mrn;
   const { data: fetchedPatient, isLoading: isFetching } = usePatient(
-    activeMrn && !patient ? activeMrn : undefined,
+    activeMrn && !patient ? activeMrn : "",
   );
   const currentPatient = patient || fetchedPatient;
 
-  const updateMutation = useUpdatePatient();
+  const updateMutation = useUpdatePatient(
+    activeMrn || String(currentPatient?.id || "") || "CURRENT_PATIENT",
+  );
 
   // Toast state
-  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [toast, setToast] = useState<{
+    msg: string;
+    type: "success" | "error";
+  } | null>(null);
 
   const triggerToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });
@@ -103,7 +107,7 @@ export function EditPatientScreen({
   const [bloodGroup, setBloodGroup] = useState("");
   const [maritalStatus, setMaritalStatus] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
-  
+
   // Emergency Contact
   const [emergencyName, setEmergencyName] = useState("");
   const [emergencyPhone, setEmergencyPhone] = useState("");
@@ -130,21 +134,40 @@ export function EditPatientScreen({
       setEmail(currentPatient.email || "");
       setPhone(currentPatient.phone || "");
       setGender(currentPatient.gender || "");
-      setDob(currentPatient.dob || currentPatient.registrationDate?.split("T")[0] || "");
+      setDob(
+        currentPatient.dob ||
+          currentPatient.registrationDate?.split("T")[0] ||
+          "",
+      );
       setBloodGroup(currentPatient.bloodGroup || "");
       setMaritalStatus(currentPatient.maritalStatus || "");
       setPhotoUrl(currentPatient.photoUrl || currentPatient.photo || "");
-      
+
       if (currentPatient.emergencyContact) {
-        setEmergencyName(currentPatient.emergencyContact.contactName || currentPatient.emergencyContact.name || "");
-        setEmergencyPhone(currentPatient.emergencyContact.contactNumber || currentPatient.emergencyContact.phone || "");
-        setEmergencyRelationship(currentPatient.emergencyContact.relationship || "");
+        setEmergencyName(
+          currentPatient.emergencyContact.contactName ||
+            currentPatient.emergencyContact.name ||
+            "",
+        );
+        setEmergencyPhone(
+          currentPatient.emergencyContact.contactNumber ||
+            currentPatient.emergencyContact.phone ||
+            "",
+        );
+        setEmergencyRelationship(
+          currentPatient.emergencyContact.relationship || "",
+        );
       }
 
       if (currentPatient.address) {
-        if (typeof currentPatient.address === "object" && currentPatient.address !== null) {
+        if (
+          typeof currentPatient.address === "object" &&
+          currentPatient.address !== null
+        ) {
           const addr = currentPatient.address as Record<string, any>;
-          setAddressLine(addr.streetAddress || addr.street || addr.addressLine1 || "");
+          setAddressLine(
+            addr.streetAddress || addr.street || addr.addressLine1 || "",
+          );
           setCity(addr.city || "");
           setState(addr.state || "");
           setPostalCode(addr.postalCode || addr.zipCode || "");
@@ -157,8 +180,14 @@ export function EditPatientScreen({
       setRegistrationType(currentPatient.registrationType || "WALK_IN");
       setPatientCategory(currentPatient.patientCategory || "GENERAL");
       setAssignedDoctor(currentPatient.assignedDoctor || "");
-      setAllergies(currentPatient.allergies ? currentPatient.allergies.join(", ") : "");
-      setMedicalConditions(currentPatient.medicalHistory ? currentPatient.medicalHistory.join(", ") : "");
+      setAllergies(
+        currentPatient.allergies ? currentPatient.allergies.join(", ") : "",
+      );
+      setMedicalConditions(
+        currentPatient.medicalHistory
+          ? currentPatient.medicalHistory.join(", ")
+          : "",
+      );
     }
   }, [currentPatient]);
 
@@ -169,7 +198,10 @@ export function EditPatientScreen({
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
     return age > 0 ? String(age) : "0";
@@ -210,7 +242,9 @@ export function EditPatientScreen({
       dateOfBirth: dob,
       photo: photoUrl,
       photoUrl,
-      residentialAddress: [addressLine, city, state, postalCode, country].filter(Boolean).join(", "),
+      residentialAddress: [addressLine, city, state, postalCode, country]
+        .filter(Boolean)
+        .join(", "),
       bloodGroup,
       maritalStatus,
       emergencyContactName: emergencyName,
@@ -220,24 +254,22 @@ export function EditPatientScreen({
       patientCategory,
       assignedDoctor,
       allergies: allergies ? allergies.split(",").map((s) => s.trim()) : [],
-      medicalHistory: medicalConditions ? medicalConditions.split(",").map((s) => s.trim()) : [],
+      medicalHistory: medicalConditions
+        ? medicalConditions.split(",").map((s) => s.trim())
+        : [],
       version: currentPatient?.version || 1,
       changeReason: "Patient Profile Updated via HMS Web App",
     };
 
-    const updateTargetId = activeMrn || currentPatient?.id || "CURRENT_PATIENT";
-
     try {
-      await updateMutation.mutateAsync({
-        idOrMrn: updateTargetId,
-        payload,
-      });
+      await updateMutation.mutateAsync(payload);
       triggerToast("Patient record updated successfully!", "success");
       setTimeout(() => {
         onBack();
       }, 1200);
     } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : "Failed to update patient record.";
+      const errMsg =
+        err instanceof Error ? err.message : "Failed to update patient record.";
       triggerToast(errMsg, "error");
     }
   };
@@ -298,7 +330,9 @@ export function EditPatientScreen({
           {isFetching ? (
             <div className="p-12 flex flex-col items-center justify-center text-slate-400">
               <Loader2 size={32} className="animate-spin text-[#0D47A1] mb-2" />
-              <span className="text-xs font-medium">Fetching patient record details...</span>
+              <span className="text-xs font-medium">
+                Fetching patient record details...
+              </span>
             </div>
           ) : (
             <form className="p-6 md:p-8 space-y-8" onSubmit={handleSubmit}>
@@ -313,7 +347,11 @@ export function EditPatientScreen({
                     />
                   ) : (
                     <div className="w-24 h-24 rounded-full bg-[#0D47A1] text-white flex items-center justify-center text-2xl font-bold border-4 border-white shadow-md">
-                      {fullName ? fullName.charAt(0).toUpperCase() : <User size={36} />}
+                      {fullName ? (
+                        fullName.charAt(0).toUpperCase()
+                      ) : (
+                        <User size={36} />
+                      )}
                     </div>
                   )}
                   <label
@@ -332,11 +370,15 @@ export function EditPatientScreen({
                   </label>
                 </div>
                 <div className="space-y-1 text-center sm:text-left">
-                  <h3 className="text-sm font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                  <h3
+                    className="text-sm font-bold text-[#111827]"
+                    style={{ fontFamily: PP }}
+                  >
                     Patient Profile Photo
                   </h3>
                   <p className="text-xs text-slate-500 max-w-md">
-                    Upload a high-resolution facial photo of the patient (JPG, PNG, max 2MB).
+                    Upload a high-resolution facial photo of the patient (JPG,
+                    PNG, max 2MB).
                   </p>
                   <div className="pt-1">
                     <input
@@ -454,7 +496,8 @@ export function EditPatientScreen({
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                      Phone / Mobile Number <span className="text-red-500">*</span>
+                      Phone / Mobile Number{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"

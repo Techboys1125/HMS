@@ -63,7 +63,9 @@ export function PatientMedicalRecordsScreen({
               notes: a.symptoms || "Consultation completed.",
               prescriptions: [],
               status:
-                a.status === "COMPLETED" ? "Completed" : a.status || "Completed",
+                a.status === "COMPLETED"
+                  ? "Completed"
+                  : a.status || "Completed",
             }),
           );
           setVisitRecords(mapped);
@@ -262,9 +264,7 @@ export function PatientMedicalRecordsScreen({
           return (
             <button
               key={tab.id}
-              onClick={() =>
-                setActiveTab(tab.id as "visits" | "prescriptions")
-              }
+              onClick={() => setActiveTab(tab.id as "visits" | "prescriptions")}
               className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors border-b-2 -mb-0.5 ${
                 isActive
                   ? "border-[#0D47A1] text-[#0D47A1]"
@@ -290,8 +290,6 @@ export function PatientMedicalRecordsScreen({
       </div>
 
       {/* ── 4. TAB CONTENTS ── */}
-
-
 
       {/* TAB 2: VISIT HISTORY */}
       {activeTab === "visits" && (
@@ -487,17 +485,22 @@ export function PatientMedicalRecordsScreen({
 
                       <td className="px-4 py-4">
                         <div className="space-y-1">
-                          {rx.medicines.map((m: { name: string; dosage?: string }, idx: number) => (
-                            <div
-                              key={idx}
-                              className="font-bold text-[#111827] text-xs"
-                            >
-                              {m.name}{" "}
-                              <span className="text-[#64748B] font-normal text-[11px]">
-                                ({m.dosage})
-                              </span>
-                            </div>
-                          ))}
+                          {rx.medicines.map(
+                            (
+                              m: { name: string; dosage?: string },
+                              idx: number,
+                            ) => (
+                              <div
+                                key={idx}
+                                className="font-bold text-[#111827] text-xs"
+                              >
+                                {m.name}{" "}
+                                <span className="text-[#64748B] font-normal text-[11px]">
+                                  ({m.dosage})
+                                </span>
+                              </div>
+                            ),
+                          )}
                         </div>
                       </td>
 

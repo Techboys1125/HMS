@@ -1,11 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { doctorQueueService } from "../services/doctorQueue.service";
-import type { DoctorQueueItem, DoctorQueueSummary } from "../types/doctors.types";
+import type {
+  DoctorQueueItem,
+  DoctorQueueSummary,
+} from "../types/doctors.types";
 
 export function useDoctorQueue(doctorId?: number | string) {
   const [items, setItems] = useState<DoctorQueueItem[]>([]);
   const [summary, setSummary] = useState<DoctorQueueSummary>({});
-  const [currentPatient, setCurrentPatient] = useState<DoctorQueueItem | null>(null);
+  const [currentPatient, setCurrentPatient] = useState<DoctorQueueItem | null>(
+    null,
+  );
   const [nextPatient, setNextPatient] = useState<DoctorQueueItem | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

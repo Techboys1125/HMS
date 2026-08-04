@@ -1,6 +1,13 @@
 import React from "react";
 import type { ReceptionFilters } from "../types/reception.types";
-import { Search, Filter, RotateCcw, Calendar, Building, User } from "lucide-react";
+import {
+  Search,
+  Filter,
+  RotateCcw,
+  Calendar,
+  Building,
+  User,
+} from "lucide-react";
 
 interface ReceptionSearchFiltersProps {
   filters: ReceptionFilters;
@@ -40,33 +47,48 @@ export const ReceptionSearchFilters: React.FC<ReceptionSearchFiltersProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
         {/* Search Bar */}
         <div className="lg:col-span-2 relative">
-          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search
+            size={15}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+          />
           <input
             type="text"
             placeholder="Search by Patient Name, MRN, Mobile, Token..."
             value={filters.searchQuery}
-            onChange={(e) => onFilterChange({ ...filters, searchQuery: e.target.value })}
+            onChange={(e) =>
+              onFilterChange({ ...filters, searchQuery: e.target.value })
+            }
             className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-[#0D47A1] focus:bg-white transition-colors"
           />
         </div>
 
         {/* Date Filter */}
         <div className="relative">
-          <Calendar size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Calendar
+            size={14}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+          />
           <input
             type="date"
             value={filters.date}
-            onChange={(e) => onFilterChange({ ...filters, date: e.target.value })}
+            onChange={(e) =>
+              onFilterChange({ ...filters, date: e.target.value })
+            }
             className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-hidden focus:border-[#0D47A1] focus:bg-white"
           />
         </div>
 
         {/* Status Filter */}
         <div className="relative">
-          <Filter size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Filter
+            size={14}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+          />
           <select
             value={filters.queueStatus}
-            onChange={(e) => onFilterChange({ ...filters, queueStatus: e.target.value })}
+            onChange={(e) =>
+              onFilterChange({ ...filters, queueStatus: e.target.value })
+            }
             className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-hidden focus:border-[#0D47A1] focus:bg-white appearance-none cursor-pointer"
           >
             <option value="ALL">All Queue Statuses</option>
@@ -83,10 +105,15 @@ export const ReceptionSearchFilters: React.FC<ReceptionSearchFiltersProps> = ({
 
         {/* Department Filter */}
         <div className="relative">
-          <Building size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Building
+            size={14}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+          />
           <select
             value={filters.departmentId}
-            onChange={(e) => onFilterChange({ ...filters, departmentId: e.target.value })}
+            onChange={(e) =>
+              onFilterChange({ ...filters, departmentId: e.target.value })
+            }
             className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-hidden focus:border-[#0D47A1] focus:bg-white appearance-none cursor-pointer"
           >
             <option value="ALL">All Departments</option>
@@ -100,10 +127,15 @@ export const ReceptionSearchFilters: React.FC<ReceptionSearchFiltersProps> = ({
 
         {/* Doctor Filter */}
         <div className="relative">
-          <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <User
+            size={14}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+          />
           <select
             value={filters.doctorId}
-            onChange={(e) => onFilterChange({ ...filters, doctorId: e.target.value })}
+            onChange={(e) =>
+              onFilterChange({ ...filters, doctorId: e.target.value })
+            }
             className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-hidden focus:border-[#0D47A1] focus:bg-white appearance-none cursor-pointer"
           >
             <option value="ALL">All Doctors</option>

@@ -178,7 +178,9 @@ export const doctorsApi = {
       records = apiUsers.map(mapDoctorSummaryToDoctorRecord);
 
       // Apply localStorage status overrides (handles backend sync delay)
-      const statusOverrides = JSON.parse(localStorage.getItem("doctor_status_overrides") || "{}");
+      const statusOverrides = JSON.parse(
+        localStorage.getItem("doctor_status_overrides") || "{}",
+      );
       records = records.map((d) => {
         if (statusOverrides[d.id]) {
           return {

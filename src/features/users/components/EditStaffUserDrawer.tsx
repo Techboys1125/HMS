@@ -148,8 +148,7 @@ export function EditStaffUserDrawer({
           dateOfBirth: detail.dateOfBirth || "",
           residentialAddress: detail.residentialAddress || "",
           professionalBio: detail.professionalBio || "",
-          medicalRegistrationNumber:
-            profile?.medicalRegistrationNumber || "",
+          medicalRegistrationNumber: profile?.medicalRegistrationNumber || "",
           qualification: profile?.qualification || "",
           yearsOfExperience: profile?.yearsOfExperience || 0,
           primaryDepartmentId:
@@ -316,9 +315,7 @@ export function EditStaffUserDrawer({
                 </label>
                 <select
                   value={form.status}
-                  onChange={(e) =>
-                    setForm({ ...form, status: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, status: e.target.value })}
                   className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
                 >
                   <option value="Active">Active</option>
@@ -380,9 +377,7 @@ export function EditStaffUserDrawer({
                     department: e.target.value,
                     primaryDepartmentId:
                       deptNameToId[e.target.value] ||
-                      (departments.length > 0
-                        ? Number(departments[0].id)
-                        : 2),
+                      (departments.length > 0 ? Number(departments[0].id) : 2),
                   })
                 }
                 className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
@@ -530,7 +525,11 @@ export function EditStaffUserDrawer({
                           value={item.startTime}
                           placeholder="09:00"
                           onChange={(e) =>
-                            updateAvailability(index, "startTime", e.target.value)
+                            updateAvailability(
+                              index,
+                              "startTime",
+                              e.target.value,
+                            )
                           }
                           className="w-20 px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-mono text-center"
                         />

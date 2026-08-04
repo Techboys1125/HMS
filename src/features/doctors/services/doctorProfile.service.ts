@@ -50,7 +50,9 @@ export const toDoctorAppointment = (
 export const resolveDoctorId = (doc: DoctorRecord): number | string => {
   if (doc.doctorId && doc.doctorId !== 0) return doc.doctorId;
   if (doc.userId && doc.userId !== 0) return doc.userId;
-  const cleaned = String(doc.id || "").replace(/^DOC-/, "").trim();
+  const cleaned = String(doc.id || "")
+    .replace(/^DOC-/, "")
+    .trim();
   if (cleaned && cleaned !== "0") return cleaned;
   return doc.id || "";
 };
@@ -58,7 +60,9 @@ export const resolveDoctorId = (doc: DoctorRecord): number | string => {
 export const resolveUserId = (doc: DoctorRecord): number | string => {
   if (doc.userId && doc.userId !== 0) return doc.userId;
   if (doc.doctorId && doc.doctorId !== 0) return doc.doctorId;
-  const cleaned = String(doc.id || "").replace(/^DOC-/, "").trim();
+  const cleaned = String(doc.id || "")
+    .replace(/^DOC-/, "")
+    .trim();
   if (cleaned && cleaned !== "0") return cleaned;
   return doc.id || "";
 };
@@ -107,14 +111,14 @@ export const doctorProfileService = {
     return doctorsApi.getDailyAvailability(doctorId, date);
   },
 
-  async listAppointments(doctorId: number | string): Promise<DoctorAppointment[]> {
+  async listAppointments(
+    doctorId: number | string,
+  ): Promise<DoctorAppointment[]> {
     const records = await appointmentService.listDoctorAppointments(doctorId);
     return records.map(toDoctorAppointment);
   },
 
-  async updateDoctor(
-    doc: DoctorRecord,
-  ): Promise<DoctorRecord> {
+  async updateDoctor(doc: DoctorRecord): Promise<DoctorRecord> {
     const userId = resolveUserId(doc);
     await usersApi.adminUpdateStaff(
       userId,

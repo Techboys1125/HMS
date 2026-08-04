@@ -83,7 +83,12 @@ const PERMISSION_MATRIX: Record<Role, Record<DoctorAction, boolean>> = {
 
 export function normalizeRole(roleInput: string | Role): Role {
   const r = String(roleInput || "").toUpperCase();
-  if (r === "ADMIN" || r === "HOSPITAL_ADMIN" || r === "SUPER_ADMIN" || r === "SUPER-ADMIN") {
+  if (
+    r === "ADMIN" ||
+    r === "HOSPITAL_ADMIN" ||
+    r === "SUPER_ADMIN" ||
+    r === "SUPER-ADMIN"
+  ) {
     return "ADMIN";
   }
   if (r === "RECEPTIONIST") return "RECEPTIONIST";

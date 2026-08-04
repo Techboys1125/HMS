@@ -52,12 +52,21 @@ function getAvailabilityBadgeStyle(avail: DoctorAvailability) {
 function getStatusBadgeStyle(status: DoctorStatus) {
   switch (status) {
     case "Active":
-      return { bg: "bg-emerald-50 text-[#66BB6A] border-emerald-200", dot: "bg-[#66BB6A]" };
+      return {
+        bg: "bg-emerald-50 text-[#66BB6A] border-emerald-200",
+        dot: "bg-[#66BB6A]",
+      };
     case "Inactive":
-      return { bg: "bg-[#FEE2E2] text-[#EF4444] border-red-200", dot: "bg-[#EF4444]" };
+      return {
+        bg: "bg-[#FEE2E2] text-[#EF4444] border-red-200",
+        dot: "bg-[#EF4444]",
+      };
     case "On Leave":
     default:
-      return { bg: "bg-amber-50 text-[#F59E0B] border-amber-200", dot: "bg-[#F59E0B]" };
+      return {
+        bg: "bg-amber-50 text-[#F59E0B] border-amber-200",
+        dot: "bg-[#F59E0B]",
+      };
   }
 }
 
@@ -206,7 +215,10 @@ export function DoctorTable({
               ))
             ) : filteredDoctors.length === 0 ? (
               <tr>
-                <td colSpan={visibleColumns.length} className="px-4 py-12 text-center">
+                <td
+                  colSpan={visibleColumns.length}
+                  className="px-4 py-12 text-center"
+                >
                   <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-3">
                     <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200">
                       <Stethoscope size={28} />
@@ -338,7 +350,9 @@ export function DoctorTable({
                       <span
                         className={`px-2.5 py-1 rounded-full text-[11px] font-medium border inline-flex items-center gap-1.5 ${getStatusBadgeStyle(doc.status).bg}`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${getStatusBadgeStyle(doc.status).dot}`} />
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${getStatusBadgeStyle(doc.status).dot}`}
+                        />
                         {doc.status}
                       </span>
                     </td>
@@ -427,8 +441,7 @@ export function DoctorTable({
               <span className="font-bold text-[#111827]">
                 {filteredDoctors.length > 0 ? startIndex + 1 : 0}
               </span>{" "}
-              to{" "}
-              <span className="font-bold text-[#111827]">{endIndex}</span> of{" "}
+              to <span className="font-bold text-[#111827]">{endIndex}</span> of{" "}
               <span className="font-bold text-[#111827]">
                 {filteredDoctors.length}
               </span>{" "}
@@ -477,7 +490,9 @@ export function DoctorTable({
             </div>
             <button
               disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
               className="px-3 py-1.5 text-xs text-slate-700 bg-white border border-[#E5E7EB] rounded-lg font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               Next

@@ -1,17 +1,11 @@
 // Pages
 export * from "./pages/EditPatientScreen";
-export * from "./pages/MedicalHistoryScreen";
 export * from "./pages/PatientAppointmentsScreen";
-export * from "./pages/PatientBillingScreen";
 export * from "./pages/PatientMedicalRecordsScreen";
-export * from "./pages/PatientPrescriptionDetailsScreen";
 export * from "./pages/PatientPrescriptionsScreen";
 export * from "./pages/PatientProfileCenterScreen";
 export * from "./pages/PatientProfileScreen";
-export { PatientProfileScreen as ReceptionPatientProfileScreen } from "./pages/PatientProfileScreen";
 export * from "./pages/PatientSearchScreen";
-export * from "./pages/PatientTimelineScreen";
-export * from "./pages/PatientVisitHistoryScreen";
 export * from "./pages/RegisterPatientScreen";
 export * from "./pages/FamilyMembersManagement";
 export * from "./pages/PatientDoctorSearchScreen";
@@ -31,23 +25,29 @@ export { PatientListPageRoute } from "./routes/PatientListPageRoute";
 export { PatientProfileRoute } from "./routes/PatientProfileRoute";
 export { PatientMyProfileRoute } from "./routes/PatientMyProfileRoute";
 export { DoctorAssignedPatientsRoute } from "./routes/DoctorAssignedPatientsRoute";
+
+// Tab Components
 export { PatientProfileTab } from "./components/tabs/ProfileTab";
 export { FamilyMembersTab } from "./components/tabs/FamilyMembersTab";
 export { PatientAppointmentsTab } from "./components/tabs/AppointmentsTab";
 export { PatientQueueTab } from "./components/tabs/QueueTab";
 export { PatientPrescriptionsTab } from "./components/tabs/PrescriptionsTab";
 export { PatientBillingTab } from "./components/tabs/BillingTab";
+export { PatientMedicalRecordsTab } from "./components/tabs/MedicalRecordsTab";
+export { PatientReportsTab } from "./components/tabs/ReportsTab";
 
-// Components
+// Reusable Components
+export { PatientProfileHeader } from "./components/PatientProfileHeader";
+export { SwitchAccountDialog } from "./components/SwitchAccountDialog";
+export { PatientStatusBadge } from "./components/PatientStatusBadge";
+export { PatientSummaryCard } from "./components/PatientSummaryCard";
+export { PatientActionMenu } from "./components/PatientActionMenu";
+export { PatientSearchBar } from "./components/PatientSearchBar";
 export { PatientTable } from "./components/PatientTable";
 export { PatientFilters } from "./components/PatientFilters";
-export { DuplicateWarningDialog } from "./components/DuplicateWarningDialog";
-export { DuplicateOverrideDialog } from "./components/DuplicateOverrideDialog";
-export { PatientHistoryTabs } from "./components/PatientHistoryTable";
-export {
-  PatientStatusBadge,
-  StatusBadge,
-} from "./components/PatientStatusBadge";
+export { PatientInfoCard } from "./components/PatientInfoCard";
+export { PatientEmergencyCard } from "./components/PatientEmergencyCard";
+export { PatientInsuranceCard } from "./components/PatientInsuranceCard";
 
 // Hooks
 export {
@@ -59,22 +59,36 @@ export {
   usePatientAudit,
 } from "./hooks/usePatients";
 export { useCreatePatient } from "./hooks/useCreatePatient";
-export { useDuplicateCheck } from "./hooks/useDuplicateCheck";
+export { usePatientProfile } from "./hooks/usePatientProfile";
+export {
+  useFamilyMembers,
+  useAddFamilyMember,
+  useDeleteFamilyMember,
+} from "./hooks/useFamilyMembers";
+export {
+  usePatientAppointments,
+  useUpcomingAppointments,
+  useAppointmentHistory,
+} from "./hooks/useAppointments";
+export { usePrescriptions } from "./hooks/usePrescriptions";
+export { usePatientBilling } from "./hooks/useBilling";
+export { useMedicalRecords } from "./hooks/useMedicalRecords";
+export { useSwitchAccount } from "./hooks/useSwitchAccount";
+export { usePatientQueue } from "./hooks/usePatientQueue";
 
 // Services
 export { patientService } from "./services/patient.service";
+export { familyService } from "./services/family.service";
+export { appointmentService } from "./services/appointment.service";
+export { medicalRecordService } from "./services/medicalRecord.service";
+export { billingService } from "./services/billing.service";
+
+// Utils
+export { can, ROLE_LABELS } from "./utils/patientPermissions";
+export type { Role, PatientAction } from "./utils/patientPermissions";
 
 // API
 export { patientsApi } from "./api/patient.api";
-
-// Store
-export { patientStore, usePatientStore } from "./store/patient.store";
-
-// Permissions
-export { usePatientPermissions } from "./permissions/patient.permissions";
-
-// Validation
-export { patientSchema } from "./validation/patient.schema";
 
 // Types
 export type {
@@ -87,4 +101,19 @@ export type {
   PatientCategory,
   RegistrationType,
   Address,
+  PatientFormMode,
+  RoleFieldPermissions,
+  SwitchAccountContext,
 } from "./types/patient.types";
+export type {
+  FamilyMember,
+  FamilyMemberRelationship,
+  AddFamilyMemberRequest,
+} from "./types/family.types";
+export type {
+  ConsultationRecord,
+  VitalsRecord,
+  DiagnosisRecord,
+  MedicalHistoryEntry,
+  PatientMedicalSummary,
+} from "./types/medicalRecord.types";

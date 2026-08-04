@@ -13,6 +13,9 @@ import { useAuthStore } from "../store/auth.store";
 
 export const authService = {
   // Patient Registration (Endpoint 1)
+  // Note: Backend auto-creates the patient record during auth registration.
+  // No need to call patientService.createPatientFromAuth() here since the user
+  // has no auth token at this point (registration is unauthenticated).
   async registerPatient(data: PatientRegistrationData) {
     return await authApi.registerPatient(data);
   },

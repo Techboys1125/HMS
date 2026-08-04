@@ -1900,7 +1900,11 @@ function DemoNav({
 }
 
 // ─── Auth Root ─────────────────────────────────────────────────────────────
-export default function AuthApp({ onLogin = () => {} }: { onLogin?: () => void }) {
+export default function AuthApp({
+  onLogin = () => {},
+}: {
+  onLogin?: () => void;
+}) {
   const [screen, setScreen] = useState<AuthScreen>("login");
   const [email, setEmail] = useState("");
 

@@ -18,8 +18,8 @@ export function PatientMyProfileRoute() {
   }, [user?.role]);
 
   useEffect(() => {
-    setMrn(String(user?.mrn ?? user?.id ?? "UNKNOWN"));
-  }, [user?.mrn, user?.id]);
+    setMrn(String(user?.id ?? "UNKNOWN"));
+  }, [user?.id]);
 
   return <MyProfilePage currentRole={currentRole as any} mrn={mrn} />;
 }

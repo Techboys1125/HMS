@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { TrendingUp, TrendingDown, Download } from "lucide-react";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from "recharts";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Cell,
+} from "recharts";
 import { WEEKLY_CONSULTATIONS } from "../constants/doctors.constants";
 import { PP, RB } from "../constants/doctors.constants";
 import { Card } from "./Card";
@@ -32,10 +40,34 @@ export function DoctorReportsScreen() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Consultations", value: "112", trend: "+8%", up: true, color: "#0D47A1" },
-          { label: "Avg. Duration", value: "14m", trend: "-2m", up: true, color: "#009688" },
-          { label: "Patients Seen", value: "98", trend: "+5%", up: true, color: "#66BB6A" },
-          { label: "Follow-ups Due", value: "23", trend: "+3", up: false, color: "#F59E0B" },
+          {
+            label: "Consultations",
+            value: "112",
+            trend: "+8%",
+            up: true,
+            color: "#0D47A1",
+          },
+          {
+            label: "Avg. Duration",
+            value: "14m",
+            trend: "-2m",
+            up: true,
+            color: "#009688",
+          },
+          {
+            label: "Patients Seen",
+            value: "98",
+            trend: "+5%",
+            up: true,
+            color: "#66BB6A",
+          },
+          {
+            label: "Follow-ups Due",
+            value: "23",
+            trend: "+3",
+            up: false,
+            color: "#F59E0B",
+          },
         ].map((k) => (
           <Card key={k.label} className="p-5">
             <div

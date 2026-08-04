@@ -6,7 +6,7 @@ export interface ValidationResult {
 }
 
 export const validateWalkInRegistration = (
-  payload: Partial<WalkInRegistrationPayload>
+  payload: Partial<WalkInRegistrationPayload>,
 ): ValidationResult => {
   const errors: Record<string, string> = {};
 

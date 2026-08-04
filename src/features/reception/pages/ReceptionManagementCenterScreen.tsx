@@ -7,7 +7,13 @@ import { PatientCheckInModal } from "../components/PatientCheckInModal";
 import { VisitSlipModal } from "../components/VisitSlipModal";
 import { WalkInRegistrationModal } from "../components/WalkInRegistrationModal";
 import { receptionService } from "../services/reception.service";
-import type { ReceptionQueueItem, ReceptionFilters, ArrivalCheckInPayload, WalkInRegistrationPayload, QueueStatus } from "../types/reception.types";
+import type {
+  ReceptionQueueItem,
+  ReceptionFilters,
+  ArrivalCheckInPayload,
+  WalkInRegistrationPayload,
+  QueueStatus,
+} from "../types/reception.types";
 import {
   Users,
   UserCheck,
@@ -23,10 +29,9 @@ interface ReceptionManagementCenterScreenProps {
   onNavigateToPatientDetails?: (patientId: string | number) => void;
 }
 
-export const ReceptionManagementCenterScreen: React.FC<ReceptionManagementCenterScreenProps> = ({
-  userRole = "RECEPTIONIST",
-  onNavigateToPatientDetails,
-}) => {
+export const ReceptionManagementCenterScreen: React.FC<
+  ReceptionManagementCenterScreenProps
+> = ({ userRole = "RECEPTIONIST", onNavigateToPatientDetails }) => {
   const permissions = getReceptionPermissions(userRole);
   const { items = [], loading, refresh } = useReceptionQueue();
   const [filters, setFilters] = useState<ReceptionFilters>({
@@ -39,23 +44,43 @@ export const ReceptionManagementCenterScreen: React.FC<ReceptionManagementCenter
   });
 
   const filteredQueue = items.filter((item) => {
-    if (filters.searchQuery && !item.patientName?.toLowerCase().includes(filters.searchQuery.toLowerCase()) && !item.mrn?.toLowerCase().includes(filters.searchQuery.toLowerCase())) return false;
-    if (filters.queueStatus && filters.queueStatus !== "ALL" && item.queueStatus !== filters.queueStatus) return false;
-    if (filters.billingStatus && filters.billingStatus !== "ALL" && item.billingStatus !== filters.billingStatus) return false;
+    if (
+      filters.searchQuery &&
+      !item.patientName
+        ?.toLowerCase()
+        .includes(filters.searchQuery.toLowerCase()) &&
+      !item.mrn?.toLowerCase().includes(filters.searchQuery.toLowerCase())
+    )
+      return false;
+    if (
+      filters.queueStatus &&
+      filters.queueStatus !== "ALL" &&
+      item.queueStatus !== filters.queueStatus
+    )
+      return false;
+    if (
+      filters.billingStatus &&
+      filters.billingStatus !== "ALL" &&
+      item.billingStatus !== filters.billingStatus
+    )
+      return false;
     return true;
   });
 
   const stats = {
     totalToday: items.length,
     waiting: items.filter((i) => i.queueStatus === "WAITING").length,
-    inConsultation: items.filter((i) => i.queueStatus === "IN_CONSULTATION").length,
+    inConsultation: items.filter((i) => i.queueStatus === "IN_CONSULTATION")
+      .length,
     completed: items.filter((i) => i.queueStatus === "COMPLETED").length,
     billingPending: items.filter((i) => i.billingStatus === "PENDING").length,
   };
 
   const loadWorklist = refresh;
   const handleCheckIn = async (data: ArrivalCheckInPayload) => {
-    const res = await receptionService.checkInPatient(data.appointmentId || data.queueItemId);
+    const res = await receptionService.checkInPatient(
+      data.appointmentId || data.queueItemId,
+    );
     refresh();
     return res;
   };
@@ -64,15 +89,22 @@ export const ReceptionManagementCenterScreen: React.FC<ReceptionManagementCenter
     refresh();
     return res;
   };
-  const handleUpdateStatus = async (id: string | number, status: QueueStatus) => {
+  const handleUpdateStatus = async (
+    id: string | number,
+    status: QueueStatus,
+  ) => {
     const res = await receptionService.updateStatus(id, status);
     refresh();
     return res;
   };
 
   // Modals state
-  const [checkInItem, setCheckInItem] = useState<ReceptionQueueItem | null>(null);
-  const [visitSlipItem, setVisitSlipItem] = useState<ReceptionQueueItem | null>(null);
+  const [checkInItem, setCheckInItem] = useState<ReceptionQueueItem | null>(
+    null,
+  );
+  const [visitSlipItem, setVisitSlipItem] = useState<ReceptionQueueItem | null>(
+    null,
+  );
   const [isWalkInOpen, setIsWalkInOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -81,13 +113,18 @@ export const ReceptionManagementCenterScreen: React.FC<ReceptionManagementCenter
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const handleConfirmCheckIn = async (itemId: string | number, notes?: string) => {
+  const handleConfirmCheckIn = async (
+    itemId: string | number,
+    notes?: string,
+  ) => {
     await handleCheckIn({
       queueItemId: itemId,
       patientId: checkInItem?.patientId || 0,
       notes,
     });
-    triggerToast(`Patient ${checkInItem?.patientName} checked in successfully!`);
+    triggerToast(
+      `Patient ${checkInItem?.patientName} checked in successfully!`,
+    );
     setCheckInItem(null);
   };
 
@@ -105,10 +142,12 @@ export const ReceptionManagementCenterScreen: React.FC<ReceptionManagementCenter
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <Users className="text-[#0D47A1]" size={24} /> Reception & Queue Management
+            <Users className="text-[#0D47A1]" size={24} /> Reception & Queue
+            Management
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            FR-007 SRS Worklist • Arrival Check-In • Walk-in Token Issuance • Outpatient Flow Control
+            FR-007 SRS Worklist • Arrival Check-In • Walk-in Token Issuance •
+            Outpatient Flow Control
           </p>
         </div>
 
@@ -117,7 +156,11 @@ export const ReceptionManagementCenterScreen: React.FC<ReceptionManagementCenter
             onClick={() => loadWorklist()}
             className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <RefreshCw size={14} className={loading ? "animate-spin text-[#0D47A1]" : ""} /> Refresh Queue
+            <RefreshCw
+              size={14}
+              className={loading ? "animate-spin text-[#0D47A1]" : ""}
+            />{" "}
+            Refresh Queue
           </button>
 
           {permissions.canRegisterWalkIn && (
@@ -135,8 +178,12 @@ export const ReceptionManagementCenterScreen: React.FC<ReceptionManagementCenter
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex items-center justify-between">
           <div>
-            <div className="text-xs text-slate-500 font-semibold">Total Today</div>
-            <div className="text-2xl font-extrabold text-slate-900 mt-1">{stats.totalToday}</div>
+            <div className="text-xs text-slate-500 font-semibold">
+              Total Today
+            </div>
+            <div className="text-2xl font-extrabold text-slate-900 mt-1">
+              {stats.totalToday}
+            </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0D47A1] flex items-center justify-center font-bold">
             <Users size={20} />
@@ -145,8 +192,12 @@ export const ReceptionManagementCenterScreen: React.FC<ReceptionManagementCenter
 
         <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex items-center justify-between">
           <div>
-            <div className="text-xs text-amber-700 font-semibold">Waiting Queue</div>
-            <div className="text-2xl font-extrabold text-amber-600 mt-1">{stats.waiting}</div>
+            <div className="text-xs text-amber-700 font-semibold">
+              Waiting Queue
+            </div>
+            <div className="text-2xl font-extrabold text-amber-600 mt-1">
+              {stats.waiting}
+            </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
             <Clock size={20} />
@@ -155,8 +206,12 @@ export const ReceptionManagementCenterScreen: React.FC<ReceptionManagementCenter
 
         <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex items-center justify-between">
           <div>
-            <div className="text-xs text-blue-700 font-semibold">In Consultation</div>
-            <div className="text-2xl font-extrabold text-[#0D47A1] mt-1">{stats.inConsultation}</div>
+            <div className="text-xs text-blue-700 font-semibold">
+              In Consultation
+            </div>
+            <div className="text-2xl font-extrabold text-[#0D47A1] mt-1">
+              {stats.inConsultation}
+            </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0D47A1] flex items-center justify-center font-bold">
             <UserCheck size={20} />
@@ -165,8 +220,12 @@ export const ReceptionManagementCenterScreen: React.FC<ReceptionManagementCenter
 
         <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex items-center justify-between">
           <div>
-            <div className="text-xs text-emerald-700 font-semibold">Completed</div>
-            <div className="text-2xl font-extrabold text-emerald-600 mt-1">{stats.completed}</div>
+            <div className="text-xs text-emerald-700 font-semibold">
+              Completed
+            </div>
+            <div className="text-2xl font-extrabold text-emerald-600 mt-1">
+              {stats.completed}
+            </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
             <CheckCircle2 size={20} />
@@ -175,8 +234,12 @@ export const ReceptionManagementCenterScreen: React.FC<ReceptionManagementCenter
 
         <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex items-center justify-between col-span-2 lg:col-span-1">
           <div>
-            <div className="text-xs text-rose-700 font-semibold">Billing Pending</div>
-            <div className="text-2xl font-extrabold text-rose-600 mt-1">{stats.billingPending}</div>
+            <div className="text-xs text-rose-700 font-semibold">
+              Billing Pending
+            </div>
+            <div className="text-2xl font-extrabold text-rose-600 mt-1">
+              {stats.billingPending}
+            </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
             <AlertCircle size={20} />
@@ -207,7 +270,10 @@ export const ReceptionManagementCenterScreen: React.FC<ReceptionManagementCenter
       />
 
       {/* Visit Slip Modal */}
-      <VisitSlipModal item={visitSlipItem} onClose={() => setVisitSlipItem(null)} />
+      <VisitSlipModal
+        item={visitSlipItem}
+        onClose={() => setVisitSlipItem(null)}
+      />
 
       {/* Walk-In Registration Modal */}
       <WalkInRegistrationModal
@@ -215,7 +281,9 @@ export const ReceptionManagementCenterScreen: React.FC<ReceptionManagementCenter
         onClose={() => setIsWalkInOpen(false)}
         onRegister={async (payload) => {
           const item = await handleRegisterWalkIn(payload);
-          triggerToast(`Walk-In token ${item.tokenNumber} issued for ${item.patientName}!`);
+          triggerToast(
+            `Walk-In token ${item.tokenNumber} issued for ${item.patientName}!`,
+          );
         }}
       />
     </div>

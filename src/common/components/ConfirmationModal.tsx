@@ -29,7 +29,9 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       <div className="bg-white rounded-2xl border border-gray-150 shadow-xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-slate-50/50">
           <div className="flex items-center gap-2">
-            {isDangerous && <AlertTriangle size={18} className="text-red-500" />}
+            {isDangerous && (
+              <AlertTriangle size={18} className="text-red-500" />
+            )}
             <span className="font-bold text-[#1E293B] text-sm">{title}</span>
           </div>
           <button

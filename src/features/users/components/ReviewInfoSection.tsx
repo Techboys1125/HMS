@@ -200,20 +200,30 @@ export const ReviewInfoSection: React.FC<ReviewInfoSectionProps> = ({
               )}
               {form.qualification && (
                 <div className="flex justify-between items-start py-0.5">
-                  <span className="text-slate-400 font-medium">Qualification</span>
-                  <span className="text-slate-800 font-semibold">{form.qualification}</span>
+                  <span className="text-slate-400 font-medium">
+                    Qualification
+                  </span>
+                  <span className="text-slate-800 font-semibold">
+                    {form.qualification}
+                  </span>
                 </div>
               )}
               {form.yearsOfExperience && (
                 <div className="flex justify-between items-start py-0.5">
                   <span className="text-slate-400 font-medium">Experience</span>
-                  <span className="text-slate-800 font-semibold">{form.yearsOfExperience} Years</span>
+                  <span className="text-slate-800 font-semibold">
+                    {form.yearsOfExperience} Years
+                  </span>
                 </div>
               )}
               {form.doctorCode && (
                 <div className="flex justify-between items-start py-0.5">
-                  <span className="text-slate-400 font-medium">Doctor Code</span>
-                  <span className="text-[#0D47A1] font-mono font-bold">{form.doctorCode}</span>
+                  <span className="text-slate-400 font-medium">
+                    Doctor Code
+                  </span>
+                  <span className="text-[#0D47A1] font-mono font-bold">
+                    {form.doctorCode}
+                  </span>
                 </div>
               )}
               <div className="flex justify-between items-center py-0.5">

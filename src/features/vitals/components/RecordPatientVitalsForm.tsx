@@ -49,14 +49,11 @@ interface RecordPatientVitalsFormProps {
   onMarkReady: (aptId: string) => void;
 }
 
-export const RecordPatientVitalsForm: React.FC<RecordPatientVitalsFormProps> = ({
-  activeApt,
-  onBack,
-  onPatientSelect,
-  onMarkReady,
-}) => {
+export const RecordPatientVitalsForm: React.FC<
+  RecordPatientVitalsFormProps
+> = ({ activeApt, onBack, onPatientSelect, onMarkReady }) => {
   const [chiefComplaint, setChiefComplaint] = useState(
-    activeApt.chiefComplaint || activeApt.reason || ""
+    activeApt.chiefComplaint || activeApt.reason || "",
   );
   const [symptoms, setSymptoms] = useState("");
   const [diagnosis, setDiagnosis] = useState("");
@@ -76,7 +73,7 @@ export const RecordPatientVitalsForm: React.FC<RecordPatientVitalsFormProps> = (
 
   const triggerToast = (
     message: string,
-    type: "success" | "info" | "error" = "success"
+    type: "success" | "info" | "error" = "success",
   ) => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -117,8 +114,8 @@ export const RecordPatientVitalsForm: React.FC<RecordPatientVitalsFormProps> = (
             toast.type === "success"
               ? "bg-[#66BB6A] border-green-300"
               : toast.type === "error"
-              ? "bg-[#EF4444] border-red-300"
-              : "bg-[#0D47A1] border-blue-300"
+                ? "bg-[#EF4444] border-red-300"
+                : "bg-[#0D47A1] border-blue-300"
           }`}
         >
           <AlertCircle size={16} />
@@ -142,7 +139,8 @@ export const RecordPatientVitalsForm: React.FC<RecordPatientVitalsFormProps> = (
             Record Patient Vitals
           </h1>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Record and verify patient vital signs before outpatient consultation.
+            Record and verify patient vital signs before outpatient
+            consultation.
           </p>
         </div>
 
@@ -178,8 +176,10 @@ export const RecordPatientVitalsForm: React.FC<RecordPatientVitalsFormProps> = (
               {activeApt.patientName}
             </h2>
             <div className="text-xs text-blue-100 mt-0.5">
-              MRN: {activeApt.mrn} · {activeApt.patientAge}y / {activeApt.patientGender} · Doctor:{" "}
-              <strong className="text-white">{activeApt.doctorName}</strong> · Dept:{" "}
+              MRN: {activeApt.mrn} · {activeApt.patientAge}y /{" "}
+              {activeApt.patientGender} · Doctor:{" "}
+              <strong className="text-white">{activeApt.doctorName}</strong> ·
+              Dept:{" "}
               <strong className="text-white">
                 {typeof activeApt.department === "string"
                   ? activeApt.department
@@ -213,27 +213,42 @@ export const RecordPatientVitalsForm: React.FC<RecordPatientVitalsFormProps> = (
             className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
             style={{ fontFamily: PP }}
           >
-            <User size={14} className="text-[#0D47A1]" /> Patient Information (Read Only)
+            <User size={14} className="text-[#0D47A1]" /> Patient Information
+            (Read Only)
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-xs">
             <div>
-              <span className="text-slate-400 block text-[11px]">Patient Name</span>
-              <strong className="text-slate-800 text-sm font-semibold">{activeApt.patientName}</strong>
+              <span className="text-slate-400 block text-[11px]">
+                Patient Name
+              </span>
+              <strong className="text-slate-800 text-sm font-semibold">
+                {activeApt.patientName}
+              </strong>
             </div>
             <div>
               <span className="text-slate-400 block text-[11px]">MRN</span>
-              <strong className="text-slate-800 font-mono text-xs">{activeApt.mrn}</strong>
+              <strong className="text-slate-800 font-mono text-xs">
+                {activeApt.mrn}
+              </strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">Appointment ID</span>
-              <strong className="text-slate-800 font-mono text-xs">{activeApt.id}</strong>
+              <span className="text-slate-400 block text-[11px]">
+                Appointment ID
+              </span>
+              <strong className="text-slate-800 font-mono text-xs">
+                {activeApt.id}
+              </strong>
             </div>
             <div>
               <span className="text-slate-400 block text-[11px]">Doctor</span>
-              <strong className="text-slate-800 font-semibold">{activeApt.doctorName}</strong>
+              <strong className="text-slate-800 font-semibold">
+                {activeApt.doctorName}
+              </strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">Department</span>
+              <span className="text-slate-400 block text-[11px]">
+                Department
+              </span>
               <strong className="text-slate-800 font-semibold">
                 {typeof activeApt.department === "string"
                   ? activeApt.department
@@ -258,7 +273,8 @@ export const RecordPatientVitalsForm: React.FC<RecordPatientVitalsFormProps> = (
             className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
             style={{ fontFamily: PP }}
           >
-            <FileText size={14} className="text-[#0D47A1]" /> Clinical Information
+            <FileText size={14} className="text-[#0D47A1]" /> Clinical
+            Information
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

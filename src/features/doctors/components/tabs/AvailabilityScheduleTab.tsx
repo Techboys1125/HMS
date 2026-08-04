@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { Save, X } from "lucide-react";
-import type { DoctorRecord, ApiWeeklyScheduleDay, UpdateScheduleDayPayload } from "../../types/doctors.types";
+import type {
+  DoctorRecord,
+  ApiWeeklyScheduleDay,
+  UpdateScheduleDayPayload,
+} from "../../types/doctors.types";
 import { PP } from "../../constants/doctors.constants";
 import { doctorsService } from "../../services/doctors.service";
 import type { DayOfWeek } from "../../types/doctors.types";
@@ -12,11 +16,20 @@ export interface AvailabilityScheduleTabProps {
 }
 
 const DAY_LABELS: Record<string, string> = {
-  MONDAY: "Monday", TUESDAY: "Tuesday", WEDNESDAY: "Wednesday",
-  THURSDAY: "Thursday", FRIDAY: "Friday", SATURDAY: "Saturday", SUNDAY: "Sunday",
+  MONDAY: "Monday",
+  TUESDAY: "Tuesday",
+  WEDNESDAY: "Wednesday",
+  THURSDAY: "Thursday",
+  FRIDAY: "Friday",
+  SATURDAY: "Saturday",
+  SUNDAY: "Sunday",
 };
 
-export function AvailabilityScheduleTab({ doctor, canEdit, onClose }: AvailabilityScheduleTabProps) {
+export function AvailabilityScheduleTab({
+  doctor,
+  canEdit,
+  onClose,
+}: AvailabilityScheduleTabProps) {
   const [schedule, setSchedule] = useState<ApiWeeklyScheduleDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -24,20 +37,34 @@ export function AvailabilityScheduleTab({ doctor, canEdit, onClose }: Availabili
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    doctorsService.getWeeklySchedule(doctor.id)
-      .then((data) => { if (!cancelled) setSchedule(data?.weeklySchedule || []); })
+    doctorsService
+      .getWeeklySchedule(doctor.id)
+      .then((data) => {
+        if (!cancelled) setSchedule(data?.weeklySchedule || []);
+      })
       .catch(() => {})
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [doctor.id]);
 
   const toggleWorkingDay = (dayIndex: number) => {
     setSchedule((prev) =>
-      prev.map((d, i) => i === dayIndex ? { ...d, workingDay: !d.workingDay } : d),
+      prev.map((d, i) =>
+        i === dayIndex ? { ...d, workingDay: !d.workingDay } : d,
+      ),
     );
   };
 
-  const updatePeriod = (dayIndex: number, periodIndex: number, field: "startTime" | "endTime" | "slotDurationMinutes", value: string | number) => {
+  const updatePeriod = (
+    dayIndex: number,
+    periodIndex: number,
+    field: "startTime" | "endTime" | "slotDurationMinutes",
+    value: string | number,
+  ) => {
     setSchedule((prev) =>
       prev.map((d, i) => {
         if (i !== dayIndex) return d;
@@ -79,13 +106,22 @@ export function AvailabilityScheduleTab({ doctor, canEdit, onClose }: Availabili
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center p-8 text-xs text-[#64748B]">Loading schedule...</div>;
+    return (
+      <div className="flex items-center justify-center p-8 text-xs text-[#64748B]">
+        Loading schedule...
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-[#111827]" style={{ fontFamily: PP }}>Weekly Availability Schedule</h3>
+        <h3
+          className="text-sm font-bold text-[#111827]"
+          style={{ fontFamily: PP }}
+        >
+          Weekly Availability Schedule
+        </h3>
         {canEdit && (
           <div className="flex items-center gap-2">
             <button
@@ -97,7 +133,11 @@ export function AvailabilityScheduleTab({ doctor, canEdit, onClose }: Availabili
               <Save size={12} /> {saving ? "Saving..." : "Save"}
             </button>
             {onClose && (
-              <button type="button" onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600">
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600"
+              >
                 <X size={14} />
               </button>
             )}
@@ -117,44 +157,153 @@ export function AvailabilityScheduleTab({ doctor, canEdit, onClose }: Availabili
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-[#111827]">
-            {(schedule.length > 0 ? schedule : [
-              { dayOfWeek: "MONDAY" as DayOfWeek, workingDay: true, workingPeriods: [{ startTime: "09:00", endTime: "17:00", slotDurationMinutes: 15 }] },
-              { dayOfWeek: "TUESDAY" as DayOfWeek, workingDay: true, workingPeriods: [{ startTime: "09:00", endTime: "17:00", slotDurationMinutes: 15 }] },
-              { dayOfWeek: "WEDNESDAY" as DayOfWeek, workingDay: true, workingPeriods: [{ startTime: "09:00", endTime: "17:00", slotDurationMinutes: 15 }] },
-              { dayOfWeek: "THURSDAY" as DayOfWeek, workingDay: true, workingPeriods: [{ startTime: "09:00", endTime: "17:00", slotDurationMinutes: 15 }] },
-              { dayOfWeek: "FRIDAY" as DayOfWeek, workingDay: true, workingPeriods: [{ startTime: "09:00", endTime: "17:00", slotDurationMinutes: 15 }] },
-              { dayOfWeek: "SATURDAY" as DayOfWeek, workingDay: false, workingPeriods: [{ startTime: "09:00", endTime: "13:00", slotDurationMinutes: 15 }] },
-              { dayOfWeek: "SUNDAY" as DayOfWeek, workingDay: false, workingPeriods: [{ startTime: "09:00", endTime: "13:00", slotDurationMinutes: 15 }] },
-            ]).map((day, idx) => (
-              <tr key={day.dayOfWeek} className="hover:bg-slate-50 transition-colors">
-                <td className="px-3.5 py-2.5 font-bold">{DAY_LABELS[day.dayOfWeek] || day.dayOfWeek}</td>
+            {(schedule.length > 0
+              ? schedule
+              : [
+                  {
+                    dayOfWeek: "MONDAY" as DayOfWeek,
+                    workingDay: true,
+                    workingPeriods: [
+                      {
+                        startTime: "09:00",
+                        endTime: "17:00",
+                        slotDurationMinutes: 15,
+                      },
+                    ],
+                  },
+                  {
+                    dayOfWeek: "TUESDAY" as DayOfWeek,
+                    workingDay: true,
+                    workingPeriods: [
+                      {
+                        startTime: "09:00",
+                        endTime: "17:00",
+                        slotDurationMinutes: 15,
+                      },
+                    ],
+                  },
+                  {
+                    dayOfWeek: "WEDNESDAY" as DayOfWeek,
+                    workingDay: true,
+                    workingPeriods: [
+                      {
+                        startTime: "09:00",
+                        endTime: "17:00",
+                        slotDurationMinutes: 15,
+                      },
+                    ],
+                  },
+                  {
+                    dayOfWeek: "THURSDAY" as DayOfWeek,
+                    workingDay: true,
+                    workingPeriods: [
+                      {
+                        startTime: "09:00",
+                        endTime: "17:00",
+                        slotDurationMinutes: 15,
+                      },
+                    ],
+                  },
+                  {
+                    dayOfWeek: "FRIDAY" as DayOfWeek,
+                    workingDay: true,
+                    workingPeriods: [
+                      {
+                        startTime: "09:00",
+                        endTime: "17:00",
+                        slotDurationMinutes: 15,
+                      },
+                    ],
+                  },
+                  {
+                    dayOfWeek: "SATURDAY" as DayOfWeek,
+                    workingDay: false,
+                    workingPeriods: [
+                      {
+                        startTime: "09:00",
+                        endTime: "13:00",
+                        slotDurationMinutes: 15,
+                      },
+                    ],
+                  },
+                  {
+                    dayOfWeek: "SUNDAY" as DayOfWeek,
+                    workingDay: false,
+                    workingPeriods: [
+                      {
+                        startTime: "09:00",
+                        endTime: "13:00",
+                        slotDurationMinutes: 15,
+                      },
+                    ],
+                  },
+                ]
+            ).map((day, idx) => (
+              <tr
+                key={day.dayOfWeek}
+                className="hover:bg-slate-50 transition-colors"
+              >
+                <td className="px-3.5 py-2.5 font-bold">
+                  {DAY_LABELS[day.dayOfWeek] || day.dayOfWeek}
+                </td>
                 <td className="px-3.5 py-2.5">
                   {canEdit ? (
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" checked={day.workingDay} onChange={() => toggleWorkingDay(idx)} className="sr-only peer" />
+                      <input
+                        type="checkbox"
+                        checked={day.workingDay}
+                        onChange={() => toggleWorkingDay(idx)}
+                        className="sr-only peer"
+                      />
                       <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#009688]" />
                     </label>
                   ) : (
-                    <span className={day.workingDay ? "text-emerald-600 font-medium" : "text-slate-400"}>
+                    <span
+                      className={
+                        day.workingDay
+                          ? "text-emerald-600 font-medium"
+                          : "text-slate-400"
+                      }
+                    >
                       {day.workingDay ? "Yes" : "No"}
                     </span>
                   )}
                 </td>
                 <td className="px-3.5 py-2.5">
                   {canEdit && day.workingDay ? (
-                    <input type="time" value={day.workingPeriods[0]?.startTime || "09:00"} onChange={(e) => updatePeriod(idx, 0, "startTime", e.target.value)} className="bg-slate-50 border border-[#E5E7EB] rounded-lg px-2 py-1 text-xs outline-none focus:border-[#0D47A1]" />
+                    <input
+                      type="time"
+                      value={day.workingPeriods[0]?.startTime || "09:00"}
+                      onChange={(e) =>
+                        updatePeriod(idx, 0, "startTime", e.target.value)
+                      }
+                      className="bg-slate-50 border border-[#E5E7EB] rounded-lg px-2 py-1 text-xs outline-none focus:border-[#0D47A1]"
+                    />
                   ) : (
-                    <span className="text-[#111827]">{day.workingPeriods[0]?.startTime || "09:00"}</span>
+                    <span className="text-[#111827]">
+                      {day.workingPeriods[0]?.startTime || "09:00"}
+                    </span>
                   )}
                 </td>
                 <td className="px-3.5 py-2.5">
                   {canEdit && day.workingDay ? (
-                    <input type="time" value={day.workingPeriods[0]?.endTime || "17:00"} onChange={(e) => updatePeriod(idx, 0, "endTime", e.target.value)} className="bg-slate-50 border border-[#E5E7EB] rounded-lg px-2 py-1 text-xs outline-none focus:border-[#0D47A1]" />
+                    <input
+                      type="time"
+                      value={day.workingPeriods[0]?.endTime || "17:00"}
+                      onChange={(e) =>
+                        updatePeriod(idx, 0, "endTime", e.target.value)
+                      }
+                      className="bg-slate-50 border border-[#E5E7EB] rounded-lg px-2 py-1 text-xs outline-none focus:border-[#0D47A1]"
+                    />
                   ) : (
-                    <span className="text-[#111827]">{day.workingPeriods[0]?.endTime || "17:00"}</span>
+                    <span className="text-[#111827]">
+                      {day.workingPeriods[0]?.endTime || "17:00"}
+                    </span>
                   )}
                 </td>
-                <td className="px-3.5 py-2.5 font-semibold text-[#0D47A1]">{day.workingPeriods[0]?.slotDurationMinutes || 15} min</td>
+                <td className="px-3.5 py-2.5 font-semibold text-[#0D47A1]">
+                  {day.workingPeriods[0]?.slotDurationMinutes || 15} min
+                </td>
               </tr>
             ))}
           </tbody>

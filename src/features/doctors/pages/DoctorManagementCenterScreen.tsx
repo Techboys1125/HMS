@@ -112,9 +112,7 @@ export function DoctorManagementCenterScreen() {
       await deactivateDoctor(deactivateDialogDoctor.id);
       setDeactivateDialogDoctor(null);
       setEditingDoctor(null);
-      showToast(
-        `Doctor ${deactivateDialogDoctor.name} has been deactivated.`,
-      );
+      showToast(`Doctor ${deactivateDialogDoctor.name} has been deactivated.`);
     } catch (err) {
       console.warn("Failed to deactivate doctor:", err);
       showToast("Failed to deactivate doctor. Please try again.");
@@ -129,9 +127,7 @@ export function DoctorManagementCenterScreen() {
     try {
       await reactivateDoctor(activateDialogDoctor.id);
       setActivateDialogDoctor(null);
-      showToast(
-        `Doctor ${activateDialogDoctor.name} has been activated.`,
-      );
+      showToast(`Doctor ${activateDialogDoctor.name} has been activated.`);
     } catch (err) {
       console.warn("Failed to activate doctor:", err);
       showToast("Failed to activate doctor. Please try again.");

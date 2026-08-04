@@ -31,7 +31,8 @@ export const CancelModal: React.FC<CancelModalProps> = ({
       await onConfirmCancel(reason);
       onClose();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to cancel appointment";
+      const msg =
+        err instanceof Error ? err.message : "Failed to cancel appointment";
       setError(msg);
     } finally {
       setSubmitting(false);

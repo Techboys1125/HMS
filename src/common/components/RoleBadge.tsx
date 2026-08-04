@@ -10,7 +10,11 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({ role }) => {
     if (term === "SUPER ADMIN" || term === "SUPER_ADMIN") {
       return "bg-purple-50 text-purple-700 border-purple-200";
     }
-    if (term === "HOSPITAL ADMIN" || term === "HOSPITAL_ADMIN" || term === "ADMIN") {
+    if (
+      term === "HOSPITAL ADMIN" ||
+      term === "HOSPITAL_ADMIN" ||
+      term === "ADMIN"
+    ) {
       return "bg-blue-50 text-[#0D47A1] border-blue-200";
     }
     if (term === "DOCTOR") {
@@ -32,7 +36,9 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({ role }) => {
   };
 
   return (
-    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${getStyle(role)}`}>
+    <span
+      className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${getStyle(role)}`}
+    >
       {role}
     </span>
   );

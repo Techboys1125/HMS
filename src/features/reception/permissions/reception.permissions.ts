@@ -1,6 +1,8 @@
 import type { ReceptionPermissions } from "../types/reception.types";
 
-export const getReceptionPermissions = (role?: string): ReceptionPermissions => {
+export const getReceptionPermissions = (
+  role?: string,
+): ReceptionPermissions => {
   const normalizedRole = (role || "").toUpperCase();
 
   switch (normalizedRole) {

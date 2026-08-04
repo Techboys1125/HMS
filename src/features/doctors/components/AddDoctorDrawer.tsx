@@ -15,7 +15,10 @@ import {
 } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
-import { departmentsApi, type ApiDepartmentLookupItem } from "../../users/api/departments.api";
+import {
+  departmentsApi,
+  type ApiDepartmentLookupItem,
+} from "../../users/api/departments.api";
 
 export interface AddDoctorDrawerProps {
   isOpen: boolean;
@@ -52,18 +55,26 @@ export function AddDoctorDrawer({
 
   useEffect(() => {
     if (isOpen) {
-      departmentsApi.getDepartmentLookup(true).then((list) => {
-        setLookupList(list);
-        if (list.length > 0) {
-          const cardioDept = list.find(d => d.departmentName.toLowerCase() === "cardiology") || list[0];
-          setDepartment(cardioDept.departmentName);
-          if (cardioDept.specialties && cardioDept.specialties.length > 0) {
-            setSpecialty(cardioDept.specialties[0].name);
-          } else {
-            setSpecialty("");
+      departmentsApi
+        .getDepartmentLookup(true)
+        .then((list) => {
+          setLookupList(list);
+          if (list.length > 0) {
+            const cardioDept =
+              list.find(
+                (d) => d.departmentName.toLowerCase() === "cardiology",
+              ) || list[0];
+            setDepartment(cardioDept.departmentName);
+            if (cardioDept.specialties && cardioDept.specialties.length > 0) {
+              setSpecialty(cardioDept.specialties[0].name);
+            } else {
+              setSpecialty("");
+            }
           }
-        }
-      }).catch((err) => console.warn("Failed to load departments lookup:", err));
+        })
+        .catch((err) =>
+          console.warn("Failed to load departments lookup:", err),
+        );
     }
   }, [isOpen]);
 
@@ -223,19 +234,26 @@ export function AddDoctorDrawer({
     const slotMins = parseInt(slotDuration) || 15;
 
     const cleanName = fullName.replace(/^Dr\.?\s*/i, "");
-    const doctorCode = cleanName
-      .split(" ")
-      .filter(Boolean)
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 4) || cleanName.slice(0, 2).toUpperCase();
+    const doctorCode =
+      cleanName
+        .split(" ")
+        .filter(Boolean)
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 4) || cleanName.slice(0, 2).toUpperCase();
 
-    const selectedDeptObj = lookupList.find((d) => d.departmentName === department);
-    const departmentSpecialties = selectedDeptObj ? selectedDeptObj.specialties : [];
+    const selectedDeptObj = lookupList.find(
+      (d) => d.departmentName === department,
+    );
+    const departmentSpecialties = selectedDeptObj
+      ? selectedDeptObj.specialties
+      : [];
     const specObj = departmentSpecialties.find((s) => s.name === specialty);
 
-    const primaryDeptId = selectedDeptObj ? Number(selectedDeptObj.departmentId) : 1;
+    const primaryDeptId = selectedDeptObj
+      ? Number(selectedDeptObj.departmentId)
+      : 1;
     const primarySpecId = specObj ? Number(specObj.id) : 1;
 
     const payload = {
@@ -295,7 +313,10 @@ export function AddDoctorDrawer({
         opdRoom: `OPD Room ${101 + totalDoctorCount}`,
         joinedDate: new Date().toISOString().split("T")[0],
         shiftTimings: "09:00 AM - 04:00 PM",
-        workingDays: activeWorkingDays.length > 0 ? activeWorkingDays : ["Mon", "Tue", "Wed", "Thu", "Fri"],
+        workingDays:
+          activeWorkingDays.length > 0
+            ? activeWorkingDays
+            : ["Mon", "Tue", "Wed", "Thu", "Fri"],
         bio: payload.professionalBio,
         rawAvailability: activeAvailability,
         scheduleExceptions: [],
@@ -306,8 +327,12 @@ export function AddDoctorDrawer({
     }
   };
 
-  const selectedDeptObj = lookupList.find((d) => d.departmentName === department);
-  const departmentSpecialties = selectedDeptObj ? selectedDeptObj.specialties : [];
+  const selectedDeptObj = lookupList.find(
+    (d) => d.departmentName === department,
+  );
+  const departmentSpecialties = selectedDeptObj
+    ? selectedDeptObj.specialties
+    : [];
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
@@ -641,8 +666,14 @@ export function AddDoctorDrawer({
                     setDepartment(deptName);
                     if (errors.department)
                       setErrors({ ...errors, department: "" });
-                    const deptObj = lookupList.find((d) => d.departmentName === deptName);
-                    if (deptObj && deptObj.specialties && deptObj.specialties.length > 0) {
+                    const deptObj = lookupList.find(
+                      (d) => d.departmentName === deptName,
+                    );
+                    if (
+                      deptObj &&
+                      deptObj.specialties &&
+                      deptObj.specialties.length > 0
+                    ) {
                       setSpecialty(deptObj.specialties[0].name);
                     } else {
                       setSpecialty("");

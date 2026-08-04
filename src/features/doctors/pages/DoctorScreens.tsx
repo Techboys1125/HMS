@@ -4,4 +4,7 @@ export { DoctorPrescriptionsScreen } from "../components/DoctorPrescriptionsScre
 export { DoctorPrescriptionDetailsScreen } from "../components/DoctorPrescriptionDetailsScreen";
 export { DoctorEditPrescriptionScreen } from "../components/DoctorEditPrescriptionScreen";
 export { DoctorReportsScreen } from "../components/DoctorReportsScreen";
-export { DoctorPrescriptionPrintPreviewScreen, DoctorPrescriptionHistoryScreen } from "../components/DoctorPrescriptionPrintPreviewScreen";
+export {
+  DoctorPrescriptionPrintPreviewScreen,
+  DoctorPrescriptionHistoryScreen,
+} from "../components/DoctorPrescriptionPrintPreviewScreen";

@@ -26,7 +26,10 @@ export const appointmentStore = {
     notify();
   },
 
-  updateAppointment: (id: string | number, updates: Partial<AppointmentRecord>) => {
+  updateAppointment: (
+    id: string | number,
+    updates: Partial<AppointmentRecord>,
+  ) => {
     currentAppointments = currentAppointments.map((a) =>
       a.id === id ? { ...a, ...updates } : a,
     );
@@ -40,10 +43,13 @@ export const appointmentStore = {
 };
 
 export function useAppointmentStore(): AppointmentRecord[] {
-  const [appointments, setAppointments] = useState<AppointmentRecord[]>(currentAppointments);
+  const [appointments, setAppointments] =
+    useState<AppointmentRecord[]>(currentAppointments);
 
   useEffect(() => {
-    const unsub = appointmentStore.subscribe(() => setAppointments([...currentAppointments]));
+    const unsub = appointmentStore.subscribe(() =>
+      setAppointments([...currentAppointments]),
+    );
     return () => {
       unsub();
     };

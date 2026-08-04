@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
 import { usersApi } from "../api/users.api";
-import { departmentsApi, type ApiDepartmentLookupItem } from "../api/departments.api";
+import {
+  departmentsApi,
+  type ApiDepartmentLookupItem,
+} from "../api/departments.api";
 import type {
   AdminCreateStaffData,
   AdminCreateDoctorStaffData,
@@ -95,12 +98,17 @@ export const useCreateStaffForm = (
   onBack?: () => void,
 ) => {
   const navigate = useNavigate();
-  const [departmentsList, setDepartmentsList] = useState<ApiDepartmentLookupItem[]>([]);
+  const [departmentsList, setDepartmentsList] = useState<
+    ApiDepartmentLookupItem[]
+  >([]);
 
   useEffect(() => {
-    departmentsApi.getDepartmentLookup(true).then((list) => {
-      setDepartmentsList(list);
-    }).catch(() => {});
+    departmentsApi
+      .getDepartmentLookup(true)
+      .then((list) => {
+        setDepartmentsList(list);
+      })
+      .catch(() => {});
   }, []);
 
   const [form, setForm] = useState<FormValues>({
@@ -476,11 +484,17 @@ export const useCreateStaffForm = (
 
     setIsSubmitting(true);
     try {
-      const matchedPrimaryDept = departmentsList.find((d) => d.departmentName === form.primaryDepartment);
-      const finalDeptId = matchedPrimaryDept ? Number(matchedPrimaryDept.departmentId) : 2;
+      const matchedPrimaryDept = departmentsList.find(
+        (d) => d.departmentName === form.primaryDepartment,
+      );
+      const finalDeptId = matchedPrimaryDept
+        ? Number(matchedPrimaryDept.departmentId)
+        : 2;
 
       const matchedSecondaryDept = form.secondaryDepartment
-        ? departmentsList.find((d) => d.departmentName === form.secondaryDepartment)
+        ? departmentsList.find(
+            (d) => d.departmentName === form.secondaryDepartment,
+          )
         : null;
       const secondaryDeptIds = matchedSecondaryDept
         ? [Number(matchedSecondaryDept.departmentId)]
@@ -538,15 +552,23 @@ export const useCreateStaffForm = (
 
         let primaryId = 1;
         if (matchedPrimaryDept && matchedPrimaryDept.specialties) {
-          const matchedSpec = matchedPrimaryDept.specialties.find((s) => s.name === form.primarySpecialty);
+          const matchedSpec = matchedPrimaryDept.specialties.find(
+            (s) => s.name === form.primarySpecialty,
+          );
           if (matchedSpec) {
             primaryId = Number(matchedSpec.id);
           }
         }
 
         let secondaryIds: number[] = [];
-        if (matchedSecondaryDept && matchedSecondaryDept.specialties && form.secondarySpecialty) {
-          const matchedSpec = matchedSecondaryDept.specialties.find((s) => s.name === form.secondarySpecialty);
+        if (
+          matchedSecondaryDept &&
+          matchedSecondaryDept.specialties &&
+          form.secondarySpecialty
+        ) {
+          const matchedSpec = matchedSecondaryDept.specialties.find(
+            (s) => s.name === form.secondarySpecialty,
+          );
           if (matchedSpec) {
             secondaryIds = [Number(matchedSpec.id)];
           }
@@ -565,7 +587,9 @@ export const useCreateStaffForm = (
           role: apiRole,
           medicalRegistrationNumber: form.registrationNumber || undefined,
           qualification: form.qualification || undefined,
-          yearsOfExperience: form.yearsOfExperience ? Number(form.yearsOfExperience) : undefined,
+          yearsOfExperience: form.yearsOfExperience
+            ? Number(form.yearsOfExperience)
+            : undefined,
           doctorCode: form.doctorCode || undefined,
           primaryDepartmentId: finalDeptId,
           secondaryDepartmentIds: secondaryDeptIds,
@@ -583,7 +607,9 @@ export const useCreateStaffForm = (
             registrationNumber: form.registrationNumber,
             medicalRegistrationNumber: form.registrationNumber,
             qualification: form.qualification || undefined,
-            yearsOfExperience: form.yearsOfExperience ? Number(form.yearsOfExperience) : undefined,
+            yearsOfExperience: form.yearsOfExperience
+              ? Number(form.yearsOfExperience)
+              : undefined,
             doctorCode: form.doctorCode || undefined,
             primaryDepartmentId: finalDeptId,
             secondaryDepartmentIds: secondaryDeptIds,
@@ -626,7 +652,12 @@ export const useCreateStaffForm = (
       if (err instanceof Error) {
         errMsg = err.message;
       }
-      const apiErr = err as { response?: { status?: number; data?: { message?: string; errors?: any } } };
+      const apiErr = err as {
+        response?: {
+          status?: number;
+          data?: { message?: string; errors?: any };
+        };
+      };
       const status = apiErr?.response?.status;
       const resData = apiErr?.response?.data;
 
@@ -637,8 +668,14 @@ export const useCreateStaffForm = (
         errMsg =
           resData?.message ||
           "Internal server error occurred on the backend. Please check staff details and try again.";
-      } else if (resData?.errors && Array.isArray(resData.errors) && resData.errors.length > 0) {
-        const details = resData.errors.map((e: any) => e.message || e.defaultMessage || JSON.stringify(e)).join(", ");
+      } else if (
+        resData?.errors &&
+        Array.isArray(resData.errors) &&
+        resData.errors.length > 0
+      ) {
+        const details = resData.errors
+          .map((e: any) => e.message || e.defaultMessage || JSON.stringify(e))
+          .join(", ");
         errMsg = `${resData.message}: ${details}`;
       } else if (resData?.message) {
         errMsg = resData.message;

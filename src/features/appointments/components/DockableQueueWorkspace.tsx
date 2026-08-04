@@ -202,7 +202,8 @@ export function DockableQueueWorkspace({
             }}
             className="px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
           >
-            <RefreshCw size={13} className={isLoading ? "animate-spin" : ""} /> Refresh Queue
+            <RefreshCw size={13} className={isLoading ? "animate-spin" : ""} />{" "}
+            Refresh Queue
           </button>
 
           {isDoctor ? (

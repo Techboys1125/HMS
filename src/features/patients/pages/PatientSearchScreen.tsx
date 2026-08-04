@@ -1,5 +1,13 @@
 import { useState, useMemo } from "react";
-import { Calendar, Search, UserPlus, Users, TrendingUp, Clock, UserX } from "lucide-react";
+import {
+  Calendar,
+  Search,
+  UserPlus,
+  Users,
+  TrendingUp,
+  Clock,
+  UserX,
+} from "lucide-react";
 import { usePatients } from "../hooks/usePatients";
 import { PP, RB } from "../constants/patient.mock";
 import { PatientTable } from "../components/PatientTable";
@@ -26,11 +34,19 @@ export function PatientSearchScreen({
   const [regTypeFilter, setRegTypeFilter] = useState("All Types");
   const [genderFilter, setGenderFilter] = useState("All Genders");
   const [regDateFilter, setRegDateFilter] = useState("All Dates");
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
-  const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
+    null,
+  );
+  const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(
+    null,
+  );
 
   const permissions = usePermissions();
-  const activeRole = (userRole || permissions.role || "RECEPTIONIST").toUpperCase();
+  const activeRole = (
+    userRole ||
+    permissions.role ||
+    "RECEPTIONIST"
+  ).toUpperCase();
 
   // Backend API connection
   const { data: patientsResponse, isLoading } = usePatients();
@@ -49,10 +65,16 @@ export function PatientSearchScreen({
         p.registrationDate.startsWith(todayStr),
     ).length;
     const activePatients = dbPatients.filter(
-      (p) => p.status !== "Inactive" && p.status !== "INACTIVE" && p.status !== "Deceased",
+      (p) =>
+        p.status !== "Inactive" &&
+        p.status !== "INACTIVE" &&
+        p.status !== "Deceased",
     ).length;
     const inactivePatients = dbPatients.filter(
-      (p) => p.status === "Inactive" || p.status === "INACTIVE" || p.status === "Deceased",
+      (p) =>
+        p.status === "Inactive" ||
+        p.status === "INACTIVE" ||
+        p.status === "Deceased",
     ).length;
 
     return {
@@ -85,7 +107,8 @@ export function PatientSearchScreen({
       pStatus.toUpperCase() === statusFilter.toUpperCase().replace("-", "_");
     const matchType =
       regTypeFilter === "All Types" ||
-      pRegType.toUpperCase() === regTypeFilter.toUpperCase().replace(/\s+/g, "_");
+      pRegType.toUpperCase() ===
+        regTypeFilter.toUpperCase().replace(/\s+/g, "_");
     const matchGender =
       genderFilter === "All Genders" ||
       pGender.toUpperCase() === genderFilter.toUpperCase() ||
@@ -100,9 +123,9 @@ export function PatientSearchScreen({
     return matchSearch && matchStatus && matchType && matchGender && matchDate;
   });
 
-  const selectedPatient = dbPatients.find(
-    (p) => (p.mrn || String(p.id)) === selectedPatientId,
-  ) || filteredPatients[0];
+  const selectedPatient =
+    dbPatients.find((p) => (p.mrn || String(p.id)) === selectedPatientId) ||
+    filteredPatients[0];
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -128,8 +151,8 @@ export function PatientSearchScreen({
     activeRole === "DOCTOR"
       ? "Doctor Workspace"
       : activeRole.includes("ADMIN")
-      ? "Hospital Admin"
-      : "Reception";
+        ? "Hospital Admin"
+        : "Reception";
 
   return (
     <div
@@ -172,7 +195,9 @@ export function PatientSearchScreen({
             <button
               onClick={() =>
                 onBookAppointmentClick(
-                  selectedPatient ? (selectedPatient.mrn || String(selectedPatient.id)) : "",
+                  selectedPatient
+                    ? selectedPatient.mrn || String(selectedPatient.id)
+                    : "",
                 )
               }
               className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm"

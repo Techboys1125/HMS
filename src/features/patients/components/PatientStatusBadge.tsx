@@ -1,34 +1,52 @@
-export function PatientStatusBadge({ status }: { status: string }) {
-  const s = String(status || "").toUpperCase();
-  let c = { bg: "bg-green-50", text: "text-green-700", dot: "bg-[#66BB6A]" };
+/**
+ * PatientStatusBadge – Styled status badge with color coding
+ */
+const STATUS_CONFIG: Record<
+  string,
+  { bg: string; text: string; border: string; dot: string }
+> = {
+  ACTIVE: {
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    border: "border-emerald-200",
+    dot: "bg-emerald-500",
+  },
+  INACTIVE: {
+    bg: "bg-slate-100",
+    text: "text-slate-600",
+    border: "border-slate-200",
+    dot: "bg-slate-400",
+  },
+  DECEASED: {
+    bg: "bg-red-50",
+    text: "text-red-600",
+    border: "border-red-200",
+    dot: "bg-red-500",
+  },
+  DUPLICATE_CANDIDATE: {
+    bg: "bg-amber-50",
+    text: "text-amber-700",
+    border: "border-amber-200",
+    dot: "bg-amber-500",
+  },
+  REGISTERED: {
+    bg: "bg-blue-50",
+    text: "text-[#0D47A1]",
+    border: "border-blue-200",
+    dot: "bg-blue-500",
+  },
+};
 
-  if (s === "ACTIVE") {
-    c = { bg: "bg-green-50", text: "text-green-700", dot: "bg-[#66BB6A]" };
-  } else if (s === "ADMITTED") {
-    c = { bg: "bg-blue-50", text: "text-[#0D47A1]", dot: "bg-[#0D47A1]" };
-  } else if (s === "INACTIVE") {
-    c = { bg: "bg-slate-100", text: "text-[#64748B]", dot: "bg-[#64748B]" };
-  } else if (s === "DECEASED") {
-    c = { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500" };
-  } else if (s === "DUPLICATE_CANDIDATE") {
-    c = { bg: "bg-amber-50", text: "text-[#F59E0B]", dot: "bg-[#F59E0B]" };
-  } else if (s === "DISCHARGED") {
-    c = { bg: "bg-purple-50", text: "text-purple-700", dot: "bg-purple-500" };
-  }
-
-  const label = status
-    ? status.charAt(0).toUpperCase() +
-      status.slice(1).toLowerCase().replace(/_/g, " ")
-    : "Unknown";
+export function PatientStatusBadge({ status }: { status?: string }) {
+  const key = String(status || "ACTIVE").toUpperCase();
+  const config = STATUS_CONFIG[key] || STATUS_CONFIG.ACTIVE;
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${c.bg} ${c.text}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${config.bg} ${config.text} ${config.border}`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
-      {label}
+      <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+      {key.replace(/_/g, " ")}
     </span>
   );
 }
-
-export { PatientStatusBadge as StatusBadge };

@@ -122,7 +122,6 @@ export interface UserDetailData {
   doctorProfile?: DoctorProfileDetail | null;
 }
 
-
 export interface SlotRequest {
   startTime: string;
   endTime: string;

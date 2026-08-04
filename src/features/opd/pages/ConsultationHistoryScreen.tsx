@@ -226,13 +226,21 @@ export function ConsultationHistoryScreen({
   onPatientSelect,
 }: {
   patientId?: string;
-  role?: "super-admin" | "admin" | "doctor" | "nurse" | "receptionist" | "accountant" | "patient";
+  role?:
+    | "super-admin"
+    | "admin"
+    | "doctor"
+    | "nurse"
+    | "receptionist"
+    | "accountant"
+    | "patient";
   onBack?: () => void;
   onStartNewConsultation?: () => void;
   onViewFullConsultation?: (consultationId: string) => void;
   onPatientSelect?: (patientId: string) => void;
 }) {
-  const isReadOnly = role === "admin" || role === "nurse" || role === "super-admin";
+  const isReadOnly =
+    role === "admin" || role === "nurse" || role === "super-admin";
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState("");
@@ -1060,7 +1068,6 @@ export function ConsultationHistoryScreen({
               </div>
             )}
           </div>
-
         </div>
       </div>
 

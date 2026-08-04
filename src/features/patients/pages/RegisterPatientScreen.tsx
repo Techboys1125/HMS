@@ -662,7 +662,7 @@ export function RegisterPatientScreen({
                       <option value="SELF">Self</option>
                       <option value="FATHER">Father</option>
                       <option value="MOTHER">Mother</option>
-                      <option value="SPOUSE">Spouse</option>
+                      <option value="WIFE">Spouse</option>
                       <option value="SON">Son</option>
                       <option value="DAUGHTER">Daughter</option>
                       <option value="BROTHER">Brother</option>

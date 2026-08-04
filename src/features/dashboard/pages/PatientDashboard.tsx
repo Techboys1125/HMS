@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
+import { PatientQueueCard } from "../../patients/components/PatientQueueCard";
 import {
   Calendar,
   Clock,
@@ -389,7 +390,8 @@ export function PatientDashboard({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-sm font-bold text-[#111827]">
-                  Active Patient: {activePatient.patientName || activePatient.name}
+                  Active Patient:{" "}
+                  {activePatient.patientName || activePatient.name}
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#0D47A1] text-[10px] font-semibold border border-blue-100">
                   {activePatient.relationship || "Self"}
@@ -420,6 +422,9 @@ export function PatientDashboard({
           </div>
         </div>
       )}
+
+      {/* ── ACTIVE QUEUE STATUS ── */}
+      <PatientQueueCard />
 
       {/* ── HEADER & QUICK ACTIONS ── */}
       <div className="flex items-center gap-3 flex-wrap">

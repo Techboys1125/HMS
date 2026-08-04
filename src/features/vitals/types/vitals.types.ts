@@ -81,11 +81,13 @@ export interface NurseWaitingPatient {
     departmentName?: string;
   };
 
-  department?: {
-    departmentName?: string;
-    name?: string;
-    departmentCode?: string;
-  } | string;
+  department?:
+    | {
+        departmentName?: string;
+        name?: string;
+        departmentCode?: string;
+      }
+    | string;
 }
 
 export interface NurseVitalsApiResponse<T = unknown> {

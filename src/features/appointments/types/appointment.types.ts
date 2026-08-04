@@ -128,12 +128,12 @@ export interface AppointmentRecord {
   isWalkIn?: boolean;
   createdDate?: string;
   department?:
-  | string
-  | {
-      departmentName?: string;
-      name?: string;
-      departmentCode?: string;
-    };
+    | string
+    | {
+        departmentName?: string;
+        name?: string;
+        departmentCode?: string;
+      };
 
   // Legacy / Backward Compatibility Optional Fields
   mrn?: string;

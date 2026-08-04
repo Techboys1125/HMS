@@ -255,7 +255,6 @@ export function EditConsultationScreen({
     return count;
   }, [formData.investigations, formData.customInvestigation]);
 
-
   return (
     <div className="flex-1 bg-[#F1F5F9] overflow-y-auto flex flex-col font-sans relative pb-24">
       {/* ── SUCCESS TOAST NOTIFICATION ── */}

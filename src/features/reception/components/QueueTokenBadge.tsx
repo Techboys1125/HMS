@@ -1,6 +1,12 @@
 import React from "react";
 import type { QueueStatus } from "../types/reception.types";
-import { Clock, UserCheck, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import {
+  Clock,
+  UserCheck,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+} from "lucide-react";
 
 interface QueueTokenBadgeProps {
   status: QueueStatus;
@@ -31,7 +37,9 @@ export const QueueTokenBadge: React.FC<QueueTokenBadgeProps> = ({
       case "COMPLETED":
         return {
           bg: "bg-emerald-50 text-emerald-700 border-emerald-200",
-          icon: <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />,
+          icon: (
+            <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+          ),
           label: "Completed",
         };
       case "CANCELLED":
@@ -56,14 +64,21 @@ export const QueueTokenBadge: React.FC<QueueTokenBadgeProps> = ({
   };
 
   const style = getBadgeStyle();
-  const paddingClass = size === "sm" ? "px-2 py-0.5 text-[10px]" : size === "lg" ? "px-3.5 py-1.5 text-xs" : "px-2.5 py-1 text-[11px]";
+  const paddingClass =
+    size === "sm"
+      ? "px-2 py-0.5 text-[10px]"
+      : size === "lg"
+        ? "px-3.5 py-1.5 text-xs"
+        : "px-2.5 py-1 text-[11px]";
 
   return (
     <span
       className={`inline-flex items-center gap-1.5 font-bold border rounded-full ${style.bg} ${paddingClass}`}
     >
       {style.icon}
-      <span>{tokenNumber ? `${tokenNumber} (${style.label})` : style.label}</span>
+      <span>
+        {tokenNumber ? `${tokenNumber} (${style.label})` : style.label}
+      </span>
     </span>
   );
 };

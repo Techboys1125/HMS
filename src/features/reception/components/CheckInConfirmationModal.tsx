@@ -15,7 +15,9 @@ export interface CheckInConfirmationModalProps {
   onPrintSlip?: () => void;
 }
 
-export const CheckInConfirmationModal: React.FC<CheckInConfirmationModalProps> = ({
+export const CheckInConfirmationModal: React.FC<
+  CheckInConfirmationModalProps
+> = ({
   isOpen,
   onClose,
   tokenNumber,
@@ -85,7 +87,9 @@ export const CheckInConfirmationModal: React.FC<CheckInConfirmationModalProps> =
               <span className="text-blue-300 flex items-center gap-1">
                 <User size={12} /> Patient:
               </span>
-              <strong className="text-white font-semibold">{patientName}</strong>
+              <strong className="text-white font-semibold">
+                {patientName}
+              </strong>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-blue-300">MRN:</span>
@@ -93,7 +97,9 @@ export const CheckInConfirmationModal: React.FC<CheckInConfirmationModalProps> =
             </div>
             <div className="flex items-center justify-between">
               <span className="text-blue-300">Doctor & Dept:</span>
-              <span className="text-white">{doctorName} ({departmentName})</span>
+              <span className="text-white">
+                {doctorName} ({departmentName})
+              </span>
             </div>
 
             <div className="flex items-center justify-between">
@@ -110,8 +116,9 @@ export const CheckInConfirmationModal: React.FC<CheckInConfirmationModalProps> =
           <Activity size={16} className="text-amber-600 shrink-0 mt-0.5" />
           <div className="text-xs text-amber-900">
             <span className="font-bold">Next Step:</span> Patient status set to{" "}
-            <strong className="underline decoration-amber-400">{status}</strong>.
-            This patient is now visible in the <strong>Nurse Vitals Management</strong> workspace.
+            <strong className="underline decoration-amber-400">{status}</strong>
+            . This patient is now visible in the{" "}
+            <strong>Nurse Vitals Management</strong> workspace.
           </div>
         </div>
 

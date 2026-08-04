@@ -1,6 +1,11 @@
 import { useState } from "react";
 import type { NavId, Role } from "../../types/app.types";
-import { ROLE_LABEL, ROLE_NAV_GROUPS, PP, RB } from "../../constants/navigation";
+import {
+  ROLE_LABEL,
+  ROLE_NAV_GROUPS,
+  PP,
+  RB,
+} from "../../constants/navigation";
 import { usePermissions } from "../../permissions";
 
 const navItemPermissions: Record<string, string> = {
@@ -57,17 +62,19 @@ export function NavRail({
   const roleTxt = dk ? "#93C5FD" : "#0D47A1";
   const themeBtnBg = dk ? "rgba(255,255,255,0.08)" : "#F1F5F9";
 
-  const navGroups = (ROLE_NAV_GROUPS[role] || []).map((group) => {
-    const filteredItems = group.items.filter((item) => {
-      const required = navItemPermissions[item.id];
-      if (!required) return true;
-      return can(required);
-    });
-    return {
-      ...group,
-      items: filteredItems,
-    };
-  }).filter((group) => group.items.length > 0);
+  const navGroups = (ROLE_NAV_GROUPS[role] || [])
+    .map((group) => {
+      const filteredItems = group.items.filter((item) => {
+        const required = navItemPermissions[item.id];
+        if (!required) return true;
+        return can(required);
+      });
+      return {
+        ...group,
+        items: filteredItems,
+      };
+    })
+    .filter((group) => group.items.length > 0);
 
   return (
     <nav

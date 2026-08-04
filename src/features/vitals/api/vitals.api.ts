@@ -12,9 +12,9 @@ export const vitalsApi = {
    */
   async getWaitingPatients(): Promise<NurseWaitingPatient[]> {
     try {
-      const response = await apiClient.get<NurseVitalsApiResponse<NurseWaitingPatient[]>>(
-        "/api/v1/nurse/vitals/waiting"
-      );
+      const response = await apiClient.get<
+        NurseVitalsApiResponse<NurseWaitingPatient[]>
+      >("/api/v1/nurse/vitals/waiting");
       const data = response.data?.data;
       return Array.isArray(data) ? data : [];
     } catch (error) {
@@ -29,16 +29,19 @@ export const vitalsApi = {
    */
   async recordVitals(
     appointmentId: string | number,
-    payload: NurseVitalsPayload
+    payload: NurseVitalsPayload,
   ): Promise<NurseVitalsApiResponse<unknown>> {
     try {
       const response = await apiClient.post<NurseVitalsApiResponse<unknown>>(
         `/api/v1/nurse/appointments/${appointmentId}/vitals`,
-        payload
+        payload,
       );
       return response.data;
     } catch (error) {
-      console.warn(`[vitalsApi] recordVitals fallback execution for apt ${appointmentId}:`, error);
+      console.warn(
+        `[vitalsApi] recordVitals fallback execution for apt ${appointmentId}:`,
+        error,
+      );
       return {
         success: true,
         code: "200",

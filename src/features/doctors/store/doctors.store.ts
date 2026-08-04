@@ -27,7 +27,7 @@ export const doctorsStore = {
 
   updateDoctor: (id: string, updates: Partial<DoctorRecord>) => {
     currentDoctors = currentDoctors.map((d) =>
-      d.id === id ? { ...d, ...updates } : d
+      d.id === id ? { ...d, ...updates } : d,
     );
     notify();
   },
@@ -36,7 +36,7 @@ export const doctorsStore = {
     currentDoctors = currentDoctors.map((d) =>
       d.id === id
         ? { ...d, status: "Inactive", availability: "Out of Office" }
-        : d
+        : d,
     );
     notify();
   },

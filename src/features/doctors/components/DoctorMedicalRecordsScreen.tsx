@@ -47,7 +47,7 @@ export function DoctorMedicalRecordsScreen() {
         | { content?: unknown[]; items?: unknown[] };
       const appointments = Array.isArray(raw)
         ? raw
-        : raw.content ?? raw.items ?? [];
+        : (raw.content ?? raw.items ?? []);
       setRecords(appointments as MedicalRecordRow[]);
     } catch {
       setRecords([]);
@@ -83,10 +83,7 @@ export function DoctorMedicalRecordsScreen() {
         >
           Medical Records
         </h1>
-        <p
-          className="text-sm text-[#64748B] mt-0.5"
-          style={{ fontFamily: RB }}
-        >
+        <p className="text-sm text-[#64748B] mt-0.5" style={{ fontFamily: RB }}>
           View consultation history and prescriptions for your patients.
         </p>
       </div>
@@ -136,10 +133,7 @@ export function DoctorMedicalRecordsScreen() {
           ) : filteredRecords.length === 0 ? (
             <div className="text-center py-12">
               <FileText size={40} className="mx-auto text-slate-300 mb-3" />
-              <p
-                className="text-sm text-[#64748B]"
-                style={{ fontFamily: RB }}
-              >
+              <p className="text-sm text-[#64748B]" style={{ fontFamily: RB }}>
                 No records found.
               </p>
             </div>
@@ -190,17 +184,13 @@ export function DoctorMedicalRecordsScreen() {
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() =>
-                        triggerToast("Opening record details...")
-                      }
+                      onClick={() => triggerToast("Opening record details...")}
                       className="p-2 rounded-xl hover:bg-slate-100 text-slate-500"
                     >
                       <Eye size={16} />
                     </button>
                     <button
-                      onClick={() =>
-                        triggerToast("Downloading record...")
-                      }
+                      onClick={() => triggerToast("Downloading record...")}
                       className="p-2 rounded-xl hover:bg-slate-100 text-slate-500"
                     >
                       <Download size={16} />

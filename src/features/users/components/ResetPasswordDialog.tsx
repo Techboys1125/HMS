@@ -22,8 +22,8 @@ export const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-[#E5E7EB] animate-scale-in">
         <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
           <h3 className="font-heading font-bold text-sm flex items-center gap-2">
-            <Key size={16} className="text-amber-500" /> Administrative
-            Password Reset
+            <Key size={16} className="text-amber-500" /> Administrative Password
+            Reset
           </h3>
           <button
             onClick={onClose}
@@ -33,10 +33,7 @@ export const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
           </button>
         </div>
 
-        <form
-          onSubmit={onConfirm}
-          className="p-6 space-y-4 text-xs font-body"
-        >
+        <form onSubmit={onConfirm} className="p-6 space-y-4 text-xs font-body">
           <p className="text-slate-500 leading-relaxed">
             You are about to trigger a password reset for{" "}
             <strong className="text-slate-900">
@@ -51,9 +48,9 @@ export const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
               className="shrink-0 text-amber-600 mt-0.5"
             />
             <p className="leading-relaxed">
-              Upon submission, the user's login access will be set to
-              Pending Password Setup. A password reset link will be sent to
-              the email: <strong>{user.email}</strong>.
+              Upon submission, the user's login access will be set to Pending
+              Password Setup. A password reset link will be sent to the email:{" "}
+              <strong>{user.email}</strong>.
             </p>
           </div>
 
@@ -70,9 +67,7 @@ export const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
               disabled={isSubmitting}
               className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              {isSubmitting && (
-                <Loader2 size={12} className="animate-spin" />
-              )}
+              {isSubmitting && <Loader2 size={12} className="animate-spin" />}
               Confirm Reset
             </button>
           </div>

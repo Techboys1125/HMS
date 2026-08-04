@@ -15,7 +15,9 @@ export const ConsultationDetailsSection: React.FC<
   ConsultationDetailsSectionProps
 > = ({ form, errors, setFieldValue }) => {
   const [apiDepts, setApiDepts] = useState<string[]>([]);
-  const [deptSpecialtiesMap, setDeptSpecialtiesMap] = useState<Record<string, string[]>>({});
+  const [deptSpecialtiesMap, setDeptSpecialtiesMap] = useState<
+    Record<string, string[]>
+  >({});
 
   useEffect(() => {
     departmentsApi.getDepartmentLookup(true).then((lookupList) => {
@@ -26,14 +28,18 @@ export const ConsultationDetailsSection: React.FC<
         const map: Record<string, string[]> = {};
         lookupList.forEach((d) => {
           if (d.departmentName && d.specialties) {
-            map[d.departmentName] = d.specialties.map((s) => s.name).filter(Boolean);
+            map[d.departmentName] = d.specialties
+              .map((s) => s.name)
+              .filter(Boolean);
           }
         });
         setDeptSpecialtiesMap(map);
       } else {
         // Fallback to full department-specialties list if lookup is empty
         departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
-          const names = list.map((d) => d.departmentName || d.name).filter((n): n is string => Boolean(n));
+          const names = list
+            .map((d) => d.departmentName || d.name)
+            .filter((n): n is string => Boolean(n));
           if (names.length > 0) setApiDepts(names);
         });
       }
@@ -148,13 +154,13 @@ export const ConsultationDetailsSection: React.FC<
               className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-[#1E293B] cursor-pointer"
             >
               <option value="">None (Optional)</option>
-              {departmentOptions.filter(
-                (dept) => dept !== form.primaryDepartment,
-              ).map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
+              {departmentOptions
+                .filter((dept) => dept !== form.primaryDepartment)
+                .map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
             </select>
           </div>
         </div>
@@ -264,7 +270,8 @@ export const ConsultationDetailsSection: React.FC<
         {/* Follow-up Fee */}
         <div className="space-y-1">
           <label className="block text-xs font-heading font-bold text-text-body">
-            Follow-up Fee (₹) <span className="text-slate-400 font-normal">(Optional)</span>
+            Follow-up Fee (₹){" "}
+            <span className="text-slate-400 font-normal">(Optional)</span>
           </label>
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">
@@ -284,7 +291,8 @@ export const ConsultationDetailsSection: React.FC<
         {/* Qualification */}
         <div className="space-y-1">
           <label className="block text-xs font-heading font-bold text-text-body">
-            Qualification <span className="text-slate-400 font-normal">(Optional)</span>
+            Qualification{" "}
+            <span className="text-slate-400 font-normal">(Optional)</span>
           </label>
           <input
             type="text"
@@ -298,7 +306,8 @@ export const ConsultationDetailsSection: React.FC<
         {/* Years of Experience */}
         <div className="space-y-1">
           <label className="block text-xs font-heading font-bold text-text-body">
-            Years of Experience <span className="text-slate-400 font-normal">(Optional)</span>
+            Years of Experience{" "}
+            <span className="text-slate-400 font-normal">(Optional)</span>
           </label>
           <input
             type="number"
@@ -313,12 +322,15 @@ export const ConsultationDetailsSection: React.FC<
         {/* Doctor Code */}
         <div className="space-y-1">
           <label className="block text-xs font-heading font-bold text-text-body">
-            Doctor Code <span className="text-slate-400 font-normal">(Optional)</span>
+            Doctor Code{" "}
+            <span className="text-slate-400 font-normal">(Optional)</span>
           </label>
           <input
             type="text"
             value={form.doctorCode}
-            onChange={(e) => setFieldValue("doctorCode", e.target.value.toUpperCase())}
+            onChange={(e) =>
+              setFieldValue("doctorCode", e.target.value.toUpperCase())
+            }
             placeholder="e.g. DOC-CARD-01"
             className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body font-mono uppercase"
           />
@@ -331,7 +343,9 @@ export const ConsultationDetailsSection: React.FC<
           </label>
           <select
             value={form.slotDurationMinutes}
-            onChange={(e) => setFieldValue("slotDurationMinutes", e.target.value)}
+            onChange={(e) =>
+              setFieldValue("slotDurationMinutes", e.target.value)
+            }
             className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body cursor-pointer font-medium"
           >
             <option value="10">10 Minutes</option>

@@ -45,15 +45,23 @@ export function PatientCheckInScreen({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-xs">
         <div>
           <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
-            <button onClick={onBack} className="hover:text-[#0D47A1] transition-colors cursor-pointer">
+            <button
+              onClick={onBack}
+              className="hover:text-[#0D47A1] transition-colors cursor-pointer"
+            >
               Reception Management
             </button>
             <ChevronRight size={12} />
-            <span className="font-semibold text-[#0D47A1]">Patient Check-In</span>
+            <span className="font-semibold text-[#0D47A1]">
+              Patient Check-In
+            </span>
           </div>
-          <h1 className="text-2xl font-bold text-[#111827] font-heading">Arrival Check-In & Token Issuance</h1>
+          <h1 className="text-2xl font-bold text-[#111827] font-heading">
+            Arrival Check-In & Token Issuance
+          </h1>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Capture arrival timestamp, record preliminary vitals, and issue OPD queue tokens.
+            Capture arrival timestamp, record preliminary vitals, and issue OPD
+            queue tokens.
           </p>
         </div>
 
@@ -76,11 +84,16 @@ export function PatientCheckInScreen({
               <div className="w-7 h-7 rounded-lg bg-teal-50 text-[#009688] flex items-center justify-center font-bold text-xs font-heading">
                 01
               </div>
-              <h2 className="text-base font-bold text-[#111827] font-heading">Patient & Appointment Identification</h2>
+              <h2 className="text-base font-bold text-[#111827] font-heading">
+                Patient & Appointment Identification
+              </h2>
             </div>
 
             <div className="relative">
-              <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search
+                size={18}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+              />
               <input
                 type="text"
                 value={searchQuery}
@@ -98,13 +111,16 @@ export function PatientCheckInScreen({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-[#111827]">Sarah Mitchell</h3>
+                    <h3 className="text-sm font-bold text-[#111827]">
+                      Sarah Mitchell
+                    </h3>
                     <span className="px-2 py-0.5 rounded-full bg-teal-100 text-[#009688] text-[10px] font-mono font-bold">
                       MRN-892101
                     </span>
                   </div>
                   <p className="text-xs text-[#64748B] mt-0.5">
-                    34 yrs · Female · Mobile: <span className="font-mono">+91 9876543210</span>
+                    34 yrs · Female · Mobile:{" "}
+                    <span className="font-mono">+91 9876543210</span>
                   </p>
                 </div>
               </div>
@@ -123,66 +139,110 @@ export function PatientCheckInScreen({
               <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#0D47A1] flex items-center justify-center font-bold text-xs font-heading">
                 02
               </div>
-              <h2 className="text-base font-bold text-[#111827] font-heading">Preliminary Vitals Capture</h2>
+              <h2 className="text-base font-bold text-[#111827] font-heading">
+                Preliminary Vitals Capture
+              </h2>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
               <div>
-                <label className="block font-semibold text-[#111827] mb-1">BP Systolic (mmHg)</label>
+                <label className="block font-semibold text-[#111827] mb-1">
+                  BP Systolic (mmHg)
+                </label>
                 <input
                   type="text"
                   value={selectedVitals.bpSystolic}
-                  onChange={(e) => setSelectedVitals({ ...selectedVitals, bpSystolic: e.target.value })}
+                  onChange={(e) =>
+                    setSelectedVitals({
+                      ...selectedVitals,
+                      bpSystolic: e.target.value,
+                    })
+                  }
                   className="w-full p-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] font-mono font-bold"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-[#111827] mb-1">BP Diastolic (mmHg)</label>
+                <label className="block font-semibold text-[#111827] mb-1">
+                  BP Diastolic (mmHg)
+                </label>
                 <input
                   type="text"
                   value={selectedVitals.bpDiastolic}
-                  onChange={(e) => setSelectedVitals({ ...selectedVitals, bpDiastolic: e.target.value })}
+                  onChange={(e) =>
+                    setSelectedVitals({
+                      ...selectedVitals,
+                      bpDiastolic: e.target.value,
+                    })
+                  }
                   className="w-full p-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] font-mono font-bold"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-[#111827] mb-1">Pulse Rate (bpm)</label>
+                <label className="block font-semibold text-[#111827] mb-1">
+                  Pulse Rate (bpm)
+                </label>
                 <input
                   type="text"
                   value={selectedVitals.pulse}
-                  onChange={(e) => setSelectedVitals({ ...selectedVitals, pulse: e.target.value })}
+                  onChange={(e) =>
+                    setSelectedVitals({
+                      ...selectedVitals,
+                      pulse: e.target.value,
+                    })
+                  }
                   className="w-full p-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] font-mono font-bold"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-[#111827] mb-1">Body Temp (°F)</label>
+                <label className="block font-semibold text-[#111827] mb-1">
+                  Body Temp (°F)
+                </label>
                 <input
                   type="text"
                   value={selectedVitals.temp}
-                  onChange={(e) => setSelectedVitals({ ...selectedVitals, temp: e.target.value })}
+                  onChange={(e) =>
+                    setSelectedVitals({
+                      ...selectedVitals,
+                      temp: e.target.value,
+                    })
+                  }
                   className="w-full p-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] font-mono font-bold"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-[#111827] mb-1">Weight (kg)</label>
+                <label className="block font-semibold text-[#111827] mb-1">
+                  Weight (kg)
+                </label>
                 <input
                   type="text"
                   value={selectedVitals.weight}
-                  onChange={(e) => setSelectedVitals({ ...selectedVitals, weight: e.target.value })}
+                  onChange={(e) =>
+                    setSelectedVitals({
+                      ...selectedVitals,
+                      weight: e.target.value,
+                    })
+                  }
                   className="w-full p-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] font-mono font-bold"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-[#111827] mb-1">Height (cm)</label>
+                <label className="block font-semibold text-[#111827] mb-1">
+                  Height (cm)
+                </label>
                 <input
                   type="text"
                   value={selectedVitals.height}
-                  onChange={(e) => setSelectedVitals({ ...selectedVitals, height: e.target.value })}
+                  onChange={(e) =>
+                    setSelectedVitals({
+                      ...selectedVitals,
+                      height: e.target.value,
+                    })
+                  }
                   className="w-full p-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] font-mono font-bold"
                 />
               </div>
@@ -201,7 +261,9 @@ export function PatientCheckInScreen({
             <div className="space-y-2 text-xs">
               <div className="flex justify-between py-1 border-b border-slate-100">
                 <span className="text-[#64748B]">Assigned Doctor</span>
-                <span className="font-bold text-[#111827]">Dr. Arjun Mehta</span>
+                <span className="font-bold text-[#111827]">
+                  Dr. Arjun Mehta
+                </span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-100">
                 <span className="text-[#64748B]">Department</span>
@@ -210,7 +272,10 @@ export function PatientCheckInScreen({
               <div className="flex justify-between py-1 border-b border-slate-100">
                 <span className="text-[#64748B]">Server Timestamp</span>
                 <span className="font-mono font-bold text-[#0D47A1]">
-                  {new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  {new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </span>
               </div>
             </div>
@@ -238,7 +303,10 @@ export function PatientCheckInScreen({
                 Patient Checked-In
               </h3>
               <p className="text-xs text-[#64748B]">
-                Token Generated: <strong className="font-mono text-base text-[#0D47A1]">{generatedToken}</strong>
+                Token Generated:{" "}
+                <strong className="font-mono text-base text-[#0D47A1]">
+                  {generatedToken}
+                </strong>
               </p>
             </div>
 

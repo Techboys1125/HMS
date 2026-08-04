@@ -297,8 +297,7 @@ export interface UpdateScheduleExceptionPayload {
 }
 
 export interface ApiDoctorProfile {
-  [x: string]: string;
-  [x: string]: string;
+  [x: string]: unknown;
   doctorId: number;
   medicalRegistrationNumber: string;
   qualification: string;
@@ -537,5 +536,3 @@ export interface FinalizePrescriptionResponse {
     registrationNumber: string;
   };
 }
-
-

@@ -30,7 +30,8 @@ interface FamilyMemberPayload {
   activePrescriptionsCount?: number;
 }
 
-function mapUserRoleToAppRole(userRole?: string | null): Role {  if (!userRole) return "admin";
+function mapUserRoleToAppRole(userRole?: string | null): Role {
+  if (!userRole) return "admin";
   const r = String(userRole).toUpperCase();
   if (r === "SUPER_ADMIN") return "super-admin";
   if (r === "ADMIN" || r === "HOSPITAL_ADMIN") return "admin";
@@ -201,13 +202,15 @@ export function HMSAppShell({ onLogout }: { onLogout?: () => void }) {
           (p: FamilyMemberPayload) => ({
             id: String(p.id ?? p.mrn ?? Math.random()),
             patientName: p.patientName || p.fullName || "Unknown",
+            name: p.patientName || p.fullName || "Unknown",
             mrn: p.mrn || "",
             relationship:
               (p.relationship as FamilyMember["relationship"]) || "Self",
             age: p.age ?? 0,
             gender: (p.gender as FamilyMember["gender"]) || "Other",
             mobileNumber: p.mobileNumber || p.phone || "",
-            registeredMobile: p.registeredMobile || p.mobileNumber || p.phone || "",
+            registeredMobile:
+              p.registeredMobile || p.mobileNumber || p.phone || "",
             email: p.email,
             photoUrl: p.photoUrl || p.photo,
             address: typeof p.address === "string" ? p.address : "",

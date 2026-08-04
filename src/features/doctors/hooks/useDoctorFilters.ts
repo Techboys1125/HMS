@@ -18,23 +18,48 @@ export function useDoctorFilters(doctors: DoctorRecord[]) {
       .filter((doc) => {
         if (searchDoctorQuery) {
           const q = searchDoctorQuery.toLowerCase();
-          if (!doc.name.toLowerCase().includes(q) && !doc.id.toLowerCase().includes(q)) return false;
+          if (
+            !doc.name.toLowerCase().includes(q) &&
+            !doc.id.toLowerCase().includes(q)
+          )
+            return false;
         }
         if (searchEmpIdQuery) {
-          if (!doc.empId.toLowerCase().includes(searchEmpIdQuery.toLowerCase())) return false;
+          if (!doc.empId.toLowerCase().includes(searchEmpIdQuery.toLowerCase()))
+            return false;
         }
         if (searchRegNoQuery) {
-          if (!doc.regNumber.toLowerCase().includes(searchRegNoQuery.toLowerCase())) return false;
+          if (
+            !doc.regNumber
+              .toLowerCase()
+              .includes(searchRegNoQuery.toLowerCase())
+          )
+            return false;
         }
         if (deptFilter !== "All" && doc.department !== deptFilter) return false;
-        if (specialtyFilter !== "All" && doc.specialty !== specialtyFilter) return false;
-        if (availabilityFilter !== "All" && doc.availability !== availabilityFilter) return false;
+        if (specialtyFilter !== "All" && doc.specialty !== specialtyFilter)
+          return false;
+        if (
+          availabilityFilter !== "All" &&
+          doc.availability !== availabilityFilter
+        )
+          return false;
         if (statusFilter !== "All" && doc.status !== statusFilter) return false;
         if (experienceFilter !== "All") {
-          if (experienceFilter === "0-5 Years" && doc.experienceYrs > 5) return false;
-          if (experienceFilter === "5-10 Years" && (doc.experienceYrs < 5 || doc.experienceYrs > 10)) return false;
-          if (experienceFilter === "10-15 Years" && (doc.experienceYrs < 10 || doc.experienceYrs > 15)) return false;
-          if (experienceFilter === "15+ Years" && doc.experienceYrs < 15) return false;
+          if (experienceFilter === "0-5 Years" && doc.experienceYrs > 5)
+            return false;
+          if (
+            experienceFilter === "5-10 Years" &&
+            (doc.experienceYrs < 5 || doc.experienceYrs > 10)
+          )
+            return false;
+          if (
+            experienceFilter === "10-15 Years" &&
+            (doc.experienceYrs < 10 || doc.experienceYrs > 15)
+          )
+            return false;
+          if (experienceFilter === "15+ Years" && doc.experienceYrs < 15)
+            return false;
         }
         return true;
       })
@@ -44,13 +69,29 @@ export function useDoctorFilters(doctors: DoctorRecord[]) {
         if (typeof valA === "number" && typeof valB === "number") {
           return sortDirection === "asc" ? valA - valB : valB - valA;
         }
-        const strA = Array.isArray(valA) ? valA.join(", ") : String(valA ?? "").toLowerCase();
-        const strB = Array.isArray(valB) ? valB.join(", ") : String(valB ?? "").toLowerCase();
+        const strA = Array.isArray(valA)
+          ? valA.join(", ")
+          : String(valA ?? "").toLowerCase();
+        const strB = Array.isArray(valB)
+          ? valB.join(", ")
+          : String(valB ?? "").toLowerCase();
         if (strA < strB) return sortDirection === "asc" ? -1 : 1;
         if (strA > strB) return sortDirection === "asc" ? 1 : -1;
         return 0;
       });
-  }, [doctors, searchDoctorQuery, searchEmpIdQuery, searchRegNoQuery, deptFilter, specialtyFilter, availabilityFilter, statusFilter, experienceFilter, sortColumn, sortDirection]);
+  }, [
+    doctors,
+    searchDoctorQuery,
+    searchEmpIdQuery,
+    searchRegNoQuery,
+    deptFilter,
+    specialtyFilter,
+    availabilityFilter,
+    statusFilter,
+    experienceFilter,
+    sortColumn,
+    sortDirection,
+  ]);
 
   const handleSort = (col: keyof DoctorRecord) => {
     if (sortColumn === col) {
@@ -73,15 +114,26 @@ export function useDoctorFilters(doctors: DoctorRecord[]) {
   };
 
   return {
-    searchDoctorQuery, setSearchDoctorQuery,
-    searchEmpIdQuery, setSearchEmpIdQuery,
-    searchRegNoQuery, setSearchRegNoQuery,
-    deptFilter, setDeptFilter,
-    specialtyFilter, setSpecialtyFilter,
-    availabilityFilter, setAvailabilityFilter,
-    statusFilter, setStatusFilter,
-    experienceFilter, setExperienceFilter,
-    sortColumn, sortDirection,
-    filteredDoctors, handleSort, resetFilters,
+    searchDoctorQuery,
+    setSearchDoctorQuery,
+    searchEmpIdQuery,
+    setSearchEmpIdQuery,
+    searchRegNoQuery,
+    setSearchRegNoQuery,
+    deptFilter,
+    setDeptFilter,
+    specialtyFilter,
+    setSpecialtyFilter,
+    availabilityFilter,
+    setAvailabilityFilter,
+    statusFilter,
+    setStatusFilter,
+    experienceFilter,
+    setExperienceFilter,
+    sortColumn,
+    sortDirection,
+    filteredDoctors,
+    handleSort,
+    resetFilters,
   };
 }

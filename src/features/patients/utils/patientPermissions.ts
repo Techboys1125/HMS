@@ -1,4 +1,10 @@
-export type Role = "ADMIN" | "RECEPTIONIST" | "DOCTOR" | "NURSE" | "PATIENT" | "ACCOUNTANT";
+export type Role =
+  | "ADMIN"
+  | "RECEPTIONIST"
+  | "DOCTOR"
+  | "NURSE"
+  | "PATIENT"
+  | "ACCOUNTANT";
 
 export type PatientAction =
   | "list"
@@ -6,6 +12,7 @@ export type PatientAction =
   | "editProfile"
   | "viewProfile"
   | "manageFamilyMembers"
+  | "addFamilyMember"
   | "viewAppointments"
   | "manageAppointments"
   | "viewQueue"
@@ -15,7 +22,11 @@ export type PatientAction =
   | "viewPrescriptions"
   | "editPrescriptions"
   | "viewBilling"
-  | "manageBilling";
+  | "manageBilling"
+  | "viewMedicalRecords"
+  | "editMedicalRecords"
+  | "viewReports"
+  | "switchAccount";
 
 const PERMISSION_MATRIX: Record<Role, Record<PatientAction, boolean>> = {
   ADMIN: {
@@ -24,6 +35,7 @@ const PERMISSION_MATRIX: Record<Role, Record<PatientAction, boolean>> = {
     editProfile: true,
     viewProfile: true,
     manageFamilyMembers: true,
+    addFamilyMember: true,
     viewAppointments: true,
     manageAppointments: true,
     viewQueue: true,
@@ -34,6 +46,10 @@ const PERMISSION_MATRIX: Record<Role, Record<PatientAction, boolean>> = {
     editPrescriptions: true,
     viewBilling: true,
     manageBilling: true,
+    viewMedicalRecords: true,
+    editMedicalRecords: false,
+    viewReports: true,
+    switchAccount: false,
   },
   RECEPTIONIST: {
     list: true,
@@ -41,6 +57,7 @@ const PERMISSION_MATRIX: Record<Role, Record<PatientAction, boolean>> = {
     editProfile: true,
     viewProfile: true,
     manageFamilyMembers: true,
+    addFamilyMember: false,
     viewAppointments: true,
     manageAppointments: true,
     viewQueue: true,
@@ -51,6 +68,10 @@ const PERMISSION_MATRIX: Record<Role, Record<PatientAction, boolean>> = {
     editPrescriptions: false,
     viewBilling: false,
     manageBilling: false,
+    viewMedicalRecords: false,
+    editMedicalRecords: false,
+    viewReports: false,
+    switchAccount: false,
   },
   DOCTOR: {
     list: false,
@@ -58,6 +79,7 @@ const PERMISSION_MATRIX: Record<Role, Record<PatientAction, boolean>> = {
     editProfile: false,
     viewProfile: true,
     manageFamilyMembers: false,
+    addFamilyMember: false,
     viewAppointments: true,
     manageAppointments: false,
     viewQueue: true,
@@ -68,6 +90,10 @@ const PERMISSION_MATRIX: Record<Role, Record<PatientAction, boolean>> = {
     editPrescriptions: true,
     viewBilling: false,
     manageBilling: false,
+    viewMedicalRecords: true,
+    editMedicalRecords: true,
+    viewReports: false,
+    switchAccount: false,
   },
   NURSE: {
     list: false,
@@ -75,6 +101,7 @@ const PERMISSION_MATRIX: Record<Role, Record<PatientAction, boolean>> = {
     editProfile: false,
     viewProfile: true,
     manageFamilyMembers: false,
+    addFamilyMember: false,
     viewAppointments: false,
     manageAppointments: false,
     viewQueue: true,
@@ -85,6 +112,10 @@ const PERMISSION_MATRIX: Record<Role, Record<PatientAction, boolean>> = {
     editPrescriptions: false,
     viewBilling: false,
     manageBilling: false,
+    viewMedicalRecords: true,
+    editMedicalRecords: false,
+    viewReports: false,
+    switchAccount: false,
   },
   PATIENT: {
     list: false,
@@ -92,6 +123,7 @@ const PERMISSION_MATRIX: Record<Role, Record<PatientAction, boolean>> = {
     editProfile: true,
     viewProfile: true,
     manageFamilyMembers: true,
+    addFamilyMember: true,
     viewAppointments: true,
     manageAppointments: true,
     viewQueue: true,
@@ -102,6 +134,10 @@ const PERMISSION_MATRIX: Record<Role, Record<PatientAction, boolean>> = {
     editPrescriptions: false,
     viewBilling: true,
     manageBilling: false,
+    viewMedicalRecords: true,
+    editMedicalRecords: false,
+    viewReports: true,
+    switchAccount: true,
   },
   ACCOUNTANT: {
     list: true,
@@ -109,6 +145,7 @@ const PERMISSION_MATRIX: Record<Role, Record<PatientAction, boolean>> = {
     editProfile: false,
     viewProfile: true,
     manageFamilyMembers: false,
+    addFamilyMember: false,
     viewAppointments: false,
     manageAppointments: false,
     viewQueue: false,
@@ -119,6 +156,10 @@ const PERMISSION_MATRIX: Record<Role, Record<PatientAction, boolean>> = {
     editPrescriptions: false,
     viewBilling: true,
     manageBilling: true,
+    viewMedicalRecords: false,
+    editMedicalRecords: false,
+    viewReports: true,
+    switchAccount: false,
   },
 };
 
@@ -137,15 +178,26 @@ export function can(
   if (isOwnRecord) {
     if (action === "editProfile" && role === "PATIENT") return true;
     if (action === "manageFamilyMembers" && role === "PATIENT") return true;
+    if (action === "addFamilyMember" && role === "PATIENT") return true;
     if (action === "manageAppointments" && role === "PATIENT") return true;
     if (action === "viewQueue" && role === "PATIENT") return true;
     if (action === "viewPrescriptions" && role === "PATIENT") return true;
     if (action === "viewBilling" && role === "PATIENT") return true;
+    if (action === "viewMedicalRecords" && role === "PATIENT") return true;
+    if (action === "viewReports" && role === "PATIENT") return true;
+    if (action === "switchAccount" && role === "PATIENT") return true;
   }
 
-  if (action === "editProfile" && role === "PATIENT" && !isOwnRecord) return false;
-  if (action === "manageFamilyMembers" && role === "PATIENT" && !isOwnRecord) return false;
-  if (action === "manageAppointments" && role === "PATIENT" && !isOwnRecord) return false;
+  if (action === "editProfile" && role === "PATIENT" && !isOwnRecord)
+    return false;
+  if (action === "manageFamilyMembers" && role === "PATIENT" && !isOwnRecord)
+    return false;
+  if (action === "addFamilyMember" && role === "PATIENT" && !isOwnRecord)
+    return false;
+  if (action === "manageAppointments" && role === "PATIENT" && !isOwnRecord)
+    return false;
+  if (action === "switchAccount" && role === "PATIENT" && !isOwnRecord)
+    return false;
 
   return permission;
 }

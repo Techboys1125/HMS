@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  X,
-  Shield,
-  AlertTriangle,
-  CheckCircle2,
-} from "lucide-react";
+import { X, Shield, AlertTriangle, CheckCircle2 } from "lucide-react";
 import type { UserRecord } from "../pages/UserManagement";
 import RoleBadge from "../../../common/components/RoleBadge";
 import { StatusBadge } from "../../../common/components/StatusBadge";

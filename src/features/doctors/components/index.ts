@@ -18,7 +18,10 @@ export { DoctorConsultationScreen } from "./DoctorConsultationScreen";
 export { DoctorPrescriptionsScreen } from "./DoctorPrescriptionsScreen";
 export { DoctorPrescriptionDetailsScreen } from "./DoctorPrescriptionDetailsScreen";
 export { DoctorEditPrescriptionScreen } from "./DoctorEditPrescriptionScreen";
-export { DoctorPrescriptionPrintPreviewScreen, DoctorPrescriptionHistoryScreen } from "./DoctorPrescriptionPrintPreviewScreen";
+export {
+  DoctorPrescriptionPrintPreviewScreen,
+  DoctorPrescriptionHistoryScreen,
+} from "./DoctorPrescriptionPrintPreviewScreen";
 export { DoctorReportsScreen } from "./DoctorReportsScreen";
 export { DoctorScheduleScreen } from "./DoctorScheduleScreen";
 export { DoctorQueueScreen } from "./DoctorQueueScreen";

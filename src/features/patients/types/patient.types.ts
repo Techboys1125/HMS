@@ -62,6 +62,7 @@ export interface Address {
  * Patient record returned from GET /api/v1/patients
  */
 export interface Patient {
+  insuranceDetails: any;
   id?: number;
   mrn: string;
   fullName: string;
@@ -424,8 +425,6 @@ export interface PatientProfileScreenProps {
   role?: string;
 }
 
-export type ReceptionPatientProfileScreenProps = PatientProfileScreenProps;
-
 export interface PatientPrescriptionItem {
   id: string;
   consultationId: string;
@@ -543,4 +542,242 @@ export interface ApiPatientInvoice {
   date?: string;
   status?: string;
   amount?: string | number;
+}
+
+/**
+ * Form mode determines which fields are visible and editable
+ * - register: Admin/Receptionist registering a new patient
+ * - edit: Editing an existing patient profile
+ * - family: Adding a family member (reuses registration form)
+ * - self: Patient completing their own registration after auth
+ */
+export type PatientFormMode = "register" | "edit" | "family" | "self";
+
+/**
+ * Maps which fields each role can edit in the PatientRegistrationForm
+ */
+export interface RoleFieldPermissions {
+  /** Fields that are always read-only regardless of role */
+  alwaysReadOnly: string[];
+  /** Fields editable by this role */
+  editableFields: string[];
+  /** Fields visible but read-only for this role */
+  readOnlyFields: string[];
+  /** Fields hidden from this role */
+  hiddenFields: string[];
+}
+
+/**
+ * Role-based field permission configuration
+ */
+export const ROLE_FIELD_PERMISSIONS: Record<string, RoleFieldPermissions> = {
+  ADMIN: {
+    alwaysReadOnly: ["mrn"],
+    editableFields: [
+      "fullName",
+      "gender",
+      "dateOfBirth",
+      "bloodGroup",
+      "maritalStatus",
+      "mobileNumber",
+      "email",
+      "photoUrl",
+      "nationalId",
+      "addressLine1",
+      "addressLine2",
+      "city",
+      "state",
+      "pincode",
+      "country",
+      "ecName",
+      "ecRelationship",
+      "ecMobile",
+      "ecAltMobile",
+      "patientCategory",
+      "registrationType",
+      "knownAllergies",
+      "chronicDiseases",
+      "specialNotes",
+    ],
+    readOnlyFields: [],
+    hiddenFields: [],
+  },
+  HOSPITAL_ADMIN: {
+    alwaysReadOnly: ["mrn"],
+    editableFields: [
+      "fullName",
+      "gender",
+      "dateOfBirth",
+      "bloodGroup",
+      "maritalStatus",
+      "mobileNumber",
+      "email",
+      "photoUrl",
+      "nationalId",
+      "addressLine1",
+      "addressLine2",
+      "city",
+      "state",
+      "pincode",
+      "country",
+      "ecName",
+      "ecRelationship",
+      "ecMobile",
+      "ecAltMobile",
+      "patientCategory",
+      "registrationType",
+      "knownAllergies",
+      "chronicDiseases",
+      "specialNotes",
+    ],
+    readOnlyFields: [],
+    hiddenFields: [],
+  },
+  RECEPTIONIST: {
+    alwaysReadOnly: ["mrn"],
+    editableFields: [
+      "fullName",
+      "gender",
+      "dateOfBirth",
+      "mobileNumber",
+      "email",
+      "addressLine1",
+      "addressLine2",
+      "city",
+      "state",
+      "pincode",
+      "country",
+      "ecName",
+      "ecRelationship",
+      "ecMobile",
+      "ecAltMobile",
+      "nationalId",
+      "patientCategory",
+      "registrationType",
+    ],
+    readOnlyFields: ["bloodGroup", "maritalStatus"],
+    hiddenFields: ["knownAllergies", "chronicDiseases", "specialNotes"],
+  },
+  PATIENT: {
+    alwaysReadOnly: ["mrn", "dateOfBirth", "gender"],
+    editableFields: [
+      "mobileNumber",
+      "email",
+      "photoUrl",
+      "addressLine1",
+      "addressLine2",
+      "city",
+      "state",
+      "pincode",
+      "country",
+    ],
+    readOnlyFields: [
+      "fullName",
+      "bloodGroup",
+      "maritalStatus",
+      "nationalId",
+      "ecName",
+      "ecRelationship",
+      "ecMobile",
+    ],
+    hiddenFields: ["patientCategory", "registrationType"],
+  },
+  DOCTOR: {
+    alwaysReadOnly: ["mrn", "dateOfBirth", "gender"],
+    editableFields: [],
+    readOnlyFields: [
+      "fullName",
+      "mobileNumber",
+      "email",
+      "bloodGroup",
+      "knownAllergies",
+      "chronicDiseases",
+    ],
+    hiddenFields: [
+      "addressLine1",
+      "addressLine2",
+      "city",
+      "state",
+      "pincode",
+      "country",
+      "ecName",
+      "ecRelationship",
+      "ecMobile",
+      "ecAltMobile",
+      "nationalId",
+      "patientCategory",
+      "registrationType",
+      "specialNotes",
+    ],
+  },
+  NURSE: {
+    alwaysReadOnly: ["mrn", "dateOfBirth", "gender"],
+    editableFields: [],
+    readOnlyFields: [
+      "fullName",
+      "mobileNumber",
+      "bloodGroup",
+      "knownAllergies",
+    ],
+    hiddenFields: [
+      "email",
+      "maritalStatus",
+      "nationalId",
+      "photoUrl",
+      "addressLine1",
+      "addressLine2",
+      "city",
+      "state",
+      "pincode",
+      "country",
+      "ecName",
+      "ecRelationship",
+      "ecMobile",
+      "ecAltMobile",
+      "patientCategory",
+      "registrationType",
+      "chronicDiseases",
+      "specialNotes",
+    ],
+  },
+  ACCOUNTANT: {
+    alwaysReadOnly: ["mrn", "dateOfBirth", "gender"],
+    editableFields: [],
+    readOnlyFields: ["fullName", "mobileNumber", "email"],
+    hiddenFields: [
+      "bloodGroup",
+      "maritalStatus",
+      "nationalId",
+      "photoUrl",
+      "addressLine1",
+      "addressLine2",
+      "city",
+      "state",
+      "pincode",
+      "country",
+      "ecName",
+      "ecRelationship",
+      "ecMobile",
+      "ecAltMobile",
+      "patientCategory",
+      "registrationType",
+      "knownAllergies",
+      "chronicDiseases",
+      "specialNotes",
+    ],
+  },
+};
+
+/**
+ * Context for switching between patient and family member accounts
+ */
+export interface SwitchAccountContext {
+  /** Currently active patient MRN */
+  activeMrn: string;
+  /** Primary patient MRN (the logged-in user's own MRN) */
+  primaryMrn: string;
+  /** Name of the currently active patient */
+  activePatientName: string;
+  /** Whether currently viewing a family member's data */
+  isFamilyMember: boolean;
 }

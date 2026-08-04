@@ -47,7 +47,9 @@ export function ActivateDoctorDialog({
           <span className="font-bold text-[#111827]">{doctor.name}</span>?
           <br />
           <br />
-          The doctor will be marked as <span className="font-bold">ACTIVE</span>{" "}
+          The doctor will be marked as <span className="font-bold">
+            ACTIVE
+          </span>{" "}
           and will be able to receive new OPD appointments and appear in the
           patient-facing doctor directory again.
         </p>

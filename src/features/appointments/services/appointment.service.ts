@@ -151,13 +151,6 @@ export const normalizeAppointmentRecord = (
 const unwrapAppointmentCollection = (
   response: any,
 ): Record<string, unknown>[] => {
-  console.log("Appointments API Response:", response);
-  try {
-    console.log("JSON stringified response:", JSON.stringify(response));
-  } catch (e) {
-    console.log("Could not stringify response:", e);
-  }
-
   if (Array.isArray(response)) return response;
   if (Array.isArray(response?.data)) return response.data;
   if (Array.isArray(response?.content)) return response.content;
@@ -206,7 +199,6 @@ export const appointmentService = {
 
     const res = await appointmentsApi.getAppointments(params);
     const items = unwrapAppointmentCollection(res);
-    console.log("Extracted items:", items);
 
     return items.map((item) => {
       const docObj = (item?.doctor as Record<string, unknown>) || {};
@@ -257,9 +249,6 @@ export const appointmentService = {
     let items = unwrapAppointmentCollection(res);
 
     if (items.length === 0) {
-      console.log(
-        `[listDoctorAppointments] Doctor route returned 0 items for doctorId=${doctorId}. Trying fallbacks...`,
-      );
       try {
         const fallbackRes = await appointmentsApi.getAppointments({
           doctorId,
@@ -268,9 +257,6 @@ export const appointmentService = {
         });
         const fallbackItems = unwrapAppointmentCollection(fallbackRes);
         if (fallbackItems.length > 0) {
-          console.log(
-            `[listDoctorAppointments] Fallback 1 (getAppointments with doctorId) returned ${fallbackItems.length} items.`,
-          );
           items = fallbackItems;
         }
       } catch (e) {
@@ -310,9 +296,6 @@ export const appointmentService = {
                 itemDocCode === "KJBJC"
               );
             });
-            console.log(
-              `[listDoctorAppointments] Fallback 2 (general getAppointments matched for doctor) returned ${items.length} items.`,
-            );
           }
         } catch (e) {
           console.warn("Doctor appointment fallback 2 failed:", e);
@@ -488,29 +471,9 @@ export const appointmentService = {
           : [];
 
       // Read localStorage overrides for status
-      const statusOverrides = JSON.parse(localStorage.getItem("doctor_status_overrides") || "{}");
-
-      // DEBUG: Log raw API response to see actual field names
-      if (rawList.length > 0) {
-        console.log("[listDoctors] Raw API doctor sample:", JSON.stringify(rawList[0], null, 2));
-        console.log("[listDoctors] All doctors status fields:", rawList.map((d: any) => ({
-          id: d.doctorId ?? d.id,
-          name: d.doctorName ?? d.fullName ?? d.name,
-          status: d.status,
-          active: d.active,
-          isActive: d.isActive,
-          profileStatus: d.doctorProfile?.status,
-        })));
-        // eslint-disable-next-line no-console
-        console.table(
-          rawList.map((d: any) => ({
-            id: d.doctorId ?? d.userId ?? d.id ?? "",
-            name: d.doctorName ?? d.fullName ?? d.name ?? "",
-            status: d.status ?? d.doctorProfile?.status ?? d.user?.status ?? "",
-            active: d.active ?? d.isActive ?? d.enabled ?? "",
-          })),
-        );
-      }
+      const statusOverrides = JSON.parse(
+        localStorage.getItem("doctor_status_overrides") || "{}",
+      );
 
       // Filter out inactive doctors before mapping
       const activeDoctors = rawList.filter((d: any) => {
@@ -528,7 +491,11 @@ export const appointmentService = {
         });
 
         // Check localStorage override for every possible id/key shape
-        if (candidateKeys.some((key) => statusOverrides[key]?.status === "Inactive")) {
+        if (
+          candidateKeys.some(
+            (key) => statusOverrides[key]?.status === "Inactive",
+          )
+        ) {
           return false;
         }
 
@@ -607,9 +574,7 @@ export const appointmentService = {
           d.doctor?.active ??
           d.user?.active ??
           d.user?.isActive ??
-          (d.status
-            ? String(d.status).toUpperCase() === "ACTIVE"
-            : undefined),
+          (d.status ? String(d.status).toUpperCase() === "ACTIVE" : undefined),
       }));
     } catch (error) {
       console.warn("[appointmentService] listDoctors failed:", error);

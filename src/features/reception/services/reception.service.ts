@@ -34,7 +34,10 @@ export const receptionService = {
   async checkInPatient(
     payloadOrId: ArrivalCheckInPayload | string | number,
   ): Promise<CheckInResponseData> {
-    const appointmentId = (typeof payloadOrId === "object" ? (payloadOrId.appointmentId || payloadOrId.queueItemId) : payloadOrId) || "";
+    const appointmentId =
+      (typeof payloadOrId === "object"
+        ? payloadOrId.appointmentId || payloadOrId.queueItemId
+        : payloadOrId) || "";
     try {
       // 1. Send PATCH check-in request to backend
       const patchRes = await receptionApi.patchCheckIn(appointmentId);
@@ -48,10 +51,7 @@ export const receptionService = {
         `TK-${Math.floor(100 + Math.random() * 900)}`;
 
       // 3. Update status to WAITING_FOR_VITALS
-      await receptionApi.updateQueueStatus(
-        appointmentId,
-        "WAITING_FOR_VITALS",
-      );
+      await receptionApi.updateQueueStatus(appointmentId, "WAITING_FOR_VITALS");
 
       return {
         success: true,

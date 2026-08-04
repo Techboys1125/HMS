@@ -91,7 +91,11 @@ export function PatientTable({
   userRole?: string;
 }) {
   const permissions = usePermissions();
-  const activeRole = (userRole || permissions.role || "RECEPTIONIST").toUpperCase();
+  const activeRole = (
+    userRole ||
+    permissions.role ||
+    "RECEPTIONIST"
+  ).toUpperCase();
 
   // Sorting state
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -186,7 +190,11 @@ export function PatientTable({
     { key: "phone", label: "Mobile", visible: true },
     { key: "email", label: "Email", visible: !isDoctor && !isReceptionist },
     { key: "blood_group", label: "Blood Group", visible: isDoctor },
-    { key: "category", label: "Category", visible: !isDoctor && !isReceptionist },
+    {
+      key: "category",
+      label: "Category",
+      visible: !isDoctor && !isReceptionist,
+    },
     { key: "reg_type", label: "Reg. Type", visible: !isDoctor },
     { key: "assigned_doctor", label: "Assigned Doctor", visible: true },
     { key: "reg_date", label: "Registration Date", visible: !isDoctor },
@@ -196,9 +204,13 @@ export function PatientTable({
 
   // RBAC Permission checks for Row Actions
   const canEdit = permissions.can("PATIENT_EDIT");
-  const canViewHistory = permissions.can("PATIENT_VIEW_HISTORY") || isDoctor || activeRole.includes("ADMIN");
+  const canViewHistory =
+    permissions.can("PATIENT_VIEW_HISTORY") ||
+    isDoctor ||
+    activeRole.includes("ADMIN");
   const canViewAppointments = permissions.can("APPOINTMENT_VIEW");
-  const canBilling = permissions.can("BILLING_CREATE") || permissions.can("BILLING_VIEW");
+  const canBilling =
+    permissions.can("BILLING_CREATE") || permissions.can("BILLING_VIEW");
 
   return (
     <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden relative">
@@ -304,10 +316,16 @@ export function PatientTable({
                               sortDirection === "asc" ? (
                                 <ArrowUp size={13} className="text-[#0D47A1]" />
                               ) : (
-                                <ArrowDown size={13} className="text-[#0D47A1]" />
+                                <ArrowDown
+                                  size={13}
+                                  className="text-[#0D47A1]"
+                                />
                               )
                             ) : (
-                              <ArrowUpDown size={12} className="opacity-50 hover:opacity-100" />
+                              <ArrowUpDown
+                                size={12}
+                                className="opacity-50 hover:opacity-100"
+                              />
                             )}
                           </span>
                         )}
@@ -322,13 +340,20 @@ export function PatientTable({
                 const mrn = p.mrn || String(p.id);
                 const name = (p.patientName || p.name || "").trim();
                 const age = p.age || 0;
-                const gender = p.gender === "FEMALE" || p.gender === "F" ? "Female" : "Male";
+                const gender =
+                  p.gender === "FEMALE" || p.gender === "F" ? "Female" : "Male";
                 const phone = p.phone || "-";
                 const email = p.email || "-";
-                const category = (p.patientCategory || "GENERAL").toLowerCase().replace(/_/g, " ");
-                const regType = (p.registrationType || "WALK_IN").toLowerCase().replace(/_/g, " ");
+                const category = (p.patientCategory || "GENERAL")
+                  .toLowerCase()
+                  .replace(/_/g, " ");
+                const regType = (p.registrationType || "WALK_IN")
+                  .toLowerCase()
+                  .replace(/_/g, " ");
                 const doctor = p.assignedDoctor || "Unassigned";
-                const regDate = p.registrationDate ? p.registrationDate.split("T")[0] : "";
+                const regDate = p.registrationDate
+                  ? p.registrationDate.split("T")[0]
+                  : "";
                 const status = p.status || "Active";
 
                 return (
@@ -390,13 +415,17 @@ export function PatientTable({
 
                     {columns.some((c) => c.key === "category") && (
                       <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
-                        <span className="font-medium capitalize">{category}</span>
+                        <span className="font-medium capitalize">
+                          {category}
+                        </span>
                       </td>
                     )}
 
                     {columns.some((c) => c.key === "reg_type") && (
                       <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
-                        <span className="font-medium capitalize">{regType}</span>
+                        <span className="font-medium capitalize">
+                          {regType}
+                        </span>
                       </td>
                     )}
 
@@ -404,7 +433,9 @@ export function PatientTable({
                       <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
                         <div className="flex items-center gap-1.5">
                           <UserCheck size={14} className="text-[#009688]" />
-                          <span className="font-medium text-[#111827]">{doctor}</span>
+                          <span className="font-medium text-[#111827]">
+                            {doctor}
+                          </span>
                         </div>
                       </td>
                     )}
@@ -451,8 +482,11 @@ export function PatientTable({
                                     }}
                                     className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
                                   >
-                                    <Edit size={14} className="text-slate-500" /> Edit
-                                    Patient
+                                    <Edit
+                                      size={14}
+                                      className="text-slate-500"
+                                    />{" "}
+                                    Edit Patient
                                   </button>
                                 )}
                                 {canViewHistory && (
@@ -465,7 +499,10 @@ export function PatientTable({
                                     }}
                                     className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
                                   >
-                                    <FileText size={14} className="text-[#009688]" />{" "}
+                                    <FileText
+                                      size={14}
+                                      className="text-[#009688]"
+                                    />{" "}
                                     Medical History
                                   </button>
                                 )}
@@ -473,11 +510,15 @@ export function PatientTable({
                                   <button
                                     onClick={() => {
                                       onToggleActionMenu(null);
-                                      if (onViewAppointments) onViewAppointments(mrn);
+                                      if (onViewAppointments)
+                                        onViewAppointments(mrn);
                                     }}
                                     className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
                                   >
-                                    <Calendar size={14} className="text-purple-600" />{" "}
+                                    <Calendar
+                                      size={14}
+                                      className="text-purple-600"
+                                    />{" "}
                                     Appointments
                                   </button>
                                 )}
@@ -489,7 +530,10 @@ export function PatientTable({
                                     }}
                                     className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-[#66BB6A]/10 hover:text-[#66BB6A] flex items-center gap-2 font-medium transition-colors border-t border-gray-100 mt-1 pt-2"
                                   >
-                                    <Receipt size={14} className="text-amber-600" />{" "}
+                                    <Receipt
+                                      size={14}
+                                      className="text-amber-600"
+                                    />{" "}
                                     Generate Bill
                                   </button>
                                 )}
@@ -541,4 +585,3 @@ export function PatientTable({
     </div>
   );
 }
-

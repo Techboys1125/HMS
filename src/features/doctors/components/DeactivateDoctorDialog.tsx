@@ -81,15 +81,20 @@ export function DeactivateDoctorDialog({
         </p>
 
         {loadingCount ? (
-          <div className="text-xs text-[#64748B] italic">Checking upcoming appointments...</div>
+          <div className="text-xs text-[#64748B] italic">
+            Checking upcoming appointments...
+          </div>
         ) : upcomingCount > 0 ? (
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
             <div className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
               <AlertTriangle size={14} className="text-amber-600" />
-              <span>Warning: {upcomingCount} upcoming appointment(s) found!</span>
+              <span>
+                Warning: {upcomingCount} upcoming appointment(s) found!
+              </span>
             </div>
             <p className="text-[11px] text-amber-700">
-              This doctor has active prospective bookings. Deactivating will block new bookings while keeping historical records intact.
+              This doctor has active prospective bookings. Deactivating will
+              block new bookings while keeping historical records intact.
             </p>
             <label className="flex items-center gap-2 cursor-pointer pt-1">
               <input
@@ -105,7 +110,8 @@ export function DeactivateDoctorDialog({
           </div>
         ) : (
           <div className="text-xs text-slate-500">
-            This doctor has no upcoming appointments. Historical records will remain accessible.
+            This doctor has no upcoming appointments. Historical records will
+            remain accessible.
           </div>
         )}
 

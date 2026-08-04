@@ -173,11 +173,13 @@ export function DoctorQueueScreen() {
   };
 
   const content: DoctorQueueItem[] = queue.content || [];
-  const waitingCount = content.filter(
-    (p) =>
-      ["WAITING", "CHECKED_IN", "WAITING_FOR_VITALS", "WAITING_FOR_DOCTOR_CALL"].includes(
-        statusKey(p.status || p.queueStatus),
-      ),
+  const waitingCount = content.filter((p) =>
+    [
+      "WAITING",
+      "CHECKED_IN",
+      "WAITING_FOR_VITALS",
+      "WAITING_FOR_DOCTOR_CALL",
+    ].includes(statusKey(p.status || p.queueStatus)),
   ).length;
   const inProgressCount = content.filter(
     (p) =>
@@ -202,7 +204,8 @@ export function DoctorQueueScreen() {
             className="text-sm text-[#64748B] mt-0.5"
             style={{ fontFamily: RB }}
           >
-            Call the next patient, start the consultation, and complete the visit.
+            Call the next patient, start the consultation, and complete the
+            visit.
           </p>
         </div>
         <button
@@ -296,10 +299,7 @@ export function DoctorQueueScreen() {
         ) : content.length === 0 ? (
           <div className="text-center py-12">
             <Users size={40} className="mx-auto text-slate-300 mb-3" />
-            <p
-              className="text-sm text-[#64748B]"
-              style={{ fontFamily: RB }}
-            >
+            <p className="text-sm text-[#64748B]" style={{ fontFamily: RB }}>
               No patients in queue.
             </p>
           </div>
@@ -380,7 +380,9 @@ export function DoctorQueueScreen() {
                     )}
                     {key === "IN_CONSULTATION" && (
                       <button
-                        onClick={() => handleCompleteConsultation(appointmentId)}
+                        onClick={() =>
+                          handleCompleteConsultation(appointmentId)
+                        }
                         disabled={!appointmentId || isActionBusy}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-[11px] font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >

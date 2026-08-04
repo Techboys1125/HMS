@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Search,
   Download,
@@ -11,7 +11,12 @@ import {
   Printer,
   CheckCircle2,
 } from "lucide-react";
-import type { PatientPrescriptionItem } from "../types/patient.types";
+import type {
+  PatientPrescriptionItem,
+  ApiPatientPrescription,
+} from "../types/patient.types";
+import type { FamilyMember } from "./FamilyMembersManagement";
+import { patientsApi } from "../api/patient.api";
 import { PP, RB } from "../constants/patient.mock";
 
 export function PatientPrescriptionsScreen({
@@ -19,9 +24,9 @@ export function PatientPrescriptionsScreen({
   activePatient,
 }: {
   onViewDetails?: (rxId: string) => void;
-  activePatient?: any;
+  activePatient?: FamilyMember;
 }) {
-  const patientName = activePatient?.patientName || activePatient?.name || "Patient";
+  const patientName = activePatient?.patientName || "Patient";
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedDateRange, setSelectedDateRange] = useState("All");
@@ -31,7 +36,7 @@ export function PatientPrescriptionsScreen({
     useState<PatientPrescriptionItem | null>(null);
   const [fullViewPrescription, setFullViewPrescription] =
     useState<PatientPrescriptionItem | null>(null);
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const triggerToast = (msg: string) => {
@@ -39,9 +44,54 @@ export function PatientPrescriptionsScreen({
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const [patientPrescriptionsData] = useState<
+  const [patientPrescriptionsData, setPatientPrescriptionsData] = useState<
     PatientPrescriptionItem[]
   >([]);
+
+  useEffect(() => {
+    const mrn = activePatient?.mrn;
+    if (!mrn) return;
+
+    let cancelled = false;
+    setIsLoading(true);
+    patientsApi
+      .getPrescriptions(mrn)
+      .then((records) => {
+        if (cancelled) return;
+        const mapped = records.map((rx: ApiPatientPrescription) => {
+          const statusRaw = String(rx.status ?? "").toUpperCase();
+          const status: PatientPrescriptionItem["status"] =
+            statusRaw.startsWith("COMPLETED")
+              ? "Completed"
+              : statusRaw.startsWith("ARCHIVED") ||
+                  statusRaw.startsWith("CANCELLED")
+                ? "Archived"
+                : "Issued";
+          return {
+            id: String(rx.id ?? ""),
+            consultationId: "",
+            consultationDate: rx.date ?? "",
+            doctorName: rx.doctorName ?? "",
+            department: "",
+            diagnosisSummary: "",
+            medicines: [],
+            followupDate: "",
+            status,
+          };
+        });
+        setPatientPrescriptionsData(mapped);
+      })
+      .catch(() => {
+        if (!cancelled) setPatientPrescriptionsData([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activePatient?.mrn]);
 
   // Search & Filter Logic
   const handleResetFilters = () => {

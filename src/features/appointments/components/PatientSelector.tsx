@@ -102,18 +102,20 @@ export const PatientSelector: React.FC<PatientSelectorProps> = ({
             <div
               key={p.id}
               onClick={() => onSelectPatient(p)}
-              className={`p-3.5 rounded-xl border transition-all cursor-pointer relative flex flex-col justify-between ${isSelected
-                ? "bg-blue-50/70 border-[#0D47A1] ring-2 ring-blue-100 shadow-sm"
-                : "bg-white border-slate-200 hover:border-blue-300 hover:bg-slate-50/50"
-                }`}
+              className={`p-3.5 rounded-xl border transition-all cursor-pointer relative flex flex-col justify-between ${
+                isSelected
+                  ? "bg-blue-50/70 border-[#0D47A1] ring-2 ring-blue-100 shadow-sm"
+                  : "bg-white border-slate-200 hover:border-blue-300 hover:bg-slate-50/50"
+              }`}
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2.5">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isSelected
-                      ? "bg-[#0D47A1] text-white"
-                      : "bg-slate-100 text-slate-600"
-                      }`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                      isSelected
+                        ? "bg-[#0D47A1] text-white"
+                        : "bg-slate-100 text-slate-600"
+                    }`}
                   >
                     {p.relationship === "SELF" ? (
                       <User size={15} />

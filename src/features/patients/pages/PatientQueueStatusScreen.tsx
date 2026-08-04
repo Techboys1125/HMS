@@ -134,7 +134,9 @@ export function PatientQueueStatusScreen() {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
-                  <div className="text-xs text-[#64748B] mb-1">Token Number</div>
+                  <div className="text-xs text-[#64748B] mb-1">
+                    Token Number
+                  </div>
                   <div
                     className="text-2xl font-bold text-[#0D47A1]"
                     style={{ fontFamily: PP }}
@@ -152,7 +154,9 @@ export function PatientQueueStatusScreen() {
                   </div>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
-                  <div className="text-xs text-[#64748B] mb-1">Ahead of You</div>
+                  <div className="text-xs text-[#64748B] mb-1">
+                    Ahead of You
+                  </div>
                   <div
                     className="text-2xl font-bold text-amber-600"
                     style={{ fontFamily: PP }}
@@ -225,16 +229,31 @@ export function PatientQueueStatusScreen() {
               </h3>
               <div className="space-y-2 text-xs text-[#64748B]">
                 <div className="flex items-start gap-2">
-                  <CheckCircle2 size={14} className="text-[#66BB6A] mt-0.5 shrink-0" />
-                  <span>Arrive at the hospital at least 15 minutes before your estimated time.</span>
+                  <CheckCircle2
+                    size={14}
+                    className="text-[#66BB6A] mt-0.5 shrink-0"
+                  />
+                  <span>
+                    Arrive at the hospital at least 15 minutes before your
+                    estimated time.
+                  </span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <CheckCircle2 size={14} className="text-[#66BB6A] mt-0.5 shrink-0" />
+                  <CheckCircle2
+                    size={14}
+                    className="text-[#66BB6A] mt-0.5 shrink-0"
+                  />
                   <span>Carry your token number and valid ID proof.</span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <AlertCircle size={14} className="text-amber-500 mt-0.5 shrink-0" />
-                  <span>If you miss your turn, please inform the reception desk immediately.</span>
+                  <AlertCircle
+                    size={14}
+                    className="text-amber-500 mt-0.5 shrink-0"
+                  />
+                  <span>
+                    If you miss your turn, please inform the reception desk
+                    immediately.
+                  </span>
                 </div>
               </div>
             </div>

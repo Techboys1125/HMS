@@ -1,6 +1,12 @@
 import React from "react";
 import type { BillingStatus } from "../types/reception.types";
-import { CheckCircle2, AlertCircle, Clock, ShieldCheck, RefreshCw } from "lucide-react";
+import {
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  ShieldCheck,
+  RefreshCw,
+} from "lucide-react";
 
 interface BillingStatusIndicatorProps {
   status: BillingStatus;
@@ -18,7 +24,9 @@ export const BillingStatusIndicator: React.FC<BillingStatusIndicatorProps> = ({
       case "PAID":
         return {
           bg: "bg-emerald-50 text-emerald-700 border-emerald-200",
-          icon: <CheckCircle2 size={12} className="text-emerald-600 shrink-0" />,
+          icon: (
+            <CheckCircle2 size={12} className="text-emerald-600 shrink-0" />
+          ),
           label: "Paid",
         };
       case "PENDING":

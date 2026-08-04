@@ -2,7 +2,7 @@ import { useParams } from "react-router";
 import { PatientProfilePage } from "../pages/PatientProfilePage";
 import { useAuthStore } from "../../auth/index";
 import { useState, useEffect } from "react";
-import { patientApi } from "../api/patientApi";
+import { patientsApi } from "../api/patient.api";
 import { mapApiPatientToPatientRecord } from "../api/mapApiPatientToPatientRecord";
 
 export function PatientProfileRoute() {
@@ -23,7 +23,10 @@ export function PatientProfileRoute() {
 
   useEffect(() => {
     if (!mrn) return;
-    patientApi.getPatientByMrn(mrn).then((p) => setPatient(mapApiPatientToPatientRecord(p))).catch(() => {});
+    patientsApi
+      .getPatientByMrn(mrn)
+      .then((p) => setPatient(mapApiPatientToPatientRecord(p)))
+      .catch(() => {});
   }, [mrn]);
 
   if (!mrn || !patient) return null;

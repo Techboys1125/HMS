@@ -20,7 +20,9 @@ export function PatientDoctorSearchScreen() {
   const [selectedDept, setSelectedDept] = useState("All");
   const [doctors, setDoctors] = useState<DoctorRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState<DoctorRecord | null>(null);
+  const [selectedDoctor, setSelectedDoctor] = useState<DoctorRecord | null>(
+    null,
+  );
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const triggerToast = (msg: string) => {
@@ -257,8 +259,8 @@ export function PatientDoctorSearchScreen() {
                   {selectedDoctor.specialty} · {selectedDoctor.department}
                 </p>
                 <p className="text-xs text-slate-500">
-                  {selectedDoctor.qualification} · {selectedDoctor.experienceYrs}{" "}
-                  yrs
+                  {selectedDoctor.qualification} ·{" "}
+                  {selectedDoctor.experienceYrs} yrs
                 </p>
               </div>
             </div>
@@ -280,7 +282,9 @@ export function PatientDoctorSearchScreen() {
                 </span>
               </div>
               <div>
-                <span className="text-[#64748B] block text-[11px]">Slot Duration</span>
+                <span className="text-[#64748B] block text-[11px]">
+                  Slot Duration
+                </span>
                 <span className="font-bold text-[#111827]">
                   {selectedDoctor.slotDuration}
                 </span>

@@ -9,12 +9,12 @@ export interface DoctorProfilePageProps {
   onBack: () => void;
 }
 
-export function DoctorProfilePage({ doctorId, doctor, onBack }: DoctorProfilePageProps) {
+export function DoctorProfilePage({
+  doctorId,
+  doctor,
+  onBack,
+}: DoctorProfilePageProps) {
   return (
-    <DoctorProfileScreen
-      doctorId={doctorId}
-      doctor={doctor}
-      onBack={onBack}
-    />
+    <DoctorProfileScreen doctorId={doctorId} doctor={doctor} onBack={onBack} />
   );
 }

@@ -8,8 +8,14 @@ import {
   Calendar as CalendarIcon,
   Ban,
 } from "lucide-react";
-import type { AppointmentRecord, DoctorSummary } from "../types/appointment.types";
-import type { VisitType, AppointmentStatus } from "../types/appointment-screen.types";
+import type {
+  AppointmentRecord,
+  DoctorSummary,
+} from "../types/appointment.types";
+import type {
+  VisitType,
+  AppointmentStatus,
+} from "../types/appointment-screen.types";
 import { Avatar } from "./Avatar";
 import {
   PP,
@@ -18,7 +24,10 @@ import {
   appointmentToPatientSummary,
 } from "../constants/appointment.constants";
 import { appointmentService } from "../services/appointment.service";
-import { departmentsApi, type ApiDepartmentLookupItem } from "../../users/api/departments.api";
+import {
+  departmentsApi,
+  type ApiDepartmentLookupItem,
+} from "../../users/api/departments.api";
 
 export function EditAppointmentDrawer({
   apt,
@@ -51,25 +60,30 @@ export function EditAppointmentDrawer({
   const [departments, setDepartments] = useState<ApiDepartmentLookupItem[]>([]);
 
   useEffect(() => {
-    departmentsApi.getDepartmentLookup(true).then((lookupList) => {
-      if (lookupList && lookupList.length > 0) {
-        setDepartments(lookupList);
-      } else {
-        departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
-          const lookupMapped = list.map((d) => ({
-            departmentId: d.departmentId ?? d.id ?? "",
-            departmentName: d.departmentName || d.name || "",
-            active: true,
-            specialties: [],
-          }));
-          setDepartments(lookupMapped);
-        });
-      }
-    }).catch(() => {});
+    departmentsApi
+      .getDepartmentLookup(true)
+      .then((lookupList) => {
+        if (lookupList && lookupList.length > 0) {
+          setDepartments(lookupList);
+        } else {
+          departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
+            const lookupMapped = list.map((d) => ({
+              departmentId: d.departmentId ?? d.id ?? "",
+              departmentName: d.departmentName || d.name || "",
+              active: true,
+              specialties: [],
+            }));
+            setDepartments(lookupMapped);
+          });
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
-    const matchedDept = departments.find((d) => d.departmentName === department);
+    const matchedDept = departments.find(
+      (d) => d.departmentName === department,
+    );
     const deptId = matchedDept ? matchedDept.departmentId : undefined;
     appointmentService
       .listDoctors(deptId)
@@ -94,9 +108,9 @@ export function EditAppointmentDrawer({
           typeof apt.department === "string"
             ? apt.department
             : apt.department?.departmentName ||
-              apt.department?.name ||
-              apt.department?.departmentCode ||
-              ""
+                apt.department?.name ||
+                apt.department?.departmentCode ||
+                "",
         );
         setDoctorName(apt.doctorName);
         setAppointmentDate(apt.appointmentDate);
@@ -265,7 +279,10 @@ export function EditAppointmentDrawer({
                       <option value="">Loading departments...</option>
                     )}
                     {departments.map((dept) => (
-                      <option key={dept.departmentId} value={dept.departmentName}>
+                      <option
+                        key={dept.departmentId}
+                        value={dept.departmentName}
+                      >
                         {dept.departmentName}
                       </option>
                     ))}
@@ -286,7 +303,8 @@ export function EditAppointmentDrawer({
                     )}
                     {doctors.map((doc) => (
                       <option key={doc.id} value={doc.name}>
-                        {doc.name} ({doc.departmentName || doc.department || ""})
+                        {doc.name} ({doc.departmentName || doc.department || ""}
+                        )
                       </option>
                     ))}
                   </select>

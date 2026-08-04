@@ -31,7 +31,9 @@ import type { AppointmentRecord } from "./appointment.types";
 
 export interface AppointmentManagementCenterScreenProps {
   onPatientSelect?: (id: number | string) => void;
-  onStartConsultation?: (apt?: AppointmentRecord | null | string | number) => void;
+  onStartConsultation?: (
+    apt?: AppointmentRecord | null | string | number,
+  ) => void;
   onBookAppointmentClick?: () => void;
   onReceptionQueueClick?: () => void;
   userRole?: UserRole;
@@ -58,7 +60,7 @@ type Role =
 
 export interface BookAppointmentScreenProps {
   role?: Role;
-     onBack?: () => void;
+  onBack?: () => void;
   onConfirmSuccess?: (appointmentId: string) => void;
   onRegisterNewPatientClick?: () => void;
   onViewPatientProfileClick?: (mrn: string) => void;
@@ -66,7 +68,6 @@ export interface BookAppointmentScreenProps {
   onPatientSelect?: (mrn: string) => void;
   onBookSuccess?: (appointment: AppointmentRecord) => void;
   initialMrn?: string;
-    
 }
 
 export interface PatientCheckInScreenProps {

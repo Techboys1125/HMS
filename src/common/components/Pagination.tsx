@@ -41,12 +41,17 @@ export const Pagination: React.FC<PaginationProps> = ({
       </div>
       <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between text-xs text-slate-500">
         <div>
-          Showing <span className="font-semibold text-[#111827]">{startIdx}</span> to{" "}
+          Showing{" "}
+          <span className="font-semibold text-[#111827]">{startIdx}</span> to{" "}
           <span className="font-semibold text-[#111827]">{endIdx}</span> of{" "}
-          <span className="font-semibold text-[#111827]">{totalCount}</span> entries
+          <span className="font-semibold text-[#111827]">{totalCount}</span>{" "}
+          entries
         </div>
         <div>
-          <nav className="relative z-0 inline-flex rounded-md shadow-xs -space-x-px" aria-label="Pagination">
+          <nav
+            className="relative z-0 inline-flex rounded-md shadow-xs -space-x-px"
+            aria-label="Pagination"
+          >
             <button
               disabled={currentPage === 1}
               onClick={() => onPageChange(currentPage - 1)}

@@ -1,14 +1,11 @@
 export const ROUTES = {
   ROOT: "/",
-
   LOGIN: "/login",
   REGISTER: "/register",
   FORGOT_PASSWORD: "/forgot-password",
   RESET_PASSWORD: "/reset-password",
   CHANGE_PASSWORD: "/change-password",
-
   DASHBOARD: "/dashboard",
-
   PATIENTS: "/patients",
   PATIENT_REGISTER: "/patients/register",
   PATIENT_PROFILE: "/patients/profile",
@@ -25,21 +22,14 @@ export const ROUTES = {
   PATIENT_DOCTOR_ASSIGNED: "/doctor/patients",
   PATIENT_NURSE_VITALS: "/nurse/vitals",
   PATIENT_ACCOUNTANT_BILLING: "/accountant/patients/billing",
-
   APPOINTMENTS: "/appointments",
   BOOK_APPOINTMENT: "/appointments/book",
   APPOINTMENT_DETAILS: "/appointments/:id",
-
   QUEUE: "/queue",
-
   VITALS: "/vitals",
-
   CONSULTATION: "/consultation",
-
   PRESCRIPTIONS: "/prescriptions",
-
   BILLING: "/billing",
-
   DOCTORS: "/doctors",
   DOCTOR_SCHEDULE: "/doctors/schedule",
   DOCTOR_MY_SCHEDULE: "/doctor/schedule",
@@ -53,17 +43,12 @@ export const ROUTES = {
   DOCTOR_PROFILE: "/doctors/:doctorId",
   DOCTOR_DIRECTORY: "/doctors/directory",
   DOCTOR_MY_PROFILE: "/doctor/profile",
-
   REPORTS: "/reports",
-
   SETTINGS: "/settings",
-
   PROFILE: "/profile",
-
   USER_MANAGEMENT: "/users",
   AUDIT_LOGS: "/audit-logs",
   NOTIFICATIONS: "/notifications",
-
   NOT_FOUND: "*",
 } as const;
 

@@ -657,14 +657,14 @@ export function ProfileInvoiceDrawer({
   onPay,
 }: {
   invoice:
-  | (Record<string, unknown> & {
-    id?: string;
-    date?: string;
-    status?: string;
-    description?: string;
-    amount?: number;
-  })
-  | null;
+    | (Record<string, unknown> & {
+        id?: string;
+        date?: string;
+        status?: string;
+        description?: string;
+        amount?: number;
+      })
+    | null;
   onClose: () => void;
   onPay: (msg: string) => void;
 }) {
@@ -770,14 +770,14 @@ export function ProfileDocDrawer({
   onDownload,
 }: {
   doc:
-  | (Record<string, unknown> & {
-    title?: string;
-    category?: string;
-    date?: string;
-    size?: string;
-    doctor?: string;
-  })
-  | null;
+    | (Record<string, unknown> & {
+        title?: string;
+        category?: string;
+        date?: string;
+        size?: string;
+        doctor?: string;
+      })
+    | null;
   onClose: () => void;
   onDownload: (msg: string) => void;
 }) {

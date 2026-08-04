@@ -40,7 +40,9 @@ export function KpiCards({
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between hover:border-blue-200 transition-colors">
         <div>
-          <div className="text-xs text-[#64748B] font-medium">Total Doctors</div>
+          <div className="text-xs text-[#64748B] font-medium">
+            Total Doctors
+          </div>
           <div
             className="text-2xl font-bold text-[#111827] mt-0.5"
             style={{ fontFamily: PP }}
@@ -58,7 +60,9 @@ export function KpiCards({
 
       <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between hover:border-teal-200 transition-colors">
         <div>
-          <div className="text-xs text-[#64748B] font-medium">Available Today</div>
+          <div className="text-xs text-[#64748B] font-medium">
+            Available Today
+          </div>
           <div
             className="text-2xl font-bold text-[#111827] mt-0.5"
             style={{ fontFamily: PP }}
@@ -95,7 +99,9 @@ export function KpiCards({
 
       <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between hover:border-blue-200 transition-colors">
         <div>
-          <div className="text-xs text-[#64748B] font-medium">Departments Covered</div>
+          <div className="text-xs text-[#64748B] font-medium">
+            Departments Covered
+          </div>
           <div
             className="text-2xl font-bold text-[#111827] mt-0.5"
             style={{ fontFamily: PP }}

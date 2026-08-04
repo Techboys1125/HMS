@@ -407,6 +407,10 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "FAMILY_MEMBER_VIEW",
 
     "FAMILY_MEMBER_CREATE",
+
+    "PATIENT_MEDICAL_RECORDS_VIEW",
+
+    "PATIENT_REPORTS_VIEW",
   ],
 
   RECEPTIONIST: [
@@ -537,6 +541,8 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "PROFILE_UPDATE",
 
     "CHANGE_PASSWORD",
+
+    "PATIENT_MEDICAL_RECORDS_VIEW",
   ],
 
   NURSE: [
@@ -575,6 +581,8 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "PROFILE_UPDATE",
 
     "CHANGE_PASSWORD",
+
+    "PATIENT_MEDICAL_RECORDS_VIEW",
   ],
 
   ACCOUNTANT: [
@@ -655,5 +663,23 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "PRESCRIPTION_VIEW",
 
     "BILLING_VIEW",
+
+    "PATIENT_VIEW_SELF",
+
+    "PATIENT_EDIT_SELF",
+
+    "PATIENT_MEDICAL_RECORDS_VIEW",
+
+    "PATIENT_REPORTS_VIEW",
+
+    "PATIENT_SWITCH_ACCOUNT",
+
+    "FAMILY_MEMBER_DELETE",
+
+    "MY_APPOINTMENTS_VIEW",
+
+    "MY_PRESCRIPTIONS_VIEW",
+
+    "MY_BILLS_VIEW",
   ],
 };

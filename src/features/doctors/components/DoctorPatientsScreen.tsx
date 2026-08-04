@@ -69,7 +69,7 @@ export function DoctorPatientsScreen() {
         | { content?: unknown[]; items?: unknown[] };
       const appointments = Array.isArray(raw)
         ? raw
-        : raw.content ?? raw.items ?? [];
+        : (raw.content ?? raw.items ?? []);
       const patientMap = new Map<string, PatientRow>();
       (appointments as RawAppointment[]).forEach((apt) => {
         const pid = String(apt.patientId ?? apt.mrn ?? apt.id ?? Math.random());

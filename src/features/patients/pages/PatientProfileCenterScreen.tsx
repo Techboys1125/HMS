@@ -68,7 +68,8 @@ export function PatientProfileCenterScreen({
         gender: activePatient.gender || "Female",
         bloodGroup: activePatient.bloodGroup || "O+",
         address: activePatient.address || "Main Street",
-        emergencyName: activePatient.emergencyContact?.name || "Emergency Contact",
+        emergencyName:
+          activePatient.emergencyContact?.name || "Emergency Contact",
         emergencyRelation: activePatient.relationship || "Family",
         emergencyPhone: activePatient.emergencyContact?.mobileNumber || "",
       });

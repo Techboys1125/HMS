@@ -58,21 +58,26 @@ export const doctorApi = {
     }
   },
 
-  getDoctorById: async (userId: number | string): Promise<ApiUserDoctorRecord> => {
+  getDoctorById: async (
+    userId: number | string,
+  ): Promise<ApiUserDoctorRecord> => {
     const response = await apiClient.get<
       DoctorApiResponse<ApiUserDoctorRecord>
     >(`/api/v1/admin/users/${userId}`);
-    const data = response.data?.data || (response.data as unknown as ApiUserDoctorRecord);
+    const data =
+      response.data?.data || (response.data as unknown as ApiUserDoctorRecord);
     if (!data) throw new Error(`Doctor user ${userId} not found`);
     return data;
   },
 
-  createDoctor: async (payload: CreateDoctorPayload): Promise<ApiUserDoctorRecord> => {
-    const response = await apiClient.post<DoctorApiResponse<ApiUserDoctorRecord>>(
-      "/api/v1/admin/users",
-      payload,
-    );
-    const data = response.data?.data || (response.data as unknown as ApiUserDoctorRecord);
+  createDoctor: async (
+    payload: CreateDoctorPayload,
+  ): Promise<ApiUserDoctorRecord> => {
+    const response = await apiClient.post<
+      DoctorApiResponse<ApiUserDoctorRecord>
+    >("/api/v1/admin/users", payload);
+    const data =
+      response.data?.data || (response.data as unknown as ApiUserDoctorRecord);
     if (!data) throw new Error("Failed to create doctor user");
     return data;
   },
@@ -88,14 +93,18 @@ export const doctorApi = {
     return response.data;
   },
 
-  deactivateDoctor: async (doctorId: number | string): Promise<DoctorApiResponse<unknown>> => {
+  deactivateDoctor: async (
+    doctorId: number | string,
+  ): Promise<DoctorApiResponse<unknown>> => {
     const response = await apiClient.patch<DoctorApiResponse<unknown>>(
       `/api/v1/doctors/${doctorId}/deactivate`,
     );
     return response.data;
   },
 
-  activateDoctor: async (userId: number | string): Promise<DoctorApiResponse<unknown>> => {
+  activateDoctor: async (
+    userId: number | string,
+  ): Promise<DoctorApiResponse<unknown>> => {
     const response = await apiClient.patch<DoctorApiResponse<unknown>>(
       `/api/v1/admin/users/${userId}/activate`,
     );
@@ -109,7 +118,11 @@ export const doctorApi = {
       const response = await apiClient.get<
         DoctorApiResponse<ApiWeeklyScheduleData>
       >(`/api/v1/doctors/${doctorId}/schedules`);
-      return response.data?.data || (response.data as unknown as ApiWeeklyScheduleData) || null;
+      return (
+        response.data?.data ||
+        (response.data as unknown as ApiWeeklyScheduleData) ||
+        null
+      );
     } catch {
       return null;
     }
@@ -151,7 +164,10 @@ export const doctorApi = {
       const response = await apiClient.get<
         DoctorApiResponse<ApiScheduleExceptionItem[]>
       >(`/api/v1/doctors/${doctorId}/schedule-exceptions`);
-      return response.data?.data || (Array.isArray(response.data) ? response.data : []);
+      return (
+        response.data?.data ||
+        (Array.isArray(response.data) ? response.data : [])
+      );
     } catch {
       return [];
     }
@@ -165,7 +181,11 @@ export const doctorApi = {
       const response = await apiClient.post<
         DoctorApiResponse<ApiScheduleExceptionItem>
       >(`/api/v1/doctors/${doctorId}/schedule-exceptions`, payload);
-      return response.data?.data || (response.data as unknown as ApiScheduleExceptionItem) || null;
+      return (
+        response.data?.data ||
+        (response.data as unknown as ApiScheduleExceptionItem) ||
+        null
+      );
     } catch {
       return null;
     }
@@ -179,8 +199,15 @@ export const doctorApi = {
     try {
       const response = await apiClient.put<
         DoctorApiResponse<ApiScheduleExceptionItem>
-      >(`/api/v1/doctors/${doctorId}/schedule-exceptions/${exceptionId}`, payload);
-      return response.data?.data || (response.data as unknown as ApiScheduleExceptionItem) || null;
+      >(
+        `/api/v1/doctors/${doctorId}/schedule-exceptions/${exceptionId}`,
+        payload,
+      );
+      return (
+        response.data?.data ||
+        (response.data as unknown as ApiScheduleExceptionItem) ||
+        null
+      );
     } catch {
       return null;
     }
@@ -208,7 +235,11 @@ export const doctorApi = {
       const response = await apiClient.get<
         DoctorApiResponse<DoctorDailyAvailabilityData>
       >(`/api/v1/doctors/${doctorId}/availability?date=${date}`);
-      return response.data?.data || (response.data as unknown as DoctorDailyAvailabilityData) || null;
+      return (
+        response.data?.data ||
+        (response.data as unknown as DoctorDailyAvailabilityData) ||
+        null
+      );
     } catch {
       return null;
     }
@@ -222,7 +253,11 @@ export const doctorApi = {
       const response = await apiClient.get<
         DoctorApiResponse<DoctorMonthlyAvailabilityData>
       >(`/api/v1/doctors/${doctorId}/availability/calendar?month=${month}`);
-      return response.data?.data || (response.data as unknown as DoctorMonthlyAvailabilityData) || null;
+      return (
+        response.data?.data ||
+        (response.data as unknown as DoctorMonthlyAvailabilityData) ||
+        null
+      );
     } catch {
       return null;
     }
@@ -235,7 +270,10 @@ export const doctorApi = {
       const response = await apiClient.get<
         DoctorApiResponse<DoctorAppointment[]>
       >(`/api/v1/doctors/${doctorId}/appointments`);
-      return response.data?.data || (Array.isArray(response.data) ? response.data : []);
+      return (
+        response.data?.data ||
+        (Array.isArray(response.data) ? response.data : [])
+      );
     } catch {
       return [];
     }
@@ -249,7 +287,11 @@ export const doctorApi = {
       const now = new Date();
       return appointments.filter((a) => {
         const apptDate = new Date(a.date);
-        return apptDate >= now && a.status !== "Cancelled" && a.status !== "Completed";
+        return (
+          apptDate >= now &&
+          a.status !== "Cancelled" &&
+          a.status !== "Completed"
+        );
       }).length;
     } catch {
       return 0;
@@ -258,12 +300,29 @@ export const doctorApi = {
 
   getDoctorAudit: async (
     doctorId: number | string,
-  ): Promise<Array<{ action: string; timestamp: string; performedBy: string; details: string }>> => {
+  ): Promise<
+    Array<{
+      action: string;
+      timestamp: string;
+      performedBy: string;
+      details: string;
+    }>
+  > => {
     try {
       const response = await apiClient.get<
-        DoctorApiResponse<Array<{ action: string; timestamp: string; performedBy: string; details: string }>>
+        DoctorApiResponse<
+          Array<{
+            action: string;
+            timestamp: string;
+            performedBy: string;
+            details: string;
+          }>
+        >
       >(`/api/v1/doctors/${doctorId}/audit`);
-      return response.data?.data || (Array.isArray(response.data) ? response.data : []);
+      return (
+        response.data?.data ||
+        (Array.isArray(response.data) ? response.data : [])
+      );
     } catch {
       return [];
     }

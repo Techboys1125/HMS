@@ -572,7 +572,6 @@ export function PatientCheckInScreen({
                   </div>
                 </div>
               </div>
-
             </>
           ) : (
             <div className="bg-white rounded-2xl border border-[#E5E7EB] p-8 text-center space-y-2">
@@ -587,7 +586,6 @@ export function PatientCheckInScreen({
             </div>
           )}
         </div>
-
       </div>
 
       {/* ── STICKY FOOTER ACTION BAR ── */}

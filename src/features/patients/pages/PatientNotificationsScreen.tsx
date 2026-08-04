@@ -45,8 +45,7 @@ const MOCK_NOTIFICATIONS: NotificationItem[] = [
   {
     id: "N-003",
     title: "Prescription Ready",
-    message:
-      "Your prescription from Dr. Priya Sharma is ready for download.",
+    message: "Your prescription from Dr. Priya Sharma is ready for download.",
     time: "1 day ago",
     type: "prescription",
     read: true,
@@ -103,9 +102,8 @@ const TYPE_CONFIG: Record<
 };
 
 export function PatientNotificationsScreen() {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(
-    MOCK_NOTIFICATIONS,
-  );
+  const [notifications, setNotifications] =
+    useState<NotificationItem[]>(MOCK_NOTIFICATIONS);
   const [filter, setFilter] = useState<string>("All");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -168,7 +166,8 @@ export function PatientNotificationsScreen() {
             className="text-xs text-[#64748B] mt-0.5"
             style={{ fontFamily: RB }}
           >
-            Stay updated with your appointments, queue, prescriptions, and bills.
+            Stay updated with your appointments, queue, prescriptions, and
+            bills.
           </p>
           <div
             className="flex items-center gap-1.5 text-xs text-[#64748B] mt-1"
@@ -203,25 +202,30 @@ export function PatientNotificationsScreen() {
           <span className="text-xs font-semibold text-[#64748B]">Filter:</span>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {["All", "Unread", "appointment", "queue", "prescription", "billing"].map(
-            (f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
-                  filter === f
-                    ? "bg-[#0D47A1] text-white"
-                    : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {f === "All"
-                  ? "All"
-                  : f === "Unread"
-                    ? "Unread"
-                    : f.charAt(0).toUpperCase() + f.slice(1)}
-              </button>
-            ),
-          )}
+          {[
+            "All",
+            "Unread",
+            "appointment",
+            "queue",
+            "prescription",
+            "billing",
+          ].map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                filter === f
+                  ? "bg-[#0D47A1] text-white"
+                  : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              {f === "All"
+                ? "All"
+                : f === "Unread"
+                  ? "Unread"
+                  : f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -229,7 +233,9 @@ export function PatientNotificationsScreen() {
         {filtered.length === 0 ? (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-12 text-center shadow-sm">
             <Bell size={32} className="mx-auto text-slate-300 mb-3" />
-            <h3 className="text-sm font-bold text-[#111827]">No notifications</h3>
+            <h3 className="text-sm font-bold text-[#111827]">
+              No notifications
+            </h3>
             <p className="text-xs text-[#64748B] mt-1">
               You're all caught up! Check back later for updates.
             </p>

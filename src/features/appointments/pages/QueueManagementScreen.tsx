@@ -126,7 +126,11 @@ export function QueueManagementScreen({
       const data = await receptionService.fetchWorklist();
       const mapped = (data || []).map((item: any, _idx: number) => ({
         token: item.tokenNumber || item.token || "",
-        name: item.patientName || item.patient?.name || item.patient?.fullName || "",
+        name:
+          item.patientName ||
+          item.patient?.name ||
+          item.patient?.fullName ||
+          "",
         mrn: item.mrn || item.patient?.mrn || "",
         aptId: item.appointmentId || item.id || "",
         doctor: item.doctorName || item.doctor?.name || "",

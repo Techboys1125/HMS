@@ -1,70 +1,99 @@
+/**
+ * Patient Service – Business logic layer
+ * Orchestrates patient operations between API, auth, and state
+ */
 import { patientsApi } from "../api/patient.api";
-import type {
-  CreatePatientRequest,
-  DuplicateCheckRequest,
-  DuplicateOverrideRequest,
-  MergePatientsRequest,
-  Patient,
-  PatientStatistics,
-} from "../types/patient.types";
+import { mapApiPatientToPatientRecord } from "../api/mapApiPatientToPatientRecord";
+import type { Patient, CreatePatientRequest } from "../types/patient.types";
 
 export const patientService = {
-  async getPatients(params?: {
+  /**
+   * Register a new patient and return the mapped record.
+   * Called after auth registration or by Admin/Receptionist.
+   */
+  async registerPatient(payload: CreatePatientRequest): Promise<Patient> {
+    const response = await patientsApi.create(payload);
+    const raw = response.data || response;
+    return mapApiPatientToPatientRecord(raw as Patient);
+  },
+
+  /**
+   * Get patient by MRN with mapped fields
+   */
+  async getPatientProfile(mrn: string): Promise<Patient> {
+    const raw = await patientsApi.getPatientByMrn(mrn);
+    return mapApiPatientToPatientRecord(raw);
+  },
+
+  /**
+   * Update patient profile with partial payload
+   */
+  async updatePatientProfile(
+    mrn: string,
+    payload: Record<string, unknown>,
+  ): Promise<Patient> {
+    const raw = await patientsApi.updatePatient(mrn, payload);
+    return mapApiPatientToPatientRecord(raw);
+  },
+
+  /**
+   * List all patients with mapped fields
+   */
+  async listPatients(params?: {
     query?: string;
     page?: number;
     size?: number;
     status?: string;
-  }): Promise<Patient[]> {
-    return patientsApi.getAll(params);
+  }) {
+    const response = await patientsApi.listPatients(params);
+    return {
+      ...response,
+      items: response.items.map(mapApiPatientToPatientRecord),
+    };
   },
 
-  async getMyPatients(relationship?: string): Promise<Patient[]> {
-    return patientsApi.getMyPatients(relationship);
+  /**
+   * Create patient record from auth registration data.
+   * Called after POST /api/v1/auth/patient/register succeeds
+   * to ensure the patient also appears in Patient Management.
+   */
+  async createPatientFromAuth(authData: {
+    fullName: string;
+    email: string;
+    mobile: string;
+  }): Promise<Patient | null> {
+    try {
+      const payload: CreatePatientRequest = {
+        fullName: authData.fullName,
+        email: authData.email,
+        mobileNumber: authData.mobile,
+        gender: "OTHER", // Will be updated during profile completion
+        relationship: "SELF",
+        registrationType: "ONLINE",
+      };
+      return await patientService.registerPatient(payload);
+    } catch (error) {
+      // If backend already created the patient record during auth,
+      // this will fail with a duplicate error — that's expected
+      console.warn(
+        "[patientService] Auto-create patient from auth (may already exist):",
+        error,
+      );
+      return null;
+    }
   },
 
-  async searchPatients(query: string): Promise<Patient[]> {
-    return patientsApi.search(query);
+  /**
+   * Get patient audit trail
+   */
+  async getAuditTrail(mrn: string) {
+    return patientsApi.getPatientAudit(mrn);
   },
 
-  async getPatient(mrn: string): Promise<Patient> {
-    return patientsApi.getById(mrn);
-  },
-
-  async createPatient(
-    payload: CreatePatientRequest,
-  ): Promise<{ success?: boolean; message?: string; data?: Patient }> {
-    return patientsApi.create(payload);
-  },
-
-  async createPatientWithOverride(
-    payload: CreatePatientRequest,
-    reason: string,
-  ): Promise<Patient> {
-    return patientsApi.createWithOverride(payload, reason);
-  },
-
-  async updatePatient(
-    idOrMrn: string | number,
-    payload: Record<string, unknown>,
-  ): Promise<Patient> {
-    return patientsApi.update(idOrMrn, payload);
-  },
-
-  async checkDuplicates(payload: DuplicateCheckRequest): Promise<Patient[]> {
-    return patientsApi.checkDuplicates(payload);
-  },
-
-  async overrideDuplicate(
-    payload: DuplicateOverrideRequest & { mrn?: string },
-  ): Promise<Patient> {
-    return patientsApi.overrideDuplicate(payload);
-  },
-
-  async mergePatients(payload: MergePatientsRequest): Promise<Patient> {
-    return patientsApi.merge(payload);
-  },
-
-  async getStatistics(): Promise<PatientStatistics> {
+  /**
+   * Get patient statistics
+   */
+  async getStatistics() {
     return patientsApi.getStatistics();
   },
 };

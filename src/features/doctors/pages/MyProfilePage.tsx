@@ -14,7 +14,14 @@ import { AssignedPatientsTab } from "../components/tabs/AssignedPatientsTab";
 import { PP, RB } from "../constants/doctors.constants";
 import type { DoctorRecord } from "../types/doctors.types";
 
-type MyProfileTab = "profile" | "schedule" | "exceptions" | "daily" | "calendar" | "appointments" | "patients";
+type MyProfileTab =
+  | "profile"
+  | "schedule"
+  | "exceptions"
+  | "daily"
+  | "calendar"
+  | "appointments"
+  | "patients";
 
 const MY_PROFILE_TABS: Array<{ id: MyProfileTab; label: string }> = [
   { id: "profile", label: "Personal Details" },
@@ -34,7 +41,8 @@ export function MyProfilePage() {
   const [activeTab, setActiveTab] = useState<MyProfileTab>("profile");
 
   const isDoctor = String(user?.role ?? "").toUpperCase() === "DOCTOR";
-  const doctorId = user?.doctorId ?? user?.doctorProfile?.doctorId ?? user?.id ?? null;
+  const doctorId =
+    user?.doctorId ?? user?.doctorProfile?.doctorId ?? user?.id ?? null;
 
   useEffect(() => {
     let cancelled = false;
@@ -45,12 +53,22 @@ export function MyProfilePage() {
     setIsLoading(true);
     doctorProfileService
       .getDoctorProfile(doctorId)
-      .then((record) => { if (!cancelled) setDoctor(record); })
-      .catch((err: unknown) => {
-        if (!cancelled) console.error("Failed to load profile:", err instanceof Error ? err.message : err);
+      .then((record) => {
+        if (!cancelled) setDoctor(record);
       })
-      .finally(() => { if (!cancelled) setIsLoading(false); });
-    return () => { cancelled = true; };
+      .catch((err: unknown) => {
+        if (!cancelled)
+          console.error(
+            "Failed to load profile:",
+            err instanceof Error ? err.message : err,
+          );
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [isDoctor, doctorId]);
 
   const handleSaveProfile = async (updated: DoctorRecord) => {
@@ -65,7 +83,10 @@ export function MyProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9] flex items-center justify-center" style={{ fontFamily: RB }}>
+      <div
+        className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9] flex items-center justify-center"
+        style={{ fontFamily: RB }}
+      >
         <div className="flex items-center gap-2 text-sm text-[#64748B]">
           <span className="w-4 h-4 border-2 border-[#0D47A1] border-t-transparent rounded-full animate-spin" />
           Loading profile...
@@ -76,10 +97,20 @@ export function MyProfilePage() {
 
   if (!isDoctor) {
     return (
-      <div className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9]" style={{ fontFamily: RB }}>
+      <div
+        className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9]"
+        style={{ fontFamily: RB }}
+      >
         <div className="max-w-xl mx-auto mt-10 bg-white rounded-2xl border border-[#E5E7EB] p-8 shadow-sm space-y-5 text-center">
-          <h2 className="text-lg font-bold text-[#111827]" style={{ fontFamily: PP }}>Access Denied</h2>
-          <p className="text-xs text-[#64748B]">This page is only available to doctors.</p>
+          <h2
+            className="text-lg font-bold text-[#111827]"
+            style={{ fontFamily: PP }}
+          >
+            Access Denied
+          </h2>
+          <p className="text-xs text-[#64748B]">
+            This page is only available to doctors.
+          </p>
         </div>
       </div>
     );
@@ -87,11 +118,26 @@ export function MyProfilePage() {
 
   if (!doctor) {
     return (
-      <div className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9]" style={{ fontFamily: RB }}>
+      <div
+        className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9]"
+        style={{ fontFamily: RB }}
+      >
         <div className="max-w-xl mx-auto mt-10 bg-white rounded-2xl border border-[#E5E7EB] p-8 shadow-sm space-y-5 text-center">
-          <h2 className="text-lg font-bold text-[#111827]" style={{ fontFamily: PP }}>Profile Not Found</h2>
-          <p className="text-xs text-[#64748B]">Unable to load your doctor profile.</p>
-          <button onClick={() => navigate(ROUTES.DASHBOARD)} className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold">Go to Dashboard</button>
+          <h2
+            className="text-lg font-bold text-[#111827]"
+            style={{ fontFamily: PP }}
+          >
+            Profile Not Found
+          </h2>
+          <p className="text-xs text-[#64748B]">
+            Unable to load your doctor profile.
+          </p>
+          <button
+            onClick={() => navigate(ROUTES.DASHBOARD)}
+            className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold"
+          >
+            Go to Dashboard
+          </button>
         </div>
       </div>
     );
@@ -99,15 +145,28 @@ export function MyProfilePage() {
 
   const isOwnProfile = true;
   return (
-    <div className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9]" style={{ fontFamily: RB }}>
+    <div
+      className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9]"
+      style={{ fontFamily: RB }}
+    >
       <div className="max-w-4xl mx-auto space-y-4">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(ROUTES.DASHBOARD)} className="p-2 rounded-lg hover:bg-slate-100 transition-colors">
+          <button
+            onClick={() => navigate(ROUTES.DASHBOARD)}
+            className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+          >
             <ChevronLeft size={20} className="text-[#64748B]" />
           </button>
           <div className="flex-1">
-            <h1 className="text-lg font-bold text-[#111827]" style={{ fontFamily: PP }}>My Profile</h1>
-            <p className="text-xs text-[#64748B]">{doctor.name} · {doctor.department}</p>
+            <h1
+              className="text-lg font-bold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
+              My Profile
+            </h1>
+            <p className="text-xs text-[#64748B]">
+              {doctor.name} · {doctor.department}
+            </p>
           </div>
         </div>
 
@@ -130,7 +189,12 @@ export function MyProfilePage() {
 
         <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-4">
           {activeTab === "profile" && (
-            <ProfileTab doctor={doctor} isOwnProfile={isOwnProfile} canEdit={true} onSave={handleSaveProfile} />
+            <ProfileTab
+              doctor={doctor}
+              isOwnProfile={isOwnProfile}
+              canEdit={true}
+              onSave={handleSaveProfile}
+            />
           )}
           {activeTab === "schedule" && (
             <AvailabilityScheduleTab doctor={doctor} canEdit={true} />
@@ -145,10 +209,18 @@ export function MyProfilePage() {
             <MonthlyCalendarTab doctor={doctor} canEdit={false} />
           )}
           {activeTab === "appointments" && (
-            <AppointmentsTab doctor={doctor} canEdit={false} isOwnProfile={isOwnProfile} />
+            <AppointmentsTab
+              doctor={doctor}
+              canEdit={false}
+              isOwnProfile={isOwnProfile}
+            />
           )}
           {activeTab === "patients" && (
-            <AssignedPatientsTab doctor={doctor} canEdit={false} isOwnProfile={isOwnProfile} />
+            <AssignedPatientsTab
+              doctor={doctor}
+              canEdit={false}
+              isOwnProfile={isOwnProfile}
+            />
           )}
         </div>
       </div>

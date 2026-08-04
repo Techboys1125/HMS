@@ -34,7 +34,9 @@ export const QueueTokenModal: React.FC<QueueTokenModalProps> = ({
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-slate-50/50">
           <div className="flex items-center gap-2">
             <Receipt size={18} className="text-[#0D47A1]" />
-            <span className="font-bold text-[#1E293B] text-sm">Queue Token Slip</span>
+            <span className="font-bold text-[#1E293B] text-sm">
+              Queue Token Slip
+            </span>
           </div>
           <button
             onClick={onClose}
@@ -52,11 +54,15 @@ export const QueueTokenModal: React.FC<QueueTokenModalProps> = ({
 
           {/* Token Box */}
           <div className="w-full bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-5 flex flex-col items-center text-center">
-            <span className="text-[10px] uppercase font-bold text-slate-450 tracking-wider">Queue Token</span>
+            <span className="text-[10px] uppercase font-bold text-slate-450 tracking-wider">
+              Queue Token
+            </span>
             <span className="text-4xl font-extrabold text-[#0D47A1] mt-1 font-mono tracking-tight">
               {tokenNumber}
             </span>
-            <span className="text-[10px] text-slate-450 mt-1 font-mono">{new Date().toLocaleDateString()}</span>
+            <span className="text-[10px] text-slate-450 mt-1 font-mono">
+              {new Date().toLocaleDateString()}
+            </span>
 
             {/* Slip Key Value Pairs */}
             <div className="w-full border-t border-gray-200/60 mt-4 pt-4 text-xs font-medium space-y-2.5 text-left text-slate-600">
@@ -66,7 +72,9 @@ export const QueueTokenModal: React.FC<QueueTokenModalProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">MRN:</span>
-                <span className="text-[#1E293B] font-mono font-bold">{patientMrn}</span>
+                <span className="text-[#1E293B] font-mono font-bold">
+                  {patientMrn}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Doctor:</span>
@@ -74,11 +82,15 @@ export const QueueTokenModal: React.FC<QueueTokenModalProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Dept:</span>
-                <span className="text-[#1E293B] font-bold">{departmentName}</span>
+                <span className="text-[#1E293B] font-bold">
+                  {departmentName}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Time Slot:</span>
-                <span className="text-[#1E293B] font-bold">{appointmentTime}</span>
+                <span className="text-[#1E293B] font-bold">
+                  {appointmentTime}
+                </span>
               </div>
             </div>
           </div>
