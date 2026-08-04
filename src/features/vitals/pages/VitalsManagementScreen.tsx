@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 
+
 import {
   Activity,
   Heart,
@@ -24,10 +25,10 @@ import {
 import type { AppointmentRecord } from "../../appointments";
 import { vitalsService } from "../services/vitals.service";
 import { vitalsApi } from "../api/vitals.api";
-import type { RecordedVitalsData } from "../types/vitals.types";
-
-
-
+import type {
+  RecordedVitalsData,
+  NurseWaitingPatient,
+} from "../types/vitals.types";
 
 // --- Typography Tokens ---
 const PP = "Poppins, sans-serif";
@@ -69,33 +70,29 @@ interface Props {
   initialViewMode?: "center" | "record" | "details";
 }
 
-
-const DEFAULT_RECORDED_VITALS: RecordedVitalsData = {
-  height: "172",
-  weight: "68",
-  bmi: "23.0",
-  temp: "36.8",
-  systolic: "120",
-  diastolic: "80",
-  pulse: "72",
-  resp: "16",
-  spo2: "98",
-  sugar: "96",
-  pain: 2,
-  appearance: "Normal / Healthy",
-  consciousness: "Alert & Oriented",
-  observation:
-    "Patient is comfortable. No acute respiratory distress noted. Pre-consultation prep completed.",
-  recordedBy: "Nurse Clara Oswald (RN-402)",
-  recordedAt: "Today, 08:50 AM",
-};
-
 /* ─────────────────────────────────────────────────────────────────────────────
    VITALS DETAILS SCREEN (READ ONLY)
    ───────────────────────────────────────────────────────────────────────────── */
 export function VitalsDetailsScreen({
   activeApt,
-  vitalsData = DEFAULT_RECORDED_VITALS,
+  vitalsData = {
+    height: "",
+    weight: "",
+    bmi: "",
+    temp: "",
+    systolic: "",
+    diastolic: "",
+    pulse: "",
+    resp: "",
+    spo2: "",
+    sugar: "",
+    pain: 0,
+    appearance: "",
+    consciousness: "",
+    observation: "",
+    recordedBy: "",
+    recordedAt: "",
+  },
   onBack,
   onPatientSelect,
   onPrint,
@@ -227,7 +224,14 @@ export function VitalsDetailsScreen({
               · Doctor:{" "}
               <strong className="text-white">{activeApt.doctorName}</strong> ·
               Dept:{" "}
-              <strong className="text-white">{activeApt.department}</strong>
+              <strong className="text-white">
+                {typeof activeApt.department === "string"
+                  ? activeApt.department
+                  : activeApt.department?.departmentName ||
+                    activeApt.department?.name ||
+                    activeApt.department?.departmentCode ||
+                    ""}
+              </strong>
             </div>
           </div>
         </div>
@@ -343,7 +347,12 @@ export function VitalsDetailsScreen({
                 <div className="flex justify-between">
                   <span className="text-slate-400">Department</span>
                   <strong className="text-slate-700">
-                    {activeApt.department}
+                    {typeof activeApt.department === "string"
+                      ? activeApt.department
+                      : activeApt.department?.departmentName ||
+                        activeApt.department?.name ||
+                        activeApt.department?.departmentCode ||
+                        ""}
                   </strong>
                 </div>
                 <div className="flex justify-between">
@@ -781,7 +790,7 @@ export function RecordPatientVitalsForm({
   onMarkReady: (aptId: string) => void;
 }) {
   const [chiefComplaint, setChiefComplaint] = useState(
-    activeApt.chiefComplaint || activeApt.reason || ""
+    activeApt.chiefComplaint || activeApt.reason || "",
   );
   const [symptoms, setSymptoms] = useState("");
   const [diagnosis, setDiagnosis] = useState("");
@@ -801,7 +810,7 @@ export function RecordPatientVitalsForm({
 
   const triggerToast = (
     message: string,
-    type: "success" | "info" | "error" = "success"
+    type: "success" | "info" | "error" = "success",
   ) => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -827,7 +836,7 @@ export function RecordPatientVitalsForm({
       triggerToast("Vitals recorded successfully!", "success");
 
       onMarkReady(String(activeApt.id));
-    } catch (error) {
+    } catch {
       triggerToast("Unable to record vitals.", "error");
     }
   };
@@ -844,8 +853,8 @@ export function RecordPatientVitalsForm({
             toast.type === "success"
               ? "bg-[#66BB6A] border-green-300"
               : toast.type === "error"
-              ? "bg-[#EF4444] border-red-300"
-              : "bg-[#0D47A1] border-blue-300"
+                ? "bg-[#EF4444] border-red-300"
+                : "bg-[#0D47A1] border-blue-300"
           }`}
         >
           <AlertCircle size={16} />
@@ -869,7 +878,8 @@ export function RecordPatientVitalsForm({
             Record Patient Vitals
           </h1>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Record and verify patient vital signs before outpatient consultation.
+            Record and verify patient vital signs before outpatient
+            consultation.
           </p>
         </div>
 
@@ -905,9 +915,18 @@ export function RecordPatientVitalsForm({
               {activeApt.patientName}
             </h2>
             <div className="text-xs text-blue-100 mt-0.5">
-              MRN: {activeApt.mrn} · {activeApt.patientAge}y / {activeApt.patientGender} · Doctor:{" "}
-              <strong className="text-white">{activeApt.doctorName}</strong> · Dept:{" "}
-              <strong className="text-white">{activeApt.department}</strong>
+              MRN: {activeApt.mrn} · {activeApt.patientAge}y /{" "}
+              {activeApt.patientGender} · Doctor:{" "}
+              <strong className="text-white">{activeApt.doctorName}</strong> ·
+              Dept:{" "}
+              <strong className="text-white">
+                {typeof activeApt.department === "string"
+                  ? activeApt.department
+                  : activeApt.department?.departmentName ||
+                    activeApt.department?.name ||
+                    activeApt.department?.departmentCode ||
+                    ""}
+              </strong>
             </div>
           </div>
         </div>
@@ -933,28 +952,50 @@ export function RecordPatientVitalsForm({
             className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
             style={{ fontFamily: PP }}
           >
-            <User size={14} className="text-[#0D47A1]" /> Patient Information (Read Only)
+            <User size={14} className="text-[#0D47A1]" /> Patient Information
+            (Read Only)
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-xs">
             <div>
-              <span className="text-slate-400 block text-[11px]">Patient Name</span>
-              <strong className="text-slate-800 text-sm font-semibold">{activeApt.patientName}</strong>
+              <span className="text-slate-400 block text-[11px]">
+                Patient Name
+              </span>
+              <strong className="text-slate-800 text-sm font-semibold">
+                {activeApt.patientName}
+              </strong>
             </div>
             <div>
               <span className="text-slate-400 block text-[11px]">MRN</span>
-              <strong className="text-slate-800 font-mono text-xs">{activeApt.mrn}</strong>
+              <strong className="text-slate-800 font-mono text-xs">
+                {activeApt.mrn}
+              </strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">Appointment ID</span>
-              <strong className="text-slate-800 font-mono text-xs">{activeApt.id}</strong>
+              <span className="text-slate-400 block text-[11px]">
+                Appointment ID
+              </span>
+              <strong className="text-slate-800 font-mono text-xs">
+                {activeApt.id}
+              </strong>
             </div>
             <div>
               <span className="text-slate-400 block text-[11px]">Doctor</span>
-              <strong className="text-slate-800 font-semibold">{activeApt.doctorName}</strong>
+              <strong className="text-slate-800 font-semibold">
+                {activeApt.doctorName}
+              </strong>
             </div>
             <div>
-              <span className="text-slate-400 block text-[11px]">Department</span>
-              <strong className="text-slate-800 font-semibold">{activeApt.department}</strong>
+              <span className="text-slate-400 block text-[11px]">
+                Department
+              </span>
+              <strong className="text-slate-800 font-semibold">
+                {typeof activeApt.department === "string"
+                  ? activeApt.department
+                  : activeApt.department?.departmentName ||
+                    activeApt.department?.name ||
+                    activeApt.department?.departmentCode ||
+                    ""}
+              </strong>
             </div>
             <div>
               <span className="text-slate-400 block text-[11px]">Token</span>
@@ -971,7 +1012,8 @@ export function RecordPatientVitalsForm({
             className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-1.5"
             style={{ fontFamily: PP }}
           >
-            <FileText size={14} className="text-[#0D47A1]" /> Clinical Information
+            <FileText size={14} className="text-[#0D47A1]" /> Clinical
+            Information
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1152,54 +1194,74 @@ export function RecordPatientVitalsScreen({
   );
 
   useEffect(() => {
-    vitalsApi.getWaitingPatients().then((list) => {
-      if (Array.isArray(list) && list.length > 0) {
-        const mapped: AppointmentRecord[] = list.map((item: any, idx: number) => ({
-          id: item.appointmentId || item.id || `apt-${idx + 1}`,
-          appointmentNumber: item.appointmentNumber || item.tokenNumber || `TK-${100 + idx}`,
-          tokenNo: item.tokenNumber || item.token || `TK-${100 + idx}`,
-          patientId: item.patientId || item.patient?.id || `P-${idx + 1}`,
-          patientName: item.patientName || item.patient?.name || item.patient?.fullName || "Patient",
-          patientAge: Number(item.age || item.patient?.age || 30),
-          patientGender: (item.gender || item.patient?.gender || "Male") as any,
-          patientPhone: item.contact || item.patient?.contact || item.phone || "N/A",
-          mrn: item.mrn || item.patient?.mrn || `MRN-${1000 + idx}`,
-          doctorId: item.doctorId || item.doctor?.doctorId || 1,
-          doctorName: item.doctorName || item.doctor?.name || "Duty Doctor",
-          department:
-            item.departmentName ||
-            (typeof item.department === "object"
-              ? item.department?.departmentName || item.department?.name || item.department?.departmentCode
-              : undefined) ||
-            (typeof item.department === "string" ? item.department : undefined) ||
-            item.doctor?.departmentName ||
-            item.doctor?.department ||
-            "Cardiology",
-          departmentName:
-            item.departmentName ||
-            (typeof item.department === "object"
-              ? item.department?.departmentName || item.department?.name || item.department?.departmentCode
-              : undefined) ||
-            (typeof item.department === "string" ? item.department : undefined) ||
-            item.doctor?.departmentName ||
-            item.doctor?.department ||
-            "Cardiology",
+    vitalsApi
+      .getWaitingPatients()
+      .then((list) => {
+        if (Array.isArray(list) && list.length > 0) {
+          const mapped: AppointmentRecord[] = list.map(
+            (item: NurseWaitingPatient, idx: number) => ({
+              id: item.appointmentId || item.id || `apt-${idx + 1}`,
+              appointmentNumber:
+                item.appointmentNumber || item.tokenNumber || `TK-${100 + idx}`,
+              tokenNo: item.tokenNumber || item.token || `TK-${100 + idx}`,
+              patientId: item.patientId || item.patient?.id || `P-${idx + 1}`,
+              patientName:
+                item.patientName ||
+                item.patient?.name ||
+                item.patient?.fullName ||
+                "Patient",
+              patientAge: Number(item.age || item.patient?.age || 30),
+              patientGender: (item.gender ||
+                item.patient?.gender ||
+                "Male") as AppointmentRecord["patientGender"],
+              patientPhone:
+                item.contact || item.patient?.contact || item.phone || "N/A",
+              mrn: item.mrn || item.patient?.mrn || `MRN-${1000 + idx}`,
+              doctorId: item.doctorId || item.doctor?.doctorId || 1,
+              doctorName: item.doctorName || item.doctor?.name || "Duty Doctor",
+              department:
+                item.departmentName ||
+                (typeof item.department === "object"
+                  ? item.department?.departmentName ||
+                    item.department?.name ||
+                    item.department?.departmentCode
+                  : undefined) ||
+                (typeof item.department === "string"
+                  ? item.department
+                  : undefined) ||
+                item.doctor?.departmentName ||
+                item.doctor?.department ||
+                "Cardiology",
+              departmentName:
+                item.departmentName ||
+                (typeof item.department === "object"
+                  ? item.department?.departmentName ||
+                    item.department?.name ||
+                    item.department?.departmentCode
+                  : undefined) ||
+                (typeof item.department === "string"
+                  ? item.department
+                  : undefined) ||
+                item.doctor?.departmentName ||
+                item.doctor?.department ||
+                "Cardiology",
 
-          appointmentDate: new Date().toISOString().split("T")[0],
-          appointmentTime: item.checkInTime || "Now",
-          timeSlot: item.checkInTime || "Now",
-          status: "Waiting for Vitals" as any,
-          queueStatus: item.status || "WAITING_FOR_VITALS",
-          visitType: "Regular",
-          reason: "Pre-consultation Vitals Check",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        }));
-        setAppointments(mapped);
-      }
-    }).catch((err) => console.warn("Waiting list fetch warning:", err));
+              appointmentDate: new Date().toISOString().split("T")[0],
+              appointmentTime: item.checkInTime || "Now",
+              timeSlot: item.checkInTime || "Now",
+              status: "Waiting for Vitals" as AppointmentRecord["status"],
+              queueStatus: item.status || "WAITING_FOR_VITALS",
+              visitType: "Regular",
+              reason: "Pre-consultation Vitals Check",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            }),
+          );
+          setAppointments(mapped);
+        }
+      })
+      .catch((err) => console.warn("Waiting list fetch warning:", err));
   }, []);
-
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -1242,7 +1304,9 @@ export function RecordPatientVitalsScreen({
   // Active Selected Appointment Record
   const activeApt = useMemo(() => {
     if (!selectedAptId) return null;
-    return appointments.find((a) => String(a.id) === String(selectedAptId)) || null;
+    return (
+      appointments.find((a) => String(a.id) === String(selectedAptId)) || null
+    );
   }, [appointments, selectedAptId]);
 
   // Today's Queue list
@@ -1253,7 +1317,12 @@ export function RecordPatientVitalsScreen({
 
   // Status map helper to determine vitals status string for an appointment
   const getVitalsStatus = (apt: AppointmentRecord) => {
-    if (apt.status === "Checked-In" || apt.status === "In Progress")
+    if (
+      apt.status === "Checked-In" ||
+      apt.status === "In Progress" ||
+      apt.status === "Waiting" ||
+      apt.queueStatus === "WAITING_FOR_DOCTOR_CALL"
+    )
       return "Ready For Consultation";
     if (apt.status === "Completed") return "Vitals Recorded";
     if (apt.notes?.includes("vitals in progress"))
@@ -1348,7 +1417,13 @@ export function RecordPatientVitalsScreen({
     setAppointments((prev) =>
       prev.map((a) =>
         String(a.id) === String(aptId)
-          ? { ...a, status: "Checked-In", waitingTimeMinutes: 0 }
+          ? {
+              ...a,
+              status: "Waiting",
+              queueStatus: "WAITING_FOR_DOCTOR_CALL",
+              vitalsRecorded: true,
+              waitingTimeMinutes: 0,
+            }
           : a,
       ),
     );
@@ -1403,12 +1478,13 @@ export function RecordPatientVitalsScreen({
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${toast.type === "success"
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${
+            toast.type === "success"
               ? "bg-[#66BB6A] border-green-300"
               : toast.type === "error"
                 ? "bg-[#EF4444] border-red-300"
                 : "bg-[#0D47A1] border-blue-300"
-            }`}
+          }`}
         >
           <AlertCircle size={16} />
           {toast.message}
@@ -1726,18 +1802,20 @@ export function RecordPatientVitalsScreen({
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap flex items-center gap-2 border ${activeTab === tab.id
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap flex items-center gap-2 border ${
+                  activeTab === tab.id
                     ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
                     : "bg-white text-slate-600 border-[#E5E7EB] hover:bg-slate-50"
-                  }`}
+                }`}
                 style={{ fontFamily: PP }}
               >
                 <span>{tab.label}</span>
                 <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${activeTab === tab.id
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                    activeTab === tab.id
                       ? "bg-white/20 text-white"
                       : "bg-slate-100 text-slate-600"
-                    }`}
+                  }`}
                 >
                   {tab.count}
                 </span>
@@ -1816,15 +1894,14 @@ export function RecordPatientVitalsScreen({
                           {apt.doctorName}
                         </td>
                         <td className="px-4 py-3.5 text-slate-500">
-                          {typeof apt.department === "string" && apt.department
+                          {typeof apt.department === "string"
                             ? apt.department
                             : apt.departmentName ||
-                              (apt.department as any)?.departmentName ||
-                              (apt.department as any)?.name ||
-                              (apt.department as any)?.departmentCode ||
+                              apt.department?.departmentName ||
+                              apt.department?.name ||
+                              apt.department?.departmentCode ||
                               "Cardiology"}
                         </td>
-
                         <td className="px-4 py-3.5 font-mono text-[#0D47A1] font-bold">
                           {apt.timeSlot}
                         </td>
@@ -1931,7 +2008,6 @@ export function RecordPatientVitalsScreen({
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );

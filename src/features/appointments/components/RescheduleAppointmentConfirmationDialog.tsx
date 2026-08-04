@@ -436,7 +436,14 @@ export function RescheduleAppointmentConfirmationDialog({
               <div>
                 <span className="text-[10px] text-teal-700 block">Doctor</span>
                 <strong>
-                  {apt.doctorName} ({apt.department})
+                  {apt.doctorName} (
+                  {typeof apt.department === "string"
+                    ? apt.department
+                    : apt.department?.departmentName ||
+                      apt.department?.name ||
+                      apt.department?.departmentCode ||
+                      ""}
+                  )
                 </strong>
               </div>
               <div>

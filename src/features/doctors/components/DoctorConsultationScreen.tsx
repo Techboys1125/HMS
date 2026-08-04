@@ -18,6 +18,7 @@ import {
   ArrowRight,
   Building2,
   X,
+  RefreshCw,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -35,6 +36,7 @@ import {
 import { PP, RB } from "../constants/doctors.constants";
 import { Card } from "./Card";
 import { Avatar } from "./Avatar";
+import { appointmentService } from "../../appointments";
 
 type ConsultTab = "overview" | "vitals" | "soap" | "prescription" | "history";
 
@@ -50,8 +52,18 @@ const CONSULT_TABS: {
   { id: "history", label: "History", Icon: FileText },
 ];
 
-export function DoctorConsultationScreen({ onBack }: { onBack?: () => void }) {
+export function DoctorConsultationScreen({
+  onBack,
+  appointmentId,
+  onComplete,
+}: {
+  onBack?: () => void;
+  appointmentId?: number | string;
+  onComplete?: () => void;
+}) {
   const [tab, setTab] = useState<ConsultTab>("overview");
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [completeMsg, setCompleteMsg] = useState<string | null>(null);
   const [soapData, setSoapData] = useState({
     subjective:
       "Patient presents with severe chest pain radiating to left arm, onset 2 hours ago. Associated with diaphoresis and nausea. Pain rated 8/10.",
@@ -61,6 +73,21 @@ export function DoctorConsultationScreen({ onBack }: { onBack?: () => void }) {
       "R07.9 — Chest pain, unspecified. Rule out NSTEMI / ACS. Differential includes musculoskeletal and GERD.",
     plan: "Serial ECGs, cardiac biomarkers. Aspirin 300mg stat. GTN PRN. Cardiology consult if troponin elevated. Admit for observation.",
   });
+
+  const handleCompleteConsultation = async () => {
+    if (!appointmentId || isCompleting) return;
+    setIsCompleting(true);
+    setCompleteMsg(null);
+    try {
+      await appointmentService.doctorCompleteConsultation(appointmentId);
+      setCompleteMsg("Consultation completed. Encounter finalized.");
+      onComplete?.();
+    } catch {
+      setCompleteMsg("Failed to complete consultation. Please try again.");
+    } finally {
+      setIsCompleting(false);
+    }
+  };
 
   return (
     <div className="flex-1 overflow-hidden flex bg-[#F1F5F9]">
@@ -191,13 +218,30 @@ export function DoctorConsultationScreen({ onBack }: { onBack?: () => void }) {
           </div>
         </div>
 
-        <div className="p-4 border-t border-gray-100">
+        <div className="p-4 border-t border-gray-100 space-y-2">
+          {completeMsg && (
+            <div className="text-[11px] font-semibold text-center px-2 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600">
+              {completeMsg}
+            </div>
+          )}
           <button
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#009688] text-white text-sm font-semibold hover:bg-[#00827a] transition-colors"
+            onClick={handleCompleteConsultation}
+            disabled={isCompleting || !appointmentId}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#009688] text-white text-sm font-semibold hover:bg-[#00827a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ fontFamily: PP }}
           >
-            <Check size={14} /> Complete Consultation
+            {isCompleting ? (
+              <RefreshCw size={14} className="animate-spin" />
+            ) : (
+              <Check size={14} />
+            )}{" "}
+            {isCompleting ? "Completing..." : "Complete Consultation"}
           </button>
+          {!appointmentId && (
+            <p className="text-[10px] text-center text-slate-400">
+              Preview mode — connect an appointment to finalize it.
+            </p>
+          )}
         </div>
       </div>
 

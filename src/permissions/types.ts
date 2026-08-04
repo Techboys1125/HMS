@@ -1,0 +1,129 @@
+
+// Supported Roles
+export type Role =
+  | "SUPER_ADMIN"
+  | "HOSPITAL_ADMIN"
+  | "ADMIN"
+  | "RECEPTIONIST"
+  | "DOCTOR"
+  | "NURSE"
+  | "ACCOUNTANT"
+  | "PATIENT";
+
+// Complete Permission definitions
+export type PermissionAction =
+  | "VIEW"
+  | "CREATE"
+  | "EDIT"
+  | "DELETE"
+  | "CANCEL"
+  | "APPROVE"
+  | "PRINT"
+  | "EXPORT"
+  | "ADMINISTER";
+
+export type AppPermission =
+  // User Management
+  | "DASHBOARD_VIEW"
+  | "USER_VIEW"
+  | "USER_CREATE"
+  | "USER_EDIT"
+  | "USER_DEACTIVATE"
+  
+  // Patient Management
+  | "PATIENT_VIEW"
+  | "PATIENT_VIEW_MINIMAL"
+  | "PATIENT_CREATE"
+  | "PATIENT_EDIT"
+  | "PATIENT_UPDATE" // Phase 1 standard
+  | "PATIENT_VIEW_HISTORY"
+  | "PATIENT_STATUS_UPDATE"
+  | "PATIENT_DUPLICATE_OVERRIDE"
+  | "PATIENT_MERGE"
+  | "PATIENT_VIEW_SELF"
+  | "PATIENT_EDIT_SELF"
+
+  // Doctor Management
+  | "DOCTOR_VIEW"
+  | "DOCTOR_VIEW_OWN"
+  | "DOCTOR_OVERVIEW_VIEW"
+  | "DOCTOR_PROFESSIONAL_VIEW"
+  | "DOCTOR_PROFILE_VIEW"
+  | "DOCTOR_PROFILE_UPDATE"
+  | "DOCTOR_CREATE"
+  | "DOCTOR_EDIT"
+  | "DOCTOR_DEACTIVATE"
+  | "DOCTOR_SCHEDULE_MANAGE"
+  | "DOCTOR_SCHEDULE_VIEW"
+  | "DOCTOR_AVAILABILITY_VIEW"
+  | "DOCTOR_APPOINTMENT_VIEW"
+  | "DOCTOR_PATIENTS_VIEW"
+  | "DOCTOR_EXCEPTION_MANAGE"
+  | "DOCTOR_QUEUE_VIEW"
+  | "DOCTOR_CONTACT_VIEW"
+  | "DOCTOR_FEE_VIEW"
+  | "DOCTOR_TIMELINE_VIEW"
+
+  // Appointment Management
+  | "APPOINTMENT_VIEW"
+  | "APPOINTMENT_CREATE"
+  | "APPOINTMENT_EDIT"
+  | "APPOINTMENT_UPDATE" // Phase 1 standard
+  | "APPOINTMENT_RESCHEDULE"
+  | "APPOINTMENT_CANCEL"
+  | "APPOINTMENT_CHECK_IN"
+  | "APPOINTMENT_MARK_NO_SHOW"
+  | "APPOINTMENT_VIEW_HISTORY"
+  | "APPOINTMENT_VIEW_QUEUE"
+
+  // Queue Management / Check-In
+  | "RECEPTION_VIEW"
+  | "QUEUE_VIEW"
+  | "QUEUE_CHECKIN"
+  | "QUEUE_TOKEN"
+  | "QUEUE_CALL_NEXT"
+  | "CHECKIN_CREATE"
+  | "CHECKIN_EDIT_LIMITED"
+
+  // Vitals Management
+  | "VITALS_VIEW"
+  | "VITALS_CREATE"
+  | "VITALS_EDIT"
+  | "VITALS_UPDATE" // Phase 1 standard
+
+  // Billing
+  | "BILLING_VIEW"
+  | "BILLING_CREATE"
+  | "BILLING_EDIT"
+  | "BILLING_PAYMENT"
+  | "PAYMENT_RECEIVE"
+  | "REFUND_CREATE"
+
+  // Clinical & OPD (Future ready)
+  | "OPD_VIEW"
+  | "OPD_CREATE"
+  | "OPD_EDIT"
+  | "MEDICAL_HISTORY_VIEW"
+  | "PRESCRIPTION_VIEW"
+  | "PRESCRIPTION_CREATE"
+  | "PRESCRIPTION_UPDATE"
+  | "PRESCRIPTION_PRINT"
+  | "PRESCRIPTION_FINALIZE"
+
+  // Reports
+  | "REPORT_VIEW"
+  | "REPORT_EXPORT"
+
+  // Authentication & Profile
+  | "PROFILE_VIEW"
+  | "PROFILE_EDIT"
+  | "PROFILE_UPDATE" // Phase 1 standard
+  | "CHANGE_PASSWORD"
+  | "MY_APPOINTMENTS_VIEW"
+  | "MY_PRESCRIPTIONS_VIEW"
+  | "MY_BILLS_VIEW"
+
+  // Family Members (Patient Portal)
+  | "FAMILY_MEMBER_VIEW"
+  | "FAMILY_MEMBER_CREATE"
+  | "FAMILY_MEMBER_UPDATE";

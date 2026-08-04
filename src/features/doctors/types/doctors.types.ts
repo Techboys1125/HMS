@@ -48,6 +48,10 @@ export interface DoctorRecord {
   bio?: string;
   scheduleExceptions?: ApiScheduleExceptionItem[];
   rawAvailability?: ApiAvailabilityItem[];
+  effectiveFrom?: string;
+  effectiveTo?: string;
+  secondarySpecialties?: string[];
+  availabilityTemplate?: string;
 }
 
 export interface DoctorAppointment {
@@ -173,17 +177,128 @@ export interface ApiScheduleExceptionItem {
   doctorId?: number;
   exceptionDate?: string;
   reason: string;
+  type?: string;
   exceptionType?: string;
   startDate?: string;
   endDate?: string;
-  startTime?: string;
-  endTime?: string;
+  startTime?: string | null;
+  endTime?: string | null;
   action?: string;
   status?: string;
   fullDay?: boolean;
+  isFullDay?: boolean;
+  createdBy?: ApiScheduleExceptionCreator;
+  createdAt?: string;
+}
+
+export interface ApiScheduleExceptionCreator {
+  id: number;
+  name: string;
+}
+
+export type DayOfWeek =
+  | "MONDAY"
+  | "TUESDAY"
+  | "WEDNESDAY"
+  | "THURSDAY"
+  | "FRIDAY"
+  | "SATURDAY"
+  | "SUNDAY";
+
+export type BreakType = "LUNCH" | "TEA" | "MEETING" | "PERSONAL";
+
+export type ExceptionType = "LEAVE" | "SURGERY" | "MEETING" | "PERSONAL";
+
+export type ExceptionAction = "BLOCK_APPOINTMENTS" | "REDUCE_SLOTS";
+
+export type ExceptionStatus = "ACTIVE" | "CANCELLED" | "EXPIRED";
+
+export type SlotStatus =
+  | "AVAILABLE"
+  | "BOOKED"
+  | "BREAK"
+  | "BLOCKED"
+  | "ON_LEAVE"
+  | "OFF_DAY";
+
+export type ScheduleDayStatus =
+  | "AVAILABLE"
+  | "PARTIALLY_AVAILABLE"
+  | "BLOCKED"
+  | "OFF_DAY"
+  | "ON_LEAVE";
+
+export interface ApiScheduleBreak {
+  id?: number;
+  startTime: string;
+  endTime: string;
+  breakType: BreakType;
+}
+
+export interface ApiWorkingPeriod {
+  id?: number;
+  startTime: string;
+  endTime: string;
+  slotDurationMinutes: number;
+  breaks?: ApiScheduleBreak[];
+}
+
+export interface ApiWeeklyScheduleDay {
+  dayOfWeek: DayOfWeek;
+  workingDay: boolean;
+  workingPeriods: ApiWorkingPeriod[];
+}
+
+export interface ApiWeeklyScheduleData {
+  doctorId: number;
+  doctorName?: string;
+  weeklySchedule: ApiWeeklyScheduleDay[];
+}
+
+export interface UpdateScheduleDayBreakPayload {
+  startTime: string;
+  endTime: string;
+  breakType: BreakType;
+}
+
+export interface UpdateScheduleDayWorkingPeriodPayload {
+  startTime: string;
+  endTime: string;
+  slotDurationMinutes: number;
+  breaks?: UpdateScheduleDayBreakPayload[];
+}
+
+export interface UpdateScheduleDayPayload {
+  isWorkingDay: boolean;
+  workingPeriods: UpdateScheduleDayWorkingPeriodPayload[];
+}
+
+export interface CreateScheduleExceptionPayload {
+  exceptionType: ExceptionType;
+  startDate: string;
+  endDate: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  isFullDay: boolean;
+  reason?: string;
+  action: ExceptionAction;
+}
+
+export interface UpdateScheduleExceptionPayload {
+  exceptionType?: ExceptionType;
+  startDate?: string;
+  endDate?: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  isFullDay?: boolean;
+  reason?: string;
+  action?: ExceptionAction;
+  status?: ExceptionStatus;
 }
 
 export interface ApiDoctorProfile {
+  [x: string]: string;
+  [x: string]: string;
   doctorId: number;
   medicalRegistrationNumber: string;
   qualification: string;
@@ -258,13 +373,17 @@ export interface UpdateDoctorPayload {
   yearsOfExperience?: number;
   primaryDepartmentId?: number;
   secondaryDepartmentIds?: number[];
+  department?: string;
   primarySpecialtyId?: number;
   secondarySpecialtyIds?: number[];
+  specialty?: string;
   consultationFee?: number;
   followUpFee?: number;
   slotDurationMinutes?: number;
   availability?: ApiAvailabilityItem[];
   scheduleExceptions?: ApiScheduleExceptionItem[];
+  status?: string;
+  designation?: string;
   version?: number;
   changeReason?: string;
 }
@@ -348,6 +467,16 @@ export interface DoctorQueueItem {
     department: string;
     specialty: string;
   };
+  // Optional compatibility fields (flat / legacy queue payloads)
+  id?: number | string;
+  queueStatus?: string;
+  patientId?: number | string;
+  patientName?: string;
+  mrn?: string;
+  tokenNumber?: string;
+  waitTime?: string;
+  estimatedWaitMinutes?: number;
+  patientsAhead?: number;
 }
 
 export interface DoctorQueueResponse {

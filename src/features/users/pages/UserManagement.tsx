@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
 import {
@@ -20,7 +20,6 @@ import {
   ArrowUpDown,
   RotateCcw,
   UserPlus,
-  Check,
   Loader2,
   Building,
 } from "lucide-react";
@@ -29,6 +28,7 @@ import CreateStaffPage from "./CreateStaffPage";
 import { DepartmentsSpecialtiesWorkspace } from "./DepartmentsSpecialtiesWorkspace";
 import { usersApi } from "../api/users.api";
 import { departmentsApi } from "../api/departments.api";
+import { EditStaffUserDrawer } from "../components/EditStaffUserDrawer";
 import type { User } from "../../auth/types/auth.types";
 
 // --- Typography & Design Tokens ---
@@ -73,14 +73,6 @@ const BACKEND_TO_DISPLAY_ROLE: Record<string, SystemRole> = {
   PATIENT: "Patient",
 };
 
-// Map frontend display statuses to backend statuses
-const DISPLAY_TO_BACKEND_STATUS: Record<AccountStatus, string> = {
-  Active: "ACTIVE",
-  Inactive: "INACTIVE",
-  Pending: "PENDING",
-  Suspended: "SUSPENDED",
-};
-
 // Map backend statuses to frontend display statuses
 const BACKEND_TO_DISPLAY_STATUS: Record<string, AccountStatus> = {
   ACTIVE: "Active",
@@ -117,14 +109,6 @@ export const UserManagement: React.FC = () => {
     { id: number | string; name: string }[]
   >([]);
 
-  const deptNameToId = useMemo(() => {
-    const map: Record<string, number> = {};
-    apiDepartments.forEach((d) => {
-      map[d.name] = Number(d.id);
-    });
-    return map;
-  }, [apiDepartments]);
-
   const deptIdToName = useMemo(() => {
     const map: Record<number, string> = {};
     apiDepartments.forEach((d) => {
@@ -155,29 +139,10 @@ export const UserManagement: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
-  const [editForm, setEditForm] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    gender: "",
-    dateOfBirth: "",
-    residentialAddress: "",
-    professionalBio: "",
-    medicalRegistrationNumber: "",
-    qualification: "",
-    yearsOfExperience: 0,
-    primaryDepartmentId: 2,
-    primarySpecialtyId: 1,
-    consultationFee: 500,
-    followUpFee: 300,
-    slotDurationMinutes: 15,
-    availability:
-      [] as import("../types/users.types").BackendAvailabilityItem[],
-    scheduleExceptions:
-      [] as import("../types/users.types").ScheduleException[],
-    department: "General Medicine",
-    status: "Active" as AccountStatus,
-  });
+  // Local override map for status persistence across backend refetches
+  const [localStatusOverrides, setLocalStatusOverrides] = useState<
+    Record<string, AccountStatus>
+  >({});
 
   // Fetch departments from API (mirrors ConsultationDetailsSection approach)
   useEffect(() => {
@@ -202,17 +167,21 @@ export const UserManagement: React.FC = () => {
     });
   }, []);
 
-  // Fetch Users
-  const fetchUsers = async () => {
-    Promise.resolve().then(() => {
-      setLoading(true);
-      setErrorMsg(null);
-    });
+  // Fetch Users wrapped in useCallback
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setErrorMsg(null);
 
     try {
       const response = await usersApi.adminGetUsers();
-      if (response.success && response.data) {
-        const mappedUsers: UserRecord[] = response.data.map(
+      const rawList = Array.isArray(response)
+        ? response
+        : Array.isArray(response?.data)
+          ? response.data
+          : [];
+
+      if (rawList.length > 0 || response?.success) {
+        const mappedUsers: UserRecord[] = rawList.map(
           (u: User & { userId?: number }, index: number) => {
             const userId = u.userId ?? u.id;
             const roleDisplay =
@@ -223,15 +192,15 @@ export const UserManagement: React.FC = () => {
               BACKEND_TO_DISPLAY_STATUS[String(u.status).toUpperCase()] ||
               "Active";
             const deptId = Number(
-              (u as any).primaryDepartmentId ||
-                (u as any).departmentId ||
-                u.hospitalId ||
+              u.primaryDepartmentId ??
+                u.departmentId ??
+                u.hospitalId ??
                 (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2),
             );
             const deptName =
-              (u as any).departmentName ||
-              (u as any).department ||
-              deptIdToName[deptId] ||
+              u.departmentName ??
+              u.department ??
+              deptIdToName[deptId] ??
               (apiDepartments.length > 0
                 ? apiDepartments[0].name
                 : "General Medicine");
@@ -259,7 +228,7 @@ export const UserManagement: React.FC = () => {
         );
         setUsers(mappedUsers);
       } else {
-        setErrorMsg(response.message || "Failed to retrieve staff list.");
+        setErrorMsg(response?.message || "Failed to retrieve staff list.");
       }
     } catch (err: unknown) {
       const errMsg =
@@ -268,11 +237,17 @@ export const UserManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [apiDepartments, deptIdToName, localStatusOverrides]);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    let active = true;
+    if (active) {
+      fetchUsers();
+    }
+    return () => {
+      active = false;
+    };
+  }, [fetchUsers]);
 
   const triggerToast = (msg: string) => {
     setToastMsg(msg);
@@ -296,115 +271,17 @@ export const UserManagement: React.FC = () => {
     }
   };
 
-  // Open Edit Drawer & prefill details
-  const handleOpenEditDrawer = async (user: UserRecord) => {
+  // Open Edit Drawer (shared EditStaffUserDrawer prefills & saves via usersApi)
+  const handleOpenEditDrawer = (user: UserRecord) => {
     setEditingUser(user);
-    let currentDetail =
-      fullUserDetail?.userId === Number(user.id) ? fullUserDetail : null;
-
-    if (!currentDetail) {
-      try {
-        const response = await usersApi.adminGetUserById(user.id);
-        if (response.success && response.data) {
-          currentDetail = response.data;
-          setFullUserDetail(response.data);
-        }
-      } catch (err) {
-        console.error("Failed to prefill edit doctor details:", err);
-      }
-    }
-
-    const docProfile = currentDetail?.doctorProfile;
-    const existingAvailability =
-      docProfile?.availability && docProfile.availability.length > 0
-        ? docProfile.availability
-        : [
-            { dayOfWeek: "MONDAY", startTime: "09:00", endTime: "17:00" },
-            { dayOfWeek: "TUESDAY", startTime: "09:00", endTime: "17:00" },
-            { dayOfWeek: "WEDNESDAY", startTime: "09:00", endTime: "17:00" },
-            { dayOfWeek: "THURSDAY", startTime: "09:00", endTime: "17:00" },
-            { dayOfWeek: "FRIDAY", startTime: "09:00", endTime: "17:00" },
-          ];
-
-    setEditForm({
-      fullName: user.fullName,
-      email: user.email,
-      phone: user.phone,
-      gender: currentDetail?.gender || "MALE",
-      dateOfBirth: currentDetail?.dateOfBirth || "",
-      residentialAddress: currentDetail?.residentialAddress || "",
-      professionalBio: currentDetail?.professionalBio || "",
-      medicalRegistrationNumber: docProfile?.medicalRegistrationNumber || "",
-      qualification: docProfile?.qualification || "",
-      yearsOfExperience: docProfile?.yearsOfExperience || 0,
-      primaryDepartmentId:
-        docProfile?.primaryDepartment?.departmentId ||
-        deptNameToId[user.department] ||
-        (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2),
-      primarySpecialtyId: docProfile?.primarySpecialty?.specialtyId || 1,
-      consultationFee: docProfile?.consultationFee || 500,
-      followUpFee: docProfile?.followUpFee || 300,
-      slotDurationMinutes: docProfile?.slotDurationMinutes || 15,
-      availability: existingAvailability,
-      scheduleExceptions: docProfile?.scheduleExceptions || [],
-      department: user.department,
-      status: user.status,
-    });
   };
 
-  // Handle Edit User Submission (PUT /api/v1/admin/users/{userId})
-  const handleSaveEditUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingUser) return;
-
-    setIsSubmitting(true);
-    try {
-      const deptId =
-        editForm.primaryDepartmentId ||
-        deptNameToId[editForm.department] ||
-        (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2);
-      const apiStatus = DISPLAY_TO_BACKEND_STATUS[editForm.status] || "ACTIVE";
-
-      const payload: import("../types/users.types").AdminUpdateStaffData = {
-        fullName: editForm.fullName,
-        email: editForm.email,
-        mobile: editForm.phone,
-        gender: editForm.gender,
-        dateOfBirth: editForm.dateOfBirth,
-        residentialAddress: editForm.residentialAddress,
-        professionalBio: editForm.professionalBio,
-        medicalRegistrationNumber: editForm.medicalRegistrationNumber,
-        qualification: editForm.qualification,
-        yearsOfExperience: Number(editForm.yearsOfExperience),
-        primaryDepartmentId: deptId,
-        secondaryDepartmentIds: [],
-        primarySpecialtyId: editForm.primarySpecialtyId || 1,
-        secondarySpecialtyIds: [],
-        consultationFee: Number(editForm.consultationFee),
-        followUpFee: Number(editForm.followUpFee),
-        slotDurationMinutes: Number(editForm.slotDurationMinutes),
-        availability: editForm.availability,
-        scheduleExceptions: editForm.scheduleExceptions,
-        departmentId: deptId,
-        status: apiStatus,
-        changeReason: "Updated staff details via Admin Management",
-      };
-
-      const response = await usersApi.adminUpdateStaff(editingUser.id, payload);
-      if (response.success) {
-        triggerToast(`User ${editingUser.empId} profile updated successfully!`);
-        setEditingUser(null);
-        fetchUsers(); // Refresh database list
-      } else {
-        triggerToast(response.message || "Failed to update user.");
-      }
-    } catch (err: unknown) {
-      const errMsg =
-        err instanceof Error ? err.message : "Error updating staff";
-      triggerToast(errMsg);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSavedEditUser = () => {
+    setEditingUser(null);
+    triggerToast(
+      `User ${editingUser?.empId ?? ""} profile updated successfully!`,
+    );
+    fetchUsers(); // Refresh database list
   };
 
   // Handle Password Reset Request (POST /api/v1/admin/users/{userId}/reset-password)
@@ -431,11 +308,6 @@ export const UserManagement: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-
-  // Local override map for status persistence across backend refetches
-  const [localStatusOverrides, setLocalStatusOverrides] = useState<
-    Record<string, AccountStatus>
-  >({});
 
   // Handle Account Status Toggles (Activate / Suspend / Deactivate)
   const handleConfirmStatusChange = async () => {
@@ -538,6 +410,27 @@ export const UserManagement: React.FC = () => {
     sortColumn,
     sortDirection,
   ]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const userTotalPages = Math.max(
+    1,
+    Math.ceil(filteredUsers.length / pageSize),
+  );
+
+  useEffect(() => {
+    if (currentPage > userTotalPages) {
+      setCurrentPage(1);
+    }
+  }, [filteredUsers.length, userTotalPages, currentPage]);
+
+  const userStartIndex = (currentPage - 1) * pageSize;
+  const userEndIndex = Math.min(
+    userStartIndex + pageSize,
+    filteredUsers.length,
+  );
+  const paginatedUsers = filteredUsers.slice(userStartIndex, userEndIndex);
 
   // Role badge styles
   const getRoleBadgeStyle = (role: SystemRole) => {
@@ -912,7 +805,7 @@ export const UserManagement: React.FC = () => {
 
                   <tbody className="divide-y divide-gray-100 text-[#111827]">
                     {filteredUsers.length > 0 ? (
-                      filteredUsers.map((user, idx) => {
+                      paginatedUsers.map((user, idx) => {
                         const initials = user.fullName
                           .split(" ")
                           .filter((n) => n.length > 0)
@@ -1119,29 +1012,74 @@ export const UserManagement: React.FC = () => {
             )}
 
             {/* Table Footer */}
-            <div className="p-4 border-t border-[#E5E7EB] bg-white flex items-center justify-between">
-              <div className="text-xs text-[#64748B]">
-                Showing{" "}
-                <span className="font-bold text-[#111827]">
-                  {filteredUsers.length}
-                </span>{" "}
-                of{" "}
-                <span className="font-bold text-[#111827]">{users.length}</span>{" "}
-                total users
+            <div className="p-4 border-t border-[#E5E7EB] bg-white flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#64748B]">
+              <div className="flex items-center gap-3">
+                <div>
+                  Showing{" "}
+                  <span className="font-bold text-[#111827]">
+                    {filteredUsers.length > 0 ? userStartIndex + 1 : 0}
+                  </span>{" "}
+                  to{" "}
+                  <span className="font-bold text-[#111827]">
+                    {userEndIndex}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-bold text-[#111827]">
+                    {filteredUsers.length}
+                  </span>{" "}
+                  filtered users (total {users.length})
+                </div>
+                <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 pl-3">
+                  <span>Rows:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="bg-white border border-[#E5E7EB] rounded-lg px-2 py-1 font-semibold text-[#111827] outline-none"
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
+
+              <div className="flex items-center gap-2">
                 <button
-                  disabled
-                  className="px-3 py-1.5 text-xs text-slate-400 bg-slate-50 rounded-lg font-medium"
+                  disabled={currentPage === 1}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  className="px-3 py-1.5 text-xs text-slate-700 bg-white border border-[#E5E7EB] rounded-lg font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   Previous
                 </button>
-                <button className="w-7 h-7 bg-[#0D47A1] text-white rounded-lg text-xs font-bold">
-                  1
-                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: userTotalPages }, (_, i) => i + 1).map(
+                    (p) => (
+                      <button
+                        key={p}
+                        onClick={() => setCurrentPage(p)}
+                        className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors ${
+                          currentPage === p
+                            ? "bg-[#0D47A1] text-white"
+                            : "bg-white border border-[#E5E7EB] text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ),
+                  )}
+                </div>
                 <button
-                  disabled
-                  className="px-3 py-1.5 text-xs text-slate-400 bg-slate-50 rounded-lg font-medium"
+                  disabled={currentPage >= userTotalPages}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, userTotalPages))
+                  }
+                  className="px-3 py-1.5 text-xs text-slate-700 bg-white border border-[#E5E7EB] rounded-lg font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   Next
                 </button>
@@ -1152,350 +1090,11 @@ export const UserManagement: React.FC = () => {
       )}
 
       {/* ── 6. RIGHT DRAWER: EDIT USER ── */}
-      {editingUser && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          <div
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
-            onClick={() => setEditingUser(null)}
-          />
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 animate-in slide-in-from-right duration-200">
-              <div className="px-6 py-4 bg-[#009688] text-white flex items-center justify-between shadow-sm">
-                <div>
-                  <h2
-                    className="text-base font-bold flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Edit size={18} /> Edit User Details
-                  </h2>
-                  <p className="text-xs text-teal-100 mt-0.5">
-                    Modify profile info for {editingUser.empId}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setEditingUser(null)}
-                  className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10 cursor-pointer"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <form
-                onSubmit={handleSaveEditUser}
-                className="flex-1 overflow-y-auto p-6 space-y-4 bg-[#F1F5F9]/50"
-                style={{ fontFamily: RB }}
-              >
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-[#64748B] mb-1">
-                      System Access Role (Locked)
-                    </label>
-                    <input
-                      type="text"
-                      readOnly
-                      value={editingUser.role}
-                      className="w-full px-3 py-2.5 text-xs bg-slate-100 border border-[#E5E7EB] rounded-xl text-slate-500 outline-none font-semibold cursor-not-allowed"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#111827] mb-1">
-                      Account Status
-                    </label>
-                    <select
-                      value={editForm.status}
-                      onChange={(e) =>
-                        setEditForm({
-                          ...editForm,
-                          status: e.target.value as AccountStatus,
-                        })
-                      }
-                      className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-                    >
-                      <option value="Active">Active</option>
-                      <option value="Inactive">Inactive</option>
-                      <option value="Pending">Pending</option>
-                      <option value="Suspended">Suspended</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#111827] mb-1">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={editForm.fullName}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, fullName: e.target.value })
-                    }
-                    className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-[#111827] mb-1">
-                      Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={editForm.email}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, email: e.target.value })
-                      }
-                      className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#111827] mb-1">
-                      Phone Number
-                    </label>
-                    <input
-                      type="text"
-                      value={editForm.phone}
-                      onChange={(e) =>
-                        setEditForm({ ...editForm, phone: e.target.value })
-                      }
-                      className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#111827] mb-1">
-                    Department
-                  </label>
-                  <select
-                    value={editForm.department}
-                    onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        department: e.target.value,
-                        primaryDepartmentId:
-                          deptNameToId[e.target.value] ||
-                          (apiDepartments.length > 0
-                            ? Number(apiDepartments[0].id)
-                            : 2),
-                      })
-                    }
-                    className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-                  >
-                    <option value="Cardiology">Cardiology</option>
-                    <option value="General Medicine">General Medicine</option>
-                    <option value="Neurology">Neurology</option>
-                    <option value="Administration">Administration</option>
-                    <option value="OPD Reception">OPD Reception</option>
-                    <option value="Accounts & Billing">
-                      Accounts & Billing
-                    </option>
-                    <option value="Nursing & Patient Care">
-                      Nursing & Patient Care
-                    </option>
-                    <option value="IT & Systems">IT & Systems</option>
-                  </select>
-                </div>
-
-                {/* Additional Doctor Clinical Profile Inputs if Doctor */}
-                {editingUser.role === "Doctor" && (
-                  <div className="pt-3 border-t border-slate-100 space-y-3">
-                    <h4 className="text-xs font-bold text-[#009688] uppercase tracking-wider">
-                      Doctor Clinical Profile & Fees
-                    </h4>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-bold text-[#111827] mb-1">
-                          Reg Number
-                        </label>
-                        <input
-                          type="text"
-                          value={editForm.medicalRegistrationNumber}
-                          onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              medicalRegistrationNumber: e.target.value,
-                            })
-                          }
-                          className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-[#111827] mb-1">
-                          Qualification
-                        </label>
-                        <input
-                          type="text"
-                          value={editForm.qualification}
-                          onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              qualification: e.target.value,
-                            })
-                          }
-                          className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-xs font-bold text-[#111827] mb-1">
-                          Experience (Yrs)
-                        </label>
-                        <input
-                          type="number"
-                          value={editForm.yearsOfExperience}
-                          onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              yearsOfExperience: Number(e.target.value),
-                            })
-                          }
-                          className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-[#111827] mb-1">
-                          Consult Fee (₹)
-                        </label>
-                        <input
-                          type="number"
-                          value={editForm.consultationFee}
-                          onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              consultationFee: Number(e.target.value),
-                            })
-                          }
-                          className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-[#111827] mb-1">
-                          Followup Fee (₹)
-                        </label>
-                        <input
-                          type="number"
-                          value={editForm.followUpFee}
-                          onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              followUpFee: Number(e.target.value),
-                            })
-                          }
-                          className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-[#111827] mb-1">
-                        Slot Duration (Minutes)
-                      </label>
-                      <input
-                        type="number"
-                        value={editForm.slotDurationMinutes}
-                        onChange={(e) =>
-                          setEditForm({
-                            ...editForm,
-                            slotDurationMinutes: Number(e.target.value),
-                          })
-                        }
-                        className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                      />
-                    </div>
-
-                    {/* Pre-populated Schedule & Availability Editor */}
-                    <div className="pt-3 border-t border-slate-100 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="block text-xs font-bold text-[#111827]">
-                          Doctor Weekly Availability Schedule
-                        </label>
-                        <span className="text-[10px] text-slate-400 font-semibold uppercase">
-                          HH:mm Format
-                        </span>
-                      </div>
-
-                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                        {editForm.availability.map((item, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 text-xs"
-                          >
-                            <span className="w-20 font-bold text-slate-700">
-                              {item.dayOfWeek}
-                            </span>
-                            <input
-                              type="text"
-                              value={item.startTime}
-                              placeholder="09:00"
-                              onChange={(e) => {
-                                const newArr = [...editForm.availability];
-                                newArr[index] = {
-                                  ...newArr[index],
-                                  startTime: e.target.value,
-                                };
-                                setEditForm({
-                                  ...editForm,
-                                  availability: newArr,
-                                });
-                              }}
-                              className="w-20 px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-mono text-center"
-                            />
-                            <span className="text-slate-400 font-bold">-</span>
-                            <input
-                              type="text"
-                              value={item.endTime}
-                              placeholder="17:00"
-                              onChange={(e) => {
-                                const newArr = [...editForm.availability];
-                                newArr[index] = {
-                                  ...newArr[index],
-                                  endTime: e.target.value,
-                                };
-                                setEditForm({
-                                  ...editForm,
-                                  availability: newArr,
-                                });
-                              }}
-                              className="w-20 px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-mono text-center"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex gap-3 pt-4 border-t border-border mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setEditingUser(null)}
-                    className="flex-1 border border-border text-text-muted hover:bg-slate-50 py-3 rounded-xl font-heading font-semibold text-xs transition-all cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 bg-[#009688] hover:bg-[#00796B] text-white py-3 rounded-xl font-heading font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Check size={14} />
-                    )}
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      <EditStaffUserDrawer
+        user={editingUser}
+        onClose={() => setEditingUser(null)}
+        onSaved={handleSavedEditUser}
+      />
 
       {/* ── 7. RIGHT DRAWER: VIEW DETAILS ── */}
       {detailsUser && (

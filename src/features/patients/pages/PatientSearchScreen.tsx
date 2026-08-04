@@ -33,7 +33,11 @@ export function PatientSearchScreen({
   const activeRole = (userRole || permissions.role || "RECEPTIONIST").toUpperCase();
 
   // Backend API connection
-  const { data: dbPatients = [], isLoading } = usePatients();
+  const { data: patientsResponse, isLoading } = usePatients();
+  const dbPatients = useMemo(
+    () => patientsResponse?.items ?? [],
+    [patientsResponse],
+  );
 
   // Dynamic KPI Stats calculation from API patient data
   const stats = useMemo(() => {

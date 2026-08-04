@@ -189,7 +189,7 @@ export const JOURNEY_STEPS = [
 ];
 
 export const STATUS_CONFIG: Record<
-  AppStatus,
+  string,
   { bg: string; text: string; dot: string; label: string }
 > = {
   scheduled: {

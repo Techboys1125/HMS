@@ -15,7 +15,7 @@ import { useAuthStore } from "../../features/auth";
 import type { FamilyMember } from "../../features/patients";
 import type { NavId, Role } from "../../types/app.types";
 import { ROLE_LABEL, PP, RB } from "../../constants/navigation";
-import { Avatar } from "../common/Avatar";
+import { Avatar } from "../../common/components/Avatar";
 
 export function Header({
   role,
@@ -314,6 +314,20 @@ export function Header({
                   <User size={15} className="text-[#0D47A1]" />
                   <span>My Profile & Settings</span>
                 </button>
+                {role === "patient" &&
+                  familyMembers.length > 0 &&
+                  onSwitchActivePatient && (
+                    <button
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        setShowPatientSelector(true);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                    >
+                      <Users size={15} className="text-[#0D47A1]" />
+                      <span>Switch Patient</span>
+                    </button>
+                  )}
                 {(role === "admin" || role === "super-admin") && (
                   <button
                     onClick={() => {

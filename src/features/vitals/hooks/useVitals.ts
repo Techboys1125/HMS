@@ -51,7 +51,15 @@ export function useVitals() {
   );
 
   useEffect(() => {
-    fetchWaitingPatients();
+    let active = true;
+    Promise.resolve().then(() => {
+      if (active) {
+        fetchWaitingPatients();
+      }
+    });
+    return () => {
+      active = false;
+    };
   }, [fetchWaitingPatients]);
 
   return {

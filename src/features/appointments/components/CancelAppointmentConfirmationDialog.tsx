@@ -131,7 +131,14 @@ export function CancelAppointmentConfirmationDialog({
                 <span className="text-[10px] text-slate-400 block">
                   Department
                 </span>
-                <span className="text-slate-600">{apt.department}</span>
+                <span className="text-slate-600">
+                  {typeof apt.department === "string"
+                    ? apt.department
+                    : apt.department?.departmentName ||
+                      apt.department?.name ||
+                      apt.department?.departmentCode ||
+                      ""}
+                </span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 block">

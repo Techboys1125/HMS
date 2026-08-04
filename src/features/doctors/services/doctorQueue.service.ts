@@ -11,7 +11,7 @@ export const doctorQueueService = {
     const res = await doctorsApi.getQueue(doctorId);
     const content = res.content || [];
     const currentPatient = content.find((item) => item.status === "CALLED" || item.status === "IN_CONSULTATION") || null;
-    const nextPatient = content.find((item) => item.status === "WAITING" || item.status === "WAITING_FOR_DOCTOR") || null;
+    const nextPatient = content.find((item) => item.status === "WAITING" || item.status === "WAITING_FOR_DOCTOR" || item.status === "WAITING_FOR_DOCTOR_CALL") || null;
 
     return {
       summary: res.summary || {},
@@ -21,7 +21,9 @@ export const doctorQueueService = {
     };
   },
 
-  async callNextPatient(doctorId: number | string): Promise<DoctorCallNextResponse> {
+  async callNextPatient(
+    doctorId: number | string,
+  ): Promise<Partial<DoctorCallNextResponse> & { token?: string }> {
     return doctorsApi.callNext(doctorId);
   },
 };

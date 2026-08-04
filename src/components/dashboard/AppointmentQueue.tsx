@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Download } from "lucide-react";
 import type { AppStatus } from "../../types/app.types";
 import { APPOINTMENTS } from "../../constants/dashboard";
-import { Avatar } from "../common/Avatar";
-import { StatusBadge } from "../common/StatusBadge";
+import { Avatar } from "../../common/components/Avatar";
+import { StatusBadge } from "../../common/components/StatusBadge";
 
 export function AppointmentQueue({
   onPatientSelect,

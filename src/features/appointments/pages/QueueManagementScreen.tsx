@@ -117,136 +117,40 @@ export function QueueManagementScreen({
   };
 
   // Queue Data List
-  const [queueItems, setQueueItems] = useState([
-    {
-      token: "TK-086",
-      name: "Sarah Mitchell",
-      mrn: "MRN-892101",
-      aptId: "APT-2026-8912",
-      doctor: "Dr. Arjun Mehta",
-      dept: "Cardiology",
-      apptTime: "09:00 AM",
-      arrivalTime: "08:42 AM",
-      waitTime: "18 min",
-      status: "In Consultation",
-      type: "Follow-up",
-      age: 34,
-      gender: "Female",
-      bloodGroup: "A+",
-    },
-    {
-      token: "TK-087",
-      name: "James Thornton",
-      mrn: "MRN-892102",
-      aptId: "APT-2026-8913",
-      doctor: "Dr. Priya Sharma",
-      dept: "General OPD",
-      apptTime: "09:15 AM",
-      arrivalTime: "09:03 AM",
-      waitTime: "12 min",
-      status: "Waiting",
-      type: "Routine",
-      age: 67,
-      gender: "Male",
-      bloodGroup: "O+",
-    },
-    {
-      token: "TK-088",
-      name: "Emma Reyes",
-      mrn: "MRN-892103",
-      aptId: "APT-2026-8914",
-      doctor: "Dr. Sunita Patel",
-      dept: "Gynecology",
-      apptTime: "09:30 AM",
-      arrivalTime: "09:22 AM",
-      waitTime: "08 min",
-      status: "Checked-In",
-      type: "New Visit",
-      age: 28,
-      gender: "Female",
-      bloodGroup: "B+",
-    },
-    {
-      token: "TK-089",
-      name: "Robert Chen",
-      mrn: "MRN-892104",
-      aptId: "APT-2026-8915",
-      doctor: "Dr. Arjun Mehta",
-      dept: "Cardiology",
-      apptTime: "10:00 AM",
-      arrivalTime: "—",
-      waitTime: "00 min",
-      status: "Scheduled",
-      type: "Emergency",
-      age: 52,
-      gender: "Male",
-      bloodGroup: "AB+",
-    },
-    {
-      token: "TK-090",
-      name: "Aisha Kumar",
-      mrn: "MRN-892105",
-      aptId: "APT-2026-8916",
-      doctor: "Dr. Rajesh Kapoor",
-      dept: "Neurology",
-      apptTime: "10:15 AM",
-      arrivalTime: "10:11 AM",
-      waitTime: "04 min",
-      status: "Checked-In",
-      type: "Consultation",
-      age: 41,
-      gender: "Female",
-      bloodGroup: "O-",
-    },
-    {
-      token: "TK-091",
-      name: "David Walsh",
-      mrn: "MRN-892106",
-      aptId: "APT-2026-8917",
-      doctor: "Dr. Priya Sharma",
-      dept: "General OPD",
-      apptTime: "10:30 AM",
-      arrivalTime: "—",
-      waitTime: "00 min",
-      status: "Scheduled",
-      type: "Routine",
-      age: 38,
-      gender: "Male",
-      bloodGroup: "A-",
-    },
-    {
-      token: "TK-092",
-      name: "Nina Patel",
-      mrn: "MRN-892107",
-      aptId: "APT-2026-8918",
-      doctor: "Dr. Rajesh Kapoor",
-      dept: "Dermatology",
-      apptTime: "11:00 AM",
-      arrivalTime: "10:45 AM",
-      waitTime: "00 min",
-      status: "Completed",
-      type: "Follow-up",
-      age: 29,
-      gender: "Female",
-      bloodGroup: "B-",
-    },
-    {
-      token: "TK-093",
-      name: "Carlos Mendez",
-      mrn: "MRN-892108",
-      aptId: "APT-2026-8919",
-      doctor: "Dr. Priya Sharma",
-      dept: "General OPD",
-      apptTime: "11:30 AM",
-      arrivalTime: "—",
-      waitTime: "00 min",
-      status: "No Show",
-      type: "Consultation",
-      age: 63,
-      gender: "Male",
-      bloodGroup: "O+",
-    },
-  ]);
+  const [queueItems, setQueueItems] = useState<any[]>([]);
+  const [_isLoading, _setIsLoading] = useState(false);
+
+  const fetchQueue = async () => {
+    _setIsLoading(true);
+    try {
+      const data = await receptionService.fetchWorklist();
+      const mapped = (data || []).map((item: any, _idx: number) => ({
+        token: item.tokenNumber || item.token || "",
+        name: item.patientName || item.patient?.name || item.patient?.fullName || "",
+        mrn: item.mrn || item.patient?.mrn || "",
+        aptId: item.appointmentId || item.id || "",
+        doctor: item.doctorName || item.doctor?.name || "",
+        dept: item.departmentName || item.doctor?.departmentName || "",
+        apptTime: item.appointmentTime || item.apptTime || "",
+        arrivalTime: item.checkInTime || item.arrivalTime || "",
+        waitTime: item.waitTime || "",
+        status: item.status || "",
+        type: item.visitType || "",
+        age: item.age || item.patient?.age || 0,
+        gender: item.gender || item.patient?.gender || "",
+        bloodGroup: item.bloodGroup || item.patient?.bloodGroup || "",
+      }));
+      setQueueItems(mapped);
+    } catch (err) {
+      console.warn("Failed to load queue:", err);
+    } finally {
+      _setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchQueue();
+  }, []);
 
   // Filter Logic
   const filteredQueue = useMemo(() => {
@@ -522,10 +426,6 @@ export function QueueManagementScreen({
               className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
             >
               <option>All Doctors</option>
-              <option>Dr. Arjun Mehta</option>
-              <option>Dr. Priya Sharma</option>
-              <option>Dr. Sunita Patel</option>
-              <option>Dr. Rajesh Kapoor</option>
             </select>
 
             <select

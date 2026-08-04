@@ -201,6 +201,10 @@ export function BookAppointmentScreen({
 
         // Strictly filter doctors belonging to the selected department
         const matchingDoctors = data.filter((d) => {
+          // Hide inactive doctors (service already filters; this is a safety net)
+          const status = (d.status || "").toString().toUpperCase();
+          if (status && status !== "ACTIVE") return false;
+          if (d.active === false) return false;
           if (!d.name || !d.name.trim()) return false;
 
           const docDeptId =

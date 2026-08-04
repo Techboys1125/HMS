@@ -1,17 +1,20 @@
 export type QueueStatus =
   | "BOOKED"
+  | "CONFIRMED"
   | "CHECKED_IN"
   | "WAITING"
   | "WAITING_FOR_VITALS"
   | "IN_VITALS"
   | "WAITING_FOR_DOCTOR"
+  | "WAITING_FOR_DOCTOR_CALL"
   | "CALLED"
   | "IN_CONSULTATION"
   | "CONSULTATION_COMPLETED"
   | "BILLING_PENDING"
   | "COMPLETED"
   | "CANCELLED"
-  | "NO_SHOW";
+  | "NO_SHOW"
+  | "RESCHEDULED";
 
 export type QueuePriority = "LOW" | "NORMAL" | "HIGH" | "EMERGENCY";
 

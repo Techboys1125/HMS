@@ -27,7 +27,7 @@ export const receptionService = {
     return receptionApi.getWorklist(params);
   },
 
-  async fetchQueue(): Promise<any[]> {
+  async fetchQueue(): Promise<ReceptionQueueItem[]> {
     return receptionApi.getReceptionQueue();
   },
 
@@ -50,7 +50,7 @@ export const receptionService = {
       // 3. Update status to WAITING_FOR_VITALS
       await receptionApi.updateQueueStatus(
         appointmentId,
-        "WAITING_FOR_VITALS" as any,
+        "WAITING_FOR_VITALS",
       );
 
       return {
@@ -63,11 +63,13 @@ export const receptionService = {
           minute: "2-digit",
         }),
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.warn("[receptionService] Check-in service error:", error);
-      if (error?.message) {
+
+      if (error instanceof Error) {
         throw error;
       }
+
       return {
         success: true,
         appointmentId,
@@ -83,9 +85,9 @@ export const receptionService = {
 
   async updateStatus(
     appointmentId: string | number,
-    status: QueueStatus | string,
-  ): Promise<any> {
-    return receptionApi.updateQueueStatus(appointmentId, status as any);
+    status: QueueStatus,
+  ): Promise<boolean> {
+    return receptionApi.updateQueueStatus(appointmentId, status);
   },
 
   async getAppointmentToken(appointmentId: string | number): Promise<string> {

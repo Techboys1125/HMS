@@ -114,6 +114,11 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "appointments", Icon: Calendar, label: "Appointments" },
         { id: "consultation", Icon: MessageSquare, label: "Consultation" },
         { id: "prescriptions", Icon: Pill, label: "Prescriptions" },
+        {
+          id: "medical-history",
+          Icon: ClipboardList,
+          label: "Medical Records",
+        },
       ],
     },
     {
@@ -129,6 +134,7 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
       items: [
         { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard" },
         { id: "appointments", Icon: Calendar, label: "Appointments" },
+        { id: "doctors", Icon: UserCheck, label: "Doctors" },
         { id: "consultation", Icon: Stethoscope, label: "OPD Consultation" },
         { id: "vitals", Icon: Activity, label: "Vitals" },
       ],
@@ -141,6 +147,7 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
       items: [
         { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard" },
         { id: "patients", Icon: Users, label: "Patients" },
+        { id: "doctors", Icon: UserCheck, label: "Doctors" },
         { id: "appointments", Icon: Calendar, label: "Appointments" },
         { id: "billing", Icon: CreditCard, label: "Billing" },
         { id: "reports", Icon: BarChart2, label: "Reports" },
@@ -154,6 +161,7 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
       items: [
         { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard" },
         { id: "billing", Icon: CreditCard, label: "Billing" },
+        { id: "doctors", Icon: UserCheck, label: "Doctors" },
         { id: "reports", Icon: BarChart2, label: "Reports" },
       ],
     },

@@ -15,7 +15,12 @@ import {
   Loader2,
   Trash2,
 } from "lucide-react";
-import { departmentsApi, type ApiDepartment } from "../api/departments.api";
+import type { LucideIcon } from "lucide-react";
+import {
+  departmentsApi,
+  type ApiDepartment,
+  type ApiSpecialtyItem,
+} from "../api/departments.api";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -33,7 +38,7 @@ interface Department {
   description: string;
   workingHours: string;
   createdDate: string;
-  rawSpecialties?: any[];
+  rawSpecialties?: ApiSpecialtyItem[];
 }
 
 export function DepartmentsSpecialtiesWorkspace() {
@@ -58,7 +63,10 @@ export function DepartmentsSpecialtiesWorkspace() {
   const [departments, setDepartments] = useState<Department[]>([]);
 
   // Toast State
-  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [toast, setToast] = useState<{
+    msg: string;
+    type: "success" | "error";
+  } | null>(null);
 
   const triggerToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });
@@ -73,9 +81,18 @@ export function DepartmentsSpecialtiesWorkspace() {
         const mapped: Department[] = apiList.map((d, index) => {
           const deptId = String(d.departmentId || d.id || index + 1);
           const deptName = d.departmentName || d.name || "Department";
-          const deptCode = d.departmentCode || d.code || `DEP-${deptName.substring(0, 4).toUpperCase()}-0${index + 1}`;
-          const specsList = d.specialties?.map((s) => s.name).filter(Boolean).join(", ");
-          const isActive = d.active !== undefined ? d.active : (d.status !== "INACTIVE" && d.status !== "Inactive");
+          const deptCode =
+            d.departmentCode ||
+            d.code ||
+            `DEP-${deptName.substring(0, 4).toUpperCase()}-0${index + 1}`;
+          const specsList = d.specialties
+            ?.map((s) => s.name)
+            .filter(Boolean)
+            .join(", ");
+          const isActive =
+            d.active !== undefined
+              ? d.active
+              : d.status !== "INACTIVE" && d.status !== "Inactive";
 
           return {
             id: deptId,
@@ -83,7 +100,8 @@ export function DepartmentsSpecialtiesWorkspace() {
             name: deptName,
             specialty: specsList || d.description || "General Specialty",
             head: d.headOfDepartment || d.head || "Dr. Unassigned",
-            doctorsCount: d.doctorsCount || (d.specialties ? d.specialties.length * 3 : 10),
+            doctorsCount:
+              d.doctorsCount || (d.specialties ? d.specialties.length * 3 : 10),
             consultationRooms: d.consultationRooms || 4,
             status: isActive ? "Active" : "Inactive",
             lastUpdated: "Recently updated",
@@ -106,7 +124,7 @@ export function DepartmentsSpecialtiesWorkspace() {
   }, []);
 
   useEffect(() => {
-    loadDepartments();
+    void loadDepartments();
   }, [loadDepartments]);
 
   const handleCreateDepartment = async () => {
@@ -116,12 +134,16 @@ export function DepartmentsSpecialtiesWorkspace() {
     }
     setIsSubmitting(true);
     try {
-      const cleanDeptCode = (newDeptCode || `DEP_${newDeptName}`).replace(/[^a-zA-Z0-9_]/g, "_").toUpperCase();
+      const cleanDeptCode = (newDeptCode || `DEP_${newDeptName}`)
+        .replace(/[^a-zA-Z0-9_]/g, "_")
+        .toUpperCase();
 
       const payload: Partial<ApiDepartment> = {
         departmentName: newDeptName,
         departmentCode: cleanDeptCode,
-        description: newDeptDescription || (newDeptSpecialties.length > 0 ? newDeptSpecialties.join(", ") : ""),
+        description:
+          newDeptDescription ||
+          (newDeptSpecialties.length > 0 ? newDeptSpecialties.join(", ") : ""),
         active: true,
         specialties: newDeptSpecialties.map((spec, idx) => ({
           name: spec,
@@ -132,7 +154,10 @@ export function DepartmentsSpecialtiesWorkspace() {
         headOfDepartment: newDeptHead,
       };
       await departmentsApi.createDepartment(payload);
-      triggerToast(`Department "${newDeptName}" created successfully!`, "success");
+      triggerToast(
+        `Department "${newDeptName}" created successfully!`,
+        "success",
+      );
       setIsAddModalOpen(false);
       setNewDeptName("");
       setNewDeptCode("");
@@ -142,7 +167,8 @@ export function DepartmentsSpecialtiesWorkspace() {
       setNewDeptHead("");
       loadDepartments();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to create department";
+      const msg =
+        err instanceof Error ? err.message : "Failed to create department";
       triggerToast(msg, "error");
     } finally {
       setIsSubmitting(false);
@@ -159,20 +185,26 @@ export function DepartmentsSpecialtiesWorkspace() {
         description: selectedDept.description,
         active: selectedDept.status === "Active",
         headOfDepartment: selectedDept.head,
-        specialties: (selectedDept.rawSpecialties || []).map((s: any, idx: number) => ({
-          id: s.id,
-          name: s.name || s.specialtyName,
-          code: s.code || `${selectedDept.code}_SPEC_${idx + 1}`,
-          description: s.description || `${s.name || s.specialtyName} Specialty`,
-          active: s.active !== undefined ? s.active : true,
-        })),
+        specialties: (selectedDept.rawSpecialties || []).map(
+          (s: ApiSpecialtyItem, idx: number) => ({
+            id: s.id,
+            name: s.name,
+            code: s.code || `${selectedDept.code}_SPEC_${idx + 1}`,
+            description: s.description || `${s.name} Specialty`,
+            active: s.active !== undefined ? s.active : true,
+          }),
+        ),
       };
       await departmentsApi.updateDepartment(selectedDept.id, payload);
-      triggerToast(`Department "${selectedDept.name}" updated successfully!`, "success");
+      triggerToast(
+        `Department "${selectedDept.name}" updated successfully!`,
+        "success",
+      );
       setIsEditMode(false);
       loadDepartments();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to update department";
+      const msg =
+        err instanceof Error ? err.message : "Failed to update department";
       triggerToast(msg, "error");
     } finally {
       setIsSubmitting(false);
@@ -180,7 +212,12 @@ export function DepartmentsSpecialtiesWorkspace() {
   };
 
   const handleDeleteDepartment = async (deptId: string, deptName: string) => {
-    if (!window.confirm(`Are you sure you want to delete department "${deptName}"?`)) return;
+    if (
+      !window.confirm(
+        `Are you sure you want to delete department "${deptName}"?`,
+      )
+    )
+      return;
     setIsSubmitting(true);
     try {
       await departmentsApi.deleteDepartment(deptId);
@@ -188,7 +225,8 @@ export function DepartmentsSpecialtiesWorkspace() {
       if (selectedDept?.id === deptId) setSelectedDept(null);
       loadDepartments();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to delete department";
+      const msg =
+        err instanceof Error ? err.message : "Failed to delete department";
       triggerToast(msg, "error");
     } finally {
       setIsSubmitting(false);
@@ -197,16 +235,33 @@ export function DepartmentsSpecialtiesWorkspace() {
 
   // Dynamic Specialties computed from real API data
   const specialties = useMemo(() => {
-    const list: { name: string; doctors: number; department: string; icon: any; color: string }[] = [];
-    const colors = ["#EF4444", "#F59E0B", "#0D47A1", "#009688", "#9C27B0", "#4DB6AC", "#E91E63", "#607D8B"];
-    
+    const list: {
+      name: string;
+      doctors: number;
+      department: string;
+      icon: LucideIcon;
+      color: string;
+    }[] = [];
+    const colors = [
+      "#EF4444",
+      "#F59E0B",
+      "#0D47A1",
+      "#009688",
+      "#9C27B0",
+      "#4DB6AC",
+      "#E91E63",
+      "#607D8B",
+    ];
+
     departments.forEach((dept, deptIdx) => {
       const rawSpecs = dept.rawSpecialties || [];
       if (rawSpecs.length > 0) {
-        rawSpecs.forEach((spec: any, specIdx: number) => {
+        rawSpecs.forEach((spec: ApiSpecialtyItem, specIdx: number) => {
           list.push({
-            name: spec.name || spec.specialtyName || "Specialty",
-            doctors: dept.doctorsCount ? Math.max(1, Math.round(dept.doctorsCount / rawSpecs.length)) : 3,
+            name: spec.name || "Specialty",
+            doctors: dept.doctorsCount
+              ? Math.max(1, Math.round(dept.doctorsCount / rawSpecs.length))
+              : 3,
             department: dept.name,
             icon: Stethoscope,
             color: colors[(deptIdx + specIdx) % colors.length],
@@ -214,11 +269,16 @@ export function DepartmentsSpecialtiesWorkspace() {
         });
       } else if (dept.specialty && dept.specialty !== "General Specialty") {
         // Fallback for comma separated specialties list
-        const parts = dept.specialty.split(",").map((s) => s.trim()).filter(Boolean);
+        const parts = dept.specialty
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
         parts.forEach((part, partIdx) => {
           list.push({
             name: part,
-            doctors: dept.doctorsCount ? Math.max(1, Math.round(dept.doctorsCount / parts.length)) : 3,
+            doctors: dept.doctorsCount
+              ? Math.max(1, Math.round(dept.doctorsCount / parts.length))
+              : 3,
             department: dept.name,
             icon: Stethoscope,
             color: colors[(deptIdx + partIdx) % colors.length],
@@ -247,14 +307,21 @@ export function DepartmentsSpecialtiesWorkspace() {
       dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       dept.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       dept.head.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus =
       selectedStatusFilter === "All" || dept.status === selectedStatusFilter;
 
     const matchesSpecialty =
       selectedTypeFilter === "All" ||
-      (dept.specialty && dept.specialty.toLowerCase().includes(selectedTypeFilter.toLowerCase())) ||
-      (dept.rawSpecialties && dept.rawSpecialties.some((s: any) => (s.name || "").toLowerCase() === selectedTypeFilter.toLowerCase()));
+      (dept.specialty &&
+        dept.specialty
+          .toLowerCase()
+          .includes(selectedTypeFilter.toLowerCase())) ||
+      (dept.rawSpecialties &&
+        dept.rawSpecialties.some(
+          (s: ApiSpecialtyItem) =>
+            (s.name || "").toLowerCase() === selectedTypeFilter.toLowerCase(),
+        ));
 
     return matchesSearch && matchesStatus && matchesSpecialty;
   });
@@ -311,7 +378,8 @@ export function DepartmentsSpecialtiesWorkspace() {
               cursor: "pointer",
             }}
           >
-            <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} /> Refresh
+            <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />{" "}
+            Refresh
           </button>
           <button
             onClick={() => setIsAddModalOpen(true)}
@@ -664,14 +732,14 @@ export function DepartmentsSpecialtiesWorkspace() {
       >
         <div style={{ flex: 1, minWidth: "240px", position: "relative" }}>
           <Search
-             size={16}
-             style={{
-               position: "absolute",
-               left: "12px",
-               top: "50%",
-               transform: "translateY(-50%)",
-               color: "#94A3B8",
-             }}
+            size={16}
+            style={{
+              position: "absolute",
+              left: "12px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "#94A3B8",
+            }}
           />
           <input
             type="text"
@@ -818,7 +886,8 @@ export function DepartmentsSpecialtiesWorkspace() {
                   margin: "0 0 16px 0",
                 }}
               >
-                Click "Add Department" to create your first hospital department unit.
+                Click "Add Department" to create your first hospital department
+                unit.
               </p>
               <button
                 onClick={() => setIsAddModalOpen(true)}
@@ -934,7 +1003,13 @@ export function DepartmentsSpecialtiesWorkspace() {
                         {dept.lastUpdated}
                       </td>
                       <td style={{ padding: "12px 16px", textAlign: "right" }}>
-                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "flex-end",
+                            gap: "8px",
+                          }}
+                        >
                           <button
                             onClick={() => setSelectedDept(dept)}
                             style={{
@@ -954,7 +1029,9 @@ export function DepartmentsSpecialtiesWorkspace() {
                             <Eye size={14} /> View Details
                           </button>
                           <button
-                            onClick={() => handleDeleteDepartment(dept.id, dept.name)}
+                            onClick={() =>
+                              handleDeleteDepartment(dept.id, dept.name)
+                            }
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
@@ -1078,7 +1155,11 @@ export function DepartmentsSpecialtiesWorkspace() {
                         {sp.name}
                       </h4>
                       <p
-                        style={{ fontSize: "11px", color: "#64748B", margin: 0 }}
+                        style={{
+                          fontSize: "11px",
+                          color: "#64748B",
+                          margin: 0,
+                        }}
                       >
                         Dept: {sp.department}
                       </p>
@@ -1229,7 +1310,15 @@ export function DepartmentsSpecialtiesWorkspace() {
                 </div>
               ))}
               {departments.length === 0 && (
-                <div style={{ textAlign: "center", width: "100%", color: "#94A3B8", fontSize: "12px", gridColumn: "1/-1" }}>
+                <div
+                  style={{
+                    textAlign: "center",
+                    width: "100%",
+                    color: "#94A3B8",
+                    fontSize: "12px",
+                    gridColumn: "1/-1",
+                  }}
+                >
                   Add departments to visualize organization hierarchy nodes.
                 </div>
               )}
@@ -1290,11 +1379,24 @@ export function DepartmentsSpecialtiesWorkspace() {
                   Physician Distribution
                 </h4>
                 <div
-                  style={{ display: "flex", flexDirection: "column", gap: "8px" }}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
                 >
                   {departments.slice(0, 5).map((d, i) => {
-                    const colors = ["#0D47A1", "#EF4444", "#E91E63", "#009688", "#9C27B0"];
-                    const maxVal = Math.max(...departments.map(x => x.doctorsCount), 1);
+                    const colors = [
+                      "#0D47A1",
+                      "#EF4444",
+                      "#E91E63",
+                      "#009688",
+                      "#9C27B0",
+                    ];
+                    const maxVal = Math.max(
+                      ...departments.map((x) => x.doctorsCount),
+                      1,
+                    );
                     return (
                       <div key={d.id}>
                         <div
@@ -1306,7 +1408,9 @@ export function DepartmentsSpecialtiesWorkspace() {
                           }}
                         >
                           <span>{d.name}</span>
-                          <span style={{ fontWeight: 600 }}>{d.doctorsCount} Docs</span>
+                          <span style={{ fontWeight: 600 }}>
+                            {d.doctorsCount} Docs
+                          </span>
                         </div>
                         <div
                           style={{
@@ -1357,8 +1461,17 @@ export function DepartmentsSpecialtiesWorkspace() {
                   }}
                 >
                   {departments.slice(0, 5).map((d, i) => {
-                    const colors = ["#009688", "#0D47A1", "#9C27B0", "#F59E0B", "#EF4444"];
-                    const maxVal = Math.max(...departments.map(x => x.consultationRooms), 1);
+                    const colors = [
+                      "#009688",
+                      "#0D47A1",
+                      "#9C27B0",
+                      "#F59E0B",
+                      "#EF4444",
+                    ];
+                    const maxVal = Math.max(
+                      ...departments.map((x) => x.consultationRooms),
+                      1,
+                    );
                     return (
                       <div key={d.id}>
                         <div
@@ -1370,7 +1483,9 @@ export function DepartmentsSpecialtiesWorkspace() {
                           }}
                         >
                           <span>{d.name}</span>
-                          <span style={{ fontWeight: 600 }}>{d.consultationRooms} OPD Suites</span>
+                          <span style={{ fontWeight: 600 }}>
+                            {d.consultationRooms} OPD Suites
+                          </span>
                         </div>
                         <div
                           style={{
@@ -1454,7 +1569,12 @@ export function DepartmentsSpecialtiesWorkspace() {
                   {isEditMode ? (
                     <select
                       value={selectedDept.status}
-                      onChange={(e) => setSelectedDept({ ...selectedDept, status: e.target.value as "Active" | "Inactive" })}
+                      onChange={(e) =>
+                        setSelectedDept({
+                          ...selectedDept,
+                          status: e.target.value as "Active" | "Inactive",
+                        })
+                      }
                       style={{
                         padding: "2px 8px",
                         borderRadius: "8px",
@@ -1594,7 +1714,12 @@ export function DepartmentsSpecialtiesWorkspace() {
                       <input
                         type="text"
                         value={selectedDept.name}
-                        onChange={(e) => setSelectedDept({ ...selectedDept, name: e.target.value })}
+                        onChange={(e) =>
+                          setSelectedDept({
+                            ...selectedDept,
+                            name: e.target.value,
+                          })
+                        }
                         style={{
                           width: "100%",
                           padding: "6px 8px",
@@ -1621,12 +1746,20 @@ export function DepartmentsSpecialtiesWorkspace() {
                       Medical Specialties
                     </label>
                     {isEditMode ? (
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "6px",
+                        }}
+                      >
                         <div style={{ display: "flex", gap: "6px" }}>
                           <input
                             type="text"
                             value={editSpecialtyInput}
-                            onChange={(e) => setEditSpecialtyInput(e.target.value)}
+                            onChange={(e) =>
+                              setEditSpecialtyInput(e.target.value)
+                            }
                             placeholder="Add specialty..."
                             style={{
                               flex: 1,
@@ -1648,8 +1781,16 @@ export function DepartmentsSpecialtiesWorkspace() {
                                 };
                                 setSelectedDept({
                                   ...selectedDept,
-                                  rawSpecialties: [...(selectedDept.rawSpecialties || []), newSpecObj],
-                                  specialty: [...(selectedDept.rawSpecialties || []).map((s: any) => s.name || s.specialtyName), newSpecObj.name].join(", "),
+                                  rawSpecialties: [
+                                    ...(selectedDept.rawSpecialties || []),
+                                    newSpecObj,
+                                  ],
+                                  specialty: [
+                                    ...(selectedDept.rawSpecialties || []).map(
+                                      (s: ApiSpecialtyItem) => s.name,
+                                    ),
+                                    newSpecObj.name,
+                                  ].join(", "),
                                 });
                                 setEditSpecialtyInput("");
                               }
@@ -1667,40 +1808,100 @@ export function DepartmentsSpecialtiesWorkspace() {
                             Add
                           </button>
                         </div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-                          {(selectedDept.rawSpecialties || []).map((spec: any, idx: number) => {
-                            const specName = spec.name || spec.specialtyName;
-                            return (
-                              <span key={idx} style={{ display: "inline-flex", alignItems: "center", gap: "3px", background: "#E0F2F1", color: "#009688", padding: "1px 6px", borderRadius: "6px", fontSize: "10px", fontWeight: 600 }}>
-                                {specName}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const filtered = (selectedDept.rawSpecialties || []).filter((s: any) => (s.name || s.specialtyName) !== specName);
-                                    setSelectedDept({
-                                      ...selectedDept,
-                                      rawSpecialties: filtered,
-                                      specialty: filtered.map((s: any) => s.name || s.specialtyName).join(", "),
-                                    });
+                        <div
+                          style={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "4px",
+                          }}
+                        >
+                          {(selectedDept.rawSpecialties || []).map(
+                            (spec: ApiSpecialtyItem, idx: number) => {
+                              const specName = spec.name ?? "";
+                              return (
+                                <span
+                                  key={idx}
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "3px",
+                                    background: "#E0F2F1",
+                                    color: "#009688",
+                                    padding: "1px 6px",
+                                    borderRadius: "6px",
+                                    fontSize: "10px",
+                                    fontWeight: 600,
                                   }}
-                                  style={{ border: "none", background: "transparent", color: "#EF4444", cursor: "pointer", padding: "0 1px", fontSize: "9px" }}
                                 >
-                                  ✕
-                                </button>
-                              </span>
-                            );
-                          })}
+                                  {specName}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const filtered = (
+                                        selectedDept.rawSpecialties || []
+                                      ).filter(
+                                        (s: ApiSpecialtyItem) =>
+                                          (s.name ?? "") !== specName,
+                                      );
+                                      setSelectedDept({
+                                        ...selectedDept,
+                                        rawSpecialties: filtered,
+                                        specialty: filtered
+                                          .map(
+                                            (s: ApiSpecialtyItem) =>
+                                              s.name ?? "",
+                                          )
+                                          .join(", "),
+                                      });
+                                    }}
+                                    style={{
+                                      border: "none",
+                                      background: "transparent",
+                                      color: "#EF4444",
+                                      cursor: "pointer",
+                                      padding: "0 1px",
+                                      fontSize: "9px",
+                                    }}
+                                  >
+                                    ✕
+                                  </button>
+                                </span>
+                              );
+                            },
+                          )}
                         </div>
                       </div>
                     ) : (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginTop: "2px" }}>
-                        {(selectedDept.rawSpecialties || []).map((spec: any, idx: number) => (
-                          <span key={idx} style={{ background: "#E0F2F1", color: "#009688", padding: "2px 6px", borderRadius: "6px", fontSize: "11px", fontWeight: 600 }}>
-                            {spec.name || spec.specialtyName}
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "4px",
+                          marginTop: "2px",
+                        }}
+                      >
+                        {(selectedDept.rawSpecialties || []).map(
+                          (spec: ApiSpecialtyItem, idx: number) => (
+                            <span
+                              key={idx}
+                              style={{
+                                background: "#E0F2F1",
+                                color: "#009688",
+                                padding: "2px 6px",
+                                borderRadius: "6px",
+                                fontSize: "11px",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {spec.name ?? ""}
+                            </span>
+                          ),
+                        )}
+                        {(!selectedDept.rawSpecialties ||
+                          selectedDept.rawSpecialties.length === 0) && (
+                          <span style={{ fontWeight: 600, color: "#94A3B8" }}>
+                            None
                           </span>
-                        ))}
-                        {(!selectedDept.rawSpecialties || selectedDept.rawSpecialties.length === 0) && (
-                          <span style={{ fontWeight: 600, color: "#94A3B8" }}>None</span>
                         )}
                       </div>
                     )}
@@ -1752,7 +1953,12 @@ export function DepartmentsSpecialtiesWorkspace() {
                       <input
                         type="text"
                         value={selectedDept.head}
-                        onChange={(e) => setSelectedDept({ ...selectedDept, head: e.target.value })}
+                        onChange={(e) =>
+                          setSelectedDept({
+                            ...selectedDept,
+                            head: e.target.value,
+                          })
+                        }
                         style={{
                           width: "100%",
                           padding: "6px 8px",
@@ -1782,7 +1988,12 @@ export function DepartmentsSpecialtiesWorkspace() {
                       <input
                         type="text"
                         value={selectedDept.workingHours}
-                        onChange={(e) => setSelectedDept({ ...selectedDept, workingHours: e.target.value })}
+                        onChange={(e) =>
+                          setSelectedDept({
+                            ...selectedDept,
+                            workingHours: e.target.value,
+                          })
+                        }
                         style={{
                           width: "100%",
                           padding: "6px 8px",
@@ -1813,7 +2024,12 @@ export function DepartmentsSpecialtiesWorkspace() {
                     <textarea
                       rows={3}
                       value={selectedDept.description}
-                      onChange={(e) => setSelectedDept({ ...selectedDept, description: e.target.value })}
+                      onChange={(e) =>
+                        setSelectedDept({
+                          ...selectedDept,
+                          description: e.target.value,
+                        })
+                      }
                       style={{
                         width: "100%",
                         padding: "8px",
@@ -1947,7 +2163,9 @@ export function DepartmentsSpecialtiesWorkspace() {
                     gap: "6px",
                   }}
                 >
-                  {isSubmitting && <Loader2 size={14} className="animate-spin" />}
+                  {isSubmitting && (
+                    <Loader2 size={14} className="animate-spin" />
+                  )}
                   Save Changes
                 </button>
               )}
@@ -2104,7 +2322,10 @@ export function DepartmentsSpecialtiesWorkspace() {
                     type="button"
                     onClick={() => {
                       if (newSpecialtyInput.trim()) {
-                        setNewDeptSpecialties([...newDeptSpecialties, newSpecialtyInput.trim()]);
+                        setNewDeptSpecialties([
+                          ...newDeptSpecialties,
+                          newSpecialtyInput.trim(),
+                        ]);
                         setNewSpecialtyInput("");
                       }
                     }}
@@ -2154,7 +2375,9 @@ export function DepartmentsSpecialtiesWorkspace() {
                         <button
                           type="button"
                           onClick={() => {
-                            setNewDeptSpecialties(newDeptSpecialties.filter((s) => s !== spec));
+                            setNewDeptSpecialties(
+                              newDeptSpecialties.filter((s) => s !== spec),
+                            );
                           }}
                           style={{
                             border: "none",
@@ -2240,7 +2463,9 @@ export function DepartmentsSpecialtiesWorkspace() {
                     gap: "6px",
                   }}
                 >
-                  {isSubmitting && <Loader2 size={14} className="animate-spin" />}
+                  {isSubmitting && (
+                    <Loader2 size={14} className="animate-spin" />
+                  )}
                   Create Department
                 </button>
               </div>

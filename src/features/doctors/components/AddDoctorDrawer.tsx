@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
-import { doctorsService } from "../services/doctors.service";
 import { departmentsApi, type ApiDepartmentLookupItem } from "../../users/api/departments.api";
 
 export interface AddDoctorDrawerProps {
@@ -267,11 +266,6 @@ export function AddDoctorDrawer({
     };
 
     try {
-      const createdDoctorRecord = await doctorsService.create(payload);
-      onSubmit(createdDoctorRecord);
-    } catch (err) {
-      console.warn("Failed to create doctor via API:", err);
-      // Fallback local submission
       const activeWorkingDays = schedule
         .filter((s) => s.available)
         .map((s) => s.day.slice(0, 3));
@@ -283,12 +277,15 @@ export function AddDoctorDrawer({
         name: payload.fullName,
         gender,
         department,
+        primaryDepartmentId: primaryDeptId,
         specialty,
+        primarySpecialtyId: primarySpecId,
         qualification,
         experienceYrs: Number(experienceYrs) || 5,
         consultationFee: Number(consultationFee) || 150,
         followUpFee: Number(followUpFee) || 80,
         slotDuration,
+        slotDurationMinutes: slotMins,
         availability: "Available Today",
         status: "Active",
         email,
@@ -300,6 +297,8 @@ export function AddDoctorDrawer({
         shiftTimings: "09:00 AM - 04:00 PM",
         workingDays: activeWorkingDays.length > 0 ? activeWorkingDays : ["Mon", "Tue", "Wed", "Thu", "Fri"],
         bio: payload.professionalBio,
+        rawAvailability: activeAvailability,
+        scheduleExceptions: [],
       };
       onSubmit(newDoctor);
     } finally {

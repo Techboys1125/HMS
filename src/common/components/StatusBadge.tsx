@@ -1,7 +1,6 @@
-import type { AppStatus } from "../../types/app.types";
 import { STATUS_CONFIG } from "../../constants/dashboard";
 
-export function StatusBadge({ status }: { status: AppStatus }) {
+export function StatusBadge({ status }: { status: string }) {
   const c = STATUS_CONFIG[status] || {
     bg: "bg-slate-50",
     text: "text-slate-600",

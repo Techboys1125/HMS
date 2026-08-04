@@ -27,7 +27,14 @@ export interface User {
   mustChangePassword: boolean;
   permissions?: string[];
   status?: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+
   doctorId?: number;
+
+  primaryDepartmentId?: number;
+  departmentId?: number;
+  departmentName?: string;
+  department?: string;
+
   doctorProfile?: {
     doctorId?: number;
     [key: string]: unknown;

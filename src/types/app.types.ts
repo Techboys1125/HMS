@@ -30,7 +30,10 @@ export type NavId =
   | "reports"
   | "family-members"
   | "reception"
-  | "opd";
+  | "opd"
+  | "queue-status"
+  | "my-schedule"
+  | "my-queue";
 
 export type Role =
   | "super-admin"

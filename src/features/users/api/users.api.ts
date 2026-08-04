@@ -145,10 +145,27 @@ export const usersApi = {
   // 6. Admin Gets All Users (GET /api/v1/admin/users)
   adminGetUsers: async (): Promise<ApiResponse<User[]>> => {
     try {
-      const response = await apiClient.get<ApiResponse<User[]>>(
+      const response = await apiClient.get<ApiResponse<User[]> | User[]>(
         "/api/v1/admin/users",
       );
-      return response.data;
+      const resData = response.data;
+      if (Array.isArray(resData)) {
+        return {
+          success: true,
+          data: resData,
+        };
+      }
+      if (resData && typeof resData === "object" && "data" in resData && Array.isArray(resData.data)) {
+        return {
+          success: resData.success !== false,
+          data: resData.data,
+          message: resData.message,
+        };
+      }
+      return {
+        success: true,
+        data: [],
+      };
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as

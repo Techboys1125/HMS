@@ -1,5 +1,6 @@
 export type QueueStatus =
   | "WAITING"
+  | "WAITING_FOR_VITALS"
   | "IN_CONSULTATION"
   | "COMPLETED"
   | "CANCELLED"
@@ -94,10 +95,13 @@ export interface ReceptionPermissions {
 }
 
 export interface ReceptionCheckInResponse {
+  tokenNumber?: string;
+  status?: string;
+  success?: boolean;
+
   additionalProp1?: Record<string, unknown>;
   additionalProp2?: Record<string, unknown>;
   additionalProp3?: Record<string, unknown>;
-  [key: string]: unknown;
 }
 
 export interface ReceptionTokenResponse {

@@ -6,7 +6,9 @@ import type {
 } from "../types/departments.types";
 
 export const useDepartments = (autoFetch = true) => {
-  const [departments, setDepartments] = useState<ApiDepartmentSpecialtiesItem[]>([]);
+  const [departments, setDepartments] = useState<
+    ApiDepartmentSpecialtiesItem[]
+  >([]);
   const [lookupList, setLookupList] = useState<ApiDepartmentLookupItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +20,9 @@ export const useDepartments = (autoFetch = true) => {
       const data = await departmentsService.getDepartments({ search });
       setDepartments(data);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load departments");
+      setError(
+        err instanceof Error ? err.message : "Failed to load departments",
+      );
     } finally {
       setLoading(false);
     }
@@ -32,14 +36,18 @@ export const useDepartments = (autoFetch = true) => {
       setLookupList(data);
       return data;
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load department lookup");
+      setError(
+        err instanceof Error ? err.message : "Failed to load department lookup",
+      );
       return [];
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const createDepartment = async (payload: Partial<ApiDepartmentSpecialtiesItem>) => {
+  const createDepartment = async (
+    payload: Partial<ApiDepartmentSpecialtiesItem>,
+  ) => {
     setLoading(true);
     setError(null);
     try {
@@ -48,9 +56,10 @@ export const useDepartments = (autoFetch = true) => {
       await fetchLookup();
       return newDept;
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to create department";
+      const msg =
+        err instanceof Error ? err.message : "Failed to create department";
       setError(msg);
-      throw new Error(msg);
+      throw new Error(msg, { cause: err });
     } finally {
       setLoading(false);
     }
@@ -63,14 +72,18 @@ export const useDepartments = (autoFetch = true) => {
     setLoading(true);
     setError(null);
     try {
-      const updatedDept = await departmentsService.updateDepartment(id, payload);
+      const updatedDept = await departmentsService.updateDepartment(
+        id,
+        payload,
+      );
       await fetchDepartments();
       await fetchLookup();
       return updatedDept;
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to update department";
+      const msg =
+        err instanceof Error ? err.message : "Failed to update department";
       setError(msg);
-      throw new Error(msg);
+      throw new Error(msg, { cause: err });
     } finally {
       setLoading(false);
     }
@@ -85,9 +98,10 @@ export const useDepartments = (autoFetch = true) => {
       await fetchLookup();
       return result;
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to delete department";
+      const msg =
+        err instanceof Error ? err.message : "Failed to delete department";
       setError(msg);
-      throw new Error(msg);
+      throw new Error(msg, { cause: err });
     } finally {
       setLoading(false);
     }

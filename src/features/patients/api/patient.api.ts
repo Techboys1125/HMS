@@ -36,7 +36,19 @@ export const patientsApi = {
         search.append("size", String(params.size));
       if (params?.status) search.append("status", params.status);
       const url = `/api/v1/patients${search.toString() ? `?${search.toString()}` : ""}`;
-      const res = await apiClient.get<unknown>(url);
+      let res;
+      try {
+        res = await apiClient.get<unknown>(url);
+      } catch (err) {
+        const fallbackUrl = params?.query
+          ? `/api/v1/patients/search?query=${encodeURIComponent(params.query)}`
+          : "/api/v1/admin/users?role=PATIENT";
+        try {
+          res = await apiClient.get<unknown>(fallbackUrl);
+        } catch {
+          throw err;
+        }
+      }
       let data = res.data as any;
       if (data && typeof data === "object" && "data" in data) {
         data = data.data;

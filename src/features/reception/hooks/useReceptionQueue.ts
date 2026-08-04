@@ -19,15 +19,17 @@ export function useReceptionQueue(params?: {
       setError(null);
       const data = await receptionService.fetchWorklist(params);
       setItems(data);
-    } catch (err: any) {
-      setError(err?.message || "Failed to fetch reception queue");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch reception queue",
+      );
     } finally {
       setLoading(false);
     }
-  }, [params?.date, params?.departmentId, params?.doctorId, params?.status, params?.search]);
+  }, [params]);
 
   useEffect(() => {
-    fetchWorklist();
+    void fetchWorklist();
   }, [fetchWorklist]);
 
   return {

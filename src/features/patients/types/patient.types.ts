@@ -85,10 +85,12 @@ export interface Patient {
   gender: string;
   phone?: string;
   mobileNumber?: string;
+  mobile?: string;
   email?: string;
   dateOfBirth?: string;
   dob?: string;
   bloodGroup?: string;
+  blood_type?: string;
   maritalStatus?: string;
   nationalId?: string;
   photoUrl?: string;
@@ -127,6 +129,7 @@ export interface Patient {
   status?: string;
   assignedDoctor?: string;
   registrationDate?: string;
+  createdAt?: string;
   version?: number;
   updatedAt?: string;
   updatedBy?: {
@@ -471,3 +474,73 @@ export interface PatientQueueApiResponse {
   errors?: Record<string, unknown>;
 }
 
+/**
+ * Standard API response envelope returned by backend endpoints
+ */
+export interface PatientApiResponse<T> {
+  success: boolean;
+  code?: string;
+  message?: string;
+  timestamp?: string;
+  data?: T;
+  errors?: Record<string, unknown>;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+/**
+ * Family member record returned from /api/v1/patients/{mrn}/family-members
+ */
+export interface ApiPatientFamilyMember {
+  id?: string | number;
+  name: string;
+  relationship?: string;
+  mobileNumber?: string;
+  phone?: string;
+  email?: string;
+  isPrimary?: boolean;
+}
+
+/**
+ * Appointment record returned from /api/v1/appointments?mrn=
+ */
+export interface ApiPatientAppointment {
+  id: string | number;
+  date?: string;
+  time?: string;
+  doctor?: string;
+  department?: string;
+  specialty?: string;
+  visitType?: string;
+  status?: string;
+  reason?: string;
+  notes?: string;
+}
+
+/**
+ * Prescription record returned from /api/v1/patient/prescriptions
+ */
+export interface ApiPatientPrescription {
+  id: string | number;
+  date?: string;
+  doctorName?: string;
+  medicineCount?: number;
+  status?: string;
+}
+
+/**
+ * Invoice record returned from /api/v1/billing/patient/{mrn}
+ */
+export interface ApiPatientInvoice {
+  id: string | number;
+  invoiceNumber?: string;
+  date?: string;
+  status?: string;
+  amount?: string | number;
+}

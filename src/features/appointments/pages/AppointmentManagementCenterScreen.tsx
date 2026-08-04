@@ -1237,7 +1237,12 @@ export function AppointmentManagementCenterScreen({
 
                             {userRole !== "Doctor" && (
                               <td className="px-4 py-3.5 font-medium text-slate-700">
-                                {apt.department}
+                                {typeof apt.department === "string"
+                                  ? apt.department
+                                  : apt.department?.departmentName ||
+                                    apt.department?.name ||
+                                    apt.department?.departmentCode ||
+                                    ""}
                               </td>
                             )}
 
@@ -1868,7 +1873,14 @@ export function AppointmentManagementCenterScreen({
           patientName={checkInConfirmationApt.patientName}
           patientMrn={checkInConfirmationApt.mrn || ""}
           doctorName={checkInConfirmationApt.doctorName}
-          departmentName={checkInConfirmationApt.department}
+          departmentName={
+            typeof checkInConfirmationApt.department === "string"
+              ? checkInConfirmationApt.department
+              : checkInConfirmationApt.department?.departmentName ||
+                checkInConfirmationApt.department?.name ||
+                checkInConfirmationApt.department?.departmentCode ||
+                ""
+          }
           appointmentTime={checkInConfirmationApt.timeSlot}
           status="Waiting for Vitals"
         />

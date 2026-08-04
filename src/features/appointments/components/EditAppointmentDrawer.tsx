@@ -90,7 +90,14 @@ export function EditAppointmentDrawer({
   useEffect(() => {
     if (apt) {
       const timer = setTimeout(() => {
-        setDepartment(apt.department || "");
+        setDepartment(
+          typeof apt.department === "string"
+            ? apt.department
+            : apt.department?.departmentName ||
+              apt.department?.name ||
+              apt.department?.departmentCode ||
+              ""
+        );
         setDoctorName(apt.doctorName);
         setAppointmentDate(apt.appointmentDate);
         setTimeSlot(apt.timeSlot || "");

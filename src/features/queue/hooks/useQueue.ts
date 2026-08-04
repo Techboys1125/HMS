@@ -23,7 +23,7 @@ export function useQueue(params?: {
     } finally {
       setLoading(false);
     }
-  }, [params?.date, params?.departmentId, params?.doctorId, params?.status]);
+  }, [params]);
 
   useEffect(() => {
     fetchQueue();

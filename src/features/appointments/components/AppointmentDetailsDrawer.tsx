@@ -59,7 +59,12 @@ export function AppointmentDetailsDrawer({
   const doctorInfo = apt.doctor || {
     id: apt.doctorId || "DOC-402",
     name: apt.doctorName,
-    department: apt.department,
+    department: typeof apt.department === "string"
+      ? apt.department
+      : apt.department?.departmentName ||
+        apt.department?.name ||
+        apt.department?.departmentCode ||
+        "",
     specialty: apt.doctorSpecialty || "Senior Cardiology Specialist",
     qualification: "MBBS, MD (Cardiology)",
     consultationFee: 150,

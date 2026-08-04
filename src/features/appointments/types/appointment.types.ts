@@ -11,6 +11,9 @@ export type AppointmentStatusEnum =
   | "BOOKED"
   | "CONFIRMED"
   | "CHECKED_IN"
+  | "WAITING_FOR_VITALS"
+  | "WAITING_FOR_DOCTOR_CALL"
+  | "CALLED"
   | "IN_CONSULTATION"
   | "COMPLETED"
   | "CANCELLED"
@@ -62,6 +65,8 @@ export interface DoctorSummary {
   qualification?: string;
   consultationFee?: number | string;
   opdRoom?: string;
+  status?: string;
+  active?: boolean;
 }
 
 export interface PatientSummary {
@@ -122,13 +127,19 @@ export interface AppointmentRecord {
   waitingTimeMinutes?: number;
   isWalkIn?: boolean;
   createdDate?: string;
+  department?:
+  | string
+  | {
+      departmentName?: string;
+      name?: string;
+      departmentCode?: string;
+    };
 
   // Legacy / Backward Compatibility Optional Fields
   mrn?: string;
   patientAge?: number;
   patientGender?: string;
   patientPhone?: string;
-  department?: string;
   doctorSpecialty?: string;
   tokenNo?: string;
   timeSlot?: string;

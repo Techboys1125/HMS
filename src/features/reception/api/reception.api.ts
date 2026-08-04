@@ -179,7 +179,7 @@ export const receptionApi = {
       if (axios.isAxiosError(error)) {
         const data = error.response?.data as { message?: string } | undefined;
         if (data?.message) {
-          throw new Error(data.message);
+          throw new Error(data.message, { cause: error });
         }
       }
 

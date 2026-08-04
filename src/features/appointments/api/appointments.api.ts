@@ -291,11 +291,21 @@ export const appointmentsApi = {
     departmentId?: string | number,
   ): Promise<ApiResponse<DoctorSummary[]>> => {
     try {
-      const url =
+      const baseUrl =
         departmentId !== undefined && departmentId !== null
           ? `/api/v1/doctors?departmentId=${encodeURIComponent(String(departmentId))}`
           : "/api/v1/doctors";
-      const response = await apiClient.get<ApiResponse<DoctorSummary[]>>(url);
+      let response;
+      try {
+        // Prefer backend-side filtering when the backend supports it
+        const sep = baseUrl.includes("?") ? "&" : "?";
+        response = await apiClient.get<ApiResponse<DoctorSummary[]>>(
+          `${baseUrl}${sep}status=ACTIVE`,
+        );
+      } catch {
+        // Fall back to the unfiltered endpoint (frontend filters anyway)
+        response = await apiClient.get<ApiResponse<DoctorSummary[]>>(baseUrl);
+      }
       return response.data;
     } catch (error: unknown) {
       return handleApiError(error);

@@ -35,6 +35,7 @@ const STATUS_MAP: Record<string, AppointmentRecord["status"]> = {
   RESCHEDULED: "Scheduled",
   WAITING: "Waiting",
   WAITING_FOR_VITALS: "Checked-In",
+  WAITING_FOR_DOCTOR_CALL: "Waiting",
   WAITING_FOR_CONSULTATION: "Waiting",
   VITALS_DONE: "Checked-In",
   REGULAR: "Scheduled",
@@ -238,7 +239,7 @@ export const appointmentService = {
     date?: string,
     status?: string,
   ): Promise<AppointmentRecord[]> {
-    let doctorsMap = new Map<string, DoctorSummary>();
+    const doctorsMap = new Map<string, DoctorSummary>();
     try {
       const doctors = await this.listDoctors();
       doctors.forEach((d) => {
@@ -355,7 +356,7 @@ export const appointmentService = {
   async listPatientAppointments(
     patientId: string | number,
   ): Promise<AppointmentRecord[]> {
-    let doctorsMap = new Map<string, DoctorSummary>();
+    const doctorsMap = new Map<string, DoctorSummary>();
     try {
       const doctors = await this.listDoctors();
       doctors.forEach((d) => {
@@ -486,7 +487,84 @@ export const appointmentService = {
           ? res
           : [];
 
-      return rawList.map((d: any) => ({
+      // Read localStorage overrides for status
+      const statusOverrides = JSON.parse(localStorage.getItem("doctor_status_overrides") || "{}");
+
+      // DEBUG: Log raw API response to see actual field names
+      if (rawList.length > 0) {
+        console.log("[listDoctors] Raw API doctor sample:", JSON.stringify(rawList[0], null, 2));
+        console.log("[listDoctors] All doctors status fields:", rawList.map((d: any) => ({
+          id: d.doctorId ?? d.id,
+          name: d.doctorName ?? d.fullName ?? d.name,
+          status: d.status,
+          active: d.active,
+          isActive: d.isActive,
+          profileStatus: d.doctorProfile?.status,
+        })));
+        // eslint-disable-next-line no-console
+        console.table(
+          rawList.map((d: any) => ({
+            id: d.doctorId ?? d.userId ?? d.id ?? "",
+            name: d.doctorName ?? d.fullName ?? d.name ?? "",
+            status: d.status ?? d.doctorProfile?.status ?? d.user?.status ?? "",
+            active: d.active ?? d.isActive ?? d.enabled ?? "",
+          })),
+        );
+      }
+
+      // Filter out inactive doctors before mapping
+      const activeDoctors = rawList.filter((d: any) => {
+        const candidateIds = [
+          d.doctorId,
+          d.doctorProfile?.doctorId,
+          d.userId,
+          d.doctor?.id,
+          d.user?.id,
+          d.id,
+        ];
+        const candidateKeys = candidateIds.flatMap((cid) => {
+          if (cid === undefined || cid === null || cid === "") return [];
+          return [`DOC-${cid}`, String(cid)];
+        });
+
+        // Check localStorage override for every possible id/key shape
+        if (candidateKeys.some((key) => statusOverrides[key]?.status === "Inactive")) {
+          return false;
+        }
+
+        // Check status field in every known location (handles "INACTIVE", "Inactive", etc.)
+        const rawStatuses = [
+          d.status,
+          d.doctorProfile?.status,
+          d.doctor?.status,
+          d.user?.status,
+          d.accountStatus,
+          d.user?.accountStatus,
+          d.employmentStatus,
+        ].filter((s) => typeof s === "string" && s.trim() !== "");
+        if (rawStatuses.some((s) => String(s).toUpperCase() === "INACTIVE")) {
+          return false;
+        }
+
+        // Check boolean active/enabled flags in every known location
+        const booleans = [
+          d.active,
+          d.isActive,
+          d.enabled,
+          d.doctorProfile?.active,
+          d.doctorProfile?.isActive,
+          d.doctor?.active,
+          d.doctor?.isActive,
+          d.user?.active,
+          d.user?.isActive,
+          d.user?.enabled,
+        ];
+        if (booleans.some((flag) => flag === false)) return false;
+
+        return true;
+      });
+
+      return activeDoctors.map((d: any) => ({
         id: d.doctorId ?? d.doctorProfile?.doctorId ?? d.userId ?? d.id ?? "",
         doctorId: d.doctorId ?? d.doctorProfile?.doctorId ?? d.id ?? "",
         name: d.doctorName ?? d.fullName ?? d.name ?? "",
@@ -514,6 +592,24 @@ export const appointmentService = {
           d.doctorProfile?.consultationFee ??
           0,
         opdRoom: d.opdRoom ?? "",
+        status:
+          d.status ??
+          d.doctorProfile?.status ??
+          d.doctor?.status ??
+          d.user?.status ??
+          "ACTIVE",
+        active:
+          d.active ??
+          d.isActive ??
+          d.enabled ??
+          d.doctorProfile?.active ??
+          d.doctorProfile?.isActive ??
+          d.doctor?.active ??
+          d.user?.active ??
+          d.user?.isActive ??
+          (d.status
+            ? String(d.status).toUpperCase() === "ACTIVE"
+            : undefined),
       }));
     } catch (error) {
       console.warn("[appointmentService] listDoctors failed:", error);

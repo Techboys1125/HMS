@@ -71,9 +71,13 @@ export const ReceptionSearchFilters: React.FC<ReceptionSearchFiltersProps> = ({
           >
             <option value="ALL">All Queue Statuses</option>
             <option value="WAITING">Waiting</option>
+            <option value="WAITING_FOR_VITALS">Waiting for Vitals</option>
+            <option value="WAITING_FOR_DOCTOR_CALL">Ready for Doctor</option>
+            <option value="CALLED">Called</option>
             <option value="IN_CONSULTATION">In Consultation</option>
             <option value="COMPLETED">Completed</option>
             <option value="CANCELLED">Cancelled</option>
+            <option value="NO_SHOW">No Show</option>
           </select>
         </div>
 

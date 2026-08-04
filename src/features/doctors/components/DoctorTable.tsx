@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   ArrowUpDown,
   Stethoscope,
@@ -6,12 +7,16 @@ import {
   Edit,
   Calendar,
   AlertTriangle,
+  CheckCircle2,
+  KeyRound,
 } from "lucide-react";
 import type {
   DoctorRecord,
   DoctorAvailability,
   DoctorStatus,
 } from "../types/doctors.types";
+import type { AppPermission } from "../../../permissions/types";
+import { usePermissions } from "../../../permissions";
 import { PP } from "../constants/doctors.constants";
 
 function getAvailabilityBadgeStyle(avail: DoctorAvailability) {
@@ -68,6 +73,8 @@ export interface DoctorTableProps {
   onEdit: (doc: DoctorRecord) => void;
   onViewSchedule: (doc: DoctorRecord) => void;
   onDeactivate: (doc: DoctorRecord) => void;
+  onActivate: (doc: DoctorRecord) => void;
+  onResetPassword: (doc: DoctorRecord) => void;
   onAddDoctor: () => void;
   onResetFilters: () => void;
 }
@@ -82,28 +89,53 @@ export function DoctorTable({
   onEdit,
   onViewSchedule,
   onDeactivate,
+  onActivate,
+  onResetPassword,
   onAddDoctor,
   onResetFilters,
 }: DoctorTableProps) {
+  const { can } = usePermissions();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const totalPages = Math.max(1, Math.ceil(filteredDoctors.length / pageSize));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [filteredDoctors.length, totalPages, currentPage]);
+
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, filteredDoctors.length);
+  const paginatedDoctors = filteredDoctors.slice(startIndex, endIndex);
+
+  const columns: Array<{
+    key: keyof DoctorRecord | null;
+    label: string;
+    align?: string;
+    perm?: AppPermission;
+  }> = [
+    { key: "id", label: "Doctor ID" },
+    { key: "name", label: "Doctor Name" },
+    { key: "department", label: "Department" },
+    { key: "specialty", label: "Specialty" },
+    { key: null, label: "Qualification" },
+    { key: null, label: "Experience" },
+    { key: "consultationFee", label: "Fee ($)", perm: "DOCTOR_FEE_VIEW" },
+    { key: "availability", label: "Availability" },
+    { key: "status", label: "Status" },
+    { key: null, label: "Actions", align: "text-right" },
+  ];
+  const visibleColumns = columns.filter((col) => !col.perm || can(col.perm));
+
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
       <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
         <table className="w-full border-collapse text-left text-xs">
           <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
             <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
-              {[
-                { key: "id", label: "Doctor ID" },
-                { key: "name", label: "Doctor Name" },
-                { key: "department", label: "Department" },
-                { key: "specialty", label: "Specialty" },
-                { key: null, label: "Qualification" },
-
-                { key: null, label: "Designation" },
-                { key: "consultationFee", label: "Fee ($)" },
-                { key: "availability", label: "Availability" },
-                { key: "status", label: "Status" },
-                { key: null, label: "Actions", align: "text-right" },
-              ].map((col) => (
+              {visibleColumns.map((col) => (
                 <th
                   key={col.label}
                   onClick={
@@ -174,7 +206,7 @@ export function DoctorTable({
               ))
             ) : filteredDoctors.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-4 py-12 text-center">
+                <td colSpan={visibleColumns.length} className="px-4 py-12 text-center">
                   <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-3">
                     <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border border-slate-200">
                       <Stethoscope size={28} />
@@ -198,19 +230,21 @@ export function DoctorTable({
                       >
                         Reset Filters
                       </button>
-                      <button
-                        onClick={onAddDoctor}
-                        className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5 shadow-sm"
-                        style={{ fontFamily: PP }}
-                      >
-                        <UserPlus size={14} /> Add Doctor
-                      </button>
+                      {can("DOCTOR_CREATE") && (
+                        <button
+                          onClick={onAddDoctor}
+                          className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5 shadow-sm"
+                          style={{ fontFamily: PP }}
+                        >
+                          <UserPlus size={14} /> Add Doctor
+                        </button>
+                      )}
                     </div>
                   </div>
                 </td>
               </tr>
             ) : (
-              filteredDoctors.map((doc) => {
+              paginatedDoctors.map((doc) => {
                 const initials = doc.name
                   .replace("Dr. ", "")
                   .split(" ")
@@ -252,9 +286,11 @@ export function DoctorTable({
                           >
                             {doc.name}
                           </span>
-                          <span className="text-[10px] text-[#64748B] font-mono">
-                            EMP: {doc.empId} &bull; Reg: {doc.regNumber}
-                          </span>
+                          {can("DOCTOR_CONTACT_VIEW") && (
+                            <span className="text-[10px] text-[#64748B] font-mono">
+                              EMP: {doc.empId} &bull; Reg: {doc.regNumber}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -278,12 +314,14 @@ export function DoctorTable({
                       {doc.experienceYrs} Yrs
                     </td>
 
-                    <td
-                      className="px-4 py-3.5 font-bold text-[#0D47A1]"
-                      style={{ fontFamily: PP }}
-                    >
-                      ${doc.consultationFee}
-                    </td>
+                    {can("DOCTOR_FEE_VIEW") && (
+                      <td
+                        className="px-4 py-3.5 font-bold text-[#0D47A1]"
+                        style={{ fontFamily: PP }}
+                      >
+                        ${doc.consultationFee}
+                      </td>
+                    )}
 
                     <td className="px-4 py-3.5">
                       <span
@@ -310,37 +348,67 @@ export function DoctorTable({
                         className="flex items-center justify-end gap-1"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <button
-                          onClick={() => onQuickView(doc)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
-                          title="View Quick Details Drawer"
-                        >
-                          <Eye size={15} />
-                        </button>
+                        {can("DOCTOR_PROFILE_VIEW") && (
+                          <button
+                            onClick={() => onQuickView(doc)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
+                            title="View Quick Details Drawer"
+                          >
+                            <Eye size={15} />
+                          </button>
+                        )}
 
-                        <button
-                          onClick={() => onEdit(doc)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
-                          title="Edit Doctor Profile"
-                        >
-                          <Edit size={15} />
-                        </button>
+                        {can("DOCTOR_EDIT") && (
+                          <button
+                            onClick={() => onEdit(doc)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
+                            title="Edit Doctor Profile"
+                          >
+                            <Edit size={15} />
+                          </button>
+                        )}
 
-                        <button
-                          onClick={() => onViewSchedule(doc)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-colors"
-                          title="View Schedule & Practice Hours"
-                        >
-                          <Calendar size={15} />
-                        </button>
+                        {can("DOCTOR_SCHEDULE_VIEW") && (
+                          <button
+                            onClick={() => onViewSchedule(doc)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-colors"
+                            title="View Schedule & Practice Hours"
+                          >
+                            <Calendar size={15} />
+                          </button>
+                        )}
 
-                        <button
-                          onClick={() => onDeactivate(doc)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                          title="Deactivate Doctor"
-                        >
-                          <AlertTriangle size={15} />
-                        </button>
+                        {can("DOCTOR_DEACTIVATE") && (
+                          <button
+                            onClick={() => onResetPassword(doc)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                            title="Reset Password"
+                          >
+                            <KeyRound size={15} />
+                          </button>
+                        )}
+
+                        {can("DOCTOR_DEACTIVATE") &&
+                          doc.status === "Inactive" && (
+                            <button
+                              onClick={() => onActivate(doc)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
+                              title="Activate Doctor"
+                            >
+                              <CheckCircle2 size={15} />
+                            </button>
+                          )}
+
+                        {can("DOCTOR_DEACTIVATE") &&
+                          doc.status !== "Inactive" && (
+                            <button
+                              onClick={() => onDeactivate(doc)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                              title="Deactivate Doctor"
+                            >
+                              <AlertTriangle size={15} />
+                            </button>
+                          )}
                       </div>
                     </td>
                   </tr>
@@ -352,37 +420,68 @@ export function DoctorTable({
       </div>
 
       {!isLoading && filteredDoctors.length > 0 && (
-        <div className="px-4 py-3 bg-slate-50 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
-          <div>
-            Showing{" "}
-            <span className="font-bold text-[#111827]">
-              {filteredDoctors.length}
-            </span>{" "}
-            of{" "}
-            <span className="font-bold text-[#111827]">{doctors.length}</span>{" "}
-            registered doctors
-          </div>
+        <div className="px-4 py-3 bg-slate-50 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#64748B]">
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#009688]" /> Available
-              Today:{" "}
-              {
-                doctors.filter(
-                  (d) =>
-                    d.availability === "Available Today" ||
-                    d.availability === "On Duty",
-                ).length
-              }
+            <span>
+              Showing{" "}
+              <span className="font-bold text-[#111827]">
+                {filteredDoctors.length > 0 ? startIndex + 1 : 0}
+              </span>{" "}
+              to{" "}
+              <span className="font-bold text-[#111827]">{endIndex}</span> of{" "}
+              <span className="font-bold text-[#111827]">
+                {filteredDoctors.length}
+              </span>{" "}
+              doctors (total {doctors.length})
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#F59E0B]" /> On Leave:{" "}
-              {
-                doctors.filter(
-                  (d) =>
-                    d.availability === "On Leave" || d.status === "On Leave",
-                ).length
-              }
-            </span>
+            <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 pl-3">
+              <span>Rows:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-white border border-[#E5E7EB] rounded-lg px-2 py-1 font-semibold text-[#111827] outline-none"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              className="px-3 py-1.5 text-xs text-slate-700 bg-white border border-[#E5E7EB] rounded-lg font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Previous
+            </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setCurrentPage(p)}
+                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors ${
+                    currentPage === p
+                      ? "bg-[#0D47A1] text-white"
+                      : "bg-white border border-[#E5E7EB] text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+            <button
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              className="px-3 py-1.5 text-xs text-slate-700 bg-white border border-[#E5E7EB] rounded-lg font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Next
+            </button>
           </div>
         </div>
       )}

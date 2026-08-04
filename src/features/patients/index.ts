@@ -14,6 +14,29 @@ export * from "./pages/PatientTimelineScreen";
 export * from "./pages/PatientVisitHistoryScreen";
 export * from "./pages/RegisterPatientScreen";
 export * from "./pages/FamilyMembersManagement";
+export * from "./pages/PatientDoctorSearchScreen";
+export * from "./pages/PatientQueueStatusScreen";
+export * from "./pages/PatientNotificationsScreen";
+
+// Patient Module Pages
+export { PatientListPage } from "./pages/PatientListPage";
+export { PatientProfilePage } from "./pages/PatientProfilePage";
+export { DoctorAssignedPatientsPage } from "./pages/DoctorAssignedPatientsPage";
+export { NurseVitalsWorklistPage } from "./pages/NurseVitalsWorklistPage";
+export { MyProfilePage as PatientMyProfilePage } from "./pages/MyProfilePage";
+export { AccountantPatientBillingPage } from "./pages/AccountantPatientBillingPage";
+
+// Route Wrappers
+export { PatientListPageRoute } from "./routes/PatientListPageRoute";
+export { PatientProfileRoute } from "./routes/PatientProfileRoute";
+export { PatientMyProfileRoute } from "./routes/PatientMyProfileRoute";
+export { DoctorAssignedPatientsRoute } from "./routes/DoctorAssignedPatientsRoute";
+export { PatientProfileTab } from "./components/tabs/ProfileTab";
+export { FamilyMembersTab } from "./components/tabs/FamilyMembersTab";
+export { PatientAppointmentsTab } from "./components/tabs/AppointmentsTab";
+export { PatientQueueTab } from "./components/tabs/QueueTab";
+export { PatientPrescriptionsTab } from "./components/tabs/PrescriptionsTab";
+export { PatientBillingTab } from "./components/tabs/BillingTab";
 
 // Components
 export { PatientTable } from "./components/PatientTable";
@@ -29,13 +52,14 @@ export {
 // Hooks
 export {
   usePatients,
+  usePatient,
   usePatientSearch,
-  useMyPatients,
+  useRegisterPatient,
+  useUpdatePatient,
+  usePatientAudit,
 } from "./hooks/usePatients";
-export { usePatient } from "./hooks/usePatient";
 export { useCreatePatient } from "./hooks/useCreatePatient";
 export { useDuplicateCheck } from "./hooks/useDuplicateCheck";
-export { useUpdatePatient } from "./hooks/useUpdatePatient";
 
 // Services
 export { patientService } from "./services/patient.service";

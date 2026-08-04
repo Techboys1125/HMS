@@ -1,6 +1,6 @@
 import type React from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
-import { Sparkline } from "../common/Sparkline";
+import { Sparkline } from "../../common/components/Sparkline";
 
 export function KPICard({
   title,

@@ -43,21 +43,49 @@ export interface NurseVitalsPayload {
 }
 
 export interface NurseWaitingPatient {
+  id?: number | string;
   queueId?: number | string;
   appointmentId: number | string;
   appointmentNumber?: string;
   token?: string;
   tokenNumber?: string;
+
   patientId?: number | string;
   patientName: string;
   mrn: string;
   age: number | string;
   gender: string;
+
+  doctorId?: number;
   doctorName?: string;
   departmentName?: string;
   checkInTime?: string;
   status?: string;
-  [key: string]: unknown;
+  phone?: string;
+  contact?: string;
+
+  patient?: {
+    id?: number | string;
+    name?: string;
+    fullName?: string;
+    age?: number | string;
+    gender?: string;
+    mrn?: string;
+    contact?: string;
+  };
+
+  doctor?: {
+    doctorId?: number;
+    name?: string;
+    department?: string;
+    departmentName?: string;
+  };
+
+  department?: {
+    departmentName?: string;
+    name?: string;
+    departmentCode?: string;
+  } | string;
 }
 
 export interface NurseVitalsApiResponse<T = unknown> {
