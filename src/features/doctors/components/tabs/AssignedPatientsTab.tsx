@@ -7,15 +7,17 @@ import type {
 import { PP } from "../../constants/doctors.constants";
 import { doctorsService } from "../../services/doctors.service";
 
+import { resolveDoctorId } from "../../services/doctorProfile.service";
+
 export interface AssignedPatientsTabProps {
   doctor: DoctorRecord;
-  canEdit: boolean;
-  isOwnProfile: boolean;
+  canEdit?: boolean;
+  isOwnProfile?: boolean;
 }
 
 export function AssignedPatientsTab({
   doctor,
-  isOwnProfile,
+  isOwnProfile = false,
 }: AssignedPatientsTabProps) {
   const [appointments, setAppointments] = useState<DoctorAppointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,8 +25,9 @@ export function AssignedPatientsTab({
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    const targetId = resolveDoctorId(doctor);
     doctorsService
-      .listDoctorAppointments(doctor.id)
+      .listDoctorAppointments(targetId)
       .then((data: DoctorAppointment[]) => {
         if (!cancelled) setAppointments(data || []);
       })
@@ -35,7 +38,7 @@ export function AssignedPatientsTab({
     return () => {
       cancelled = true;
     };
-  }, [doctor.id]);
+  }, [doctor]);
 
   const patients = isOwnProfile
     ? appointments.filter((a) => a.status !== "Cancelled")

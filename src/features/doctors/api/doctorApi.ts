@@ -116,13 +116,17 @@ export const doctorApi = {
   ): Promise<ApiWeeklyScheduleData | null> => {
     try {
       const response = await apiClient.get<
-        DoctorApiResponse<ApiWeeklyScheduleData>
+        DoctorApiResponse<ApiWeeklyScheduleData> | any
       >(`/api/v1/doctors/${doctorId}/schedules`);
-      return (
-        response.data?.data ||
-        (response.data as unknown as ApiWeeklyScheduleData) ||
-        null
-      );
+      const rawData = response.data?.data || response.data;
+      if (!rawData) return null;
+      if (Array.isArray(rawData.weeklySchedule)) {
+        return rawData as ApiWeeklyScheduleData;
+      }
+      if (Array.isArray(rawData)) {
+        return { doctorId: Number(doctorId), doctorName: "", weeklySchedule: rawData };
+      }
+      return rawData as ApiWeeklyScheduleData;
     } catch {
       return null;
     }
@@ -162,12 +166,22 @@ export const doctorApi = {
   ): Promise<ApiScheduleExceptionItem[]> => {
     try {
       const response = await apiClient.get<
-        DoctorApiResponse<ApiScheduleExceptionItem[]>
+        DoctorApiResponse<ApiScheduleExceptionItem[]> | any
       >(`/api/v1/doctors/${doctorId}/schedule-exceptions`);
-      return (
-        response.data?.data ||
-        (Array.isArray(response.data) ? response.data : [])
-      );
+      const rawData = response.data?.data || response.data;
+      const list = Array.isArray(rawData) ? rawData : Array.isArray(rawData?.content) ? rawData.content : [];
+      return list.map((item: any) => ({
+        id: item.exceptionId || item.id,
+        doctorId: Number(doctorId),
+        exceptionDate: item.date || item.exceptionDate || item.startDate || "",
+        startDate: item.startDate || item.date || "",
+        endDate: item.endDate || item.date || "",
+        reason: item.reason || "",
+        exceptionType: item.exceptionType || item.type || (item.isAvailable === false ? "VACATION" : "OTHER"),
+        isFullDay: item.isFullDay ?? item.fullDay ?? true,
+        action: item.action || "BLOCK_APPOINTMENTS",
+        status: item.status || "ACTIVE",
+      }));
     } catch {
       return [];
     }
@@ -233,13 +247,16 @@ export const doctorApi = {
   ): Promise<DoctorDailyAvailabilityData | null> => {
     try {
       const response = await apiClient.get<
-        DoctorApiResponse<DoctorDailyAvailabilityData>
+        DoctorApiResponse<DoctorDailyAvailabilityData> | any
       >(`/api/v1/doctors/${doctorId}/availability?date=${date}`);
-      return (
-        response.data?.data ||
-        (response.data as unknown as DoctorDailyAvailabilityData) ||
-        null
-      );
+      const rawData = response.data?.data || response.data;
+      if (!rawData) return null;
+      return {
+        doctorId: rawData.doctorId || Number(doctorId),
+        date: rawData.date || date,
+        scheduleStatus: rawData.scheduleStatus || "AVAILABLE",
+        slots: Array.isArray(rawData.slots) ? rawData.slots : [],
+      };
     } catch {
       return null;
     }
@@ -251,13 +268,15 @@ export const doctorApi = {
   ): Promise<DoctorMonthlyAvailabilityData | null> => {
     try {
       const response = await apiClient.get<
-        DoctorApiResponse<DoctorMonthlyAvailabilityData>
+        DoctorApiResponse<DoctorMonthlyAvailabilityData> | any
       >(`/api/v1/doctors/${doctorId}/availability/calendar?month=${month}`);
-      return (
-        response.data?.data ||
-        (response.data as unknown as DoctorMonthlyAvailabilityData) ||
-        null
-      );
+      const rawData = response.data?.data || response.data;
+      if (!rawData) return null;
+      return {
+        doctorId: rawData.doctorId || Number(doctorId),
+        month: rawData.month || month,
+        days: Array.isArray(rawData.days) ? rawData.days : [],
+      };
     } catch {
       return null;
     }
@@ -268,12 +287,26 @@ export const doctorApi = {
   ): Promise<DoctorAppointment[]> => {
     try {
       const response = await apiClient.get<
-        DoctorApiResponse<DoctorAppointment[]>
+        DoctorApiResponse<DoctorAppointment[]> | any
       >(`/api/v1/doctors/${doctorId}/appointments`);
-      return (
-        response.data?.data ||
-        (Array.isArray(response.data) ? response.data : [])
-      );
+      const rawData = response.data?.data || response.data;
+      const list = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray(rawData?.content)
+          ? rawData.content
+          : [];
+      return list.map((item: any) => ({
+        id: String(item.appointmentId || item.id || ""),
+        patientId: String(item.patientId || item.patient?.id || item.patientName || ""),
+        patientName: item.patientName || item.patient?.name || "Patient",
+        gender: item.gender || item.patient?.gender || "Unknown",
+        age: item.age || item.patient?.age || 0,
+        date: item.appointmentDate || item.date || "",
+        time: item.appointmentTime || item.time || "",
+        type: item.type || item.appointmentType || "General Consultation",
+        status: item.status || "BOOKED",
+        complaint: item.complaint || item.chiefComplaint || "General Checkup",
+      }));
     } catch {
       return [];
     }

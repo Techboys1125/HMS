@@ -91,6 +91,7 @@ const statusKey = (status: unknown): QueueItemStatus =>
 export function DoctorQueueScreen() {
   const { user } = useAuthStore();
   const doctorId = user?.doctorId || user?.doctorProfile?.doctorId;
+  const isDoctor = user?.role === "Doctor" || user?.role === "DOCTOR";
   const [queue, setQueue] = useState<{
     summary: DoctorQueueSummary;
     content: DoctorQueueItem[];
@@ -210,7 +211,7 @@ export function DoctorQueueScreen() {
         </div>
         <button
           onClick={handleCallNext}
-          disabled={callingNext || waitingCount === 0}
+          disabled={callingNext || waitingCount === 0 || !isDoctor}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm shadow-[#0D47A1]/20 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ fontFamily: PP }}
         >

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Patient } from "../types/patient.types";
 import { PP, RB } from "../../doctors/constants/doctors.constants";
+import { patientsApi } from "../api/patient.api";
 import { can } from "../utils/patientPermissions";
 import type { Role } from "../utils/patientPermissions";
 import { PatientProfileTab } from "../components/tabs/ProfileTab";
@@ -83,6 +84,40 @@ export function PatientProfilePage({
             patient={patient}
             isOwnProfile={isOwnRecord}
             canEdit={can(currentRole, "editProfile", isOwnRecord)}
+            onSave={async (updated) => {
+              await patientsApi.updatePatient(patient.mrn, {
+                fullName: updated.fullName || updated.name || "",
+                mobileNumber:
+                  updated.mobileNumber || updated.phone || updated.mobile || "",
+                email: updated.email,
+                gender: updated.gender,
+                dateOfBirth: updated.dateOfBirth || updated.dob,
+                address:
+                  typeof updated.address === "string" ? updated.address : "",
+                bloodGroup: updated.bloodGroup,
+                maritalStatus: updated.maritalStatus,
+                knownAllergies: (updated.knownAllergies || []).join(", "),
+                chronicDiseases: (updated.chronicDiseases || []).join(", "),
+                specialNotes: updated.specialNotes,
+                emergencyContact: updated.emergencyContact
+                  ? typeof updated.emergencyContact === "string"
+                    ? updated.emergencyContact
+                    : [
+                        updated.emergencyContact.name ||
+                          updated.emergencyContact.contactName ||
+                          "",
+                        updated.emergencyContact.relationship || "",
+                        updated.emergencyContact.phone ||
+                          updated.emergencyContact.contactNumber ||
+                          updated.emergencyContact.mobile ||
+                          updated.emergencyContact.mobileNumber ||
+                          "",
+                      ]
+                        .filter(Boolean)
+                        .join(", ")
+                  : "",
+              });
+            }}
           />
         );
       case "family":

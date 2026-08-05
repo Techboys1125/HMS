@@ -3,6 +3,7 @@ import { Clock } from "lucide-react";
 import type { DoctorRecord, DoctorDailySlot } from "../../types/doctors.types";
 import { PP } from "../../constants/doctors.constants";
 import { doctorsService } from "../../services/doctors.service";
+import { resolveDoctorId } from "../../services/doctorProfile.service";
 
 export interface DailyAvailabilityTabProps {
   doctor: DoctorRecord;
@@ -20,7 +21,7 @@ const SLOT_STATUS_STYLE: Record<string, string> = {
 export function DailyAvailabilityTab({ doctor }: DailyAvailabilityTabProps) {
   const [slots, setSlots] = useState<DoctorDailySlot[]>([]);
   const [loading, setLoading] = useState(true);
-  const [date] = useState(() => {
+  const [date, setDate] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   });
@@ -28,8 +29,9 @@ export function DailyAvailabilityTab({ doctor }: DailyAvailabilityTabProps) {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    const targetId = resolveDoctorId(doctor);
     doctorsService
-      .getDailyAvailability(doctor.id, date)
+      .getDailyAvailability(targetId, date)
       .then((data) => {
         if (!cancelled && data) setSlots(data.slots || []);
       })
@@ -40,29 +42,36 @@ export function DailyAvailabilityTab({ doctor }: DailyAvailabilityTabProps) {
     return () => {
       cancelled = true;
     };
-  }, [doctor.id, date]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8 text-xs text-[#64748B]">
-        Loading availability...
-      </div>
-    );
-  }
+  }, [doctor, date]);
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Clock size={16} className="text-[#0D47A1]" />
-        <h3
-          className="text-sm font-bold text-[#111827]"
-          style={{ fontFamily: PP }}
-        >
-          Today's Slot-by-Slot Availability
-        </h3>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E7EB] pb-3">
+        <div className="flex items-center gap-2">
+          <Clock size={16} className="text-[#0D47A1]" />
+          <h3
+            className="text-sm font-bold text-[#111827]"
+            style={{ fontFamily: PP }}
+          >
+            Slot-by-Slot Availability
+          </h3>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-semibold text-[#64748B]">Date:</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="px-2.5 py-1 text-xs border border-[#E5E7EB] rounded-lg bg-white outline-none focus:border-[#0D47A1]"
+          />
+        </div>
       </div>
 
-      {slots.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-8 text-xs text-[#64748B]">
+          Loading availability data...
+        </div>
+      ) : slots.length === 0 ? (
         <div className="text-center py-8 text-xs text-[#64748B]">
           No availability data for today.
         </div>

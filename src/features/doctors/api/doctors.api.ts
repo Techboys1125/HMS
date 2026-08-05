@@ -82,8 +82,13 @@ export const mapDoctorSummaryToDoctorRecord = (u: any): DoctorRecord => {
     id: `DOC-${userId ?? doctorId ?? ""}`,
     userId: userId !== undefined ? Number(userId) : undefined,
     doctorId: doctorId !== undefined ? Number(doctorId) : undefined,
-    empId: u.employeeId || `EMP-${userId ?? ""}`,
-    regNumber: profile?.medicalRegistrationNumber || "N/A",
+    empId: u.employeeId || profile?.employeeId || u.empId || profile?.empId || "",
+    regNumber:
+      profile?.medicalRegistrationNumber ||
+      u.medicalRegistrationNumber ||
+      profile?.regNumber ||
+      u.regNumber ||
+      "",
     name: (() => {
       const rawName =
         u.doctorName ??
@@ -97,26 +102,41 @@ export const mapDoctorSummaryToDoctorRecord = (u: any): DoctorRecord => {
       u.departmentName ??
       u.department ??
       profile?.primaryDepartment?.departmentName ??
-      "General Medicine",
+      profile?.departmentName ??
+      profile?.department ??
+      u.primaryDepartmentName ??
+      "",
     primaryDepartmentId:
       profile?.primaryDepartment?.departmentId ?? u.departmentId,
     specialty:
+      u.specialtyName ??
       u.specialty ??
       profile?.primarySpecialty?.specialtyName ??
-      "General Physician",
+      profile?.specialtyName ??
+      profile?.specialty ??
+      u.primarySpecialtyName ??
+      "",
     primarySpecialtyId: profile?.primarySpecialty?.specialtyId,
-    qualification: profile?.qualification ?? u.qualification ?? "MBBS",
-    experienceYrs: profile?.yearsOfExperience ?? u.experienceYears ?? 5,
+    qualification: profile?.qualification ?? u.qualification ?? "",
+    experienceYrs: Number(
+      profile?.yearsOfExperience ??
+        profile?.experienceYrs ??
+        u.experienceYears ??
+        u.yearsOfExperience ??
+        u.experienceYrs ??
+        u.experience ??
+        0,
+    ),
     consultationFee:
       u.fees?.standardConsultationFee ??
       u.consultationFee ??
       profile?.consultationFee ??
-      100,
-    followUpFee: u.fees?.followUpFee ?? profile?.followUpFee ?? 50,
+      0,
+    followUpFee: u.fees?.followUpFee ?? profile?.followUpFee ?? 0,
     slotDuration: profile?.slotDurationMinutes
       ? `${profile.slotDurationMinutes} mins`
-      : "15 mins",
-    slotDurationMinutes: profile?.slotDurationMinutes || 15,
+      : "",
+    slotDurationMinutes: profile?.slotDurationMinutes || 0,
     availability:
       status === "Inactive"
         ? "Out of Office"
@@ -125,19 +145,16 @@ export const mapDoctorSummaryToDoctorRecord = (u: any): DoctorRecord => {
           : "Available Today",
     status,
     email: u.email ?? "",
-    phone: u.mobile ?? u.phone ?? "N/A",
+    phone: u.mobile ?? u.phone ?? "",
     address: u.residentialAddress ?? "",
     dob: u.dateOfBirth ?? "",
-    opdRoom: u.opdRoom ?? "OPD-101",
-    joinedDate: u.joinedDate ?? "2024-01-15",
+    opdRoom: u.opdRoom ?? "",
+    joinedDate: u.joinedDate ?? "",
     shiftTimings:
       rawAvail.length > 0 && rawAvail[0]?.startTime
         ? `${rawAvail[0].startTime} - ${rawAvail[0]?.endTime}`
-        : "09:00 AM - 05:00 PM",
-    workingDays:
-      workingDays.length > 0
-        ? workingDays
-        : ["MON", "TUE", "WED", "THU", "FRI"],
+        : "",
+    workingDays: workingDays.length > 0 ? workingDays : [],
     bio: u.professionalBio ?? "",
     designation: u.designation ?? profile?.designation ?? "",
     scheduleExceptions: profile?.scheduleExceptions ?? [],
@@ -236,50 +253,113 @@ export const doctorsApi = {
 
   getById: async (id: string): Promise<DoctorRecord> => {
     const numericUserId = id.startsWith("DOC-") ? id.replace("DOC-", "") : id;
+    const currentUser = useAuthStore.getState().user;
+    const currentUserId = String(currentUser?.id ?? "");
+    const currentDoctorId = String(
+      currentUser?.doctorId ?? currentUser?.doctorProfile?.doctorId ?? "",
+    );
 
-    const fetchAdmin = async (): Promise<DoctorRecord> => {
+    const fetchMe = async (): Promise<DoctorRecord> => {
       const response = await apiClient.get<
-        DoctorApiResponse<ApiUserDoctorRecord>
-      >(`/api/v1/admin/users/${numericUserId}`);
+        DoctorApiResponse<ApiUserDoctorRecord> | ApiUserDoctorRecord
+      >("/api/v1/auth/me");
       const data =
-        response.data?.data ||
-        (response.data as unknown as ApiUserDoctorRecord);
-      if (data) {
-        return mapApiUserToDoctorRecord(data);
+        (response.data as DoctorApiResponse<ApiUserDoctorRecord>)?.data ||
+        (response.data as ApiUserDoctorRecord);
+      if (!data || (!data.fullName && !data.email)) {
+        throw new Error("Current user profile not found");
+      }
+      const anyData = data as unknown as Record<string, unknown>;
+      const hasDoctorProfile =
+        anyData.doctorProfile ||
+        anyData.departmentName ||
+        anyData.specialtyName ||
+        anyData.yearsOfExperience ||
+        anyData.qualification;
+      if (!hasDoctorProfile) {
+        throw new Error("Auth/me response lacks doctorProfile details");
+      }
+      return mapApiUserToDoctorRecord(data);
+    };
+
+    const fetchAdmin = async (targetUserId?: string): Promise<DoctorRecord> => {
+      const adminId = targetUserId || numericUserId;
+      try {
+        const response = await apiClient.get<
+          DoctorApiResponse<ApiUserDoctorRecord>
+        >(`/api/v1/admin/users/${adminId}`);
+        const data =
+          response.data?.data ||
+          (response.data as unknown as ApiUserDoctorRecord);
+        if (data && (data.userId || data.id || data.fullName || data.name)) {
+          return mapApiUserToDoctorRecord(data);
+        }
+      } catch {
+        // Handled silently
       }
       throw new Error(`User ${id} not found in response`);
     };
 
     const fetchDoctorFacing = async (): Promise<DoctorRecord> => {
-      const response = await apiClient.get<
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        DoctorApiResponse<any> | any
-      >(`/api/v1/doctors/${numericUserId}`);
-      const data = response.data?.data || response.data;
-      if (data) {
-        return mapDoctorSummaryToDoctorRecord(data);
+      try {
+        const response = await apiClient.get<
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          DoctorApiResponse<any> | any
+        >(`/api/v1/doctors/${numericUserId}`);
+        const data = response.data?.data || response.data;
+        if (data && (data.userId || data.fullName || data.name || data.id)) {
+          if (data.userId || data.fullName || data.name) {
+            return mapApiUserToDoctorRecord(data);
+          }
+          return mapDoctorSummaryToDoctorRecord(data);
+        }
+      } catch {
+        // Handled silently
       }
       throw new Error(`Doctor ${id} not found in response`);
     };
+
+    const fallbackRecord = (): DoctorRecord => {
+      if (currentUser) {
+        return mapApiUserToDoctorRecord(
+          currentUser as unknown as ApiUserDoctorRecord,
+        );
+      }
+      return mapDoctorSummaryToDoctorRecord({ id: numericUserId });
+    };
+
+    const isSelfFetch =
+      !numericUserId ||
+      numericUserId === "me" ||
+      numericUserId === currentUserId ||
+      numericUserId === currentDoctorId;
+
+    if (isSelfFetch) {
+      try {
+        return await fetchMe();
+      } catch {
+        // Continue
+      }
+    }
 
     if (!isAdminRole()) {
       try {
         return await fetchDoctorFacing();
       } catch {
         try {
-          return await fetchAdmin();
+          return await fetchAdmin(isSelfFetch ? currentUserId : undefined);
         } catch {
-          return mapDoctorSummaryToDoctorRecord({ id: numericUserId });
+          return fallbackRecord();
         }
       }
     }
     try {
-      return await fetchAdmin();
+      return await fetchAdmin(isSelfFetch ? currentUserId : undefined);
     } catch {
       try {
         return await fetchDoctorFacing();
       } catch {
-        return mapDoctorSummaryToDoctorRecord({ id: numericUserId });
+        return fallbackRecord();
       }
     }
   },
@@ -440,12 +520,22 @@ export const doctorsApi = {
   ): Promise<ApiScheduleExceptionItem[]> => {
     try {
       const response = await apiClient.get<
-        DoctorApiResponse<ApiScheduleExceptionItem[]>
+        DoctorApiResponse<ApiScheduleExceptionItem[]> | any
       >(`/api/v1/doctors/${doctorId}/schedule-exceptions`);
-      return (
-        response.data?.data ||
-        (Array.isArray(response.data) ? response.data : [])
-      );
+      const rawData = response.data?.data || response.data;
+      const list = Array.isArray(rawData) ? rawData : Array.isArray(rawData?.content) ? rawData.content : [];
+      return list.map((item: any) => ({
+        id: item.exceptionId || item.id,
+        doctorId: Number(doctorId),
+        exceptionDate: item.date || item.exceptionDate || item.startDate || "",
+        startDate: item.startDate || item.date || "",
+        endDate: item.endDate || item.date || "",
+        reason: item.reason || "",
+        exceptionType: item.exceptionType || item.type || (item.isAvailable === false ? "VACATION" : "OTHER"),
+        isFullDay: item.isFullDay ?? item.fullDay ?? true,
+        action: item.action || "BLOCK_APPOINTMENTS",
+        status: item.status || "ACTIVE",
+      }));
     } catch (error) {
       console.warn(
         `[doctorsApi] Schedule exceptions fetch failed for doctorId ${doctorId}:`,

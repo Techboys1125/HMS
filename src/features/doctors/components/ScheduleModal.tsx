@@ -40,21 +40,24 @@ const WEEK_DAYS: { api: DayOfWeek; short: string; label: string }[] = [
 
 const BREAK_TYPES: BreakType[] = ["LUNCH", "TEA", "MEETING", "PERSONAL"];
 const EXCEPTION_TYPES: ExceptionType[] = [
-  "LEAVE",
+  "VACATION",
+  "TRAINING",
+  "CONFERENCE",
   "SURGERY",
-  "MEETING",
-  "PERSONAL",
+  "EMERGENCY",
+  "OTHER",
 ];
 const EXCEPTION_ACTIONS: ExceptionAction[] = [
   "BLOCK_APPOINTMENTS",
-  "REDUCE_SLOTS",
 ];
 
 const EXCEPTION_TYPE_META: Record<string, string> = {
-  LEAVE: "bg-amber-100 text-amber-700",
+  VACATION: "bg-amber-100 text-amber-700",
   SURGERY: "bg-red-100 text-red-700",
-  MEETING: "bg-blue-100 text-blue-700",
-  PERSONAL: "bg-purple-100 text-purple-700",
+  TRAINING: "bg-blue-100 text-blue-700",
+  CONFERENCE: "bg-indigo-100 text-indigo-700",
+  EMERGENCY: "bg-orange-100 text-orange-700",
+  OTHER: "bg-slate-100 text-slate-600",
 };
 
 const EXCEPTION_STATUS_META: Record<string, string> = {
@@ -91,7 +94,7 @@ const periodToDraft = (
 });
 
 const EMPTY_EXCEPTION_FORM = {
-  exceptionType: "LEAVE" as ExceptionType,
+  exceptionType: "VACATION" as ExceptionType,
   startDate: new Date().toISOString().slice(0, 10),
   endDate: new Date().toISOString().slice(0, 10),
   startTime: "14:00",
@@ -257,7 +260,7 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
       (!ex.startTime && !ex.endTime);
     setEditingException(ex);
     setExceptionForm({
-      exceptionType: (ex.exceptionType as ExceptionType) || "LEAVE",
+      exceptionType: (ex.exceptionType as ExceptionType) || "VACATION",
       startDate:
         ex.startDate ||
         ex.exceptionDate ||
@@ -861,7 +864,7 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
               ) : (
                 <div className="space-y-2.5">
                   {exceptions.map((ex) => {
-                    const type = (ex.exceptionType || "LEAVE").toUpperCase();
+                    const type = (ex.exceptionType || "VACATION").toUpperCase();
                     const status = (ex.status || "ACTIVE").toUpperCase();
                     const isFullDay =
                       ex.isFullDay === true ||
@@ -875,11 +878,13 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                         <div className="flex items-center gap-3">
                           <div
                             className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                              type === "LEAVE"
+                              type === "VACATION"
                                 ? "bg-amber-50 text-amber-600"
                                 : type === "SURGERY"
                                   ? "bg-red-50 text-red-600"
-                                  : "bg-blue-50 text-blue-600"
+                                  : type === "EMERGENCY"
+                                    ? "bg-orange-50 text-orange-600"
+                                    : "bg-blue-50 text-blue-600"
                             }`}
                           >
                             <Calendar size={16} />

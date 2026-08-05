@@ -1,34 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router";
 import { useAuthStore, authStoreActions } from "../../features/auth";
 import { Header } from "./Header";
 import { NavRail } from "./NavRail";
 import type { NavId, Role } from "../../types/app.types";
 import { ROUTES } from "../../app/routes/routes";
-import { patientsApi } from "../../features/patients";
-import type { FamilyMember } from "../../features/patients";
-
-interface FamilyMemberPayload {
-  id?: string | number;
-  mrn?: string;
-  patientName?: string;
-  fullName?: string;
-  relationship?: string;
-  age?: number;
-  gender?: string;
-  mobileNumber?: string;
-  phone?: string;
-  registeredMobile?: string;
-  email?: string;
-  photoUrl?: string;
-  photo?: string;
-  address?: unknown;
-  lastAppointment?: string;
-  upcomingAppointmentsCount?: number;
-  pendingBillsCount?: number;
-  pendingBillsAmount?: number;
-  activePrescriptionsCount?: number;
-}
+import { usePatientPortal } from "../../features/patients/context/PatientPortalContext";
+import type { FamilyMember } from "../../features/patients/pages/FamilyMembersManagement";
+import type { FamilyMember as HeaderFamilyMember } from "../../features/patients/types/family.types";
 
 function mapUserRoleToAppRole(userRole?: string | null): Role {
   if (!userRole) return "admin";
@@ -56,6 +35,7 @@ const pathToNavId: Record<string, NavId> = {
   [ROUTES.REPORTS]: "reports",
   [ROUTES.SETTINGS]: "settings",
   [ROUTES.PROFILE]: "profile",
+  [ROUTES.DOCTOR_ME_PROFILE]: "profile",
   [ROUTES.USER_MANAGEMENT]: "user-management",
   [ROUTES.AUDIT_LOGS]: "audit-logs",
   [ROUTES.NOTIFICATIONS]: "notifications",
@@ -67,6 +47,7 @@ const pathToNavId: Record<string, NavId> = {
   [ROUTES.PATIENT_DOCTORS]: "doctors",
   [ROUTES.PATIENT_QUEUE]: "queue-status",
   [ROUTES.PATIENT_NOTIFICATIONS]: "notifications",
+  [ROUTES.PATIENT_MY_PROFILE]: "profile",
   [ROUTES.DOCTOR_MY_SCHEDULE]: "my-schedule",
   [ROUTES.DOCTOR_MY_QUEUE]: "my-queue",
   [ROUTES.DOCTOR_PATIENTS]: "patients",
@@ -86,7 +67,7 @@ const navIdToPath = (role: Role, navId: NavId): string => {
       case "dashboard":
         return ROUTES.DASHBOARD;
       case "profile":
-        return ROUTES.PATIENTS;
+        return ROUTES.PATIENT_MY_PROFILE;
       case "family-members":
         return ROUTES.FAMILY_MEMBERS;
       case "doctors":
@@ -133,7 +114,7 @@ const navIdToPath = (role: Role, navId: NavId): string => {
       case "settings":
         return ROUTES.SETTINGS;
       case "profile":
-        return ROUTES.PROFILE;
+        return ROUTES.DOCTOR_ME_PROFILE;
       default:
         return ROUTES.DASHBOARD;
     }
@@ -186,67 +167,42 @@ export function HMSAppShell({ onLogout }: { onLogout?: () => void }) {
   const role = user?.role ? mapUserRoleToAppRole(user.role) : "admin";
   const activeNav = pathToNavId[location.pathname] || "dashboard";
   const [sidebarTheme, setSidebarTheme] = useState<"light" | "dark">("light");
-  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
-  const [activePatient, setActivePatient] = useState<FamilyMember | undefined>(
-    undefined,
-  );
+  const portal = usePatientPortal();
 
-  useEffect(() => {
-    if (role !== "patient") return;
-    let cancelled = false;
-    patientsApi
-      .getMyPatients()
-      .then((data) => {
-        if (cancelled) return;
-        const mapped: FamilyMember[] = (Array.isArray(data) ? data : []).map(
-          (p: FamilyMemberPayload) => ({
-            id: String(p.id ?? p.mrn ?? Math.random()),
-            patientName: p.patientName || p.fullName || "Unknown",
-            name: p.patientName || p.fullName || "Unknown",
-            mrn: p.mrn || "",
-            relationship:
-              (p.relationship as FamilyMember["relationship"]) || "Self",
-            age: p.age ?? 0,
-            gender: (p.gender as FamilyMember["gender"]) || "Other",
-            mobileNumber: p.mobileNumber || p.phone || "",
-            registeredMobile:
-              p.registeredMobile || p.mobileNumber || p.phone || "",
-            email: p.email,
-            photoUrl: p.photoUrl || p.photo,
-            address: typeof p.address === "string" ? p.address : "",
-            verificationStatus: "Verified",
-            patientStatus: "Active",
-            lastAppointment: p.lastAppointment || "",
-            upcomingAppointmentsCount: p.upcomingAppointmentsCount ?? 0,
-            pendingBillsCount: p.pendingBillsCount ?? 0,
-            pendingBillsAmount: p.pendingBillsAmount ?? 0,
-            activePrescriptionsCount: p.activePrescriptionsCount ?? 0,
-          }),
-        );
-        setFamilyMembers(mapped);
-        setActivePatient((prev) => {
-          if (prev) return prev;
-          return mapped[0];
-        });
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setFamilyMembers([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [role]);
+  const toHeaderMember = (m: FamilyMember): HeaderFamilyMember => ({
+    id: String(m.id),
+    patientName: m.patientName,
+    name: m.patientName,
+    relationship: m.relationship,
+    age: m.age,
+    gender: m.gender,
+    mrn: m.mrn,
+    verificationStatus: m.verificationStatus,
+    isPrimary: m.relationship === "Self",
+    status: m.patientStatus,
+  });
+
+  const familyMembers: HeaderFamilyMember[] = (portal?.familyMembers ?? []).map(
+    toHeaderMember,
+  );
+  const activePatient: HeaderFamilyMember | undefined = portal?.activePatient
+    ? toHeaderMember(portal.activePatient)
+    : undefined;
+
+  const handleSwitchActivePatient = (member: HeaderFamilyMember) => {
+    const match = (portal?.familyMembers ?? []).find(
+      (m) =>
+        String(m.id) === String(member.id) ||
+        (m.mrn && m.mrn === member.mrn),
+    );
+    if (match) portal?.switchToPatient(match);
+  };
 
   const handleNavSelect = (id: NavId) => {
     const path = navIdToPath(role, id);
     if (path) {
       navigate(path);
     }
-  };
-
-  const handleSwitchActivePatient = (member: FamilyMember) => {
-    setActivePatient(member);
   };
 
   return (

@@ -4,7 +4,9 @@ import type { ChipVariant } from "../constants/appointment.constants";
 import { Chip } from "../components/Chip";
 import { CheckInConfirmationModal } from "../../reception/components/CheckInConfirmationModal";
 import { receptionService } from "../../reception/services/reception.service";
+import { appointmentService } from "../../appointments/services/appointment.service";
 import { departmentsApi } from "../../users/api/departments.api";
+import type { AppointmentRecord } from "../../appointments/types/appointment.types";
 
 import { type QueueManagementScreenProps } from "../types/appointment-screen.types";
 import { usePermissions } from "../../../permissions";
@@ -62,7 +64,7 @@ export function QueueManagementScreen({
   const [selectedTokenId, setSelectedTokenId] = useState<string>("TK-086");
 
   // Dialog States
-  const [noShowDialogApt, setNoShowDialogApt] = useState<any | null>(null);
+  const [noShowDialogApt, setNoShowDialogApt] = useState<AppointmentRecord | null>(null);
   const [checkInModalData, setCheckInModalData] = useState<{
     isOpen: boolean;
     tokenNumber: string;
@@ -74,20 +76,23 @@ export function QueueManagementScreen({
     status?: string;
   } | null>(null);
 
-  const handleExecuteCheckIn = async (item: any) => {
+  const [tokenCounter] = useState(() => Math.floor(100 + Math.random() * 900));
+
+  const handleExecuteCheckIn = async (apt: AppointmentRecord) => {
     try {
-      const res = await receptionService.checkInPatient(
-        item.aptId || item.token,
-      );
-      const genToken = res.tokenNumber || item.token;
+      const res = await receptionService.checkInPatient(apt.id);
+      const genToken =
+        res.tokenNumber ||
+        apt.queueToken ||
+        `TK-${tokenCounter + apt.id}`;
 
       setQueueItems((prev) =>
         prev.map((i) =>
-          i.token === item.token || i.aptId === item.aptId
+          i.id === apt.id
             ? {
                 ...i,
-                token: genToken,
-                status: "Waiting for Vitals",
+                queueToken: genToken,
+                status: "WAITING_FOR_VITALS" as AppointmentRecord["status"],
                 arrivalTime: new Date().toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -100,55 +105,37 @@ export function QueueManagementScreen({
       setCheckInModalData({
         isOpen: true,
         tokenNumber: genToken,
-        patientName: item.name,
-        patientMrn: item.mrn,
-        doctorName: item.doctor,
-        departmentName: item.dept,
-        appointmentTime: item.apptTime,
+        patientName: apt.patientName,
+        patientMrn: apt.patientMrn || apt.mrn || "",
+        doctorName: apt.doctorName,
+        departmentName: apt.departmentName,
+        appointmentTime: apt.startTime || apt.timeSlot,
         status: "Waiting for Vitals",
       });
 
-      if (onCheckInClick) onCheckInClick(genToken, item.mrn);
-    } catch (err: any) {
+      if (onCheckInClick)
+        onCheckInClick(genToken, apt.patientMrn || apt.mrn || "");
+    } catch (err) {
       alert(
         err?.message || "Check-in is only allowed on the appointment date.",
       );
     }
   };
 
-  // Queue Data List
-  const [queueItems, setQueueItems] = useState<any[]>([]);
-  const [_isLoading, _setIsLoading] = useState(false);
+  const [queueItems, setQueueItems] = useState<AppointmentRecord[]>([]);
+  const [, setIsLoading] = useState(false);
 
   const fetchQueue = async () => {
-    _setIsLoading(true);
+    setIsLoading(true);
     try {
-      const data = await receptionService.fetchWorklist();
-      const mapped = (data || []).map((item: any, _idx: number) => ({
-        token: item.tokenNumber || item.token || "",
-        name:
-          item.patientName ||
-          item.patient?.name ||
-          item.patient?.fullName ||
-          "",
-        mrn: item.mrn || item.patient?.mrn || "",
-        aptId: item.appointmentId || item.id || "",
-        doctor: item.doctorName || item.doctor?.name || "",
-        dept: item.departmentName || item.doctor?.departmentName || "",
-        apptTime: item.appointmentTime || item.apptTime || "",
-        arrivalTime: item.checkInTime || item.arrivalTime || "",
-        waitTime: item.waitTime || "",
-        status: item.status || "",
-        type: item.visitType || "",
-        age: item.age || item.patient?.age || 0,
-        gender: item.gender || item.patient?.gender || "",
-        bloodGroup: item.bloodGroup || item.patient?.bloodGroup || "",
-      }));
-      setQueueItems(mapped);
+      const data = await appointmentService.listAppointments({
+        status: "CHECKED_IN",
+      });
+      setQueueItems(data);
     } catch (err) {
       console.warn("Failed to load queue:", err);
     } finally {
-      _setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -162,21 +149,22 @@ export function QueueManagementScreen({
       const q = searchQuery.toLowerCase().trim();
       const matchSearch =
         q === "" ||
-        item.name.toLowerCase().includes(q) ||
-        item.mrn.toLowerCase().includes(q) ||
-        item.token.toLowerCase().includes(q) ||
-        item.aptId.toLowerCase().includes(q);
+        (item.patientName || "").toLowerCase().includes(q) ||
+        (item.patientMrn || item.mrn || "").toLowerCase().includes(q) ||
+        (item.queueToken || item.tokenNo || "").toLowerCase().includes(q) ||
+        String(item.id).toLowerCase().includes(q);
 
       const matchDoc =
-        selectedDoctor === "All Doctors" || item.doctor === selectedDoctor;
+        selectedDoctor === "All Doctors" ||
+        (item.doctorName || "") === selectedDoctor;
       const matchDept =
-        selectedDept === "All Departments" || item.dept === selectedDept;
+        selectedDept === "All Departments" ||
+        (item.departmentName || "") === selectedDept;
       const matchStatus =
-        selectedStatus === "All Statuses" || item.status === selectedStatus;
-      const matchType =
-        selectedType === "All Types" || item.type === selectedType;
+        selectedStatus === "All Statuses" ||
+        String(item.status).toUpperCase() === selectedStatus.toUpperCase();
 
-      return matchSearch && matchDoc && matchDept && matchStatus && matchType;
+      return matchSearch && matchDoc && matchDept && matchStatus;
     });
   }, [
     queueItems,
@@ -184,20 +172,25 @@ export function QueueManagementScreen({
     selectedDoctor,
     selectedDept,
     selectedStatus,
-    selectedType,
   ]);
 
   // Summary KPI Metrics
   const metrics = useMemo(() => {
-    const waiting = queueItems.filter((i) => i.status === "Waiting").length;
+    const waiting = queueItems.filter(
+      (i) => i.status === "WAITING_FOR_VITALS" || i.status === "WAITING_FOR_DOCTOR_CALL",
+    ).length;
     const checkedIn = queueItems.filter(
-      (i) => i.status === "Checked-In",
+      (i) => i.status === "CHECKED_IN",
     ).length;
     const inConsultation = queueItems.filter(
-      (i) => i.status === "In Consultation",
+      (i) => i.status === "IN_CONSULTATION",
     ).length;
-    const completed = queueItems.filter((i) => i.status === "Completed").length;
-    const noShows = queueItems.filter((i) => i.status === "No Show").length;
+    const completed = queueItems.filter(
+      (i) => i.status === "COMPLETED",
+    ).length;
+    const noShows = queueItems.filter(
+      (i) => i.status === "NO_SHOW",
+    ).length;
     return { waiting, checkedIn, inConsultation, completed, noShows };
   }, [queueItems]);
 
@@ -210,28 +203,32 @@ export function QueueManagementScreen({
     setSelectedType("All Types");
   };
 
-  const handleMarkNoShow = (token: string) => {
+  const handleMarkNoShow = (apt: AppointmentRecord) => {
     setQueueItems((prev) =>
-      prev.map((i) => (i.token === token ? { ...i, status: "No Show" } : i)),
+      prev.map((i) =>
+        i.id === apt.id ? { ...i, status: "NO_SHOW" as AppointmentRecord["status"] } : i
+      ),
     );
     setNoShowDialogApt(null);
   };
 
   const getStatusChipVariant = (status: string): ChipVariant => {
-    switch (status) {
-      case "In Consultation":
+    const s = status.toUpperCase();
+    switch (s) {
+      case "IN_CONSULTATION":
         return "teal";
-      case "Waiting":
+      case "WAITING_FOR_VITALS":
+      case "WAITING_FOR_DOCTOR_CALL":
         return "warning";
-      case "Checked-In":
+      case "CHECKED_IN":
         return "info";
-      case "Scheduled":
+      case "BOOKED":
+      case "CONFIRMED":
         return "info";
-      case "Completed":
+      case "COMPLETED":
         return "success";
-      case "No Show":
-        return "error";
-      case "Cancelled":
+      case "NO_SHOW":
+      case "CANCELLED":
         return "error";
       default:
         return "default";
@@ -533,96 +530,96 @@ export function QueueManagementScreen({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
-                  {filteredQueue.length > 0 ? (
-                    filteredQueue.map((item) => {
-                      const isSelected = selectedTokenId === item.token;
-                      return (
-                        <tr
-                          key={item.token}
-                          onClick={() => setSelectedTokenId(item.token)}
-                          className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${isSelected ? "bg-blue-50/60 font-medium" : ""}`}
-                        >
-                          <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
-                            {item.token}
-                          </td>
-                          <td className="px-4 py-3.5 font-bold text-[#111827]">
-                            {item.name}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {item.mrn}
-                          </td>
-                          <td className="px-4 py-3.5 font-medium">
-                            {item.doctor}
-                          </td>
-                          <td className="px-4 py-3.5 text-slate-600">
-                            {item.dept}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {item.apptTime}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {item.arrivalTime}
-                          </td>
-                          <td className="px-4 py-3.5 font-mono text-slate-500">
-                            {item.waitTime}
-                          </td>
-                          <td className="px-4 py-3.5">
-                            <Chip
-                              label={item.status}
-                              variant={getStatusChipVariant(item.status)}
-                            />
-                          </td>
-                          <td
-                            className="px-4 py-3.5 text-right"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="flex items-center justify-end gap-1.5">
-                              {(item.status === "Scheduled" ||
-                                item.status === "Registered") &&
-                                canCheckIn && (
-                                  <button
-                                    onClick={() => handleExecuteCheckIn(item)}
-                                    className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors shadow-xs bg-[#009688] text-white hover:bg-teal-700 cursor-pointer"
-                                    title="Check-In Patient"
-                                  >
-                                    Check-In
-                                  </button>
-                                )}
+               {filteredQueue.length > 0 ? (
+                     filteredQueue.map((apt) => {
+                       const isSelected = selectedTokenId === apt.queueToken || selectedTokenId === String(apt.id);
+                       const displayStatus = String(apt.status || "").replace(/_/g, " ");
+                       return (
+                         <tr
+                           key={apt.id}
+                           onClick={() => setSelectedTokenId(apt.queueToken || String(apt.id))}
+                           className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${isSelected ? "bg-blue-50/60 font-medium" : ""}`}
+                         >
+                           <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
+                             {apt.queueToken || apt.tokenNo || `TK-${apt.id}`}
+                           </td>
+                           <td className="px-4 py-3.5 font-bold text-[#111827]">
+                             {apt.patientName}
+                           </td>
+                           <td className="px-4 py-3.5 font-mono text-slate-500">
+                             {apt.patientMrn || apt.mrn || ""}
+                           </td>
+                           <td className="px-4 py-3.5 font-medium">
+                             {apt.doctorName}
+                           </td>
+                           <td className="px-4 py-3.5 text-slate-600">
+                             {apt.departmentName}
+                           </td>
+                           <td className="px-4 py-3.5 font-mono text-slate-500">
+                             {apt.startTime || apt.timeSlot || ""}
+                           </td>
+                           <td className="px-4 py-3.5 font-mono text-slate-500">
+                             {apt.arrivalTime || ""}
+                           </td>
+                           <td className="px-4 py-3.5 font-mono text-slate-500">
+                             {apt.waitingTimeMinutes ? `${apt.waitingTimeMinutes} min` : ""}
+                           </td>
+                           <td className="px-4 py-3.5">
+                             <Chip
+                               label={displayStatus}
+                               variant={getStatusChipVariant(displayStatus)}
+                             />
+                           </td>
+                           <td
+                             className="px-4 py-3.5 text-right"
+                             onClick={(e) => e.stopPropagation()}
+                           >
+                             <div className="flex items-center justify-end gap-1.5">
+                               {(apt.status === "BOOKED" || apt.status === "CONFIRMED") &&
+                                 canCheckIn && (
+                                   <button
+                                     onClick={() => handleExecuteCheckIn(apt)}
+                                     className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors shadow-xs bg-[#009688] text-white hover:bg-teal-700 cursor-pointer"
+                                     title="Check-In Patient"
+                                   >
+                                     Check-In
+                                   </button>
+                                 )}
 
-                              {item.status === "Checked-In" &&
-                              canRecordVitals ? (
-                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
-                                  Vitals Pending
-                                </span>
-                              ) : null}
+                               {apt.status === "CHECKED_IN" &&
+                               canRecordVitals ? (
+                                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                                   Vitals Pending
+                                 </span>
+                               ) : null}
 
-                              <button
-                                onClick={() =>
-                                  onPatientSelect && onPatientSelect(item.mrn)
-                                }
-                                title="View Patient"
-                                className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
-                              >
-                                View
-                              </button>
+                               <button
+                                 onClick={() =>
+                                   onPatientSelect && onPatientSelect(apt.patientMrn || apt.mrn || "")
+                                 }
+                                 title="View Patient"
+                                 className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
+                               >
+                                 View
+                               </button>
 
-                              {item.status !== "Completed" &&
-                                item.status !== "Cancelled" &&
-                                item.status !== "No Show" && (
-                                  <button
-                                    onClick={() => setNoShowDialogApt(item)}
-                                    title="Mark No Show"
-                                    className="px-2 py-1 rounded-lg bg-red-50 text-[#EF4444] text-[11px] font-semibold hover:bg-red-100 transition-colors"
-                                  >
-                                    No Show
-                                  </button>
-                                )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
+                               {apt.status !== "COMPLETED" &&
+                                 apt.status !== "CANCELLED" &&
+                                 apt.status !== "NO_SHOW" && (
+                                   <button
+                                     onClick={() => setNoShowDialogApt(apt)}
+                                     title="Mark No Show"
+                                     className="px-2 py-1 rounded-lg bg-red-50 text-[#EF4444] text-[11px] font-semibold hover:bg-red-100 transition-colors"
+                                   >
+                                     No Show
+                                   </button>
+                                 )}
+                             </div>
+                           </td>
+                         </tr>
+                       );
+                     })
+                   ) : (
                     <tr>
                       <td colSpan={10} className="px-4 py-12 text-center">
                         <div className="flex flex-col items-center justify-center gap-2">
@@ -693,15 +690,15 @@ export function QueueManagementScreen({
 
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1">
               <p>
-                <strong>Patient:</strong> {noShowDialogApt.name} (
-                {noShowDialogApt.mrn})
+                <strong>Patient:</strong> {noShowDialogApt.patientName} (
+                {noShowDialogApt.patientMrn || noShowDialogApt.mrn || ""})
               </p>
               <p>
-                <strong>Doctor:</strong> {noShowDialogApt.doctor} (
-                {noShowDialogApt.dept})
+                <strong>Doctor:</strong> {noShowDialogApt.doctorName} (
+                {noShowDialogApt.departmentName})
               </p>
               <p>
-                <strong>Time Slot:</strong> {noShowDialogApt.apptTime}
+                <strong>Time Slot:</strong> {noShowDialogApt.startTime || noShowDialogApt.timeSlot || ""}
               </p>
             </div>
 
@@ -713,7 +710,7 @@ export function QueueManagementScreen({
                 Cancel
               </button>
               <button
-                onClick={() => handleMarkNoShow(noShowDialogApt.token)}
+                onClick={() => handleMarkNoShow(noShowDialogApt)}
                 className="px-4 py-2 rounded-xl bg-[#EF4444] text-white text-xs font-semibold hover:bg-red-600 shadow-sm"
               >
                 Confirm No Show

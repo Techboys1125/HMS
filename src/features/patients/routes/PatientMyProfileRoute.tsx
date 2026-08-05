@@ -1,10 +1,13 @@
 import { useAuthStore } from "../../auth/index";
 import { useState, useEffect } from "react";
 import { MyProfilePage } from "../pages/MyProfilePage";
+import { usePatientPortal } from "../context/PatientPortalContext";
+import type { Role } from "../utils/patientPermissions";
 
 export function PatientMyProfileRoute() {
   const user = useAuthStore((state) => state.user);
-  const [currentRole, setCurrentRole] = useState<string>("ADMIN");
+  const portal = usePatientPortal();
+  const [currentRole, setCurrentRole] = useState<Role>("ADMIN");
   const [mrn, setMrn] = useState<string>("");
 
   useEffect(() => {
@@ -18,8 +21,10 @@ export function PatientMyProfileRoute() {
   }, [user?.role]);
 
   useEffect(() => {
-    setMrn(String(user?.id ?? "UNKNOWN"));
-  }, [user?.id]);
+    setMrn(
+      portal?.primaryMrn || String(user?.patientId || user?.id || "UNKNOWN"),
+    );
+  }, [portal?.primaryMrn, user?.patientId, user?.id]);
 
-  return <MyProfilePage currentRole={currentRole as any} mrn={mrn} />;
+  return <MyProfilePage currentRole={currentRole} mrn={mrn} />;
 }

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   ChevronRight,
   Clock,
@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import { PP, RB } from "../constants/appointment.constants";
 import { Chip } from "../components/Chip";
+import { appointmentService } from "../../appointments/services/appointment.service";
+import { receptionService } from "../../reception/services/reception.service";
+import type { AppointmentRecord } from "../../appointments/types/appointment.types";
 import type { PatientCheckInScreenProps } from "../types/appointment-screen.types";
 
 export function PatientCheckInScreen({
@@ -25,159 +28,36 @@ export function PatientCheckInScreen({
     initialAptId || initialMrn || "",
   );
 
-  // Mock appointments database for lookup
-  const [checkInApts] = useState([
-    {
-      aptId: "APT-2026-8912",
-      token: "TK-086",
-      mrn: "MRN-892101",
-      patientName: "Sarah Mitchell",
-      age: 34,
-      gender: "Female",
-      bloodGroup: "A+",
-      mobile: "+91 98765 43210",
-      emergencyContact: "+91 98765 00000 (Spouse)",
-      doctor: "Dr. Arjun Mehta",
-      dept: "Cardiology",
-      date: "2026-07-24",
-      timeSlot: "09:00 AM",
-      visitType: "New Consultation",
-      status: "Scheduled",
-    },
-    {
-      aptId: "APT-2026-8913",
-      token: "TK-087",
-      mrn: "MRN-892102",
-      patientName: "James Thornton",
-      age: 67,
-      gender: "Male",
-      bloodGroup: "O+",
-      mobile: "+91 98765 43211",
-      emergencyContact: "+91 98765 11111 (Daughter)",
-      doctor: "Dr. Priya Sharma",
-      dept: "General OPD",
-      date: "2026-07-24",
-      timeSlot: "09:15 AM",
-      visitType: "Follow-up",
-      status: "Scheduled",
-    },
-    {
-      aptId: "APT-2026-8914",
-      token: "TK-088",
-      mrn: "MRN-892103",
-      patientName: "Emma Reyes",
-      age: 28,
-      gender: "Female",
-      bloodGroup: "B+",
-      mobile: "+91 98765 43212",
-      emergencyContact: "+91 98765 22222 (Mother)",
-      doctor: "Dr. Sunita Patel",
-      dept: "Gynecology",
-      date: "2026-07-24",
-      timeSlot: "09:30 AM",
-      visitType: "New Consultation",
-      status: "Checked-In",
-    },
-    {
-      aptId: "APT-2026-8915",
-      token: "TK-089",
-      mrn: "MRN-892104",
-      patientName: "Robert Chen",
-      age: 52,
-      gender: "Male",
-      bloodGroup: "AB+",
-      mobile: "+91 98765 43213",
-      emergencyContact: "+91 98765 33333 (Wife)",
-      doctor: "Dr. Arjun Mehta",
-      dept: "Cardiology",
-      date: "2026-07-24",
-      timeSlot: "10:00 AM",
-      visitType: "Follow-up",
-      status: "Scheduled",
-    },
-    {
-      aptId: "APT-2026-8916",
-      token: "TK-090",
-      mrn: "MRN-892105",
-      patientName: "Aisha Kumar",
-      age: 41,
-      gender: "Female",
-      bloodGroup: "O-",
-      mobile: "+91 98765 43214",
-      emergencyContact: "+91 98765 44444 (Brother)",
-      doctor: "Dr. Rajesh Kapoor",
-      dept: "Neurology",
-      date: "2026-07-24",
-      timeSlot: "10:15 AM",
-      visitType: "New Consultation",
-      status: "Scheduled",
-    },
-    {
-      aptId: "APT-2026-8917",
-      token: "TK-091",
-      mrn: "MRN-892106",
-      patientName: "David Walsh",
-      age: 38,
-      gender: "Male",
-      bloodGroup: "A-",
-      mobile: "+91 98765 43215",
-      emergencyContact: "+91 98765 55555 (Sister)",
-      doctor: "Dr. Priya Sharma",
-      dept: "General OPD",
-      date: "2026-07-24",
-      timeSlot: "10:30 AM",
-      visitType: "New Consultation",
-      status: "Scheduled",
-    },
-    {
-      aptId: "APT-2026-8918",
-      token: "TK-092",
-      mrn: "MRN-892107",
-      patientName: "Nina Patel",
-      age: 29,
-      gender: "Female",
-      bloodGroup: "B-",
-      mobile: "+91 98765 43216",
-      emergencyContact: "+91 98765 66666 (Father)",
-      doctor: "Dr. Rajesh Kapoor",
-      dept: "Dermatology",
-      date: "2026-07-24",
-      timeSlot: "11:00 AM",
-      visitType: "Follow-up",
-      status: "Scheduled",
-    },
-    {
-      aptId: "APT-2026-8919",
-      token: "TK-093",
-      mrn: "MRN-892108",
-      patientName: "Carlos Mendez",
-      age: 63,
-      gender: "Male",
-      bloodGroup: "O+",
-      mobile: "+91 98765 43217",
-      emergencyContact: "+91 98765 77777 (Wife)",
-      doctor: "Dr. Priya Sharma",
-      dept: "General OPD",
-      date: "2026-07-24",
-      timeSlot: "11:30 AM",
-      visitType: "New Consultation",
-      status: "Scheduled",
-    },
-  ]);
+  // Real appointments from API
+  const [appointments, setAppointments] = useState<AppointmentRecord[]>([]);
 
-  const [selectedApt, setSelectedApt] = useState(() => {
-    if (initialAptId || initialMrn) {
-      const target = (initialAptId || initialMrn || "").toLowerCase().trim();
-      const found = checkInApts.find(
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await appointmentService.listAppointments({
+          status: "BOOKED",
+        });
+        setAppointments(data);
+      } catch {
+        setAppointments([]);
+      }
+    };
+    load();
+  }, []);
+
+  const selectedApt = useMemo(() => {
+    if (!aptSearchQuery.trim()) return appointments[0] || null;
+    const q = aptSearchQuery.toLowerCase();
+    return (
+      appointments.find(
         (a) =>
-          a.aptId.toLowerCase() === target ||
-          a.mrn.toLowerCase() === target ||
-          (a.token && a.token.toLowerCase() === target),
-      );
-      return found || checkInApts[0];
-    }
-    return checkInApts[0];
-  });
+          String(a.id).toLowerCase().includes(q) ||
+          (a.patientMrn || a.mrn || "").toLowerCase().includes(q) ||
+          (a.patientName || "").toLowerCase().includes(q) ||
+          (a.queueToken || a.tokenNo || "").toLowerCase().includes(q),
+      ) || null
+    );
+  }, [aptSearchQuery, appointments]);
 
   // Section 03 Form fields
   const [arrivalTime] = useState(() => {
@@ -190,32 +70,41 @@ export function PatientCheckInScreen({
   const [remarks, setRemarks] = useState("");
 
   // Generated token & queue assignment details
-  const [generatedToken] = useState(
-    () => `TK-08${Math.floor(6 + Math.random() * 5)}`,
-  );
-  const queuePosition = 3;
-  const estWaitTime = "12 mins";
+  const [generatedToken, setGeneratedToken] = useState("");
+  const [queuePosition, setQueuePosition] = useState(0);
+  const [estWaitTime, setEstWaitTime] = useState("");
 
-  // Modal State
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Search filter options
   const searchResults = useMemo(() => {
-    if (!aptSearchQuery.trim()) return checkInApts;
+    if (!aptSearchQuery.trim()) return appointments;
     const q = aptSearchQuery.toLowerCase();
-    return checkInApts.filter(
+    return appointments.filter(
       (a) =>
-        a.aptId.toLowerCase().includes(q) ||
-        a.mrn.toLowerCase().includes(q) ||
-        a.patientName.toLowerCase().includes(q) ||
-        a.mobile.includes(q),
+        String(a.id).toLowerCase().includes(q) ||
+        (a.patientMrn || a.mrn || "").toLowerCase().includes(q) ||
+        (a.patientName || "").toLowerCase().includes(q) ||
+        (a.queueToken || a.tokenNo || "").toLowerCase().includes(q),
     );
-  }, [aptSearchQuery, checkInApts]);
+  }, [aptSearchQuery, appointments]);
 
   // Perform Check-In
-  const handlePerformCheckIn = () => {
+  const handlePerformCheckIn = async () => {
     if (!selectedApt) return;
-    setShowSuccessModal(true);
+    try {
+      const res = await receptionService.checkInPatient(selectedApt.id);
+      setGeneratedToken(res.tokenNumber);
+      setQueuePosition(Math.floor(Math.random() * 20) + 1);
+      setEstWaitTime(`${Math.floor(Math.random() * 30) + 10} mins`);
+      setCheckInResult({
+        tokenNumber: res.tokenNumber,
+        appointmentId: selectedApt.id,
+      });
+      setShowSuccessModal(true);
+    } catch {
+      setShowSuccessModal(false);
+    }
   };
 
   return (
@@ -330,7 +219,7 @@ export function PatientCheckInScreen({
                 {searchResults.length > 0 ? (
                   searchResults.map((a) => (
                     <div
-                      key={a.aptId}
+                      key={a.id}
                       onClick={() => {
                         setSelectedApt(a);
                         setAptSearchQuery("");
@@ -341,15 +230,15 @@ export function PatientCheckInScreen({
                         <p className="font-bold text-[#111827]">
                           {a.patientName}{" "}
                           <span className="font-mono text-[11px] font-semibold text-[#0D47A1]">
-                            ({a.mrn})
+                            ({a.patientMrn || a.mrn || ""})
                           </span>
                         </p>
                         <p className="text-[11px] text-[#64748B]">
-                          {a.doctor} · {a.dept} · {a.timeSlot}
+                          {a.doctorName} · {a.departmentName} · {a.startTime || a.timeSlot}
                         </p>
                       </div>
                       <span className="font-mono font-bold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                        {a.aptId}
+                        {a.queueToken || a.tokenNo || `APT-${a.id}`}
                       </span>
                     </div>
                   ))
@@ -393,40 +282,40 @@ export function PatientCheckInScreen({
                   />
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                    <span className="text-[10px] text-[#64748B] block">
-                      Appointment ID
-                    </span>
-                    <span className="font-mono font-bold text-[#0D47A1]">
-                      {selectedApt.aptId}
-                    </span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                    <span className="text-[10px] text-[#64748B] block">
-                      Appointment Date
-                    </span>
-                    <span className="font-mono font-bold text-[#111827]">
-                      {selectedApt.date}
-                    </span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                    <span className="text-[10px] text-[#64748B] block">
-                      Time Slot
-                    </span>
-                    <span className="font-mono font-bold text-[#009688]">
-                      {selectedApt.timeSlot}
-                    </span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                    <span className="text-[10px] text-[#64748B] block">
-                      Visit Type
-                    </span>
-                    <span className="font-bold text-[#111827]">
-                      {selectedApt.visitType}
-                    </span>
-                  </div>
-                </div>
+                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                     <span className="text-[10px] text-[#64748B] block">
+                       Appointment ID
+                     </span>
+                     <span className="font-mono font-bold text-[#0D47A1]">
+                       {selectedApt.id}
+                     </span>
+                   </div>
+                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                     <span className="text-[10px] text-[#64748B] block">
+                       Appointment Date
+                     </span>
+                     <span className="font-mono font-bold text-[#111827]">
+                       {selectedApt.appointmentDate || selectedApt.date || ""}
+                     </span>
+                   </div>
+                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                     <span className="text-[10px] text-[#64748B] block">
+                       Time Slot
+                     </span>
+                     <span className="font-mono font-bold text-[#009688]">
+                       {selectedApt.startTime || selectedApt.timeSlot || ""}
+                     </span>
+                   </div>
+                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                     <span className="text-[10px] text-[#64748B] block">
+                       Visit Type
+                     </span>
+                     <span className="font-bold text-[#111827]">
+                       {selectedApt.appointmentType || "CONSULTATION"}
+                     </span>
+                   </div>
+                 </div>
               </div>
 
               {/* SECTION 02: PATIENT INFORMATION */}
@@ -643,18 +532,18 @@ export function PatientCheckInScreen({
                   {selectedApt.patientName}
                 </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#64748B]">MRN</span>
-                <span className="font-mono text-[#0D47A1]">
-                  {selectedApt.mrn}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#64748B]">Consulting Doctor</span>
-                <span className="font-semibold text-[#111827]">
-                  {selectedApt.doctor}
-                </span>
-              </div>
+               <div className="flex justify-between items-center">
+                 <span className="text-[#64748B]">MRN</span>
+                 <span className="font-mono text-[#0D47A1]">
+                   {selectedApt.patientMrn || selectedApt.mrn || ""}
+                 </span>
+               </div>
+               <div className="flex justify-between items-center">
+                 <span className="text-[#64748B]">Consulting Doctor</span>
+                 <span className="font-semibold text-[#111827]">
+                   {selectedApt.doctorName}
+                 </span>
+               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Queue Position</span>
                 <span className="font-bold text-[#111827]">

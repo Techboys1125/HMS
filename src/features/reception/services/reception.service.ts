@@ -50,8 +50,11 @@ export const receptionService = {
         patchRes?.tokenNumber ||
         `TK-${Math.floor(100 + Math.random() * 900)}`;
 
-      // 3. Update status to WAITING_FOR_VITALS
-      await receptionApi.updateQueueStatus(appointmentId, "WAITING_FOR_VITALS");
+      // 3. Update status to WAITING_FOR_VITALS via appointment status API
+      await appointmentsApi.updateAppointmentStatus(
+        appointmentId,
+        "WAITING_FOR_VITALS",
+      );
 
       return {
         success: true,
@@ -103,5 +106,55 @@ export const receptionService = {
     payload: WalkInRegistrationPayload,
   ): Promise<ReceptionQueueItem> {
     return receptionApi.registerWalkIn(payload);
+  },
+
+  async transitionToVitals(appointmentId: string | number) {
+    await appointmentsApi.updateAppointmentStatus(
+      appointmentId,
+      "WAITING_FOR_VITALS",
+    );
+  },
+
+  async transitionToWaitingForDoctor(appointmentId: string | number) {
+    await appointmentsApi.updateAppointmentStatus(
+      appointmentId,
+      "WAITING_FOR_DOCTOR_CALL",
+    );
+  },
+
+  async transitionToCalled(appointmentId: string | number) {
+    await appointmentsApi.updateAppointmentStatus(appointmentId, "CALLED");
+  },
+
+  async transitionToInConsultation(appointmentId: string | number) {
+    await appointmentsApi.updateAppointmentStatus(
+      appointmentId,
+      "IN_CONSULTATION",
+    );
+  },
+
+  async transitionToConsultationCompleted(appointmentId: string | number) {
+    await appointmentsApi.updateAppointmentStatus(
+      appointmentId,
+      "CONSULTATION_COMPLETED",
+    );
+  },
+
+  async transitionToBillingPending(appointmentId: string | number) {
+    await appointmentsApi.updateAppointmentStatus(
+      appointmentId,
+      "BILLING_PENDING",
+    );
+  },
+
+  async transitionToPaymentCompleted(appointmentId: string | number) {
+    await appointmentsApi.updateAppointmentStatus(
+      appointmentId,
+      "PAYMENT_COMPLETED",
+    );
+  },
+
+  async transitionToCompleted(appointmentId: string | number) {
+    await appointmentsApi.updateAppointmentStatus(appointmentId, "COMPLETED");
   },
 };

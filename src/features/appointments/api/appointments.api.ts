@@ -23,11 +23,56 @@ const handleApiError = (error: unknown): never => {
 
 export const appointmentsApi = {
   /**
-   * cURL:
-   * curl -X GET http://192.168.1.44:8081/api/v1/appointments \
-   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
-   *   -H "Content-Type: application/json"
+   * POST /api/v1/prescriptions/{prescriptionId}/finalize
    */
+  finalizePrescription: async (
+    prescriptionId: string | number,
+  ): Promise<ApiResponse<unknown>> => {
+    try {
+      const response = await apiClient.post(
+        `/api/v1/prescriptions/${prescriptionId}/finalize`,
+        { confirmation: true },
+      );
+      return (response.data as ApiResponse<unknown>) || { success: true, message: "Success" };
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * POST /api/v1/appointments/{appointmentId}/generate-bill
+   */
+  generateBill: async (
+    appointmentId: string | number,
+  ): Promise<ApiResponse<unknown>> => {
+    try {
+      const response = await apiClient.post(
+        `/api/v1/appointments/${appointmentId}/generate-bill`,
+        {},
+      );
+      return (response.data as ApiResponse<unknown>) || { success: true, message: "Success" };
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * POST /api/v1/appointments/{appointmentId}/process-payment
+   */
+  processPayment: async (
+    appointmentId: string | number,
+    amount: number,
+  ): Promise<ApiResponse<unknown>> => {
+    try {
+      const response = await apiClient.post(
+        `/api/v1/appointments/${appointmentId}/process-payment`,
+        { amount },
+      );
+      return (response.data as ApiResponse<unknown>) || { success: true, message: "Success" };
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
   getAppointments: async (params?: {
     doctorId?: string | number;
     patientId?: string | number;
@@ -147,24 +192,37 @@ export const appointmentsApi = {
   },
 
   getDoctorAppointments: async (
-    doctorId?: string | number,
+    doctorId?: number | string,
     date?: string,
     status?: string,
   ): Promise<ApiResponse<unknown>> => {
     try {
+      if (doctorId) {
+        return await appointmentsApi.getAppointments({ doctorId, date, status });
+      }
       const query = new URLSearchParams();
       if (date) query.append("date", date);
       if (status) query.append("status", status);
       const queryString = query.toString();
 
-      const endpoint = doctorId
-        ? `/api/v1/doctors/${doctorId}/appointments`
-        : `/api/v1/doctor/appointments`;
-      const url = `${endpoint}${queryString ? `?${queryString}` : ""}`;
-
+      const url = `/api/v1/doctor/appointments${queryString ? `?${queryString}` : ""}`;
       const response = await apiClient.get<ApiResponse<unknown>>(url);
       return response.data;
     } catch (error: unknown) {
+      if (doctorId) {
+        try {
+          const query = new URLSearchParams();
+          if (date) query.append("date", date);
+          if (status) query.append("status", status);
+          const queryString = query.toString();
+          const response = await apiClient.get<ApiResponse<unknown>>(
+            `/api/v1/doctors/${doctorId}/appointments${queryString ? `?${queryString}` : ""}`,
+          );
+          return response.data;
+        } catch {
+          // Handled silently
+        }
+      }
       return handleApiError(error);
     }
   },
@@ -282,11 +340,57 @@ export const appointmentsApi = {
   },
 
   /**
-   * cURL:
-   * curl -X GET "http://192.168.1.44:8081/api/v1/doctors?departmentId=2" \
-   *   -H "Authorization: Bearer <ACCESS_TOKEN>" \
-   *   -H "Content-Type: application/json"
+   * GET /api/v1/reception/appointments/{appointmentId}/token
+   * Generate and retrieve queue token for a checked-in appointment
    */
+  getAppointmentToken: async (
+    appointmentId: string | number,
+  ): Promise<ApiResponse<{ tokenNumber: string; queueNumber?: number }>> => {
+    try {
+      const response = await apiClient.get<
+        ApiResponse<{ tokenNumber: string; queueNumber?: number }>
+      >(`/api/v1/reception/appointments/${appointmentId}/token`);
+      return response.data;
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * PATCH /api/v1/appointments/{appointmentId}/status
+   * Update appointment status for workflow transitions
+   */
+  updateAppointmentStatus: async (
+    appointmentId: string | number,
+    status: string,
+  ): Promise<ApiResponse<AppointmentRecord>> => {
+    try {
+      const response = await apiClient.patch<ApiResponse<AppointmentRecord>>(
+        `/api/v1/appointments/${appointmentId}/status`,
+        { status },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * GET /api/v1/appointments/{appointmentId}/token
+   * Retrieve queue token details for an appointment
+   */
+  getTokenDetails: async (
+    appointmentId: string | number,
+  ): Promise<ApiResponse<{ tokenNumber: string; queueNumber?: number; status: string }>> => {
+    try {
+      const response = await apiClient.get<
+        ApiResponse<{ tokenNumber: string; queueNumber?: number; status: string }>
+      >(`/api/v1/appointments/${appointmentId}/token`);
+      return response.data;
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
   getDoctors: async (
     departmentId?: string | number,
   ): Promise<ApiResponse<DoctorSummary[]>> => {

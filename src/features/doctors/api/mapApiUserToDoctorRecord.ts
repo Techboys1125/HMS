@@ -8,49 +8,140 @@ import type {
 } from "../types/doctors.types";
 
 export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
-  const profile = u.doctorProfile;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const anyU = u as any;
+  const profile = u.doctorProfile || anyU.profile || anyU.doctor || anyU;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const anyProfile = profile as any;
+
   const primaryDept =
-    profile?.primaryDepartment?.departmentName || "General Medicine";
+    profile?.primaryDepartment?.departmentName ||
+    anyProfile?.primaryDepartmentName ||
+    anyProfile?.departmentName ||
+    anyProfile?.department ||
+    anyU.departmentName ||
+    anyU.department ||
+    anyU.primaryDepartmentName ||
+    anyU.primaryDepartment?.departmentName ||
+    anyU.deptName ||
+    anyU.dept ||
+    "";
+
   const primarySpec =
-    profile?.primarySpecialty?.specialtyName || "General Physician";
+    profile?.primarySpecialty?.specialtyName ||
+    anyProfile?.primarySpecialtyName ||
+    anyProfile?.specialtyName ||
+    anyProfile?.specialty ||
+    anyU.specialtyName ||
+    anyU.specialty ||
+    anyU.primarySpecialtyName ||
+    anyU.primarySpecialty?.specialtyName ||
+    anyU.specName ||
+    "";
 
-  const rawAvail = profile?.availability || [];
+  const qualification =
+    profile?.qualification ||
+    anyProfile?.qualification ||
+    anyU.qualification ||
+    "";
+
+  const experienceYrs =
+    profile?.yearsOfExperience ??
+    anyProfile?.yearsOfExperience ??
+    anyProfile?.experienceYrs ??
+    anyProfile?.experienceYears ??
+    anyProfile?.experience ??
+    anyU.yearsOfExperience ??
+    anyU.experienceYrs ??
+    anyU.experienceYears ??
+    anyU.experience ??
+    0;
+
+  const regNumber =
+    profile?.medicalRegistrationNumber ||
+    anyProfile?.medicalRegistrationNumber ||
+    anyProfile?.regNumber ||
+    anyU.medicalRegistrationNumber ||
+    anyU.regNumber ||
+    "";
+
+  const empId =
+    u.employeeId ||
+    anyU.empId ||
+    anyProfile?.employeeId ||
+    anyProfile?.empId ||
+    "";
+
+  const consultationFee =
+    profile?.consultationFee ??
+    anyProfile?.consultationFee ??
+    anyProfile?.fees?.standardConsultationFee ??
+    anyU.consultationFee ??
+    anyU.fees?.standardConsultationFee ??
+    0;
+
+  const followUpFee =
+    profile?.followUpFee ??
+    anyProfile?.followUpFee ??
+    anyU.followUpFee ??
+    0;
+
+  const slotDurationMinutes =
+    profile?.slotDurationMinutes ??
+    anyProfile?.slotDurationMinutes ??
+    anyU.slotDurationMinutes ??
+    15;
+
+  const slotDuration = slotDurationMinutes ? `${slotDurationMinutes} mins` : "15 mins";
+
+  const rawAvail = profile?.availability || anyProfile?.availability || anyU.availability || [];
   const workingDays = Array.from(
-    new Set(rawAvail.map((a) => a.dayOfWeek.substring(0, 3).toUpperCase())),
-  );
+    new Set(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      rawAvail.map((a: any) =>
+        String(a.dayOfWeek || "")
+          .substring(0, 3)
+          .toUpperCase(),
+      ),
+    ),
+  ).filter(Boolean);
 
-  let shiftTimings = "09:00 AM - 05:00 PM";
+  let shiftTimings = "";
   if (rawAvail.length > 0 && rawAvail[0].startTime && rawAvail[0].endTime) {
     shiftTimings = `${rawAvail[0].startTime} - ${rawAvail[0].endTime}`;
   }
 
-  const rawStatus = (u.status || "ACTIVE").toUpperCase();
+  const rawStatus = String(u.status || anyProfile?.status || "ACTIVE").toUpperCase();
   let status: "Active" | "Inactive" | "On Leave" | "Suspended" = "Active";
   if (rawStatus === "INACTIVE") status = "Inactive";
-  else if (rawStatus === "ON_LEAVE" || rawStatus === "LEAVE")
-    status = "On Leave";
+  else if (rawStatus === "ON_LEAVE" || rawStatus === "LEAVE") status = "On Leave";
   else if (rawStatus === "SUSPENDED") status = "Suspended";
 
+  const rawUserId = u.userId ?? u.id ?? anyProfile?.userId ?? anyProfile?.id ?? 0;
+  const rawDoctorId = profile?.doctorId ?? anyProfile?.doctorId ?? anyU.doctorId ?? rawUserId;
+
   return {
-    id: `DOC-${u.userId}`,
-    userId: u.userId,
-    doctorId: profile?.doctorId,
-    empId: u.employeeId || `EMP-${u.userId}`,
-    regNumber: profile?.medicalRegistrationNumber || "N/A",
-    name: u.fullName.startsWith("Dr.") ? u.fullName : `Dr. ${u.fullName}`,
-    gender: (u.gender as "Male" | "Female" | "Other") || "Male",
+    id: `DOC-${rawDoctorId || rawUserId}`,
+    userId: Number(rawUserId),
+    doctorId: Number(rawDoctorId),
+    empId,
+    regNumber,
+    name: (u.fullName || u.name || anyProfile?.name || "").startsWith("Dr.")
+      ? u.fullName || u.name || anyProfile?.name || ""
+      : `Dr. ${u.fullName || u.name || anyProfile?.name || "Doctor"}`,
+    gender: ((u.gender || anyProfile?.gender) as "Male" | "Female" | "Other") || "Male",
     department: primaryDept,
-    primaryDepartmentId: profile?.primaryDepartment?.departmentId,
+    primaryDepartmentId:
+      profile?.primaryDepartment?.departmentId ?? anyProfile?.departmentId ?? anyU.departmentId,
     specialty: primarySpec,
-    primarySpecialtyId: profile?.primarySpecialty?.specialtyId,
-    qualification: profile?.qualification || "MBBS",
-    experienceYrs: profile?.yearsOfExperience || 5,
-    consultationFee: profile?.consultationFee || 100,
-    followUpFee: profile?.followUpFee || 50,
-    slotDuration: profile?.slotDurationMinutes
-      ? `${profile.slotDurationMinutes} mins`
-      : "15 mins",
-    slotDurationMinutes: profile?.slotDurationMinutes || 15,
+    primarySpecialtyId:
+      profile?.primarySpecialty?.specialtyId ?? anyProfile?.specialtyId ?? anyU.specialtyId,
+    qualification,
+    experienceYrs: Number(experienceYrs),
+    consultationFee: Number(consultationFee),
+    followUpFee: Number(followUpFee),
+    slotDuration,
+    slotDurationMinutes: Number(slotDurationMinutes),
     availability:
       status === "Inactive"
         ? "Out of Office"
@@ -58,31 +149,23 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
           ? "On Leave"
           : "Available Today",
     status,
-    email: u.email,
-    phone: u.mobile || "N/A",
-    address: u.residentialAddress || "",
-    dob: u.dateOfBirth || "",
-    opdRoom: "OPD-101",
-    joinedDate: "2024-01-15",
+    email: u.email || anyProfile?.email || "",
+    phone: u.mobile || u.phoneNumber || u.phone || anyProfile?.phone || anyProfile?.mobile || "",
+    address: u.residentialAddress || anyProfile?.address || anyProfile?.residentialAddress || "",
+    dob: u.dateOfBirth || anyProfile?.dateOfBirth || anyProfile?.dob || "",
+    opdRoom: anyProfile?.opdRoom || anyU.opdRoom || "",
+    joinedDate: anyProfile?.joinedDate || anyU.joinedDate || "",
     shiftTimings,
-    workingDays:
-      workingDays.length > 0
-        ? workingDays
-        : ["MON", "TUE", "WED", "THU", "FRI"],
-    bio: u.professionalBio || "",
-    designation: profile?.designation || "",
-    scheduleExceptions: profile?.scheduleExceptions || [],
+    workingDays: workingDays.length > 0 ? (workingDays as string[]) : [],
+    bio: u.professionalBio || anyProfile?.bio || anyProfile?.professionalBio || "",
+    designation: (profile?.designation as string) || anyProfile?.designation || "",
+    scheduleExceptions: profile?.scheduleExceptions || anyProfile?.scheduleExceptions || [],
     rawAvailability: rawAvail,
     secondarySpecialties:
       profile?.secondarySpecialties?.map((s) => s.specialtyName) || [],
-    effectiveFrom:
-      ((profile as unknown as Record<string, unknown> | undefined)
-        ?.effectiveFrom as string | undefined) || "2024-01-01",
-    effectiveTo: (profile as unknown as Record<string, unknown> | undefined)
-      ?.effectiveTo as string | undefined,
-    availabilityTemplate:
-      ((profile as unknown as Record<string, unknown> | undefined)
-        ?.availabilityTemplate as string | undefined) || "STANDARD_WEEKLY",
+    effectiveFrom: anyProfile?.effectiveFrom,
+    effectiveTo: anyProfile?.effectiveTo,
+    availabilityTemplate: anyProfile?.availabilityTemplate,
   };
 }
 
@@ -92,20 +175,19 @@ export function mapDoctorRecordToCreatePayload(
   return {
     fullName: (doc.name || "").replace(/^Dr\.\s*/, ""),
     email: doc.email || "",
-    mobile: doc.phone === "N/A" ? "" : doc.phone || "",
+    mobile: doc.phone || "",
     gender: doc.gender || "Male",
     dateOfBirth: doc.dob || undefined,
     residentialAddress: doc.address || undefined,
     professionalBio: doc.bio || undefined,
     role: "DOCTOR",
-    medicalRegistrationNumber:
-      doc.regNumber === "N/A" ? "" : doc.regNumber || "",
-    qualification: doc.qualification || "MBBS",
+    medicalRegistrationNumber: doc.regNumber || "",
+    qualification: doc.qualification || "",
     yearsOfExperience: doc.experienceYrs || 0,
     primaryDepartmentId: doc.primaryDepartmentId || 1,
     primarySpecialtyId: doc.primarySpecialtyId || 1,
-    consultationFee: doc.consultationFee || 100,
-    followUpFee: doc.followUpFee || 50,
+    consultationFee: doc.consultationFee || 0,
+    followUpFee: doc.followUpFee || 0,
     slotDurationMinutes: doc.slotDurationMinutes || 15,
     availability: doc.rawAvailability || [],
     scheduleExceptions: doc.scheduleExceptions || [],
@@ -118,12 +200,12 @@ export function mapDoctorToUpdatePayload(
   return {
     fullName: doc.name.replace(/^Dr\.\s*/, ""),
     email: doc.email,
-    mobile: doc.phone === "N/A" ? "" : doc.phone,
+    mobile: doc.phone,
     gender: doc.gender,
     dateOfBirth: doc.dob || undefined,
     residentialAddress: doc.address || undefined,
     professionalBio: doc.bio || undefined,
-    medicalRegistrationNumber: doc.regNumber === "N/A" ? "" : doc.regNumber,
+    medicalRegistrationNumber: doc.regNumber,
     qualification: doc.qualification,
     yearsOfExperience: doc.experienceYrs,
     primaryDepartmentId: doc.primaryDepartmentId,

@@ -62,6 +62,19 @@ export const familyService = {
     return result ? mapApiToFamilyMember(result) : null;
   },
 
+  async linkFamilyMember(
+    primaryUserId: number,
+    familyUserId: number,
+    relationship: string,
+  ): Promise<FamilyMember | null> {
+    const result = await patientsApi.linkFamilyMember(
+      primaryUserId,
+      familyUserId,
+      relationship,
+    );
+    return result ? mapApiToFamilyMember(result) : null;
+  },
+
   /**
    * Update a family member
    */

@@ -14,6 +14,7 @@ import {
   ClipboardList,
   Receipt,
   MessageSquare,
+  User,
 } from "lucide-react";
 import type { Role, NavGroup, NavItem } from "../types/app.types";
 
@@ -181,6 +182,7 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         },
         { id: "prescriptions", Icon: Pill, label: "Prescriptions" },
         { id: "bills-payments", Icon: Receipt, label: "Billing & Payments" },
+        { id: "profile", Icon: User, label: "Profile" },
       ],
     },
   ],

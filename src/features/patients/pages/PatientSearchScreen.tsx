@@ -13,6 +13,13 @@ import { PP, RB } from "../constants/patient.mock";
 import { PatientTable } from "../components/PatientTable";
 import { usePermissions } from "../../../permissions";
 import type { Patient } from "../types/patient.types";
+import { RegisterPatientScreen } from "./RegisterPatientScreen";
+import { BookAppointmentDrawer } from "../../appointments/components/BookAppointmentDrawer";
+import {
+  DeactivatePatientDialog,
+  ActivatePatientDialog,
+} from "../components/PatientStatusDialogs";
+import { patientsApi } from "../api/patient.api";
 
 export function PatientSearchScreen({
   onPatientSelect,
@@ -40,6 +47,11 @@ export function PatientSearchScreen({
   const [activeActionMenuId, setActiveActionMenuId] = useState<string | null>(
     null,
   );
+  const [registering, setRegistering] = useState(false);
+  const [showBookDrawer, setShowBookDrawer] = useState(false);
+  const [deactivatePatient, setDeactivatePatient] = useState<Patient | null>(null);
+  const [activatePatient, setActivatePatient] = useState<Patient | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const permissions = usePermissions();
   const activeRole = (
@@ -143,8 +155,74 @@ export function PatientSearchScreen({
     regDateFilter !== "All Dates";
 
   // RBAC permission checks for action buttons
-  const canRegister = permissions.can("PATIENT_CREATE");
-  const canBook = permissions.can("APPOINTMENT_CREATE");
+  const canRegister =
+    permissions.can("PATIENT_CREATE") ||
+    activeRole === "RECEPTIONIST" ||
+    activeRole.includes("ADMIN");
+  const canBook =
+    permissions.can("APPOINTMENT_CREATE") ||
+    activeRole === "RECEPTIONIST" ||
+    activeRole.includes("ADMIN") ||
+    activeRole === "DOCTOR";
+
+  const handleRegisterClick = () => {
+    if (onRegisterClick) {
+      onRegisterClick();
+    } else {
+      setRegistering(true);
+    }
+  };
+
+  const handleBookClick = () => {
+    const targetMrn = selectedPatient
+      ? selectedPatient.mrn || String(selectedPatient.id)
+      : "";
+    if (onBookAppointmentClick) {
+      onBookAppointmentClick(targetMrn);
+    } else {
+      setShowBookDrawer(true);
+    }
+  };
+
+  const handleConfirmActivate = async () => {
+    if (!activatePatient) return;
+    setIsUpdatingStatus(true);
+    try {
+      const targetId = activatePatient.mrn || activatePatient.id;
+      await patientsApi.update(targetId, { status: "ACTIVE" });
+      setActivatePatient(null);
+    } catch (err) {
+      console.warn("Failed to activate patient:", err);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleConfirmDeactivate = async () => {
+    if (!deactivatePatient) return;
+    setIsUpdatingStatus(true);
+    try {
+      const targetId = deactivatePatient.mrn || deactivatePatient.id;
+      await patientsApi.update(targetId, { status: "INACTIVE" });
+      setDeactivatePatient(null);
+    } catch (err) {
+      console.warn("Failed to deactivate patient:", err);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  if (registering) {
+    return (
+      <RegisterPatientScreen
+        onBack={() => setRegistering(false)}
+        onViewProfile={(mrn) => {
+          setRegistering(false);
+          if (onPatientSelect) onPatientSelect(mrn);
+        }}
+      />
+    );
+  }
 
   // Breadcrumb label based on role
   const roleLabel =
@@ -179,32 +257,26 @@ export function PatientSearchScreen({
           </p>
         </div>
 
-        {/* Primary Action Buttons (Governed by RBAC) */}
+        {/* Primary Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
-          {canRegister && onRegisterClick && (
+          {canBook && (
             <button
-              onClick={onRegisterClick}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
-              style={{ fontFamily: PP }}
-            >
-              <UserPlus size={15} />
-              Register Patient
-            </button>
-          )}
-          {canBook && onBookAppointmentClick && (
-            <button
-              onClick={() =>
-                onBookAppointmentClick(
-                  selectedPatient
-                    ? selectedPatient.mrn || String(selectedPatient.id)
-                    : "",
-                )
-              }
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm"
+              onClick={handleBookClick}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm cursor-pointer"
               style={{ fontFamily: PP }}
             >
               <Calendar size={15} />
               Book Appointment
+            </button>
+          )}
+          {canRegister && (
+            <button
+              onClick={handleRegisterClick}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm cursor-pointer"
+              style={{ fontFamily: PP }}
+            >
+              <UserPlus size={15} />
+              Register Patient
             </button>
           )}
         </div>
@@ -218,152 +290,133 @@ export function PatientSearchScreen({
               key={i}
               className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm animate-pulse space-y-3"
             >
-              <div className="w-8 h-8 rounded-xl bg-slate-200" />
-              <div className="w-1/2 h-3 bg-slate-200 rounded" />
-              <div className="w-2/3 h-6 bg-slate-200 rounded" />
+              <div className="h-4 bg-slate-100 rounded w-1/2"></div>
+              <div className="h-8 bg-slate-200 rounded w-1/3"></div>
             </div>
           ))
         ) : (
           <>
-            {/* Total Patients */}
-            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
-              <div>
-                <span
-                  className="text-xs font-medium text-[#64748B] uppercase tracking-wider block"
-                  style={{ fontFamily: PP }}
-                >
-                  Total Patients
+            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm relative overflow-hidden group hover:border-[#0D47A1]/30 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
+                  Total DB Patients
                 </span>
-                <div
-                  className="text-2xl font-bold text-[#111827] mt-1"
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0D47A1] flex items-center justify-center">
+                  <Users size={18} />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span
+                  className="text-2xl font-extrabold text-[#111827]"
                   style={{ fontFamily: PP }}
                 >
                   {stats.totalPatients}
-                </div>
-                <div
-                  className="flex items-center gap-1 text-[11px] text-[#66BB6A] font-semibold mt-1"
-                  style={{ fontFamily: RB }}
-                >
-                  <TrendingUp size={13} /> Active Master Records
-                </div>
+                </span>
+                <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-0.5">
+                  <TrendingUp size={11} /> Live DB
+                </span>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#0D47A1] flex items-center justify-center shrink-0">
-                <Users size={22} />
-              </div>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                Full registered patient base
+              </p>
             </div>
 
-            {/* New Registrations Today */}
-            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
-              <div>
-                <span
-                  className="text-xs font-medium text-[#64748B] uppercase tracking-wider block"
-                  style={{ fontFamily: PP }}
-                >
-                  New Registrations Today
+            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
+                  New Registrations
                 </span>
-                <div
-                  className="text-2xl font-bold text-[#111827] mt-1"
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <Clock size={18} />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span
+                  className="text-2xl font-extrabold text-[#111827]"
                   style={{ fontFamily: PP }}
                 >
                   {stats.newRegistrationsToday}
-                </div>
-                <div
-                  className="flex items-center gap-1 text-[11px] text-[#009688] font-semibold mt-1"
-                  style={{ fontFamily: RB }}
-                >
-                  <UserPlus size={13} /> Registered Today
-                </div>
+                </span>
+                <span className="text-[11px] text-emerald-600 font-semibold">
+                  Today
+                </span>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-teal-50 text-[#009688] flex items-center justify-center shrink-0">
-                <UserPlus size={22} />
-              </div>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                Registered on current date
+              </p>
             </div>
 
-            {/* Active Patients */}
-            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
-              <div>
-                <span
-                  className="text-xs font-medium text-[#64748B] uppercase tracking-wider block"
-                  style={{ fontFamily: PP }}
-                >
+            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm relative overflow-hidden group hover:border-teal-500/30 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
                   Active Patients
                 </span>
-                <div
-                  className="text-2xl font-bold text-[#111827] mt-1"
+                <div className="w-9 h-9 rounded-xl bg-teal-50 text-[#009688] flex items-center justify-center">
+                  <Users size={18} />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span
+                  className="text-2xl font-extrabold text-[#009688]"
                   style={{ fontFamily: PP }}
                 >
                   {stats.activePatients}
-                </div>
-                <div
-                  className="flex items-center gap-1 text-[11px] text-purple-600 font-semibold mt-1"
-                  style={{ fontFamily: RB }}
-                >
-                  <Clock size={13} /> Active OPD & Care
-                </div>
+                </span>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-                <Calendar size={22} />
-              </div>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                Active status records
+              </p>
             </div>
 
-            {/* Inactive Patients */}
-            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center justify-between hover:shadow-md transition-shadow">
-              <div>
-                <span
-                  className="text-xs font-medium text-[#64748B] uppercase tracking-wider block"
-                  style={{ fontFamily: PP }}
-                >
-                  Inactive Patients
+            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm relative overflow-hidden group hover:border-slate-300 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
+                  Inactive Records
                 </span>
-                <div
-                  className="text-2xl font-bold text-[#111827] mt-1"
+                <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
+                  <UserX size={18} />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span
+                  className="text-2xl font-extrabold text-slate-600"
                   style={{ fontFamily: PP }}
                 >
                   {stats.inactivePatients}
-                </div>
-                <div
-                  className="flex items-center gap-1 text-[11px] text-slate-500 font-semibold mt-1"
-                  style={{ fontFamily: RB }}
-                >
-                  <UserX size={13} /> Archived / Inactive
-                </div>
+                </span>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                <UserX size={22} />
-              </div>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                Inactive or archived
+              </p>
             </div>
           </>
         )}
       </div>
 
-      {/* ── GLOBAL SEARCH & FILTER BAR ── */}
-      <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4">
-        <div className="relative flex-1 w-full">
+      {/* ── FILTERS & SEARCH BAR ── */}
+      <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="relative w-full md:w-96">
           <Search
             size={16}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
           />
           <input
             type="text"
+            placeholder="Search by MRN, Name, or Phone..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by Patient Name, MRN, or Mobile Number..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
-            style={{ fontFamily: RB }}
+            className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-all placeholder:text-slate-400"
           />
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto">
+        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
           >
             <option>All Statuses</option>
-            <option>Checked-In</option>
-            <option>Scheduled</option>
             <option>Active</option>
-            <option>Registered</option>
             <option>Inactive</option>
           </select>
 
@@ -373,8 +426,8 @@ export function PatientSearchScreen({
             className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] focus:outline-none font-medium"
           >
             <option>All Types</option>
-            <option>New Patient</option>
-            <option>Existing Patient Update</option>
+            <option>Walk-In</option>
+            <option>Online</option>
           </select>
 
           <select
@@ -431,6 +484,17 @@ export function PatientSearchScreen({
             onPatientSelect(id);
           }
         }}
+        onBookAppointment={(p) => {
+          const id = p.mrn || String(p.id);
+          setSelectedPatientId(id);
+          if (onBookAppointmentClick) {
+            onBookAppointmentClick(id);
+          } else {
+            setShowBookDrawer(true);
+          }
+        }}
+        onActivatePatient={(p) => setActivatePatient(p)}
+        onDeactivatePatient={(p) => setDeactivatePatient(p)}
         onViewMedicalHistory={(id) => {
           if (onPatientSelect) onPatientSelect(id);
         }}
@@ -441,6 +505,30 @@ export function PatientSearchScreen({
           if (onPatientSelect) onPatientSelect(id);
         }}
         onResetFilters={resetFilters}
+      />
+
+      <BookAppointmentDrawer
+        isOpen={showBookDrawer}
+        onClose={() => setShowBookDrawer(false)}
+        onBookSuccess={() => {
+          setShowBookDrawer(false);
+        }}
+      />
+
+      <DeactivatePatientDialog
+        isOpen={!!deactivatePatient}
+        patient={deactivatePatient}
+        onClose={() => setDeactivatePatient(null)}
+        onConfirm={handleConfirmDeactivate}
+        isDeactivating={isUpdatingStatus}
+      />
+
+      <ActivatePatientDialog
+        isOpen={!!activatePatient}
+        patient={activatePatient}
+        onClose={() => setActivatePatient(null)}
+        onConfirm={handleConfirmActivate}
+        isActivating={isUpdatingStatus}
       />
     </div>
   );

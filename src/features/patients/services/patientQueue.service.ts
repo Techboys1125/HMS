@@ -2,8 +2,8 @@ import { patientsApi } from "../api/patient.api";
 import type { PatientQueueData } from "../types/patient.types";
 
 export const patientQueueService = {
-  async getPatientQueue(): Promise<PatientQueueData | null> {
-    const res = await patientsApi.getMyQueue();
+  async getPatientQueue(mrn?: string): Promise<PatientQueueData | null> {
+    const res = await patientsApi.getPatientQueue(mrn);
     if (!res) return null;
     return {
       appointmentId: res.appointmentId,

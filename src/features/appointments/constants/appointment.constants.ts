@@ -87,6 +87,30 @@ export const EMPTY_AVAILABILITY = {
   slots: [] as { time: string; available: boolean }[],
 };
 
+export const BLOCKED_STATUSES: AppointmentStatusEnum[] = [
+  "BOOKED",
+  "CONFIRMED",
+  "CHECKED_IN",
+  "WAITING_FOR_VITALS",
+  "WAITING_FOR_DOCTOR_CALL",
+  "CALLED",
+  "IN_CONSULTATION",
+  "CONSULTATION_COMPLETED",
+  "BILLING_PENDING",
+  "PAYMENT_COMPLETED",
+  "COMPLETED",
+];
+
+export const UNBLOCKED_STATUSES: AppointmentStatusEnum[] = [
+  "CANCELLED",
+  "NO_SHOW",
+  "RESCHEDULED",
+];
+
+export const isSlotBlocked = (status: string): boolean => {
+  return BLOCKED_STATUSES.includes(status as AppointmentStatusEnum);
+};
+
 import type { PatientSummary as PS } from "../types/appointment.types";
 export const appointmentToPatientSummary = (apt: AppointmentRecord): PS => ({
   id: apt.patientId,

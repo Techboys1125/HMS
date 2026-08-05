@@ -57,6 +57,7 @@ export type FamilyRelationshipEnum =
 
 export interface DoctorSummary {
   id: number | string;
+  doctorId?: number | string;
   name: string;
   departmentId?: number | string;
   departmentName?: string;

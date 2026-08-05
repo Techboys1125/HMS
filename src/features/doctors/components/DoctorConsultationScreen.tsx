@@ -28,11 +28,6 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
-import {
-  VITALS_DATA,
-  MEDICATIONS,
-  TIMELINE,
-} from "../constants/doctors.constants";
 import { PP, RB } from "../constants/doctors.constants";
 import { Card } from "./Card";
 import { Avatar } from "./Avatar";
@@ -52,6 +47,14 @@ const CONSULT_TABS: {
   { id: "history", label: "History", Icon: FileText },
 ];
 
+const TIMELINE = [
+  { time: "09:15 AM", event: "Appointment booked", note: "Online booking" },
+  { time: "09:42 AM", event: "Checked in at reception", note: "Token A-012" },
+  { time: "09:50 AM", event: "Vitals recorded by nurse", note: "BP 120/80, Temp 98.6\u00B0F" },
+  { time: "10:05 AM", event: "Called by doctor", note: "Consultation room 3" },
+  { time: "10:06 AM", event: "Consultation started", note: "" },
+];
+
 export function DoctorConsultationScreen({
   onBack,
   appointmentId,
@@ -64,14 +67,12 @@ export function DoctorConsultationScreen({
   const [tab, setTab] = useState<ConsultTab>("overview");
   const [isCompleting, setIsCompleting] = useState(false);
   const [completeMsg, setCompleteMsg] = useState<string | null>(null);
+
   const [soapData, setSoapData] = useState({
-    subjective:
-      "Patient presents with severe chest pain radiating to left arm, onset 2 hours ago. Associated with diaphoresis and nausea. Pain rated 8/10.",
-    objective:
-      "BP 145/92 mmHg, HR 88 bpm, SpO2 97%, Temp 37.2°C. Patient appears distressed. Chest wall non-tender.",
-    assessment:
-      "R07.9 — Chest pain, unspecified. Rule out NSTEMI / ACS. Differential includes musculoskeletal and GERD.",
-    plan: "Serial ECGs, cardiac biomarkers. Aspirin 300mg stat. GTN PRN. Cardiology consult if troponin elevated. Admit for observation.",
+    subjective: "",
+    objective: "",
+    assessment: "",
+    plan: "",
   });
 
   const handleCompleteConsultation = async () => {

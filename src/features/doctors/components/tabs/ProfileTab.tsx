@@ -87,25 +87,25 @@ export function ProfileTab({
           <label className="block text-[11px] font-bold text-[#64748B] mb-1">
             Full Name
           </label>
-          <div className={fieldStyle(false)}>{formData.name}</div>
+          <div className={fieldStyle(false)}>{formData.name || "—"}</div>
         </div>
         <div>
           <label className="block text-[11px] font-bold text-[#64748B] mb-1">
             Employee ID
           </label>
-          <div className={fieldStyle(false)}>{formData.empId}</div>
+          <div className={fieldStyle(false)}>{formData.empId || "—"}</div>
         </div>
         <div>
           <label className="block text-[11px] font-bold text-[#64748B] mb-1">
             Registration Number
           </label>
-          <div className={fieldStyle(false)}>{formData.regNumber}</div>
+          <div className={fieldStyle(false)}>{formData.regNumber || "—"}</div>
         </div>
         <div>
           <label className="block text-[11px] font-bold text-[#64748B] mb-1">
             Doctor ID
           </label>
-          <div className={fieldStyle(false)}>{formData.id}</div>
+          <div className={fieldStyle(false)}>{formData.id || "—"}</div>
         </div>
       </div>
 
@@ -125,7 +125,7 @@ export function ProfileTab({
               className={fieldStyle(true)}
             />
           ) : (
-            <div className={fieldStyle(false)}>{formData.phone}</div>
+            <div className={fieldStyle(false)}>{formData.phone || "—"}</div>
           )}
         </div>
         <div>
@@ -143,7 +143,7 @@ export function ProfileTab({
               className={fieldStyle(true)}
             />
           ) : (
-            <div className={fieldStyle(false)}>{formData.email}</div>
+            <div className={fieldStyle(false)}>{formData.email || "—"}</div>
           )}
         </div>
         <div>
@@ -161,7 +161,7 @@ export function ProfileTab({
               className={fieldStyle(true)}
             />
           ) : (
-            <div className={fieldStyle(false)}>{formData.qualification}</div>
+            <div className={fieldStyle(false)}>{formData.qualification || "—"}</div>
           )}
         </div>
         <div>
@@ -184,7 +184,7 @@ export function ProfileTab({
             />
           ) : (
             <div className={fieldStyle(false)}>
-              {formData.experienceYrs} years
+              {formData.experienceYrs ? `${formData.experienceYrs} years` : "—"}
             </div>
           )}
         </div>
@@ -203,7 +203,7 @@ export function ProfileTab({
               className={fieldStyle(true)}
             />
           ) : (
-            <div className={fieldStyle(false)}>{formData.department}</div>
+            <div className={fieldStyle(false)}>{formData.department || "—"}</div>
           )}
         </div>
         <div>
@@ -221,7 +221,7 @@ export function ProfileTab({
               className={fieldStyle(true)}
             />
           ) : (
-            <div className={fieldStyle(false)}>{formData.specialty}</div>
+            <div className={fieldStyle(false)}>{formData.specialty || "—"}</div>
           )}
         </div>
       </div>

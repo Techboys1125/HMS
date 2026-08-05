@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 import { User } from "lucide-react";
 import type { Patient } from "../types/patient.types";
 import { PP, RB } from "../../doctors/constants/doctors.constants";
@@ -18,6 +19,8 @@ import { PatientProfileHeader } from "../components/PatientProfileHeader";
 import { SwitchAccountDialog } from "../components/SwitchAccountDialog";
 import { useSwitchAccount } from "../hooks/useSwitchAccount";
 import { useFamilyMembers } from "../hooks/useFamilyMembers";
+import { usePatientPortal } from "../context/PatientPortalContext";
+import { ROUTES } from "../../../app/routes/routes";
 
 type MyProfileTabId =
   | "profile"
@@ -47,6 +50,7 @@ export function MyProfilePage({
   currentRole: Role;
   mrn: string;
 }) {
+  const navigate = useNavigate();
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<MyProfileTabId>("profile");
@@ -54,6 +58,7 @@ export function MyProfilePage({
 
   const { activeMrn, switchToFamilyMember, switchToPrimary } =
     useSwitchAccount(mrn);
+  const portal = usePatientPortal();
   const { data: familyMembers } = useFamilyMembers(mrn);
   const effectiveMrn = activeMrn || mrn;
 
@@ -140,6 +145,41 @@ export function MyProfilePage({
             patient={patient}
             isOwnProfile={isOwn}
             canEdit={can(currentRole, "editProfile", isOwn)}
+            onSave={async (updated) => {
+              await patientsApi.updatePatient(effectiveMrn, {
+                fullName: updated.fullName || updated.name || "",
+                mobileNumber:
+                  updated.mobileNumber || updated.phone || updated.mobile || "",
+                email: updated.email,
+                gender: updated.gender,
+                dateOfBirth: updated.dateOfBirth || updated.dob,
+                address:
+                  typeof updated.address === "string" ? updated.address : "",
+                bloodGroup: updated.bloodGroup,
+                maritalStatus: updated.maritalStatus,
+                knownAllergies: (updated.knownAllergies || []).join(", "),
+                chronicDiseases: (updated.chronicDiseases || []).join(", "),
+                specialNotes: updated.specialNotes,
+                emergencyContact: updated.emergencyContact
+                  ? typeof updated.emergencyContact === "string"
+                    ? updated.emergencyContact
+                    : [
+                        updated.emergencyContact.name ||
+                          updated.emergencyContact.contactName ||
+                          "",
+                        updated.emergencyContact.relationship || "",
+                        updated.emergencyContact.phone ||
+                          updated.emergencyContact.contactNumber ||
+                          updated.emergencyContact.mobile ||
+                          updated.emergencyContact.mobileNumber ||
+                          "",
+                      ]
+                        .filter(Boolean)
+                        .join(", ")
+                  : "",
+              });
+              portal?.refresh();
+            }}
           />
         );
       case "family":
@@ -147,6 +187,7 @@ export function MyProfilePage({
           <FamilyMembersTab
             patient={patient}
             canEdit={can(currentRole, "manageFamilyMembers", isOwn)}
+            onAddFamilyMember={() => navigate(ROUTES.FAMILY_MEMBERS)}
           />
         );
       case "appointments":
@@ -248,8 +289,14 @@ export function MyProfilePage({
         familyMembers={familyMembers || []}
         activeMrn={effectiveMrn}
         primaryMrn={mrn}
-        onSwitchToMember={switchToFamilyMember}
-        onSwitchToPrimary={switchToPrimary}
+        onSwitchToMember={(member) => {
+          switchToFamilyMember(member);
+          portal?.refresh();
+        }}
+        onSwitchToPrimary={() => {
+          switchToPrimary();
+          portal?.refresh();
+        }}
       />
     </div>
   );

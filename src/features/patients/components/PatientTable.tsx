@@ -2,6 +2,9 @@ import { useState, useMemo } from "react";
 import {
   MoreVertical,
   Edit,
+  Eye,
+  CheckCircle2,
+  AlertTriangle,
   FileText,
   Calendar,
   Receipt,
@@ -67,6 +70,9 @@ export function PatientTable({
   onToggleActionMenu,
   onViewProfile,
   onEditPatient,
+  onBookAppointment,
+  onActivatePatient,
+  onDeactivatePatient,
   onViewMedicalHistory,
   onViewAppointments,
   onGenerateBill,
@@ -84,6 +90,9 @@ export function PatientTable({
   onToggleActionMenu: (id: string | null) => void;
   onViewProfile: (id: string) => void;
   onEditPatient?: (p: Patient) => void;
+  onBookAppointment?: (p: Patient) => void;
+  onActivatePatient?: (p: Patient) => void;
+  onDeactivatePatient?: (p: Patient) => void;
   onViewMedicalHistory?: (id: string) => void;
   onViewAppointments?: (id: string) => void;
   onGenerateBill?: (id: string) => void;
@@ -347,9 +356,9 @@ export function PatientTable({
                 const category = (p.patientCategory || "GENERAL")
                   .toLowerCase()
                   .replace(/_/g, " ");
-                const regType = (p.registrationType || "WALK_IN")
-                  .toLowerCase()
-                  .replace(/_/g, " ");
+const regType = (p.registrationType || "WALK_IN")
+                  .replace(/_/g, " ")
+                  .replace(/\b\w/g, (c) => c.toUpperCase());
                 const doctor = p.assignedDoctor || "Unassigned";
                 const regDate = p.registrationDate
                   ? p.registrationDate.split("T")[0]
@@ -406,8 +415,7 @@ export function PatientTable({
                         {email}
                       </td>
                     )}
-
-                    {columns.some((c) => c.key === "blood_group") && (
+                    {columns.some((c) => c.key === "blood_group") && (
                       <td className="px-4 py-3.5 whitespace-nowrap text-xs font-bold text-[#009688]">
                         {p.bloodGroup || "O+"}
                       </td>
@@ -417,14 +425,6 @@ export function PatientTable({
                       <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
                         <span className="font-medium capitalize">
                           {category}
-                        </span>
-                      </td>
-                    )}
-
-                    {columns.some((c) => c.key === "reg_type") && (
-                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
-                        <span className="font-medium capitalize">
-                          {regType}
                         </span>
                       </td>
                     )}
@@ -439,7 +439,6 @@ export function PatientTable({
                         </div>
                       </td>
                     )}
-
                     {columns.some((c) => c.key === "reg_date") && (
                       <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-600">
                         {regDate}
@@ -460,6 +459,56 @@ export function PatientTable({
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => onViewProfile(mrn)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
+                            title="View Patient Profile"
+                          >
+                            <Eye size={15} />
+                          </button>
+
+                          {canEdit && onEditPatient && (
+                            <button
+                              onClick={() => onEditPatient(p)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
+                              title="Edit Patient Profile"
+                            >
+                              <Edit size={15} />
+                            </button>
+                          )}
+
+                          {onBookAppointment && (
+                            <button
+                              onClick={() => onBookAppointment(p)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-colors"
+                              title="Book Appointment"
+                            >
+                              <Calendar size={15} />
+                            </button>
+                          )}
+
+                          {status.toUpperCase() === "INACTIVE" ? (
+                            onActivatePatient && (
+                              <button
+                                onClick={() => onActivatePatient(p)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
+                                title="Activate Patient"
+                              >
+                                <CheckCircle2 size={15} />
+                              </button>
+                            )
+                          ) : (
+                            onDeactivatePatient && (
+                              <button
+                                onClick={() => onDeactivatePatient(p)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                title="Deactivate Patient"
+                              >
+                                <AlertTriangle size={15} />
+                              </button>
+                            )
+                          )}
+
                           <div className="relative">
                             <button
                               onClick={() =>
@@ -468,27 +517,12 @@ export function PatientTable({
                                 )
                               }
                               className="p-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Row Actions"
+                              title="More Options"
                             >
                               <MoreVertical size={15} />
                             </button>
                             {activeActionMenuId === mrn && (
                               <div className="absolute right-0 top-8 z-30 w-48 bg-white border border-[#E5E7EB] rounded-xl shadow-xl py-1.5 animate-in fade-in zoom-in-95 duration-150 text-left">
-                                {canEdit && onEditPatient && (
-                                  <button
-                                    onClick={() => {
-                                      onToggleActionMenu(null);
-                                      onEditPatient(p);
-                                    }}
-                                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
-                                  >
-                                    <Edit
-                                      size={14}
-                                      className="text-slate-500"
-                                    />{" "}
-                                    Edit Patient
-                                  </button>
-                                )}
                                 {canViewHistory && (
                                   <button
                                     onClick={() => {
@@ -497,7 +531,7 @@ export function PatientTable({
                                         onViewMedicalHistory(mrn);
                                       else onViewProfile(mrn);
                                     }}
-                                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
+                                    className="w-full text-left px-3.5 py-2 text-xs text-[#111827] hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
                                   >
                                     <FileText
                                       size={14}
@@ -513,7 +547,7 @@ export function PatientTable({
                                       if (onViewAppointments)
                                         onViewAppointments(mrn);
                                     }}
-                                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
+                                    className="w-full text-left px-3.5 py-2 text-xs text-[#111827] hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
                                   >
                                     <Calendar
                                       size={14}
@@ -528,7 +562,7 @@ export function PatientTable({
                                       onToggleActionMenu(null);
                                       if (onGenerateBill) onGenerateBill(mrn);
                                     }}
-                                    className="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-[#66BB6A]/10 hover:text-[#66BB6A] flex items-center gap-2 font-medium transition-colors border-t border-gray-100 mt-1 pt-2"
+                                    className="w-full text-left px-3.5 py-2 text-xs text-[#111827] hover:bg-[#66BB6A]/10 hover:text-[#66BB6A] flex items-center gap-2 font-medium transition-colors border-t border-gray-100 mt-1 pt-2"
                                   >
                                     <Receipt
                                       size={14}

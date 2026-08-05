@@ -14,8 +14,11 @@ import {
 } from "lucide-react";
 import { PP, RB } from "../constants/patient.mock";
 import { useCreatePatient } from "../hooks/useCreatePatient";
-import type { CreatePatientRequest } from "../types/patient.types";
+import { patientsApi } from "../api/patient.api";
+import type { CreatePatientRequest, Patient, RegistrationType } from "../types/patient.types";
+import { ROLE_FIELD_PERMISSIONS } from "../types/patient.types";
 import { useAuthStore } from "../../auth";
+import { usePatientPortal } from "../context/PatientPortalContext";
 
 /* ─────────────────── Design Tokens ─────────────────── */
 const inputBase =
@@ -122,9 +125,8 @@ interface RegistrationFormState {
   ecRelationship: string;
   ecMobile: string;
   ecAltMobile: string;
-  patientCategory: string;
-  registrationType: string;
-  knownAllergies: string;
+patientCategory: string;
+   knownAllergies: string;
   chronicDiseases: string;
   specialNotes: string;
   registrationDate: string;
@@ -155,9 +157,8 @@ const INITIAL_FORM: RegistrationFormState = {
   ecRelationship: "",
   ecMobile: "",
   ecAltMobile: "",
-  patientCategory: "GENERAL",
-  registrationType: "WALK_IN",
-  knownAllergies: "",
+patientCategory: "GENERAL",
+   knownAllergies: "",
   chronicDiseases: "",
   specialNotes: "",
   registrationDate: todayStr,
@@ -282,14 +283,25 @@ function RegistrationSuccessDialog({
 
         <div className="flex flex-col gap-2.5">
           {isFamilyMode ? (
-            <button
-              onClick={onClose}
-              className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
-              style={{ fontFamily: PP }}
-            >
-              <CheckCircle2 size={16} />
-              Return to Family Members
-            </button>
+            <>
+              {onViewProfile && (
+                <button
+                  onClick={() => onViewProfile(mrn)}
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
+                  style={{ fontFamily: PP }}
+                >
+                  <User size={16} />
+                  View Patient Profile
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="w-full px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"
+                style={{ fontFamily: PP }}
+              >
+                Return to Family Members
+              </button>
+            </>
           ) : (
             <>
               {onSwitchToNewPatient && (
@@ -337,7 +349,7 @@ function RegistrationSuccessDialog({
   );
 }
 
-export type RegistrationMode = "ADMIN" | "PATIENT_SELF" | "PATIENT_FAMILY";
+export type RegistrationMode = "ADMIN" | "RECEPTIONIST" | "PATIENT_SELF" | "PATIENT_FAMILY";
 
 /* ═══════════════════════════════════════════════════════
    MAIN COMPONENT
@@ -347,15 +359,25 @@ export function RegisterPatientScreen({
   onBookAppointment,
   onViewProfile,
   onSwitchToNewPatient,
+  onRegistered,
   registrationMode = "ADMIN",
   isFamilyMode = false,
+  primaryPatientMrn,
 }: {
   onBack?: () => void;
   onBookAppointment?: (mrn: string) => void;
   onViewProfile?: (mrn: string) => void;
   onSwitchToNewPatient?: (mrn: string, patientName: string) => void;
+  onRegistered?: (member: {
+    mrn: string;
+    patientName: string;
+    relationship?: string;
+    gender?: string;
+    mobileNumber?: string;
+  }) => void;
   registrationMode?: RegistrationMode;
   isFamilyMode?: boolean;
+  primaryPatientMrn?: string;
 }) {
   const effectiveMode = isFamilyMode ? "PATIENT_FAMILY" : registrationMode;
   const showRelationship =
@@ -369,17 +391,37 @@ export function RegisterPatientScreen({
         : "SELF";
 
   const user = useAuthStore((state) => state.user);
+  const portal = usePatientPortal();
+
+  // Role-based field gating (RBAC) for staff-facing (ADMIN) registrations.
+  const roleKey = String(user?.role ?? "").toUpperCase();
+  const rolePerms =
+    effectiveMode === "ADMIN" || effectiveMode === "RECEPTIONIST"
+      ? ROLE_FIELD_PERMISSIONS[roleKey]
+      : undefined;
+  const hideField = (field: string) =>
+    (rolePerms?.hiddenFields.includes(field) ?? false);
+  const readOnlyField = (field: string) =>
+    (rolePerms?.alwaysReadOnly.includes(field) ||
+      rolePerms?.readOnlyFields.includes(field)) ??
+    false;
+
+  const isAddingFamilyMember = effectiveMode === "PATIENT_FAMILY";
 
   const [form, setForm] = useState<RegistrationFormState>(() => ({
     ...INITIAL_FORM,
     relationship: initialRelationship,
-    fullName: user?.fullName || "",
-    email: user?.email || "",
-    mobileNumber: user?.mobile || "",
+    ...(isAddingFamilyMember
+      ? {}
+      : {
+          fullName: user?.fullName || "",
+          email: user?.email || "",
+          mobileNumber: user?.mobile || "",
+        }),
   }));
 
   useEffect(() => {
-    if (user) {
+    if (user && !isAddingFamilyMember) {
       setForm((prev) => ({
         ...prev,
         fullName: prev.fullName || user.fullName || "",
@@ -387,7 +429,7 @@ export function RegisterPatientScreen({
         mobileNumber: prev.mobileNumber || user.mobile || "",
       }));
     }
-  }, [user]);
+  }, [user, isAddingFamilyMember, isFamilyMode]);
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<{
@@ -435,7 +477,7 @@ export function RegisterPatientScreen({
     if (form.pincode && !/^\d{5,10}$/.test(form.pincode.trim()))
       e.pincode = "Enter a valid pincode";
     if (
-      showRelationship &&
+    showRelationship &&
       effectiveMode === "PATIENT_FAMILY" &&
       !form.relationship
     )
@@ -466,7 +508,25 @@ export function RegisterPatientScreen({
       relationship: true,
     });
 
-    if (!isValid) {
+    const submitErrors: Record<string, string> = {};
+    if (!form.fullName.trim()) submitErrors.fullName = "Full Name is required";
+    if (!form.gender) submitErrors.gender = "Gender is required";
+    if (!form.dateOfBirth) submitErrors.dateOfBirth = "Date of birth is required";
+    if (!form.mobileNumber.trim()) submitErrors.mobileNumber = "Mobile number is required";
+    else if (!/^[\d+\s()-]{7,15}$/.test(form.mobileNumber.trim()))
+      submitErrors.mobileNumber = "Enter a valid mobile number";
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      submitErrors.email = "Enter a valid email address";
+    if (form.pincode && !/^\d{5,10}$/.test(form.pincode.trim()))
+      submitErrors.pincode = "Enter a valid pincode";
+    if (
+      showRelationship &&
+      effectiveMode === "PATIENT_FAMILY" &&
+      !form.relationship
+    )
+      submitErrors.relationship = "Relationship is required";
+
+    if (Object.keys(submitErrors).length > 0) {
       setToast({
         message: "Please fix the validation errors before submitting.",
         type: "error",
@@ -474,10 +534,16 @@ export function RegisterPatientScreen({
       return;
     }
 
+    const regType: RegistrationType =
+      effectiveMode === "PATIENT_SELF" || effectiveMode === "PATIENT_FAMILY"
+        ? "ONLINE"
+        : "WALK_IN";
+
     const payload: CreatePatientRequest = {
       fullName: form.fullName.trim(),
       gender: form.gender,
       mobileNumber: form.mobileNumber.trim(),
+      registrationType: regType,
       relationship: showRelationship
         ? form.relationship ||
           (effectiveMode === "PATIENT_SELF" ? "SELF" : "OTHER")
@@ -491,7 +557,6 @@ export function RegisterPatientScreen({
     if (form.nationalId?.trim()) payload.nationalId = form.nationalId.trim();
     if (form.photoUrl?.trim()) payload.photoUrl = form.photoUrl.trim();
     if (form.patientCategory) payload.patientCategory = form.patientCategory;
-    if (form.registrationType) payload.registrationType = form.registrationType;
     if (form.specialNotes?.trim())
       payload.specialNotes = form.specialNotes.trim();
 
@@ -541,14 +606,108 @@ export function RegisterPatientScreen({
     }
 
     try {
-      const result = (await createPatient.mutateAsync(payload)) as {
-        mrn?: string;
-        MRNId?: string;
+      const rawPortal = portal as unknown as {
+        patient?: { mrn?: string };
+        primaryMrn?: string;
       };
+      const rawUser = user as unknown as {
+        mrn?: string;
+        patientMrn?: string;
+        id?: string | number;
+      };
+      const primaryMrn = String(
+        primaryPatientMrn ||
+          rawPortal?.patient?.mrn ||
+          portal?.primaryMrn ||
+          rawUser?.mrn ||
+          rawUser?.patientMrn ||
+          user?.patientId ||
+          user?.id ||
+          "",
+      );
+      let mrn = "";
+
+      if (effectiveMode === "PATIENT_SELF" && primaryMrn) {
+        // The backend auto-created the patient record during online account
+        // registration; complete it in place (fall back to create if missing).
+        try {
+          const updated = await patientsApi.updatePatient(primaryMrn, {
+            ...payload,
+          });
+          mrn = updated.mrn || primaryMrn;
+        } catch {
+          const created = (await createPatient.mutateAsync(payload)) as {
+            mrn?: string;
+            MRNId?: string;
+          };
+          mrn = created.mrn || created.MRNId || primaryMrn;
+        }
+      } else if (effectiveMode === "PATIENT_FAMILY" && primaryMrn) {
+        const primaryUserId = user?.id;
+        if (!primaryUserId) {
+          throw new Error(
+            "Primary user ID not found. Please try again.",
+          );
+        }
+
+        const created = await createPatient.mutateAsync(payload) as Record<string, unknown>;
+        const raw = (created.data as Record<string, unknown>) || created;
+        const patientData = (raw.data as Record<string, unknown>) || raw;
+
+        const familyMrn =
+          String(
+            patientData.mrn ||
+              patientData.MRNId ||
+              patientData.patientMrn ||
+              "",
+          ).trim();
+
+        const familyUserId =
+          patientData.userId ||
+          patientData.patientUserId ||
+          patientData.id ||
+          null;
+
+        if (!familyMrn) {
+          throw new Error(
+            "Failed to create family member patient record. Please try again.",
+          );
+        }
+
+        if (familyUserId) {
+          const member = await patientsApi.linkFamilyMember(
+            primaryUserId,
+            Number(familyUserId),
+            payload.relationship || "OTHER",
+          );
+          if (!member) {
+            console.warn("[RegisterPatient] linkFamilyMember returned null, but patient was created. Proceeding with success.");
+          }
+        } else {
+          console.warn("[RegisterPatient] No familyUserId available to link. Patient was created.");
+        }
+
+        mrn = familyMrn;
+      } else {
+        const created = (await createPatient.mutateAsync(payload)) as {
+          mrn?: string;
+          MRNId?: string;
+        };
+        mrn = created.mrn || created.MRNId || "";
+      }
+
       setSuccessData({
-        mrn: result.mrn || result.MRNId || "",
+        mrn,
         name: form.fullName.trim(),
       });
+      onRegistered?.({
+        mrn,
+        patientName: form.fullName.trim(),
+        relationship: showRelationship ? form.relationship : undefined,
+        gender: form.gender,
+        mobileNumber: form.mobileNumber.trim(),
+      });
+      portal?.refresh();
     } catch (err: unknown) {
       setToast({
         message:
@@ -558,7 +717,16 @@ export function RegisterPatientScreen({
         type: "error",
       });
     }
-  }, [form, isValid, createPatient, showRelationship, effectiveMode]);
+  }, [
+    form,
+    createPatient,
+    showRelationship,
+    effectiveMode,
+    onRegistered,
+    primaryPatientMrn,
+    portal,
+    user,
+  ]);
 
   const handleClear = useCallback(() => {
     setForm({
@@ -777,7 +945,12 @@ export function RegisterPatientScreen({
                   <select
                     value={form.bloodGroup}
                     onChange={(e) => set("bloodGroup", e.target.value)}
-                    className={inputBase}
+                    disabled={readOnlyField("bloodGroup")}
+                    className={
+                      readOnlyField("bloodGroup")
+                        ? inputDisabled
+                        : inputBase
+                    }
                   >
                     {BLOOD_GROUPS.map((bg) => (
                       <option key={bg.value} value={bg.value}>
@@ -792,7 +965,12 @@ export function RegisterPatientScreen({
                   <select
                     value={form.maritalStatus}
                     onChange={(e) => set("maritalStatus", e.target.value)}
-                    className={inputBase}
+                    disabled={readOnlyField("maritalStatus")}
+                    className={
+                      readOnlyField("maritalStatus")
+                        ? inputDisabled
+                        : inputBase
+                    }
                   >
                     {MARITAL_STATUSES.map((ms) => (
                       <option key={ms.value} value={ms.value}>
@@ -982,48 +1160,50 @@ export function RegisterPatientScreen({
             {/* 4. REGISTRATION DETAILS */}
 
             {/* 5. MEDICAL ALERTS & NOTES */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6 md:p-7">
-              <SectionHeader
-                icon={AlertCircle}
-                title="Medical Alerts & Notes"
-                subtitle="Allergies, chronic conditions, and additional info"
-              />
+            {!hideField("knownAllergies") && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-6 md:p-7">
+                <SectionHeader
+                  icon={AlertCircle}
+                  title="Medical Alerts & Notes"
+                  subtitle="Allergies, chronic conditions, and additional info"
+                />
 
-              <div className="grid grid-cols-1 gap-y-5">
-                <div>
-                  <label className={labelBase}>Known Allergies</label>
-                  <input
-                    type="text"
-                    value={form.knownAllergies}
-                    onChange={(e) => set("knownAllergies", e.target.value)}
-                    placeholder="e.g. Penicillin, Peanuts, Latex"
-                    className={inputBase}
-                  />
-                </div>
+                <div className="grid grid-cols-1 gap-y-5">
+                  <div>
+                    <label className={labelBase}>Known Allergies</label>
+                    <input
+                      type="text"
+                      value={form.knownAllergies}
+                      onChange={(e) => set("knownAllergies", e.target.value)}
+                      placeholder="e.g. Penicillin, Peanuts, Latex"
+                      className={inputBase}
+                    />
+                  </div>
 
-                <div>
-                  <label className={labelBase}>Chronic Diseases</label>
-                  <input
-                    type="text"
-                    value={form.chronicDiseases}
-                    onChange={(e) => set("chronicDiseases", e.target.value)}
-                    placeholder="e.g. Type 2 Diabetes, Hypertension, Asthma"
-                    className={inputBase}
-                  />
-                </div>
+                  <div>
+                    <label className={labelBase}>Chronic Diseases</label>
+                    <input
+                      type="text"
+                      value={form.chronicDiseases}
+                      onChange={(e) => set("chronicDiseases", e.target.value)}
+                      placeholder="e.g. Type 2 Diabetes, Hypertension, Asthma"
+                      className={inputBase}
+                    />
+                  </div>
 
-                <div>
-                  <label className={labelBase}>Special Notes</label>
-                  <textarea
-                    rows={3}
-                    value={form.specialNotes}
-                    onChange={(e) => set("specialNotes", e.target.value)}
-                    placeholder="e.g. Requires wheelchair assistance, prefers afternoon slots"
-                    className={inputBase + " resize-none"}
-                  />
+                  <div>
+                    <label className={labelBase}>Special Notes</label>
+                    <textarea
+                      rows={3}
+                      value={form.specialNotes}
+                      onChange={(e) => set("specialNotes", e.target.value)}
+                      placeholder="e.g. Requires wheelchair assistance, prefers afternoon slots"
+                      className={inputBase + " resize-none"}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* BOTTOM ACTION BAR */}
             <div className="flex items-center justify-end gap-3 pt-4">

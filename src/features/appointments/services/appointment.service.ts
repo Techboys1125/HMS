@@ -50,6 +50,7 @@ const toDisplayStatus = (status?: string): AppointmentRecord["status"] =>
 
 export const normalizeAppointmentRecord = (
   item: Record<string, unknown> | null | undefined,
+  doctorsMap?: Map<string, DoctorSummary>,
 ): AppointmentRecord => {
   const patient = (item?.patient as Record<string, unknown>) || {};
   const doctor = (item?.doctor as Record<string, unknown>) || {};
@@ -58,6 +59,9 @@ export const normalizeAppointmentRecord = (
     item?.timeSlot ||
     item?.appointmentTime ||
     "") as string;
+
+  const docIdStr = String(item?.doctorId ?? doctor?.doctorId ?? doctor?.id ?? "");
+  const knownDoc = doctorsMap && docIdStr ? doctorsMap.get(docIdStr) : null;
 
   const deptObj =
     item?.department && typeof item.department === "object"
@@ -70,6 +74,8 @@ export const normalizeAppointmentRecord = (
     (typeof item?.department === "string" ? item.department : undefined) ||
     doctor?.departmentName ||
     doctor?.department ||
+    knownDoc?.departmentName ||
+    knownDoc?.department ||
     "General Medicine") as string;
 
   return {
@@ -241,14 +247,19 @@ export const appointmentService = {
       console.warn("Failed to load doctors for resolving departments:", e);
     }
 
-    const res = await appointmentsApi.getDoctorAppointments(
-      doctorId,
-      date,
-      status,
-    );
-    let items = unwrapAppointmentCollection(res);
+    let rawItems: Record<string, unknown>[] = [];
+    try {
+      const res = await appointmentsApi.getDoctorAppointments(
+        doctorId,
+        date,
+        status,
+      );
+      rawItems = unwrapAppointmentCollection(res);
+    } catch {
+      rawItems = [];
+    }
 
-    if (items.length === 0) {
+    if (rawItems.length === 0) {
       try {
         const fallbackRes = await appointmentsApi.getAppointments({
           doctorId,
@@ -257,13 +268,13 @@ export const appointmentService = {
         });
         const fallbackItems = unwrapAppointmentCollection(fallbackRes);
         if (fallbackItems.length > 0) {
-          items = fallbackItems;
+          rawItems = fallbackItems;
         }
       } catch (e) {
         console.warn("Doctor appointment fallback 1 failed:", e);
       }
 
-      if (items.length === 0) {
+      if (rawItems.length === 0) {
         try {
           const generalRes = await appointmentsApi.getAppointments({
             date,
@@ -272,7 +283,7 @@ export const appointmentService = {
           const generalItems = unwrapAppointmentCollection(generalRes);
           if (generalItems.length > 0) {
             const docIdStr = String(doctorId || "").toLowerCase();
-            items = generalItems.filter((item: any) => {
+            rawItems = generalItems.filter((item: Record<string, unknown>) => {
               const docObj = (item?.doctor as Record<string, unknown>) || {};
               const itemDocId = String(
                 item?.doctorId ?? docObj?.doctorId ?? docObj?.id ?? "",
@@ -303,6 +314,10 @@ export const appointmentService = {
       }
     }
 
+    const items: AppointmentRecord[] = rawItems.map((item) =>
+      normalizeAppointmentRecord(item, doctorsMap),
+    );
+
     return items
       .filter((item) =>
         !status
@@ -310,7 +325,7 @@ export const appointmentService = {
           : String(item?.status || "").toUpperCase() === status.toUpperCase(),
       )
       .map((item) => {
-        const docObj = (item?.doctor as Record<string, unknown>) || {};
+        const docObj = (item?.doctor as unknown as Record<string, unknown>) || {};
         const docId = String(
           item?.doctorId || docObj?.id || docObj?.doctorId || "",
         );
@@ -435,6 +450,28 @@ export const appointmentService = {
     return appointmentsApi.receptionCheckIn(appointmentId);
   },
 
+  async getAppointmentToken(appointmentId: string | number) {
+    const res = await appointmentsApi.getAppointmentToken(appointmentId);
+    const resAny = res as any;
+    return (
+      res?.data?.tokenNumber ||
+      resAny?.tokenNumber ||
+      resAny?.token ||
+      `TK-${Math.floor(100 + Math.random() * 900)}`
+    );
+  },
+
+  async getTokenDetails(appointmentId: string | number) {
+    return appointmentsApi.getTokenDetails(appointmentId);
+  },
+
+  async updateAppointmentStatus(
+    appointmentId: string | number,
+    status: string,
+  ) {
+    return appointmentsApi.updateAppointmentStatus(appointmentId, status);
+  },
+
   async queueCallNext(doctorId?: string | number) {
     return appointmentsApi.queueCallNext(doctorId);
   },
@@ -445,6 +482,18 @@ export const appointmentService = {
 
   async doctorCompleteConsultation(appointmentId: string | number) {
     return appointmentsApi.doctorCompleteConsultation(appointmentId);
+  },
+
+  async finalizePrescription(prescriptionId: string | number) {
+    return appointmentsApi.finalizePrescription(prescriptionId);
+  },
+
+  async generateBill(appointmentId: string | number) {
+    return appointmentsApi.generateBill(appointmentId);
+  },
+
+  async processPayment(appointmentId: string | number, amount: number) {
+    return appointmentsApi.processPayment(appointmentId, amount);
   },
 
   async listLinkedPatients(): Promise<LinkedPatient[]> {
@@ -531,10 +580,10 @@ export const appointmentService = {
         return true;
       });
 
-      return activeDoctors.map((d: any) => ({
-        id: d.doctorId ?? d.doctorProfile?.doctorId ?? d.userId ?? d.id ?? "",
+      return activeDoctors.map((d: any): DoctorSummary => ({
+        id: String(d.doctorId ?? d.doctorProfile?.doctorId ?? d.userId ?? d.id ?? ""),
         doctorId: d.doctorId ?? d.doctorProfile?.doctorId ?? d.id ?? "",
-        name: d.doctorName ?? d.fullName ?? d.name ?? "",
+        name: String(d.doctorName ?? d.fullName ?? d.name ?? ""),
         departmentName:
           d.departmentName ??
           d.department ??
@@ -572,8 +621,10 @@ export const appointmentService = {
           d.doctorProfile?.active ??
           d.doctorProfile?.isActive ??
           d.doctor?.active ??
+          d.doctor?.isActive ??
           d.user?.active ??
           d.user?.isActive ??
+          d.user?.enabled ??
           (d.status ? String(d.status).toUpperCase() === "ACTIVE" : undefined),
       }));
     } catch (error) {
@@ -588,6 +639,69 @@ export const appointmentService = {
   ): Promise<unknown[]> {
     const res = await appointmentsApi.getAvailableSlots(doctorId, date);
     return Array.isArray(res?.data) ? res.data : [];
+  },
+
+  async getAppointmentsByStatus(
+    status: string,
+    params?: {
+      doctorId?: string | number;
+      date?: string;
+      page?: number;
+      size?: number;
+    },
+  ): Promise<AppointmentRecord[]> {
+    const res = await appointmentsApi.getAppointments({
+      ...params,
+      status,
+    });
+    const items = unwrapAppointmentCollection(res);
+    return items.map((item) => normalizeAppointmentRecord(item));
+  },
+
+  async getActiveAppointments(params?: {
+    doctorId?: string | number;
+    date?: string;
+    page?: number;
+    size?: number;
+  }): Promise<AppointmentRecord[]> {
+    const activeStatuses = [
+      "BOOKED",
+      "CONFIRMED",
+      "CHECKED_IN",
+      "WAITING_FOR_VITALS",
+      "WAITING_FOR_DOCTOR_CALL",
+      "CALLED",
+      "IN_CONSULTATION",
+      "CONSULTATION_COMPLETED",
+      "BILLING_PENDING",
+      "PAYMENT_COMPLETED",
+      "COMPLETED",
+    ];
+    const allItems: AppointmentRecord[] = [];
+    for (const status of activeStatuses) {
+      const items = await this.getAppointmentsByStatus(status, params);
+      allItems.push(...items);
+    }
+    return allItems;
+  },
+
+  async isSlotAvailable(
+    doctorId: string | number,
+    date: string,
+    startTime: string,
+  ): Promise<boolean> {
+    const slots = await this.listAvailableSlots(doctorId, date);
+    const slot = slots.find(
+      (s: any) =>
+        s.time === startTime ||
+        s.startTime === startTime ||
+        s.slot === startTime,
+    );
+    return slot?.available !== false;
+  },
+
+  async getBlockedStatuses(): Promise<string[]> {
+    return ["CANCELLED", "NO_SHOW"];
   },
 };
 

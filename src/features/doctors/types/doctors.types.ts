@@ -207,9 +207,9 @@ export type DayOfWeek =
 
 export type BreakType = "LUNCH" | "TEA" | "MEETING" | "PERSONAL";
 
-export type ExceptionType = "LEAVE" | "SURGERY" | "MEETING" | "PERSONAL";
+export type ExceptionType = "VACATION" | "TRAINING" | "CONFERENCE" | "EMERGENCY" | "SURGERY" | "OTHER";
 
-export type ExceptionAction = "BLOCK_APPOINTMENTS" | "REDUCE_SLOTS";
+export type ExceptionAction = "BLOCK_APPOINTMENTS";
 
 export type ExceptionStatus = "ACTIVE" | "CANCELLED" | "EXPIRED";
 
@@ -314,6 +314,10 @@ export interface ApiDoctorProfile {
 }
 
 export interface ApiUserDoctorRecord {
+  phone: string;
+  phoneNumber: string;
+  name: string;
+  id: number;
   userId: number;
   employeeId: string;
   fullName: string;

@@ -40,6 +40,9 @@ export {
   DOCTOR_AVAILABILITY_DATA,
   INITIAL_APPOINTMENTS,
   EMPTY_AVAILABILITY,
+  BLOCKED_STATUSES,
+  UNBLOCKED_STATUSES,
+  isSlotBlocked,
   appointmentToPatientSummary,
 } from "./constants/appointment.constants";
 export {

@@ -10,9 +10,14 @@ import { patientsApi } from "../../api/patient.api";
 export interface FamilyMembersTabProps {
   patient: Patient;
   canEdit: boolean;
+  onAddFamilyMember?: () => void;
 }
 
-export function FamilyMembersTab({ patient, canEdit }: FamilyMembersTabProps) {
+export function FamilyMembersTab({
+  patient,
+  canEdit,
+  onAddFamilyMember,
+}: FamilyMembersTabProps) {
   const [members, setMembers] = useState<ApiPatientFamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -77,7 +82,11 @@ export function FamilyMembersTab({ patient, canEdit }: FamilyMembersTabProps) {
         {canEdit && (
           <button
             type="button"
-            onClick={() => setShowAddForm(!showAddForm)}
+            onClick={() =>
+              onAddFamilyMember
+                ? onAddFamilyMember()
+                : setShowAddForm(!showAddForm)
+            }
             className="px-3 py-1.5 rounded-lg bg-[#0D47A1] text-white text-[11px] font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1"
           >
             <Plus size={12} /> Add Member

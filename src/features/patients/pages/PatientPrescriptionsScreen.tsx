@@ -17,15 +17,18 @@ import type {
 } from "../types/patient.types";
 import type { FamilyMember } from "./FamilyMembersManagement";
 import { patientsApi } from "../api/patient.api";
+import { usePatientPortal } from "../context/PatientPortalContext";
 import { PP, RB } from "../constants/patient.mock";
 
 export function PatientPrescriptionsScreen({
   onViewDetails,
-  activePatient,
+  activePatient: propActivePatient,
 }: {
   onViewDetails?: (rxId: string) => void;
   activePatient?: FamilyMember;
 }) {
+  const portal = usePatientPortal();
+  const activePatient = propActivePatient ?? portal?.activePatient ?? undefined;
   const patientName = activePatient?.patientName || "Patient";
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");

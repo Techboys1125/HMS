@@ -3,28 +3,21 @@ import type { FormEvent } from "react";
 import {
   Calendar,
   Clock,
-  Award,
-  Building2,
-  ChevronLeft,
-  ChevronRight,
-  Edit,
-  AlertTriangle,
-  RefreshCw,
   CheckCircle2,
   Search,
   Filter,
   X,
-  User,
   FileCheck,
   Coffee,
   Plus,
   Trash2,
   PhoneCall,
   CalendarRange,
+  User,
+  Edit,
 } from "lucide-react";
 import type {
   DoctorRecord,
-  DoctorAvailability,
   DoctorAppointment,
   DoctorPatient,
   ApiWeeklyScheduleDay,
@@ -44,6 +37,8 @@ import { usersApi } from "../../users/api/users.api";
 import { doctorToEditUser } from "../utils/doctorToEditUser";
 import { DeactivateDoctorDialog } from "./DeactivateDoctorDialog";
 import { ActivateDoctorDialog } from "./ActivateDoctorDialog";
+import { DoctorProfileHeader } from "./DoctorProfileHeader";
+import { PersonalDetailsTab } from "./tabs/PersonalDetailsTab";
 import {
   doctorProfileService,
   resolveDoctorId,
@@ -51,15 +46,16 @@ import {
   dayLabel,
 } from "../services/doctorProfile.service";
 
+import { EditDoctorProfileModal } from "./EditDoctorProfileModal";
+import { MonthlyCalendarTab } from "./tabs/MonthlyCalendarTab";
+
 export interface DoctorProfileScreenProps {
   doctor?: DoctorRecord;
   doctorId?: string;
+  currentRole?: string;
+  isOwnRecord?: boolean;
   onBack: () => void;
   onEdit?: (doctor: DoctorRecord) => void;
-}
-
-function DollarSignIcon() {
-  return <span className="text-xs font-bold">$</span>;
 }
 
 const SLOT_STATUS_STYLE: Record<string, string> = {
@@ -134,6 +130,7 @@ type TabId =
   | "professional"
   | "schedule"
   | "availability"
+  | "monthly_calendar"
   | "appointments"
   | "patients"
   | "exceptions"
@@ -143,26 +140,13 @@ type TabId =
 export function DoctorProfileScreen({
   doctor,
   doctorId,
+  currentRole,
+  isOwnRecord = false,
   onBack,
   onEdit,
 }: DoctorProfileScreenProps) {
   const { can } = usePermissions();
-  const [docState, setDocState] = useState<DoctorRecord>(() => {
-    const base = doctor ?? DEFAULT_DOCTOR;
-    if (base.id) {
-      const overrides = JSON.parse(
-        localStorage.getItem("doctor_status_overrides") || "{}",
-      );
-      if (overrides[base.id]) {
-        return {
-          ...base,
-          status: overrides[base.id].status,
-          availability: overrides[base.id].availability,
-        };
-      }
-    }
-    return base;
-  });
+  const [docState, setDocState] = useState<DoctorRecord>(DEFAULT_DOCTOR);
 
   const visibleTabs = useMemo(() => {
     const tabs: Array<{ id: TabId; label: string; perm: AppPermission }> = [
@@ -183,6 +167,11 @@ export function DoctorProfileScreen({
         perm: "DOCTOR_AVAILABILITY_VIEW",
       },
       {
+        id: "monthly_calendar",
+        label: "Monthly Calendar",
+        perm: "DOCTOR_AVAILABILITY_VIEW",
+      },
+      {
         id: "appointments",
         label: "Appointments",
         perm: "DOCTOR_APPOINTMENT_VIEW",
@@ -198,11 +187,6 @@ export function DoctorProfileScreen({
         perm: "DOCTOR_EXCEPTION_MANAGE",
       },
       { id: "queue", label: "Queue", perm: "DOCTOR_QUEUE_VIEW" },
-      {
-        id: "timeline",
-        label: "Activity Timeline",
-        perm: "DOCTOR_TIMELINE_VIEW",
-      },
     ];
     return tabs.filter((t) => can(t.perm));
   }, [can]);
@@ -238,13 +222,12 @@ export function DoctorProfileScreen({
   const [isQueueLoading, setIsQueueLoading] = useState(false);
   const [isCallingNext, setIsCallingNext] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [isDeactivating, setIsDeactivating] = useState(false);
 
   const [exceptionFormOpen, setExceptionFormOpen] = useState(false);
   const [editingException, setEditingException] =
     useState<ApiScheduleExceptionItem | null>(null);
-  const [exceptionType, setExceptionType] = useState<ExceptionType>("LEAVE");
+  const [exceptionType, setExceptionType] = useState<ExceptionType>("VACATION");
   const [exceptionStartDate, setExceptionStartDate] = useState(todayKey());
   const [exceptionEndDate, setExceptionEndDate] = useState(todayKey());
   const [exceptionFullDay, setExceptionFullDay] = useState(true);
@@ -291,7 +274,12 @@ export function DoctorProfileScreen({
   }, [docState]);
 
   const refreshProfile = useCallback(async () => {
-    if (doctor && doctor.name && doctor.id) {
+    if (
+      doctor &&
+      doctor.name &&
+      doctor.id &&
+      (doctor.department || doctor.specialty || doctor.qualification || doctor.experienceYrs)
+    ) {
       const overrides = JSON.parse(
         localStorage.getItem("doctor_status_overrides") || "{}",
       );
@@ -440,36 +428,6 @@ export function DoctorProfileScreen({
     }
   }, [availDate, loadAvailability]);
 
-  const getAvailStyle = (avail: DoctorAvailability) => {
-    switch (avail) {
-      case "Available Today":
-        return {
-          bg: "bg-teal-50 text-[#009688] border-teal-200",
-          dot: "bg-[#009688]",
-        };
-      case "On Duty":
-        return {
-          bg: "bg-blue-50 text-[#0D47A1] border-blue-200",
-          dot: "bg-[#0D47A1]",
-        };
-      case "On Call":
-        return {
-          bg: "bg-purple-50 text-purple-700 border-purple-200",
-          dot: "bg-purple-600",
-        };
-      case "On Leave":
-        return {
-          bg: "bg-amber-50 text-[#F59E0B] border-amber-200",
-          dot: "bg-[#F59E0B]",
-        };
-      default:
-        return {
-          bg: "bg-slate-100 text-slate-600 border-slate-200",
-          dot: "bg-slate-400",
-        };
-    }
-  };
-
   const initials = docState.name
     .replace("Dr. ", "")
     .split(" ")
@@ -477,7 +435,6 @@ export function DoctorProfileScreen({
     .join("")
     .toUpperCase()
     .slice(0, 2);
-  const availStyle = getAvailStyle(docState.availability);
 
   const isSameWeek = (dateStr: string) => {
     const d = new Date(dateStr + "T00:00:00");
@@ -582,7 +539,6 @@ export function DoctorProfileScreen({
   );
 
   const handleSaveEditDoctor = async () => {
-    setIsSaving(true);
     try {
       setShowEditDrawer(false);
       triggerToast("Doctor information updated successfully.");
@@ -598,8 +554,6 @@ export function DoctorProfileScreen({
       ]);
     } catch {
       triggerToast("Saved locally; server refresh failed.");
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -690,7 +644,7 @@ export function DoctorProfileScreen({
     setExceptionType(
       (ex.exceptionType as ExceptionType) ||
         (ex.type as ExceptionType) ||
-        "LEAVE",
+        "VACATION",
     );
     setExceptionStartDate(ex.startDate || ex.exceptionDate || todayKey());
     setExceptionEndDate(
@@ -809,206 +763,24 @@ export function DoctorProfileScreen({
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <button
-              onClick={onBack}
-              className="p-1.5 -ml-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <h1
-              className="text-xl font-bold text-[#111827]"
-              style={{ fontFamily: PP }}
-            >
-              Doctor Profile
-            </h1>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-[#64748B] pl-8">
-            <span>Doctors</span>
-            <ChevronRight size={13} className="text-slate-300" />
-            <button
-              onClick={onBack}
-              className="hover:text-[#0D47A1] transition-colors"
-            >
-              Doctor Management
-            </button>
-            <ChevronRight size={13} className="text-slate-300" />
-            <span className="font-semibold text-[#111827]">
-              {docState.name}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => {
-              refreshAll();
-              triggerToast("Refreshing doctor profile...");
-            }}
-            className="px-3 py-2 rounded-xl bg-white border border-[#E5E7EB] text-slate-600 hover:text-[#0D47A1] text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm"
-          >
-            <RefreshCw
-              size={13}
-              className={isLoading ? "animate-spin text-[#0D47A1]" : ""}
-            />
-            <span>{isLoading ? "Refreshing..." : "Refresh Profile"}</span>
-          </button>
-
-          {can("DOCTOR_PROFILE_UPDATE") && (
-            <button
-              onClick={() => setShowEditDrawer(true)}
-              disabled={isSaving}
-              className="px-3.5 py-2 rounded-xl bg-white border border-[#E5E7EB] text-[#111827] text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ fontFamily: PP }}
-            >
-              <Edit size={14} className="text-[#0D47A1]" /> Edit Doctor
-            </button>
-          )}
-
-          {can("DOCTOR_DEACTIVATE") && docState.status === "Inactive" && (
-            <button
-              onClick={() => setActivateDialogOpen(true)}
-              className="px-3.5 py-2 rounded-xl text-xs font-bold border border-teal-200 bg-teal-50 text-teal-600 hover:bg-teal-100 transition-colors flex items-center gap-1.5 shadow-sm"
-              style={{ fontFamily: PP }}
-            >
-              <CheckCircle2 size={14} /> Activate Doctor
-            </button>
-          )}
-
-          {can("DOCTOR_DEACTIVATE") && docState.status !== "Inactive" && (
-            <button
-              onClick={() => setDeactivateDialogOpen(true)}
-              className="px-3.5 py-2 rounded-xl text-xs font-bold border border-red-200 bg-red-50 text-[#EF4444] hover:bg-red-100 transition-colors flex items-center gap-1.5 shadow-sm"
-              style={{ fontFamily: PP }}
-            >
-              <AlertTriangle size={14} /> Deactivate Doctor
-            </button>
-          )}
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="bg-white p-6 rounded-2xl border border-[#E5E7EB] shadow-sm animate-pulse flex items-center gap-6">
-          <div className="w-20 h-20 bg-slate-200 rounded-2xl shrink-0" />
-          <div className="space-y-2 flex-1">
-            <div className="h-6 bg-slate-200 rounded w-48" />
-            <div className="h-4 bg-slate-200 rounded w-64" />
-            <div className="h-3 bg-slate-100 rounded w-80" />
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white p-6 rounded-2xl border border-[#E5E7EB] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-            <div
-              className="w-20 h-20 rounded-2xl bg-[#0D47A1] text-white font-bold text-2xl flex items-center justify-center shrink-0 border-2 border-white shadow-md"
-              style={{ fontFamily: PP }}
-            >
-              {initials}
-            </div>
-
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h2
-                  className="text-xl font-bold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  {docState.name}
-                </h2>
-                <span className="text-xs font-mono font-bold text-[#0D47A1] bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-100">
-                  {docState.id}
-                </span>
-                {can("DOCTOR_CONTACT_VIEW") && (
-                  <span className="text-xs font-mono font-semibold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200">
-                    EMP: {docState.empId}
-                  </span>
-                )}
-                {can("DOCTOR_CONTACT_VIEW") && (
-                  <span className="text-xs font-mono font-medium text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-md border border-teal-100 flex items-center gap-1">
-                    <FileCheck size={13} /> {docState.regNumber}
-                  </span>
-                )}
-                <span
-                  className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
-                    docState.status === "Active"
-                      ? "bg-emerald-50 text-[#66BB6A] border-emerald-200"
-                      : "bg-slate-100 text-slate-600 border-slate-200"
-                  }`}
-                >
-                  {docState.status}
-                </span>
-                <span
-                  className={`px-2.5 py-0.5 rounded-full text-xs font-medium border flex items-center gap-1.5 ${availStyle.bg}`}
-                >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${availStyle.dot}`}
-                  />
-                  {docState.availability}
-                </span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#64748B]">
-                <span className="font-semibold text-[#111827]">
-                  {docState.qualification}
-                </span>
-                <span>&bull;</span>
-                <span className="font-bold text-[#0D47A1]">
-                  {docState.specialty}
-                </span>
-                <span>({docState.department})</span>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-[#64748B] pt-0.5">
-                <span className="flex items-center gap-1">
-                  <Award size={14} className="text-[#F59E0B]" />{" "}
-                  {docState.designation ||
-                    `${docState.experienceYrs} Years Experience`}
-                </span>
-                {can("DOCTOR_FEE_VIEW") && (
-                  <span className="flex items-center gap-1 font-bold text-[#0D47A1]">
-                    <DollarSignIcon /> ${docState.consultationFee} Consultation
-                    Fee
-                  </span>
-                )}
-                <span className="flex items-center gap-1 font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
-                  <Building2 size={13} /> {docState.opdRoom}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0 self-start md:self-auto border-t md:border-t-0 pt-4 md:pt-0 border-slate-100">
-            {can("DOCTOR_AVAILABILITY_VIEW") && (
-              <button
-                onClick={() => setActiveTab("availability")}
-                className="px-3.5 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-slate-700 hover:text-[#0D47A1] text-xs font-bold transition-colors flex items-center gap-1.5"
-                style={{ fontFamily: PP }}
-              >
-                <CalendarRange size={14} /> Availability
-              </button>
-            )}
-            {can("DOCTOR_SCHEDULE_VIEW") && (
-              <button
-                onClick={() => setActiveTab("schedule")}
-                className="px-3.5 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-slate-700 hover:text-[#0D47A1] text-xs font-bold transition-colors flex items-center gap-1.5"
-                style={{ fontFamily: PP }}
-              >
-                <Clock size={14} /> Schedule
-              </button>
-            )}
-            {can("DOCTOR_APPOINTMENT_VIEW") && (
-              <button
-                onClick={() => setActiveTab("appointments")}
-                className="px-3.5 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm flex items-center gap-1.5"
-                style={{ fontFamily: PP }}
-              >
-                <Calendar size={14} /> Appointments
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      <DoctorProfileHeader
+        doctor={docState}
+        role={
+          String(currentRole).toUpperCase() as
+            | "ADMIN"
+            | "DOCTOR"
+            | "RECEPTIONIST"
+        }
+        isOwnRecord={isOwnRecord}
+        isLoading={isLoading}
+        visibleTabs={visibleTabs.map((t) => ({ id: t.id, label: t.label }))}
+        onBack={onBack}
+        onRefresh={refreshAll}
+        onOpenEdit={() => setShowEditDrawer(true)}
+        onOpenActivate={() => setActivateDialogOpen(true)}
+        onOpenDeactivate={() => setDeactivateDialogOpen(true)}
+        onSelectTab={(tabId) => setActiveTab(tabId as TabId)}
+      />
 
       <div className="space-y-6">
         <div className="flex flex-wrap items-center gap-2">
@@ -1029,134 +801,21 @@ export function DoctorProfileScreen({
         </div>
 
         {activeTab === "overview" && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {can("DOCTOR_APPOINTMENT_VIEW") && (
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-                  <div>
-                    <span className="text-xs text-[#64748B] font-medium block">
-                      Today's Appointments
-                    </span>
-                    <span
-                      className="text-2xl font-bold text-[#111827] mt-0.5 block"
-                      style={{ fontFamily: PP }}
-                    >
-                      {todayAppointments.length}
-                    </span>
-                    <span className="text-[11px] text-[#0D47A1] font-medium mt-1 block">
-                      {completedToday} Completed &bull; {scheduledToday}{" "}
-                      Scheduled
-                    </span>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#0D47A1]">
-                    <Calendar size={20} />
-                  </div>
-                </div>
-              )}
-
-              {can("DOCTOR_PATIENTS_VIEW") && (
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-                  <div>
-                    <span className="text-xs text-[#64748B] font-medium block">
-                      Total Patients
-                    </span>
-                    <span
-                      className="text-2xl font-bold text-[#111827] mt-0.5 block"
-                      style={{ fontFamily: PP }}
-                    >
-                      {patients.length}
-                    </span>
-                    <span className="text-[11px] text-[#009688] font-medium mt-1 block">
-                      Unique patients from appointments
-                    </span>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-[#009688]">
-                    <User size={20} />
-                  </div>
-                </div>
-              )}
-
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-[#64748B] font-medium block">
-                    Experience
-                  </span>
-                  <span
-                    className="text-2xl font-bold text-[#111827] mt-0.5 block"
-                    style={{ fontFamily: PP }}
-                  >
-                    {docState.experienceYrs} Yrs
-                  </span>
-                  <span className="text-[11px] text-[#F59E0B] font-medium mt-1 block">
-                    {docState.specialty}
-                  </span>
-                </div>
-                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-[#F59E0B]">
-                  <Award size={20} />
-                </div>
-              </div>
-            </div>
-
-            <div className="w-full">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-                <h3
-                  className="text-sm font-bold text-[#111827] flex items-center gap-2 border-b border-[#E5E7EB] pb-3"
-                  style={{ fontFamily: PP }}
-                >
-                  <User size={16} className="text-[#0D47A1]" /> Basic
-                  Information
-                </h3>
-                <div className="space-y-2.5 text-xs">
-                  <div className="flex justify-between py-1 border-b border-gray-50">
-                    <span className="text-[#64748B]">Full Name</span>
-                    <span className="font-bold text-[#111827]">
-                      {docState.name}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-gray-50">
-                    <span className="text-[#64748B]">Gender</span>
-                    <span className="font-medium text-[#111827]">
-                      {docState.gender}
-                    </span>
-                  </div>
-                  {can("DOCTOR_CONTACT_VIEW") && (
-                    <div className="flex justify-between py-1 border-b border-gray-50">
-                      <span className="text-[#64748B]">Email Address</span>
-                      <span className="font-semibold text-[#0D47A1]">
-                        {docState.email}
-                      </span>
-                    </div>
-                  )}
-                  {can("DOCTOR_CONTACT_VIEW") && (
-                    <div className="flex justify-between py-1 border-b border-gray-50">
-                      <span className="text-[#64748B]">Contact Phone</span>
-                      <span className="font-medium text-[#111827]">
-                        {docState.phone}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between py-1 border-b border-gray-50">
-                    <span className="text-[#64748B]">OPD Cabinet Room</span>
-                    <span className="font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
-                      {docState.opdRoom}
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-gray-50">
-                    <span className="text-[#64748B]">Facility Location</span>
-                    <span className="font-semibold text-[#111827]">
-                      City General Main Campus
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-1">
-                    <span className="text-[#64748B]">Joined HMS</span>
-                    <span className="font-medium text-[#111827]">
-                      {docState.joinedDate}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <PersonalDetailsTab
+            doctor={docState}
+            todayAppointments={todayAppointments}
+            patients={patients}
+            completedToday={completedToday}
+            scheduledToday={scheduledToday}
+            role={
+              String(currentRole).toUpperCase() as
+                | "ADMIN"
+                | "DOCTOR"
+                | "RECEPTIONIST"
+            }
+            canEdit={can("DOCTOR_PROFILE_UPDATE") && isOwnRecord}
+            onOpenEdit={() => setShowEditDrawer(true)}
+          />
         )}
 
         {activeTab === "professional" && (
@@ -1431,6 +1090,12 @@ export function DoctorProfileScreen({
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {activeTab === "monthly_calendar" && (
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
+            <MonthlyCalendarTab doctor={docState} canEdit={false} />
           </div>
         )}
 
@@ -1846,28 +1511,21 @@ export function DoctorProfileScreen({
                       }
                       className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1]"
                     >
-                      <option value="LEAVE">Leave</option>
+                      <option value="VACATION">Vacation</option>
+                      <option value="TRAINING">Training</option>
+                      <option value="CONFERENCE">Conference</option>
                       <option value="SURGERY">Surgery Block</option>
-                      <option value="MEETING">Meeting</option>
-                      <option value="PERSONAL">Personal</option>
+                      <option value="EMERGENCY">Emergency</option>
+                      <option value="OTHER">Other</option>
                     </select>
                   </div>
                   <div>
                     <label className="block font-bold text-[#111827] mb-1">
                       Slot Action
                     </label>
-                    <select
-                      value={exceptionAction}
-                      onChange={(e) =>
-                        setExceptionAction(e.target.value as ExceptionAction)
-                      }
-                      className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1]"
-                    >
-                      <option value="BLOCK_APPOINTMENTS">
-                        Block Appointments
-                      </option>
-                      <option value="REDUCE_SLOTS">Reduce Slots</option>
-                    </select>
+                    <div className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold">
+                      Block Appointments
+                    </div>
                   </div>
                   <div>
                     <label className="block font-bold text-[#111827] mb-1">
@@ -2009,7 +1667,7 @@ export function DoctorProfileScreen({
                               : "bg-amber-50 text-[#F59E0B] border-amber-200"
                           }`}
                         >
-                          {ex.exceptionType || ex.type || "EXCEPTION"}
+                          {({ VACATION: "Vacation", TRAINING: "Training", CONFERENCE: "Conference", SURGERY: "Surgery", EMERGENCY: "Emergency", OTHER: "Other" } as Record<string, string>)[String(ex.exceptionType || ex.type || "")] || ex.exceptionType || ex.type || "EXCEPTION"}
                         </span>
                         <span className="font-bold text-xs text-[#111827]">
                           {ex.startDate || ex.exceptionDate}
@@ -2462,11 +2120,27 @@ export function DoctorProfileScreen({
         </div>
       )}
 
-      <EditStaffUserDrawer
-        user={showEditDrawer ? doctorToEditUser(docState) : null}
-        onClose={() => setShowEditDrawer(false)}
-        onSaved={handleSaveEditDoctor}
-      />
+      {String(currentRole).toUpperCase() === "DOCTOR" ? (
+        <EditDoctorProfileModal
+          isOpen={showEditDrawer}
+          doctor={docState}
+          role="DOCTOR"
+          onClose={() => setShowEditDrawer(false)}
+          onSave={async (updated) => {
+            const saved = await doctorProfileService.updateDoctor(updated);
+            setDocState(saved || updated);
+            triggerToast("Profile updated successfully.");
+            if (onEdit) onEdit(saved || updated);
+            await refreshAll();
+          }}
+        />
+      ) : (
+        <EditStaffUserDrawer
+          user={showEditDrawer ? doctorToEditUser(docState) : null}
+          onClose={() => setShowEditDrawer(false)}
+          onSaved={handleSaveEditDoctor}
+        />
+      )}
 
       <DeactivateDoctorDialog
         isOpen={deactivateDialogOpen}

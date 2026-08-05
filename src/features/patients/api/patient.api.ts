@@ -55,9 +55,9 @@ export const patientsApi = {
           throw err;
         }
       }
-      let data = res.data as any;
+      let data: unknown = res.data;
       if (data && typeof data === "object" && "data" in data) {
-        data = data.data;
+        data = (data as { data?: unknown }).data;
       }
       if (
         data &&
@@ -284,11 +284,20 @@ export const patientsApi = {
       if (relationship) search.append("relationship", relationship);
       const url = `/api/v1/patients/my${search.toString() ? `?${search.toString()}` : ""}`;
       const res = await apiClient.get<unknown>(url);
-      let data = res.data as any;
+      let data: unknown = res.data;
       if (data && typeof data === "object" && "data" in data) {
-        data = data.data;
+        data = (data as { data?: unknown }).data;
       }
-      return Array.isArray(data) ? data : [];
+      if (Array.isArray(data)) return data;
+      if (data && typeof data === "object") {
+        const collection = data as {
+          content?: unknown;
+          patients?: unknown;
+        };
+        if (Array.isArray(collection.content)) return collection.content as Patient[];
+        if (Array.isArray(collection.patients)) return collection.patients as Patient[];
+      }
+      return [];
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const data = error.response?.data as { message?: string } | undefined;
@@ -354,18 +363,25 @@ export const patientsApi = {
     departmentName: string;
   } | null> {
     try {
-      const res = await apiClient.get<any>("/api/v1/patients/me/queue");
-      const data = res.data?.data || res.data;
+      const res = await apiClient.get<unknown>("/api/v1/patients/me/queue");
+      const responseBody = res.data;
+      const data =
+        responseBody &&
+        typeof responseBody === "object" &&
+        "data" in responseBody
+          ? (responseBody as { data?: unknown }).data
+          : responseBody;
       if (data && typeof data === "object") {
+        const queue = data as Record<string, unknown>;
         return {
-          appointmentId: data.appointmentId || 0,
-          token: data.token || data.tokenNumber || "TK-001",
-          position: data.position ?? 1,
-          patientsAhead: data.patientsAhead ?? 0,
-          estimatedWaitMinutes: data.estimatedWaitMinutes ?? 15,
-          status: data.status || data.queueStatus || "WAITING",
-          doctorName: data.doctorName || "Duty Doctor",
-          departmentName: data.departmentName || "General OPD",
+          appointmentId: Number(queue.appointmentId || 0),
+          token: String(queue.token || queue.tokenNumber || "TK-001"),
+          position: Number(queue.position ?? 1),
+          patientsAhead: Number(queue.patientsAhead ?? 0),
+          estimatedWaitMinutes: Number(queue.estimatedWaitMinutes ?? 15),
+          status: String(queue.status || queue.queueStatus || "WAITING"),
+          doctorName: String(queue.doctorName || "Duty Doctor"),
+          departmentName: String(queue.departmentName || "General OPD"),
         };
       }
       return null;
@@ -381,6 +397,7 @@ export const patientsApi = {
     search?: string;
     query?: string;
     status?: string;
+    registrationType?: string;
   }): Promise<PaginatedResponse<Patient>> => {
     try {
       const searchParams = new URLSearchParams();
@@ -392,6 +409,11 @@ export const patientsApi = {
       if (params?.page) searchParams.append("page", String(params.page));
       if (params?.limit) searchParams.append("limit", String(params.limit));
       if (params?.status) searchParams.append("status", params.status);
+      if (params?.registrationType)
+        searchParams.append(
+          "registrationType",
+          params.registrationType,
+        );
 
       const url = `/api/v1/patients${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
       let response;
@@ -508,6 +530,29 @@ export const patientsApi = {
       const response = await apiClient.post<
         PatientApiResponse<ApiPatientFamilyMember>
       >(`/api/v1/patients/${mrn}/family-members`, payload);
+      return (
+        response.data?.data ||
+        (response.data as unknown as ApiPatientFamilyMember) ||
+        null
+      );
+    } catch {
+      return null;
+    }
+  },
+
+  linkFamilyMember: async (
+    primaryUserId: number,
+    familyUserId: number,
+    relationship: string,
+  ): Promise<ApiPatientFamilyMember | null> => {
+    try {
+      const response = await apiClient.post<
+        PatientApiResponse<ApiPatientFamilyMember>
+      >("/api/v1/patients/family-members", {
+        primaryUserId,
+        familyUserId,
+        relationship,
+      });
       return (
         response.data?.data ||
         (response.data as unknown as ApiPatientFamilyMember) ||

@@ -7,10 +7,12 @@ import type {
 import { PP } from "../../constants/doctors.constants";
 import { doctorsService } from "../../services/doctors.service";
 
+import { resolveDoctorId } from "../../services/doctorProfile.service";
+
 export interface AppointmentsTabProps {
   doctor: DoctorRecord;
-  canEdit: boolean;
-  isOwnProfile: boolean;
+  canEdit?: boolean;
+  isOwnProfile?: boolean;
 }
 
 const APPT_STATUS_STYLE: Record<string, string> = {
@@ -24,7 +26,7 @@ const APPT_STATUS_STYLE: Record<string, string> = {
 
 export function AppointmentsTab({
   doctor,
-  isOwnProfile,
+  isOwnProfile = false,
 }: AppointmentsTabProps) {
   const [appointments, setAppointments] = useState<DoctorAppointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,8 +34,9 @@ export function AppointmentsTab({
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    const targetId = resolveDoctorId(doctor);
     doctorsService
-      .listDoctorAppointments(doctor.id)
+      .listDoctorAppointments(targetId)
       .then((data: DoctorAppointment[]) => {
         if (!cancelled) setAppointments(data || []);
       })
@@ -44,7 +47,7 @@ export function AppointmentsTab({
     return () => {
       cancelled = true;
     };
-  }, [doctor.id]);
+  }, [doctor]);
 
   const filtered = isOwnProfile
     ? appointments.filter(

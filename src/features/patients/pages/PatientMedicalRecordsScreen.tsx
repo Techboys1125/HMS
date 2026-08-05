@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
+import { patientsApi } from "../api/patient.api";
+import { usePatientPortal } from "../context/PatientPortalContext";
+import type { FamilyMember } from "./FamilyMembersManagement";
 import {
   Search,
   Download,
@@ -18,13 +21,15 @@ import type {
   MedicalVisitRecord,
   PrescriptionRecord,
 } from "../types/patient.types";
-import { PP, RB, MOCK_PRESCRIPTION_RECORDS } from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.mock";
 
 export function PatientMedicalRecordsScreen({
-  activePatient,
+  activePatient: propActivePatient,
 }: {
-  activePatient?: any;
+  activePatient?: FamilyMember;
 }) {
+  const portal = usePatientPortal();
+  const activePatient = propActivePatient ?? portal?.activePatient;
   const [activeTab, setActiveTab] = useState<"visits" | "prescriptions">(
     "visits",
   );
@@ -35,6 +40,9 @@ export function PatientMedicalRecordsScreen({
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const [visitRecords, setVisitRecords] = useState<MedicalVisitRecord[]>([]);
+  const [prescriptionRecords, setPrescriptionRecords] = useState<
+    PrescriptionRecord[]
+  >([]);
 
   useEffect(() => {
     appointmentsApi
@@ -43,6 +51,7 @@ export function PatientMedicalRecordsScreen({
           ? { patientId: activePatient.id || activePatient.mrn }
           : undefined,
       )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .then((res: any) => {
         const data = res?.data || res;
         const list = Array.isArray(data)
@@ -52,6 +61,7 @@ export function PatientMedicalRecordsScreen({
             : [];
         if (list && list.length > 0) {
           const mapped: MedicalVisitRecord[] = list.map(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (a: any, idx: number) => ({
               id: String(a.appointmentId || a.id || `VIS-${idx}`),
               date: a.appointmentDate || a.date || "",
@@ -75,6 +85,53 @@ export function PatientMedicalRecordsScreen({
       })
       .catch(() => setVisitRecords([]));
   }, [activePatient]);
+
+  useEffect(() => {
+    const mrn = activePatient?.mrn;
+    if (!mrn) {
+      setPrescriptionRecords([]);
+      return;
+    }
+
+    let cancelled = false;
+    patientsApi
+      .getPrescriptions(mrn)
+      .then((records) => {
+        if (cancelled) return;
+        setPrescriptionRecords(
+          records.map((record) => {
+            const rawStatus = String(record.status || "ACTIVE").toUpperCase();
+            return {
+              id: String(record.id),
+              doctor: record.doctorName || "Doctor",
+              department: record.department || "—",
+              issueDate: record.date || "—",
+              status: rawStatus.includes("REFILL")
+                ? "Refilled"
+                : rawStatus.includes("EXPIRED") || rawStatus.includes("ARCHIVED")
+                  ? "Expired"
+                  : "Active",
+              medicines: (record.medicines || []).map((medicine) => ({
+                name: medicine.name,
+                dosage: medicine.dosage || "—",
+                frequency: medicine.frequency || "",
+                duration: medicine.duration || "",
+                instructions: medicine.instructions || "",
+              })),
+              diagnosis: record.diagnosis || "—",
+              followUpDate: record.followUpDate || "—",
+            };
+          }),
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setPrescriptionRecords([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activePatient?.mrn]);
 
   // Drawer states
   const [selectedRx, setSelectedRx] = useState<PrescriptionRecord | null>(null);
@@ -104,7 +161,7 @@ export function PatientMedicalRecordsScreen({
   });
 
   // Filtered Prescriptions
-  const filteredPrescriptions = MOCK_PRESCRIPTION_RECORDS.filter((rx) => {
+  const filteredPrescriptions = prescriptionRecords.filter((rx) => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       const match =
@@ -174,7 +231,7 @@ export function PatientMedicalRecordsScreen({
               className="text-2xl font-bold text-[#111827] mt-0.5"
               style={{ fontFamily: PP }}
             >
-              12
+              {visitRecords.length}
             </div>
             <div className="text-[11px] text-[#0D47A1] font-medium mt-1">
               OPD & Follow-up visits
@@ -194,7 +251,7 @@ export function PatientMedicalRecordsScreen({
               className="text-2xl font-bold text-[#111827] mt-0.5"
               style={{ fontFamily: PP }}
             >
-              3
+              {prescriptionRecords.filter((rx) => rx.status === "Active").length}
             </div>
             <div className="text-[11px] text-[#009688] font-medium mt-1">
               Ongoing medications
@@ -214,10 +271,11 @@ export function PatientMedicalRecordsScreen({
               className="text-2xl font-bold text-[#111827] mt-0.5"
               style={{ fontFamily: PP }}
             >
-              2
+              {activePatient?.knownAllergies?.length || 0}
             </div>
             <div className="text-[11px] text-amber-600 font-medium mt-1">
-              Penicillin, Peanuts
+              {activePatient?.knownAllergies?.join(", ") ||
+                "No known allergies"}
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-[#F59E0B]">
@@ -234,10 +292,10 @@ export function PatientMedicalRecordsScreen({
               className="text-sm font-bold text-[#111827] mt-1"
               style={{ fontFamily: PP }}
             >
-              Dr. Arjun Mehta
+              {visitRecords[0]?.doctor || "Not assigned"}
             </div>
             <div className="text-[11px] text-[#0D47A1] font-medium">
-              Cardiology Lead
+              {visitRecords[0]?.department || "No recent consultation"}
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#0D47A1]">
@@ -257,7 +315,7 @@ export function PatientMedicalRecordsScreen({
           {
             id: "prescriptions",
             label: "Prescriptions",
-            count: MOCK_PRESCRIPTION_RECORDS.length,
+            count: prescriptionRecords.length,
           },
         ].map((tab) => {
           const isActive = activeTab === tab.id;

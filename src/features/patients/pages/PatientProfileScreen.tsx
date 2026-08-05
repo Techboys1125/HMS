@@ -50,7 +50,7 @@ export function PatientProfileScreen({
     category: "Regular Outpatient",
     status: "Active",
     regDate: "Mar 12, 2024",
-    registrationType: "Desk Registration",
+    registrationType: "WALK_IN",
     assignedDoctor: "Dr. A. Mehta",
     department: "Cardiology",
   };

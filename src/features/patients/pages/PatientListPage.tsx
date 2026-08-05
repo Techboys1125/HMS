@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronRight, RefreshCw, UserPlus } from "lucide-react";
+import { ChevronRight, RefreshCw, UserPlus, Calendar } from "lucide-react";
 import type { Patient } from "../types/patient.types";
 import { PP, RB } from "../../doctors/constants/doctors.constants";
 import { patientsApi } from "../api/patient.api";
@@ -12,6 +12,11 @@ import type { PatientFilterValues } from "../components/PatientFilters";
 import { PatientProfilePage } from "./PatientProfilePage";
 import { RegisterPatientScreen } from "./RegisterPatientScreen";
 import { EditPatientScreen } from "./EditPatientScreen";
+import {
+  DeactivatePatientDialog,
+  ActivatePatientDialog,
+} from "../components/PatientStatusDialogs";
+import { BookAppointmentDrawer } from "../../appointments/components/BookAppointmentDrawer";
 
 const DEFAULT_FILTERS: PatientFilterValues = {
   searchQuery: "",
@@ -19,6 +24,7 @@ const DEFAULT_FILTERS: PatientFilterValues = {
   statusFilter: "All",
   doctorFilter: "All",
   regDateFilter: "All",
+  registrationTypeFilter: "All",
 };
 
 export function PatientListPage({ currentRole }: { currentRole: Role }) {
@@ -29,6 +35,10 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
   const [viewingPatient, setViewingPatient] = useState<Patient | null>(null);
   const [registering, setRegistering] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
+  const [deactivatePatient, setDeactivatePatient] = useState<Patient | null>(null);
+  const [activatePatient, setActivatePatient] = useState<Patient | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [showBookDrawer, setShowBookDrawer] = useState(false);
   const [filters, setFilters] = useState<PatientFilterValues>(DEFAULT_FILTERS);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null,
@@ -59,7 +69,8 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
   const hasActiveFilters =
     filters.searchQuery !== "" ||
     filters.genderFilter !== "All" ||
-    filters.statusFilter !== "All";
+    filters.statusFilter !== "All" ||
+    filters.registrationTypeFilter !== "All";
 
   const filteredPatients = patients.filter((p) => {
     const q = filters.searchQuery.toLowerCase();
@@ -73,7 +84,10 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
       filters.genderFilter === "All" || p.gender === filters.genderFilter;
     const matchesStatus =
       filters.statusFilter === "All" || p.status === filters.statusFilter;
-    return matchesSearch && matchesGender && matchesStatus;
+    const matchesRegType =
+      filters.registrationTypeFilter === "All" ||
+      p.registrationType === filters.registrationTypeFilter;
+    return matchesSearch && matchesGender && matchesStatus && matchesRegType;
   });
 
   const canRegister = can(currentRole, "register");
@@ -85,6 +99,36 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
       (p) => p.mrn === id || String(p.id) === id,
     );
     if (patient) setViewingPatient(patient);
+  };
+
+  const handleConfirmActivate = async () => {
+    if (!activatePatient) return;
+    setIsUpdatingStatus(true);
+    try {
+      const targetId = activatePatient.mrn || activatePatient.id;
+      await patientsApi.update(targetId, { status: "ACTIVE" });
+      setActivatePatient(null);
+      fetchPatients();
+    } catch (err) {
+      console.warn("Failed to activate patient:", err);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleConfirmDeactivate = async () => {
+    if (!deactivatePatient) return;
+    setIsUpdatingStatus(true);
+    try {
+      const targetId = deactivatePatient.mrn || deactivatePatient.id;
+      await patientsApi.update(targetId, { status: "INACTIVE" });
+      setDeactivatePatient(null);
+      fetchPatients();
+    } catch (err) {
+      console.warn("Failed to deactivate patient:", err);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
   };
 
   if (viewingPatient) {
@@ -160,10 +204,18 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
             />
             <span>{loading ? "Refreshing..." : "Refresh"}</span>
           </button>
+          <button
+            onClick={() => setShowBookDrawer(true)}
+            className="px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors flex items-center gap-2 shadow-sm shrink-0"
+            style={{ fontFamily: PP }}
+          >
+            <Calendar size={15} /> Book Appointment
+          </button>
           {canRegister && (
             <button
               onClick={() => setRegistering(true)}
               className="px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-2 shadow-sm shrink-0"
+              style={{ fontFamily: PP }}
             >
               <UserPlus size={15} /> Register Patient
             </button>
@@ -223,8 +275,36 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
         onToggleActionMenu={(id) => setActiveActionMenuId(id)}
         onViewProfile={canView ? openPatientProfile : () => {}}
         onEditPatient={canEdit ? (p) => setEditingPatient(p) : undefined}
+        onBookAppointment={() => setShowBookDrawer(true)}
+        onActivatePatient={canEdit ? (p) => setActivatePatient(p) : undefined}
+        onDeactivatePatient={canEdit ? (p) => setDeactivatePatient(p) : undefined}
         onResetFilters={() => setFilters(DEFAULT_FILTERS)}
         userRole={currentRole}
+      />
+
+      <BookAppointmentDrawer
+        isOpen={showBookDrawer}
+        onClose={() => setShowBookDrawer(false)}
+        onBookSuccess={() => {
+          setShowBookDrawer(false);
+          fetchPatients();
+        }}
+      />
+
+      <DeactivatePatientDialog
+        isOpen={!!deactivatePatient}
+        patient={deactivatePatient}
+        onClose={() => setDeactivatePatient(null)}
+        onConfirm={handleConfirmDeactivate}
+        isDeactivating={isUpdatingStatus}
+      />
+
+      <ActivatePatientDialog
+        isOpen={!!activatePatient}
+        patient={activatePatient}
+        onClose={() => setActivatePatient(null)}
+        onConfirm={handleConfirmActivate}
+        isActivating={isUpdatingStatus}
       />
     </div>
   );

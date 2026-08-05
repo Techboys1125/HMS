@@ -9,6 +9,8 @@ import type {
 import { PP } from "../../constants/doctors.constants";
 import { doctorsService } from "../../services/doctors.service";
 
+import { resolveDoctorId } from "../../services/doctorProfile.service";
+
 export interface ScheduleExceptionsTabProps {
   doctor: DoctorRecord;
   canEdit: boolean;
@@ -24,7 +26,7 @@ export function ScheduleExceptionsTab({
   const [saving, setSaving] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newException, setNewException] = useState({
-    exceptionType: "LEAVE" as ExceptionType,
+    exceptionType: "VACATION" as ExceptionType,
     startDate: "",
     endDate: "",
     isFullDay: true,
@@ -35,8 +37,9 @@ export function ScheduleExceptionsTab({
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    const targetId = resolveDoctorId(doctor);
     doctorsService
-      .getScheduleExceptions(doctor.id)
+      .getScheduleExceptions(targetId)
       .then((data) => {
         if (!cancelled) setExceptions(data || []);
       })
@@ -47,20 +50,21 @@ export function ScheduleExceptionsTab({
     return () => {
       cancelled = true;
     };
-  }, [doctor.id]);
+  }, [doctor]);
 
   const handleAdd = async () => {
     if (!newException.startDate || !newException.endDate) return;
     setSaving(true);
     try {
+      const targetId = resolveDoctorId(doctor);
       const created = await doctorsService.createScheduleException(
-        doctor.id,
+        targetId,
         newException,
       );
       if (created) {
         setExceptions((prev) => [...prev, created]);
         setNewException({
-          exceptionType: "LEAVE",
+          exceptionType: "VACATION",
           startDate: "",
           endDate: "",
           isFullDay: true,
@@ -77,7 +81,8 @@ export function ScheduleExceptionsTab({
 
   const handleDelete = async (exceptionId: number | string) => {
     try {
-      await doctorsService.deleteScheduleException(doctor.id, exceptionId);
+      const targetId = resolveDoctorId(doctor);
+      await doctorsService.deleteScheduleException(targetId, exceptionId);
       setExceptions((prev) => prev.filter((e) => e.id !== exceptionId));
     } catch {}
   };
@@ -127,10 +132,12 @@ export function ScheduleExceptionsTab({
                 }
                 className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
               >
-                <option value="LEAVE">Leave</option>
+                <option value="VACATION">Vacation</option>
+                <option value="TRAINING">Training</option>
+                <option value="CONFERENCE">Conference</option>
                 <option value="SURGERY">Surgery</option>
-                <option value="MEETING">Meeting</option>
-                <option value="PERSONAL">Personal</option>
+                <option value="EMERGENCY">Emergency</option>
+                <option value="OTHER">Other</option>
               </select>
             </div>
             <div>
@@ -177,7 +184,6 @@ export function ScheduleExceptionsTab({
                 className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
               >
                 <option value="BLOCK_APPOINTMENTS">Block Appointments</option>
-                <option value="REDUCE_SLOTS">Reduce Slots</option>
               </select>
             </div>
             <div className="sm:col-span-2">
@@ -229,10 +235,15 @@ export function ScheduleExceptionsTab({
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-[#111827]">
-                    {exc.reason || exc.exceptionType}
+                    {exc.reason || ({ VACATION: "Vacation", TRAINING: "Training", CONFERENCE: "Conference", SURGERY: "Surgery", EMERGENCY: "Emergency", OTHER: "Other" } as Record<string, string>)[String(exc.exceptionType || "")] || exc.exceptionType}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                    {exc.exceptionType}
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                    exc.exceptionType === "SURGERY" ? "bg-red-50 text-red-700 border-red-200" :
+                    exc.exceptionType === "EMERGENCY" ? "bg-orange-50 text-orange-700 border-orange-200" :
+                    exc.exceptionType === "CONFERENCE" ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
+                    "bg-amber-50 text-amber-700 border-amber-200"
+                  }`}>
+                    {({ VACATION: "Vacation", TRAINING: "Training", CONFERENCE: "Conference", SURGERY: "Surgery", EMERGENCY: "Emergency", OTHER: "Other" } as Record<string, string>)[String(exc.exceptionType || "")] || exc.exceptionType}
                   </span>
                 </div>
                 <div className="text-[11px] text-[#64748B] mt-1">

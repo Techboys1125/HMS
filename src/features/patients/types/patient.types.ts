@@ -34,14 +34,7 @@ export type PatientCategory =
   | "RESEARCH"
   | "CHARITY";
 
-export type RegistrationType =
-  | "WALK_IN"
-  | "REFERRAL"
-  | "EMERGENCY"
-  | "ONLINE"
-  | "CAMP"
-  | "FOLLOW_UP"
-  | "TELEMEDICINE";
+export type RegistrationType = "ONLINE" | "WALK_IN";
 
 export interface EmergencyContact {
   name: string;
@@ -62,7 +55,14 @@ export interface Address {
  * Patient record returned from GET /api/v1/patients
  */
 export interface Patient {
-  insuranceDetails: any;
+  insuranceDetails:
+    | {
+        provider?: string;
+        policyNumber?: string;
+        validUntil?: string;
+        coverageType?: string;
+      }
+    | null;
   id?: number;
   mrn: string;
   fullName: string;
@@ -203,7 +203,7 @@ export interface CreatePatientRequest {
     alternativeMobileNumber?: string;
   };
   patientCategory?: string;
-  registrationType?: string;
+  registrationType?: RegistrationType;
   knownAllergies?: string[];
   chronicDiseases?: string[];
   specialNotes?: string;
@@ -498,6 +498,7 @@ export interface PaginatedResponse<T> {
  */
 export interface ApiPatientFamilyMember {
   id?: string | number;
+  mrn?: string;
   name: string;
   relationship?: string;
   mobileNumber?: string;
@@ -529,6 +530,16 @@ export interface ApiPatientPrescription {
   id: string | number;
   date?: string;
   doctorName?: string;
+  department?: string;
+  diagnosis?: string;
+  followUpDate?: string;
+  medicines?: Array<{
+    name: string;
+    dosage?: string;
+    frequency?: string;
+    duration?: string;
+    instructions?: string;
+  }>;
   medicineCount?: number;
   status?: string;
 }

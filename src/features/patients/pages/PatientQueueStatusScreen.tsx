@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Clock,
   MapPin,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { patientsApi } from "../api/patient.api";
 import { PP, RB } from "../constants/patient.mock";
+import { usePatientPortal } from "../context/PatientPortalContext";
 
 type QueueStatus = {
   appointmentId: number;
@@ -26,6 +27,8 @@ type QueueStatus = {
 } | null;
 
 export function PatientQueueStatusScreen() {
+  const portal = usePatientPortal();
+  const activeMrn = portal?.activeMrn;
   const [queueStatus, setQueueStatus] = useState<QueueStatus>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -35,21 +38,38 @@ export function PatientQueueStatusScreen() {
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const fetchQueue = async () => {
+  const fetchQueue = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await patientsApi.getMyQueue();
-      setQueueStatus(data);
+      const data = activeMrn
+        ? await patientsApi.getPatientQueue(activeMrn)
+        : await patientsApi.getMyQueue();
+      if (!data) {
+        setQueueStatus(null);
+        return;
+      }
+
+      const queue = data as Record<string, unknown>;
+      setQueueStatus({
+        appointmentId: Number(queue.appointmentId || 0),
+        token: String(queue.token || queue.tokenNumber || "—"),
+        position: Number(queue.position ?? 0),
+        patientsAhead: Number(queue.patientsAhead ?? 0),
+        estimatedWaitMinutes: Number(queue.estimatedWaitMinutes ?? 0),
+        status: String(queue.status || queue.queueStatus || "WAITING"),
+        doctorName: String(queue.doctorName || "—"),
+        departmentName: String(queue.departmentName || "—"),
+      });
     } catch {
       setQueueStatus(null);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [activeMrn]);
 
   useEffect(() => {
-    fetchQueue();
-  }, []);
+    void fetchQueue();
+  }, [fetchQueue]);
 
   const statusColor =
     queueStatus?.status === "WAITING"

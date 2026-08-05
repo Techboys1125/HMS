@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router";
+import { useState, useEffect } from "react";
 import { ROUTES } from "./routes";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
@@ -7,10 +8,10 @@ import { RouteGuard } from "../../permissions";
 // Auth Feature Pages
 import {
   LoginPage,
-  AuthApp,
   ForgotPasswordPage,
   ResetPasswordPage,
   ChangePasswordPage,
+  PatientRegisterPage,
 } from "../../features/auth";
 
 // Application Feature Modules
@@ -31,7 +32,11 @@ import {
   NurseVitalsWorklistPage,
   PatientMyProfileRoute,
   AccountantPatientBillingPage,
+  PatientBillingScreen,
 } from "../../features/patients";
+import { PatientPortalProvider, usePatientPortal } from "../../features/patients/context/PatientPortalContext";
+import { PatientOnboardingRoute } from "../../features/patients/routes/PatientOnboardingRoute";
+import { patientsApi } from "../../features/patients/api/patient.api";
 import {
   AppointmentManagementCenterScreen,
   BookAppointmentScreen,
@@ -46,7 +51,6 @@ import {
 import { DoctorProfileRoute } from "../../features/doctors/pages/DoctorProfileRoute";
 import { DoctorDirectoryPage } from "../../features/doctors/pages/DoctorDirectoryPage";
 import { ReceptionistDoctorListPage } from "../../features/doctors/pages/ReceptionistDoctorListPage";
-import { MyProfilePage as DoctorMyProfilePage } from "../../features/doctors/pages/MyProfilePage";
 import { useAuthStore } from "../../features/auth";
 
 function DoctorsRouteDispatcher() {
@@ -54,7 +58,7 @@ function DoctorsRouteDispatcher() {
   const r = String(role ?? "").toUpperCase();
   if (r === "RECEPTIONIST") return <ReceptionistDoctorListPage />;
   if (r === "PATIENT") return <DoctorDirectoryPage />;
-  if (r === "DOCTOR") return <DoctorMyProfilePage />;
+  if (r === "DOCTOR") return <DoctorProfileRoute />;
   return <DoctorManagementCenterScreen />;
 }
 import { DoctorScheduleScreen } from "../../features/doctors/components/DoctorScheduleScreen";
@@ -72,13 +76,68 @@ import { NotificationCenterManagement } from "../../NotificationCenterManagement
 
 // Main HMS Layout shell
 import { HMSAppShell } from "../../components/layout/HMSAppShell";
-import { useNavigate } from "react-router";
 
 function FamilyMembersRouteWrapper() {
-  const navigate = useNavigate();
+  const [registering, setRegistering] = useState(false);
+  const [viewProfileMrn, setViewProfileMrn] = useState<string | null>(null);
+  const portal = usePatientPortal();
+  const user = useAuthStore((state) => state.user);
+  const familyMembers = portal?.familyMembers ?? [];
+  const primaryMrn =
+    portal?.primaryMrn || String(user?.patientId || user?.id || "");
+
+  useEffect(() => {
+    if (!viewProfileMrn || !familyMembers.length) return;
+    const member = familyMembers.find(
+      (m) => String(m.mrn) === String(viewProfileMrn),
+    );
+    if (member) {
+      portal?.switchToPatient(member);
+      setViewProfileMrn(null);
+      setRegistering(false);
+    }
+  }, [viewProfileMrn, familyMembers, portal]);
+
+  if (registering) {
+    return (
+      <RegisterPatientScreen
+        isFamilyMode
+        primaryPatientMrn={primaryMrn}
+        onBack={() => {
+          setRegistering(false);
+          portal?.refresh();
+        }}
+        onRegistered={() => portal?.refresh()}
+        onViewProfile={(mrn) => {
+          setViewProfileMrn(mrn);
+          portal?.refresh();
+        }}
+      />
+    );
+  }
+
   return (
     <FamilyMembersManagement
-      onAddFamilyMember={() => navigate(ROUTES.PATIENT_REGISTER)}
+      familyMembers={familyMembers}
+      activeFamilyMember={portal?.activePatient || undefined}
+      onAddFamilyMember={() => setRegistering(true)}
+      onSwitchProfile={(member) => portal?.switchToPatient(member)}
+      onRemoveFamilyMember={async (id) => {
+        if (!primaryMrn) return;
+        const wasActive = String(portal?.activePatient?.id) === String(id);
+        const removed = await patientsApi.deleteFamilyMember(primaryMrn, id);
+        if (removed && wasActive) {
+          localStorage.setItem("hms-active-patient-mrn", primaryMrn);
+        }
+        if (removed) portal?.refresh();
+      }}
+      onUpdateRelationship={async (id, relationship) => {
+        if (!primaryMrn) return;
+        const updated = await patientsApi.updateFamilyMember(primaryMrn, id, {
+          relationship,
+        });
+        if (updated) portal?.refresh();
+      }}
     />
   );
 }
@@ -99,7 +158,7 @@ export function AppRoutes() {
         path={ROUTES.REGISTER}
         element={
           <PublicRoute>
-            <AuthApp />
+            <PatientRegisterPage />
           </PublicRoute>
         }
       />
@@ -134,12 +193,16 @@ export function AppRoutes() {
       <Route
         element={
           <ProtectedRoute>
-            <HMSAppShell />
+            <PatientPortalProvider>
+              <HMSAppShell />
+            </PatientPortalProvider>
           </ProtectedRoute>
         }
       >
         <Route index element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-        <Route path={ROUTES.DASHBOARD} element={<DashboardDispatcher />} />
+        <Route element={<PatientOnboardingRoute />}>
+          <Route path={ROUTES.DASHBOARD} element={<DashboardDispatcher />} />
+        </Route>
         <Route
           path={ROUTES.PATIENTS}
           element={
@@ -156,6 +219,7 @@ export function AppRoutes() {
             </RouteGuard>
           }
         />
+        <Route element={<PatientOnboardingRoute />}>
         <Route
           path={ROUTES.FAMILY_MEMBERS}
           element={
@@ -185,6 +249,14 @@ export function AppRoutes() {
           element={
             <RouteGuard requiredPermission="PRESCRIPTION_VIEW">
               <PatientPrescriptionsScreen />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.PATIENT_BILLING}
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <PatientBillingScreen />
             </RouteGuard>
           }
         />
@@ -260,6 +332,7 @@ export function AppRoutes() {
             </RouteGuard>
           }
         />
+        </Route>
         <Route
           path={ROUTES.PATIENT_NOTIFICATIONS}
           element={
@@ -415,10 +488,18 @@ export function AppRoutes() {
         />
         <Route path={ROUTES.SETTINGS} element={<SettingsWorkspace />} />
         <Route
+          path={ROUTES.DOCTOR_ME_PROFILE}
+          element={
+            <RouteGuard requiredPermission="DOCTOR_PROFILE_VIEW">
+              <DoctorProfileRoute />
+            </RouteGuard>
+          }
+        />
+        <Route
           path={ROUTES.PROFILE}
           element={
-            <RouteGuard requiredPermission="PROFILE_VIEW">
-              <DoctorMyProfilePage />
+            <RouteGuard requiredPermission="DOCTOR_PROFILE_VIEW">
+              <DoctorProfileRoute />
             </RouteGuard>
           }
         />

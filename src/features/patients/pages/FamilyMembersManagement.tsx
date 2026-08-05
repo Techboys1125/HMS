@@ -46,6 +46,7 @@ export type FamilyMember = {
   age: number;
   gender: "Male" | "Female" | "Other";
   bloodGroup?: string;
+  knownAllergies?: string[];
   registeredMobile: string;
   verificationStatus: "Verified" | "Pending" | "Inactive";
   patientStatus: "Active" | "Inactive";

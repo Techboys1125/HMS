@@ -128,10 +128,12 @@ const SLOT_STATUS_META: Record<
 };
 
 const EXCEPTION_TYPE_META: Record<string, string> = {
-  LEAVE: "bg-amber-100 text-amber-700",
+  VACATION: "bg-amber-100 text-amber-700",
   SURGERY: "bg-red-100 text-red-700",
-  MEETING: "bg-blue-100 text-blue-700",
-  PERSONAL: "bg-purple-100 text-purple-700",
+  TRAINING: "bg-blue-100 text-blue-700",
+  CONFERENCE: "bg-indigo-100 text-indigo-700",
+  EMERGENCY: "bg-orange-100 text-orange-700",
+  OTHER: "bg-slate-100 text-slate-600",
 };
 
 const EXCEPTION_STATUS_META: Record<string, string> = {
@@ -525,7 +527,7 @@ export function DoctorScheduleScreen() {
                     const type = (
                       ex.type ||
                       ex.exceptionType ||
-                      "LEAVE"
+                      "VACATION"
                     ).toUpperCase();
                     const status = (ex.status || "ACTIVE").toUpperCase();
                     const typeClass =
@@ -545,21 +547,21 @@ export function DoctorScheduleScreen() {
                         <div className="flex items-center gap-3">
                           <div
                             className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                              type === "LEAVE"
+                              type === "VACATION"
                                 ? "bg-amber-50 text-amber-600"
                                 : type === "SURGERY"
                                   ? "bg-red-50 text-red-600"
-                                  : type === "MEETING"
-                                    ? "bg-blue-50 text-blue-600"
-                                    : "bg-purple-50 text-purple-600"
+                                  : type === "EMERGENCY"
+                                    ? "bg-orange-50 text-orange-600"
+                                    : type === "CONFERENCE"
+                                      ? "bg-indigo-50 text-indigo-600"
+                                      : "bg-blue-50 text-blue-600"
                             }`}
                           >
-                            {type === "LEAVE" ? (
-                              <Calendar size={18} />
-                            ) : type === "SURGERY" ? (
+                            {type === "SURGERY" ? (
                               <Settings2 size={18} />
                             ) : (
-                              <CalendarDays size={18} />
+                              <Calendar size={18} />
                             )}
                           </div>
                           <div>

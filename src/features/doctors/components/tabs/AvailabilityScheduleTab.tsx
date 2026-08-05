@@ -7,6 +7,7 @@ import type {
 } from "../../types/doctors.types";
 import { PP } from "../../constants/doctors.constants";
 import { doctorsService } from "../../services/doctors.service";
+import { resolveDoctorId } from "../../services/doctorProfile.service";
 import type { DayOfWeek } from "../../types/doctors.types";
 
 export interface AvailabilityScheduleTabProps {
@@ -37,8 +38,9 @@ export function AvailabilityScheduleTab({
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    const targetId = resolveDoctorId(doctor);
     doctorsService
-      .getWeeklySchedule(doctor.id)
+      .getWeeklySchedule(targetId)
       .then((data) => {
         if (!cancelled) setSchedule(data?.weeklySchedule || []);
       })
@@ -49,7 +51,7 @@ export function AvailabilityScheduleTab({
     return () => {
       cancelled = true;
     };
-  }, [doctor.id]);
+  }, [doctor]);
 
   const toggleWorkingDay = (dayIndex: number) => {
     setSchedule((prev) =>
@@ -90,8 +92,9 @@ export function AvailabilityScheduleTab({
             slotDurationMinutes: p.slotDurationMinutes,
           })),
         };
+        const targetId = resolveDoctorId(doctor);
         const ok = await doctorsService.updateWeeklyScheduleDay(
-          doctor.id,
+          targetId,
           day.dayOfWeek as DayOfWeek,
           payload,
         );

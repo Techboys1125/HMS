@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import type { PatientAppointment } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.mock";
+import { usePatientPortal } from "../context/PatientPortalContext";
+import type { FamilyMember } from "./FamilyMembersManagement";
 import {
   PatientCancelAppointmentDialog,
   PatientRescheduleAppointmentDialog,
@@ -27,16 +29,18 @@ import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentS
 import { appointmentsApi } from "../../appointments/api/appointments.api";
 
 export function PatientAppointmentsScreen({
-  activePatient,
+  activePatient: propActivePatient,
 }: {
-  activePatient?: any;
+  activePatient?: FamilyMember;
 }) {
+  const portal = usePatientPortal();
+  const activePatient = propActivePatient ?? portal?.activePatient;
   const [appointments, setAppointments] = useState<PatientAppointment[]>([]);
   const [viewMode, setViewMode] = useState<"list" | "book">("list");
   const [cancellingAppt, setCancellingAppt] =
     useState<PatientAppointment | null>(null);
 
-  const loadAppointments = useCallback((patient?: any) => {
+  const loadAppointments = useCallback((patient?: FamilyMember | null) => {
     const targetMrn = patient?.mrn || patient?.id;
     if (!targetMrn) {
       setAppointments([]);
@@ -44,6 +48,7 @@ export function PatientAppointmentsScreen({
     }
     appointmentsApi
       .getPatientAppointments(targetMrn)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .then((res: any) => {
         const data = res?.data || res;
         const list = Array.isArray(data)
@@ -53,6 +58,7 @@ export function PatientAppointmentsScreen({
             : [];
         if (list && list.length > 0) {
           const mapped: PatientAppointment[] = list.map(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (a: any, idx: number) => {
               const dt = a.visitDateTime || a.appointmentDate || a.date || "";
               const datePart = dt.includes("T") ? dt.split("T")[0] : dt;

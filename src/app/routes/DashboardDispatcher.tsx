@@ -8,9 +8,11 @@ import {
   AccountantDashboard,
   PatientDashboard,
 } from "../../features/dashboard";
+import { usePatientPortal } from "../../features/patients/context/PatientPortalContext";
 
 export function DashboardDispatcher() {
   const user = useAuthStore((s) => s.user);
+  const portal = usePatientPortal();
 
   if (!user || !user.role) {
     return <HospitalAdminDashboard />;
@@ -41,7 +43,13 @@ export function DashboardDispatcher() {
       return <AccountantDashboard />;
 
     case "PATIENT":
-      return <PatientDashboard />;
+      return (
+        <PatientDashboard
+          activePatient={portal?.activePatient || undefined}
+          familyMembers={portal?.familyMembers || []}
+          onSwitchPatient={(member) => portal?.switchToPatient(member)}
+        />
+      );
 
     default:
       return <HospitalAdminDashboard />;

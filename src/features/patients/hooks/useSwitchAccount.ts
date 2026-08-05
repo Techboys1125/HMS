@@ -27,6 +27,34 @@ export function useSwitchAccount(primaryMrn: string) {
   const [activePatient, setActivePatient] = useState<Patient | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  /** Switch back to the primary (self) account. */
+  const switchToPrimary = useCallback(() => {
+    localStorage.setItem(SWITCH_ACCOUNT_STORAGE_KEY, primaryMrn);
+    setContext({
+      activeMrn: primaryMrn,
+      primaryMrn,
+      activePatientName: "",
+      isFamilyMember: false,
+    });
+    queryClient.invalidateQueries();
+  }, [primaryMrn, queryClient]);
+
+  // The authenticated patient context is loaded asynchronously. Keep this
+  // hook aligned when the primary MRN arrives after the first render.
+  useEffect(() => {
+    if (!primaryMrn) return;
+    setContext((prev) => {
+      const storedMrn = localStorage.getItem(SWITCH_ACCOUNT_STORAGE_KEY);
+      const activeMrn = storedMrn || prev.activeMrn || primaryMrn;
+      return {
+        ...prev,
+        activeMrn,
+        primaryMrn,
+        isFamilyMember: activeMrn !== primaryMrn,
+      };
+    });
+  }, [primaryMrn]);
+
   // Load active patient data
   useEffect(() => {
     if (!context.activeMrn) return;
@@ -48,7 +76,7 @@ export function useSwitchAccount(primaryMrn: string) {
         }
       })
       .finally(() => setIsLoading(false));
-  }, [context.activeMrn, primaryMrn]);
+  }, [context.activeMrn, primaryMrn, switchToPrimary]);
 
   /**
    * Switch to a family member's account
@@ -68,20 +96,6 @@ export function useSwitchAccount(primaryMrn: string) {
     },
     [primaryMrn, queryClient],
   );
-
-  /**
-   * Switch back to the primary (self) account
-   */
-  const switchToPrimary = useCallback(() => {
-    localStorage.setItem(SWITCH_ACCOUNT_STORAGE_KEY, primaryMrn);
-    setContext({
-      activeMrn: primaryMrn,
-      primaryMrn,
-      activePatientName: "",
-      isFamilyMember: false,
-    });
-    queryClient.invalidateQueries();
-  }, [primaryMrn, queryClient]);
 
   return {
     context,

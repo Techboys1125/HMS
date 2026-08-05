@@ -8,6 +8,7 @@ export type PatientFilterValues = {
   statusFilter: string;
   doctorFilter: string;
   regDateFilter: string;
+  registrationTypeFilter: string;
 };
 
 /**
@@ -31,6 +32,7 @@ export function PatientFilters({
     statusFilter,
     doctorFilter,
     regDateFilter,
+    registrationTypeFilter,
   } = values;
 
   return (
@@ -120,6 +122,22 @@ export function PatientFilters({
               <option value="All">All Time</option>
               <option value="Today">Today</option>
               <option value="This Month">This Month</option>
+            </select>
+          </div>
+
+          {/* Registration Type Filter */}
+          <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-[#E5E7EB] bg-[#F1F5F9]/60 text-xs text-[#111827]">
+            <span className="text-[#64748B]">Reg Type:</span>
+            <select
+              value={registrationTypeFilter}
+              onChange={(e) =>
+                onChange({ registrationTypeFilter: e.target.value })
+              }
+              className="bg-transparent font-semibold outline-none cursor-pointer text-[#0D47A1]"
+            >
+              <option value="All">All Types</option>
+              <option value="ONLINE">Online</option>
+              <option value="WALK_IN">Walk-In</option>
             </select>
           </div>
 

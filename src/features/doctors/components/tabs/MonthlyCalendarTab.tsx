@@ -7,6 +7,8 @@ import type {
 import { PP } from "../../constants/doctors.constants";
 import { doctorsService } from "../../services/doctors.service";
 
+import { resolveDoctorId } from "../../services/doctorProfile.service";
+
 export interface MonthlyCalendarTabProps {
   doctor: DoctorRecord;
   canEdit: boolean;
@@ -31,8 +33,9 @@ export function MonthlyCalendarTab({ doctor }: MonthlyCalendarTabProps) {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    const targetId = resolveDoctorId(doctor);
     doctorsService
-      .getMonthlyCalendarAvailability(doctor.id, month)
+      .getMonthlyCalendarAvailability(targetId, month)
       .then((data) => {
         if (!cancelled && data) setDays(data.days || []);
       })
@@ -43,7 +46,7 @@ export function MonthlyCalendarTab({ doctor }: MonthlyCalendarTabProps) {
     return () => {
       cancelled = true;
     };
-  }, [doctor.id, month]);
+  }, [doctor, month]);
 
   if (loading) {
     return (
