@@ -655,7 +655,7 @@ export const useCreateStaffForm = (
       const apiErr = err as {
         response?: {
           status?: number;
-          data?: { message?: string; errors?: any };
+          data?: { message?: string; errors?: unknown };
         };
       };
       const status = apiErr?.response?.status;
@@ -673,8 +673,11 @@ export const useCreateStaffForm = (
         Array.isArray(resData.errors) &&
         resData.errors.length > 0
       ) {
-        const details = resData.errors
-          .map((e: any) => e.message || e.defaultMessage || JSON.stringify(e))
+        const details = (resData.errors as Record<string, unknown>[])
+          .map((e) => {
+            const msg = (e?.message || e?.defaultMessage) as string | undefined;
+            return msg || JSON.stringify(e);
+          })
           .join(", ");
         errMsg = `${resData.message}: ${details}`;
       } else if (resData?.message) {

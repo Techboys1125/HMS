@@ -19,7 +19,7 @@ export type FamilyMemberRelationship =
 
 export interface FamilyMember {
   verificationStatus: string;
-  patientName: any;
+  patientName?: string | null;
   id: string | number;
   mrn?: string;
   name: string;

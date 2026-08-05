@@ -34,7 +34,7 @@ export function PatientProfileTab({
       ] as const);
 
   const isFieldEditable = (field: string) =>
-    canEdit && allowedFields.includes(field as any);
+    canEdit && (allowedFields as readonly string[]).includes(field);
 
   const handleSave = async () => {
     setSaving(true);

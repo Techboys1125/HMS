@@ -10,10 +10,15 @@ export function DoctorAssignedPatientsPage({ doctorId }: { doctorId: string }) {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [prevDoctorId, setPrevDoctorId] = useState<string | null>(null);
+
+  if (doctorId !== prevDoctorId) {
+    setPrevDoctorId(doctorId);
+    setLoading(true);
+  }
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     patientsApi
       .listPatients({ status: "ACTIVE" })
       .then((response) => {

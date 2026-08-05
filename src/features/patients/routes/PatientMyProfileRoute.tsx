@@ -1,5 +1,4 @@
 import { useAuthStore } from "../../auth/index";
-import { useState, useEffect } from "react";
 import { MyProfilePage } from "../pages/MyProfilePage";
 import { usePatientPortal } from "../context/PatientPortalContext";
 import type { Role } from "../utils/patientPermissions";
@@ -26,5 +25,6 @@ export function PatientMyProfileRoute() {
     );
   }, [portal?.primaryMrn, user?.patientId, user?.id]);
 
+  return <MyProfilePage currentRole={currentRole} mrn={mrn} />;
   return <MyProfilePage currentRole={currentRole} mrn={mrn} />;
 }

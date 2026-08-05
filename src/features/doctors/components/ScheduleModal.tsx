@@ -155,22 +155,45 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
     setExceptions(Array.isArray(data) ? data : []);
   }, [doctorId]);
 
-  useEffect(() => {
-    if (!isOpen || !doctorId) return;
-    setTab("weekly");
-    setEditingDay(null);
-    setDraft(null);
-    setExceptionFormOpen(false);
-    setEditingException(null);
-    loadWeekly();
-    loadExceptions();
-  }, [isOpen, doctorId, loadWeekly, loadExceptions]);
+  const [prevModalKey, setPrevModalKey] = useState<string>("");
+  const modalKey = isOpen ? `${doctorId}_${isOpen}` : "";
+  if (modalKey !== prevModalKey) {
+    setPrevModalKey(modalKey);
+    if (isOpen) {
+      setTab("weekly");
+      setEditingDay(null);
+      setDraft(null);
+      setExceptionFormOpen(false);
+      setEditingException(null);
+      setIsLoading(Boolean(doctorId));
+    }
+  }
 
   useEffect(() => {
-    if (!isOpen) {
-      setToastMsg(null);
-    }
-  }, [isOpen]);
+    if (!isOpen || !doctorId) return;
+    let cancelled = false;
+    Promise.all([
+      doctorsApi.getWeeklySchedule(doctorId),
+      doctorsApi.getScheduleExceptions(doctorId),
+    ])
+      .then(([weeklyData, excData]) => {
+        if (cancelled) return;
+        setWeekly(weeklyData);
+        setExceptions(Array.isArray(excData) ? excData : []);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, doctorId]);
+
+  // Render-phase toast clear when modal closes
+  if (!isOpen && toastMsg !== null) {
+    setToastMsg(null);
+  }
 
   if (!isOpen || !doctor) return null;
 
@@ -1268,7 +1291,7 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
       </div>
 
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-[60] flex items-center gap-3 bg-[#111827] text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 animate-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-6 right-6 z-60 flex items-center gap-3 bg-[#111827] text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 animate-in slide-in-from-bottom-4 duration-200">
           <CheckCircle2 className="w-5 h-5 text-[#66BB6A] shrink-0" />
           <span className="text-xs font-semibold" style={{ fontFamily: PP }}>
             {toastMsg}

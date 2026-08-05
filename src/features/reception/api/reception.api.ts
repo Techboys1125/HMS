@@ -7,6 +7,116 @@ import type {
   BillingStatus,
 } from "../types/reception.types";
 
+export interface PatchCheckInResponse {
+  success?: boolean;
+  appointmentId?: string | number;
+  tokenNumber?: string;
+}
+
+export interface AppointmentTokenResponse {
+  tokenNumber?: string;
+  token?: string;
+}
+
+interface RawQueueItem {
+  id?: string | number;
+  queueItemId?: string | number;
+  appointmentId?: string | number;
+  tokenNumber?: string;
+  queueToken?: string;
+  patientId?: string | number;
+  patient?: {
+    id?: string | number;
+    fullName?: string;
+    name?: string;
+    mrn?: string;
+    mobile?: string;
+    phone?: string;
+    gender?: string;
+    age?: string | number;
+    dateOfBirth?: string;
+  };
+  patientName?: string;
+  mrn?: string;
+  mobile?: string;
+  gender?: string;
+  age?: string | number;
+  dateOfBirth?: string;
+  appointmentTime?: string;
+  timeSlot?: string;
+  arrivalTime?: string;
+  checkInTime?: string;
+  checkInTimestamp?: string;
+  departmentId?: string | number;
+  department?: {
+    id?: string | number;
+    name?: string;
+  };
+  departmentName?: string;
+  doctorId?: string | number;
+  doctor?: {
+    id?: string | number;
+    fullName?: string;
+    name?: string;
+  };
+  doctorName?: string;
+  queueStatus?: string;
+  status?: string;
+  billingStatus?: string;
+  paymentStatus?: string;
+  consultationFee?: number;
+  visitType?: "WALK_IN" | "APPOINTMENT" | "FOLLOW_UP" | "EMERGENCY";
+  notes?: string;
+}
+
+function mapRawToQueueItem(itemVal: unknown, idx: number): ReceptionQueueItem {
+  const item = itemVal as RawQueueItem;
+  return {
+    id:
+      item.id ||
+      item.queueItemId ||
+      item.appointmentId ||
+      `item-${idx + 1}`,
+    tokenNumber:
+      item.tokenNumber || item.queueToken || `TK-${100 + idx + 1}`,
+    patientId: item.patientId || item.patient?.id || `P-${idx + 1}`,
+    patientName:
+      item.patientName ||
+      item.patient?.fullName ||
+      item.patient?.name ||
+      "Patient",
+    mrn: item.mrn || item.patient?.mrn || `MRN-${202600 + idx + 1}`,
+    mobile:
+      item.mobile || item.patient?.mobile || item.patient?.phone || "N/A",
+    gender: item.gender || item.patient?.gender || "MALE",
+    age: item.age || item.patient?.age || "30",
+    dateOfBirth: item.dateOfBirth || item.patient?.dateOfBirth,
+    appointmentId: item.appointmentId || item.id,
+    appointmentTime: item.appointmentTime || item.timeSlot || "09:00 AM",
+    arrivalTime: item.arrivalTime || item.checkInTime || undefined,
+    checkInTimestamp:
+      item.checkInTimestamp || item.checkInTime || undefined,
+    departmentId: item.departmentId || item.department?.id || 1,
+    departmentName:
+      item.departmentName || item.department?.name || "General Medicine",
+    doctorId: item.doctorId || item.doctor?.id || 1,
+    doctorName:
+      item.doctorName ||
+      item.doctor?.fullName ||
+      item.doctor?.name ||
+      "Duty Doctor",
+    queueStatus: (item.queueStatus ||
+      item.status ||
+      "WAITING") as QueueStatus,
+    billingStatus: (item.billingStatus ||
+      item.paymentStatus ||
+      "PAID") as BillingStatus,
+    consultationFee: item.consultationFee || 500,
+    visitType: item.visitType || "APPOINTMENT",
+    notes: item.notes || undefined,
+  };
+}
+
 export const receptionApi = {
   /**
    * GET /api/v1/reception/worklist or /api/v1/appointments/today
@@ -32,70 +142,28 @@ export const receptionApi = {
       const qStr = queryParams.toString() ? `?${queryParams.toString()}` : "";
 
       try {
-        res = await apiClient.get<any>(`/api/v1/reception/worklist${qStr}`);
+        res = await apiClient.get<unknown>(`/api/v1/reception/worklist${qStr}`);
       } catch (err) {
         if (
           axios.isAxiosError(err) &&
           (err.response?.status === 404 || err.response?.status === 403)
         ) {
-          res = await apiClient.get<any>(`/api/v1/appointments${qStr}`);
+          res = await apiClient.get<unknown>(`/api/v1/appointments${qStr}`);
         } else {
           throw err;
         }
       }
 
-      const list = Array.isArray(res.data?.data)
-        ? res.data.data
-        : Array.isArray(res.data?.content)
-          ? res.data.content
-          : Array.isArray(res.data)
-            ? res.data
+      const resData = res.data as { data?: unknown; content?: unknown } | unknown[] | undefined;
+      const list = Array.isArray(resData)
+        ? resData
+        : Array.isArray((resData as { data?: unknown })?.data)
+          ? ((resData as { data?: unknown }).data as unknown[])
+          : Array.isArray((resData as { content?: unknown })?.content)
+            ? ((resData as { content?: unknown }).content as unknown[])
             : [];
 
-      return list.map((item: any, idx: number) => ({
-        id:
-          item.id ||
-          item.queueItemId ||
-          item.appointmentId ||
-          `item-${idx + 1}`,
-        tokenNumber:
-          item.tokenNumber || item.queueToken || `TK-${100 + idx + 1}`,
-        patientId: item.patientId || item.patient?.id || `P-${idx + 1}`,
-        patientName:
-          item.patientName ||
-          item.patient?.fullName ||
-          item.patient?.name ||
-          "Patient",
-        mrn: item.mrn || item.patient?.mrn || `MRN-${202600 + idx + 1}`,
-        mobile:
-          item.mobile || item.patient?.mobile || item.patient?.phone || "N/A",
-        gender: item.gender || item.patient?.gender || "MALE",
-        age: item.age || item.patient?.age || "30",
-        dateOfBirth: item.dateOfBirth || item.patient?.dateOfBirth,
-        appointmentId: item.appointmentId || item.id,
-        appointmentTime: item.appointmentTime || item.timeSlot || "09:00 AM",
-        arrivalTime: item.arrivalTime || item.checkInTime || undefined,
-        checkInTimestamp:
-          item.checkInTimestamp || item.checkInTime || undefined,
-        departmentId: item.departmentId || item.department?.id || 1,
-        departmentName:
-          item.departmentName || item.department?.name || "General Medicine",
-        doctorId: item.doctorId || item.doctor?.id || 1,
-        doctorName:
-          item.doctorName ||
-          item.doctor?.fullName ||
-          item.doctor?.name ||
-          "Duty Doctor",
-        queueStatus: (item.queueStatus ||
-          item.status ||
-          "WAITING") as QueueStatus,
-        billingStatus: (item.billingStatus ||
-          item.paymentStatus ||
-          "PAID") as BillingStatus,
-        consultationFee: item.consultationFee || 500,
-        visitType: item.visitType || "APPOINTMENT",
-        notes: item.notes || undefined,
-      }));
+      return list.map(mapRawToQueueItem);
     } catch (error) {
       console.warn(
         "[receptionApi] Worklist fetch warning, using fallback mock structure:",
@@ -113,7 +181,7 @@ export const receptionApi = {
     payload: ArrivalCheckInPayload,
   ): Promise<{ success: boolean; checkInTime: string; tokenNumber: string }> {
     try {
-      const res = await apiClient.post<any>(
+      const res = await apiClient.post<{ data?: { checkInTime?: string; tokenNumber?: string } }>(
         "/api/v1/reception/check-in",
         payload,
       );
@@ -145,7 +213,14 @@ export const receptionApi = {
     payload: WalkInRegistrationPayload,
   ): Promise<ReceptionQueueItem> {
     try {
-      const res = await apiClient.post<any>(
+      interface WalkInResponse {
+        id?: string | number;
+        tokenNumber?: string;
+        patientId?: string | number;
+        mrn?: string;
+        data?: WalkInResponse;
+      }
+      const res = await apiClient.post<WalkInResponse>(
         "/api/v1/reception/walk-in",
         payload,
       );
@@ -230,14 +305,16 @@ export const receptionApi = {
   /**
    * PATCH /api/v1/reception/appointments/{appointmentId}/check-in
    */
-  async patchCheckIn(appointmentId: string | number): Promise<any> {
+  async patchCheckIn(
+    appointmentId: string | number,
+  ): Promise<PatchCheckInResponse> {
     try {
-      const res = await apiClient.patch(
+      const res = await apiClient.patch<unknown>(
         `/api/v1/reception/appointments/${appointmentId}/check-in`,
         {},
       );
 
-      return res.data;
+      return res.data as PatchCheckInResponse;
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const data = error.response?.data as { message?: string } | undefined;
@@ -257,12 +334,14 @@ export const receptionApi = {
   /**
    * GET /api/v1/reception/appointments/{appointmentId}/token
    */
-  async getAppointmentToken(appointmentId: string | number): Promise<any> {
+  async getAppointmentToken(
+    appointmentId: string | number,
+  ): Promise<AppointmentTokenResponse> {
     try {
-      const res = await apiClient.get(
+      const res = await apiClient.get<unknown>(
         `/api/v1/reception/appointments/${appointmentId}/token`,
       );
-      return res.data;
+      return res.data as AppointmentTokenResponse;
     } catch (error) {
       console.warn(
         `[receptionApi] getAppointmentToken fallback for apt ${appointmentId}:`,
@@ -275,14 +354,16 @@ export const receptionApi = {
   /**
    * GET /api/v1/reception/queue
    */
-  async getReceptionQueue(): Promise<any[]> {
+  async getReceptionQueue(): Promise<ReceptionQueueItem[]> {
     try {
-      const res = await apiClient.get<any>(`/api/v1/reception/queue`);
-      return Array.isArray(res.data)
-        ? res.data
-        : Array.isArray(res.data?.data)
-          ? res.data.data
+      const res = await apiClient.get<unknown>(`/api/v1/reception/queue`);
+      const rawData = res.data as { data?: unknown } | unknown[];
+      const rawList = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray((rawData as { data?: unknown })?.data)
+          ? ((rawData as { data?: unknown }).data as unknown[])
           : [];
+      return rawList.map(mapRawToQueueItem);
     } catch (error) {
       console.warn("[receptionApi] getReceptionQueue fallback:", error);
       return [];

@@ -80,8 +80,7 @@ export const normalizeAppointmentRecord = (
 
   return {
     id: (item?.id ?? item?.appointmentId ?? item?.appointmentNumber ?? "") as
-      | string
-      | number,
+      string | number,
     appointmentNumber: (item?.appointmentNumber ||
       item?.queueToken ||
       String(item?.id ?? "")) as string,
@@ -92,19 +91,16 @@ export const normalizeAppointmentRecord = (
       patient?.name ||
       "") as string,
     patientMrn: (item?.patientMrn || patient?.mrn || item?.mrn) as
-      | string
-      | undefined,
+      string | undefined,
     doctorId: (item?.doctorId ?? doctor?.doctorId ?? doctor?.id ?? "") as
-      | string
-      | number,
+      string | number,
     doctorName: (item?.doctorName || doctor?.name || "") as string,
     appointmentDate,
     startTime,
     endTime: item?.endTime as string | undefined,
     status: toDisplayStatus(item?.status as string | undefined),
     queueStatus: (item?.queueStatus || item?.arrivalStatus) as
-      | string
-      | undefined,
+      string | undefined,
     appointmentType: item?.appointmentType as string | undefined,
     reason: (item?.reason || item?.chiefComplaint) as string | undefined,
     symptoms: item?.symptoms as string | undefined,
@@ -124,11 +120,7 @@ export const normalizeAppointmentRecord = (
     rescheduleReason: item?.rescheduleReason as string | undefined,
     vitalsRecorded: item?.vitalsRecorded as boolean | undefined,
     paymentStatus: item?.paymentStatus as
-      | "PAID"
-      | "UNPAID"
-      | "PARTIAL"
-      | "PENDING"
-      | undefined,
+      "PAID" | "UNPAID" | "PARTIAL" | "PENDING" | undefined,
     priority: item?.priority as string | undefined,
     arrivalStatus: item?.arrivalStatus as string | undefined,
     opdRoom: (item?.opdRoom || doctor?.opdRoom) as string | undefined,
@@ -139,41 +131,54 @@ export const normalizeAppointmentRecord = (
     patientAge: item?.patientAge as number | undefined,
     patientGender: item?.patientGender as string | undefined,
     patientPhone: (item?.patientPhone || patient?.phone || patient?.mobile) as
-      | string
-      | undefined,
+      string | undefined,
     doctorSpecialty: (item?.doctorSpecialty || doctor?.specialty) as
-      | string
-      | undefined,
+      string | undefined,
     tokenNo: (item?.tokenNo || item?.queueToken) as string | undefined,
     timeSlot: (item?.timeSlot || startTime) as string | undefined,
     visitType: (item?.visitType || item?.appointmentType) as string | undefined,
     chiefComplaint: (item?.chiefComplaint || item?.reason) as
-      | string
-      | undefined,
+      string | undefined,
     notes: item?.notes as string | undefined,
   };
 };
 
 const unwrapAppointmentCollection = (
-  response: any,
+  response: unknown,
 ): Record<string, unknown>[] => {
-  if (Array.isArray(response)) return response;
-  if (Array.isArray(response?.data)) return response.data;
-  if (Array.isArray(response?.content)) return response.content;
-  if (Array.isArray(response?.appointments)) return response.appointments;
+  if (Array.isArray(response)) return response as Record<string, unknown>[];
+  if (!response || typeof response !== "object") return [];
+  const res = response as Record<string, unknown>;
+  if (Array.isArray(res.data)) return res.data as Record<string, unknown>[];
+  if (Array.isArray(res.content))
+    return res.content as Record<string, unknown>[];
+  if (Array.isArray(res.appointments))
+    return res.appointments as Record<string, unknown>[];
 
-  const resData = response?.data;
-  if (Array.isArray(resData?.appointments)) return resData.appointments;
-  if (Array.isArray(resData?.content)) return resData.content;
-  if (Array.isArray(resData?.data)) return resData.data;
-  if (Array.isArray(resData?.data?.content)) return resData.data.content;
-  if (Array.isArray(resData?.data?.appointments))
-    return resData.data.appointments;
+  const resData = res.data as Record<string, unknown> | null | undefined;
+  if (resData && typeof resData === "object") {
+    if (Array.isArray(resData.appointments))
+      return resData.appointments as Record<string, unknown>[];
+    if (Array.isArray(resData.content))
+      return resData.content as Record<string, unknown>[];
+    if (Array.isArray(resData.data))
+      return resData.data as Record<string, unknown>[];
+    const deepData = resData.data as Record<string, unknown> | null | undefined;
+    if (deepData && typeof deepData === "object") {
+      if (Array.isArray(deepData.content))
+        return deepData.content as Record<string, unknown>[];
+      if (Array.isArray(deepData.appointments))
+        return deepData.appointments as Record<string, unknown>[];
+    }
+  }
 
-  if (response?.success && resData && typeof resData === "object") {
-    if (Array.isArray(resData.appointments)) return resData.appointments;
-    if (Array.isArray(resData.content)) return resData.content;
-    if (Array.isArray(resData.data)) return resData.data;
+  if (res.success && resData && typeof resData === "object") {
+    if (Array.isArray(resData.appointments))
+      return resData.appointments as Record<string, unknown>[];
+    if (Array.isArray(resData.content))
+      return resData.content as Record<string, unknown>[];
+    if (Array.isArray(resData.data))
+      return resData.data as Record<string, unknown>[];
   }
 
   return [];
@@ -524,8 +529,65 @@ export const appointmentService = {
         localStorage.getItem("doctor_status_overrides") || "{}",
       );
 
+      interface DoctorInputShape {
+        id?: string | number;
+        doctorId?: string | number;
+        doctorProfile?: {
+          doctorId?: string | number;
+          status?: string;
+          active?: boolean;
+          isActive?: boolean;
+          primarySpecialty?: {
+            specialtyName?: string;
+          };
+          consultationFee?: number | string;
+          qualification?: string;
+        };
+        userId?: string | number;
+        doctor?: {
+          id?: string | number;
+          status?: string;
+          active?: boolean;
+          isActive?: boolean;
+        };
+        user?: {
+          id?: string | number;
+          status?: string;
+          accountStatus?: string;
+          active?: boolean;
+          isActive?: boolean;
+          enabled?: boolean;
+        };
+        status?: string;
+        accountStatus?: string;
+        employmentStatus?: string;
+        active?: boolean;
+        isActive?: boolean;
+        enabled?: boolean;
+        doctorName?: string;
+        fullName?: string;
+        name?: string;
+        departmentName?: string;
+        department?: string;
+        departmentId?: string | number;
+        fees?: {
+          standardConsultationFee?: number | string;
+        };
+        consultationFee?: number | string;
+        opdRoom?: string;
+        primarySpecialty?: {
+          specialtyName?: string;
+        };
+        specialty?: string;
+        qualification?: string;
+        primaryDepartment?: {
+          departmentId?: string | number;
+          departmentName?: string;
+        };
+      }
+
       // Filter out inactive doctors before mapping
-      const activeDoctors = rawList.filter((d: any) => {
+      const activeDoctors = rawList.filter((d: DoctorInputShape) => {
         const candidateIds = [
           d.doctorId,
           d.doctorProfile?.doctorId,

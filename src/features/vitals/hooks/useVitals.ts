@@ -20,8 +20,12 @@ export function useVitals() {
       setError(null);
       const list = await vitalsService.getWaitingPatients();
       setWaitingPatients(list);
-    } catch (err: any) {
-      setError(err?.message || "Failed to fetch waiting patients for vitals");
+    } catch (err: unknown) {
+      const errMsg =
+        err instanceof Error
+          ? err.message
+          : "Failed to fetch waiting patients for vitals";
+      setError(errMsg);
     } finally {
       setLoading(false);
     }
@@ -51,8 +55,10 @@ export function useVitals() {
           await fetchWaitingPatients();
         }
         return success;
-      } catch (err: any) {
-        setError(err?.message || "Failed to record vitals");
+      } catch (err: unknown) {
+        const errMsg =
+          err instanceof Error ? err.message : "Failed to record vitals";
+        setError(errMsg);
         return false;
       } finally {
         setSubmitting(false);

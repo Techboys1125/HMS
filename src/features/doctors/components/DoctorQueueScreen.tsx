@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   RefreshCw,
   UserPlus,
@@ -104,11 +104,22 @@ export function DoctorQueueScreen() {
   const [actionId, setActionId] = useState<number | string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  const fetchQueue = useCallback(async () => {
-    if (!doctorId) return;
+  const doctorIdRef = useRef(doctorId);
+
+  const [prevDoctorId, setPrevDoctorId] = useState<number | string | undefined>(
+    undefined,
+  );
+  if (doctorId !== prevDoctorId) {
+    setPrevDoctorId(doctorId);
+    setIsLoading(Boolean(doctorId));
+  }
+
+  const fetchQueue = async () => {
+    const id = doctorIdRef.current;
+    if (!id) return;
     setIsLoading(true);
     try {
-      const data = await doctorsApi.getQueue(doctorId);
+      const data = await doctorsApi.getQueue(id);
       setQueue({
         summary: data.summary || {},
         content: Array.isArray(data.content) ? data.content : [],
@@ -118,11 +129,33 @@ export function DoctorQueueScreen() {
     } finally {
       setIsLoading(false);
     }
-  }, [doctorId]);
+  };
 
   useEffect(() => {
-    fetchQueue();
-  }, [fetchQueue]);
+    doctorIdRef.current = doctorId;
+    if (!doctorId) return;
+    let cancelled = false;
+
+    doctorsApi
+      .getQueue(doctorId)
+      .then((data) => {
+        if (!cancelled) {
+          setQueue({
+            summary: data.summary || {},
+            content: Array.isArray(data.content) ? data.content : [],
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setQueue({ summary: {}, content: [] });
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [doctorId]);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);

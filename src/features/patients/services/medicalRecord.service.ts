@@ -11,30 +11,49 @@ import type {
   PatientMedicalSummary,
 } from "../types/medicalRecord.types";
 
+interface ApiResponse {
+  data?: unknown;
+  content?: unknown;
+}
+
+type RawRecord = Record<string, unknown>;
+
 export const medicalRecordService = {
   /**
    * Fetch consultation records from existing OPD endpoints
    */
   async getConsultations(mrn: string): Promise<ConsultationRecord[]> {
     try {
-      const response = await apiClient.get<any>(
+      const response = await apiClient.get<ApiResponse>(
         `/api/v1/opd/consultations?mrn=${encodeURIComponent(mrn)}`,
       );
       const data =
         response.data?.data || response.data?.content || response.data || [];
-      const list = Array.isArray(data) ? data : [];
-      return list.map((c: any) => ({
-        id: c.id || c.consultationId || "",
-        consultationDate: c.consultationDate || c.date || "",
-        doctorName: c.doctorName || c.doctor || "",
-        department: c.department || c.departmentName || "",
-        chiefComplaint: c.chiefComplaint || "",
-        diagnosis: c.diagnosis || c.diagnosisSummary || "",
-        clinicalNotes: c.clinicalNotes || c.notes || "",
-        followUpDate: c.followUpDate || "",
-        status: c.status || "Completed",
-        prescriptionIssued: c.prescriptionIssued ?? false,
-      }));
+      const list = (Array.isArray(data) ? data : []) as RawRecord[];
+      return list.map((c: RawRecord) => {
+        let status: ConsultationRecord["status"] = "Completed";
+        const rawStatus = c.status as string;
+        if (
+          rawStatus === "Completed" ||
+          rawStatus === "In-Progress" ||
+          rawStatus === "Follow-up Required" ||
+          rawStatus === "Cancelled"
+        ) {
+          status = rawStatus;
+        }
+        return {
+          id: (c.id || c.consultationId || "") as string | number,
+          consultationDate: (c.consultationDate || c.date || "") as string,
+          doctorName: (c.doctorName || c.doctor || "") as string,
+          department: (c.department || c.departmentName || "") as string,
+          chiefComplaint: c.chiefComplaint as string | undefined,
+          diagnosis: (c.diagnosis || c.diagnosisSummary) as string | undefined,
+          clinicalNotes: (c.clinicalNotes || c.notes) as string | undefined,
+          followUpDate: c.followUpDate as string | undefined,
+          status,
+          prescriptionIssued: c.prescriptionIssued as boolean | undefined,
+        };
+      });
     } catch {
       return [];
     }
@@ -45,25 +64,25 @@ export const medicalRecordService = {
    */
   async getVitals(mrn: string): Promise<VitalsRecord[]> {
     try {
-      const response = await apiClient.get<any>(
+      const response = await apiClient.get<ApiResponse>(
         `/api/v1/vitals?mrn=${encodeURIComponent(mrn)}`,
       );
       const data =
         response.data?.data || response.data?.content || response.data || [];
-      const list = Array.isArray(data) ? data : [];
-      return list.map((v: any) => ({
-        id: v.id || v.vitalId || "",
-        recordedAt: v.recordedAt || v.date || v.timestamp || "",
-        recordedBy: v.recordedBy || v.nurseName || "",
-        bloodPressure: v.bloodPressure || v.bp || "",
-        heartRate: v.heartRate || v.hr || v.pulse || "",
-        temperature: v.temperature || v.temp || "",
-        spo2: v.spo2 || v.oxygenSaturation || "",
-        weight: v.weight || "",
-        height: v.height || "",
-        bmi: v.bmi || "",
-        respiratoryRate: v.respiratoryRate || "",
-        notes: v.notes || "",
+      const list = (Array.isArray(data) ? data : []) as RawRecord[];
+      return list.map((v: RawRecord) => ({
+        id: (v.id || v.vitalId || "") as string | number,
+        recordedAt: (v.recordedAt || v.date || v.timestamp || "") as string,
+        recordedBy: (v.recordedBy || v.nurseName) as string | undefined,
+        bloodPressure: v.bloodPressure as string | undefined,
+        heartRate: v.heartRate as string | undefined,
+        temperature: v.temperature as string | undefined,
+        spo2: v.spo2 as string | undefined,
+        weight: v.weight as string | undefined,
+        height: v.height as string | undefined,
+        bmi: v.bmi as string | undefined,
+        respiratoryRate: v.respiratoryRate as string | undefined,
+        notes: v.notes as string | undefined,
       }));
     } catch {
       return [];
@@ -75,21 +94,47 @@ export const medicalRecordService = {
    */
   async getDiagnoses(mrn: string): Promise<DiagnosisRecord[]> {
     try {
-      const response = await apiClient.get<any>(
+      const response = await apiClient.get<ApiResponse>(
         `/api/v1/patients/${encodeURIComponent(mrn)}/diagnoses`,
       );
       const data = response.data?.data || response.data || [];
-      const list = Array.isArray(data) ? data : [];
-      return list.map((d: any) => ({
-        id: d.id || "",
-        date: d.date || d.diagnosisDate || "",
-        doctorName: d.doctorName || d.doctor || "",
-        diagnosisCode: d.diagnosisCode || d.icdCode || "",
-        diagnosisName: d.diagnosisName || d.name || d.diagnosis || "",
-        severity: d.severity || "Moderate",
-        notes: d.notes || "",
-        status: d.status || "Active",
-      }));
+      const list = (Array.isArray(data) ? data : []) as RawRecord[];
+      return list.map((d: RawRecord) => {
+        let status: DiagnosisRecord["status"] = "Active";
+        const rawStatus = d.status as string;
+        if (
+          rawStatus === "Active" ||
+          rawStatus === "Resolved" ||
+          rawStatus === "Chronic"
+        ) {
+          status = rawStatus;
+        }
+
+        let severity: DiagnosisRecord["severity"] = "Moderate";
+        const rawSeverity = d.severity as string;
+        if (
+          rawSeverity === "Mild" ||
+          rawSeverity === "Moderate" ||
+          rawSeverity === "Severe" ||
+          rawSeverity === "Critical"
+        ) {
+          severity = rawSeverity;
+        }
+
+        return {
+          id: (d.id || "") as string | number,
+          date: (d.date || d.diagnosisDate || "") as string,
+          doctorName: (d.doctorName || d.doctor || "") as string,
+          diagnosisCode: d.diagnosisCode as string | undefined,
+          diagnosisName: (d.diagnosisName ||
+            d.name ||
+            d.diagnosis ||
+            "") as string,
+          severity,
+          notes: d.notes as string | undefined,
+          status,
+        };
+      });
     } catch {
       return [];
     }

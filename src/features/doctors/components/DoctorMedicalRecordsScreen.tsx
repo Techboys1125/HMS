@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Search,
   FileText,
@@ -33,18 +33,28 @@ export function DoctorMedicalRecordsScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  const fetchRecords = useCallback(async () => {
-    if (!doctorId) return;
+  const doctorIdRef = useRef(doctorId);
+
+  const [prevDoctorId, setPrevDoctorId] = useState<number | string | undefined>(
+    undefined,
+  );
+  if (doctorId !== prevDoctorId) {
+    setPrevDoctorId(doctorId);
+    setIsLoading(Boolean(doctorId));
+  }
+
+  const fetchRecords = async () => {
+    const id = doctorIdRef.current;
+    if (!id) return;
     setIsLoading(true);
     try {
       const res = await appointmentsApi.getAppointments({
-        doctorId: doctorId as number,
+        doctorId: id as number,
         size: 100,
         status: "COMPLETED",
       });
       const raw = (res.data || res) as
-        | unknown[]
-        | { content?: unknown[]; items?: unknown[] };
+        unknown[] | { content?: unknown[]; items?: unknown[] };
       const appointments = Array.isArray(raw)
         ? raw
         : (raw.content ?? raw.items ?? []);
@@ -54,11 +64,38 @@ export function DoctorMedicalRecordsScreen() {
     } finally {
       setIsLoading(false);
     }
-  }, [doctorId]);
+  };
 
   useEffect(() => {
-    fetchRecords();
-  }, [fetchRecords]);
+    doctorIdRef.current = doctorId;
+    if (!doctorId) return;
+    let cancelled = false;
+
+    appointmentsApi
+      .getAppointments({
+        doctorId: doctorId as number,
+        size: 100,
+        status: "COMPLETED",
+      })
+      .then((res) => {
+        if (cancelled) return;
+        const raw = (res.data || res) as
+          unknown[] | { content?: unknown[]; items?: unknown[] };
+        const appointments = Array.isArray(raw)
+          ? raw
+          : (raw.content ?? raw.items ?? []);
+        setRecords(appointments as MedicalRecordRow[]);
+      })
+      .catch(() => {
+        if (!cancelled) setRecords([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [doctorId]);
 
   const filteredRecords = records.filter((r) => {
     const q = searchQuery.toLowerCase();
@@ -110,18 +147,27 @@ export function DoctorMedicalRecordsScreen() {
               </button>
             ))}
           </div>
-          <div className="relative">
-            <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
-            <input
-              type="text"
-              placeholder="Search records..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-3 py-2 text-sm bg-slate-50 border border-gray-100 rounded-xl text-[#111827] placeholder-slate-400 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-            />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={fetchRecords}
+              title="Refresh Records"
+              className="p-2 rounded-xl border border-gray-100 bg-slate-50 hover:bg-slate-100 text-[#0D47A1] transition-colors"
+            >
+              <RefreshCw size={16} />
+            </button>
+            <div className="relative">
+              <Search
+                size={16}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              />
+              <input
+                type="text"
+                placeholder="Search records..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-3 py-2 text-sm bg-slate-50 border border-gray-100 rounded-xl text-[#111827] placeholder-slate-400 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
+              />
+            </div>
           </div>
         </div>
 

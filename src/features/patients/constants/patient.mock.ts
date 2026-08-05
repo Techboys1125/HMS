@@ -12,7 +12,7 @@ export const RB = "'Roboto', system-ui, sans-serif";
 
 export const MOCK_VISIT_HISTORY: VisitRecord[] = [];
 
-export const TIMELINE_EVENTS: any[] = [];
+export const TIMELINE_EVENTS: unknown[] = [];
 
 export const INITIAL_PATIENT_APPOINTMENTS: PatientAppointment[] = [];
 

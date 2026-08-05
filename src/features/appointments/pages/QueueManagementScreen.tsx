@@ -19,6 +19,23 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+interface QueueItem {
+  token: string;
+  name: string;
+  mrn: string;
+  aptId: string | number;
+  doctor: string;
+  dept: string;
+  apptTime: string;
+  arrivalTime: string;
+  waitTime: string;
+  status: string;
+  type: string;
+  age: number;
+  gender: string;
+  bloodGroup: string;
+}
+
 export function QueueManagementScreen({
   onBack,
   onCheckInClick,
@@ -117,7 +134,8 @@ export function QueueManagementScreen({
         onCheckInClick(genToken, apt.patientMrn || apt.mrn || "");
     } catch (err) {
       alert(
-        err?.message || "Check-in is only allowed on the appointment date.",
+        errorObj?.message ||
+          "Check-in is only allowed on the appointment date.",
       );
     }
   };

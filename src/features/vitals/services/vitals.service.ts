@@ -30,7 +30,27 @@ export const vitalsService = {
     ) {
       payload = formData as NurseVitalsPayload;
     } else {
-      const f = formData as any;
+      interface RelaxedVitalsData {
+        chiefComplaint?: string;
+        notes?: string;
+        symptoms?: string;
+        diagnosis?: string;
+        clinicalNotes?: string;
+        observation?: string;
+        temperature?: number | string;
+        temp?: number | string;
+        weight?: number | string;
+        height?: number | string;
+        bloodPressure?: string;
+        systolic?: string;
+        bpSystolic?: string;
+        diastolic?: string;
+        bpDiastolic?: string;
+        pulse?: number | string;
+        pulseRate?: number | string;
+        spo2?: number | string;
+      }
+      const f = formData as RelaxedVitalsData;
       payload = {
         chiefComplaint:
           f.chiefComplaint ||
@@ -46,26 +66,26 @@ export const vitalsService = {
         temperature:
           typeof f.temperature === "number"
             ? f.temperature
-            : parseFloat(f.temp || f.temperature || "98.6") || 98.6,
+            : parseFloat(String(f.temp || f.temperature || "98.6")) || 98.6,
         weight:
           typeof f.weight === "number"
             ? f.weight
-            : parseFloat(f.weight || "70") || 70,
+            : parseFloat(String(f.weight || "70")) || 70,
         height:
           typeof f.height === "number"
             ? f.height
-            : parseFloat(f.height || "170") || 170,
+            : parseFloat(String(f.height || "170")) || 170,
         bloodPressure:
           f.bloodPressure ||
           `${f.systolic || f.bpSystolic || "120"}/${f.diastolic || f.bpDiastolic || "80"}`,
         pulse:
           typeof f.pulse === "number"
             ? f.pulse
-            : parseInt(f.pulse || f.pulseRate || "72", 10) || 72,
+            : parseInt(String(f.pulse || f.pulseRate || "72"), 10) || 72,
         spo2:
           typeof f.spo2 === "number"
             ? f.spo2
-            : parseInt(f.spo2 || "98", 10) || 98,
+            : parseInt(String(f.spo2 || "98"), 10) || 98,
       };
     }
 

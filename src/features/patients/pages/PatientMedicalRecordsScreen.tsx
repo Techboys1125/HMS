@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import type {
+  Patient,
   MedicalVisitRecord,
   PrescriptionRecord,
 } from "../types/patient.types";
@@ -66,16 +67,31 @@ export function PatientMedicalRecordsScreen({
               id: String(a.appointmentId || a.id || `VIS-${idx}`),
               date: a.appointmentDate || a.date || "",
               time: a.startTime || a.time || "",
-              department: a.departmentName || a.department || "General OPD",
-              doctor: a.doctorName || a.doctor || "Consultant",
+              department:
+                a.departmentName ||
+                (a.department && typeof a.department === "object"
+                  ? a.department.departmentName ||
+                    a.department.name ||
+                    "General OPD"
+                  : String(a.department || "General OPD")),
+              doctor:
+                a.doctorName ||
+                (a.doctor && typeof a.doctor === "object"
+                  ? a.doctor.name || a.doctor.fullName || "Consultant"
+                  : String(a.doctor || "Consultant")),
               specialty: a.departmentName || "Specialist",
               diagnosis: a.reason || a.symptoms || "OPD Consultation",
               notes: a.symptoms || "Consultation completed.",
-              prescriptions: [],
-              status:
-                a.status === "COMPLETED"
-                  ? "Completed"
-                  : a.status || "Completed",
+              prescriptions: [] as string[],
+              status: (a.status === "COMPLETED" || a.status === "Completed"
+                ? "Completed"
+                : a.status === "In-Progress" || a.status === "IN_PROGRESS"
+                  ? "In-Progress"
+                  : a.status === "Follow-up Required" ||
+                      a.status === "FOLLOW_UP"
+                    ? "Follow-up Required"
+                    : "Completed") as
+                "Completed" | "In-Progress" | "Follow-up Required",
             }),
           );
           setVisitRecords(mapped);

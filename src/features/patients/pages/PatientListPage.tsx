@@ -29,7 +29,7 @@ const DEFAULT_FILTERS: PatientFilterValues = {
 
 export function PatientListPage({ currentRole }: { currentRole: Role }) {
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [totalPatients, setTotalPatients] = useState(0);
   const [activePatients, setActivePatients] = useState(0);
   const [viewingPatient, setViewingPatient] = useState<Patient | null>(null);
@@ -48,7 +48,6 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
   );
 
   const fetchPatients = async () => {
-    setLoading(true);
     try {
       const response = await patientsApi.listPatients();
       const records = response.items.map(mapApiPatientToPatientRecord);
@@ -63,7 +62,25 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
   };
 
   useEffect(() => {
-    fetchPatients();
+    let cancelled = false;
+    patientsApi
+      .listPatients()
+      .then((response) => {
+        if (cancelled) return;
+        const records = response.items.map(mapApiPatientToPatientRecord);
+        setPatients(records);
+        setTotalPatients(response.total);
+        setActivePatients(records.filter((p) => p.status === "ACTIVE").length);
+      })
+      .catch((err) => {
+        if (!cancelled) console.warn("Failed to fetch patients:", err);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const hasActiveFilters =
@@ -95,9 +112,7 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
   const canView = can(currentRole, "viewProfile");
 
   const openPatientProfile = (id: string) => {
-    const patient = patients.find(
-      (p) => p.mrn === id || String(p.id) === id,
-    );
+    const patient = patients.find((p) => p.mrn === id || String(p.id) === id);
     if (patient) setViewingPatient(patient);
   };
 
@@ -195,7 +210,10 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
         </div>
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
-            onClick={fetchPatients}
+            onClick={() => {
+              setLoading(true);
+              void fetchPatients();
+            }}
             className="px-3 py-2 rounded-xl bg-white border border-[#E5E7EB] text-slate-600 hover:text-[#0D47A1] text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm"
           >
             <RefreshCw

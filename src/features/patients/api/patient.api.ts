@@ -63,11 +63,11 @@ export const patientsApi = {
         data &&
         typeof data === "object" &&
         "content" in data &&
-        Array.isArray(data.content)
+        Array.isArray((data as { content?: unknown[] }).content)
       ) {
-        return data.content;
+        return (data as { content: Patient[] }).content;
       }
-      return Array.isArray(data) ? data : [];
+      return Array.isArray(data) ? (data as Patient[]) : [];
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const data = error.response?.data as { message?: string } | undefined;
@@ -403,8 +403,7 @@ export const patientsApi = {
       const searchParams = new URLSearchParams();
       const queryVal =
         ((params as Record<string, unknown> | undefined)?.query as
-          | string
-          | undefined) || params?.search;
+          string | undefined) || params?.search;
       if (queryVal) searchParams.append("query", queryVal);
       if (params?.page) searchParams.append("page", String(params.page));
       if (params?.limit) searchParams.append("limit", String(params.limit));
@@ -792,9 +791,7 @@ export const patientsApi = {
         PatientApiResponse<BillingApiData> | BillingApiData | BillingApiBill[]
       >(`/api/v1/billing/patient/${mrn}`);
       const body = response.data as
-        | PatientApiResponse<BillingApiData>
-        | BillingApiData
-        | BillingApiBill[];
+        PatientApiResponse<BillingApiData> | BillingApiData | BillingApiBill[];
 
       let bills: BillingApiBill[] = [];
       if (Array.isArray(body)) {

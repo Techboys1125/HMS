@@ -17,7 +17,7 @@ import {
   Building2,
   TrendingUp,
 } from "lucide-react";
-import type { PatientAppointment } from "../types/patient.types";
+import type { Patient, PatientAppointment } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.mock";
 import { usePatientPortal } from "../context/PatientPortalContext";
 import type { FamilyMember } from "./FamilyMembersManagement";
@@ -27,6 +27,28 @@ import {
 } from "../components/PatientDialogs";
 import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentScreen";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
+
+interface RawApiAppointment {
+  appointmentId?: string | number;
+  id?: string | number;
+  visitDateTime?: string;
+  appointmentDate?: string;
+  date?: string;
+  startTime?: string;
+  time?: string;
+  doctor?: string | { name?: string; fullName?: string };
+  doctorName?: string;
+  department?: string | { departmentName?: string; name?: string };
+  departmentName?: string;
+  appointmentStatus?: string;
+  status?: string;
+  specialty?: string;
+  appointmentType?: string;
+  roomLocation?: string;
+  reason?: string;
+  symptoms?: string;
+  notes?: string;
+}
 
 export function PatientAppointmentsScreen({
   activePatient: propActivePatient,
@@ -39,11 +61,20 @@ export function PatientAppointmentsScreen({
   const [viewMode, setViewMode] = useState<"list" | "book">("list");
   const [cancellingAppt, setCancellingAppt] =
     useState<PatientAppointment | null>(null);
+  const [prevPatientMrn, setPrevPatientMrn] = useState<string | number | null>(
+    null,
+  );
+
+  const activePatientMrn = activePatient?.mrn || activePatient?.id || null;
+
+  if (activePatientMrn !== prevPatientMrn) {
+    setPrevPatientMrn(activePatientMrn);
+    setAppointments([]);
+  }
 
   const loadAppointments = useCallback((patient?: FamilyMember | null) => {
     const targetMrn = patient?.mrn || patient?.id;
     if (!targetMrn) {
-      setAppointments([]);
       return;
     }
     appointmentsApi
@@ -67,22 +98,41 @@ export function PatientAppointmentsScreen({
                 : a.startTime || a.time || "";
 
               const doctorName =
-                typeof a.doctor === "object"
-                  ? a.doctor?.name || a.doctor?.fullName || "Doctor"
-                  : a.doctorName || a.doctor || "Doctor";
+                a.doctor && typeof a.doctor === "object"
+                  ? a.doctor.name || a.doctor.fullName || "Doctor"
+                  : String(a.doctorName || a.doctor || "Doctor");
 
               const deptName =
-                typeof a.department === "object"
-                  ? a.department?.departmentName ||
-                    a.department?.name ||
+                a.department && typeof a.department === "object"
+                  ? a.department.departmentName ||
+                    a.department.name ||
                     "General"
-                  : a.departmentName || a.department || "General";
+                  : String(a.departmentName || a.department || "General");
 
-              const rawStatus = a.appointmentStatus || a.status || "SCHEDULED";
-              const formattedStatus =
-                rawStatus === "SCHEDULED" || rawStatus === "BOOKED"
-                  ? "Confirmed"
-                  : rawStatus;
+              let formattedStatus: PatientAppointment["status"] = "Confirmed";
+              const rawStatus = (
+                a.appointmentStatus ||
+                a.status ||
+                "SCHEDULED"
+              ).toUpperCase();
+              if (rawStatus === "COMPLETED") {
+                formattedStatus = "Completed";
+              } else if (rawStatus === "CANCELLED") {
+                formattedStatus = "Cancelled";
+              } else if (
+                rawStatus === "SCHEDULED" ||
+                rawStatus === "BOOKED" ||
+                rawStatus === "CONFIRMED"
+              ) {
+                formattedStatus = "Confirmed";
+              } else if (rawStatus === "PENDING") {
+                formattedStatus = "Pending";
+              } else if (
+                rawStatus === "IN_PROGRESS" ||
+                rawStatus === "IN-PROGRESS"
+              ) {
+                formattedStatus = "In-Progress";
+              }
 
               return {
                 id: String(a.appointmentId || a.id || `APT-${idx}`),
@@ -91,7 +141,10 @@ export function PatientAppointmentsScreen({
                 doctor: doctorName,
                 specialty: a.specialty || deptName,
                 department: deptName,
-                visitType: a.appointmentType || "In-Person OPD",
+                visitType: (a.appointmentType === "Follow-up OPD" ||
+                a.appointmentType === "FOLLOW_UP"
+                  ? "Follow-up OPD"
+                  : "In-Person OPD") as "Follow-up OPD" | "In-Person OPD",
                 status: formattedStatus,
                 roomLocation: a.roomLocation || "OPD Room",
                 reason: a.reason || "Consultation",
@@ -157,7 +210,10 @@ export function PatientAppointmentsScreen({
     return (
       <BookAppointmentScreen
         role="patient"
-        initialMrn={activePatient?.mrn || activePatient?.id}
+        initialMrn={
+          activePatient?.mrn ||
+          (activePatient?.id ? String(activePatient.id) : undefined)
+        }
         onBack={() => setViewMode("list")}
         onBookSuccess={() => {
           triggerToast("Appointment booked successfully!");
@@ -939,7 +995,7 @@ export function PatientAppointmentsScreen({
             </div>
 
             {nextAppointment ? (
-              <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50/80 to-slate-50 border border-blue-100 space-y-3">
+              <div className="p-4 rounded-xl bg-linear-to-br from-blue-50/80 to-slate-50 border border-blue-100 space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-[#0D47A1] text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-sm">
                     {nextAppointment.doctor

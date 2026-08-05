@@ -224,10 +224,16 @@ export function DoctorScheduleScreen() {
 
   const today = new Date().toISOString().split("T")[0];
 
+  const [prevFetchKey, setPrevFetchKey] = useState<string>("");
+  const fetchKey = `${doctorId}_${activeTab}_${activeTab === "monthly" ? calendarMonth : ""}`;
+  if (fetchKey !== prevFetchKey) {
+    setPrevFetchKey(fetchKey);
+    setIsLoading(Boolean(doctorId));
+  }
+
   useEffect(() => {
     if (!doctorId || activeTab !== "weekly") return;
     let cancelled = false;
-    setIsLoading(true);
     doctorsApi
       .getWeeklySchedule(doctorId)
       .then((data) => {
@@ -247,7 +253,6 @@ export function DoctorScheduleScreen() {
   useEffect(() => {
     if (!doctorId || activeTab !== "exceptions") return;
     let cancelled = false;
-    setIsLoading(true);
     doctorsApi
       .getScheduleExceptions(doctorId)
       .then((data) => {
@@ -267,7 +272,6 @@ export function DoctorScheduleScreen() {
   useEffect(() => {
     if (!doctorId || activeTab !== "availability") return;
     let cancelled = false;
-    setIsLoading(true);
     doctorsApi
       .getDailyAvailability(doctorId, today)
       .then((data) => {
@@ -287,7 +291,6 @@ export function DoctorScheduleScreen() {
   useEffect(() => {
     if (!doctorId || activeTab !== "monthly") return;
     let cancelled = false;
-    setIsLoading(true);
     doctorsApi
       .getMonthlyCalendarAvailability(doctorId, calendarMonth)
       .then((data) => {
@@ -810,7 +813,7 @@ export function DoctorScheduleScreen() {
                       return (
                         <div
                           key={dateStr}
-                          className={`min-h-[88px] rounded-xl border p-2 flex flex-col gap-1 ${
+                          className={`min-h-22 rounded-xl border p-2 flex flex-col gap-1 ${
                             meta ? meta.cell : "bg-white border-[#E5E7EB]"
                           }`}
                         >

@@ -42,7 +42,7 @@ export function ProfileTab({
       ] as const);
 
   const isFieldEditable = (field: string) =>
-    canEdit && allowedFields.includes(field as any);
+    canEdit && (allowedFields as readonly string[]).includes(field);
 
   const handleSave = async () => {
     setSaving(true);
@@ -51,7 +51,8 @@ export function ProfileTab({
         await onSave(formData);
       }
       setEditing(false);
-    } catch {
+    } catch (err) {
+      console.log(err);
     } finally {
       setSaving(false);
     }

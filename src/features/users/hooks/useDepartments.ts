@@ -10,7 +10,7 @@ export const useDepartments = (autoFetch = true) => {
     ApiDepartmentSpecialtiesItem[]
   >([]);
   const [lookupList, setLookupList] = useState<ApiDepartmentLookupItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(autoFetch);
   const [error, setError] = useState<string | null>(null);
 
   const fetchDepartments = useCallback(async (search?: string) => {
@@ -107,12 +107,41 @@ export const useDepartments = (autoFetch = true) => {
     }
   };
 
+  const [prevAutoFetch, setPrevAutoFetch] = useState(autoFetch);
+  if (autoFetch !== prevAutoFetch) {
+    setPrevAutoFetch(autoFetch);
+    setLoading(autoFetch);
+  }
+
   useEffect(() => {
-    if (autoFetch) {
-      fetchDepartments();
-      fetchLookup();
-    }
-  }, [autoFetch, fetchDepartments, fetchLookup]);
+    if (!autoFetch) return;
+    let cancelled = false;
+    Promise.all([
+      departmentsService.getDepartments(),
+      departmentsService.getDepartmentLookup(true),
+    ])
+      .then(([depts, lookup]) => {
+        if (!cancelled) {
+          setDepartments(depts);
+          setLookupList(lookup);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load departments",
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [autoFetch]);
 
   return {
     departments,

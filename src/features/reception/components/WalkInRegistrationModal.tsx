@@ -225,7 +225,11 @@ export const WalkInRegistrationModal: React.FC<
               <select
                 value={form.paymentMode}
                 onChange={(e) =>
-                  setForm({ ...form, paymentMode: e.target.value as any })
+                  setForm({
+                    ...form,
+                    paymentMode: e.target
+                      .value as WalkInRegistrationPayload["paymentMode"],
+                  })
                 }
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-[#0D47A1] focus:bg-white cursor-pointer"
               >

@@ -79,47 +79,6 @@ export function AppointmentManagementCenterScreen({
   );
   const [viewMode, setViewMode] = useState<"directory" | "queue">("directory");
 
-  const handleExportCSV = () => {
-    const headers = [
-      "ID",
-      "Patient Name",
-      "MRN",
-      "Doctor",
-      "Department",
-      "Date",
-      "Time Slot",
-      "Visit Type",
-      "Status",
-      "Phone",
-    ];
-    const rows = filteredAppointments.map((a) => [
-      a.id,
-      a.patientName,
-      a.mrn,
-      a.doctorName,
-      typeof a.department === "object" && a.department !== null
-        ? (a.department as any).departmentName ||
-          (a.department as any).name ||
-          ""
-        : a.department || a.departmentName || "",
-      a.date,
-      a.timeSlot,
-      a.visitType,
-      a.status,
-      a.patientPhone ?? "",
-    ]);
-    const csv = [headers, ...rows]
-      .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `appointments_${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
@@ -267,6 +226,59 @@ export function AppointmentManagementCenterScreen({
     todayDateStr,
   ]);
 
+  const handleExportCSV = () => {
+    const headers = [
+      "ID",
+      "Patient Name",
+      "MRN",
+      "Doctor",
+      "Department",
+      "Date",
+      "Time Slot",
+      "Visit Type",
+      "Status",
+      "Phone",
+    ];
+    const rows = filteredAppointments.map((a) => [
+      a.id,
+      a.patientName,
+      a.mrn,
+      a.doctorName,
+      typeof a.department === "object" && a.department !== null
+        ? (
+            a.department as {
+              departmentName?: string;
+              name?: string;
+              departmentCode?: string;
+            }
+          ).departmentName ||
+          (
+            a.department as {
+              departmentName?: string;
+              name?: string;
+              departmentCode?: string;
+            }
+          ).name ||
+          ""
+        : a.department || a.departmentName || "",
+      a.date,
+      a.timeSlot,
+      a.visitType,
+      a.status,
+      a.patientPhone ?? "",
+    ]);
+    const csv = [headers, ...rows]
+      .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `appointments_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleSort = (col: keyof AppointmentRecord) => {
     if (sortColumn === col) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -337,11 +349,20 @@ export function AppointmentManagementCenterScreen({
       const res = await appointmentService.receptionCheckIn(aptId);
       await refetch();
 
+      interface CheckInResponse {
+        tokenNumber?: string | number;
+        token?: string | number;
+        data?: {
+          tokenNumber?: string | number;
+          token?: string | number;
+        };
+      }
+      const checkInRes = res as unknown as CheckInResponse;
       const tokenNo =
-        (res as any)?.tokenNumber ||
-        (res as any)?.token ||
-        (res as any)?.data?.tokenNumber ||
-        (res as any)?.data?.token ||
+        checkInRes?.tokenNumber ||
+        checkInRes?.token ||
+        checkInRes?.data?.tokenNumber ||
+        checkInRes?.data?.token ||
         targetApt?.tokenNo ||
         `TK-${aptId}`;
 
@@ -351,9 +372,10 @@ export function AppointmentManagementCenterScreen({
       }
 
       triggerToast(`Patient checked in successfully.`);
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as Error | null | undefined;
       triggerToast(
-        err?.message || "Check-in is only allowed on the appointment date.",
+        error?.message || "Check-in is only allowed on the appointment date.",
       );
     }
   };
@@ -1137,7 +1159,7 @@ export function AppointmentManagementCenterScreen({
                 </div>
 
                 {filteredAppointments.length > 0 ? (
-                  <div className="overflow-x-auto max-h-[520px] overflow-y-auto">
+                  <div className="overflow-x-auto max-h-130 overflow-y-auto">
                     <table className="w-full border-collapse text-left text-xs">
                       <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
                         <tr

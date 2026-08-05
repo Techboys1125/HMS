@@ -130,8 +130,8 @@ export function PatientTable({
     if (!sortColumn) return patients;
 
     return [...patients].sort((a, b) => {
-      let valA: string | number = "";
-      let valB: string | number = "";
+      let valA: string | number;
+      let valB: string | number;
 
       switch (sortColumn) {
         case "mrn":
@@ -415,7 +415,8 @@ const regType = (p.registrationType || "WALK_IN")
                         {email}
                       </td>
                     )}
-                    {columns.some((c) => c.key === "blood_group") && (
+
+                    {columns.some((c) => c.key === "blood_group") && (
                       <td className="px-4 py-3.5 whitespace-nowrap text-xs font-bold text-[#009688]">
                         {p.bloodGroup || "O+"}
                       </td>

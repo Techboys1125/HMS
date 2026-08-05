@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   ArrowUpDown,
   Stethoscope,
@@ -109,11 +109,10 @@ export function DoctorTable({
 
   const totalPages = Math.max(1, Math.ceil(filteredDoctors.length / pageSize));
 
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(1);
-    }
-  }, [filteredDoctors.length, totalPages, currentPage]);
+  // Render-phase pagination correction
+  if (currentPage > totalPages) {
+    setCurrentPage(1);
+  }
 
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = Math.min(startIndex + pageSize, filteredDoctors.length);
@@ -140,7 +139,7 @@ export function DoctorTable({
 
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
-      <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+      <div className="overflow-x-auto max-h-150 overflow-y-auto">
         <table className="w-full border-collapse text-left text-xs">
           <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
             <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
@@ -316,7 +315,7 @@ export function DoctorTable({
                     </td>
 
                     <td
-                      className="px-4 py-3.5 text-[#64748B] max-w-[150px] truncate"
+                      className="px-4 py-3.5 text-[#64748B] max-w-37.5 truncate"
                       title={doc.qualification}
                     >
                       {doc.qualification}

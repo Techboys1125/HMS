@@ -49,18 +49,26 @@ type CallNextResult = Partial<DoctorCallNextResponse> & {
 import { mapApiUserToDoctorRecord } from "./mapApiUserToDoctorRecord";
 export { mapApiUserToDoctorRecord };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const mapDoctorSummaryToDoctorRecord = (u: any): DoctorRecord => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const profile: any = u.doctorProfile || u;
-  const rawAvail: ApiAvailabilityItem[] = Array.isArray(profile?.availability)
-    ? (profile.availability as ApiAvailabilityItem[])
-    : [];
+export const mapDoctorSummaryToDoctorRecord = (u: unknown): DoctorRecord => {
+  const userObj = (u && typeof u === "object" ? u : {}) as Record<
+    string,
+    unknown
+  >;
+  const profileObj = (
+    userObj.doctorProfile && typeof userObj.doctorProfile === "object"
+      ? userObj.doctorProfile
+      : userObj
+  ) as Record<string, unknown>;
+
+  const rawAvail = (
+    Array.isArray(profileObj.availability) ? profileObj.availability : []
+  ) as ApiAvailabilityItem[];
+
   const workingDays: string[] = Array.from(
     new Set(
       rawAvail
         .map((a) =>
-          String(a.dayOfWeek ?? "")
+          String(a?.dayOfWeek ?? "")
             .substring(0, 3)
             .toUpperCase(),
         )
@@ -68,15 +76,33 @@ export const mapDoctorSummaryToDoctorRecord = (u: any): DoctorRecord => {
     ),
   );
 
-  const rawStatus = String(u.status || "ACTIVE").toUpperCase();
+  const rawStatus = String(userObj.status || "ACTIVE").toUpperCase();
   let status: "Active" | "Inactive" | "On Leave" | "Suspended" = "Active";
   if (rawStatus === "INACTIVE") status = "Inactive";
   else if (rawStatus === "ON_LEAVE" || rawStatus === "LEAVE")
     status = "On Leave";
   else if (rawStatus === "SUSPENDED") status = "Suspended";
 
-  const userId = u.userId ?? u.id;
-  const doctorId = profile?.doctorId ?? u.doctorId ?? userId;
+  const userId = userObj.userId ?? userObj.id;
+  const doctorId = profileObj.doctorId ?? userObj.doctorId ?? userId;
+
+  const fees = (
+    userObj.fees && typeof userObj.fees === "object" ? userObj.fees : {}
+  ) as Record<string, unknown>;
+
+  const primaryDept = (
+    profileObj.primaryDepartment &&
+    typeof profileObj.primaryDepartment === "object"
+      ? profileObj.primaryDepartment
+      : {}
+  ) as Record<string, unknown>;
+
+  const primarySpec = (
+    profileObj.primarySpecialty &&
+    typeof profileObj.primarySpecialty === "object"
+      ? profileObj.primarySpecialty
+      : {}
+  ) as Record<string, unknown>;
 
   return {
     id: `DOC-${userId ?? doctorId ?? ""}`,
@@ -90,11 +116,12 @@ export const mapDoctorSummaryToDoctorRecord = (u: any): DoctorRecord => {
       u.regNumber ||
       "",
     name: (() => {
-      const rawName =
-        u.doctorName ??
-        u.fullName ??
-        u.name ??
-        (userId || doctorId ? `Doctor ${userId ?? doctorId}` : "Doctor");
+      const rawName = String(
+        userObj.doctorName ??
+          userObj.fullName ??
+          userObj.name ??
+          (userId || doctorId ? `Doctor ${userId ?? doctorId}` : "Doctor"),
+      );
       return rawName.startsWith("Dr.") ? rawName : `Dr. ${rawName}`;
     })(),
     gender: (u.gender as "Male" | "Female" | "Other") || "Male",
@@ -179,8 +206,7 @@ export const doctorsApi = {
           ? `/api/v1/doctors?departmentId=${params.departmentId}`
           : "/api/v1/doctors";
         response = await apiClient.get<
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          DoctorApiResponse<any[]> | any[]
+          DoctorApiResponse<unknown[]> | unknown[]
         >(endpoint);
       } catch {
         response = await apiClient.get<
@@ -391,8 +417,8 @@ export const doctorsApi = {
     // userId and doctorId are DIFFERENT identifiers: /admin/users expects the
     // userId while /doctors expects the doctorId. Resolve both so each endpoint
     // receives the correct ID (a single passed ID is used for both as a fallback).
-    let userId = "";
-    let doctorId = "";
+    let userId: string;
+    let doctorId: string;
     if (typeof target === "object" && target !== null) {
       userId = normalize(target.userId);
       doctorId = normalize(target.doctorId);
@@ -452,7 +478,8 @@ export const doctorsApi = {
         }
       }
     } catch (err) {
-      // Fallback: Handle potential phone/name field mismatches automatically
+      console.log(err);
+
       const altPayload = { ...(payload as Record<string, unknown>) };
       if (altPayload.phone && !altPayload.mobile)
         altPayload.mobile = altPayload.phone;

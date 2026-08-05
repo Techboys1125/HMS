@@ -20,6 +20,13 @@ export function FamilyMembersTab({
 }: FamilyMembersTabProps) {
   const [members, setMembers] = useState<ApiPatientFamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [prevMrn, setPrevMrn] = useState<string | null>(null);
+
+  if (patient.mrn !== prevMrn) {
+    setPrevMrn(patient.mrn);
+    setLoading(true);
+  }
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [newMember, setNewMember] = useState({
     name: "",
@@ -30,7 +37,6 @@ export function FamilyMembersTab({
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     patientsApi
       .getFamilyMembers(patient.mrn)
       .then((data) => {

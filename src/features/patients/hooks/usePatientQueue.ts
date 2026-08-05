@@ -55,5 +55,6 @@ export function usePatientQueue() {
     loading,
     error,
     refresh,
+    refresh,
   };
 }

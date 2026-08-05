@@ -73,7 +73,8 @@ export function ScheduleExceptionsTab({
         });
         setShowAddForm(false);
       }
-    } catch {
+    } catch (err) {
+      console.log(err);
     } finally {
       setSaving(false);
     }
@@ -84,7 +85,9 @@ export function ScheduleExceptionsTab({
       const targetId = resolveDoctorId(doctor);
       await doctorsService.deleteScheduleException(targetId, exceptionId);
       setExceptions((prev) => prev.filter((e) => e.id !== exceptionId));
-    } catch {}
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   if (loading) {

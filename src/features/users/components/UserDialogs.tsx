@@ -1,6 +1,7 @@
 import React from "react";
 import { X, Shield, AlertTriangle, CheckCircle2 } from "lucide-react";
 import type { UserRecord } from "../pages/UserManagement";
+import type { UserDetailData } from "../types/users.types";
 import RoleBadge from "../../../common/components/RoleBadge";
 import { StatusBadge } from "../../../common/components/StatusBadge";
 import UserAvatar from "../../../common/components/UserAvatar";
@@ -106,7 +107,7 @@ export const StatusChangeDialog: React.FC<StatusChangeDialogProps> = ({
 
 interface UserDetailsDrawerProps {
   user: UserRecord | null;
-  fullDetail: any;
+  fullDetail: UserDetailData | null;
   onClose: () => void;
   onEdit: (user: UserRecord) => void;
   deptName?: string;

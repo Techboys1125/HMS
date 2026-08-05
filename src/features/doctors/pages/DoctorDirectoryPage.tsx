@@ -7,7 +7,7 @@ import { DoctorProfilePage } from "./DoctorProfilePage";
 
 export function DoctorDirectoryPage() {
   const [doctors, setDoctors] = useState<DoctorRecord[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [viewingProfile, setViewingProfile] = useState<DoctorRecord | null>(
     null,
   );
@@ -25,7 +25,21 @@ export function DoctorDirectoryPage() {
   };
 
   useEffect(() => {
-    fetchDoctors();
+    let cancelled = false;
+    doctorsService
+      .getAll()
+      .then((response) => {
+        if (!cancelled) setDoctors(response.items);
+      })
+      .catch((err) => {
+        if (!cancelled) console.warn("Failed to fetch doctors:", err);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (viewingProfile) {

@@ -13,9 +13,41 @@ export function useReceptionQueue(params?: {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchWorklist = useCallback(async () => {
+  const paramsKey = JSON.stringify(params || {});
+  const [prevParamsKey, setPrevParamsKey] = useState<string>("");
+
+  if (paramsKey !== prevParamsKey) {
+    setPrevParamsKey(paramsKey);
+    setLoading(true);
+  }
+
+  useEffect(() => {
+    let cancelled = false;
+    receptionService
+      .fetchWorklist(params)
+      .then((data) => {
+        if (!cancelled) setItems(data);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Failed to fetch reception queue",
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [params, paramsKey]);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       setError(null);
       const data = await receptionService.fetchWorklist(params);
       setItems(data);
@@ -28,14 +60,10 @@ export function useReceptionQueue(params?: {
     }
   }, [params]);
 
-  useEffect(() => {
-    void fetchWorklist();
-  }, [fetchWorklist]);
-
   return {
     items,
     loading,
     error,
-    refresh: fetchWorklist,
+    refresh,
   };
 }

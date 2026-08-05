@@ -25,7 +25,29 @@ export function useSwitchAccount(primaryMrn: string) {
   });
 
   const [activePatient, setActivePatient] = useState<Patient | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [prevActiveMrn, setPrevActiveMrn] = useState<string | null>(null);
+
+  if (context.activeMrn !== prevActiveMrn) {
+    setPrevActiveMrn(context.activeMrn);
+    if (context.activeMrn) {
+      setIsLoading(true);
+    }
+  }
+
+  /**
+   * Switch back to the primary (self) account
+   */
+  const switchToPrimary = useCallback(() => {
+    localStorage.setItem(SWITCH_ACCOUNT_STORAGE_KEY, primaryMrn);
+    setContext({
+      activeMrn: primaryMrn,
+      primaryMrn,
+      activePatientName: "",
+      isFamilyMember: false,
+    });
+    queryClient.invalidateQueries();
+  }, [primaryMrn, queryClient]);
 
   /** Switch back to the primary (self) account. */
   const switchToPrimary = useCallback(() => {
@@ -58,7 +80,6 @@ export function useSwitchAccount(primaryMrn: string) {
   // Load active patient data
   useEffect(() => {
     if (!context.activeMrn) return;
-    setIsLoading(true);
     patientsApi
       .getPatientByMrn(context.activeMrn)
       .then((raw) => {

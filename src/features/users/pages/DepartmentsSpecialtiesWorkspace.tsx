@@ -48,7 +48,7 @@ export function DepartmentsSpecialtiesWorkspace() {
   const [selectedDept, setSelectedDept] = useState<Department | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form State for Add
@@ -74,7 +74,6 @@ export function DepartmentsSpecialtiesWorkspace() {
   };
 
   const loadDepartments = useCallback(async () => {
-    setIsLoading(true);
     try {
       const apiList = await departmentsApi.getDepartments();
       if (apiList && apiList.length > 0) {
@@ -124,8 +123,64 @@ export function DepartmentsSpecialtiesWorkspace() {
   }, []);
 
   useEffect(() => {
-    void loadDepartments();
-  }, [loadDepartments]);
+    let cancelled = false;
+    departmentsApi
+      .getDepartments()
+      .then((apiList) => {
+        if (cancelled) return;
+        if (apiList && apiList.length > 0) {
+          const mapped: Department[] = apiList.map((d, index) => {
+            const deptId = String(d.departmentId || d.id || index + 1);
+            const deptName = d.departmentName || d.name || "Department";
+            const deptCode =
+              d.departmentCode ||
+              d.code ||
+              `DEP-${deptName.substring(0, 4).toUpperCase()}-0${index + 1}`;
+            const specsList = d.specialties
+              ?.map((s) => s.name)
+              .filter(Boolean)
+              .join(", ");
+            const isActive =
+              d.active !== undefined
+                ? d.active
+                : d.status !== "INACTIVE" && d.status !== "Inactive";
+
+            return {
+              id: deptId,
+              code: deptCode,
+              name: deptName,
+              specialty: specsList || d.description || "General Specialty",
+              head: d.headOfDepartment || d.head || "Dr. Unassigned",
+              doctorsCount:
+                d.doctorsCount ||
+                (d.specialties ? d.specialties.length * 3 : 10),
+              consultationRooms: d.consultationRooms || 4,
+              status: isActive ? "Active" : "Inactive",
+              lastUpdated: "Recently updated",
+              description: d.description || `${deptName} clinical unit.`,
+              workingHours: d.workingHours || "09:00 AM - 05:00 PM",
+              createdDate:
+                d.createdDate || d.createdAt?.split("T")[0] || "2024",
+              rawSpecialties: d.specialties || [],
+            };
+          });
+          setDepartments(mapped);
+        } else {
+          setDepartments([]);
+        }
+      })
+      .catch((err) => {
+        console.warn("Failed to load departments from API:", err);
+        if (!cancelled) setDepartments([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleCreateDepartment = async () => {
     if (!newDeptName.trim()) {
@@ -165,6 +220,7 @@ export function DepartmentsSpecialtiesWorkspace() {
       setNewSpecialtyInput("");
       setNewDeptDescription("");
       setNewDeptHead("");
+      setIsLoading(true);
       loadDepartments();
     } catch (err: unknown) {
       const msg =
@@ -201,6 +257,7 @@ export function DepartmentsSpecialtiesWorkspace() {
         "success",
       );
       setIsEditMode(false);
+      setIsLoading(true);
       loadDepartments();
     } catch (err: unknown) {
       const msg =
@@ -223,6 +280,7 @@ export function DepartmentsSpecialtiesWorkspace() {
       await departmentsApi.deleteDepartment(deptId);
       triggerToast(`Department "${deptName}" deleted successfully!`, "success");
       if (selectedDept?.id === deptId) setSelectedDept(null);
+      setIsLoading(true);
       loadDepartments();
     } catch (err: unknown) {
       const msg =
@@ -362,7 +420,10 @@ export function DepartmentsSpecialtiesWorkspace() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <button
-            onClick={loadDepartments}
+            onClick={() => {
+              setIsLoading(true);
+              loadDepartments();
+            }}
             disabled={isLoading}
             style={{
               display: "flex",

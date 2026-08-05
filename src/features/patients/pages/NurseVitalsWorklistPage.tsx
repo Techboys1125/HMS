@@ -49,7 +49,6 @@ export function NurseVitalsWorklistPage() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     patientsApi
       .getNurseVitalsWaiting()
       .then((data) => {

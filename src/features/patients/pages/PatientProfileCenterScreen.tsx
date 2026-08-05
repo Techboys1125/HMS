@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   ChevronRight,
   Edit,
@@ -11,8 +11,24 @@ import {
   ShieldCheck,
   Save,
 } from "lucide-react";
+import type { Patient } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.mock";
 import { PatientSearchScreen } from "./PatientSearchScreen";
+
+interface ActivePatientProfile extends Omit<Patient, "emergencyContact"> {
+  patientName?: string;
+  registeredMobile?: string;
+  emergencyContact?: {
+    name?: string;
+    mobileNumber?: string;
+    contactName?: string;
+    relationship?: string;
+    phone?: string;
+    contactNumber?: string;
+    mobile?: string;
+    alternativeMobileNumber?: string;
+  } | null;
+}
 
 export function PatientProfileCenterScreen({
   activePatient,
@@ -21,12 +37,87 @@ export function PatientProfileCenterScreen({
   onPatientSelect,
   onRegisterPatient,
 }: {
-  activePatient?: any;
+  activePatient?: ActivePatientProfile | null;
   onAddFamilyMember?: () => void;
   onSwitchPatient?: () => void;
   onPatientSelect?: (id: number | string) => void;
   onRegisterPatient?: () => void;
 }) {
+  const [activeTab, setActiveTab] = useState<"info" | "edit" | "password">(
+    "info",
+  );
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Profile Data State
+  const [profileData, setProfileData] = useState({
+    name:
+      activePatient?.patientName ||
+      activePatient?.name ||
+      activePatient?.fullName ||
+      "Patient",
+    patientId: String(
+      activePatient?.mrn || activePatient?.id || "Generating...",
+    ),
+    email: activePatient?.email || "patient@safehands.org",
+    phone: activePatient?.registeredMobile || activePatient?.phone || "",
+    dob: activePatient?.dob || "1990-06-14",
+    gender: activePatient?.gender || "Female",
+    bloodGroup: activePatient?.bloodGroup || "O+",
+    address:
+      typeof activePatient?.address === "string"
+        ? activePatient.address
+        : "Springfield",
+    emergencyName: activePatient?.emergencyContact?.name || "Family Member",
+    emergencyRelation: activePatient?.relationship || "Spouse",
+    emergencyPhone: activePatient?.emergencyContact?.mobileNumber || "",
+  });
+
+  const [prevPatientKey, setPrevPatientKey] = useState<string>("");
+  const patientKey = activePatient
+    ? String(
+        activePatient.mrn ||
+          activePatient.id ||
+          activePatient.patientName ||
+          activePatient.name ||
+          activePatient.fullName ||
+          "",
+      )
+    : "";
+  if (patientKey !== prevPatientKey) {
+    setPrevPatientKey(patientKey);
+    if (activePatient) {
+      setProfileData({
+        name:
+          activePatient.patientName ||
+          activePatient.name ||
+          activePatient.fullName ||
+          "Patient",
+        patientId: String(activePatient.mrn || activePatient.id || ""),
+        email: activePatient.email || "patient@safehands.org",
+        phone: activePatient.registeredMobile || activePatient.phone || "",
+        dob: activePatient.dob || "1990-06-14",
+        gender: activePatient.gender || "Female",
+        bloodGroup: activePatient.bloodGroup || "O+",
+        address:
+          typeof activePatient.address === "string"
+            ? activePatient.address
+            : "Main Street",
+        emergencyName:
+          activePatient.emergencyContact?.name || "Emergency Contact",
+        emergencyRelation: activePatient.relationship || "Family",
+        emergencyPhone: activePatient.emergencyContact?.mobileNumber || "",
+      });
+    }
+  }
+
+  // Edit Form Draft State
+  const [editForm, setEditForm] = useState({ ...profileData });
+
+  // Password Form States
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   // If no specific single patient profile is passed, render Patient Management & Patient Table!
   if (!activePatient) {
     return (
@@ -36,53 +127,6 @@ export function PatientProfileCenterScreen({
       />
     );
   }
-
-  const [activeTab, setActiveTab] = useState<"info" | "edit" | "password">(
-    "info",
-  );
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
-
-  // Profile Data State
-  const [profileData, setProfileData] = useState({
-    name: activePatient?.patientName || activePatient?.name || "Patient",
-    patientId: activePatient?.mrn || activePatient?.id || "Generating...",
-    email: activePatient?.email || "patient@safehands.org",
-    phone: activePatient?.registeredMobile || activePatient?.phone || "",
-    dob: activePatient?.dob || "1990-06-14",
-    gender: activePatient?.gender || "Female",
-    bloodGroup: activePatient?.bloodGroup || "O+",
-    address: activePatient?.address || "Springfield",
-    emergencyName: activePatient?.emergencyContact?.name || "Family Member",
-    emergencyRelation: activePatient?.relationship || "Spouse",
-    emergencyPhone: activePatient?.emergencyContact?.mobileNumber || "",
-  });
-
-  useEffect(() => {
-    if (activePatient) {
-      setProfileData({
-        name: activePatient.patientName || activePatient.name || "Patient",
-        patientId: activePatient.mrn || activePatient.id || "",
-        email: activePatient.email || "patient@safehands.org",
-        phone: activePatient.registeredMobile || activePatient.phone || "",
-        dob: activePatient.dob || "1990-06-14",
-        gender: activePatient.gender || "Female",
-        bloodGroup: activePatient.bloodGroup || "O+",
-        address: activePatient.address || "Main Street",
-        emergencyName:
-          activePatient.emergencyContact?.name || "Emergency Contact",
-        emergencyRelation: activePatient.relationship || "Family",
-        emergencyPhone: activePatient.emergencyContact?.mobileNumber || "",
-      });
-    }
-  }, [activePatient]);
-
-  // Edit Form Draft State
-  const [editForm, setEditForm] = useState({ ...profileData });
-
-  // Password Form States
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
 
   const triggerToast = (msg: string) => {
     setToastMsg(msg);

@@ -30,7 +30,7 @@ export function PatientQueueStatusScreen() {
   const portal = usePatientPortal();
   const activeMrn = portal?.activeMrn;
   const [queueStatus, setQueueStatus] = useState<QueueStatus>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const triggerToast = (msg: string) => {

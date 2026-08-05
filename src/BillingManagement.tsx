@@ -31,6 +31,7 @@ import {
   BarChart2,
 } from "lucide-react";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
+import type { Patient } from "./features/patients";
 
 import safeHandsLogo from "./assets/safehandshospital_logo.webp";
 
@@ -40,11 +41,7 @@ const RB = "Roboto, system-ui, sans-serif";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 export type PaymentStatus =
-  | "Pending"
-  | "Partially Paid"
-  | "Paid"
-  | "Cancelled"
-  | "Refunded";
+  "Pending" | "Partially Paid" | "Paid" | "Cancelled" | "Refunded";
 export type PaymentMethod = "Cash" | "Card" | "UPI" | "Bank Transfer";
 
 export interface InvoiceRecord {
@@ -619,7 +616,7 @@ export function BillingDashboardScreen({
             <span className="hidden sm:inline">Daily Billing Report</span>
           </button>
 
-          <div className="h-8 w-[1px] bg-slate-200 hidden sm:block" />
+          <div className="h-8 w-px bg-slate-200 hidden sm:block" />
 
           {/* Notification & User Profile Badge */}
           <button className="relative w-9 h-9 rounded-xl bg-slate-50 border border-[#E5E7EB] flex items-center justify-center text-[#64748B] hover:text-[#0D47A1] hover:bg-blue-50 transition-colors">
@@ -1804,9 +1801,7 @@ export function CreateInvoiceWorkspaceScreen({
   onViewInvoiceDetailsClick?: (invoiceId: string) => void;
   isReceptionist?: boolean;
 }) {
-  if (onInvoiceCreated) {
-    // referenced to satisfy unused variable lint
-  }
+  void onInvoiceCreated;
   // Patient Search & Info
   const [patientSearch, setPatientSearch] = useState("");
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -3600,7 +3595,7 @@ export function CollectPaymentWorkspaceScreen({
               </div>
               <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden p-0.5 border border-slate-200">
                 <div
-                  className="h-full rounded-full transition-all duration-300 bg-gradient-to-r from-[#0D47A1] to-[#009688]"
+                  className="h-full rounded-full transition-all duration-300 bg-linear-to-r from-[#0D47A1] to-[#009688]"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
@@ -3757,7 +3752,7 @@ export function CollectPaymentWorkspaceScreen({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Reference:</span>
-                <span className="font-mono text-slate-700 truncate max-w-[140px]">
+                <span className="font-mono text-slate-700 truncate max-w-35">
                   {referenceNo || "None"}
                 </span>
               </div>
@@ -4202,7 +4197,7 @@ export function InvoiceDetailsScreen({
                   <History size={13} className="text-slate-400" />
                   View Payment History
                 </button>
-                <div className="h-[1px] bg-slate-100 my-1" />
+                <div className="h-px bg-slate-100 my-1" />
                 <button
                   onClick={() => setShowMoreMenu(false)}
                   className="w-full px-3 py-2 text-[#EF4444] hover:bg-red-50 flex items-center gap-2 font-medium"
@@ -4832,7 +4827,7 @@ export function InvoiceDetailsScreen({
         <div>
           <button
             onClick={onBack}
-            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-100 font-semibold"
+            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-100"
           >
             {isPatientView
               ? "← Back to My Bills"
@@ -4991,9 +4986,8 @@ export function InvoicePrintPreviewScreen({
   isReceptionist?: boolean;
   isPatientView?: boolean;
 }) {
-  if (onViewPatientProfile || onViewConsultationDetails) {
-    // referenced to satisfy unused variable lint
-  }
+  void onViewPatientProfile;
+  void onViewConsultationDetails;
   // Zoom Controls
   const [zoomLevel, setZoomLevel] = useState<number>(100);
 
@@ -5225,7 +5219,7 @@ export function InvoicePrintPreviewScreen({
               >
                 -
               </button>
-              <span className="font-bold text-[#111827] min-w-[45px] text-center">
+              <span className="font-bold text-[#111827] min-w-11.25 text-center">
                 {zoomLevel}%
               </span>
               <button
@@ -5246,7 +5240,7 @@ export function InvoicePrintPreviewScreen({
           {/* Centered A4 Sheet Surface */}
           <div className="flex justify-center overflow-x-auto py-2">
             <div
-              className="bg-white rounded-2xl border border-slate-300 shadow-2xl p-8 md:p-10 space-y-6 text-xs transition-transform duration-200 max-w-[800px] w-full"
+              className="bg-white rounded-2xl border border-slate-300 shadow-2xl p-8 md:p-10 space-y-6 text-xs transition-transform duration-200 max-w-200 w-full"
               style={{
                 fontFamily: RB,
                 transform: `scale(${zoomLevel / 100})`,
@@ -5716,7 +5710,7 @@ export function InvoicePrintPreviewScreen({
         <div>
           <button
             onClick={onBack}
-            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-100 font-semibold"
+            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-100"
           >
             {isPatientView ? "← Back to My Bills" : "← Back to Invoice Details"}
           </button>
@@ -6574,17 +6568,13 @@ export function DailyBillingReportScreen({
   onViewPatientProfile?: (mrn: string) => void;
   isAdminReadOnly?: boolean;
 }) {
-  if (onViewPatientProfile) {
-    // referenced to satisfy unused variable lint
-  }
+  void onViewPatientProfile;
   // Filter state
   const [reportDate, setReportDate] = useState("2026-07-25");
   const [cashierFilter, setCashierFilter] = useState("All");
   const [methodFilter, setMethodFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
-  if (statusFilter) {
-    // referenced to satisfy unused variable lint
-  }
+  void statusFilter;
   const [deptFilter, setDeptFilter] = useState("All");
 
   // Top KPI Metrics
@@ -8357,7 +8347,7 @@ export function PatientMyBillsScreen({
   onBack: () => void;
   onViewInvoiceDetailsClick?: (invId: string) => void;
   onPrintInvoiceClick?: (invId: string) => void;
-  activePatient?: any;
+  activePatient?: Patient;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
@@ -8911,7 +8901,7 @@ export function PatientMyBillsScreen({
         <div>
           <button
             onClick={onBack}
-            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-100 font-bold"
+            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-100"
             style={{ fontFamily: PP }}
           >
             ← Back to Dashboard

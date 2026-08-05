@@ -25,7 +25,7 @@ export interface DoctorPrescriptionPrintPreviewScreenProps {
   prescription?: PrescriptionRecord;
   onBack?: () => void;
   onPrint?: () => void;
-  onViewConsultation?: (consultId: any) => void;
+  onViewConsultation?: (consultId: string) => void;
 }
 
 export function DoctorPrescriptionPrintPreviewScreen({
@@ -70,7 +70,7 @@ export function DoctorPrescriptionPrintPreviewScreen({
       className="flex-1 overflow-y-auto bg-[#F1F5F9]"
       style={{ fontFamily: RB }}
     >
-      <div className="max-w-4xl mx-auto p-6 space-y-4 print:!p-2 print:!space-y-2">
+      <div className="max-w-4xl mx-auto p-6 space-y-4 print:p-2! print:space-y-2!">
         <div className="flex items-center justify-between print:hidden">
           <div className="flex items-center gap-3">
             {onBack && (
@@ -107,7 +107,7 @@ export function DoctorPrescriptionPrintPreviewScreen({
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden print:!rounded-none print:!border-0 print:!shadow-none">
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden print:rounded-none! print:border-0! print:shadow-none!">
           <div className="p-8 space-y-6 print:p-4">
             <div className="text-center border-b border-gray-200 pb-5 mb-2">
               <h2
@@ -252,8 +252,8 @@ export function DoctorPrescriptionPrintPreviewScreen({
 export interface DoctorPrescriptionHistoryScreenProps {
   patientMrn?: string;
   onBack?: () => void;
-  onViewPrescription?: (rx: any) => void;
-  onPrintPreview?: (rx: any) => void;
+  onViewPrescription?: (rx: PrescriptionRecord) => void;
+  onPrintPreview?: (rx: PrescriptionRecord) => void;
   onViewPatientProfile?: (uhid: string) => void;
 }
 

@@ -90,7 +90,7 @@ export function DoctorManagementCenterScreen() {
         setDepartments(list.map((d) => d.departmentName));
       })
       .catch(() => {});
-  }, []);
+  }, [fetchDoctors]);
 
   const handleAddDoctorSubmit = (newDoctor: DoctorRecord) => {
     addDoctor(newDoctor);

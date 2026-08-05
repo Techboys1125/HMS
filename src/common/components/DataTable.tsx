@@ -20,7 +20,7 @@ interface DataTableProps<T> {
   onRetry?: () => void;
   sortColumn?: keyof T | string;
   sortDirection?: "asc" | "desc";
-  onSort?: (key: any) => void;
+  onSort?: (key: unknown) => void;
   rowKeyAccessor: (row: T, index: number) => string;
   maxHeight?: string;
 }

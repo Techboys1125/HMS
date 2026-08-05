@@ -24,6 +24,23 @@ export interface ReceptionQueueManagementScreenProps {
   userRole?: string;
 }
 
+interface QueueItem {
+  token: string;
+  name: string;
+  mrn: string;
+  aptId: string | number;
+  doctor: string;
+  dept: string;
+  apptTime: string;
+  arrivalTime: string;
+  waitTime: string;
+  status: string;
+  type: string;
+  age: number;
+  gender: string;
+  bloodGroup: string;
+}
+
 export function ReceptionQueueManagementScreen({
   onBack,
   onCheckInClick,
@@ -52,7 +69,9 @@ export function ReceptionQueueManagementScreen({
   const [selectedTokenId, setSelectedTokenId] = useState<string>("TK-086");
 
   // Dialog States
-  const [noShowDialogApt, setNoShowDialogApt] = useState<any | null>(null);
+  const [noShowDialogApt, setNoShowDialogApt] = useState<QueueItem | null>(
+    null,
+  );
 
   // Queue Data List
   const [queueItems, setQueueItems] = useState([
@@ -308,8 +327,11 @@ export function ReceptionQueueManagementScreen({
       });
 
       if (onCheckInClick) onCheckInClick(generatedToken, targetItem.mrn);
-    } catch (err: any) {
-      triggerToast(err?.message || "Check-in failed for this appointment.");
+    } catch (err) {
+      const errorObj = err as Error | { message?: string } | null | undefined;
+      triggerToast(
+        errorObj?.message || "Check-in failed for this appointment.",
+      );
     }
   };
 
