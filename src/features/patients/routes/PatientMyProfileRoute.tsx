@@ -1,25 +1,19 @@
 import { useAuthStore } from "../../auth/index";
-import { useState, useEffect } from "react";
 import { MyProfilePage } from "../pages/MyProfilePage";
+import type { Role } from "../utils/patientPermissions";
 
 export function PatientMyProfileRoute() {
   const user = useAuthStore((state) => state.user);
-  const [currentRole, setCurrentRole] = useState<string>("ADMIN");
-  const [mrn, setMrn] = useState<string>("");
 
-  useEffect(() => {
-    const role = String(user?.role ?? "ADMIN").toUpperCase();
-    if (role === "RECEPTIONIST") setCurrentRole("RECEPTIONIST");
-    else if (role === "DOCTOR") setCurrentRole("DOCTOR");
-    else if (role === "NURSE") setCurrentRole("NURSE");
-    else if (role === "PATIENT") setCurrentRole("PATIENT");
-    else if (role === "ACCOUNTANT") setCurrentRole("ACCOUNTANT");
-    else setCurrentRole("ADMIN");
-  }, [user?.role]);
+  const role = String(user?.role ?? "ADMIN").toUpperCase();
+  let currentRole: Role = "ADMIN";
+  if (role === "RECEPTIONIST") currentRole = "RECEPTIONIST";
+  else if (role === "DOCTOR") currentRole = "DOCTOR";
+  else if (role === "NURSE") currentRole = "NURSE";
+  else if (role === "PATIENT") currentRole = "PATIENT";
+  else if (role === "ACCOUNTANT") currentRole = "ACCOUNTANT";
 
-  useEffect(() => {
-    setMrn(String(user?.id ?? "UNKNOWN"));
-  }, [user?.id]);
+  const mrn = String(user?.id ?? "UNKNOWN");
 
-  return <MyProfilePage currentRole={currentRole as any} mrn={mrn} />;
+  return <MyProfilePage currentRole={currentRole} mrn={mrn} />;
 }

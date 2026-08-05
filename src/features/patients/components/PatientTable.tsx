@@ -121,8 +121,8 @@ export function PatientTable({
     if (!sortColumn) return patients;
 
     return [...patients].sort((a, b) => {
-      let valA: string | number = "";
-      let valB: string | number = "";
+      let valA: string | number;
+      let valB: string | number;
 
       switch (sortColumn) {
         case "mrn":

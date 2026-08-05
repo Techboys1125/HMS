@@ -150,7 +150,7 @@ export function BookAppointmentScreen({
         })
         .catch(() => {});
     }
-  }, [initialMrn, role]);
+  }, [initialMrn, role, selectedPatient]);
 
   useEffect(() => {
     departmentsApi
@@ -177,16 +177,23 @@ export function BookAppointmentScreen({
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
+  const [prevDept, setPrevDept] = useState("");
+  if (selectedDept !== prevDept) {
+    setPrevDept(selectedDept);
     if (!selectedDept) {
       setDoctorsList([]);
       setSelectedDocKey("");
       setSelectedSpecialty("");
       setIsLoadingDoctors(false);
-      return;
+    } else {
+      setIsLoadingDoctors(true);
     }
+  }
 
-    setIsLoadingDoctors(true);
+  useEffect(() => {
+    if (!selectedDept) return;
+    let cancelled = false;
+
     const matchedDept = departments.find(
       (d) => d.departmentName === selectedDept || String(d.id) === selectedDept,
     );
@@ -195,6 +202,7 @@ export function BookAppointmentScreen({
     appointmentService
       .listDoctors(deptId)
       .then((data) => {
+        if (cancelled) return;
         const targetDeptName = selectedDept.trim().toLowerCase();
         const targetDeptId =
           deptId !== undefined && deptId !== null ? String(deptId) : "";
@@ -255,14 +263,19 @@ export function BookAppointmentScreen({
         }
       })
       .catch((err) => {
+        if (cancelled) return;
         console.warn("Failed to load doctors for department from API:", err);
         setDoctorsList([]);
         setSelectedDocKey("");
         setSelectedSpecialty("");
       })
       .finally(() => {
-        setIsLoadingDoctors(false);
+        if (!cancelled) setIsLoadingDoctors(false);
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [selectedDept, departments]);
 
   const handleDeptChange = (dept: string) => {
@@ -327,15 +340,25 @@ export function BookAppointmentScreen({
   const [apiSlots, setApiSlots] = useState<DoctorDailySlot[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
-  useEffect(() => {
+  const [prevDocIdAndDate, setPrevDocIdAndDate] = useState("");
+  const docIdDateKey = `${currentDoctor?.doctorId || ""}_${selectedDate}`;
+  if (docIdDateKey !== prevDocIdAndDate) {
+    setPrevDocIdAndDate(docIdDateKey);
     if (!currentDoctor || !currentDoctor.doctorId || !selectedDate) {
       setApiSlots([]);
-      return;
+      setIsLoadingSlots(false);
+    } else {
+      setIsLoadingSlots(true);
     }
-    setIsLoadingSlots(true);
+  }
+
+  useEffect(() => {
+    if (!currentDoctor || !currentDoctor.doctorId || !selectedDate) return;
+    let cancelled = false;
     doctorsApi
       .getDailyAvailability(currentDoctor.doctorId, selectedDate)
       .then((res) => {
+        if (cancelled) return;
         if (res && res.slots) {
           setApiSlots(res.slots);
         } else {
@@ -343,11 +366,15 @@ export function BookAppointmentScreen({
         }
       })
       .catch(() => {
-        setApiSlots([]);
+        if (!cancelled) setApiSlots([]);
       })
       .finally(() => {
-        setIsLoadingSlots(false);
+        if (!cancelled) setIsLoadingSlots(false);
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, [currentDoctor, selectedDate]);
 
   const formatSlotTime = (timeStr: string) => {
@@ -366,8 +393,8 @@ export function BookAppointmentScreen({
     const todayStr = new Date().toISOString().split("T")[0];
     if (targetDateStr !== todayStr) return false;
 
-    let hour = 0;
-    let minute = 0;
+    let hour: number;
+    let minute: number;
 
     if (slotTimeStr.includes("AM") || slotTimeStr.includes("PM")) {
       const cleanTime = slotTimeStr.replace(/(AM|PM)/i, "").trim();
@@ -459,24 +486,30 @@ export function BookAppointmentScreen({
   }, [apiSlots, selectedDate]);
 
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("09:30 AM");
+  const [prevTimeSlotGroups, setPrevTimeSlotGroups] = useState(
+    dynamicTimeSlotGroups,
+  );
 
-  useEffect(() => {
+  if (dynamicTimeSlotGroups !== prevTimeSlotGroups) {
+    setPrevTimeSlotGroups(dynamicTimeSlotGroups);
     const groups = [
       dynamicTimeSlotGroups.morning,
       dynamicTimeSlotGroups.afternoon,
       dynamicTimeSlotGroups.evening,
     ];
+    let selected = false;
     for (const group of groups) {
       const avail = group.find((s) => s.available);
       if (avail) {
         setSelectedTimeSlot(avail.time);
-        return;
+        selected = true;
+        break;
       }
     }
-    if (dynamicTimeSlotGroups.morning.length > 0) {
+    if (!selected && dynamicTimeSlotGroups.morning.length > 0) {
       setSelectedTimeSlot(dynamicTimeSlotGroups.morning[0].time);
     }
-  }, [dynamicTimeSlotGroups]);
+  }
 
   const [visitType, setVisitType] = useState<"New Consultation" | "Follow-up">(
     "New Consultation",
@@ -504,8 +537,8 @@ export function BookAppointmentScreen({
 
     const convertTo24Hour = (time12h: string): string => {
       const [time, modifier] = time12h.split(" ");
-      let [hours, minutes] = time.split(":").map(Number);
-
+      let [hours] = time.split(":").map(Number);
+      const minutes = time.split(":").map(Number);
       if (modifier === "PM" && hours !== 12) {
         hours += 12;
       }

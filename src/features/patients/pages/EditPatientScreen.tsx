@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -127,8 +127,14 @@ export function EditPatientScreen({
   const [allergies, setAllergies] = useState("");
   const [medicalConditions, setMedicalConditions] = useState("");
 
-  // Populate data
-  useEffect(() => {
+  const [prevPatientId, setPrevPatientId] = useState<string | number | null>(
+    null,
+  );
+
+  const currentPatientId = currentPatient?.id || null;
+
+  if (currentPatientId !== prevPatientId) {
+    setPrevPatientId(currentPatientId);
     if (currentPatient) {
       setFullName(currentPatient.patientName || currentPatient.name || "");
       setEmail(currentPatient.email || "");
@@ -157,6 +163,10 @@ export function EditPatientScreen({
         setEmergencyRelationship(
           currentPatient.emergencyContact.relationship || "",
         );
+      } else {
+        setEmergencyName("");
+        setEmergencyPhone("");
+        setEmergencyRelationship("");
       }
 
       if (currentPatient.address) {
@@ -164,17 +174,29 @@ export function EditPatientScreen({
           typeof currentPatient.address === "object" &&
           currentPatient.address !== null
         ) {
-          const addr = currentPatient.address as Record<string, any>;
+          const addr = currentPatient.address as Record<string, unknown>;
           setAddressLine(
-            addr.streetAddress || addr.street || addr.addressLine1 || "",
+            String(
+              addr.streetAddress || addr.street || addr.addressLine1 || "",
+            ),
           );
-          setCity(addr.city || "");
-          setState(addr.state || "");
-          setPostalCode(addr.postalCode || addr.zipCode || "");
-          setCountry(addr.country || "India");
+          setCity(String(addr.city || ""));
+          setState(String(addr.state || ""));
+          setPostalCode(String(addr.postalCode || addr.zipCode || ""));
+          setCountry(String(addr.country || "India"));
         } else if (typeof currentPatient.address === "string") {
           setAddressLine(currentPatient.address);
+          setCity("");
+          setState("");
+          setPostalCode("");
+          setCountry("India");
         }
+      } else {
+        setAddressLine("");
+        setCity("");
+        setState("");
+        setPostalCode("");
+        setCountry("India");
       }
 
       setRegistrationType(currentPatient.registrationType || "WALK_IN");
@@ -189,7 +211,7 @@ export function EditPatientScreen({
           : "",
       );
     }
-  }, [currentPatient]);
+  }
 
   // Calculate age from DOB
   const calculatedAge = useMemo(() => {

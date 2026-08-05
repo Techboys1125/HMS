@@ -15,8 +15,9 @@ export function useCheckIn() {
         setError(null);
         const res = await receptionService.checkInPatient(appointmentId);
         return res;
-      } catch (err: any) {
-        setError(err?.message || "Check-in failed");
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : "Check-in failed";
+        setError(errMsg);
         return {
           success: false,
           appointmentId,

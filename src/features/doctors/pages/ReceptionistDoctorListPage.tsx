@@ -9,7 +9,7 @@ import { DoctorProfilePage } from "./DoctorProfilePage";
 
 export function ReceptionistDoctorListPage() {
   const [doctors, setDoctors] = useState<DoctorRecord[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorRecord | null>(
     null,
   );
@@ -36,7 +36,6 @@ export function ReceptionistDoctorListPage() {
   } = useDoctorFilters(doctors);
 
   const fetchDoctors = async () => {
-    setLoading(true);
     try {
       const res = await doctorsService.getAll();
       const overrides = JSON.parse(
@@ -61,7 +60,36 @@ export function ReceptionistDoctorListPage() {
   };
 
   useEffect(() => {
-    fetchDoctors();
+    let cancelled = false;
+    doctorsService
+      .getAll()
+      .then((res) => {
+        if (cancelled) return;
+        const overrides = JSON.parse(
+          localStorage.getItem("doctor_status_overrides") || "{}",
+        );
+        const updated = res.items.map((r: DoctorRecord) => {
+          if (overrides[r.id]) {
+            return {
+              ...r,
+              status: overrides[r.id].status,
+              availability: overrides[r.id].availability,
+            };
+          }
+          return r;
+        });
+        setDoctors(updated);
+      })
+      .catch((err) => {
+        if (!cancelled)
+          console.error("Failed to load doctors for receptionist:", err);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (selectedDoctor) {
@@ -94,7 +122,10 @@ export function ReceptionistDoctorListPage() {
           </p>
         </div>
         <button
-          onClick={fetchDoctors}
+          onClick={() => {
+            setLoading(true);
+            void fetchDoctors();
+          }}
           className="px-3 py-2 rounded-xl bg-white border border-[#E5E7EB] text-slate-600 hover:text-[#0D47A1] text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm"
         >
           <RefreshCw

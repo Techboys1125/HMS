@@ -55,19 +55,24 @@ export const patientsApi = {
           throw err;
         }
       }
-      let data = res.data as any;
+      let data = res.data as
+        { data?: unknown; content?: unknown[] } | unknown[] | null | undefined;
       if (data && typeof data === "object" && "data" in data) {
-        data = data.data;
+        data = (data as { data?: unknown }).data as
+          | { data?: unknown; content?: unknown[] }
+          | unknown[]
+          | null
+          | undefined;
       }
       if (
         data &&
         typeof data === "object" &&
         "content" in data &&
-        Array.isArray(data.content)
+        Array.isArray((data as { content?: unknown[] }).content)
       ) {
-        return data.content;
+        return (data as { content: Patient[] }).content;
       }
-      return Array.isArray(data) ? data : [];
+      return Array.isArray(data) ? (data as Patient[]) : [];
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const data = error.response?.data as { message?: string } | undefined;
@@ -284,11 +289,12 @@ export const patientsApi = {
       if (relationship) search.append("relationship", relationship);
       const url = `/api/v1/patients/my${search.toString() ? `?${search.toString()}` : ""}`;
       const res = await apiClient.get<unknown>(url);
-      let data = res.data as any;
+      let data = res.data as { data?: unknown } | unknown[] | null | undefined;
       if (data && typeof data === "object" && "data" in data) {
-        data = data.data;
+        data = (data as { data?: unknown }).data as
+          { data?: unknown } | unknown[] | null | undefined;
       }
-      return Array.isArray(data) ? data : [];
+      return Array.isArray(data) ? (data as Patient[]) : [];
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const data = error.response?.data as { message?: string } | undefined;
@@ -354,7 +360,22 @@ export const patientsApi = {
     departmentName: string;
   } | null> {
     try {
-      const res = await apiClient.get<any>("/api/v1/patients/me/queue");
+      interface QueueResponsePayload {
+        appointmentId?: number;
+        token?: string;
+        tokenNumber?: string;
+        position?: number;
+        patientsAhead?: number;
+        estimatedWaitMinutes?: number;
+        status?: string;
+        queueStatus?: string;
+        doctorName?: string;
+        departmentName?: string;
+        data?: QueueResponsePayload;
+      }
+      const res = await apiClient.get<QueueResponsePayload>(
+        "/api/v1/patients/me/queue",
+      );
       const data = res.data?.data || res.data;
       if (data && typeof data === "object") {
         return {
@@ -386,8 +407,7 @@ export const patientsApi = {
       const searchParams = new URLSearchParams();
       const queryVal =
         ((params as Record<string, unknown> | undefined)?.query as
-          | string
-          | undefined) || params?.search;
+          string | undefined) || params?.search;
       if (queryVal) searchParams.append("query", queryVal);
       if (params?.page) searchParams.append("page", String(params.page));
       if (params?.limit) searchParams.append("limit", String(params.limit));
@@ -747,9 +767,7 @@ export const patientsApi = {
         PatientApiResponse<BillingApiData> | BillingApiData | BillingApiBill[]
       >(`/api/v1/billing/patient/${mrn}`);
       const body = response.data as
-        | PatientApiResponse<BillingApiData>
-        | BillingApiData
-        | BillingApiBill[];
+        PatientApiResponse<BillingApiData> | BillingApiData | BillingApiBill[];
 
       let bills: BillingApiBill[] = [];
       if (Array.isArray(body)) {

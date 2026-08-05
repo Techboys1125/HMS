@@ -4,6 +4,7 @@ import type { ChipVariant } from "../constants/appointment.constants";
 import { Chip } from "../components/Chip";
 import { CheckInConfirmationModal } from "../../reception/components/CheckInConfirmationModal";
 import { receptionService } from "../../reception/services/reception.service";
+import type { ReceptionQueueItem } from "../../reception/types/reception.types";
 import { departmentsApi } from "../../users/api/departments.api";
 
 import { type QueueManagementScreenProps } from "../types/appointment-screen.types";
@@ -16,6 +17,23 @@ import {
   Users,
   AlertCircle,
 } from "lucide-react";
+
+interface QueueItem {
+  token: string;
+  name: string;
+  mrn: string;
+  aptId: string | number;
+  doctor: string;
+  dept: string;
+  apptTime: string;
+  arrivalTime: string;
+  waitTime: string;
+  status: string;
+  type: string;
+  age: number;
+  gender: string;
+  bloodGroup: string;
+}
 
 export function QueueManagementScreen({
   onBack,
@@ -62,7 +80,9 @@ export function QueueManagementScreen({
   const [selectedTokenId, setSelectedTokenId] = useState<string>("TK-086");
 
   // Dialog States
-  const [noShowDialogApt, setNoShowDialogApt] = useState<any | null>(null);
+  const [noShowDialogApt, setNoShowDialogApt] = useState<QueueItem | null>(
+    null,
+  );
   const [checkInModalData, setCheckInModalData] = useState<{
     isOpen: boolean;
     tokenNumber: string;
@@ -74,7 +94,7 @@ export function QueueManagementScreen({
     status?: string;
   } | null>(null);
 
-  const handleExecuteCheckIn = async (item: any) => {
+  const handleExecuteCheckIn = async (item: QueueItem) => {
     try {
       const res = await receptionService.checkInPatient(
         item.aptId || item.token,
@@ -109,51 +129,68 @@ export function QueueManagementScreen({
       });
 
       if (onCheckInClick) onCheckInClick(genToken, item.mrn);
-    } catch (err: any) {
+    } catch (err) {
+      const errorObj = err as Error | { message?: string } | null | undefined;
       alert(
-        err?.message || "Check-in is only allowed on the appointment date.",
+        errorObj?.message ||
+          "Check-in is only allowed on the appointment date.",
       );
     }
   };
 
   // Queue Data List
-  const [queueItems, setQueueItems] = useState<any[]>([]);
-  const [_isLoading, _setIsLoading] = useState(false);
-
-  const fetchQueue = async () => {
-    _setIsLoading(true);
-    try {
-      const data = await receptionService.fetchWorklist();
-      const mapped = (data || []).map((item: any, _idx: number) => ({
-        token: item.tokenNumber || item.token || "",
-        name:
-          item.patientName ||
-          item.patient?.name ||
-          item.patient?.fullName ||
-          "",
-        mrn: item.mrn || item.patient?.mrn || "",
-        aptId: item.appointmentId || item.id || "",
-        doctor: item.doctorName || item.doctor?.name || "",
-        dept: item.departmentName || item.doctor?.departmentName || "",
-        apptTime: item.appointmentTime || item.apptTime || "",
-        arrivalTime: item.checkInTime || item.arrivalTime || "",
-        waitTime: item.waitTime || "",
-        status: item.status || "",
-        type: item.visitType || "",
-        age: item.age || item.patient?.age || 0,
-        gender: item.gender || item.patient?.gender || "",
-        bloodGroup: item.bloodGroup || item.patient?.bloodGroup || "",
-      }));
-      setQueueItems(mapped);
-    } catch (err) {
-      console.warn("Failed to load queue:", err);
-    } finally {
-      _setIsLoading(false);
-    }
-  };
+  const [queueItems, setQueueItems] = useState<QueueItem[]>([]);
 
   useEffect(() => {
-    fetchQueue();
+    let cancelled = false;
+    receptionService
+      .fetchWorklist()
+      .then((data) => {
+        if (cancelled) return;
+        const mapped = (data || []).map((item: ReceptionQueueItem) => ({
+          token: item.tokenNumber || "",
+          name: item.patientName || "",
+          mrn: item.mrn || "",
+          aptId: item.appointmentId || item.id || "",
+          doctor: item.doctorName || "",
+          dept: item.departmentName || "",
+          apptTime: item.appointmentTime || "",
+          arrivalTime: item.arrivalTime || item.checkInTimestamp || "",
+          waitTime: "",
+          status:
+            item.queueStatus === "WAITING"
+              ? "Waiting"
+              : item.queueStatus === "CHECKED_IN"
+                ? "Checked-In"
+                : item.queueStatus === "IN_CONSULTATION"
+                  ? "In Consultation"
+                  : item.queueStatus === "COMPLETED"
+                    ? "Completed"
+                    : item.queueStatus === "NO_SHOW"
+                      ? "No Show"
+                      : item.queueStatus === "CANCELLED"
+                        ? "Cancelled"
+                        : item.queueStatus === "WAITING_FOR_VITALS"
+                          ? "Waiting for Vitals"
+                          : item.queueStatus || "",
+          type: item.visitType || "",
+          age:
+            typeof item.age === "number"
+              ? item.age
+              : item.age
+                ? parseInt(String(item.age), 10) || 0
+                : 0,
+          gender: item.gender || "",
+          bloodGroup: "",
+        }));
+        setQueueItems(mapped);
+      })
+      .catch((err) => {
+        if (!cancelled) console.warn("Failed to load queue:", err);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Filter Logic
@@ -165,7 +202,7 @@ export function QueueManagementScreen({
         item.name.toLowerCase().includes(q) ||
         item.mrn.toLowerCase().includes(q) ||
         item.token.toLowerCase().includes(q) ||
-        item.aptId.toLowerCase().includes(q);
+        String(item.aptId).toLowerCase().includes(q);
 
       const matchDoc =
         selectedDoctor === "All Doctors" || item.doctor === selectedDoctor;

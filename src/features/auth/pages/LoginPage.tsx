@@ -45,7 +45,7 @@ export const LoginPage: React.FC = () => {
       unknown
     >;
 
-    let loggedInUser: User | null = null;
+    let loggedInUser: User | null;
     if (rawUser && rawUser.id) {
       const docId =
         rawUser.doctorId ??

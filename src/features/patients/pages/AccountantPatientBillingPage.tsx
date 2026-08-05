@@ -8,13 +8,12 @@ import { PatientBillingTab } from "../components/tabs/BillingTab";
 
 export function AccountantPatientBillingPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     patientsApi
       .listPatients({ status: "ACTIVE" })
       .then((response) => {

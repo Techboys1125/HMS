@@ -34,7 +34,6 @@ export function ScheduleExceptionsTab({
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     doctorsService
       .getScheduleExceptions(doctor.id)
       .then((data) => {
@@ -69,7 +68,8 @@ export function ScheduleExceptionsTab({
         });
         setShowAddForm(false);
       }
-    } catch {
+    } catch (err) {
+      console.log(err);
     } finally {
       setSaving(false);
     }
@@ -79,7 +79,9 @@ export function ScheduleExceptionsTab({
     try {
       await doctorsService.deleteScheduleException(doctor.id, exceptionId);
       setExceptions((prev) => prev.filter((e) => e.id !== exceptionId));
-    } catch {}
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   if (loading) {

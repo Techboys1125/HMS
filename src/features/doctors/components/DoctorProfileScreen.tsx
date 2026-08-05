@@ -211,14 +211,10 @@ export function DoctorProfileScreen({
     return visibleTabs[0]?.id || "schedule";
   });
 
-  useEffect(() => {
-    if (
-      visibleTabs.length > 0 &&
-      !visibleTabs.some((t) => t.id === activeTab)
-    ) {
-      setActiveTab(visibleTabs[0].id);
-    }
-  }, [visibleTabs, activeTab]);
+  // Render-phase tab reset: if current tab is not in visible tabs, correct it
+  if (visibleTabs.length > 0 && !visibleTabs.some((t) => t.id === activeTab)) {
+    setActiveTab(visibleTabs[0].id);
+  }
 
   const [apptSearch, setApptSearch] = useState("");
   const [apptDateFilter, setApptDateFilter] = useState("All Dates");
@@ -269,22 +265,27 @@ export function DoctorProfileScreen({
   };
 
   const docRef = useRef(docState);
-  useEffect(() => {
+  // Render-phase docState init from doctor prop + localStorage overrides
+  const resolvedDocState = (() => {
     if (doctor && doctor.id) {
       const overrides = JSON.parse(
         localStorage.getItem("doctor_status_overrides") || "{}",
       );
       if (overrides[doctor.id]) {
-        setDocState({
+        return {
           ...doctor,
           status: overrides[doctor.id].status,
           availability: overrides[doctor.id].availability,
-        });
-      } else {
-        setDocState(doctor);
+        };
       }
+      return doctor;
     }
-  }, [doctor]);
+    return docState;
+  })();
+
+  if (resolvedDocState !== docState && doctor && doctor.id) {
+    setDocState(resolvedDocState);
+  }
 
   useEffect(() => {
     docRef.current = docState;
@@ -430,9 +431,51 @@ export function DoctorProfileScreen({
     doctor,
   ]);
 
+  const [prevDoctorIdProp, setPrevDoctorIdProp] = useState<string | undefined>(
+    undefined,
+  );
+  const docPropKey = `${doctorId}_${doctor?.id}`;
+  if (docPropKey !== prevDoctorIdProp) {
+    setPrevDoctorIdProp(docPropKey);
+    setIsLoading(true);
+  }
+
   useEffect(() => {
-    refreshAll();
-  }, [refreshAll]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const fresh = await refreshProfile();
+        if (cancelled) return;
+        const base = fresh || (doctor && doctor.id ? doctor : docRef.current);
+        const doctorIdToUse = resolveDoctorId(base);
+        if (doctorIdToUse && doctorIdToUse !== "0" && doctorIdToUse !== "") {
+          await Promise.all([
+            loadSchedule(doctorIdToUse),
+            loadAvailability(availDate, doctorIdToUse),
+            loadAppointments(doctorIdToUse),
+            loadExceptions(doctorIdToUse),
+            loadQueue(doctorIdToUse),
+          ]);
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    doctorId,
+    doctor.id,
+    refreshProfile,
+    doctor,
+    loadSchedule,
+    loadAvailability,
+    availDate,
+    loadAppointments,
+    loadExceptions,
+    loadQueue,
+  ]);
 
   useEffect(() => {
     if (availDate) {

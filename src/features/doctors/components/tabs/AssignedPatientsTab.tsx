@@ -22,7 +22,6 @@ export function AssignedPatientsTab({
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     doctorsService
       .listDoctorAppointments(doctor.id)
       .then((data: DoctorAppointment[]) => {

@@ -40,7 +40,7 @@ export function Header({
     activePatient || (familyMembers.length > 0 ? familyMembers[0] : undefined);
   const displayName =
     role === "patient" && currentActive
-      ? currentActive.patientName
+      ? currentActive.patientName || currentActive.name || "Patient"
       : user?.fullName || "Patient";
   const displayEmail =
     user?.email ||
@@ -68,7 +68,7 @@ export function Header({
       setPendingSwitchMember(null);
       setShowPatientSelector(false);
       setToastMsg(
-        `Active patient changed successfully to ${member.patientName}`,
+        `Active patient changed successfully to ${member.patientName || member.name}`,
       );
       setTimeout(() => setToastMsg(null), 3500);
     }, 400);
@@ -126,7 +126,7 @@ export function Header({
               className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-blue-50/70 border border-blue-200/80 hover:bg-blue-100/60 transition-all outline-none"
             >
               <div className="w-7 h-7 rounded-full bg-[#0D47A1] text-white flex items-center justify-center font-bold text-xs shrink-0">
-                {currentActive.patientName[0]}
+                {(currentActive.patientName || currentActive.name || "P")[0]}
               </div>
               <div className="text-left hidden sm:block">
                 <div className="flex items-center gap-1.5">
@@ -134,7 +134,9 @@ export function Header({
                     className="text-xs font-bold text-[#111827] leading-tight"
                     style={{ fontFamily: PP }}
                   >
-                    {currentActive.patientName}
+                    {currentActive.patientName ||
+                      currentActive.name ||
+                      "Patient"}
                   </span>
                   <span className="px-1.5 py-0.2 bg-blue-100 text-[#0D47A1] text-[9px] font-bold rounded-full">
                     {currentActive.relationship}
@@ -193,7 +195,7 @@ export function Header({
                           <div
                             className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${isActive ? "bg-[#0D47A1] text-white" : "bg-slate-200 text-slate-700"}`}
                           >
-                            {member.patientName[0]}
+                            {(member.patientName || member.name || "P")[0]}
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
@@ -201,7 +203,7 @@ export function Header({
                                 className="text-xs font-bold text-[#111827] truncate"
                                 style={{ fontFamily: PP }}
                               >
-                                {member.patientName}
+                                {member.patientName || member.name}
                               </span>
                               <span className="px-1.5 py-0.2 bg-slate-100 text-[#64748B] text-[9px] font-bold rounded-full">
                                 {member.relationship}
@@ -411,7 +413,11 @@ export function Header({
               <div className="p-3 bg-blue-50/80 border border-[#0D47A1]/30 rounded-2xl flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
-                    {pendingSwitchMember.patientName[0]}
+                    {
+                      (pendingSwitchMember.patientName ||
+                        pendingSwitchMember.name ||
+                        "P")[0]
+                    }
                   </div>
                   <div>
                     <div
@@ -424,7 +430,8 @@ export function Header({
                       className="text-xs font-bold text-[#111827]"
                       style={{ fontFamily: PP }}
                     >
-                      {pendingSwitchMember.patientName}
+                      {pendingSwitchMember.patientName ||
+                        pendingSwitchMember.name}
                     </div>
                     <div className="text-[10px] text-[#64748B] font-mono">
                       {pendingSwitchMember.mrn} ·{" "}

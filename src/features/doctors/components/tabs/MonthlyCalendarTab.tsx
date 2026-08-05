@@ -30,7 +30,6 @@ export function MonthlyCalendarTab({ doctor }: MonthlyCalendarTabProps) {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     doctorsService
       .getMonthlyCalendarAvailability(doctor.id, month)
       .then((data) => {

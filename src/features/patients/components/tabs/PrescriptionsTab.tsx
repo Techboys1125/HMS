@@ -21,10 +21,15 @@ export function PatientPrescriptionsTab({
     [],
   );
   const [loading, setLoading] = useState(true);
+  const [prevMrn, setPrevMrn] = useState<string | null>(null);
+
+  if (patient.mrn !== prevMrn) {
+    setPrevMrn(patient.mrn);
+    setLoading(true);
+  }
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     patientsApi
       .getPrescriptions(patient.mrn)
       .then((data) => {

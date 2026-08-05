@@ -99,7 +99,7 @@ export function EditAppointmentDrawer({
         }
       })
       .catch(() => {});
-  }, [department, departments]);
+  }, [department, departments, doctorName]);
 
   useEffect(() => {
     if (apt) {

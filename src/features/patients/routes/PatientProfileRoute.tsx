@@ -4,22 +4,21 @@ import { useAuthStore } from "../../auth/index";
 import { useState, useEffect } from "react";
 import { patientsApi } from "../api/patient.api";
 import { mapApiPatientToPatientRecord } from "../api/mapApiPatientToPatientRecord";
+import type { Patient } from "../types/patient.types";
+import type { Role } from "../utils/patientPermissions";
 
 export function PatientProfileRoute() {
   const { mrn } = useParams<{ mrn: string }>();
   const user = useAuthStore((state) => state.user);
-  const [currentRole, setCurrentRole] = useState<string>("ADMIN");
-  const [patient, setPatient] = useState<any>(null);
+  const [patient, setPatient] = useState<Patient | null>(null);
 
-  useEffect(() => {
-    const role = String(user?.role ?? "ADMIN").toUpperCase();
-    if (role === "RECEPTIONIST") setCurrentRole("RECEPTIONIST");
-    else if (role === "DOCTOR") setCurrentRole("DOCTOR");
-    else if (role === "NURSE") setCurrentRole("NURSE");
-    else if (role === "PATIENT") setCurrentRole("PATIENT");
-    else if (role === "ACCOUNTANT") setCurrentRole("ACCOUNTANT");
-    else setCurrentRole("ADMIN");
-  }, [user?.role]);
+  const role = String(user?.role ?? "ADMIN").toUpperCase();
+  let currentRole: Role = "ADMIN";
+  if (role === "RECEPTIONIST") currentRole = "RECEPTIONIST";
+  else if (role === "DOCTOR") currentRole = "DOCTOR";
+  else if (role === "NURSE") currentRole = "NURSE";
+  else if (role === "PATIENT") currentRole = "PATIENT";
+  else if (role === "ACCOUNTANT") currentRole = "ACCOUNTANT";
 
   useEffect(() => {
     if (!mrn) return;
@@ -34,7 +33,7 @@ export function PatientProfileRoute() {
   return (
     <PatientProfilePage
       patient={patient}
-      currentRole={currentRole as any}
+      currentRole={currentRole}
       onBack={() => {}}
     />
   );

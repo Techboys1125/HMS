@@ -24,30 +24,63 @@ export function DeactivateDoctorDialog({
   const [loadingCount, setLoadingCount] = useState<boolean>(false);
   const [countTrusted, setCountTrusted] = useState<boolean>(false);
 
-  useEffect(() => {
+  const [prevOpenDoctor, setPrevOpenDoctor] = useState<{
+    isOpen: boolean;
+    doctorKey: string | number | null;
+  }>({ isOpen: false, doctorKey: null });
+
+  const currentDoctorKey = doctor
+    ? (doctor.doctorId ?? doctor.id ?? null)
+    : null;
+
+  if (
+    isOpen !== prevOpenDoctor.isOpen ||
+    currentDoctorKey !== prevOpenDoctor.doctorKey
+  ) {
+    setPrevOpenDoctor({ isOpen, doctorKey: currentDoctorKey });
     if (isOpen && doctor) {
       setAcknowledged(false);
-      setCountTrusted(false);
-      setLoadingCount(true);
-      // Summary records (from the doctor list) fall back doctorId to the user
-      // id, which is NOT the id the appointments endpoint expects. Only trust
-      // the count when doctorId is a genuine, distinct doctor profile id.
       const hasRealDoctorId =
         typeof doctor.doctorId === "number" &&
         doctor.doctorId > 0 &&
         doctor.doctorId !== doctor.userId;
       setCountTrusted(hasRealDoctorId);
+      setLoadingCount(hasRealDoctorId);
       if (!hasRealDoctorId) {
         setUpcomingCount(0);
-        setLoadingCount(false);
-        return;
       }
-      doctorsService
-        .getUpcomingAppointmentCount(doctor.doctorId as number)
-        .then((cnt) => setUpcomingCount(cnt))
-        .catch(() => setUpcomingCount(0))
-        .finally(() => setLoadingCount(false));
+    } else {
+      setUpcomingCount(0);
+      setLoadingCount(false);
+      setAcknowledged(false);
+      setCountTrusted(false);
     }
+  }
+
+  useEffect(() => {
+    if (!isOpen || !doctor) return;
+    const hasRealDoctorId =
+      typeof doctor.doctorId === "number" &&
+      doctor.doctorId > 0 &&
+      doctor.doctorId !== doctor.userId;
+    if (!hasRealDoctorId) return;
+
+    let cancelled = false;
+    doctorsService
+      .getUpcomingAppointmentCount(doctor.doctorId as number)
+      .then((cnt) => {
+        if (!cancelled) setUpcomingCount(cnt);
+      })
+      .catch(() => {
+        if (!cancelled) setUpcomingCount(0);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingCount(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen, doctor]);
 
   if (!isOpen || !doctor) return null;

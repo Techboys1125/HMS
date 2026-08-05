@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   ChevronRight,
   User,
@@ -378,7 +378,10 @@ export function RegisterPatientScreen({
     mobileNumber: user?.mobile || "",
   }));
 
-  useEffect(() => {
+  const [prevUserKey, setPrevUserKey] = useState<string>("");
+  const userKey = user ? `${user.id || user.email || user.fullName}` : "";
+  if (userKey !== prevUserKey) {
+    setPrevUserKey(userKey);
     if (user) {
       setForm((prev) => ({
         ...prev,
@@ -387,7 +390,7 @@ export function RegisterPatientScreen({
         mobileNumber: prev.mobileNumber || user.mobile || "",
       }));
     }
-  }, [user]);
+  }
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<{
@@ -596,7 +599,7 @@ export function RegisterPatientScreen({
         />
       )}
 
-      <div className="max-w-[1400px] mx-auto px-6 py-6">
+      <div className="max-w-350 mx-auto px-6 py-6">
         <div className="mb-7">
           <div
             className="flex items-center gap-1.5 text-[12px] text-slate-500 mb-2"

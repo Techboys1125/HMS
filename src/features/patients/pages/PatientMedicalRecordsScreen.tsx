@@ -15,15 +15,38 @@ import {
 } from "lucide-react";
 
 import type {
+  Patient,
   MedicalVisitRecord,
   PrescriptionRecord,
 } from "../types/patient.types";
 import { PP, RB, MOCK_PRESCRIPTION_RECORDS } from "../constants/patient.mock";
 
+interface RawApiAppointment {
+  appointmentId?: string | number;
+  id?: string | number;
+  visitDateTime?: string;
+  appointmentDate?: string;
+  date?: string;
+  startTime?: string;
+  time?: string;
+  doctor?: string | { name?: string; fullName?: string };
+  doctorName?: string;
+  department?: string | { departmentName?: string; name?: string };
+  departmentName?: string;
+  appointmentStatus?: string;
+  status?: string;
+  specialty?: string;
+  appointmentType?: string;
+  roomLocation?: string;
+  reason?: string;
+  symptoms?: string;
+  notes?: string;
+}
+
 export function PatientMedicalRecordsScreen({
   activePatient,
 }: {
-  activePatient?: any;
+  activePatient?: Patient;
 }) {
   const [activeTab, setActiveTab] = useState<"visits" | "prescriptions">(
     "visits",
@@ -43,29 +66,51 @@ export function PatientMedicalRecordsScreen({
           ? { patientId: activePatient.id || activePatient.mrn }
           : undefined,
       )
-      .then((res: any) => {
-        const data = res?.data || res;
-        const list = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.content)
-            ? data.content
-            : [];
+      .then((res: unknown) => {
+        const response = res as {
+          data?: unknown;
+        } & Record<string, unknown>;
+        const data = response?.data || response;
+        let list: RawApiAppointment[] = [];
+        if (Array.isArray(data)) {
+          list = data as RawApiAppointment[];
+        } else if (data && typeof data === "object") {
+          const dataObj = data as Record<string, unknown>;
+          if (Array.isArray(dataObj.content)) {
+            list = dataObj.content as RawApiAppointment[];
+          }
+        }
         if (list && list.length > 0) {
           const mapped: MedicalVisitRecord[] = list.map(
-            (a: any, idx: number) => ({
+            (a: RawApiAppointment, idx: number) => ({
               id: String(a.appointmentId || a.id || `VIS-${idx}`),
               date: a.appointmentDate || a.date || "",
               time: a.startTime || a.time || "",
-              department: a.departmentName || a.department || "General OPD",
-              doctor: a.doctorName || a.doctor || "Consultant",
+              department:
+                a.departmentName ||
+                (a.department && typeof a.department === "object"
+                  ? a.department.departmentName ||
+                    a.department.name ||
+                    "General OPD"
+                  : String(a.department || "General OPD")),
+              doctor:
+                a.doctorName ||
+                (a.doctor && typeof a.doctor === "object"
+                  ? a.doctor.name || a.doctor.fullName || "Consultant"
+                  : String(a.doctor || "Consultant")),
               specialty: a.departmentName || "Specialist",
               diagnosis: a.reason || a.symptoms || "OPD Consultation",
               notes: a.symptoms || "Consultation completed.",
-              prescriptions: [],
-              status:
-                a.status === "COMPLETED"
-                  ? "Completed"
-                  : a.status || "Completed",
+              prescriptions: [] as string[],
+              status: (a.status === "COMPLETED" || a.status === "Completed"
+                ? "Completed"
+                : a.status === "In-Progress" || a.status === "IN_PROGRESS"
+                  ? "In-Progress"
+                  : a.status === "Follow-up Required" ||
+                      a.status === "FOLLOW_UP"
+                    ? "Follow-up Required"
+                    : "Completed") as
+                "Completed" | "In-Progress" | "Follow-up Required",
             }),
           );
           setVisitRecords(mapped);

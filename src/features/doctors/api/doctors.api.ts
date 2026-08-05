@@ -49,18 +49,26 @@ type CallNextResult = Partial<DoctorCallNextResponse> & {
 import { mapApiUserToDoctorRecord } from "./mapApiUserToDoctorRecord";
 export { mapApiUserToDoctorRecord };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const mapDoctorSummaryToDoctorRecord = (u: any): DoctorRecord => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const profile: any = u.doctorProfile || u;
-  const rawAvail: ApiAvailabilityItem[] = Array.isArray(profile?.availability)
-    ? (profile.availability as ApiAvailabilityItem[])
-    : [];
+export const mapDoctorSummaryToDoctorRecord = (u: unknown): DoctorRecord => {
+  const userObj = (u && typeof u === "object" ? u : {}) as Record<
+    string,
+    unknown
+  >;
+  const profileObj = (
+    userObj.doctorProfile && typeof userObj.doctorProfile === "object"
+      ? userObj.doctorProfile
+      : userObj
+  ) as Record<string, unknown>;
+
+  const rawAvail = (
+    Array.isArray(profileObj.availability) ? profileObj.availability : []
+  ) as ApiAvailabilityItem[];
+
   const workingDays: string[] = Array.from(
     new Set(
       rawAvail
         .map((a) =>
-          String(a.dayOfWeek ?? "")
+          String(a?.dayOfWeek ?? "")
             .substring(0, 3)
             .toUpperCase(),
         )
@@ -68,55 +76,86 @@ export const mapDoctorSummaryToDoctorRecord = (u: any): DoctorRecord => {
     ),
   );
 
-  const rawStatus = String(u.status || "ACTIVE").toUpperCase();
+  const rawStatus = String(userObj.status || "ACTIVE").toUpperCase();
   let status: "Active" | "Inactive" | "On Leave" | "Suspended" = "Active";
   if (rawStatus === "INACTIVE") status = "Inactive";
   else if (rawStatus === "ON_LEAVE" || rawStatus === "LEAVE")
     status = "On Leave";
   else if (rawStatus === "SUSPENDED") status = "Suspended";
 
-  const userId = u.userId ?? u.id;
-  const doctorId = profile?.doctorId ?? u.doctorId ?? userId;
+  const userId = userObj.userId ?? userObj.id;
+  const doctorId = profileObj.doctorId ?? userObj.doctorId ?? userId;
+
+  const fees = (
+    userObj.fees && typeof userObj.fees === "object" ? userObj.fees : {}
+  ) as Record<string, unknown>;
+
+  const primaryDept = (
+    profileObj.primaryDepartment &&
+    typeof profileObj.primaryDepartment === "object"
+      ? profileObj.primaryDepartment
+      : {}
+  ) as Record<string, unknown>;
+
+  const primarySpec = (
+    profileObj.primarySpecialty &&
+    typeof profileObj.primarySpecialty === "object"
+      ? profileObj.primarySpecialty
+      : {}
+  ) as Record<string, unknown>;
 
   return {
     id: `DOC-${userId ?? doctorId ?? ""}`,
     userId: userId !== undefined ? Number(userId) : undefined,
     doctorId: doctorId !== undefined ? Number(doctorId) : undefined,
-    empId: u.employeeId || `EMP-${userId ?? ""}`,
-    regNumber: profile?.medicalRegistrationNumber || "N/A",
+    empId: String(userObj.employeeId || `EMP-${userId ?? ""}`),
+    regNumber: String(profileObj.medicalRegistrationNumber || "N/A"),
     name: (() => {
-      const rawName =
-        u.doctorName ??
-        u.fullName ??
-        u.name ??
-        (userId || doctorId ? `Doctor ${userId ?? doctorId}` : "Doctor");
+      const rawName = String(
+        userObj.doctorName ??
+          userObj.fullName ??
+          userObj.name ??
+          (userId || doctorId ? `Doctor ${userId ?? doctorId}` : "Doctor"),
+      );
       return rawName.startsWith("Dr.") ? rawName : `Dr. ${rawName}`;
     })(),
-    gender: (u.gender as "Male" | "Female" | "Other") || "Male",
-    department:
-      u.departmentName ??
-      u.department ??
-      profile?.primaryDepartment?.departmentName ??
-      "General Medicine",
+    gender: (userObj.gender as "Male" | "Female" | "Other") || "Male",
+    department: String(
+      userObj.departmentName ??
+        userObj.department ??
+        primaryDept.departmentName ??
+        "General Medicine",
+    ),
     primaryDepartmentId:
-      profile?.primaryDepartment?.departmentId ?? u.departmentId,
-    specialty:
-      u.specialty ??
-      profile?.primarySpecialty?.specialtyName ??
-      "General Physician",
-    primarySpecialtyId: profile?.primarySpecialty?.specialtyId,
-    qualification: profile?.qualification ?? u.qualification ?? "MBBS",
-    experienceYrs: profile?.yearsOfExperience ?? u.experienceYears ?? 5,
-    consultationFee:
-      u.fees?.standardConsultationFee ??
-      u.consultationFee ??
-      profile?.consultationFee ??
-      100,
-    followUpFee: u.fees?.followUpFee ?? profile?.followUpFee ?? 50,
-    slotDuration: profile?.slotDurationMinutes
-      ? `${profile.slotDurationMinutes} mins`
+      typeof primaryDept.departmentId === "number"
+        ? primaryDept.departmentId
+        : typeof userObj.departmentId === "number"
+          ? userObj.departmentId
+          : undefined,
+    specialty: String(
+      userObj.specialty ?? primarySpec.specialtyName ?? "General Physician",
+    ),
+    primarySpecialtyId:
+      typeof primarySpec.specialtyId === "number"
+        ? primarySpec.specialtyId
+        : undefined,
+    qualification: String(
+      profileObj.qualification ?? userObj.qualification ?? "MBBS",
+    ),
+    experienceYrs: Number(
+      profileObj.yearsOfExperience ?? userObj.experienceYears ?? 5,
+    ),
+    consultationFee: Number(
+      fees.standardConsultationFee ??
+        userObj.consultationFee ??
+        profileObj.consultationFee ??
+        100,
+    ),
+    followUpFee: Number(fees.followUpFee ?? profileObj.followUpFee ?? 50),
+    slotDuration: profileObj.slotDurationMinutes
+      ? `${profileObj.slotDurationMinutes} mins`
       : "15 mins",
-    slotDurationMinutes: profile?.slotDurationMinutes || 15,
+    slotDurationMinutes: Number(profileObj.slotDurationMinutes || 15),
     availability:
       status === "Inactive"
         ? "Out of Office"
@@ -124,12 +163,12 @@ export const mapDoctorSummaryToDoctorRecord = (u: any): DoctorRecord => {
           ? "On Leave"
           : "Available Today",
     status,
-    email: u.email ?? "",
-    phone: u.mobile ?? u.phone ?? "N/A",
-    address: u.residentialAddress ?? "",
-    dob: u.dateOfBirth ?? "",
-    opdRoom: u.opdRoom ?? "OPD-101",
-    joinedDate: u.joinedDate ?? "2024-01-15",
+    email: String(userObj.email ?? ""),
+    phone: String(userObj.mobile ?? userObj.phone ?? "N/A"),
+    address: String(userObj.residentialAddress ?? ""),
+    dob: String(userObj.dateOfBirth ?? ""),
+    opdRoom: String(userObj.opdRoom ?? "OPD-101"),
+    joinedDate: String(userObj.joinedDate ?? "2024-01-15"),
     shiftTimings:
       rawAvail.length > 0 && rawAvail[0]?.startTime
         ? `${rawAvail[0].startTime} - ${rawAvail[0]?.endTime}`
@@ -138,9 +177,10 @@ export const mapDoctorSummaryToDoctorRecord = (u: any): DoctorRecord => {
       workingDays.length > 0
         ? workingDays
         : ["MON", "TUE", "WED", "THU", "FRI"],
-    bio: u.professionalBio ?? "",
-    designation: u.designation ?? profile?.designation ?? "",
-    scheduleExceptions: profile?.scheduleExceptions ?? [],
+    bio: String(userObj.professionalBio ?? ""),
+    designation: String(userObj.designation ?? profileObj.designation ?? ""),
+    scheduleExceptions: (profileObj.scheduleExceptions ??
+      []) as ApiScheduleExceptionItem[],
     rawAvailability: rawAvail,
   };
 };
@@ -162,8 +202,7 @@ export const doctorsApi = {
           ? `/api/v1/doctors?departmentId=${params.departmentId}`
           : "/api/v1/doctors";
         response = await apiClient.get<
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          DoctorApiResponse<any[]> | any[]
+          DoctorApiResponse<unknown[]> | unknown[]
         >(endpoint);
       } catch {
         response = await apiClient.get<
@@ -252,10 +291,13 @@ export const doctorsApi = {
 
     const fetchDoctorFacing = async (): Promise<DoctorRecord> => {
       const response = await apiClient.get<
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        DoctorApiResponse<any> | any
+        DoctorApiResponse<Record<string, unknown>> | Record<string, unknown>
       >(`/api/v1/doctors/${numericUserId}`);
-      const data = response.data?.data || response.data;
+      const resData = response.data;
+      const data =
+        resData && typeof resData === "object" && "data" in resData
+          ? resData.data
+          : resData;
       if (data) {
         return mapDoctorSummaryToDoctorRecord(data);
       }
@@ -311,8 +353,8 @@ export const doctorsApi = {
     // userId and doctorId are DIFFERENT identifiers: /admin/users expects the
     // userId while /doctors expects the doctorId. Resolve both so each endpoint
     // receives the correct ID (a single passed ID is used for both as a fallback).
-    let userId = "";
-    let doctorId = "";
+    let userId: string;
+    let doctorId: string;
     if (typeof target === "object" && target !== null) {
       userId = normalize(target.userId);
       doctorId = normalize(target.doctorId);
@@ -372,7 +414,8 @@ export const doctorsApi = {
         }
       }
     } catch (err) {
-      // Fallback: Handle potential phone/name field mismatches automatically
+      console.log(err);
+
       const altPayload = { ...(payload as Record<string, unknown>) };
       if (altPayload.phone && !altPayload.mobile)
         altPayload.mobile = altPayload.phone;

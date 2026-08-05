@@ -37,20 +37,27 @@ export function MyProfilePage() {
   const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
   const [doctor, setDoctor] = useState<DoctorRecord | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<MyProfileTab>("profile");
-
   const isDoctor = String(user?.role ?? "").toUpperCase() === "DOCTOR";
   const doctorId =
     user?.doctorId ?? user?.doctorProfile?.doctorId ?? user?.id ?? null;
 
+  const [isLoading, setIsLoading] = useState(
+    () => isDoctor && doctorId !== null && doctorId !== undefined,
+  );
+  const [activeTab, setActiveTab] = useState<MyProfileTab>("profile");
+
+  const [prevProfileKey, setPrevProfileKey] = useState<string>("");
+  const profileKey = `${isDoctor}_${doctorId}`;
+  if (profileKey !== prevProfileKey) {
+    setPrevProfileKey(profileKey);
+    setIsLoading(isDoctor && doctorId !== null && doctorId !== undefined);
+  }
+
   useEffect(() => {
     let cancelled = false;
     if (!isDoctor || doctorId === null || doctorId === undefined) {
-      setIsLoading(false);
       return;
     }
-    setIsLoading(true);
     doctorProfileService
       .getDoctorProfile(doctorId)
       .then((record) => {

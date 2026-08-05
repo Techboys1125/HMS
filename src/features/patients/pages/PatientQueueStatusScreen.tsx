@@ -27,7 +27,7 @@ type QueueStatus = {
 
 export function PatientQueueStatusScreen() {
   const [queueStatus, setQueueStatus] = useState<QueueStatus>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const triggerToast = (msg: string) => {
@@ -48,7 +48,21 @@ export function PatientQueueStatusScreen() {
   };
 
   useEffect(() => {
-    fetchQueue();
+    let cancelled = false;
+    patientsApi
+      .getMyQueue()
+      .then((data) => {
+        if (!cancelled) setQueueStatus(data);
+      })
+      .catch(() => {
+        if (!cancelled) setQueueStatus(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const statusColor =

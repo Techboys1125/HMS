@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { type Patient } from "../../patients/types/patient.types";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { PatientQueueCard } from "../../patients/components/PatientQueueCard";
 import {
@@ -113,12 +114,7 @@ function DKpi({
 }
 
 type ChipVariant =
-  | "success"
-  | "warning"
-  | "error"
-  | "info"
-  | "teal"
-  | "default";
+  "success" | "warning" | "error" | "info" | "teal" | "default";
 function Chip({
   label,
   variant = "default",
@@ -334,12 +330,21 @@ export function PatientDashboard({
   onBookAppointmentClick?: () => void;
   onViewBillsClick?: () => void;
   onNavigateNav?: (nav: string) => void;
-  activePatient?: any;
-  familyMembers?: any[];
-  onSwitchPatient?: (member: any) => void;
+  activePatient?: Patient;
+  familyMembers?: Patient[];
+  onSwitchPatient?: (member: Patient) => void;
   onAddFamilyMember?: () => void;
 }) {
-  const [appointmentsList, setAppointmentsList] = useState<any[]>([]);
+  interface DashboardAppointment {
+    status?: string;
+    appointmentDate?: string;
+    date?: string;
+    startTime?: string;
+    time?: string;
+  }
+  const [appointmentsList, setAppointmentsList] = useState<
+    DashboardAppointment[]
+  >([]);
 
   useEffect(() => {
     appointmentsApi
@@ -348,12 +353,14 @@ export function PatientDashboard({
           ? { patientId: activePatient.id || activePatient.mrn }
           : undefined,
       )
-      .then((res: any) => {
-        const data = res?.data || res;
+      .then((res: unknown) => {
+        const resObj = res as Record<string, unknown> | null | undefined;
+        const data = resObj?.data || resObj;
         const list = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.content)
-            ? data.content
+          ? (data as DashboardAppointment[])
+          : Array.isArray((data as Record<string, unknown>)?.content)
+            ? ((data as Record<string, unknown>)
+                .content as DashboardAppointment[])
             : [];
         setAppointmentsList(list);
       })

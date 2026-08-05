@@ -27,7 +27,6 @@ export function DailyAvailabilityTab({ doctor }: DailyAvailabilityTabProps) {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     doctorsService
       .getDailyAvailability(doctor.id, date)
       .then((data) => {

@@ -13,10 +13,15 @@ export interface BillingTabProps {
 export function PatientBillingTab({ patient }: BillingTabProps) {
   const [invoices, setInvoices] = useState<ApiPatientInvoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [prevMrn, setPrevMrn] = useState<string | null>(null);
+
+  if (patient.mrn !== prevMrn) {
+    setPrevMrn(patient.mrn);
+    setLoading(true);
+  }
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     patientsApi
       .getBilling(patient.mrn)
       .then((data) => {

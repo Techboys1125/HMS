@@ -48,6 +48,59 @@ const DEFAULT_AVAILABILITY: BackendAvailabilityItem[] = [
   { dayOfWeek: "FRIDAY", startTime: "09:00", endTime: "17:00" },
 ];
 
+const createInitialForm = (
+  user: EditableStaffUser | null,
+  departments: { id: number | string; name: string }[],
+  deptNameToId: Record<string, number>,
+) => {
+  if (!user) {
+    return {
+      fullName: "",
+      email: "",
+      phone: "",
+      gender: "MALE",
+      dateOfBirth: "",
+      residentialAddress: "",
+      professionalBio: "",
+      medicalRegistrationNumber: "",
+      qualification: "",
+      yearsOfExperience: 0,
+      primaryDepartmentId: 2,
+      primarySpecialtyId: 1,
+      consultationFee: 500,
+      followUpFee: 300,
+      slotDurationMinutes: 15,
+      availability: DEFAULT_AVAILABILITY,
+      scheduleExceptions: [] as ScheduleException[],
+      department: "General Medicine",
+      status: "Active",
+    };
+  }
+  return {
+    fullName: user.fullName || "",
+    email: user.email || "",
+    phone: user.phone || "",
+    gender: "MALE",
+    dateOfBirth: "",
+    residentialAddress: "",
+    professionalBio: "",
+    medicalRegistrationNumber: "",
+    qualification: "",
+    yearsOfExperience: 0,
+    primaryDepartmentId:
+      deptNameToId[user.department] ??
+      (departments.length ? Number(departments[0].id) : 2),
+    primarySpecialtyId: 1,
+    consultationFee: 500,
+    followUpFee: 300,
+    slotDurationMinutes: 15,
+    availability: DEFAULT_AVAILABILITY,
+    scheduleExceptions: [] as ScheduleException[],
+    department: user.department || "General Medicine",
+    status: user.status || "Active",
+  };
+};
+
 export function EditStaffUserDrawer({
   user,
   onClose,
@@ -56,31 +109,6 @@ export function EditStaffUserDrawer({
   const [departments, setDepartments] = useState<
     { id: number | string; name: string }[]
   >([]);
-  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    gender: "",
-    dateOfBirth: "",
-    residentialAddress: "",
-    professionalBio: "",
-    medicalRegistrationNumber: "",
-    qualification: "",
-    yearsOfExperience: 0,
-    primaryDepartmentId: 2,
-    primarySpecialtyId: 1,
-    consultationFee: 500,
-    followUpFee: 300,
-    slotDurationMinutes: 15,
-    availability: [] as BackendAvailabilityItem[],
-    scheduleExceptions: [] as ScheduleException[],
-    department: "General Medicine",
-    status: "Active",
-  });
 
   const deptNameToId = useMemo(() => {
     const map: Record<string, number> = {};
@@ -89,6 +117,23 @@ export function EditStaffUserDrawer({
     });
     return map;
   }, [departments]);
+
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const [form, setForm] = useState(() =>
+    createInitialForm(user, departments, deptNameToId),
+  );
+
+  const [prevUserId, setPrevUserId] = useState<string | null>(null);
+
+  if (user && user.id !== prevUserId) {
+    setPrevUserId(user.id);
+    setSaveError(null);
+    setIsLoadingDetail(true);
+    setForm(createInitialForm(user, departments, deptNameToId));
+  }
 
   // Fetch departments (mirrors UserManagement approach)
   useEffect(() => {
@@ -110,32 +155,6 @@ export function EditStaffUserDrawer({
   useEffect(() => {
     if (!user) return;
 
-    setSaveError(null);
-    setForm({
-      fullName: user.fullName || "",
-      email: user.email || "",
-      phone: user.phone || "",
-      gender: "MALE",
-      dateOfBirth: "",
-      residentialAddress: "",
-      professionalBio: "",
-      medicalRegistrationNumber: "",
-      qualification: "",
-      yearsOfExperience: 0,
-      primaryDepartmentId:
-        deptNameToId[user.department] ||
-        (departments.length > 0 ? Number(departments[0].id) : 2),
-      primarySpecialtyId: 1,
-      consultationFee: 500,
-      followUpFee: 300,
-      slotDurationMinutes: 15,
-      availability: DEFAULT_AVAILABILITY,
-      scheduleExceptions: [],
-      department: user.department || "General Medicine",
-      status: user.status || "Active",
-    });
-
-    setIsLoadingDetail(true);
     usersApi
       .adminGetUserById(user.id)
       .then((response) => {
@@ -168,8 +187,7 @@ export function EditStaffUserDrawer({
       })
       .catch(() => {})
       .finally(() => setIsLoadingDetail(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [departments, deptNameToId, user, user?.id]);
 
   if (!user) return null;
 

@@ -70,7 +70,7 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
         ? workingDays
         : ["MON", "TUE", "WED", "THU", "FRI"],
     bio: u.professionalBio || "",
-    designation: profile?.designation || "",
+    designation: (profile?.designation as string | undefined) || "",
     scheduleExceptions: profile?.scheduleExceptions || [],
     rawAvailability: rawAvail,
     secondarySpecialties:

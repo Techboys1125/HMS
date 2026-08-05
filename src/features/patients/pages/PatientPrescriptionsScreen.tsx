@@ -38,6 +38,18 @@ export function PatientPrescriptionsScreen({
     useState<PatientPrescriptionItem | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [prevMrn, setPrevMrn] = useState<string | null>(null);
+
+  const activeMrn = activePatient?.mrn || null;
+
+  if (activeMrn !== prevMrn) {
+    setPrevMrn(activeMrn);
+    if (activeMrn) {
+      setIsLoading(true);
+    } else {
+      setIsLoading(false);
+    }
+  }
 
   const triggerToast = (msg: string) => {
     setToastMsg(msg);
@@ -53,7 +65,6 @@ export function PatientPrescriptionsScreen({
     if (!mrn) return;
 
     let cancelled = false;
-    setIsLoading(true);
     patientsApi
       .getPrescriptions(mrn)
       .then((records) => {

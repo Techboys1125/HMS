@@ -241,13 +241,83 @@ export const UserManagement: React.FC = () => {
 
   useEffect(() => {
     let active = true;
-    if (active) {
-      fetchUsers();
-    }
+    usersApi
+      .adminGetUsers()
+      .then((response) => {
+        if (!active) return;
+        const rawList = Array.isArray(response)
+          ? response
+          : Array.isArray(response?.data)
+            ? response.data
+            : [];
+
+        if (rawList.length > 0 || response?.success) {
+          const mappedUsers: UserRecord[] = rawList.map(
+            (u: User & { userId?: number }, index: number) => {
+              const userId = u.userId ?? u.id;
+              const roleDisplay =
+                BACKEND_TO_DISPLAY_ROLE[String(u.role).toUpperCase()] ||
+                "Doctor";
+              const uid = userId ? String(userId) : `user-record-${index}`;
+              const statusDisplay =
+                localStatusOverrides[uid] ||
+                BACKEND_TO_DISPLAY_STATUS[String(u.status).toUpperCase()] ||
+                "Active";
+              const deptId = Number(
+                u.primaryDepartmentId ??
+                  u.departmentId ??
+                  u.hospitalId ??
+                  (apiDepartments.length > 0
+                    ? Number(apiDepartments[0].id)
+                    : 2),
+              );
+              const deptName =
+                u.departmentName ??
+                u.department ??
+                deptIdToName[deptId] ??
+                (apiDepartments.length > 0
+                  ? apiDepartments[0].name
+                  : "General Medicine");
+
+              return {
+                id: uid,
+                empId:
+                  u.employeeId ||
+                  `EMP-${roleDisplay.substring(0, 3).toUpperCase()}-${userId ?? index}`,
+                fullName: u.fullName || "Staff User",
+                username: u.email
+                  ? u.email.split("@")[0]
+                  : `user_${userId ?? index}`,
+                email: u.email || "",
+                phone: u.mobile || "+1 (555) 000-0000",
+                role: roleDisplay,
+                department: deptName,
+                departmentId: deptId,
+                status: statusDisplay,
+                lastLogin: "Today, 10:15 AM",
+                joinedDate: "2023-11-01",
+                twoFactor: false,
+              };
+            },
+          );
+          setUsers(mappedUsers);
+        } else {
+          setErrorMsg(response?.message || "Failed to retrieve staff list.");
+        }
+      })
+      .catch((err: unknown) => {
+        if (!active) return;
+        const errMsg =
+          err instanceof Error ? err.message : "Error fetching staff accounts";
+        setErrorMsg(errMsg);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
     return () => {
       active = false;
     };
-  }, [fetchUsers]);
+  }, [apiDepartments, deptIdToName, localStatusOverrides]);
 
   const triggerToast = (msg: string) => {
     setToastMsg(msg);
@@ -419,11 +489,9 @@ export const UserManagement: React.FC = () => {
     Math.ceil(filteredUsers.length / pageSize),
   );
 
-  useEffect(() => {
-    if (currentPage > userTotalPages) {
-      setCurrentPage(1);
-    }
-  }, [filteredUsers.length, userTotalPages, currentPage]);
+  if (currentPage > userTotalPages) {
+    setCurrentPage(1);
+  }
 
   const userStartIndex = (currentPage - 1) * pageSize;
   const userEndIndex = Math.min(
@@ -526,7 +594,7 @@ export const UserManagement: React.FC = () => {
       {userMgmtTab === "departments" ? (
         <DepartmentsSpecialtiesWorkspace />
       ) : (
-        <div className="bg-slate-50/50 rounded-2xl shadow-sm border border-gray-200 min-h-[700px] overflow-hidden flex flex-col font-medium animate-in fade-in zoom-in-95 duration-200 w-full space-y-6 relative p-6">
+        <div className="bg-slate-50/50 rounded-2xl shadow-sm border border-gray-200 min-h-175 overflow-hidden flex flex-col font-medium animate-in fade-in zoom-in-95 duration-200 w-full space-y-6 relative p-6">
           {/* ── 2. SUMMARY KPI CARDS ── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Total Users */}
@@ -752,7 +820,7 @@ export const UserManagement: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+              <div className="overflow-x-auto max-h-150 overflow-y-auto">
                 <table className="w-full border-collapse text-left text-xs">
                   <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
                     <tr
@@ -860,7 +928,7 @@ export const UserManagement: React.FC = () => {
                                   size={12}
                                   className="text-slate-400 shrink-0"
                                 />
-                                <span className="truncate max-w-[160px]">
+                                <span className="truncate max-w-40">
                                   {user.email}
                                 </span>
                               </a>
@@ -1294,7 +1362,7 @@ export const UserManagement: React.FC = () => {
                         <span className="text-slate-400 block font-medium">
                           Consultation Fee
                         </span>
-                        <span className="font-bold text-slate-900 mt-1 block font-mono text-teal-600">
+                        <span className="font-bold text-slate-900 mt-1 block font-mono">
                           ₹{fullUserDetail.doctorProfile.consultationFee ?? 0}
                         </span>
                       </div>

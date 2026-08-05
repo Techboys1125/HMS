@@ -5,6 +5,8 @@ import type {
   WeeklySchedule,
   DoctorTimeline,
   PrescriptionRecord,
+  VitalSign,
+  Medication,
 } from "../types/doctors.types";
 
 export const PP = "Poppins, sans-serif";
@@ -55,8 +57,13 @@ export const MOCK_WEEKLY_SCHEDULE: WeeklySchedule[] = [];
 export const MOCK_DOCTOR_TIMELINE: DoctorTimeline[] = [];
 export const DEPARTMENTS: string[] = [];
 export const SPECIALTIES: string[] = [];
-export const VITALS_DATA: any[] = [];
-export const MEDICATIONS: any[] = [];
-export const WEEKLY_CONSULTATIONS: any[] = [];
+export interface WeeklyConsultation {
+  day: string;
+  count: number;
+}
+
+export const VITALS_DATA: VitalSign[] = [];
+export const MEDICATIONS: Medication[] = [];
+export const WEEKLY_CONSULTATIONS: WeeklyConsultation[] = [];
 export const TIMELINE: DoctorTimeline[] = [];
 export const MY_PRESCRIPTIONS_DATA: PrescriptionRecord[] = [];
