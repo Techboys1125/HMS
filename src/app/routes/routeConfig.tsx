@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router";
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { ROUTES } from "./routes";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
@@ -34,7 +34,10 @@ import {
   AccountantPatientBillingPage,
   PatientBillingScreen,
 } from "../../features/patients";
-import { PatientPortalProvider, usePatientPortal } from "../../features/patients/context/PatientPortalContext";
+import {
+  PatientPortalProvider,
+  usePatientPortal,
+} from "../../features/patients/context/PatientPortalContext";
 import { PatientOnboardingRoute } from "../../features/patients/routes/PatientOnboardingRoute";
 import { patientsApi } from "../../features/patients/api/patient.api";
 import {
@@ -79,24 +82,21 @@ import { HMSAppShell } from "../../components/layout/HMSAppShell";
 
 function FamilyMembersRouteWrapper() {
   const [registering, setRegistering] = useState(false);
-  const [viewProfileMrn, setViewProfileMrn] = useState<string | null>(null);
   const portal = usePatientPortal();
   const user = useAuthStore((state) => state.user);
-  const familyMembers = portal?.familyMembers ?? [];
   const primaryMrn =
     portal?.primaryMrn || String(user?.patientId || user?.id || "");
 
-  useEffect(() => {
-    if (!viewProfileMrn || !familyMembers.length) return;
-    const member = familyMembers.find(
-      (m) => String(m.mrn) === String(viewProfileMrn),
+  const handleViewProfile = useCallback((mrn: string) => {
+    const member = (portal?.familyMembers ?? []).find(
+      (m) => String(m.mrn) === String(mrn),
     );
     if (member) {
       portal?.switchToPatient(member);
-      setViewProfileMrn(null);
       setRegistering(false);
     }
-  }, [viewProfileMrn, familyMembers, portal]);
+    portal?.refresh();
+  }, [portal]);
 
   if (registering) {
     return (
@@ -108,10 +108,7 @@ function FamilyMembersRouteWrapper() {
           portal?.refresh();
         }}
         onRegistered={() => portal?.refresh()}
-        onViewProfile={(mrn) => {
-          setViewProfileMrn(mrn);
-          portal?.refresh();
-        }}
+        onViewProfile={handleViewProfile}
       />
     );
   }
@@ -220,118 +217,118 @@ export function AppRoutes() {
           }
         />
         <Route element={<PatientOnboardingRoute />}>
-        <Route
-          path={ROUTES.FAMILY_MEMBERS}
-          element={
-            <RouteGuard requiredPermission="FAMILY_MEMBER_VIEW">
-              <FamilyMembersRouteWrapper />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path={ROUTES.PATIENT_APPOINTMENTS}
-          element={
-            <RouteGuard requiredPermission="APPOINTMENT_VIEW">
-              <PatientAppointmentsScreen />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path={ROUTES.PATIENT_MEDICAL_RECORDS}
-          element={
-            <RouteGuard requiredPermission="MEDICAL_HISTORY_VIEW">
-              <PatientMedicalRecordsScreen />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path={ROUTES.PATIENT_PRESCRIPTIONS}
-          element={
-            <RouteGuard requiredPermission="PRESCRIPTION_VIEW">
-              <PatientPrescriptionsScreen />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path={ROUTES.PATIENT_BILLING}
-          element={
-            <RouteGuard requiredPermission="BILLING_VIEW">
-              <PatientBillingScreen />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path={ROUTES.PATIENT_NOTIFICATIONS}
-          element={
-            <RouteGuard requiredPermission="NOTIFICATION_VIEW">
-              <PatientNotificationsScreen />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path={ROUTES.PATIENT_LIST}
-          element={
-            <RouteGuard requiredPermission="PATIENT_VIEW">
-              <PatientListPageRoute />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path={ROUTES.PATIENT_PROFILE}
-          element={
-            <RouteGuard requiredPermission="PATIENT_VIEW">
-              <PatientProfileRoute />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path={ROUTES.PATIENT_MY_PROFILE}
-          element={
-            <RouteGuard requiredPermission="PATIENT_VIEW">
-              <PatientMyProfileRoute />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path={ROUTES.PATIENT_DOCTOR_ASSIGNED}
-          element={
-            <RouteGuard requiredPermission="DOCTOR_VIEW">
-              <DoctorAssignedPatientsRoute />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path={ROUTES.PATIENT_NURSE_VITALS}
-          element={
-            <RouteGuard requiredPermission="VITALS_CREATE">
-              <NurseVitalsWorklistPage />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path={ROUTES.PATIENT_ACCOUNTANT_BILLING}
-          element={
-            <RouteGuard requiredPermission="BILLING_VIEW">
-              <AccountantPatientBillingPage />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path={ROUTES.PATIENT_DOCTORS}
-          element={
-            <RouteGuard requiredPermission="DOCTOR_VIEW">
-              <PatientDoctorSearchScreen />
-            </RouteGuard>
-          }
-        />
-        <Route
-          path={ROUTES.PATIENT_QUEUE}
-          element={
-            <RouteGuard requiredPermission="QUEUE_VIEW">
-              <PatientQueueStatusScreen />
-            </RouteGuard>
-          }
-        />
+          <Route
+            path={ROUTES.FAMILY_MEMBERS}
+            element={
+              <RouteGuard requiredPermission="FAMILY_MEMBER_VIEW">
+                <FamilyMembersRouteWrapper />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path={ROUTES.PATIENT_APPOINTMENTS}
+            element={
+              <RouteGuard requiredPermission="APPOINTMENT_VIEW">
+                <PatientAppointmentsScreen />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path={ROUTES.PATIENT_MEDICAL_RECORDS}
+            element={
+              <RouteGuard requiredPermission="MEDICAL_HISTORY_VIEW">
+                <PatientMedicalRecordsScreen />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path={ROUTES.PATIENT_PRESCRIPTIONS}
+            element={
+              <RouteGuard requiredPermission="PRESCRIPTION_VIEW">
+                <PatientPrescriptionsScreen />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path={ROUTES.PATIENT_BILLING}
+            element={
+              <RouteGuard requiredPermission="BILLING_VIEW">
+                <PatientBillingScreen />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path={ROUTES.PATIENT_NOTIFICATIONS}
+            element={
+              <RouteGuard requiredPermission="NOTIFICATION_VIEW">
+                <PatientNotificationsScreen />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path={ROUTES.PATIENT_LIST}
+            element={
+              <RouteGuard requiredPermission="PATIENT_VIEW">
+                <PatientListPageRoute />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path={ROUTES.PATIENT_PROFILE}
+            element={
+              <RouteGuard requiredPermission="PATIENT_VIEW">
+                <PatientProfileRoute />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path={ROUTES.PATIENT_MY_PROFILE}
+            element={
+              <RouteGuard requiredPermission="PATIENT_VIEW">
+                <PatientMyProfileRoute />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path={ROUTES.PATIENT_DOCTOR_ASSIGNED}
+            element={
+              <RouteGuard requiredPermission="DOCTOR_VIEW">
+                <DoctorAssignedPatientsRoute />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path={ROUTES.PATIENT_NURSE_VITALS}
+            element={
+              <RouteGuard requiredPermission="VITALS_CREATE">
+                <NurseVitalsWorklistPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path={ROUTES.PATIENT_ACCOUNTANT_BILLING}
+            element={
+              <RouteGuard requiredPermission="BILLING_VIEW">
+                <AccountantPatientBillingPage />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path={ROUTES.PATIENT_DOCTORS}
+            element={
+              <RouteGuard requiredPermission="DOCTOR_VIEW">
+                <PatientDoctorSearchScreen />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path={ROUTES.PATIENT_QUEUE}
+            element={
+              <RouteGuard requiredPermission="QUEUE_VIEW">
+                <PatientQueueStatusScreen />
+              </RouteGuard>
+            }
+          />
         </Route>
         <Route
           path={ROUTES.PATIENT_NOTIFICATIONS}

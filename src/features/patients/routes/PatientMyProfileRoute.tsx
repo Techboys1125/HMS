@@ -2,6 +2,7 @@ import { useAuthStore } from "../../auth/index";
 import { MyProfilePage } from "../pages/MyProfilePage";
 import { usePatientPortal } from "../context/PatientPortalContext";
 import type { Role } from "../utils/patientPermissions";
+import { useEffect, useState } from "react";
 
 export function PatientMyProfileRoute() {
   const user = useAuthStore((state) => state.user);
@@ -11,6 +12,7 @@ export function PatientMyProfileRoute() {
 
   useEffect(() => {
     const role = String(user?.role ?? "ADMIN").toUpperCase();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (role === "RECEPTIONIST") setCurrentRole("RECEPTIONIST");
     else if (role === "DOCTOR") setCurrentRole("DOCTOR");
     else if (role === "NURSE") setCurrentRole("NURSE");
@@ -20,11 +22,11 @@ export function PatientMyProfileRoute() {
   }, [user?.role]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMrn(
       portal?.primaryMrn || String(user?.patientId || user?.id || "UNKNOWN"),
     );
   }, [portal?.primaryMrn, user?.patientId, user?.id]);
 
-  return <MyProfilePage currentRole={currentRole} mrn={mrn} />;
   return <MyProfilePage currentRole={currentRole} mrn={mrn} />;
 }

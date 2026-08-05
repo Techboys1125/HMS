@@ -21,7 +21,10 @@ export function usePatientQueue() {
         );
         if (!cancelled) setQueue(data);
       } catch (err: unknown) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load patient queue");
+        if (!cancelled)
+          setError(
+            err instanceof Error ? err.message : "Failed to load patient queue",
+          );
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -35,7 +38,7 @@ export function usePatientQueue() {
   }, [portal?.activeMrn]);
 
   const refresh = async () => {
-    let cancelled = false;
+    const cancelled = false;
     try {
       setLoading(true);
       setError(null);
@@ -44,7 +47,10 @@ export function usePatientQueue() {
       );
       if (!cancelled) setQueue(data);
     } catch (err: unknown) {
-      if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load patient queue");
+      if (!cancelled)
+        setError(
+          err instanceof Error ? err.message : "Failed to load patient queue",
+        );
     } finally {
       if (!cancelled) setLoading(false);
     }
@@ -54,7 +60,6 @@ export function usePatientQueue() {
     queue,
     loading,
     error,
-    refresh,
     refresh,
   };
 }

@@ -356,7 +356,7 @@ export function PatientTable({
                 const category = (p.patientCategory || "GENERAL")
                   .toLowerCase()
                   .replace(/_/g, " ");
-const regType = (p.registrationType || "WALK_IN")
+                const regType = (p.registrationType || "WALK_IN")
                   .replace(/_/g, " ")
                   .replace(/\b\w/g, (c) => c.toUpperCase());
                 const doctor = p.assignedDoctor || "Unassigned";
@@ -488,27 +488,25 @@ const regType = (p.registrationType || "WALK_IN")
                             </button>
                           )}
 
-                          {status.toUpperCase() === "INACTIVE" ? (
-                            onActivatePatient && (
-                              <button
-                                onClick={() => onActivatePatient(p)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
-                                title="Activate Patient"
-                              >
-                                <CheckCircle2 size={15} />
-                              </button>
-                            )
-                          ) : (
-                            onDeactivatePatient && (
-                              <button
-                                onClick={() => onDeactivatePatient(p)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                title="Deactivate Patient"
-                              >
-                                <AlertTriangle size={15} />
-                              </button>
-                            )
-                          )}
+                          {status.toUpperCase() === "INACTIVE"
+                            ? onActivatePatient && (
+                                <button
+                                  onClick={() => onActivatePatient(p)}
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
+                                  title="Activate Patient"
+                                >
+                                  <CheckCircle2 size={15} />
+                                </button>
+                              )
+                            : onDeactivatePatient && (
+                                <button
+                                  onClick={() => onDeactivatePatient(p)}
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                  title="Deactivate Patient"
+                                >
+                                  <AlertTriangle size={15} />
+                                </button>
+                              )}
 
                           <div className="relative">
                             <button

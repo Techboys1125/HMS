@@ -33,7 +33,12 @@ export const appointmentsApi = {
         `/api/v1/prescriptions/${prescriptionId}/finalize`,
         { confirmation: true },
       );
-      return (response.data as ApiResponse<unknown>) || { success: true, message: "Success" };
+      return (
+        (response.data as ApiResponse<unknown>) || {
+          success: true,
+          message: "Success",
+        }
+      );
     } catch (error: unknown) {
       return handleApiError(error);
     }
@@ -50,7 +55,12 @@ export const appointmentsApi = {
         `/api/v1/appointments/${appointmentId}/generate-bill`,
         {},
       );
-      return (response.data as ApiResponse<unknown>) || { success: true, message: "Success" };
+      return (
+        (response.data as ApiResponse<unknown>) || {
+          success: true,
+          message: "Success",
+        }
+      );
     } catch (error: unknown) {
       return handleApiError(error);
     }
@@ -68,7 +78,12 @@ export const appointmentsApi = {
         `/api/v1/appointments/${appointmentId}/process-payment`,
         { amount },
       );
-      return (response.data as ApiResponse<unknown>) || { success: true, message: "Success" };
+      return (
+        (response.data as ApiResponse<unknown>) || {
+          success: true,
+          message: "Success",
+        }
+      );
     } catch (error: unknown) {
       return handleApiError(error);
     }
@@ -198,7 +213,11 @@ export const appointmentsApi = {
   ): Promise<ApiResponse<unknown>> => {
     try {
       if (doctorId) {
-        return await appointmentsApi.getAppointments({ doctorId, date, status });
+        return await appointmentsApi.getAppointments({
+          doctorId,
+          date,
+          status,
+        });
       }
       const query = new URLSearchParams();
       if (date) query.append("date", date);
@@ -381,10 +400,16 @@ export const appointmentsApi = {
    */
   getTokenDetails: async (
     appointmentId: string | number,
-  ): Promise<ApiResponse<{ tokenNumber: string; queueNumber?: number; status: string }>> => {
+  ): Promise<
+    ApiResponse<{ tokenNumber: string; queueNumber?: number; status: string }>
+  > => {
     try {
       const response = await apiClient.get<
-        ApiResponse<{ tokenNumber: string; queueNumber?: number; status: string }>
+        ApiResponse<{
+          tokenNumber: string;
+          queueNumber?: number;
+          status: string;
+        }>
       >(`/api/v1/appointments/${appointmentId}/token`);
       return response.data;
     } catch (error: unknown) {

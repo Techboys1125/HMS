@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import {
   ChevronRight,
   User,
@@ -15,7 +15,10 @@ import {
 import { PP, RB } from "../constants/patient.mock";
 import { useCreatePatient } from "../hooks/useCreatePatient";
 import { patientsApi } from "../api/patient.api";
-import type { CreatePatientRequest, Patient, RegistrationType } from "../types/patient.types";
+import type {
+  CreatePatientRequest,
+  RegistrationType,
+} from "../types/patient.types";
 import { ROLE_FIELD_PERMISSIONS } from "../types/patient.types";
 import { useAuthStore } from "../../auth";
 import { usePatientPortal } from "../context/PatientPortalContext";
@@ -125,8 +128,8 @@ interface RegistrationFormState {
   ecRelationship: string;
   ecMobile: string;
   ecAltMobile: string;
-patientCategory: string;
-   knownAllergies: string;
+  patientCategory: string;
+  knownAllergies: string;
   chronicDiseases: string;
   specialNotes: string;
   registrationDate: string;
@@ -157,8 +160,8 @@ const INITIAL_FORM: RegistrationFormState = {
   ecRelationship: "",
   ecMobile: "",
   ecAltMobile: "",
-patientCategory: "GENERAL",
-   knownAllergies: "",
+  patientCategory: "GENERAL",
+  knownAllergies: "",
   chronicDiseases: "",
   specialNotes: "",
   registrationDate: todayStr,
@@ -349,7 +352,8 @@ function RegistrationSuccessDialog({
   );
 }
 
-export type RegistrationMode = "ADMIN" | "RECEPTIONIST" | "PATIENT_SELF" | "PATIENT_FAMILY";
+export type RegistrationMode =
+  "ADMIN" | "RECEPTIONIST" | "PATIENT_SELF" | "PATIENT_FAMILY";
 
 /* ═══════════════════════════════════════════════════════
    MAIN COMPONENT
@@ -400,7 +404,7 @@ export function RegisterPatientScreen({
       ? ROLE_FIELD_PERMISSIONS[roleKey]
       : undefined;
   const hideField = (field: string) =>
-    (rolePerms?.hiddenFields.includes(field) ?? false);
+    rolePerms?.hiddenFields.includes(field) ?? false;
   const readOnlyField = (field: string) =>
     (rolePerms?.alwaysReadOnly.includes(field) ||
       rolePerms?.readOnlyFields.includes(field)) ??
@@ -422,6 +426,7 @@ export function RegisterPatientScreen({
 
   useEffect(() => {
     if (user && !isAddingFamilyMember) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm((prev) => ({
         ...prev,
         fullName: prev.fullName || user.fullName || "",
@@ -477,15 +482,13 @@ export function RegisterPatientScreen({
     if (form.pincode && !/^\d{5,10}$/.test(form.pincode.trim()))
       e.pincode = "Enter a valid pincode";
     if (
-    showRelationship &&
+      showRelationship &&
       effectiveMode === "PATIENT_FAMILY" &&
       !form.relationship
     )
       e.relationship = "Relationship is required";
     return e;
   }, [form, showRelationship, effectiveMode]);
-
-  const isValid = useMemo(() => Object.keys(errors).length === 0, [errors]);
 
   const fieldError = (field: string) =>
     touched[field] && errors[field] ? (
@@ -511,8 +514,10 @@ export function RegisterPatientScreen({
     const submitErrors: Record<string, string> = {};
     if (!form.fullName.trim()) submitErrors.fullName = "Full Name is required";
     if (!form.gender) submitErrors.gender = "Gender is required";
-    if (!form.dateOfBirth) submitErrors.dateOfBirth = "Date of birth is required";
-    if (!form.mobileNumber.trim()) submitErrors.mobileNumber = "Mobile number is required";
+    if (!form.dateOfBirth)
+      submitErrors.dateOfBirth = "Date of birth is required";
+    if (!form.mobileNumber.trim())
+      submitErrors.mobileNumber = "Mobile number is required";
     else if (!/^[\d+\s()-]{7,15}$/.test(form.mobileNumber.trim()))
       submitErrors.mobileNumber = "Enter a valid mobile number";
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
@@ -645,22 +650,19 @@ export function RegisterPatientScreen({
       } else if (effectiveMode === "PATIENT_FAMILY" && primaryMrn) {
         const primaryUserId = user?.id;
         if (!primaryUserId) {
-          throw new Error(
-            "Primary user ID not found. Please try again.",
-          );
+          throw new Error("Primary user ID not found. Please try again.");
         }
 
-        const created = await createPatient.mutateAsync(payload) as Record<string, unknown>;
+        const created = (await createPatient.mutateAsync(payload)) as Record<
+          string,
+          unknown
+        >;
         const raw = (created.data as Record<string, unknown>) || created;
         const patientData = (raw.data as Record<string, unknown>) || raw;
 
-        const familyMrn =
-          String(
-            patientData.mrn ||
-              patientData.MRNId ||
-              patientData.patientMrn ||
-              "",
-          ).trim();
+        const familyMrn = String(
+          patientData.mrn || patientData.MRNId || patientData.patientMrn || "",
+        ).trim();
 
         const familyUserId =
           patientData.userId ||
@@ -681,10 +683,14 @@ export function RegisterPatientScreen({
             payload.relationship || "OTHER",
           );
           if (!member) {
-            console.warn("[RegisterPatient] linkFamilyMember returned null, but patient was created. Proceeding with success.");
+            console.warn(
+              "[RegisterPatient] linkFamilyMember returned null, but patient was created. Proceeding with success.",
+            );
           }
         } else {
-          console.warn("[RegisterPatient] No familyUserId available to link. Patient was created.");
+          console.warn(
+            "[RegisterPatient] No familyUserId available to link. Patient was created.",
+          );
         }
 
         mrn = familyMrn;
@@ -947,9 +953,7 @@ export function RegisterPatientScreen({
                     onChange={(e) => set("bloodGroup", e.target.value)}
                     disabled={readOnlyField("bloodGroup")}
                     className={
-                      readOnlyField("bloodGroup")
-                        ? inputDisabled
-                        : inputBase
+                      readOnlyField("bloodGroup") ? inputDisabled : inputBase
                     }
                   >
                     {BLOOD_GROUPS.map((bg) => (
@@ -967,9 +971,7 @@ export function RegisterPatientScreen({
                     onChange={(e) => set("maritalStatus", e.target.value)}
                     disabled={readOnlyField("maritalStatus")}
                     className={
-                      readOnlyField("maritalStatus")
-                        ? inputDisabled
-                        : inputBase
+                      readOnlyField("maritalStatus") ? inputDisabled : inputBase
                     }
                   >
                     {MARITAL_STATUSES.map((ms) => (

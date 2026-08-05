@@ -81,10 +81,7 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     0;
 
   const followUpFee =
-    profile?.followUpFee ??
-    anyProfile?.followUpFee ??
-    anyU.followUpFee ??
-    0;
+    profile?.followUpFee ?? anyProfile?.followUpFee ?? anyU.followUpFee ?? 0;
 
   const slotDurationMinutes =
     profile?.slotDurationMinutes ??
@@ -92,9 +89,15 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     anyU.slotDurationMinutes ??
     15;
 
-  const slotDuration = slotDurationMinutes ? `${slotDurationMinutes} mins` : "15 mins";
+  const slotDuration = slotDurationMinutes
+    ? `${slotDurationMinutes} mins`
+    : "15 mins";
 
-  const rawAvail = profile?.availability || anyProfile?.availability || anyU.availability || [];
+  const rawAvail =
+    profile?.availability ||
+    anyProfile?.availability ||
+    anyU.availability ||
+    [];
   const workingDays = Array.from(
     new Set(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -111,14 +114,19 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     shiftTimings = `${rawAvail[0].startTime} - ${rawAvail[0].endTime}`;
   }
 
-  const rawStatus = String(u.status || anyProfile?.status || "ACTIVE").toUpperCase();
+  const rawStatus = String(
+    u.status || anyProfile?.status || "ACTIVE",
+  ).toUpperCase();
   let status: "Active" | "Inactive" | "On Leave" | "Suspended" = "Active";
   if (rawStatus === "INACTIVE") status = "Inactive";
-  else if (rawStatus === "ON_LEAVE" || rawStatus === "LEAVE") status = "On Leave";
+  else if (rawStatus === "ON_LEAVE" || rawStatus === "LEAVE")
+    status = "On Leave";
   else if (rawStatus === "SUSPENDED") status = "Suspended";
 
-  const rawUserId = u.userId ?? u.id ?? anyProfile?.userId ?? anyProfile?.id ?? 0;
-  const rawDoctorId = profile?.doctorId ?? anyProfile?.doctorId ?? anyU.doctorId ?? rawUserId;
+  const rawUserId =
+    u.userId ?? u.id ?? anyProfile?.userId ?? anyProfile?.id ?? 0;
+  const rawDoctorId =
+    profile?.doctorId ?? anyProfile?.doctorId ?? anyU.doctorId ?? rawUserId;
 
   return {
     id: `DOC-${rawDoctorId || rawUserId}`,
@@ -129,13 +137,19 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     name: (u.fullName || u.name || anyProfile?.name || "").startsWith("Dr.")
       ? u.fullName || u.name || anyProfile?.name || ""
       : `Dr. ${u.fullName || u.name || anyProfile?.name || "Doctor"}`,
-    gender: ((u.gender || anyProfile?.gender) as "Male" | "Female" | "Other") || "Male",
+    gender:
+      ((u.gender || anyProfile?.gender) as "Male" | "Female" | "Other") ||
+      "Male",
     department: primaryDept,
     primaryDepartmentId:
-      profile?.primaryDepartment?.departmentId ?? anyProfile?.departmentId ?? anyU.departmentId,
+      profile?.primaryDepartment?.departmentId ??
+      anyProfile?.departmentId ??
+      anyU.departmentId,
     specialty: primarySpec,
     primarySpecialtyId:
-      profile?.primarySpecialty?.specialtyId ?? anyProfile?.specialtyId ?? anyU.specialtyId,
+      profile?.primarySpecialty?.specialtyId ??
+      anyProfile?.specialtyId ??
+      anyU.specialtyId,
     qualification,
     experienceYrs: Number(experienceYrs),
     consultationFee: Number(consultationFee),
@@ -150,16 +164,29 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
           : "Available Today",
     status,
     email: u.email || anyProfile?.email || "",
-    phone: u.mobile || u.phoneNumber || u.phone || anyProfile?.phone || anyProfile?.mobile || "",
-    address: u.residentialAddress || anyProfile?.address || anyProfile?.residentialAddress || "",
+    phone:
+      u.mobile ||
+      u.phoneNumber ||
+      u.phone ||
+      anyProfile?.phone ||
+      anyProfile?.mobile ||
+      "",
+    address:
+      u.residentialAddress ||
+      anyProfile?.address ||
+      anyProfile?.residentialAddress ||
+      "",
     dob: u.dateOfBirth || anyProfile?.dateOfBirth || anyProfile?.dob || "",
     opdRoom: anyProfile?.opdRoom || anyU.opdRoom || "",
     joinedDate: anyProfile?.joinedDate || anyU.joinedDate || "",
     shiftTimings,
     workingDays: workingDays.length > 0 ? (workingDays as string[]) : [],
-    bio: u.professionalBio || anyProfile?.bio || anyProfile?.professionalBio || "",
-    designation: (profile?.designation as string) || anyProfile?.designation || "",
-    scheduleExceptions: profile?.scheduleExceptions || anyProfile?.scheduleExceptions || [],
+    bio:
+      u.professionalBio || anyProfile?.bio || anyProfile?.professionalBio || "",
+    designation:
+      (profile?.designation as string) || anyProfile?.designation || "",
+    scheduleExceptions:
+      profile?.scheduleExceptions || anyProfile?.scheduleExceptions || [],
     rawAvailability: rawAvail,
     secondarySpecialties:
       profile?.secondarySpecialties?.map((s) => s.specialtyName) || [],

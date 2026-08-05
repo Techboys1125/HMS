@@ -60,6 +60,19 @@ export const mapDoctorSummaryToDoctorRecord = (u: unknown): DoctorRecord => {
       : userObj
   ) as Record<string, unknown>;
 
+  const primaryDept = (
+    profileObj?.primaryDepartment &&
+    typeof profileObj.primaryDepartment === "object"
+      ? profileObj.primaryDepartment
+      : {}
+  ) as Record<string, unknown>;
+  const primarySpec = (
+    profileObj?.primarySpecialty &&
+    typeof profileObj.primarySpecialty === "object"
+      ? profileObj.primarySpecialty
+      : {}
+  ) as Record<string, unknown>;
+
   const rawAvail = (
     Array.isArray(profileObj.availability) ? profileObj.availability : []
   ) as ApiAvailabilityItem[];
@@ -86,35 +99,24 @@ export const mapDoctorSummaryToDoctorRecord = (u: unknown): DoctorRecord => {
   const userId = userObj.userId ?? userObj.id;
   const doctorId = profileObj.doctorId ?? userObj.doctorId ?? userId;
 
-  const fees = (
-    userObj.fees && typeof userObj.fees === "object" ? userObj.fees : {}
-  ) as Record<string, unknown>;
-
-  const primaryDept = (
-    profileObj.primaryDepartment &&
-    typeof profileObj.primaryDepartment === "object"
-      ? profileObj.primaryDepartment
-      : {}
-  ) as Record<string, unknown>;
-
-  const primarySpec = (
-    profileObj.primarySpecialty &&
-    typeof profileObj.primarySpecialty === "object"
-      ? profileObj.primarySpecialty
-      : {}
-  ) as Record<string, unknown>;
-
   return {
     id: `DOC-${userId ?? doctorId ?? ""}`,
     userId: userId !== undefined ? Number(userId) : undefined,
     doctorId: doctorId !== undefined ? Number(doctorId) : undefined,
-    empId: u.employeeId || profile?.employeeId || u.empId || profile?.empId || "",
-    regNumber:
-      profile?.medicalRegistrationNumber ||
-      u.medicalRegistrationNumber ||
-      profile?.regNumber ||
-      u.regNumber ||
-      "",
+    empId: String(
+      userObj.employeeId ||
+        profileObj?.employeeId ||
+        userObj.empId ||
+        profileObj?.empId ||
+        "",
+    ),
+    regNumber: String(
+      profileObj?.medicalRegistrationNumber ||
+        userObj.medicalRegistrationNumber ||
+        profileObj?.regNumber ||
+        userObj.regNumber ||
+        "",
+    ),
     name: (() => {
       const rawName = String(
         userObj.doctorName ??
@@ -124,46 +126,55 @@ export const mapDoctorSummaryToDoctorRecord = (u: unknown): DoctorRecord => {
       );
       return rawName.startsWith("Dr.") ? rawName : `Dr. ${rawName}`;
     })(),
-    gender: (u.gender as "Male" | "Female" | "Other") || "Male",
-    department:
-      u.departmentName ??
-      u.department ??
-      profile?.primaryDepartment?.departmentName ??
-      profile?.departmentName ??
-      profile?.department ??
-      u.primaryDepartmentName ??
-      "",
+    gender: (userObj.gender as "Male" | "Female" | "Other") || "Male",
+    department: String(
+      userObj.departmentName ??
+        userObj.department ??
+        primaryDept.departmentName ??
+        profileObj?.departmentName ??
+        profileObj?.department ??
+        userObj.primaryDepartmentName ??
+        "",
+    ),
     primaryDepartmentId:
-      profile?.primaryDepartment?.departmentId ?? u.departmentId,
-    specialty:
-      u.specialtyName ??
-      u.specialty ??
-      profile?.primarySpecialty?.specialtyName ??
-      profile?.specialtyName ??
-      profile?.specialty ??
-      u.primarySpecialtyName ??
-      "",
-    primarySpecialtyId: profile?.primarySpecialty?.specialtyId,
-    qualification: profile?.qualification ?? u.qualification ?? "",
+      Number(primaryDept.departmentId ?? userObj.departmentId) || undefined,
+    specialty: String(
+      userObj.specialtyName ??
+        userObj.specialty ??
+        primarySpec.specialtyName ??
+        profileObj?.specialtyName ??
+        profileObj?.specialty ??
+        userObj.primarySpecialtyName ??
+        "",
+    ),
+    primarySpecialtyId: Number(primarySpec.specialtyId) || undefined,
+    qualification: String(
+      profileObj?.qualification ?? userObj.qualification ?? "",
+    ),
     experienceYrs: Number(
-      profile?.yearsOfExperience ??
-        profile?.experienceYrs ??
-        u.experienceYears ??
-        u.yearsOfExperience ??
-        u.experienceYrs ??
-        u.experience ??
+      profileObj?.yearsOfExperience ??
+        profileObj?.experienceYrs ??
+        userObj.experienceYears ??
+        userObj.yearsOfExperience ??
+        userObj.experienceYrs ??
+        userObj.experience ??
         0,
     ),
-    consultationFee:
-      u.fees?.standardConsultationFee ??
-      u.consultationFee ??
-      profile?.consultationFee ??
-      0,
-    followUpFee: u.fees?.followUpFee ?? profile?.followUpFee ?? 0,
-    slotDuration: profile?.slotDurationMinutes
-      ? `${profile.slotDurationMinutes} mins`
+    consultationFee: Number(
+      (userObj.fees as Record<string, unknown>)?.standardConsultationFee ??
+        userObj.consultationFee ??
+        profileObj?.consultationFee ??
+        0,
+    ),
+    followUpFee: Number(
+      (userObj.fees as Record<string, unknown>)?.followUpFee ??
+        profileObj?.followUpFee ??
+        0,
+    ),
+    slotDuration: profileObj?.slotDurationMinutes
+      ? `${profileObj.slotDurationMinutes} mins`
       : "",
-    slotDurationMinutes: profile?.slotDurationMinutes || 0,
+    slotDurationMinutes: Number(profileObj?.slotDurationMinutes) || 0,
     availability:
       status === "Inactive"
         ? "Out of Office"
@@ -171,20 +182,22 @@ export const mapDoctorSummaryToDoctorRecord = (u: unknown): DoctorRecord => {
           ? "On Leave"
           : "Available Today",
     status,
-    email: u.email ?? "",
-    phone: u.mobile ?? u.phone ?? "",
-    address: u.residentialAddress ?? "",
-    dob: u.dateOfBirth ?? "",
-    opdRoom: u.opdRoom ?? "",
-    joinedDate: u.joinedDate ?? "",
+    email: String(userObj.email ?? ""),
+    phone: String(userObj.mobile ?? userObj.phone ?? ""),
+    address: String(userObj.residentialAddress ?? ""),
+    dob: String(userObj.dateOfBirth ?? ""),
+    opdRoom: String(userObj.opdRoom ?? ""),
+    joinedDate: String(userObj.joinedDate ?? ""),
     shiftTimings:
       rawAvail.length > 0 && rawAvail[0]?.startTime
         ? `${rawAvail[0].startTime} - ${rawAvail[0]?.endTime}`
         : "",
     workingDays: workingDays.length > 0 ? workingDays : [],
-    bio: u.professionalBio ?? "",
-    designation: u.designation ?? profile?.designation ?? "",
-    scheduleExceptions: profile?.scheduleExceptions ?? [],
+    bio: String(userObj.professionalBio ?? ""),
+    designation: String(userObj.designation ?? profileObj?.designation ?? ""),
+    scheduleExceptions: Array.isArray(profileObj?.scheduleExceptions)
+      ? profileObj.scheduleExceptions
+      : [],
     rawAvailability: rawAvail,
   };
 };
@@ -547,10 +560,16 @@ export const doctorsApi = {
   ): Promise<ApiScheduleExceptionItem[]> => {
     try {
       const response = await apiClient.get<
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         DoctorApiResponse<ApiScheduleExceptionItem[]> | any
       >(`/api/v1/doctors/${doctorId}/schedule-exceptions`);
       const rawData = response.data?.data || response.data;
-      const list = Array.isArray(rawData) ? rawData : Array.isArray(rawData?.content) ? rawData.content : [];
+      const list = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray(rawData?.content)
+          ? rawData.content
+          : [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return list.map((item: any) => ({
         id: item.exceptionId || item.id,
         doctorId: Number(doctorId),
@@ -558,7 +577,10 @@ export const doctorsApi = {
         startDate: item.startDate || item.date || "",
         endDate: item.endDate || item.date || "",
         reason: item.reason || "",
-        exceptionType: item.exceptionType || item.type || (item.isAvailable === false ? "VACATION" : "OTHER"),
+        exceptionType:
+          item.exceptionType ||
+          item.type ||
+          (item.isAvailable === false ? "VACATION" : "OTHER"),
         isFullDay: item.isFullDay ?? item.fullDay ?? true,
         action: item.action || "BLOCK_APPOINTMENTS",
         status: item.status || "ACTIVE",

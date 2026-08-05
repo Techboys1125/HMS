@@ -279,7 +279,10 @@ export function DoctorProfileScreen({
       doctor &&
       doctor.name &&
       doctor.id &&
-      (doctor.department || doctor.specialty || doctor.qualification || doctor.experienceYrs)
+      (doctor.department ||
+        doctor.specialty ||
+        doctor.qualification ||
+        doctor.experienceYrs)
     ) {
       const overrides = JSON.parse(
         localStorage.getItem("doctor_status_overrides") || "{}",
@@ -810,9 +813,7 @@ export function DoctorProfileScreen({
         doctor={docState}
         role={
           String(currentRole).toUpperCase() as
-            | "ADMIN"
-            | "DOCTOR"
-            | "RECEPTIONIST"
+            "ADMIN" | "DOCTOR" | "RECEPTIONIST"
         }
         isOwnRecord={isOwnRecord}
         isLoading={isLoading}
@@ -852,9 +853,7 @@ export function DoctorProfileScreen({
             scheduledToday={scheduledToday}
             role={
               String(currentRole).toUpperCase() as
-                | "ADMIN"
-                | "DOCTOR"
-                | "RECEPTIONIST"
+                "ADMIN" | "DOCTOR" | "RECEPTIONIST"
             }
             canEdit={can("DOCTOR_PROFILE_UPDATE") && isOwnRecord}
             onOpenEdit={() => setShowEditDrawer(true)}
@@ -1710,7 +1709,19 @@ export function DoctorProfileScreen({
                               : "bg-amber-50 text-[#F59E0B] border-amber-200"
                           }`}
                         >
-                          {({ VACATION: "Vacation", TRAINING: "Training", CONFERENCE: "Conference", SURGERY: "Surgery", EMERGENCY: "Emergency", OTHER: "Other" } as Record<string, string>)[String(ex.exceptionType || ex.type || "")] || ex.exceptionType || ex.type || "EXCEPTION"}
+                          {(
+                            {
+                              VACATION: "Vacation",
+                              TRAINING: "Training",
+                              CONFERENCE: "Conference",
+                              SURGERY: "Surgery",
+                              EMERGENCY: "Emergency",
+                              OTHER: "Other",
+                            } as Record<string, string>
+                          )[String(ex.exceptionType || ex.type || "")] ||
+                            ex.exceptionType ||
+                            ex.type ||
+                            "EXCEPTION"}
                         </span>
                         <span className="font-bold text-xs text-[#111827]">
                           {ex.startDate || ex.exceptionDate}

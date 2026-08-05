@@ -15,6 +15,9 @@ export type AppointmentStatusEnum =
   | "WAITING_FOR_DOCTOR_CALL"
   | "CALLED"
   | "IN_CONSULTATION"
+  | "CONSULTATION_COMPLETED"
+  | "BILLING_PENDING"
+  | "PAYMENT_COMPLETED"
   | "COMPLETED"
   | "CANCELLED"
   | "NO_SHOW"
@@ -97,6 +100,18 @@ export interface LinkedPatient {
 }
 
 export interface AppointmentRecord {
+  tokenNumber: string;
+  appointmentTime: string;
+  reasonForVisit: string;
+  roomNumber: string;
+  appointmentId: string | number;
+  age: ReactNode;
+  age: ReactNode;
+  gender: ReactNode;
+  bloodGroup: ReactNode;
+  mobile: ReactNode;
+  emergencyContact: ReactNode;
+  arrivalTime: string;
   date?: string;
   id: number | string;
   appointmentNumber?: string;

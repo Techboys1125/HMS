@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Clock,
   User,
@@ -35,6 +35,23 @@ import { appointmentService } from "../../appointments";
 
 type ConsultTab = "overview" | "vitals" | "soap" | "prescription" | "history";
 
+interface AppointmentData {
+  patientName: string;
+  patientMrn: string;
+  age: number;
+  gender: string;
+  bloodGroup: string;
+  allergies: string[];
+  appointmentTime: string;
+  appointmentDate: string;
+  visitType: string;
+  chiefComplaint: string;
+  doctorName: string;
+  department: string;
+  opdRoom: string;
+  status: string;
+}
+
 const CONSULT_TABS: {
   id: ConsultTab;
   label: string;
@@ -45,6 +62,21 @@ const CONSULT_TABS: {
   { id: "soap", label: "Clinical Notes", Icon: ClipboardList },
   { id: "prescription", label: "Prescription", Icon: Pill },
   { id: "history", label: "History", Icon: FileText },
+];
+
+const VITALS_DATA = [
+  { label: "Blood Pressure", value: "145/92", unit: "mmHg", Icon: Activity, color: "#EF4444", status: "high" },
+  { label: "Heart Rate", value: "88", unit: "bpm", Icon: Activity, color: "#3B82F6", status: "normal" },
+  { label: "Temperature", value: "37.2", unit: "°C", Icon: Activity, color: "#F59E0B", status: "normal" },
+  { label: "SpO₂", value: "97", unit: "%", Icon: Activity, color: "#10B981", status: "normal" },
+  { label: "Resp. Rate", value: "18", unit: "/min", Icon: Activity, color: "#6366F1", status: "normal" },
+  { label: "Blood Sugar", value: "110", unit: "mg/dL", Icon: Activity, color: "#8B5CF6", status: "normal" },
+];
+
+const MEDICATIONS = [
+  { id: "1", name: "Amlodipine", dose: "5mg", freq: "Once Daily", route: "Oral", status: "active", refill: "15 days" },
+  { id: "2", name: "Metformin", dose: "500mg", freq: "Twice Daily", route: "Oral", status: "active", refill: "20 days" },
+  { id: "3", name: "Aspirin", dose: "75mg", freq: "Once Daily", route: "Oral", status: "prn", refill: "30 days" },
 ];
 
 const TIMELINE = [
@@ -67,6 +99,8 @@ export function DoctorConsultationScreen({
   const [tab, setTab] = useState<ConsultTab>("overview");
   const [isCompleting, setIsCompleting] = useState(false);
   const [completeMsg, setCompleteMsg] = useState<string | null>(null);
+  const [patientData, setPatientData] = useState<AppointmentData | null>(null);
+  const [loadingPatient, setLoadingPatient] = useState(true);
 
   const [soapData, setSoapData] = useState({
     subjective: "",
@@ -74,6 +108,43 @@ export function DoctorConsultationScreen({
     assessment: "",
     plan: "",
   });
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!appointmentId) { setLoadingPatient(false); return; }
+    let cancelled = false;
+    async function load() {
+      try {
+        const apt = await appointmentService.getAppointment(appointmentId!);
+        if (cancelled || !apt) return;
+        const patient = (apt.patient || {}) as Record<string, unknown>;
+        const doctor = (apt.doctor || {}) as Record<string, unknown>;
+        setPatientData({
+          patientName: `${patient.firstName || ""} ${patient.lastName || ""}`.trim() || "Unknown Patient",
+          patientMrn: String(patient.mrn || apt.patientMrn || "N/A"),
+          age: Number(patient.age || 0),
+          gender: String(patient.gender || "N/A"),
+          bloodGroup: String(patient.bloodGroup || "N/A"),
+          allergies: Array.isArray(patient.allergies) ? patient.allergies as string[] : [],
+          appointmentTime: String(apt.appointmentTime || apt.startTime || ""),
+          appointmentDate: String(apt.appointmentDate || new Date().toISOString().split("T")[0]),
+          visitType: String(apt.appointmentType || "First Visit"),
+          chiefComplaint: String(apt.reasonForVisit || apt.chiefComplaint || ""),
+          doctorName: `${(doctor as Record<string, unknown>).firstName || ""} ${(doctor as Record<string, unknown>).lastName || ""}`.trim() || String(apt.doctorName || "Unassigned"),
+          department: String(apt.departmentName || (doctor as Record<string, unknown>).department || "General"),
+          opdRoom: String(apt.roomNumber || apt.opdRoom || "N/A"),
+          status: String(apt.status || "BOOKED"),
+        });
+      } catch { /* keep null */ }
+      finally { if (!cancelled) setLoadingPatient(false); }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [appointmentId]);
+
+  const patient = patientData;
+  const patientName = patient?.patientName || "Unknown Patient";
+  const patientMrn = patient?.patientMrn || "N/A";
 
   const handleCompleteConsultation = async () => {
     if (!appointmentId || isCompleting) return;
@@ -89,6 +160,17 @@ export function DoctorConsultationScreen({
       setIsCompleting(false);
     }
   };
+
+  if (loadingPatient) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-[#F1F5F9]">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-[#009688] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-xs text-slate-500" style={{ fontFamily: RB }}>Loading patient data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-hidden flex bg-[#F1F5F9]">
@@ -113,22 +195,22 @@ export function DoctorConsultationScreen({
               Consultation Active
             </span>
           </div>
-          <Avatar name="Sarah Mitchell" size="lg" />
+          <Avatar name={patientName} size="lg" />
           <div className="mt-3">
             <div
               className="font-bold text-[#111827]"
               style={{ fontFamily: PP }}
             >
-              Sarah Mitchell
+              {patientName}
             </div>
             <div
               className="text-xs text-slate-500 mt-0.5"
               style={{ fontFamily: RB }}
             >
-              Female · 34 years · Blood A+
+              {patient?.gender || "N/A"} · {patient?.age || 0} years · Blood {patient?.bloodGroup || "N/A"}
             </div>
             <div className="font-mono text-xs text-[#0D47A1] mt-1.5 bg-blue-50 px-2 py-0.5 rounded-md inline-block">
-              MRN-2024-001
+              {patientMrn}
             </div>
           </div>
         </div>
@@ -142,7 +224,7 @@ export function DoctorConsultationScreen({
               Allergies
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {["Penicillin", "Aspirin"].map((a) => (
+              {(patient?.allergies || []).length > 0 ? (patient?.allergies || []).map((a) => (
                 <span
                   key={a}
                   className="px-2 py-0.5 bg-red-50 text-red-600 text-[10px] rounded-full border border-red-100 font-semibold"
@@ -150,15 +232,17 @@ export function DoctorConsultationScreen({
                 >
                   ⚠ {a}
                 </span>
-              ))}
+              )) : (
+                <span className="text-[10px] text-slate-400" style={{ fontFamily: RB }}>No known allergies</span>
+              )}
             </div>
           </div>
 
           <div className="space-y-2.5">
             {[
-              { label: "Phone", value: "+1 (555) 234-5678", Icon: Phone },
-              { label: "Doctor", value: "Dr. A. Mehta", Icon: Stethoscope },
-              { label: "Room", value: "OPD Wing A", Icon: Building2 },
+              { label: "Phone", value: String((patient as unknown as Record<string, unknown>)?.phone || "N/A"), Icon: Phone },
+              { label: "Doctor", value: patient?.doctorName || "Unassigned", Icon: Stethoscope },
+              { label: "Room", value: patient?.opdRoom || "N/A", Icon: Building2 },
             ].map(({ label, value, Icon }) => (
               <div key={label} className="flex items-start gap-2">
                 <Icon size={12} className="text-slate-400 mt-0.5 shrink-0" />

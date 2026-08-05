@@ -35,7 +35,9 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
   const [viewingPatient, setViewingPatient] = useState<Patient | null>(null);
   const [registering, setRegistering] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
-  const [deactivatePatient, setDeactivatePatient] = useState<Patient | null>(null);
+  const [deactivatePatient, setDeactivatePatient] = useState<Patient | null>(
+    null,
+  );
   const [activatePatient, setActivatePatient] = useState<Patient | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [showBookDrawer, setShowBookDrawer] = useState(false);
@@ -295,7 +297,9 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
         onEditPatient={canEdit ? (p) => setEditingPatient(p) : undefined}
         onBookAppointment={() => setShowBookDrawer(true)}
         onActivatePatient={canEdit ? (p) => setActivatePatient(p) : undefined}
-        onDeactivatePatient={canEdit ? (p) => setDeactivatePatient(p) : undefined}
+        onDeactivatePatient={
+          canEdit ? (p) => setDeactivatePatient(p) : undefined
+        }
         onResetFilters={() => setFilters(DEFAULT_FILTERS)}
         userRole={currentRole}
       />

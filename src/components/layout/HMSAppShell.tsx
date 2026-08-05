@@ -192,8 +192,7 @@ export function HMSAppShell({ onLogout }: { onLogout?: () => void }) {
   const handleSwitchActivePatient = (member: HeaderFamilyMember) => {
     const match = (portal?.familyMembers ?? []).find(
       (m) =>
-        String(m.id) === String(member.id) ||
-        (m.mrn && m.mrn === member.mrn),
+        String(m.id) === String(member.id) || (m.mrn && m.mrn === member.mrn),
     );
     if (match) portal?.switchToPatient(match);
   };

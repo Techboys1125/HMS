@@ -20,7 +20,8 @@ export function DeactivatePatientDialog({
   isDeactivating,
 }: DeactivatePatientDialogProps) {
   if (!isOpen || !patient) return null;
-  const name = patient.patientName || patient.fullName || patient.name || "Patient";
+  const name =
+    patient.patientName || patient.fullName || patient.name || "Patient";
   const mrn = patient.mrn || String(patient.id);
 
   return (
@@ -47,11 +48,13 @@ export function DeactivatePatientDialog({
         </div>
 
         <p className="text-xs text-slate-600 leading-relaxed">
-          Are you sure you want to set status to <span className="font-bold text-red-600">INACTIVE</span> for{" "}
+          Are you sure you want to set status to{" "}
+          <span className="font-bold text-red-600">INACTIVE</span> for{" "}
           <span className="font-bold text-[#111827]">{name}</span>?
           <br />
           <br />
-          Inactive patient accounts cannot book new appointments until reactivated by administrative staff.
+          Inactive patient accounts cannot book new appointments until
+          reactivated by administrative staff.
         </p>
 
         <div className="pt-2 flex items-center justify-end gap-2.5">
@@ -96,7 +99,8 @@ export function ActivatePatientDialog({
   isActivating,
 }: ActivatePatientDialogProps) {
   if (!isOpen || !patient) return null;
-  const name = patient.patientName || patient.fullName || patient.name || "Patient";
+  const name =
+    patient.patientName || patient.fullName || patient.name || "Patient";
   const mrn = patient.mrn || String(patient.id);
 
   return (
@@ -127,7 +131,9 @@ export function ActivatePatientDialog({
           <span className="font-bold text-[#111827]">{name}</span>?
           <br />
           <br />
-          The patient account will be marked as <span className="font-bold text-emerald-600">ACTIVE</span> and restored to full access.
+          The patient account will be marked as{" "}
+          <span className="font-bold text-emerald-600">ACTIVE</span> and
+          restored to full access.
         </p>
 
         <div className="pt-2 flex items-center justify-end gap-2.5">

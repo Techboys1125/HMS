@@ -49,7 +49,9 @@ export function PatientSearchScreen({
   );
   const [registering, setRegistering] = useState(false);
   const [showBookDrawer, setShowBookDrawer] = useState(false);
-  const [deactivatePatient, setDeactivatePatient] = useState<Patient | null>(null);
+  const [deactivatePatient, setDeactivatePatient] = useState<Patient | null>(
+    null,
+  );
   const [activatePatient, setActivatePatient] = useState<Patient | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 

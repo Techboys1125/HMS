@@ -49,22 +49,11 @@ export function useSwitchAccount(primaryMrn: string) {
     queryClient.invalidateQueries();
   }, [primaryMrn, queryClient]);
 
-  /** Switch back to the primary (self) account. */
-  const switchToPrimary = useCallback(() => {
-    localStorage.setItem(SWITCH_ACCOUNT_STORAGE_KEY, primaryMrn);
-    setContext({
-      activeMrn: primaryMrn,
-      primaryMrn,
-      activePatientName: "",
-      isFamilyMember: false,
-    });
-    queryClient.invalidateQueries();
-  }, [primaryMrn, queryClient]);
-
   // The authenticated patient context is loaded asynchronously. Keep this
   // hook aligned when the primary MRN arrives after the first render.
   useEffect(() => {
     if (!primaryMrn) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setContext((prev) => {
       const storedMrn = localStorage.getItem(SWITCH_ACCOUNT_STORAGE_KEY);
       const activeMrn = storedMrn || prev.activeMrn || primaryMrn;

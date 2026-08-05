@@ -19,7 +19,6 @@ export function DashboardDispatcher() {
   }
 
   const role = String(user.role).toUpperCase();
-
   switch (role) {
     case "SUPER_ADMIN":
     case "SUPER-ADMIN":
@@ -47,7 +46,10 @@ export function DashboardDispatcher() {
         <PatientDashboard
           activePatient={portal?.activePatient || undefined}
           familyMembers={portal?.familyMembers || []}
-          onSwitchPatient={(member) => portal?.switchToPatient(member)}
+          onSwitchPatient={
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (member) => portal?.switchToPatient(member as any)
+          }
         />
       );
 

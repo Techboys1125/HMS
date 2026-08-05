@@ -19,23 +19,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-interface QueueItem {
-  token: string;
-  name: string;
-  mrn: string;
-  aptId: string | number;
-  doctor: string;
-  dept: string;
-  apptTime: string;
-  arrivalTime: string;
-  waitTime: string;
-  status: string;
-  type: string;
-  age: number;
-  gender: string;
-  bloodGroup: string;
-}
-
 export function QueueManagementScreen({
   onBack,
   onCheckInClick,
@@ -81,7 +64,8 @@ export function QueueManagementScreen({
   const [selectedTokenId, setSelectedTokenId] = useState<string>("TK-086");
 
   // Dialog States
-  const [noShowDialogApt, setNoShowDialogApt] = useState<AppointmentRecord | null>(null);
+  const [noShowDialogApt, setNoShowDialogApt] =
+    useState<AppointmentRecord | null>(null);
   const [checkInModalData, setCheckInModalData] = useState<{
     isOpen: boolean;
     tokenNumber: string;
@@ -101,7 +85,7 @@ export function QueueManagementScreen({
       const genToken =
         res.tokenNumber ||
         apt.queueToken ||
-        `TK-${tokenCounter + apt.id}`;
+        `TK-${tokenCounter + Number(apt.id)}`;
 
       setQueueItems((prev) =>
         prev.map((i) =>
@@ -134,7 +118,7 @@ export function QueueManagementScreen({
         onCheckInClick(genToken, apt.patientMrn || apt.mrn || "");
     } catch (err) {
       alert(
-        errorObj?.message ||
+        (err instanceof Error ? err.message : null) ||
           "Check-in is only allowed on the appointment date.",
       );
     }
@@ -158,6 +142,7 @@ export function QueueManagementScreen({
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchQueue();
   }, []);
 
@@ -184,18 +169,14 @@ export function QueueManagementScreen({
 
       return matchSearch && matchDoc && matchDept && matchStatus;
     });
-  }, [
-    queueItems,
-    searchQuery,
-    selectedDoctor,
-    selectedDept,
-    selectedStatus,
-  ]);
+  }, [queueItems, searchQuery, selectedDoctor, selectedDept, selectedStatus]);
 
   // Summary KPI Metrics
   const metrics = useMemo(() => {
     const waiting = queueItems.filter(
-      (i) => i.status === "WAITING_FOR_VITALS" || i.status === "WAITING_FOR_DOCTOR_CALL",
+      (i) =>
+        i.status === "WAITING_FOR_VITALS" ||
+        i.status === "WAITING_FOR_DOCTOR_CALL",
     ).length;
     const checkedIn = queueItems.filter(
       (i) => i.status === "CHECKED_IN",
@@ -203,12 +184,8 @@ export function QueueManagementScreen({
     const inConsultation = queueItems.filter(
       (i) => i.status === "IN_CONSULTATION",
     ).length;
-    const completed = queueItems.filter(
-      (i) => i.status === "COMPLETED",
-    ).length;
-    const noShows = queueItems.filter(
-      (i) => i.status === "NO_SHOW",
-    ).length;
+    const completed = queueItems.filter((i) => i.status === "COMPLETED").length;
+    const noShows = queueItems.filter((i) => i.status === "NO_SHOW").length;
     return { waiting, checkedIn, inConsultation, completed, noShows };
   }, [queueItems]);
 
@@ -224,7 +201,9 @@ export function QueueManagementScreen({
   const handleMarkNoShow = (apt: AppointmentRecord) => {
     setQueueItems((prev) =>
       prev.map((i) =>
-        i.id === apt.id ? { ...i, status: "NO_SHOW" as AppointmentRecord["status"] } : i
+        i.id === apt.id
+          ? { ...i, status: "NO_SHOW" as AppointmentRecord["status"] }
+          : i,
       ),
     );
     setNoShowDialogApt(null);
@@ -548,96 +527,109 @@ export function QueueManagementScreen({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
-               {filteredQueue.length > 0 ? (
-                     filteredQueue.map((apt) => {
-                       const isSelected = selectedTokenId === apt.queueToken || selectedTokenId === String(apt.id);
-                       const displayStatus = String(apt.status || "").replace(/_/g, " ");
-                       return (
-                         <tr
-                           key={apt.id}
-                           onClick={() => setSelectedTokenId(apt.queueToken || String(apt.id))}
-                           className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${isSelected ? "bg-blue-50/60 font-medium" : ""}`}
-                         >
-                           <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
-                             {apt.queueToken || apt.tokenNo || `TK-${apt.id}`}
-                           </td>
-                           <td className="px-4 py-3.5 font-bold text-[#111827]">
-                             {apt.patientName}
-                           </td>
-                           <td className="px-4 py-3.5 font-mono text-slate-500">
-                             {apt.patientMrn || apt.mrn || ""}
-                           </td>
-                           <td className="px-4 py-3.5 font-medium">
-                             {apt.doctorName}
-                           </td>
-                           <td className="px-4 py-3.5 text-slate-600">
-                             {apt.departmentName}
-                           </td>
-                           <td className="px-4 py-3.5 font-mono text-slate-500">
-                             {apt.startTime || apt.timeSlot || ""}
-                           </td>
-                           <td className="px-4 py-3.5 font-mono text-slate-500">
-                             {apt.arrivalTime || ""}
-                           </td>
-                           <td className="px-4 py-3.5 font-mono text-slate-500">
-                             {apt.waitingTimeMinutes ? `${apt.waitingTimeMinutes} min` : ""}
-                           </td>
-                           <td className="px-4 py-3.5">
-                             <Chip
-                               label={displayStatus}
-                               variant={getStatusChipVariant(displayStatus)}
-                             />
-                           </td>
-                           <td
-                             className="px-4 py-3.5 text-right"
-                             onClick={(e) => e.stopPropagation()}
-                           >
-                             <div className="flex items-center justify-end gap-1.5">
-                               {(apt.status === "BOOKED" || apt.status === "CONFIRMED") &&
-                                 canCheckIn && (
-                                   <button
-                                     onClick={() => handleExecuteCheckIn(apt)}
-                                     className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors shadow-xs bg-[#009688] text-white hover:bg-teal-700 cursor-pointer"
-                                     title="Check-In Patient"
-                                   >
-                                     Check-In
-                                   </button>
-                                 )}
+                  {filteredQueue.length > 0 ? (
+                    filteredQueue.map((apt) => {
+                      const isSelected =
+                        selectedTokenId === apt.queueToken ||
+                        selectedTokenId === String(apt.id);
+                      const displayStatus = String(apt.status || "").replace(
+                        /_/g,
+                        " ",
+                      );
+                      return (
+                        <tr
+                          key={apt.id}
+                          onClick={() =>
+                            setSelectedTokenId(apt.queueToken || String(apt.id))
+                          }
+                          className={`hover:bg-slate-50/80 cursor-pointer transition-colors ${isSelected ? "bg-blue-50/60 font-medium" : ""}`}
+                        >
+                          <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
+                            {apt.queueToken || apt.tokenNo || `TK-${apt.id}`}
+                          </td>
+                          <td className="px-4 py-3.5 font-bold text-[#111827]">
+                            {apt.patientName}
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-slate-500">
+                            {apt.patientMrn || apt.mrn || ""}
+                          </td>
+                          <td className="px-4 py-3.5 font-medium">
+                            {apt.doctorName}
+                          </td>
+                          <td className="px-4 py-3.5 text-slate-600">
+                            {apt.departmentName}
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-slate-500">
+                            {apt.startTime || apt.timeSlot || ""}
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-slate-500">
+                            {apt.arrivalTime || ""}
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-slate-500">
+                            {apt.waitingTimeMinutes
+                              ? `${apt.waitingTimeMinutes} min`
+                              : ""}
+                          </td>
+                          <td className="px-4 py-3.5">
+                            <Chip
+                              label={displayStatus}
+                              variant={getStatusChipVariant(displayStatus)}
+                            />
+                          </td>
+                          <td
+                            className="px-4 py-3.5 text-right"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="flex items-center justify-end gap-1.5">
+                              {(apt.status === "BOOKED" ||
+                                apt.status === "CONFIRMED") &&
+                                canCheckIn && (
+                                  <button
+                                    onClick={() => handleExecuteCheckIn(apt)}
+                                    className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors shadow-xs bg-[#009688] text-white hover:bg-teal-700 cursor-pointer"
+                                    title="Check-In Patient"
+                                  >
+                                    Check-In
+                                  </button>
+                                )}
 
-                               {apt.status === "CHECKED_IN" &&
-                               canRecordVitals ? (
-                                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
-                                   Vitals Pending
-                                 </span>
-                               ) : null}
+                              {apt.status === "CHECKED_IN" &&
+                              canRecordVitals ? (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                                  Vitals Pending
+                                </span>
+                              ) : null}
 
-                               <button
-                                 onClick={() =>
-                                   onPatientSelect && onPatientSelect(apt.patientMrn || apt.mrn || "")
-                                 }
-                                 title="View Patient"
-                                 className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
-                               >
-                                 View
-                               </button>
+                              <button
+                                onClick={() =>
+                                  onPatientSelect &&
+                                  onPatientSelect(
+                                    apt.patientMrn || apt.mrn || "",
+                                  )
+                                }
+                                title="View Patient"
+                                className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
+                              >
+                                View
+                              </button>
 
-                               {apt.status !== "COMPLETED" &&
-                                 apt.status !== "CANCELLED" &&
-                                 apt.status !== "NO_SHOW" && (
-                                   <button
-                                     onClick={() => setNoShowDialogApt(apt)}
-                                     title="Mark No Show"
-                                     className="px-2 py-1 rounded-lg bg-red-50 text-[#EF4444] text-[11px] font-semibold hover:bg-red-100 transition-colors"
-                                   >
-                                     No Show
-                                   </button>
-                                 )}
-                             </div>
-                           </td>
-                         </tr>
-                       );
-                     })
-                   ) : (
+                              {apt.status !== "COMPLETED" &&
+                                apt.status !== "CANCELLED" &&
+                                apt.status !== "NO_SHOW" && (
+                                  <button
+                                    onClick={() => setNoShowDialogApt(apt)}
+                                    title="Mark No Show"
+                                    className="px-2 py-1 rounded-lg bg-red-50 text-[#EF4444] text-[11px] font-semibold hover:bg-red-100 transition-colors"
+                                  >
+                                    No Show
+                                  </button>
+                                )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
                     <tr>
                       <td colSpan={10} className="px-4 py-12 text-center">
                         <div className="flex flex-col items-center justify-center gap-2">
@@ -716,7 +708,8 @@ export function QueueManagementScreen({
                 {noShowDialogApt.departmentName})
               </p>
               <p>
-                <strong>Time Slot:</strong> {noShowDialogApt.startTime || noShowDialogApt.timeSlot || ""}
+                <strong>Time Slot:</strong>{" "}
+                {noShowDialogApt.startTime || noShowDialogApt.timeSlot || ""}
               </p>
             </div>
 

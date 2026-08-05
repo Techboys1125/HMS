@@ -116,6 +116,7 @@ export const doctorApi = {
   ): Promise<ApiWeeklyScheduleData | null> => {
     try {
       const response = await apiClient.get<
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         DoctorApiResponse<ApiWeeklyScheduleData> | any
       >(`/api/v1/doctors/${doctorId}/schedules`);
       const rawData = response.data?.data || response.data;
@@ -166,10 +167,12 @@ export const doctorApi = {
   ): Promise<ApiScheduleExceptionItem[]> => {
     try {
       const response = await apiClient.get<
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         DoctorApiResponse<ApiScheduleExceptionItem[]> | any
       >(`/api/v1/doctors/${doctorId}/schedule-exceptions`);
       const rawData = response.data?.data || response.data;
       const list = Array.isArray(rawData) ? rawData : Array.isArray(rawData?.content) ? rawData.content : [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return list.map((item: any) => ({
         id: item.exceptionId || item.id,
         doctorId: Number(doctorId),
@@ -247,6 +250,7 @@ export const doctorApi = {
   ): Promise<DoctorDailyAvailabilityData | null> => {
     try {
       const response = await apiClient.get<
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         DoctorApiResponse<DoctorDailyAvailabilityData> | any
       >(`/api/v1/doctors/${doctorId}/availability?date=${date}`);
       const rawData = response.data?.data || response.data;
@@ -268,6 +272,7 @@ export const doctorApi = {
   ): Promise<DoctorMonthlyAvailabilityData | null> => {
     try {
       const response = await apiClient.get<
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         DoctorApiResponse<DoctorMonthlyAvailabilityData> | any
       >(`/api/v1/doctors/${doctorId}/availability/calendar?month=${month}`);
       const rawData = response.data?.data || response.data;
@@ -287,6 +292,7 @@ export const doctorApi = {
   ): Promise<DoctorAppointment[]> => {
     try {
       const response = await apiClient.get<
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         DoctorApiResponse<DoctorAppointment[]> | any
       >(`/api/v1/doctors/${doctorId}/appointments`);
       const rawData = response.data?.data || response.data;
@@ -295,6 +301,7 @@ export const doctorApi = {
         : Array.isArray(rawData?.content)
           ? rawData.content
           : [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return list.map((item: any) => ({
         id: String(item.appointmentId || item.id || ""),
         patientId: String(item.patientId || item.patient?.id || item.patientName || ""),

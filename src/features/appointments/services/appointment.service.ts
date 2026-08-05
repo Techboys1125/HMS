@@ -60,7 +60,9 @@ export const normalizeAppointmentRecord = (
     item?.appointmentTime ||
     "") as string;
 
-  const docIdStr = String(item?.doctorId ?? doctor?.doctorId ?? doctor?.id ?? "");
+  const docIdStr = String(
+    item?.doctorId ?? doctor?.doctorId ?? doctor?.id ?? "",
+  );
   const knownDoc = doctorsMap && docIdStr ? doctorsMap.get(docIdStr) : null;
 
   const deptObj =
@@ -80,7 +82,8 @@ export const normalizeAppointmentRecord = (
 
   return {
     id: (item?.id ?? item?.appointmentId ?? item?.appointmentNumber ?? "") as
-      string | number,
+      | string
+      | number,
     appointmentNumber: (item?.appointmentNumber ||
       item?.queueToken ||
       String(item?.id ?? "")) as string,
@@ -91,16 +94,19 @@ export const normalizeAppointmentRecord = (
       patient?.name ||
       "") as string,
     patientMrn: (item?.patientMrn || patient?.mrn || item?.mrn) as
-      string | undefined,
+      | string
+      | undefined,
     doctorId: (item?.doctorId ?? doctor?.doctorId ?? doctor?.id ?? "") as
-      string | number,
+      | string
+      | number,
     doctorName: (item?.doctorName || doctor?.name || "") as string,
     appointmentDate,
     startTime,
     endTime: item?.endTime as string | undefined,
     status: toDisplayStatus(item?.status as string | undefined),
     queueStatus: (item?.queueStatus || item?.arrivalStatus) as
-      string | undefined,
+      | string
+      | undefined,
     appointmentType: item?.appointmentType as string | undefined,
     reason: (item?.reason || item?.chiefComplaint) as string | undefined,
     symptoms: item?.symptoms as string | undefined,
@@ -120,7 +126,11 @@ export const normalizeAppointmentRecord = (
     rescheduleReason: item?.rescheduleReason as string | undefined,
     vitalsRecorded: item?.vitalsRecorded as boolean | undefined,
     paymentStatus: item?.paymentStatus as
-      "PAID" | "UNPAID" | "PARTIAL" | "PENDING" | undefined,
+      | "PAID"
+      | "UNPAID"
+      | "PARTIAL"
+      | "PENDING"
+      | undefined,
     priority: item?.priority as string | undefined,
     arrivalStatus: item?.arrivalStatus as string | undefined,
     opdRoom: (item?.opdRoom || doctor?.opdRoom) as string | undefined,
@@ -131,15 +141,19 @@ export const normalizeAppointmentRecord = (
     patientAge: item?.patientAge as number | undefined,
     patientGender: item?.patientGender as string | undefined,
     patientPhone: (item?.patientPhone || patient?.phone || patient?.mobile) as
-      string | undefined,
+      | string
+      | undefined,
     doctorSpecialty: (item?.doctorSpecialty || doctor?.specialty) as
-      string | undefined,
+      | string
+      | undefined,
     tokenNo: (item?.tokenNo || item?.queueToken) as string | undefined,
     timeSlot: (item?.timeSlot || startTime) as string | undefined,
     visitType: (item?.visitType || item?.appointmentType) as string | undefined,
     chiefComplaint: (item?.chiefComplaint || item?.reason) as
-      string | undefined,
+      | string
+      | undefined,
     notes: item?.notes as string | undefined,
+    arrivalTime: "",
   };
 };
 
@@ -252,7 +266,7 @@ export const appointmentService = {
       console.warn("Failed to load doctors for resolving departments:", e);
     }
 
-    let rawItems: Record<string, unknown>[] = [];
+    let rawItems: Record<string, unknown>[];
     try {
       const res = await appointmentsApi.getDoctorAppointments(
         doctorId,
@@ -330,7 +344,8 @@ export const appointmentService = {
           : String(item?.status || "").toUpperCase() === status.toUpperCase(),
       )
       .map((item) => {
-        const docObj = (item?.doctor as unknown as Record<string, unknown>) || {};
+        const docObj =
+          (item?.doctor as unknown as Record<string, unknown>) || {};
         const docId = String(
           item?.doctorId || docObj?.id || docObj?.doctorId || "",
         );
@@ -457,6 +472,7 @@ export const appointmentService = {
 
   async getAppointmentToken(appointmentId: string | number) {
     const res = await appointmentsApi.getAppointmentToken(appointmentId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const resAny = res as any;
     return (
       res?.data?.tokenNumber ||
@@ -642,53 +658,61 @@ export const appointmentService = {
         return true;
       });
 
-      return activeDoctors.map((d: any): DoctorSummary => ({
-        id: String(d.doctorId ?? d.doctorProfile?.doctorId ?? d.userId ?? d.id ?? ""),
-        doctorId: d.doctorId ?? d.doctorProfile?.doctorId ?? d.id ?? "",
-        name: String(d.doctorName ?? d.fullName ?? d.name ?? ""),
-        departmentName:
-          d.departmentName ??
-          d.department ??
-          d.primaryDepartment?.departmentName ??
-          "",
-        department:
-          d.departmentName ??
-          d.department ??
-          d.primaryDepartment?.departmentName ??
-          "",
-        departmentId:
-          d.departmentId ?? d.primaryDepartment?.departmentId ?? departmentId,
-        specialty:
-          d.specialty ??
-          d.primarySpecialty?.specialtyName ??
-          d.doctorProfile?.primarySpecialty?.specialtyName ??
-          "",
-        qualification: d.qualification ?? d.doctorProfile?.qualification ?? "",
-        consultationFee:
-          d.fees?.standardConsultationFee ??
-          d.consultationFee ??
-          d.doctorProfile?.consultationFee ??
-          0,
-        opdRoom: d.opdRoom ?? "",
-        status:
-          d.status ??
-          d.doctorProfile?.status ??
-          d.doctor?.status ??
-          d.user?.status ??
-          "ACTIVE",
-        active:
-          d.active ??
-          d.isActive ??
-          d.enabled ??
-          d.doctorProfile?.active ??
-          d.doctorProfile?.isActive ??
-          d.doctor?.active ??
-          d.doctor?.isActive ??
-          d.user?.active ??
-          d.user?.isActive ??
-          d.user?.enabled ??
-          (d.status ? String(d.status).toUpperCase() === "ACTIVE" : undefined),
-      }));
+      return activeDoctors.map(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (d: any): DoctorSummary => ({
+          id: String(
+            d.doctorId ?? d.doctorProfile?.doctorId ?? d.userId ?? d.id ?? "",
+          ),
+          doctorId: d.doctorId ?? d.doctorProfile?.doctorId ?? d.id ?? "",
+          name: String(d.doctorName ?? d.fullName ?? d.name ?? ""),
+          departmentName:
+            d.departmentName ??
+            d.department ??
+            d.primaryDepartment?.departmentName ??
+            "",
+          department:
+            d.departmentName ??
+            d.department ??
+            d.primaryDepartment?.departmentName ??
+            "",
+          departmentId:
+            d.departmentId ?? d.primaryDepartment?.departmentId ?? departmentId,
+          specialty:
+            d.specialty ??
+            d.primarySpecialty?.specialtyName ??
+            d.doctorProfile?.primarySpecialty?.specialtyName ??
+            "",
+          qualification:
+            d.qualification ?? d.doctorProfile?.qualification ?? "",
+          consultationFee:
+            d.fees?.standardConsultationFee ??
+            d.consultationFee ??
+            d.doctorProfile?.consultationFee ??
+            0,
+          opdRoom: d.opdRoom ?? "",
+          status:
+            d.status ??
+            d.doctorProfile?.status ??
+            d.doctor?.status ??
+            d.user?.status ??
+            "ACTIVE",
+          active:
+            d.active ??
+            d.isActive ??
+            d.enabled ??
+            d.doctorProfile?.active ??
+            d.doctorProfile?.isActive ??
+            d.doctor?.active ??
+            d.doctor?.isActive ??
+            d.user?.active ??
+            d.user?.isActive ??
+            d.user?.enabled ??
+            (d.status
+              ? String(d.status).toUpperCase() === "ACTIVE"
+              : undefined),
+        }),
+      );
     } catch (error) {
       console.warn("[appointmentService] listDoctors failed:", error);
       return [];
@@ -754,6 +778,7 @@ export const appointmentService = {
   ): Promise<boolean> {
     const slots = await this.listAvailableSlots(doctorId, date);
     const slot = slots.find(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (s: any) =>
         s.time === startTime ||
         s.startTime === startTime ||

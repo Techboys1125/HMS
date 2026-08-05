@@ -55,6 +55,7 @@ export function MyProfilePage({
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<MyProfileTabId>("profile");
   const [showSwitchDialog, setShowSwitchDialog] = useState(false);
+  const [prevEffectiveMrn, setPrevEffectiveMrn] = useState<string | null>(null);
 
   const { activeMrn, switchToFamilyMember, switchToPrimary } =
     useSwitchAccount(mrn);
@@ -62,9 +63,13 @@ export function MyProfilePage({
   const { data: familyMembers } = useFamilyMembers(mrn);
   const effectiveMrn = activeMrn || mrn;
 
+  if (effectiveMrn !== prevEffectiveMrn) {
+    setPrevEffectiveMrn(effectiveMrn);
+    setLoading(true);
+  }
+
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     patientsApi
       .getPatientByMrn(effectiveMrn)
       .then((data) => {

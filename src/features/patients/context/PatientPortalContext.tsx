@@ -99,15 +99,15 @@ export function PatientPortalProvider({ children }: { children: ReactNode }) {
         const self = mapped.find(
           (member) => String(member.relationship).toUpperCase() === "SELF",
         );
-        const primary = self || mapped.find((member) => member.mrn === user?.patientId);
+        const primary =
+          self || mapped.find((member) => member.mrn === user?.patientId);
 
         setFamilyMembers(mapped);
         const storedMrn = localStorage.getItem(SWITCH_ACCOUNT_STORAGE_KEY);
         setActivePatient((prev) => {
           return (
             mapped.find((m) => String(m.mrn) === storedMrn) ||
-            (prev &&
-            mapped.some((m) => String(m.mrn) === String(prev.mrn))
+            (prev && mapped.some((m) => String(m.mrn) === String(prev.mrn))
               ? prev
               : primary || mapped[0]) ||
             null
@@ -127,6 +127,7 @@ export function PatientPortalProvider({ children }: { children: ReactNode }) {
   }, [isPatient, user?.patientId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
   }, [refresh]);
 

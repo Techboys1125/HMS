@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { type Patient } from "../../patients/types/patient.types";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { PatientQueueCard } from "../../patients/components/PatientQueueCard";
 import {
@@ -330,9 +329,9 @@ export function PatientDashboard({
   onBookAppointmentClick?: () => void;
   onViewBillsClick?: () => void;
   onNavigateNav?: (nav: string) => void;
-  activePatient?: Patient;
-  familyMembers?: Patient[];
-  onSwitchPatient?: (member: Patient) => void;
+  activePatient?: { id?: number | string; mrn?: string; name?: string; patientName?: string; relationship?: string; fullName?: string } | null;
+  familyMembers?: { id?: number | string; mrn?: string; name?: string; patientName?: string; fullName?: string; relationship?: string }[];
+  onSwitchPatient?: (member: { id?: number | string; mrn?: string; name?: string; patientName?: string; fullName?: string; relationship?: string }) => void;
   onAddFamilyMember?: () => void;
 }) {
   interface DashboardAppointment {

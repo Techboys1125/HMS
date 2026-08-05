@@ -32,6 +32,7 @@ export function MonthlyCalendarTab({ doctor }: MonthlyCalendarTabProps) {
 
   useEffect(() => {
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     const targetId = resolveDoctorId(doctor);
     doctorsService

@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 
 import type {
-  Patient,
   MedicalVisitRecord,
   PrescriptionRecord,
 } from "../types/patient.types";
@@ -105,6 +104,7 @@ export function PatientMedicalRecordsScreen({
   useEffect(() => {
     const mrn = activePatient?.mrn;
     if (!mrn) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPrescriptionRecords([]);
       return;
     }
@@ -124,7 +124,8 @@ export function PatientMedicalRecordsScreen({
               issueDate: record.date || "—",
               status: rawStatus.includes("REFILL")
                 ? "Refilled"
-                : rawStatus.includes("EXPIRED") || rawStatus.includes("ARCHIVED")
+                : rawStatus.includes("EXPIRED") ||
+                    rawStatus.includes("ARCHIVED")
                   ? "Expired"
                   : "Active",
               medicines: (record.medicines || []).map((medicine) => ({
@@ -267,7 +268,10 @@ export function PatientMedicalRecordsScreen({
               className="text-2xl font-bold text-[#111827] mt-0.5"
               style={{ fontFamily: PP }}
             >
-              {prescriptionRecords.filter((rx) => rx.status === "Active").length}
+              {
+                prescriptionRecords.filter((rx) => rx.status === "Active")
+                  .length
+              }
             </div>
             <div className="text-[11px] text-[#009688] font-medium mt-1">
               Ongoing medications

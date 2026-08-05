@@ -36,6 +36,7 @@ export function ScheduleExceptionsTab({
 
   useEffect(() => {
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     const targetId = resolveDoctorId(doctor);
     doctorsService
@@ -238,15 +239,40 @@ export function ScheduleExceptionsTab({
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold text-[#111827]">
-                    {exc.reason || ({ VACATION: "Vacation", TRAINING: "Training", CONFERENCE: "Conference", SURGERY: "Surgery", EMERGENCY: "Emergency", OTHER: "Other" } as Record<string, string>)[String(exc.exceptionType || "")] || exc.exceptionType}
+                    {exc.reason ||
+                      (
+                        {
+                          VACATION: "Vacation",
+                          TRAINING: "Training",
+                          CONFERENCE: "Conference",
+                          SURGERY: "Surgery",
+                          EMERGENCY: "Emergency",
+                          OTHER: "Other",
+                        } as Record<string, string>
+                      )[String(exc.exceptionType || "")] ||
+                      exc.exceptionType}
                   </span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
-                    exc.exceptionType === "SURGERY" ? "bg-red-50 text-red-700 border-red-200" :
-                    exc.exceptionType === "EMERGENCY" ? "bg-orange-50 text-orange-700 border-orange-200" :
-                    exc.exceptionType === "CONFERENCE" ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
-                    "bg-amber-50 text-amber-700 border-amber-200"
-                  }`}>
-                    {({ VACATION: "Vacation", TRAINING: "Training", CONFERENCE: "Conference", SURGERY: "Surgery", EMERGENCY: "Emergency", OTHER: "Other" } as Record<string, string>)[String(exc.exceptionType || "")] || exc.exceptionType}
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                      exc.exceptionType === "SURGERY"
+                        ? "bg-red-50 text-red-700 border-red-200"
+                        : exc.exceptionType === "EMERGENCY"
+                          ? "bg-orange-50 text-orange-700 border-orange-200"
+                          : exc.exceptionType === "CONFERENCE"
+                            ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                            : "bg-amber-50 text-amber-700 border-amber-200"
+                    }`}
+                  >
+                    {(
+                      {
+                        VACATION: "Vacation",
+                        TRAINING: "Training",
+                        CONFERENCE: "Conference",
+                        SURGERY: "Surgery",
+                        EMERGENCY: "Emergency",
+                        OTHER: "Other",
+                      } as Record<string, string>
+                    )[String(exc.exceptionType || "")] || exc.exceptionType}
                   </span>
                 </div>
                 <div className="text-[11px] text-[#64748B] mt-1">

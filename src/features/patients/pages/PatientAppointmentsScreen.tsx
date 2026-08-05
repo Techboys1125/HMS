@@ -17,7 +17,7 @@ import {
   Building2,
   TrendingUp,
 } from "lucide-react";
-import type { Patient, PatientAppointment } from "../types/patient.types";
+import type { PatientAppointment } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.mock";
 import { usePatientPortal } from "../context/PatientPortalContext";
 import type { FamilyMember } from "./FamilyMembersManagement";
@@ -27,28 +27,6 @@ import {
 } from "../components/PatientDialogs";
 import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentScreen";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
-
-interface RawApiAppointment {
-  appointmentId?: string | number;
-  id?: string | number;
-  visitDateTime?: string;
-  appointmentDate?: string;
-  date?: string;
-  startTime?: string;
-  time?: string;
-  doctor?: string | { name?: string; fullName?: string };
-  doctorName?: string;
-  department?: string | { departmentName?: string; name?: string };
-  departmentName?: string;
-  appointmentStatus?: string;
-  status?: string;
-  specialty?: string;
-  appointmentType?: string;
-  roomLocation?: string;
-  reason?: string;
-  symptoms?: string;
-  notes?: string;
-}
 
 export function PatientAppointmentsScreen({
   activePatient: propActivePatient,

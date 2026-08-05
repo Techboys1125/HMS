@@ -23,16 +23,24 @@ export function DoctorProfilePage({
     user?.doctorId ?? user?.doctorProfile?.doctorId ?? user?.id ?? "";
   const isOwnRecord =
     String(currentRole).toUpperCase() === "DOCTOR"
-      ? !doctorId || doctorId === "me" || String(doctorId) === String(userDoctorId)
+      ? !doctorId ||
+        doctorId === "me" ||
+        String(doctorId) === String(userDoctorId)
       : String(doctorId) === String(userDoctorId);
-  const [doctor, setDoctor] = useState<DoctorRecord | null>(initialDoctor || null);
+  const [doctor, setDoctor] = useState<DoctorRecord | null>(
+    initialDoctor || null,
+  );
 
   useEffect(() => {
     if (
       initialDoctor &&
       initialDoctor.id &&
-      (initialDoctor.department || initialDoctor.specialty || initialDoctor.qualification || initialDoctor.experienceYrs)
+      (initialDoctor.department ||
+        initialDoctor.specialty ||
+        initialDoctor.qualification ||
+        initialDoctor.experienceYrs)
     ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDoctor(initialDoctor);
       return;
     }

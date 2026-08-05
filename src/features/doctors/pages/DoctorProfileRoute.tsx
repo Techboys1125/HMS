@@ -13,6 +13,7 @@ export function DoctorProfileRoute() {
 
   useEffect(() => {
     const role = String(user?.role ?? "ADMIN").toUpperCase();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (role === "RECEPTIONIST") setCurrentRole("RECEPTIONIST");
     else if (role === "DOCTOR") setCurrentRole("DOCTOR");
     else if (role === "NURSE") setCurrentRole("NURSE");

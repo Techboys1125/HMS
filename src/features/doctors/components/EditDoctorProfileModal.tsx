@@ -27,6 +27,7 @@ export function EditDoctorProfileModal({
   const isDoctor = role === "DOCTOR";
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormData(doctor);
     setErrorMsg(null);
   }, [doctor, isOpen]);
@@ -96,7 +97,10 @@ export function EditDoctorProfileModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+        <form
+          onSubmit={handleSubmit}
+          className="flex-1 overflow-y-auto p-6 space-y-4 text-xs"
+        >
           {errorMsg && (
             <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-medium">
               {errorMsg}
@@ -106,20 +110,28 @@ export function EditDoctorProfileModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
-                Full Name {isFieldDisabled("name") && <Lock size={11} className="text-slate-400" />}
+                Full Name{" "}
+                {isFieldDisabled("name") && (
+                  <Lock size={11} className="text-slate-400" />
+                )}
               </label>
               <input
                 type="text"
                 disabled={isFieldDisabled("name")}
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 className={inputClass(isFieldDisabled("name"))}
               />
             </div>
 
             <div>
               <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
-                Gender {isFieldDisabled("gender") && <Lock size={11} className="text-slate-400" />}
+                Gender{" "}
+                {isFieldDisabled("gender") && (
+                  <Lock size={11} className="text-slate-400" />
+                )}
               </label>
               <select
                 disabled={isFieldDisabled("gender")}
@@ -140,72 +152,96 @@ export function EditDoctorProfileModal({
 
             <div>
               <label className="block font-bold text-[#111827] mb-1">
-                Contact Phone <span className="text-[#0D47A1] font-normal">(Editable)</span>
+                Contact Phone{" "}
+                <span className="text-[#0D47A1] font-normal">(Editable)</span>
               </label>
               <input
                 type="text"
                 disabled={isFieldDisabled("phone")}
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
                 className={inputClass(isFieldDisabled("phone"))}
               />
             </div>
 
             <div>
               <label className="block font-bold text-[#111827] mb-1">
-                Email Address <span className="text-[#0D47A1] font-normal">(Editable)</span>
+                Email Address{" "}
+                <span className="text-[#0D47A1] font-normal">(Editable)</span>
               </label>
               <input
                 type="email"
                 disabled={isFieldDisabled("email")}
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 className={inputClass(isFieldDisabled("email"))}
               />
             </div>
 
             <div>
               <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
-                Employee ID {isFieldDisabled("empId") && <Lock size={11} className="text-slate-400" />}
+                Employee ID{" "}
+                {isFieldDisabled("empId") && (
+                  <Lock size={11} className="text-slate-400" />
+                )}
               </label>
               <input
                 type="text"
                 disabled={isFieldDisabled("empId")}
                 value={formData.empId}
-                onChange={(e) => setFormData({ ...formData, empId: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, empId: e.target.value })
+                }
                 className={inputClass(isFieldDisabled("empId"))}
               />
             </div>
 
             <div>
               <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
-                Medical Reg Number {isFieldDisabled("regNumber") && <Lock size={11} className="text-slate-400" />}
+                Medical Reg Number{" "}
+                {isFieldDisabled("regNumber") && (
+                  <Lock size={11} className="text-slate-400" />
+                )}
               </label>
               <input
                 type="text"
                 disabled={isFieldDisabled("regNumber")}
                 value={formData.regNumber}
-                onChange={(e) => setFormData({ ...formData, regNumber: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, regNumber: e.target.value })
+                }
                 className={inputClass(isFieldDisabled("regNumber"))}
               />
             </div>
 
             <div>
               <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
-                Qualification {isFieldDisabled("qualification") && <Lock size={11} className="text-slate-400" />}
+                Qualification{" "}
+                {isFieldDisabled("qualification") && (
+                  <Lock size={11} className="text-slate-400" />
+                )}
               </label>
               <input
                 type="text"
                 disabled={isFieldDisabled("qualification")}
                 value={formData.qualification}
-                onChange={(e) => setFormData({ ...formData, qualification: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, qualification: e.target.value })
+                }
                 className={inputClass(isFieldDisabled("qualification"))}
               />
             </div>
 
             <div>
               <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
-                Experience Years {isFieldDisabled("experienceYrs") && <Lock size={11} className="text-slate-400" />}
+                Experience Years{" "}
+                {isFieldDisabled("experienceYrs") && (
+                  <Lock size={11} className="text-slate-400" />
+                )}
               </label>
               <input
                 type="number"
@@ -224,26 +260,36 @@ export function EditDoctorProfileModal({
 
             <div>
               <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
-                Department {isFieldDisabled("department") && <Lock size={11} className="text-slate-400" />}
+                Department{" "}
+                {isFieldDisabled("department") && (
+                  <Lock size={11} className="text-slate-400" />
+                )}
               </label>
               <input
                 type="text"
                 disabled={isFieldDisabled("department")}
                 value={formData.department}
-                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, department: e.target.value })
+                }
                 className={inputClass(isFieldDisabled("department"))}
               />
             </div>
 
             <div>
               <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
-                Specialty {isFieldDisabled("specialty") && <Lock size={11} className="text-slate-400" />}
+                Specialty{" "}
+                {isFieldDisabled("specialty") && (
+                  <Lock size={11} className="text-slate-400" />
+                )}
               </label>
               <input
                 type="text"
                 disabled={isFieldDisabled("specialty")}
                 value={formData.specialty}
-                onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, specialty: e.target.value })
+                }
                 className={inputClass(isFieldDisabled("specialty"))}
               />
             </div>
@@ -251,26 +297,32 @@ export function EditDoctorProfileModal({
 
           <div>
             <label className="block font-bold text-[#111827] mb-1">
-              Residential Address <span className="text-[#0D47A1] font-normal">(Editable)</span>
+              Residential Address{" "}
+              <span className="text-[#0D47A1] font-normal">(Editable)</span>
             </label>
             <input
               type="text"
               disabled={isFieldDisabled("address")}
               value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, address: e.target.value })
+              }
               className={inputClass(isFieldDisabled("address"))}
             />
           </div>
 
           <div>
             <label className="block font-bold text-[#111827] mb-1">
-              Professional Bio <span className="text-[#0D47A1] font-normal">(Editable)</span>
+              Professional Bio{" "}
+              <span className="text-[#0D47A1] font-normal">(Editable)</span>
             </label>
             <textarea
               rows={3}
               disabled={isFieldDisabled("bio")}
               value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, bio: e.target.value })
+              }
               className={`${inputClass(isFieldDisabled("bio"))} resize-none`}
             />
           </div>

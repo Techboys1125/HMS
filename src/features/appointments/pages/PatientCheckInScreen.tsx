@@ -234,7 +234,8 @@ export function PatientCheckInScreen({
                           </span>
                         </p>
                         <p className="text-[11px] text-[#64748B]">
-                          {a.doctorName} · {a.departmentName} · {a.startTime || a.timeSlot}
+                          {a.doctorName} · {a.departmentName} ·{" "}
+                          {a.startTime || a.timeSlot}
                         </p>
                       </div>
                       <span className="font-mono font-bold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
@@ -282,40 +283,40 @@ export function PatientCheckInScreen({
                   />
                 </div>
 
-                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                     <span className="text-[10px] text-[#64748B] block">
-                       Appointment ID
-                     </span>
-                     <span className="font-mono font-bold text-[#0D47A1]">
-                       {selectedApt.id}
-                     </span>
-                   </div>
-                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                     <span className="text-[10px] text-[#64748B] block">
-                       Appointment Date
-                     </span>
-                     <span className="font-mono font-bold text-[#111827]">
-                       {selectedApt.appointmentDate || selectedApt.date || ""}
-                     </span>
-                   </div>
-                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                     <span className="text-[10px] text-[#64748B] block">
-                       Time Slot
-                     </span>
-                     <span className="font-mono font-bold text-[#009688]">
-                       {selectedApt.startTime || selectedApt.timeSlot || ""}
-                     </span>
-                   </div>
-                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                     <span className="text-[10px] text-[#64748B] block">
-                       Visit Type
-                     </span>
-                     <span className="font-bold text-[#111827]">
-                       {selectedApt.appointmentType || "CONSULTATION"}
-                     </span>
-                   </div>
-                 </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] text-[#64748B] block">
+                      Appointment ID
+                    </span>
+                    <span className="font-mono font-bold text-[#0D47A1]">
+                      {selectedApt.id}
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] text-[#64748B] block">
+                      Appointment Date
+                    </span>
+                    <span className="font-mono font-bold text-[#111827]">
+                      {selectedApt.appointmentDate || selectedApt.date || ""}
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] text-[#64748B] block">
+                      Time Slot
+                    </span>
+                    <span className="font-mono font-bold text-[#009688]">
+                      {selectedApt.startTime || selectedApt.timeSlot || ""}
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] text-[#64748B] block">
+                      Visit Type
+                    </span>
+                    <span className="font-bold text-[#111827]">
+                      {selectedApt.appointmentType || "CONSULTATION"}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* SECTION 02: PATIENT INFORMATION */}
@@ -532,18 +533,18 @@ export function PatientCheckInScreen({
                   {selectedApt.patientName}
                 </span>
               </div>
-               <div className="flex justify-between items-center">
-                 <span className="text-[#64748B]">MRN</span>
-                 <span className="font-mono text-[#0D47A1]">
-                   {selectedApt.patientMrn || selectedApt.mrn || ""}
-                 </span>
-               </div>
-               <div className="flex justify-between items-center">
-                 <span className="text-[#64748B]">Consulting Doctor</span>
-                 <span className="font-semibold text-[#111827]">
-                   {selectedApt.doctorName}
-                 </span>
-               </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[#64748B]">MRN</span>
+                <span className="font-mono text-[#0D47A1]">
+                  {selectedApt.patientMrn || selectedApt.mrn || ""}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[#64748B]">Consulting Doctor</span>
+                <span className="font-semibold text-[#111827]">
+                  {selectedApt.doctorName}
+                </span>
+              </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#64748B]">Queue Position</span>
                 <span className="font-bold text-[#111827]">
