@@ -469,6 +469,8 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "PROFILE_UPDATE",
 
     "CHANGE_PASSWORD",
+
+    "CONSULTATION_STATUS_VIEW",
   ],
 
   DOCTOR: [
@@ -543,6 +545,13 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "CHANGE_PASSWORD",
 
     "PATIENT_MEDICAL_RECORDS_VIEW",
+
+    "CONSULTATION_VIEW_OWN",
+    "CONSULTATION_START",
+    "CONSULTATION_FINALIZE",
+    "DIAGNOSIS_CREATE",
+    "CONSULTATION_UPDATE",
+    "CONSULTATION_PRINT",
   ],
 
   NURSE: [
@@ -583,6 +592,8 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "CHANGE_PASSWORD",
 
     "PATIENT_MEDICAL_RECORDS_VIEW",
+
+    "CONSULTATION_READ",
   ],
 
   ACCOUNTANT: [
@@ -681,5 +692,7 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "MY_PRESCRIPTIONS_VIEW",
 
     "MY_BILLS_VIEW",
+
+    "CONSULTATION_HISTORY_VIEW",
   ],
 };
