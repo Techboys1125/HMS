@@ -1,4 +1,4 @@
-import { apiClient } from "../../../lib/axios";
+import { apiClient, axios } from "../../../lib/axios";
 import type {
   NurseVitalsPayload,
   NurseWaitingPatient,
@@ -18,8 +18,13 @@ export const vitalsApi = {
       const data = response.data?.data;
       return Array.isArray(data) ? data : [];
     } catch (error) {
-      console.warn("[vitalsApi] getWaitingPatients fallback execution:", error);
-      return [];
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message);
+        }
+      }
+      throw error;
     }
   },
 
@@ -38,18 +43,13 @@ export const vitalsApi = {
       );
       return response.data;
     } catch (error) {
-      console.warn(
-        `[vitalsApi] recordVitals fallback execution for apt ${appointmentId}:`,
-        error,
-      );
-      return {
-        success: true,
-        code: "200",
-        message: "Vitals recorded successfully (fallback)",
-        timestamp: new Date().toISOString(),
-        data: { appointmentId, ...payload },
-        errors: {},
-      };
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message);
+        }
+      }
+      throw error;
     }
   },
 };

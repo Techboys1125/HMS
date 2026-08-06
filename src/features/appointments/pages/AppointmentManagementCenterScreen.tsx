@@ -152,10 +152,15 @@ export function AppointmentManagementCenterScreen({
     (a) => a.status === "Checked-In",
   ).length;
   const waitingCount = todayAppointments.filter(
-    (a) => a.status === "Waiting" || a.status === "Checked-In",
+    (a) =>
+      a.status === "Waiting" ||
+      a.status === "Checked-In" ||
+      a.status === "Waiting for Vitals" ||
+      a.status === "Waiting for Doctor" ||
+      a.status === "Called",
   ).length;
   const inConsultationCount = todayAppointments.filter(
-    (a) => a.status === "In Progress",
+    (a) => a.status === "In Consultation" || a.status === "In Progress",
   ).length;
   const completedCheckInsCount = todayAppointments.filter(
     (a) => a.status === "Completed",
@@ -977,10 +982,12 @@ export function AppointmentManagementCenterScreen({
                     className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
                   >
                     <option value="All">All Statuses</option>
-                    <option value="Scheduled">Scheduled</option>
+                    <option value="Booked">Booked</option>
                     <option value="Checked-In">Checked-In</option>
-                    <option value="Waiting">Waiting</option>
-                    <option value="In Progress">In Consultation</option>
+                    <option value="Waiting for Vitals">Waiting for Vitals</option>
+                    <option value="Waiting for Doctor">Waiting for Doctor</option>
+                    <option value="Called">Called</option>
+                    <option value="In Consultation">In Consultation</option>
                     <option value="Completed">Completed</option>
                     <option value="Cancelled">Cancelled</option>
                   </select>
@@ -1077,8 +1084,13 @@ export function AppointmentManagementCenterScreen({
                 {
                   id: "Waiting",
                   label: "Waiting",
-                  count: roleAppointments.filter((a) => a.status === "Waiting")
-                    .length,
+                  count: roleAppointments.filter(
+                    (a) =>
+                      a.status === "Waiting" ||
+                      a.status === "Waiting for Vitals" ||
+                      a.status === "Waiting for Doctor" ||
+                      a.status === "Called",
+                  ).length,
                 },
                 {
                   id: "Checked-In",
@@ -1088,10 +1100,12 @@ export function AppointmentManagementCenterScreen({
                   ).length,
                 },
                 {
-                  id: "In Progress",
+                  id: "In Consultation",
                   label: "In Consultation",
                   count: roleAppointments.filter(
-                    (a) => a.status === "In Progress",
+                    (a) =>
+                      a.status === "In Consultation" ||
+                      a.status === "In Progress",
                   ).length,
                 },
                 {
@@ -1331,21 +1345,11 @@ export function AppointmentManagementCenterScreen({
                                   </div>
                                 ) : userRole === "Doctor" ? (
                                   <button
-                                    onClick={() => {
-                                      if (onStartConsultation)
-                                        onStartConsultation(apt);
-                                      else if (onPatientSelect)
-                                        onPatientSelect(apt.patientId);
-                                      else
-                                        triggerToast(
-                                          `Starting consultation for ${apt.patientName}`,
-                                        );
-                                    }}
-                                    className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[10px] font-bold hover:bg-[#00796B] transition-colors flex items-center gap-1 shadow-xs"
-                                    title="Start Consultation"
-                                    style={{ fontFamily: PP }}
+                                    onClick={() => setDetailsApt(apt)}
+                                    className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[10px] font-bold border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
+                                    title="View Appointment Details"
                                   >
-                                    <Stethoscope size={13} /> Start Consultation
+                                    <Eye size={12} /> View
                                   </button>
                                 ) : (
                                   <>
@@ -1357,7 +1361,9 @@ export function AppointmentManagementCenterScreen({
                                       <Edit size={14} />
                                     </button>
 
-                                    {apt.status === "Scheduled" && (
+                                    {(apt.status === "Scheduled" ||
+                                      apt.status === "Booked" ||
+                                      apt.status === "BOOKED") && (
                                       <button
                                         onClick={() =>
                                           handleCheckInPatient(apt)
@@ -1369,18 +1375,7 @@ export function AppointmentManagementCenterScreen({
                                       </button>
                                     )}
 
-                                    {(apt.status === "Checked-In" ||
-                                      apt.status === "Waiting") && (
-                                      <button
-                                        onClick={() =>
-                                          handleCallNextPatient(apt.id)
-                                        }
-                                        className="px-2 py-1 rounded-lg bg-teal-50 text-[#009688] text-[10px] font-bold border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1"
-                                        title="Call Next Patient"
-                                      >
-                                        <PhoneCall size={12} /> Call
-                                      </button>
-                                    )}
+
 
                                     <button
                                       onClick={() => setRescheduleApt(apt)}
@@ -1430,394 +1425,7 @@ export function AppointmentManagementCenterScreen({
                 )}
               </div>
             </div>
-
-            {/* Right Column (1/4): RIGHT CONTEXT PANEL */}
-            {userRole === "Nurse" ? (
-              <div className="space-y-6">
-                {/* CARD 1: TODAY'S SCHEDULE */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-                  <h3
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Clock size={15} className="text-[#0D47A1]" /> Today's
-                    Schedule
-                  </h3>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-slate-400 block font-medium">
-                        Assigned
-                      </span>
-                      <strong className="text-sm font-bold text-[#0D47A1]">
-                        {totalTodayCount}
-                      </strong>
-                    </div>
-                    <div className="bg-amber-50/70 p-2.5 rounded-xl border border-amber-100">
-                      <span className="text-[10px] text-amber-700 block font-medium">
-                        Waiting
-                      </span>
-                      <strong className="text-sm font-bold text-[#F59E0B]">
-                        {waitingCount}
-                      </strong>
-                    </div>
-                    <div className="bg-blue-50/70 p-2.5 rounded-xl border border-blue-100">
-                      <span className="text-[10px] text-[#0D47A1] block font-medium">
-                        Checked-In
-                      </span>
-                      <strong className="text-sm font-bold text-[#0D47A1]">
-                        {checkedInCount}
-                      </strong>
-                    </div>
-                    <div className="bg-green-50/70 p-2.5 rounded-xl border border-green-100">
-                      <span className="text-[10px] text-green-700 block font-medium">
-                        Completed
-                      </span>
-                      <strong className="text-sm font-bold text-[#66BB6A]">
-                        {completedCheckInsCount}
-                      </strong>
-                    </div>
-                  </div>
-                </div>
-
-                {/* CARD 2: CURRENT WAITING PATIENTS */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-                  <h3
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Users size={15} className="text-[#F59E0B]" /> Current
-                    Waiting Patients
-                  </h3>
-
-                  <div className="space-y-2 text-xs">
-                    {todayAppointments
-                      .filter(
-                        (a) =>
-                          a.status === "Waiting" || a.status === "Checked-In",
-                      )
-                      .slice(0, 3)
-                      .map((wp) => (
-                        <div
-                          key={wp.id}
-                          className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Avatar name={wp.patientName} size="sm" />
-                            <div>
-                              <strong
-                                className="text-[#111827] block"
-                                style={{ fontFamily: PP }}
-                              >
-                                {wp.patientName}
-                              </strong>
-                              <span className="text-[10px] text-slate-400 font-mono">
-                                {wp.mrn} · {wp.tokenNo}
-                              </span>
-                            </div>
-                          </div>
-                          <span className="font-mono text-xs font-bold text-[#009688] bg-teal-50 px-2 py-0.5 rounded border border-teal-100">
-                            {wp.timeSlot}
-                          </span>
-                        </div>
-                      ))}
-                    {todayAppointments.filter(
-                      (a) =>
-                        a.status === "Waiting" || a.status === "Checked-In",
-                    ).length === 0 && (
-                      <div className="py-4 text-center text-xs text-slate-400">
-                        No patients waiting in lounge.
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* CARD 3: NEXT PATIENT */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-                  <h3
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <User size={15} className="text-[#009688]" /> Next Patient
-                  </h3>
-
-                  {(() => {
-                    const next = todayAppointments.find(
-                      (a) =>
-                        a.status === "Checked-In" ||
-                        a.status === "Waiting" ||
-                        a.status === "Scheduled",
-                    );
-                    if (!next)
-                      return (
-                        <div className="py-4 text-center text-xs text-slate-400">
-                          No upcoming patient scheduled today.
-                        </div>
-                      );
-                    return (
-                      <div className="space-y-2 text-xs">
-                        <div className="p-2.5 bg-teal-50/50 rounded-xl border border-teal-100 flex items-center gap-3">
-                          <Avatar name={next.patientName} size="md" />
-                          <div>
-                            <strong
-                              className="text-sm text-[#111827] block"
-                              style={{ fontFamily: PP }}
-                            >
-                              {next.patientName}
-                            </strong>
-                            <span className="font-mono text-[10px] text-[#0D47A1] bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">
-                              Token {next.tokenNo}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between text-slate-500 pt-1">
-                          <span>
-                            Doctor:{" "}
-                            <strong className="text-slate-800">
-                              {next.doctorName}
-                            </strong>
-                          </span>
-                          <span className="font-mono font-bold text-[#0D47A1]">
-                            {next.timeSlot}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* CARD 4: QUICK ACTIONS */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-                  <h3
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Zap size={15} className="text-[#0D47A1]" /> Quick Actions
-                  </h3>
-
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => setViewMode("queue")}
-                      className="w-full py-2.5 px-3 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-2 shadow-xs"
-                      style={{ fontFamily: PP }}
-                    >
-                      <Clock size={15} /> View Queue
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        const firstP = roleAppointments[0];
-                        if (firstP && onPatientSelect)
-                          onPatientSelect(firstP.patientId);
-                        else
-                          triggerToast(
-                            "Select a patient from table to view profile.",
-                          );
-                      }}
-                      className="w-full py-2 px-3 rounded-xl border border-[#E5E7EB] bg-slate-50 text-slate-700 text-xs font-semibold hover:bg-slate-100 transition-colors flex items-center justify-center gap-2"
-                      style={{ fontFamily: PP }}
-                    >
-                      <User size={14} className="text-[#009688]" /> View Patient
-                      Profile
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : userRole === "Doctor" ? (
-              <div className="space-y-6">
-                {/* CARD 1: TODAY'S SCHEDULE */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-                  <h3
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Clock size={15} className="text-[#0D47A1]" /> Today's
-                    Schedule
-                  </h3>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-slate-400 block">
-                        Total Scheduled
-                      </span>
-                      <strong className="text-sm font-bold text-[#0D47A1]">
-                        {totalTodayCount}
-                      </strong>
-                    </div>
-                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-slate-400 block">
-                        Completed
-                      </span>
-                      <strong className="text-sm font-bold text-[#66BB6A]">
-                        {completedCheckInsCount}
-                      </strong>
-                    </div>
-                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-slate-400 block">
-                        Waiting
-                      </span>
-                      <strong className="text-sm font-bold text-[#F59E0B]">
-                        {waitingCount}
-                      </strong>
-                    </div>
-                    <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                      <span className="text-[10px] text-slate-400 block">
-                        In Progress
-                      </span>
-                      <strong className="text-sm font-bold text-[#009688]">
-                        {inConsultationCount}
-                      </strong>
-                    </div>
-                  </div>
-
-                  {(() => {
-                    const next = todayAppointments.find(
-                      (a) =>
-                        a.status === "Checked-In" ||
-                        a.status === "Waiting" ||
-                        a.status === "Scheduled",
-                    );
-                    if (!next) return null;
-                    return (
-                      <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 mt-2 text-xs">
-                        <div className="text-[10px] text-[#0D47A1] font-bold uppercase tracking-wider">
-                          Next Appointment
-                        </div>
-                        <div className="flex items-center justify-between mt-1">
-                          <div>
-                            <strong
-                              className="text-[#111827] block"
-                              style={{ fontFamily: PP }}
-                            >
-                              {next.patientName}
-                            </strong>
-                            <span className="text-[10px] text-slate-500 font-mono">
-                              {next.tokenNo} · {next.timeSlot}
-                            </span>
-                          </div>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-white text-[#0D47A1] border border-blue-200">
-                            {next.status}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* CARD 2: UPCOMING PATIENT */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-                  <h3
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <User size={15} className="text-[#009688]" /> Upcoming
-                    Patient
-                  </h3>
-
-                  {(() => {
-                    const up = todayAppointments.find(
-                      (a) =>
-                        a.status === "Checked-In" ||
-                        a.status === "Waiting" ||
-                        a.status === "Scheduled",
-                    );
-                    if (!up) {
-                      return (
-                        <div className="py-6 text-center text-xs text-slate-400">
-                          No upcoming patients in queue today.
-                        </div>
-                      );
-                    }
-                    return (
-                      <div className="space-y-2.5 text-xs">
-                        <div className="flex items-center gap-3 p-2.5 bg-teal-50/50 rounded-xl border border-teal-100">
-                          <Avatar name={up.patientName} size="md" />
-                          <div>
-                            <strong
-                              className="text-sm text-[#111827] block"
-                              style={{ fontFamily: PP }}
-                            >
-                              {up.patientName}
-                            </strong>
-                            <span className="text-[10px] text-slate-500 font-mono">
-                              {up.mrn}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 text-[11px]">
-                          <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
-                            <span className="text-slate-400 block text-[10px]">
-                              Time Slot
-                            </span>
-                            <strong className="text-[#0D47A1] font-mono">
-                              {up.timeSlot}
-                            </strong>
-                          </div>
-                          <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
-                            <span className="text-slate-400 block text-[10px]">
-                              Token No
-                            </span>
-                            <strong className="text-[#009688] font-mono">
-                              {up.tokenNo}
-                            </strong>
-                          </div>
-                          <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 col-span-2 flex items-center justify-between">
-                            <span className="text-slate-400 text-[10px]">
-                              Visit Type:
-                            </span>
-                            <span className="font-semibold text-slate-700">
-                              {up.visitType}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* CARD 3: QUICK ACTIONS */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-                  <h3
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-2 flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Zap size={15} className="text-[#0D47A1]" /> Quick Actions
-                  </h3>
-
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => {
-                        const next = todayAppointments.find(
-                          (a) =>
-                            a.status === "Checked-In" ||
-                            a.status === "Waiting" ||
-                            a.status === "In Progress",
-                        );
-                        if (next && onStartConsultation)
-                          onStartConsultation(next);
-                        else if (next && onPatientSelect)
-                          onPatientSelect(next.patientId);
-                        else triggerToast("No active patient in queue");
-                      }}
-                      className="w-full py-2.5 px-3 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-[#00796B] transition-colors flex items-center justify-center gap-2 shadow-xs"
-                      style={{ fontFamily: PP }}
-                    >
-                      <Stethoscope size={15} /> Start Consultation
-                    </button>
-
-                    <button
-                      onClick={() => setViewMode("queue")}
-                      className="w-full py-2 px-3 rounded-xl border border-[#0D47A1] bg-blue-50 text-[#0D47A1] text-xs font-bold hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Clock size={14} /> View Today's Queue
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : userRole !== "Receptionist" ? (
-              <div className="space-y-6"></div>
-            ) : null}
+           
           </div>
         </>
       )}
@@ -1854,6 +1462,11 @@ export function AppointmentManagementCenterScreen({
         onStartConsultation={() => {
           setDetailsApt(null);
           onStartConsultation?.(detailsApt || undefined);
+        }}
+        onCheckInSuccess={async (token) => {
+          await refetch();
+          setDetailsApt(null);
+          triggerToast(`Patient checked in successfully. Token: ${token}`);
         }}
       />
 

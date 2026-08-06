@@ -30,6 +30,9 @@ export function PatientCheckInScreen({
 
   // Real appointments from API
   const [appointments, setAppointments] = useState<AppointmentRecord[]>([]);
+  const [selectedApt, setSelectedApt] = useState<AppointmentRecord | null>(
+    null,
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -38,26 +41,26 @@ export function PatientCheckInScreen({
           status: "BOOKED",
         });
         setAppointments(data);
+        if (data.length > 0) {
+          const initId = initialAptId || initialMrn;
+          if (initId) {
+            const q = initId.toLowerCase();
+            const found = data.find(
+              (a) =>
+                String(a.id).toLowerCase() === q ||
+                (a.patientMrn || a.mrn || "").toLowerCase() === q,
+            );
+            setSelectedApt(found || data[0] || null);
+          } else {
+            setSelectedApt(data[0] || null);
+          }
+        }
       } catch {
         setAppointments([]);
       }
     };
     load();
-  }, []);
-
-  const selectedApt = useMemo(() => {
-    if (!aptSearchQuery.trim()) return appointments[0] || null;
-    const q = aptSearchQuery.toLowerCase();
-    return (
-      appointments.find(
-        (a) =>
-          String(a.id).toLowerCase().includes(q) ||
-          (a.patientMrn || a.mrn || "").toLowerCase().includes(q) ||
-          (a.patientName || "").toLowerCase().includes(q) ||
-          (a.queueToken || a.tokenNo || "").toLowerCase().includes(q),
-      ) || null
-    );
-  }, [aptSearchQuery, appointments]);
+  }, [initialAptId, initialMrn]);
 
   // Section 03 Form fields
   const [arrivalTime] = useState(() => {
@@ -97,10 +100,6 @@ export function PatientCheckInScreen({
       setGeneratedToken(res.tokenNumber);
       setQueuePosition(Math.floor(Math.random() * 20) + 1);
       setEstWaitTime(`${Math.floor(Math.random() * 30) + 10} mins`);
-      setCheckInResult({
-        tokenNumber: res.tokenNumber,
-        appointmentId: selectedApt.id,
-      });
       setShowSuccessModal(true);
     } catch {
       setShowSuccessModal(false);
@@ -112,7 +111,6 @@ export function PatientCheckInScreen({
       className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9]"
       style={{ fontFamily: RB }}
     >
-      {/* ── HEADER & BREADCRUMB ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm">
         <div>
           <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
@@ -338,7 +336,11 @@ export function PatientCheckInScreen({
                   </div>
                   {onViewPatientProfileClick && (
                     <button
-                      onClick={() => onViewPatientProfileClick(selectedApt.mrn)}
+                      onClick={() =>
+                        onViewPatientProfileClick(
+                          selectedApt.mrn || selectedApt.patientMrn || "",
+                        )
+                      }
                       className="text-xs font-semibold text-[#0D47A1] hover:underline"
                     >
                       View Profile

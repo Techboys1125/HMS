@@ -189,7 +189,7 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
       profile?.scheduleExceptions || anyProfile?.scheduleExceptions || [],
     rawAvailability: rawAvail,
     secondarySpecialties:
-      profile?.secondarySpecialties?.map((s) => s.specialtyName) || [],
+      profile?.secondarySpecialties?.map((s: any) => s.specialtyName) || [],
     effectiveFrom: anyProfile?.effectiveFrom,
     effectiveTo: anyProfile?.effectiveTo,
     availabilityTemplate: anyProfile?.availabilityTemplate,

@@ -73,14 +73,27 @@ export function DockableQueueWorkspace({
   }, [appointments, todayStr, isDoctor, isNurse]);
 
   const waitingPatients = todayQueue.filter(
-    (a) => a.status === "Waiting" || a.status === "Scheduled",
+    (a) =>
+      a.status === "Waiting" ||
+      a.status === "Booked" ||
+      a.status === "Scheduled" ||
+      a.status === "Waiting for Vitals" ||
+      a.status === "Waiting for Doctor",
   );
-  const checkedInPatients = todayQueue.filter((a) => a.status === "Checked-In");
+  const checkedInPatients = todayQueue.filter(
+    (a) =>
+      a.status === "Checked-In" || a.status === "Waiting for Vitals",
+  );
+  const calledPatients = todayQueue.filter((a) => a.status === "Called");
   const inConsultationPatients = todayQueue.filter(
-    (a) => a.status === "In Progress",
+    (a) => a.status === "In Consultation" || a.status === "In Progress",
   );
   const readyPatients = todayQueue.filter(
-    (a) => a.status === "In Progress" || a.status === "Checked-In",
+    (a) =>
+      a.status === "In Consultation" ||
+      a.status === "In Progress" ||
+      a.status === "Called" ||
+      a.status === "Checked-In",
   );
   const completedPatients = todayQueue.filter((a) => a.status === "Completed");
 
@@ -630,14 +643,17 @@ export function DockableQueueWorkspace({
 
                           {isNurse ? null : isDoctor ? (
                             <button
-                              onClick={() => onStartConsultation?.(q)}
-                              className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-bold hover:bg-[#00796B] transition-colors flex items-center gap-1 shadow-xs"
+                              onClick={() => onViewDetails(q)}
+                              className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[11px] font-bold border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1 shadow-xs"
+                              title="View Appointment Details"
                             >
-                              <Stethoscope size={12} /> Start Consultation
+                              <Eye size={12} /> View
                             </button>
                           ) : (
                             <>
-                              {q.status === "Scheduled" && (
+                              {(q.status === "Scheduled" ||
+                                q.status === "Booked" ||
+                                q.status === "BOOKED") && (
                                 <button
                                   onClick={() =>
                                     onUpdateStatus(
@@ -653,20 +669,21 @@ export function DockableQueueWorkspace({
                               )}
 
                               {(q.status === "Checked-In" ||
-                                q.status === "Waiting") && (
-                                <button
-                                  onClick={() =>
-                                    onUpdateStatus(
-                                      q.id,
-                                      "Checked-In",
-                                      "Patient called for consultation.",
-                                    )
-                                  }
-                                  className="px-2.5 py-1 rounded-lg bg-teal-50 text-[#009688] text-[11px] font-bold border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1"
-                                >
-                                  <PhoneCall size={12} /> Call Next Patient
-                                </button>
-                              )}
+                                q.status === "Waiting") &&
+                                isDoctor && (
+                                  <button
+                                    onClick={() =>
+                                      onUpdateStatus(
+                                        q.id,
+                                        "Checked-In",
+                                        "Patient called for consultation.",
+                                      )
+                                    }
+                                    className="px-2.5 py-1 rounded-lg bg-teal-50 text-[#009688] text-[11px] font-bold border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1"
+                                  >
+                                    <PhoneCall size={12} /> Call Next Patient
+                                  </button>
+                                )}
                             </>
                           )}
                         </div>

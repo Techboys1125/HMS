@@ -23,7 +23,8 @@ export const useDiagnosis = (encounterId?: string | number) => {
         setDiagnoses((prev) => [...prev, added]);
         return added;
       } catch (err) {
-        const errMsg = err instanceof Error ? err.message : "Failed to add diagnosis";
+        const errMsg =
+          err instanceof Error ? err.message : "Failed to add diagnosis";
         setError(errMsg);
         throw err;
       } finally {

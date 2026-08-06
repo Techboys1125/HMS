@@ -262,7 +262,7 @@ export function AppointmentConfigurationWorkspace() {
               <Eye size={14} /> Preview Schedule
             </button>
             <button
-              onClick={() => { }}
+              onClick={() => {}}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -687,7 +687,11 @@ export function AppointmentConfigurationWorkspace() {
                 </div>
                 <input
                   type="checkbox"
-                  checked={(generalConfig as unknown as Record<string, boolean>)[item.key]}
+                  checked={
+                    (generalConfig as unknown as Record<string, boolean>)[
+                      item.key
+                    ]
+                  }
                   onChange={(e) =>
                     setGeneralConfig((prev) => ({
                       ...prev,
@@ -1201,7 +1205,11 @@ export function AppointmentConfigurationWorkspace() {
                 </div>
                 <input
                   type="checkbox"
-                  checked={(queueConfig as unknown as Record<string, boolean>)[item.key]}
+                  checked={
+                    (queueConfig as unknown as Record<string, boolean>)[
+                      item.key
+                    ]
+                  }
                   onChange={(e) =>
                     setQueueConfig((prev) => ({
                       ...prev,

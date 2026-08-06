@@ -15,7 +15,6 @@ export { AppointmentDetailModal } from "./AppointmentDetailModal";
 export { DoctorProfileScreen } from "./DoctorProfileScreen";
 export { DoctorAppointmentsScreen } from "./DoctorAppointmentsScreen";
 export { DoctorConsultationScreen } from "./DoctorConsultationScreen";
-export { DoctorPrescriptionsScreen } from "./DoctorPrescriptionsScreen";
 export { DoctorPrescriptionDetailsScreen } from "./DoctorPrescriptionDetailsScreen";
 export { DoctorEditPrescriptionScreen } from "./DoctorEditPrescriptionScreen";
 export {

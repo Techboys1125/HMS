@@ -1,8 +1,5 @@
 export type PatientStatus =
-  | "ACTIVE"
-  | "INACTIVE"
-  | "DECEASED"
-  | "DUPLICATE_CANDIDATE";
+  "ACTIVE" | "INACTIVE" | "DECEASED" | "DUPLICATE_CANDIDATE";
 
 export type AgeBasis = "EXACT" | "APPROXIMATE";
 
@@ -18,11 +15,7 @@ export type BloodGroup =
   | "UNKNOWN";
 
 export type MaritalStatus =
-  | "SINGLE"
-  | "MARRIED"
-  | "DIVORCED"
-  | "WIDOWED"
-  | "SEPARATED";
+  "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED" | "SEPARATED";
 
 export type PatientCategory =
   | "GENERAL"
@@ -55,14 +48,12 @@ export interface Address {
  * Patient record returned from GET /api/v1/patients
  */
 export interface Patient {
-  insuranceDetails:
-    | {
-        provider?: string;
-        policyNumber?: string;
-        validUntil?: string;
-        coverageType?: string;
-      }
-    | null;
+  insuranceDetails: {
+    provider?: string;
+    policyNumber?: string;
+    validUntil?: string;
+    coverageType?: string;
+  } | null;
   id?: number;
   mrn: string;
   fullName: string;
@@ -404,12 +395,7 @@ export type ScreenPatientSearchResult = {
   };
 };
 export type ChipVariant =
-  | "success"
-  | "warning"
-  | "error"
-  | "info"
-  | "teal"
-  | "default";
+  "success" | "warning" | "error" | "info" | "teal" | "default";
 export interface PatientProfileScreenProps {
   onBack?: () => void;
   onEditPatient?: () => void;

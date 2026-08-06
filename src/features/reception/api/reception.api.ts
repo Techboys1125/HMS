@@ -72,13 +72,8 @@ interface RawQueueItem {
 function mapRawToQueueItem(itemVal: unknown, idx: number): ReceptionQueueItem {
   const item = itemVal as RawQueueItem;
   return {
-    id:
-      item.id ||
-      item.queueItemId ||
-      item.appointmentId ||
-      `item-${idx + 1}`,
-    tokenNumber:
-      item.tokenNumber || item.queueToken || `TK-${100 + idx + 1}`,
+    id: item.id || item.queueItemId || item.appointmentId || `item-${idx + 1}`,
+    tokenNumber: item.tokenNumber || item.queueToken || `TK-${100 + idx + 1}`,
     patientId: item.patientId || item.patient?.id || `P-${idx + 1}`,
     patientName:
       item.patientName ||
@@ -86,16 +81,14 @@ function mapRawToQueueItem(itemVal: unknown, idx: number): ReceptionQueueItem {
       item.patient?.name ||
       "Patient",
     mrn: item.mrn || item.patient?.mrn || `MRN-${202600 + idx + 1}`,
-    mobile:
-      item.mobile || item.patient?.mobile || item.patient?.phone || "N/A",
+    mobile: item.mobile || item.patient?.mobile || item.patient?.phone || "N/A",
     gender: item.gender || item.patient?.gender || "MALE",
     age: item.age || item.patient?.age || "30",
     dateOfBirth: item.dateOfBirth || item.patient?.dateOfBirth,
     appointmentId: item.appointmentId || item.id,
     appointmentTime: item.appointmentTime || item.timeSlot || "09:00 AM",
     arrivalTime: item.arrivalTime || item.checkInTime || undefined,
-    checkInTimestamp:
-      item.checkInTimestamp || item.checkInTime || undefined,
+    checkInTimestamp: item.checkInTimestamp || item.checkInTime || undefined,
     departmentId: item.departmentId || item.department?.id || 1,
     departmentName:
       item.departmentName || item.department?.name || "General Medicine",
@@ -105,9 +98,7 @@ function mapRawToQueueItem(itemVal: unknown, idx: number): ReceptionQueueItem {
       item.doctor?.fullName ||
       item.doctor?.name ||
       "Duty Doctor",
-    queueStatus: (item.queueStatus ||
-      item.status ||
-      "WAITING") as QueueStatus,
+    queueStatus: (item.queueStatus || item.status || "WAITING") as QueueStatus,
     billingStatus: (item.billingStatus ||
       item.paymentStatus ||
       "PAID") as BillingStatus,
@@ -154,7 +145,8 @@ export const receptionApi = {
         }
       }
 
-      const resData = res.data as { data?: unknown; content?: unknown } | unknown[] | undefined;
+      const resData = res.data as
+        { data?: unknown; content?: unknown } | unknown[] | undefined;
       const list = Array.isArray(resData)
         ? resData
         : Array.isArray((resData as { data?: unknown })?.data)
@@ -165,11 +157,13 @@ export const receptionApi = {
 
       return list.map(mapRawToQueueItem);
     } catch (error) {
-      console.warn(
-        "[receptionApi] Worklist fetch warning, using fallback mock structure:",
-        error,
-      );
-      return [];
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message);
+        }
+      }
+      throw error;
     }
   },
 
@@ -181,10 +175,9 @@ export const receptionApi = {
     payload: ArrivalCheckInPayload,
   ): Promise<{ success: boolean; checkInTime: string; tokenNumber: string }> {
     try {
-      const res = await apiClient.post<{ data?: { checkInTime?: string; tokenNumber?: string } }>(
-        "/api/v1/reception/check-in",
-        payload,
-      );
+      const res = await apiClient.post<{
+        data?: { checkInTime?: string; tokenNumber?: string };
+      }>("/api/v1/reception/check-in", payload);
       return {
         success: true,
         checkInTime: res.data?.data?.checkInTime || new Date().toISOString(),
@@ -193,15 +186,13 @@ export const receptionApi = {
           `TK-${Math.floor(100 + Math.random() * 900)}`,
       };
     } catch (error) {
-      console.warn("[receptionApi] Check-in fallback executed:", error);
-      return {
-        success: true,
-        checkInTime: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        tokenNumber: `TK-${Math.floor(100 + Math.random() * 900)}`,
-      };
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message);
+        }
+      }
+      throw error;
     }
   },
 
@@ -253,33 +244,13 @@ export const receptionApi = {
         visitType: "WALK_IN",
       };
     } catch (error) {
-      console.warn("[receptionApi] Walk-in fallback registration:", error);
-      return {
-        id: Date.now(),
-        tokenNumber: `WK-${Math.floor(100 + Math.random() * 900)}`,
-        patientId: `P-${Date.now()}`,
-        patientName: payload.fullName,
-        mrn: `MRN-${Date.now().toString().slice(-6)}`,
-        mobile: payload.mobile,
-        gender: payload.gender,
-        age: payload.age || 25,
-        appointmentTime: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        arrivalTime: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        departmentId: payload.departmentId,
-        departmentName: "Cardiology",
-        doctorId: payload.doctorId,
-        doctorName: "Dr. Duty Doctor",
-        queueStatus: "WAITING",
-        billingStatus: payload.paymentMode === "PENDING" ? "PENDING" : "PAID",
-        consultationFee: payload.consultationFee,
-        visitType: "WALK_IN",
-      };
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message);
+        }
+      }
+      throw error;
     }
   },
 
@@ -297,8 +268,13 @@ export const receptionApi = {
       });
       return true;
     } catch (error) {
-      console.warn("[receptionApi] Status update fallback:", error);
-      return true;
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message);
+        }
+      }
+      throw error;
     }
   },
 
@@ -322,12 +298,7 @@ export const receptionApi = {
           throw new Error(data.message, { cause: error });
         }
       }
-
-      console.warn(
-        `[receptionApi] patchCheckIn fallback for apt ${appointmentId}:`,
-        error,
-      );
-      return { success: true, appointmentId };
+      throw error;
     }
   },
 
@@ -343,11 +314,13 @@ export const receptionApi = {
       );
       return res.data as AppointmentTokenResponse;
     } catch (error) {
-      console.warn(
-        `[receptionApi] getAppointmentToken fallback for apt ${appointmentId}:`,
-        error,
-      );
-      return { tokenNumber: `TK-${Math.floor(100 + Math.random() * 900)}` };
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message);
+        }
+      }
+      throw error;
     }
   },
 
@@ -365,8 +338,13 @@ export const receptionApi = {
           : [];
       return rawList.map(mapRawToQueueItem);
     } catch (error) {
-      console.warn("[receptionApi] getReceptionQueue fallback:", error);
-      return [];
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message);
+        }
+      }
+      throw error;
     }
   },
 };

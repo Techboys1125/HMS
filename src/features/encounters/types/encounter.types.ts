@@ -1,9 +1,5 @@
 export type EncounterStatus =
-  | "CREATED"
-  | "IN_PROGRESS"
-  | "COMPLETED"
-  | "FINALIZED"
-  | string;
+  "CREATED" | "IN_PROGRESS" | "COMPLETED" | "FINALIZED" | string;
 
 export type PrescriptionOutcome =
   | "MEDICATION_PRESCRIBED"

@@ -146,12 +146,7 @@ function Av({
 }
 
 type ChipVariant =
-  | "success"
-  | "warning"
-  | "error"
-  | "info"
-  | "teal"
-  | "default";
+  "success" | "warning" | "error" | "info" | "teal" | "default";
 function Chip({
   label,
   variant = "default",

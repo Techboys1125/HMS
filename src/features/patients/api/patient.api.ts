@@ -294,8 +294,10 @@ export const patientsApi = {
           content?: unknown;
           patients?: unknown;
         };
-        if (Array.isArray(collection.content)) return collection.content as Patient[];
-        if (Array.isArray(collection.patients)) return collection.patients as Patient[];
+        if (Array.isArray(collection.content))
+          return collection.content as Patient[];
+        if (Array.isArray(collection.patients))
+          return collection.patients as Patient[];
       }
       return [];
     } catch (error: unknown) {
@@ -409,10 +411,7 @@ export const patientsApi = {
       if (params?.limit) searchParams.append("limit", String(params.limit));
       if (params?.status) searchParams.append("status", params.status);
       if (params?.registrationType)
-        searchParams.append(
-          "registrationType",
-          params.registrationType,
-        );
+        searchParams.append("registrationType", params.registrationType);
 
       const url = `/api/v1/patients${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
       let response;
@@ -612,6 +611,12 @@ export const patientsApi = {
   getPatientQueue: async (mrn?: string) => {
     try {
       type QueueData = {
+        appointmentId: number;
+        patientsAhead: number;
+        estimatedWaitMinutes: number;
+        status: string;
+        doctorName: string;
+        departmentName: string;
         queueStatus: string;
         position?: number;
         token?: string;

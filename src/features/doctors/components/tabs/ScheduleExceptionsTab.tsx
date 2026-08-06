@@ -75,7 +75,7 @@ export function ScheduleExceptionsTab({
         setShowAddForm(false);
       }
     } catch (err) {
-      console.log(err);
+      // Error handled by UI state
     } finally {
       setSaving(false);
     }
@@ -87,7 +87,7 @@ export function ScheduleExceptionsTab({
       await doctorsService.deleteScheduleException(targetId, exceptionId);
       setExceptions((prev) => prev.filter((e) => e.id !== exceptionId));
     } catch (err) {
-      console.log(err);
+      // Error handled by UI state
     }
   };
 

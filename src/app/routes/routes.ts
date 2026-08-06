@@ -28,6 +28,7 @@ export const ROUTES = {
   QUEUE: "/queue",
   VITALS: "/vitals",
   CONSULTATION: "/consultation",
+  CONSULTATION_WORKSPACE: "/consultation/workspace",
   PRESCRIPTIONS: "/prescriptions",
   BILLING: "/billing",
   DOCTORS: "/doctors",

@@ -1,4 +1,4 @@
-import { apiClient } from "../../../lib/axios";
+import { apiClient, axios } from "../../../lib/axios";
 import { useAuthStore } from "../../auth/index";
 import type {
   DoctorRecord,
@@ -491,8 +491,6 @@ export const doctorsApi = {
         }
       }
     } catch (err) {
-      console.log(err);
-
       const altPayload = { ...(payload as Record<string, unknown>) };
       if (altPayload.phone && !altPayload.mobile)
         altPayload.mobile = altPayload.phone;
@@ -837,11 +835,13 @@ export const doctorsApi = {
         page: data?.page || {},
       };
     } catch (error) {
-      console.warn(
-        `[doctorsApi] getQueue fallback for doctorId ${doctorId}:`,
-        error,
-      );
-      return { summary: {}, content: [], page: {} };
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message);
+        }
+      }
+      throw error;
     }
   },
 
@@ -857,16 +857,13 @@ export const doctorsApi = {
       const data = response.data?.data || response.data;
       return data || {};
     } catch (error) {
-      console.warn(
-        `[doctorsApi] callNext fallback for doctorId ${doctorId}:`,
-        error,
-      );
-      return {
-        action: "CALL_NEXT",
-        appointmentId: Date.now(),
-        tokenNumber: `TK-${Math.floor(100 + Math.random() * 900)}`,
-        queueStatus: "CALLED",
-      };
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message);
+        }
+      }
+      throw error;
     }
   },
 };

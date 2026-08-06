@@ -127,8 +127,6 @@ export const appointmentsApi = {
       if (params?.sort) query.append("sort", params.sort);
 
       const url = `/api/v1/appointments${query.toString() ? `?${query.toString()}` : ""}`;
-      console.log("Appointment params:", params);
-      console.log("Appointment URL:", url);
       const response = await apiClient.get<ApiResponse<unknown>>(url);
       return response.data;
     } catch (error: unknown) {

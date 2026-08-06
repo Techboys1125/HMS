@@ -4,27 +4,30 @@ import { Search, RotateCcw, Filter, X } from "lucide-react";
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
 
-interface ConsultationToolbarProps {
+export interface ConsultationFiltersProps {
   searchQuery: string;
   onSearchChange: (val: string) => void;
-  // Filters
-  filterDate?: string;
-  onDateChange?: (val: string) => void;
-  filterDoctor?: string;
-  onDoctorChange?: (val: string) => void;
-  filterDepartment?: string;
-  onDepartmentChange?: (val: string) => void;
-  filterStatus?: string;
-  onStatusChange?: (val: string) => void;
-  filterVisitType?: string;
-  onVisitTypeChange?: (val: string) => void;
-  // Actions
+  filterDate: string;
+  onDateChange: (val: string) => void;
+  filterDoctor: string;
+  onDoctorChange: (val: string) => void;
+  filterDepartment: string;
+  onDepartmentChange: (val: string) => void;
+  filterStatus: string;
+  onStatusChange: (val: string) => void;
+  filterVisitType: string;
+  onVisitTypeChange: (val: string) => void;
   onReset: () => void;
   onApply?: () => void;
   resultCount: number;
+  placeholder?: string;
+  showStatusFilter?: boolean;
+  showVisitTypeFilter?: boolean;
+  doctorOptions?: Array<{ value: string; label: string }>;
+  departmentOptions?: Array<{ value: string; label: string }>;
 }
 
-export const ConsultationToolbar: React.FC<ConsultationToolbarProps> = ({
+export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
   searchQuery,
   onSearchChange,
   filterDate,
@@ -40,10 +43,24 @@ export const ConsultationToolbar: React.FC<ConsultationToolbarProps> = ({
   onReset,
   onApply,
   resultCount,
+  placeholder = "Search by Patient Name, MRN, Consultation ID or Mobile Number...",
+  showStatusFilter = true,
+  showVisitTypeFilter = true,
+  doctorOptions = [
+    { value: "All", label: "All Doctors" },
+    { value: "Dr. Arjun Mehta", label: "Dr. Arjun Mehta (Logged in)" },
+    { value: "Dr. Priya Sharma", label: "Dr. Priya Sharma" },
+    { value: "Dr. Rajesh Kapoor", label: "Dr. Rajesh Kapoor" },
+  ],
+  departmentOptions = [
+    { value: "All", label: "All Departments" },
+    { value: "Cardiology", label: "Cardiology" },
+    { value: "General Medicine", label: "General Medicine" },
+    { value: "Neurology", label: "Neurology" },
+  ],
 }) => {
   return (
     <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-4">
-      {/* Search Input */}
       <div className="relative">
         <Search
           size={18}
@@ -53,7 +70,7 @@ export const ConsultationToolbar: React.FC<ConsultationToolbarProps> = ({
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search by Patient Name, MRN, Consultation ID or Mobile Number..."
+          placeholder={placeholder}
           className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/20 focus:border-[#0D47A1] transition-all"
           style={{ fontFamily: RB }}
         />
@@ -67,73 +84,66 @@ export const ConsultationToolbar: React.FC<ConsultationToolbarProps> = ({
         )}
       </div>
 
-      {/* Filters Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-2 border-t border-gray-100">
-        {onDateChange && filterDate !== undefined && (
-          <div>
-            <label
-              className="block text-[11px] font-semibold text-[#64748B] mb-1"
-              style={{ fontFamily: PP }}
-            >
-              Date
-            </label>
-            <input
-              type="date"
-              value={filterDate}
-              onChange={(e) => onDateChange(e.target.value)}
-              className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
-              style={{ fontFamily: RB }}
-            />
-          </div>
-        )}
+        <div>
+          <label
+            className="block text-[11px] font-semibold text-[#64748B] mb-1"
+            style={{ fontFamily: PP }}
+          >
+            Date
+          </label>
+          <input
+            type="date"
+            value={filterDate}
+            onChange={(e) => onDateChange(e.target.value)}
+            className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
+            style={{ fontFamily: RB }}
+          />
+        </div>
 
-        {onDoctorChange && filterDoctor !== undefined && (
-          <div>
-            <label
-              className="block text-[11px] font-semibold text-[#64748B] mb-1"
-              style={{ fontFamily: PP }}
-            >
-              Doctor
-            </label>
-            <select
-              value={filterDoctor}
-              onChange={(e) => onDoctorChange(e.target.value)}
-              className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
-              style={{ fontFamily: RB }}
-            >
-              <option value="All">All Doctors</option>
-              <option value="Dr. Arjun Mehta">
-                Dr. Arjun Mehta (Logged in)
+        <div>
+          <label
+            className="block text-[11px] font-semibold text-[#64748B] mb-1"
+            style={{ fontFamily: PP }}
+          >
+            Doctor
+          </label>
+          <select
+            value={filterDoctor}
+            onChange={(e) => onDoctorChange(e.target.value)}
+            className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
+            style={{ fontFamily: RB }}
+          >
+            {doctorOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
               </option>
-              <option value="Dr. Priya Sharma">Dr. Priya Sharma</option>
-              <option value="Dr. Rajesh Kapoor">Dr. Rajesh Kapoor</option>
-            </select>
-          </div>
-        )}
+            ))}
+          </select>
+        </div>
 
-        {onDepartmentChange && filterDepartment !== undefined && (
-          <div>
-            <label
-              className="block text-[11px] font-semibold text-[#64748B] mb-1"
-              style={{ fontFamily: PP }}
-            >
-              Department
-            </label>
-            <select
-              value={filterDepartment}
-              onChange={(e) => onDepartmentChange(e.target.value)}
-              className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
-              style={{ fontFamily: RB }}
-            >
-              <option value="All">All Departments</option>
-              <option value="Cardiology">Cardiology</option>
-              <option value="General Medicine">General Medicine</option>
-              <option value="Neurology">Neurology</option>
-            </select>
-          </div>
-        )}
+        <div>
+          <label
+            className="block text-[11px] font-semibold text-[#64748B] mb-1"
+            style={{ fontFamily: PP }}
+          >
+            Department
+          </label>
+          <select
+            value={filterDepartment}
+            onChange={(e) => onDepartmentChange(e.target.value)}
+            className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
+            style={{ fontFamily: RB }}
+          >
+            {departmentOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        {onStatusChange && filterStatus !== undefined && (
+        {showStatusFilter && (
           <div>
             <label
               className="block text-[11px] font-semibold text-[#64748B] mb-1"
@@ -148,16 +158,20 @@ export const ConsultationToolbar: React.FC<ConsultationToolbarProps> = ({
               style={{ fontFamily: RB }}
             >
               <option value="All">All Statuses</option>
-              <option value="Waiting">Waiting</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Completed">Completed</option>
-              <option value="Follow-up Scheduled">Follow-up Scheduled</option>
-              <option value="Cancelled">Cancelled</option>
+              <option value="BOOKED">Booked</option>
+              <option value="WAITING_FOR_VITALS">Waiting for Vitals</option>
+              <option value="WAITING_FOR_DOCTOR_CALL">Waiting for Doctor</option>
+              <option value="CALLED">Called</option>
+              <option value="IN_CONSULTATION">In Consultation</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="NO_SHOW">No Show</option>
+              <option value="FOLLOW_UP_SCHEDULED">Follow-up Scheduled</option>
             </select>
           </div>
         )}
 
-        {onVisitTypeChange && filterVisitType !== undefined && (
+        {showVisitTypeFilter && (
           <div>
             <label
               className="block text-[11px] font-semibold text-[#64748B] mb-1"
@@ -180,12 +194,9 @@ export const ConsultationToolbar: React.FC<ConsultationToolbarProps> = ({
         )}
       </div>
 
-      {/* Summary count and actions */}
       <div className="flex items-center justify-between pt-2">
         <div className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>
-          Showing{" "}
-          <span className="font-semibold text-[#111827]">{resultCount}</span>{" "}
-          consultations
+          Showing <span className="font-semibold text-[#111827]">{resultCount}</span> consultations
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -212,4 +223,4 @@ export const ConsultationToolbar: React.FC<ConsultationToolbarProps> = ({
   );
 };
 
-export default ConsultationToolbar;
+export default ConsultationFilters;

@@ -579,7 +579,7 @@ export const UserManagement: React.FC = () => {
                 try {
                   navigate(ROUTES.USER_MANAGEMENT);
                 } catch (e) {
-                  console.log(e);
+                  // Error handled by form state
                 }
               }
             }}

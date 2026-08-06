@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ChevronDown,
   Printer,
@@ -6,12 +6,14 @@ import {
   Edit3,
   ArrowLeft,
   Shield,
+  AlertCircle,
 } from "lucide-react";
 import { usePermissions } from "../../../permissions";
+import { useConsultation } from "../hooks/useConsultation";
+import type { ConsultationRecord } from "../types/consultation";
 
 // Reusable Components
 import { ConsultationHeader } from "../components/ConsultationHeader";
-import { PatientSummaryCard } from "../components/PatientSummaryCard";
 import { VitalsCard } from "../components/VitalsCard";
 import { ChiefComplaintCard } from "../components/ChiefComplaintCard";
 import { ExaminationCard } from "../components/ExaminationCard";
@@ -21,9 +23,79 @@ import { InvestigationCard } from "../components/InvestigationCard";
 import { AdviceCard } from "../components/AdviceCard";
 import { FollowupCard } from "../components/FollowupCard";
 import { TimelineCard } from "../components/TimelineCard";
+import { PatientSummaryCard } from "../components/PatientSummaryCard";
 
 const PP = "'Poppins', system-ui, sans-serif";
+
+const emptyVitals = {
+  bp: "",
+  pulse: "",
+  temp: "",
+  spo2: "",
+  height: "",
+  weight: "",
+  bmi: "",
+  respiratoryRate: "",
+  bloodSugar: "",
+};
 const RB = "'Roboto', system-ui, sans-serif";
+
+interface TimelineEvent {
+  title: string;
+  date: string;
+  time: string;
+  status: string;
+  badgeColor: string;
+}
+
+function parseDateTime(dateStr?: string): { date: string; time: string } {
+  if (!dateStr) return { date: "N/A", time: "" };
+  const commaIdx = dateStr.indexOf(",");
+  if (commaIdx >= 0) {
+    return { date: dateStr.slice(0, commaIdx), time: dateStr.slice(commaIdx + 1).trim() };
+  }
+  return { date: dateStr, time: "" };
+}
+
+function generateTimeline(
+  record: ConsultationRecord,
+  isAuditMode: boolean,
+): TimelineEvent[] {
+  const created = parseDateTime(record.createdDate);
+  const completed = parseDateTime(record.completedDate);
+  const visitDate = record.visitDate || record.date || "N/A";
+
+  if (isAuditMode) {
+    return [
+      { title: "Appointment Booked", date: visitDate, time: record.appointmentTime || "", status: "Scheduled", badgeColor: "bg-slate-100 text-slate-700" },
+      { title: "Consultation Started", date: created.date, time: created.time, status: "In Progress", badgeColor: "bg-teal-50 text-[#009688]" },
+      { title: "Consultation Completed", date: completed.date, time: completed.time, status: "Completed", badgeColor: "bg-green-50 text-[#66BB6A]" },
+      { title: "Prescription Generated", date: completed.date, time: "", status: "Generated", badgeColor: "bg-purple-50 text-purple-700" },
+      { title: "Billing Status", date: completed.date, time: "", status: record.billingStatus || "Paid", badgeColor: "bg-blue-50 text-[#0D47A1]" },
+    ];
+  }
+
+  const events: TimelineEvent[] = [
+    { title: "Appointment Scheduled", date: visitDate, time: record.appointmentTime || "", status: "Scheduled", badgeColor: "bg-slate-100 text-slate-700" },
+    { title: "Consultation Started", date: created.date, time: created.time, status: "In Progress", badgeColor: "bg-teal-50 text-[#009688]" },
+  ];
+
+  if (record.vitals) {
+    events.push({ title: "Vitals Recorded", date: created.date, time: created.time, status: "Vitals Recorded", badgeColor: "bg-teal-50 text-[#009688]" });
+  }
+  if (record.finalDiagnosis) {
+    events.push({ title: "Diagnosis Completed", date: completed.date, time: "", status: "Diagnosis Completed", badgeColor: "bg-indigo-50 text-indigo-700" });
+  }
+  if (record.medicines && record.medicines.length > 0) {
+    events.push({ title: "Prescription Added", date: completed.date, time: "", status: "Prescription Added", badgeColor: "bg-purple-50 text-purple-700" });
+  }
+  if (record.nextVisitDate) {
+    events.push({ title: "Follow-up Scheduled", date: visitDate, time: "", status: "Follow-up Scheduled", badgeColor: "bg-amber-50 text-amber-700" });
+  }
+
+  events.push({ title: "Consultation Completed", date: completed.date, time: completed.time, status: "Completed", badgeColor: "bg-green-50 text-[#66BB6A]" });
+  return events;
+}
 
 export function ConsultationDetailsPage({
   consultationId = "CNS-1001",
@@ -38,6 +110,14 @@ export function ConsultationDetailsPage({
   onViewPatientProfile?: (mrn: string) => void;
 }) {
   const { can, role } = usePermissions();
+  const { selectedConsultation, loading, error, loadFullConsultationDetails } =
+    useConsultation();
+
+  useEffect(() => {
+    if (consultationId) {
+      void loadFullConsultationDetails(consultationId);
+    }
+  }, [consultationId, loadFullConsultationDetails]);
 
   // If user has HOSPITAL_ADMIN or ADMIN role, or the check returns true for viewing all, we enable Audit Mode
   const isAuditMode =
@@ -64,200 +144,48 @@ export function ConsultationDetailsPage({
     setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Read-only Consultation Record Data
-  const record = {
-    id: consultationId,
-    appointmentId: "APT-1001",
-    visitDate: "24 Jul 2026",
-    completionTime: "09:42 AM",
-    createdDate: "24 Jul 2026, 09:00 AM",
-    completedDate: "24 Jul 2026, 09:42 AM",
-    duration: "14 mins",
-    patientName: "Sarah Mitchell",
-    mrn: "MRN-2024-001",
-    age: 34,
-    gender: "Female" as const,
-    bloodGroup: "A+",
-    allergies: ["Penicillin", "Aspirin"],
-    phone: "+1 (555) 234-5678",
-    doctorName: "Dr. Arjun Mehta",
-    doctorSpecialty: "Interventional Cardiology",
-    department: "Cardiology",
-    doctorExperience: "12+ Years Experience",
-    visitType: "First Visit" as const,
-    chiefComplaint:
-      "Severe chest tightness radiating to left shoulder with acute dyspnea",
-    durationOfSymptoms: "3 days",
-    // Vitals
-    vitals: {
-      height: "168 cm",
-      weight: "72 kg",
-      bmi: "25.5 kg/m²",
-      temp: "37.2 °C",
-      bp: "145/92 mmHg",
-      pulse: "88 bpm",
-      respiratoryRate: "18 /min",
-      spo2: "97 %",
-      bloodSugar: "110 mg/dL",
-    },
-    // Examination
-    clinicalExamination:
-      "Chest wall non-tender. Normal S1 and S2 heart sounds. No murmurs or gallop rhythm. Bilateral vesicular breath sounds.",
-    provisionalDiagnosis: "Acute Coronary Syndrome / Angina Pectoris",
-    finalDiagnosis: "Angina Pectoris, unspecified",
-    icdCode: "I20.9 — Angina Pectoris, unspecified",
-    // Prescriptions
-    medicines: [
-      {
-        id: "1",
-        name: "Amlodipine",
-        dosage: "5mg",
-        frequency: "Once Daily",
-        duration: "30 Days",
-        instructions: "Take after breakfast",
-      },
-      {
-        id: "2",
-        name: "Metformin",
-        dosage: "500mg",
-        frequency: "Twice Daily",
-        duration: "30 Days",
-        instructions: "Take with meals",
-      },
-    ],
-    // Investigations
-    investigations: ["CBC", "ECG", "2D Echocardiogram & Trop-I STAT"],
-    investigationRemarks:
-      "Perform 12-lead ECG immediately and monitor Troponin-I levels.",
-    // Clinical Notes
-    symptoms:
-      "Substernal chest pressure, exertional shortness of breath, mild diaphoresis.",
-    assessment: "High cardiovascular risk profile. Borderline hypertension.",
-    advice:
-      "Strict low sodium diet. Avoid heavy physical exertion. Continue cardiac regimen.",
-    lifestyleRecommendations:
-      "Daily 30 min light walking after 1 week. Stress reduction and smoking cessation.",
-    // Followup
-    followupRequired: "Yes",
-    nextVisitDate: "31 Jul 2026",
-    followupNotes:
-      "Review ECG & Troponin reports. Adjust anti-hypertensive dosage if required.",
-    // Fee & Status
-    consultationFee: "$150.00",
-    billingStatus: "Completed / Paid",
-    status: "Completed",
-    tokenNo: "TK-01",
-  };
+  const record = selectedConsultation;
+  const currentTimeline = record
+    ? generateTimeline(record, isAuditMode)
+    : [];
 
-  // Operational Timeline Events (Admin mode)
-  const operationalTimelineEvents = [
-    {
-      title: "Appointment Booked",
-      date: "24 Jul 2026",
-      time: "08:30 AM",
-      status: "Scheduled",
-      badgeColor: "bg-slate-100 text-slate-700",
-    },
-    {
-      title: "Patient Checked-In",
-      date: "24 Jul 2026",
-      time: "08:50 AM",
-      status: "Checked-In",
-      badgeColor: "bg-blue-50 text-blue-700",
-    },
-    {
-      title: "Consultation Started",
-      date: "24 Jul 2026",
-      time: "09:00 AM",
-      status: "In Progress",
-      badgeColor: "bg-teal-50 text-[#009688]",
-    },
-    {
-      title: "Consultation Completed",
-      date: "24 Jul 2026",
-      time: "09:42 AM",
-      status: "Completed",
-      badgeColor: "bg-green-50 text-[#66BB6A]",
-    },
-    {
-      title: "Prescription Generated",
-      date: "24 Jul 2026",
-      time: "09:43 AM",
-      status: "Generated",
-      badgeColor: "bg-purple-50 text-purple-700",
-    },
-    {
-      title: "Billing Status",
-      date: "24 Jul 2026",
-      time: "09:45 AM",
-      status: "Paid ($150.00)",
-      badgeColor: "bg-blue-50 text-[#0D47A1]",
-    },
-  ];
+  if (loading) {
+    return (
+      <div className="flex-1 bg-[#F1F5F9] flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#0D47A1] border-t-transparent mx-auto mb-3"></div>
+          <p className="text-sm text-slate-600" style={{ fontFamily: RB }}>
+            Loading consultation details...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  // Standard Timeline Events (Doctor/Clinical mode)
-  const timelineEvents = [
-    {
-      title: "Appointment Scheduled",
-      date: "24 Jul 2026",
-      time: "08:30 AM",
-      status: "Scheduled",
-      badgeColor: "bg-slate-100 text-slate-700",
-    },
-    {
-      title: "Patient Checked-In",
-      date: "24 Jul 2026",
-      time: "08:50 AM",
-      status: "Checked-In",
-      badgeColor: "bg-blue-50 text-blue-700",
-    },
-    {
-      title: "Consultation Started",
-      date: "24 Jul 2026",
-      time: "09:00 AM",
-      status: "In Progress",
-      badgeColor: "bg-teal-50 text-[#009688]",
-    },
-    {
-      title: "Vitals Recorded",
-      date: "24 Jul 2026",
-      time: "09:05 AM",
-      status: "Vitals Recorded",
-      badgeColor: "bg-teal-50 text-[#009688]",
-    },
-    {
-      title: "Diagnosis Completed",
-      date: "24 Jul 2026",
-      time: "09:20 AM",
-      status: "Diagnosis Completed",
-      badgeColor: "bg-indigo-50 text-indigo-700",
-    },
-    {
-      title: "Prescription Added",
-      date: "24 Jul 2026",
-      time: "09:30 AM",
-      status: "Prescription Added",
-      badgeColor: "bg-purple-50 text-purple-700",
-    },
-    {
-      title: "Follow-up Scheduled",
-      date: "24 Jul 2026",
-      time: "09:38 AM",
-      status: "Follow-up Scheduled",
-      badgeColor: "bg-amber-50 text-amber-700",
-    },
-    {
-      title: "Consultation Completed",
-      date: "24 Jul 2026",
-      time: "09:42 AM",
-      status: "Completed",
-      badgeColor: "bg-green-50 text-[#66BB6A]",
-    },
-  ];
+  if (error) {
+    return (
+      <div className="flex-1 bg-[#F1F5F9] flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-3">
+            <AlertCircle size={20} />
+          </div>
+          <p className="text-sm text-slate-600" style={{ fontFamily: RB }}>
+            {error}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  const currentTimeline = isAuditMode
-    ? operationalTimelineEvents
-    : timelineEvents;
+  if (!record) {
+    return (
+      <div className="flex-1 bg-[#F1F5F9] flex items-center justify-center min-h-[400px]">
+        <p className="text-sm text-slate-600" style={{ fontFamily: RB }}>
+          No consultation data found.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-[#F1F5F9] overflow-y-auto flex flex-col font-sans relative pb-24">
@@ -422,7 +350,7 @@ export function ConsultationDetailsPage({
                 />
               </button>
               {!collapsedSections.vitals && (
-                <VitalsCard values={record.vitals} />
+                <VitalsCard values={record.vitals || emptyVitals} />
               )}
             </div>
 
@@ -453,7 +381,7 @@ export function ConsultationDetailsPage({
                     duration={record.durationOfSymptoms}
                     historyOfPresentIllness={record.symptoms}
                   />
-                  <ExaminationCard findings={record.clinicalExamination} />
+                  <ExaminationCard findings={record.clinicalExamination || ""} />
                 </div>
               )}
             </div>
@@ -590,7 +518,7 @@ export function ConsultationDetailsPage({
               </button>
               {!collapsedSections.followup && (
                 <FollowupCard
-                  required={record.followupRequired}
+                  required={record.followupRequired || "No"}
                   nextVisitDate={record.nextVisitDate}
                   notes={record.followupNotes}
                 />

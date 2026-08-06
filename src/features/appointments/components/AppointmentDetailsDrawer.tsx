@@ -12,6 +12,7 @@ import {
   Info,
   Clock,
   Check,
+  CheckCircle2,
 } from "lucide-react";
 import type { AppointmentRecord } from "../types/appointment.types";
 import type { UserRole } from "../types/appointment-screen.types";
@@ -22,6 +23,7 @@ import {
   RB,
   appointmentToPatientSummary,
 } from "../constants/appointment.constants";
+import { appointmentService } from "../services/appointment.service";
 
 export function AppointmentDetailsDrawer({
   apt,
@@ -33,6 +35,7 @@ export function AppointmentDetailsDrawer({
   isDetailsLoading,
   userRole = "Receptionist",
   onStartConsultation,
+  onCheckInSuccess,
 }: {
   apt: AppointmentRecord | null;
   isOpen: boolean;
@@ -43,16 +46,50 @@ export function AppointmentDetailsDrawer({
   isDetailsLoading?: boolean;
   userRole?: UserRole;
   onStartConsultation?: (aptId?: string | number) => void;
+  onCheckInSuccess?: (token?: string) => void;
 }) {
   void isDetailsLoading;
   const [activeTab, setActiveTab] = useState<
     "all" | "patient" | "appointment" | "clinical" | "alerts" | "timeline"
   >("all");
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
 
   if (!isOpen || !apt) return null;
 
   const isDoctor = userRole === "Doctor";
   const isNurse = userRole === "Nurse";
+  const canCheckIn =
+    !isDoctor &&
+    !isNurse &&
+    (userRole === "Receptionist" ||
+      userRole === "Hospital Admin" ||
+      userRole === "Admin" ||
+      userRole === "Super Admin");
+  const showCheckInButton =
+    canCheckIn &&
+    (apt.status === "Booked" ||
+      apt.status === "Scheduled" ||
+      apt.status === "BOOKED");
+
+  const handleCheckIn = async () => {
+    if (!apt) return;
+    setIsCheckingIn(true);
+    try {
+      const res = await appointmentService.receptionCheckIn(apt.id);
+      const tokenNo =
+        (res as unknown as { tokenNumber?: string })?.tokenNumber ||
+        `TK-${apt.id}`;
+      onCheckInSuccess?.(tokenNo);
+      onClose();
+    } catch (err) {
+      const error = err as Error | null | undefined;
+      alert(
+        error?.message || "Check-in is only allowed on the appointment date.",
+      );
+    } finally {
+      setIsCheckingIn(false);
+    }
+  };
 
   const patientInfo = appointmentToPatientSummary(apt);
 
@@ -690,6 +727,17 @@ export function AppointmentDetailsDrawer({
                   style={{ fontFamily: PP }}
                 >
                   <Stethoscope size={16} /> Start Consultation
+                </button>
+              ) : showCheckInButton ? (
+                <button
+                  type="button"
+                  onClick={handleCheckIn}
+                  disabled={isCheckingIn}
+                  className="py-2.5 px-4 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                  style={{ fontFamily: PP }}
+                >
+                  <CheckCircle2 size={14} />{" "}
+                  {isCheckingIn ? "Checking In..." : "Check-In Patient"}
                 </button>
               ) : (
                 <button

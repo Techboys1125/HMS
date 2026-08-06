@@ -457,7 +457,7 @@ export function DoctorProfileScreen({
     };
   }, [
     doctorId,
-    doctor.id,
+    doctor?.id,
     refreshProfile,
     doctor,
     loadSchedule,

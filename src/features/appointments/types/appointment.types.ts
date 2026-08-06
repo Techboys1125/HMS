@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 export type UserRole =
   | "Receptionist"
   | "Admin"
@@ -31,21 +33,14 @@ export type AppointmentStatus =
   | "In Progress"
   | "Completed"
   | "Cancelled"
+  | "No Show"
   | string;
 
 export type QueueStatusEnum =
-  | "WAITING"
-  | "CALLED"
-  | "IN_CONSULTATION"
-  | "COMPLETED"
-  | "SKIPPED";
+  "WAITING" | "CALLED" | "IN_CONSULTATION" | "COMPLETED" | "SKIPPED";
 
 export type AppointmentTypeEnum =
-  | "CONSULTATION"
-  | "WALK_IN"
-  | "FOLLOW_UP"
-  | "EMERGENCY"
-  | "ROUTINE";
+  "CONSULTATION" | "WALK_IN" | "FOLLOW_UP" | "EMERGENCY" | "ROUTINE";
 
 export type FamilyRelationshipEnum =
   | "SELF"
@@ -100,18 +95,17 @@ export interface LinkedPatient {
 }
 
 export interface AppointmentRecord {
-  tokenNumber: string;
-  appointmentTime: string;
-  reasonForVisit: string;
-  roomNumber: string;
-  appointmentId: string | number;
-  age: ReactNode;
-  age: ReactNode;
-  gender: ReactNode;
-  bloodGroup: ReactNode;
-  mobile: ReactNode;
-  emergencyContact: ReactNode;
-  arrivalTime: string;
+  tokenNumber?: string;
+  appointmentTime?: string;
+  reasonForVisit?: string;
+  roomNumber?: string;
+  appointmentId?: string | number;
+  age?: ReactNode;
+  gender?: ReactNode;
+  bloodGroup?: ReactNode;
+  mobile?: ReactNode;
+  emergencyContact?: ReactNode;
+  arrivalTime?: string;
   date?: string;
   id: number | string;
   appointmentNumber?: string;

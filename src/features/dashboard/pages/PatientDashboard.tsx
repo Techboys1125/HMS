@@ -329,9 +329,30 @@ export function PatientDashboard({
   onBookAppointmentClick?: () => void;
   onViewBillsClick?: () => void;
   onNavigateNav?: (nav: string) => void;
-  activePatient?: { id?: number | string; mrn?: string; name?: string; patientName?: string; relationship?: string; fullName?: string } | null;
-  familyMembers?: { id?: number | string; mrn?: string; name?: string; patientName?: string; fullName?: string; relationship?: string }[];
-  onSwitchPatient?: (member: { id?: number | string; mrn?: string; name?: string; patientName?: string; fullName?: string; relationship?: string }) => void;
+  activePatient?: {
+    id?: number | string;
+    mrn?: string;
+    name?: string;
+    patientName?: string;
+    relationship?: string;
+    fullName?: string;
+  } | null;
+  familyMembers?: {
+    id?: number | string;
+    mrn?: string;
+    name?: string;
+    patientName?: string;
+    fullName?: string;
+    relationship?: string;
+  }[];
+  onSwitchPatient?: (member: {
+    id?: number | string;
+    mrn?: string;
+    name?: string;
+    patientName?: string;
+    fullName?: string;
+    relationship?: string;
+  }) => void;
   onAddFamilyMember?: () => void;
 }) {
   interface DashboardAppointment {

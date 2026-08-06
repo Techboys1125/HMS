@@ -47,9 +47,7 @@ const EXCEPTION_TYPES: ExceptionType[] = [
   "EMERGENCY",
   "OTHER",
 ];
-const EXCEPTION_ACTIONS: ExceptionAction[] = [
-  "BLOCK_APPOINTMENTS",
-];
+const EXCEPTION_ACTIONS: ExceptionAction[] = ["BLOCK_APPOINTMENTS"];
 
 const EXCEPTION_TYPE_META: Record<string, string> = {
   VACATION: "bg-amber-100 text-amber-700",

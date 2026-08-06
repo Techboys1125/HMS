@@ -1,5 +1,9 @@
 import { Calendar, User, Award } from "lucide-react";
-import type { DoctorRecord, DoctorAppointment, DoctorPatient } from "../../types/doctors.types";
+import type {
+  DoctorRecord,
+  DoctorAppointment,
+  DoctorPatient,
+} from "../../types/doctors.types";
 import { PP } from "../../constants/doctors.constants";
 
 export interface PersonalDetailsTabProps {
@@ -122,7 +126,9 @@ export function PersonalDetailsTab({
             </div>
             <div className="flex justify-between py-1 border-b border-gray-50">
               <span className="text-[#64748B]">Gender</span>
-              <span className="font-medium text-[#111827]">{doctor.gender}</span>
+              <span className="font-medium text-[#111827]">
+                {doctor.gender}
+              </span>
             </div>
             <div className="flex justify-between py-1 border-b border-gray-50">
               <span className="text-[#64748B]">Email Address</span>

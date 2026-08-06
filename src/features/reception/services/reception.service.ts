@@ -1,3 +1,4 @@
+import { appointmentsApi } from "../../appointments";
 import { receptionApi } from "../api/reception.api";
 import type {
   ReceptionQueueItem,

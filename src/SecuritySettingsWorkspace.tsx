@@ -134,7 +134,9 @@ export function SecuritySettingsWorkspace() {
     status: string;
   }
 
-  const [selectedEvent, setSelectedEvent] = useState<SecurityEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<SecurityEvent | null>(
+    null,
+  );
   const [saveToast, setSaveToast] = useState<string | null>(null);
 
   const handleSave = () => {
@@ -200,7 +202,7 @@ export function SecuritySettingsWorkspace() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <button
-              onClick={() => { }}
+              onClick={() => {}}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -218,7 +220,7 @@ export function SecuritySettingsWorkspace() {
               <ShieldAlert size={14} /> Security Audit
             </button>
             <button
-              onClick={() => { }}
+              onClick={() => {}}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -718,7 +720,9 @@ export function SecuritySettingsWorkspace() {
               >
                 <input
                   type="checkbox"
-                  checked={passPolicy[item.key as keyof typeof passPolicy] as boolean}
+                  checked={
+                    passPolicy[item.key as keyof typeof passPolicy] as boolean
+                  }
                   onChange={(e) =>
                     setPassPolicy((prev) => ({
                       ...prev,
@@ -1241,7 +1245,11 @@ export function SecuritySettingsWorkspace() {
                 </div>
                 <input
                   type="checkbox"
-                  checked={accessRestrictions[item.key as keyof typeof accessRestrictions]}
+                  checked={
+                    accessRestrictions[
+                      item.key as keyof typeof accessRestrictions
+                    ]
+                  }
                   onChange={(e) =>
                     setAccessRestrictions((prev) => ({
                       ...prev,

@@ -22,7 +22,6 @@ import {
   FamilyMembersManagement,
   PatientAppointmentsScreen,
   PatientMedicalRecordsScreen,
-  PatientPrescriptionsScreen,
   PatientDoctorSearchScreen,
   PatientQueueStatusScreen,
   PatientNotificationsScreen,
@@ -46,11 +45,11 @@ import {
   QueueManagementScreen,
 } from "../../features/appointments";
 import { RecordPatientVitalsScreen } from "../../features/vitals";
-import { OpdConsultationCenterScreen } from "../../features/opd";
+import { OpdConsultationCenterScreen, StartOpdConsultationWorkspaceScreen } from "../../features/opd";
 import {
   DoctorManagementCenterScreen,
-  DoctorPrescriptionsScreen,
 } from "../../features/doctors";
+import { PrescriptionManagementPage } from "../../features/prescriptions";
 import { DoctorProfileRoute } from "../../features/doctors/pages/DoctorProfileRoute";
 import { DoctorDirectoryPage } from "../../features/doctors/pages/DoctorDirectoryPage";
 import { ReceptionistDoctorListPage } from "../../features/doctors/pages/ReceptionistDoctorListPage";
@@ -87,16 +86,19 @@ function FamilyMembersRouteWrapper() {
   const primaryMrn =
     portal?.primaryMrn || String(user?.patientId || user?.id || "");
 
-  const handleViewProfile = useCallback((mrn: string) => {
-    const member = (portal?.familyMembers ?? []).find(
-      (m) => String(m.mrn) === String(mrn),
-    );
-    if (member) {
-      portal?.switchToPatient(member);
-      setRegistering(false);
-    }
-    portal?.refresh();
-  }, [portal]);
+  const handleViewProfile = useCallback(
+    (mrn: string) => {
+      const member = (portal?.familyMembers ?? []).find(
+        (m) => String(m.mrn) === String(mrn),
+      );
+      if (member) {
+        portal?.switchToPatient(member);
+        setRegistering(false);
+      }
+      portal?.refresh();
+    },
+    [portal],
+  );
 
   if (registering) {
     return (
@@ -115,7 +117,7 @@ function FamilyMembersRouteWrapper() {
 
   return (
     <FamilyMembersManagement
-      familyMembers={familyMembers}
+      familyMembers={portal?.familyMembers || []}
       activeFamilyMember={portal?.activePatient || undefined}
       onAddFamilyMember={() => setRegistering(true)}
       onSwitchProfile={(member) => portal?.switchToPatient(member)}
@@ -245,7 +247,7 @@ export function AppRoutes() {
             path={ROUTES.PATIENT_PRESCRIPTIONS}
             element={
               <RouteGuard requiredPermission="PRESCRIPTION_VIEW">
-                <PatientPrescriptionsScreen />
+                <PrescriptionManagementPage />
               </RouteGuard>
             }
           />
@@ -382,7 +384,7 @@ export function AppRoutes() {
           path={ROUTES.DOCTOR_CONSULTATION}
           element={
             <RouteGuard requiredPermission="OPD_VIEW">
-              <DoctorConsultationScreen />
+              <OpdConsultationCenterScreen />
             </RouteGuard>
           }
         />
@@ -390,7 +392,7 @@ export function AppRoutes() {
           path={ROUTES.DOCTOR_PRESCRIPTIONS}
           element={
             <RouteGuard requiredPermission="PRESCRIPTION_VIEW">
-              <DoctorPrescriptionsScreen />
+              <PrescriptionManagementPage />
             </RouteGuard>
           }
         />
@@ -435,10 +437,18 @@ export function AppRoutes() {
           }
         />
         <Route
+          path={ROUTES.CONSULTATION_WORKSPACE}
+          element={
+            <RouteGuard requiredPermission="OPD_VIEW">
+              <StartOpdConsultationWorkspaceScreen />
+            </RouteGuard>
+          }
+        />
+        <Route
           path={ROUTES.PRESCRIPTIONS}
           element={
             <RouteGuard requiredPermission="PRESCRIPTION_VIEW">
-              <DoctorPrescriptionsScreen />
+              <PrescriptionManagementPage />
             </RouteGuard>
           }
         />

@@ -13,9 +13,8 @@ import type { PatientRegistrationResponse } from "../types/auth.types";
  */
 export const PatientRegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const [registered, setRegistered] = useState<PatientRegistrationResponse | null>(
-    null,
-  );
+  const [registered, setRegistered] =
+    useState<PatientRegistrationResponse | null>(null);
 
   const handleSuccess = (response: PatientRegistrationResponse) => {
     setRegistered(response);

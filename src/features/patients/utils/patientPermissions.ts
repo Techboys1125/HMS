@@ -1,10 +1,5 @@
 export type Role =
-  | "ADMIN"
-  | "RECEPTIONIST"
-  | "DOCTOR"
-  | "NURSE"
-  | "PATIENT"
-  | "ACCOUNTANT";
+  "ADMIN" | "RECEPTIONIST" | "DOCTOR" | "NURSE" | "PATIENT" | "ACCOUNTANT";
 
 export type PatientAction =
   | "list"

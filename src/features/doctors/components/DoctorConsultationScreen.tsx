@@ -65,24 +65,100 @@ const CONSULT_TABS: {
 ];
 
 const VITALS_DATA = [
-  { label: "Blood Pressure", value: "145/92", unit: "mmHg", Icon: Activity, color: "#EF4444", status: "high" },
-  { label: "Heart Rate", value: "88", unit: "bpm", Icon: Activity, color: "#3B82F6", status: "normal" },
-  { label: "Temperature", value: "37.2", unit: "°C", Icon: Activity, color: "#F59E0B", status: "normal" },
-  { label: "SpO₂", value: "97", unit: "%", Icon: Activity, color: "#10B981", status: "normal" },
-  { label: "Resp. Rate", value: "18", unit: "/min", Icon: Activity, color: "#6366F1", status: "normal" },
-  { label: "Blood Sugar", value: "110", unit: "mg/dL", Icon: Activity, color: "#8B5CF6", status: "normal" },
+  {
+    label: "Blood Pressure",
+    value: "145/92",
+    unit: "mmHg",
+    Icon: Activity,
+    color: "#EF4444",
+    status: "high",
+    normal: "120/80",
+  },
+  {
+    label: "Heart Rate",
+    value: "88",
+    unit: "bpm",
+    Icon: Activity,
+    color: "#3B82F6",
+    status: "normal",
+    normal: "60-100",
+  },
+  {
+    label: "Temperature",
+    value: "37.2",
+    unit: "°C",
+    Icon: Activity,
+    color: "#F59E0B",
+    status: "normal",
+    normal: "36.5-37.5",
+  },
+  {
+    label: "SpO₂",
+    value: "97",
+    unit: "%",
+    Icon: Activity,
+    color: "#10B981",
+    status: "normal",
+    normal: "95-100",
+  },
+  {
+    label: "Resp. Rate",
+    value: "18",
+    unit: "/min",
+    Icon: Activity,
+    color: "#6366F1",
+    status: "normal",
+    normal: "12-20",
+  },
+  {
+    label: "Blood Sugar",
+    value: "110",
+    unit: "mg/dL",
+    Icon: Activity,
+    color: "#8B5CF6",
+    status: "normal",
+    normal: "70-140",
+  },
 ];
 
 const MEDICATIONS = [
-  { id: "1", name: "Amlodipine", dose: "5mg", freq: "Once Daily", route: "Oral", status: "active", refill: "15 days" },
-  { id: "2", name: "Metformin", dose: "500mg", freq: "Twice Daily", route: "Oral", status: "active", refill: "20 days" },
-  { id: "3", name: "Aspirin", dose: "75mg", freq: "Once Daily", route: "Oral", status: "prn", refill: "30 days" },
+  {
+    id: "1",
+    name: "Amlodipine",
+    dose: "5mg",
+    freq: "Once Daily",
+    route: "Oral",
+    status: "active",
+    refill: "15 days",
+  },
+  {
+    id: "2",
+    name: "Metformin",
+    dose: "500mg",
+    freq: "Twice Daily",
+    route: "Oral",
+    status: "active",
+    refill: "20 days",
+  },
+  {
+    id: "3",
+    name: "Aspirin",
+    dose: "75mg",
+    freq: "Once Daily",
+    route: "Oral",
+    status: "prn",
+    refill: "30 days",
+  },
 ];
 
 const TIMELINE = [
   { time: "09:15 AM", event: "Appointment booked", note: "Online booking" },
   { time: "09:42 AM", event: "Checked in at reception", note: "Token A-012" },
-  { time: "09:50 AM", event: "Vitals recorded by nurse", note: "BP 120/80, Temp 98.6\u00B0F" },
+  {
+    time: "09:50 AM",
+    event: "Vitals recorded by nurse",
+    note: "BP 120/80, Temp 98.6\u00B0F",
+  },
   { time: "10:05 AM", event: "Called by doctor", note: "Consultation room 3" },
   { time: "10:06 AM", event: "Consultation started", note: "" },
 ];
@@ -111,7 +187,10 @@ export function DoctorConsultationScreen({
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (!appointmentId) { setLoadingPatient(false); return; }
+    if (!appointmentId) {
+      setLoadingPatient(false);
+      return;
+    }
     let cancelled = false;
     async function load() {
       try {
@@ -120,26 +199,45 @@ export function DoctorConsultationScreen({
         const patient = (apt.patient || {}) as Record<string, unknown>;
         const doctor = (apt.doctor || {}) as Record<string, unknown>;
         setPatientData({
-          patientName: `${patient.firstName || ""} ${patient.lastName || ""}`.trim() || "Unknown Patient",
+          patientName:
+            `${patient.firstName || ""} ${patient.lastName || ""}`.trim() ||
+            "Unknown Patient",
           patientMrn: String(patient.mrn || apt.patientMrn || "N/A"),
           age: Number(patient.age || 0),
           gender: String(patient.gender || "N/A"),
           bloodGroup: String(patient.bloodGroup || "N/A"),
-          allergies: Array.isArray(patient.allergies) ? patient.allergies as string[] : [],
+          allergies: Array.isArray(patient.allergies)
+            ? (patient.allergies as string[])
+            : [],
           appointmentTime: String(apt.appointmentTime || apt.startTime || ""),
-          appointmentDate: String(apt.appointmentDate || new Date().toISOString().split("T")[0]),
+          appointmentDate: String(
+            apt.appointmentDate || new Date().toISOString().split("T")[0],
+          ),
           visitType: String(apt.appointmentType || "First Visit"),
-          chiefComplaint: String(apt.reasonForVisit || apt.chiefComplaint || ""),
-          doctorName: `${(doctor as Record<string, unknown>).firstName || ""} ${(doctor as Record<string, unknown>).lastName || ""}`.trim() || String(apt.doctorName || "Unassigned"),
-          department: String(apt.departmentName || (doctor as Record<string, unknown>).department || "General"),
+          chiefComplaint: String(
+            apt.reasonForVisit || apt.chiefComplaint || "",
+          ),
+          doctorName:
+            `${(doctor as Record<string, unknown>).firstName || ""} ${(doctor as Record<string, unknown>).lastName || ""}`.trim() ||
+            String(apt.doctorName || "Unassigned"),
+          department: String(
+            apt.departmentName ||
+              (doctor as Record<string, unknown>).department ||
+              "General",
+          ),
           opdRoom: String(apt.roomNumber || apt.opdRoom || "N/A"),
           status: String(apt.status || "BOOKED"),
         });
-      } catch { /* keep null */ }
-      finally { if (!cancelled) setLoadingPatient(false); }
+      } catch {
+        /* keep null */
+      } finally {
+        if (!cancelled) setLoadingPatient(false);
+      }
     }
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [appointmentId]);
 
   const patient = patientData;
@@ -166,7 +264,9 @@ export function DoctorConsultationScreen({
       <div className="flex-1 flex items-center justify-center bg-[#F1F5F9]">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-[#009688] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs text-slate-500" style={{ fontFamily: RB }}>Loading patient data...</p>
+          <p className="text-xs text-slate-500" style={{ fontFamily: RB }}>
+            Loading patient data...
+          </p>
         </div>
       </div>
     );
@@ -207,7 +307,8 @@ export function DoctorConsultationScreen({
               className="text-xs text-slate-500 mt-0.5"
               style={{ fontFamily: RB }}
             >
-              {patient?.gender || "N/A"} · {patient?.age || 0} years · Blood {patient?.bloodGroup || "N/A"}
+              {patient?.gender || "N/A"} · {patient?.age || 0} years · Blood{" "}
+              {patient?.bloodGroup || "N/A"}
             </div>
             <div className="font-mono text-xs text-[#0D47A1] mt-1.5 bg-blue-50 px-2 py-0.5 rounded-md inline-block">
               {patientMrn}
@@ -224,25 +325,47 @@ export function DoctorConsultationScreen({
               Allergies
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {(patient?.allergies || []).length > 0 ? (patient?.allergies || []).map((a) => (
+              {(patient?.allergies || []).length > 0 ? (
+                (patient?.allergies || []).map((a) => (
+                  <span
+                    key={a}
+                    className="px-2 py-0.5 bg-red-50 text-red-600 text-[10px] rounded-full border border-red-100 font-semibold"
+                    style={{ fontFamily: PP }}
+                  >
+                    ⚠ {a}
+                  </span>
+                ))
+              ) : (
                 <span
-                  key={a}
-                  className="px-2 py-0.5 bg-red-50 text-red-600 text-[10px] rounded-full border border-red-100 font-semibold"
-                  style={{ fontFamily: PP }}
+                  className="text-[10px] text-slate-400"
+                  style={{ fontFamily: RB }}
                 >
-                  ⚠ {a}
+                  No known allergies
                 </span>
-              )) : (
-                <span className="text-[10px] text-slate-400" style={{ fontFamily: RB }}>No known allergies</span>
               )}
             </div>
           </div>
 
           <div className="space-y-2.5">
             {[
-              { label: "Phone", value: String((patient as unknown as Record<string, unknown>)?.phone || "N/A"), Icon: Phone },
-              { label: "Doctor", value: patient?.doctorName || "Unassigned", Icon: Stethoscope },
-              { label: "Room", value: patient?.opdRoom || "N/A", Icon: Building2 },
+              {
+                label: "Phone",
+                value: String(
+                  (patient as unknown as Record<string, unknown>)?.phone ||
+                    "N/A",
+                ),
+                Icon: Phone,
+              },
+              {
+                label: "Doctor",
+                value: patient?.doctorName || "Unassigned",
+                Icon: Stethoscope,
+              },
+              {
+                label: "Room",
+                value: patient?.opdRoom || "N/A",
+                Icon: Building2,
+              },
             ].map(({ label, value, Icon }) => (
               <div key={label} className="flex items-start gap-2">
                 <Icon size={12} className="text-slate-400 mt-0.5 shrink-0" />
@@ -294,7 +417,7 @@ export function DoctorConsultationScreen({
                       className="text-[10px] text-slate-400"
                       style={{ fontFamily: RB }}
                     >
-                      {t.by}
+                      {t.note}
                     </div>
                   </div>
                 </div>

@@ -25,28 +25,37 @@ export interface AppointmentPage<T> {
 }
 
 const STATUS_MAP: Record<string, AppointmentRecord["status"]> = {
-  BOOKED: "Scheduled",
-  CONFIRMED: "Scheduled",
+  BOOKED: "Booked",
+  CONFIRMED: "Booked",
   CHECKED_IN: "Checked-In",
-  IN_CONSULTATION: "In Progress",
+  IN_CONSULTATION: "In Consultation",
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
   NO_SHOW: "Cancelled",
-  RESCHEDULED: "Scheduled",
+  RESCHEDULED: "Booked",
   WAITING: "Waiting",
-  WAITING_FOR_VITALS: "Checked-In",
-  WAITING_FOR_DOCTOR_CALL: "Waiting",
-  WAITING_FOR_CONSULTATION: "Waiting",
-  VITALS_DONE: "Checked-In",
-  REGULAR: "Scheduled",
-  CALLED: "Checked-In",
-  SCHEDULED: "Scheduled",
+  WAITING_FOR_VITALS: "Waiting for Vitals",
+  WAITING_FOR_DOCTOR_CALL: "Waiting for Doctor",
+  WAITING_FOR_CONSULTATION: "Waiting for Doctor",
+  VITALS_DONE: "Waiting for Doctor",
+  REGULAR: "Booked",
+  CALLED: "Called",
+  SCHEDULED: "Booked",
 };
 
 const toDisplayStatus = (status?: string): AppointmentRecord["status"] =>
   STATUS_MAP[String(status || "").toUpperCase()] ||
   (status as AppointmentRecord["status"]) ||
-  "Scheduled";
+  "Booked";
+
+const normalizeTimeFormat = (timeStr: string): string => {
+  if (!timeStr) return "";
+  let trimmed = timeStr.trim().toUpperCase().replace(/\s+/g, "");
+  if (/^\d{1}:/.test(trimmed)) {
+    trimmed = "0" + trimmed;
+  }
+  return trimmed;
+};
 
 export const normalizeAppointmentRecord = (
   item: Record<string, unknown> | null | undefined,
@@ -82,8 +91,7 @@ export const normalizeAppointmentRecord = (
 
   return {
     id: (item?.id ?? item?.appointmentId ?? item?.appointmentNumber ?? "") as
-      | string
-      | number,
+      string | number,
     appointmentNumber: (item?.appointmentNumber ||
       item?.queueToken ||
       String(item?.id ?? "")) as string,
@@ -94,19 +102,16 @@ export const normalizeAppointmentRecord = (
       patient?.name ||
       "") as string,
     patientMrn: (item?.patientMrn || patient?.mrn || item?.mrn) as
-      | string
-      | undefined,
+      string | undefined,
     doctorId: (item?.doctorId ?? doctor?.doctorId ?? doctor?.id ?? "") as
-      | string
-      | number,
+      string | number,
     doctorName: (item?.doctorName || doctor?.name || "") as string,
     appointmentDate,
     startTime,
     endTime: item?.endTime as string | undefined,
     status: toDisplayStatus(item?.status as string | undefined),
     queueStatus: (item?.queueStatus || item?.arrivalStatus) as
-      | string
-      | undefined,
+      string | undefined,
     appointmentType: item?.appointmentType as string | undefined,
     reason: (item?.reason || item?.chiefComplaint) as string | undefined,
     symptoms: item?.symptoms as string | undefined,
@@ -126,11 +131,7 @@ export const normalizeAppointmentRecord = (
     rescheduleReason: item?.rescheduleReason as string | undefined,
     vitalsRecorded: item?.vitalsRecorded as boolean | undefined,
     paymentStatus: item?.paymentStatus as
-      | "PAID"
-      | "UNPAID"
-      | "PARTIAL"
-      | "PENDING"
-      | undefined,
+      "PAID" | "UNPAID" | "PARTIAL" | "PENDING" | undefined,
     priority: item?.priority as string | undefined,
     arrivalStatus: item?.arrivalStatus as string | undefined,
     opdRoom: (item?.opdRoom || doctor?.opdRoom) as string | undefined,
@@ -141,17 +142,14 @@ export const normalizeAppointmentRecord = (
     patientAge: item?.patientAge as number | undefined,
     patientGender: item?.patientGender as string | undefined,
     patientPhone: (item?.patientPhone || patient?.phone || patient?.mobile) as
-      | string
-      | undefined,
+      string | undefined,
     doctorSpecialty: (item?.doctorSpecialty || doctor?.specialty) as
-      | string
-      | undefined,
+      string | undefined,
     tokenNo: (item?.tokenNo || item?.queueToken) as string | undefined,
     timeSlot: (item?.timeSlot || startTime) as string | undefined,
     visitType: (item?.visitType || item?.appointmentType) as string | undefined,
     chiefComplaint: (item?.chiefComplaint || item?.reason) as
-      | string
-      | undefined,
+      string | undefined,
     notes: item?.notes as string | undefined,
     arrivalTime: "",
   };
@@ -724,7 +722,66 @@ export const appointmentService = {
     date: string,
   ): Promise<unknown[]> {
     const res = await appointmentsApi.getAvailableSlots(doctorId, date);
-    return Array.isArray(res?.data) ? res.data : [];
+    let slots = Array.isArray(res?.data) ? res.data : [];
+
+    try {
+      const apptRes = await appointmentsApi.getAppointments({ doctorId, date });
+      const appointments = unwrapAppointmentCollection(apptRes).map((item) =>
+        normalizeAppointmentRecord(item)
+      );
+
+      const occupiedSlots = new Set<string>();
+      const blockingStatuses = [
+        "BOOKED",
+        "CONFIRMED",
+        "CHECKED_IN",
+        "WAITING_FOR_VITALS",
+        "WAITING_FOR_DOCTOR_CALL",
+        "CALLED",
+        "IN_CONSULTATION",
+        "COMPLETED",
+        "CONSULTATION_COMPLETED",
+        "BILLING_PENDING",
+        "PAYMENT_COMPLETED",
+        "Booked",
+        "Scheduled",
+        "Checked-In",
+        "Waiting",
+        "Waiting for Vitals",
+        "Waiting for Doctor",
+        "Called",
+        "In Consultation",
+        "In Progress",
+      ];
+
+      appointments.forEach((apt) => {
+        const statusUpper = String(apt.status || "").toUpperCase();
+        const displayStatus = STATUS_MAP[statusUpper] || apt.status;
+        const isBlocking =
+          blockingStatuses.includes(statusUpper) ||
+          blockingStatuses.includes(displayStatus);
+
+        if (isBlocking) {
+          const slotTime = apt.startTime || apt.timeSlot || apt.appointmentTime;
+          if (slotTime) {
+            occupiedSlots.add(normalizeTimeFormat(slotTime));
+          }
+        }
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      slots = slots.map((s: any) => {
+        const slotTime = s.time || s.startTime || s.slot;
+        if (slotTime && occupiedSlots.has(normalizeTimeFormat(slotTime))) {
+          return { ...s, available: false };
+        }
+        return s;
+      });
+    } catch (err) {
+      console.warn("Failed to block slots dynamically based on status:", err);
+    }
+
+    return slots;
   },
 
   async getAppointmentsByStatus(
@@ -784,7 +841,7 @@ export const appointmentService = {
         s.startTime === startTime ||
         s.slot === startTime,
     );
-    return slot?.available !== false;
+    return (slot as any)?.available !== false;
   },
 
   async getBlockedStatuses(): Promise<string[]> {

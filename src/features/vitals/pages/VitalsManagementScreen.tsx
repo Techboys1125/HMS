@@ -22,6 +22,7 @@ import {
   Stethoscope,
 } from "lucide-react";
 import type { AppointmentRecord } from "../../appointments";
+import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { vitalsService } from "../services/vitals.service";
 import { vitalsApi } from "../api/vitals.api";
 import type {
@@ -1318,8 +1319,15 @@ export function RecordPatientVitalsScreen({
   const getVitalsStatus = (apt: AppointmentRecord) => {
     if (
       apt.status === "Checked-In" ||
+      apt.status === "Waiting for Vitals"
+    )
+      return "Waiting for Vitals";
+    if (
+      apt.status === "In Consultation" ||
       apt.status === "In Progress" ||
       apt.status === "Waiting" ||
+      apt.status === "Waiting for Doctor" ||
+      apt.status === "Called" ||
       apt.queueStatus === "WAITING_FOR_DOCTOR_CALL"
     )
       return "Ready For Consultation";
@@ -1412,7 +1420,9 @@ export function RecordPatientVitalsScreen({
     triggerToast(`Loaded ${apt.patientName}`, "info");
   };
 
-  const handleMarkPatientReady = (aptId: string) => {
+  const handleMarkPatientReady = async (aptId: string) => {
+    // Nurse vitals POST already advances status to WAITING_FOR_DOCTOR_CALL
+    // No need to call updateAppointmentStatus separately
     setAppointments((prev) =>
       prev.map((a) =>
         String(a.id) === String(aptId)

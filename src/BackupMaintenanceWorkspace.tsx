@@ -748,7 +748,11 @@ export function BackupMaintenanceWorkspace() {
                 </div>
                 <input
                   type="checkbox"
-                  checked={(backupConfig as unknown as Record<string, boolean>)[item.key]}
+                  checked={
+                    (backupConfig as unknown as Record<string, boolean>)[
+                      item.key
+                    ]
+                  }
                   onChange={(e) =>
                     setBackupConfig((prev) => ({
                       ...prev,

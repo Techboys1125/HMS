@@ -1,20 +1,12 @@
 import type { ReactNode } from "react";
 
 export type DoctorAvailability =
-  | "Available Today"
-  | "On Duty"
-  | "On Call"
-  | "On Leave"
-  | "Out of Office";
+  "Available Today" | "On Duty" | "On Call" | "On Leave" | "Out of Office";
 
 export type DoctorStatus = "Active" | "Inactive" | "On Leave" | "Suspended";
 
 export type RxStatus =
-  | "Draft"
-  | "Issued"
-  | "Completed"
-  | "Cancelled"
-  | "Archived";
+  "Draft" | "Issued" | "Completed" | "Cancelled" | "Archived";
 
 export interface DoctorRecord {
   id: string;
@@ -207,26 +199,18 @@ export type DayOfWeek =
 
 export type BreakType = "LUNCH" | "TEA" | "MEETING" | "PERSONAL";
 
-export type ExceptionType = "VACATION" | "TRAINING" | "CONFERENCE" | "EMERGENCY" | "SURGERY" | "OTHER";
+export type ExceptionType =
+  "VACATION" | "TRAINING" | "CONFERENCE" | "EMERGENCY" | "SURGERY" | "OTHER";
 
 export type ExceptionAction = "BLOCK_APPOINTMENTS";
 
 export type ExceptionStatus = "ACTIVE" | "CANCELLED" | "EXPIRED";
 
 export type SlotStatus =
-  | "AVAILABLE"
-  | "BOOKED"
-  | "BREAK"
-  | "BLOCKED"
-  | "ON_LEAVE"
-  | "OFF_DAY";
+  "AVAILABLE" | "BOOKED" | "BREAK" | "BLOCKED" | "ON_LEAVE" | "OFF_DAY";
 
 export type ScheduleDayStatus =
-  | "AVAILABLE"
-  | "PARTIALLY_AVAILABLE"
-  | "BLOCKED"
-  | "OFF_DAY"
-  | "ON_LEAVE";
+  "AVAILABLE" | "PARTIALLY_AVAILABLE" | "BLOCKED" | "OFF_DAY" | "ON_LEAVE";
 
 export interface ApiScheduleBreak {
   id?: number;

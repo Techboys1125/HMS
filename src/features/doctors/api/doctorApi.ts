@@ -125,7 +125,11 @@ export const doctorApi = {
         return rawData as ApiWeeklyScheduleData;
       }
       if (Array.isArray(rawData)) {
-        return { doctorId: Number(doctorId), doctorName: "", weeklySchedule: rawData };
+        return {
+          doctorId: Number(doctorId),
+          doctorName: "",
+          weeklySchedule: rawData,
+        };
       }
       return rawData as ApiWeeklyScheduleData;
     } catch {
@@ -171,7 +175,11 @@ export const doctorApi = {
         DoctorApiResponse<ApiScheduleExceptionItem[]> | any
       >(`/api/v1/doctors/${doctorId}/schedule-exceptions`);
       const rawData = response.data?.data || response.data;
-      const list = Array.isArray(rawData) ? rawData : Array.isArray(rawData?.content) ? rawData.content : [];
+      const list = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray(rawData?.content)
+          ? rawData.content
+          : [];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return list.map((item: any) => ({
         id: item.exceptionId || item.id,
@@ -180,7 +188,10 @@ export const doctorApi = {
         startDate: item.startDate || item.date || "",
         endDate: item.endDate || item.date || "",
         reason: item.reason || "",
-        exceptionType: item.exceptionType || item.type || (item.isAvailable === false ? "VACATION" : "OTHER"),
+        exceptionType:
+          item.exceptionType ||
+          item.type ||
+          (item.isAvailable === false ? "VACATION" : "OTHER"),
         isFullDay: item.isFullDay ?? item.fullDay ?? true,
         action: item.action || "BLOCK_APPOINTMENTS",
         status: item.status || "ACTIVE",
@@ -304,7 +315,9 @@ export const doctorApi = {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return list.map((item: any) => ({
         id: String(item.appointmentId || item.id || ""),
-        patientId: String(item.patientId || item.patient?.id || item.patientName || ""),
+        patientId: String(
+          item.patientId || item.patient?.id || item.patientName || "",
+        ),
         patientName: item.patientName || item.patient?.name || "Patient",
         gender: item.gender || item.patient?.gender || "Unknown",
         age: item.age || item.patient?.age || 0,

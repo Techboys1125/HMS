@@ -49,11 +49,7 @@ export function EditPatientInformationDrawer({
     emergencyNumber: patient?.emergencyContact?.phone || "+1 (555) 345-6789",
     relationship: patient?.emergencyContact?.relationship || "Spouse",
     patientCategory: "General" as
-      | "General"
-      | "Senior Citizen"
-      | "Corporate"
-      | "VIP"
-      | "Emergency",
+      "General" | "Senior Citizen" | "Corporate" | "VIP" | "Emergency",
   });
 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);

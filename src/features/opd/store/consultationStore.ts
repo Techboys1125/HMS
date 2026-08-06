@@ -1,14 +1,18 @@
 import { useSyncExternalStore } from "react";
-import { AppointmentRecord } from "../../appointments/types/appointment.types";
-import { Encounter } from "../../encounters/types/encounter.types";
-import { ConsultationRecord } from "../types/consultation";
+import type { AppointmentRecord } from "../../appointments/types/appointment.types";
+import type { Encounter, Prescription, Diagnosis } from "../../encounters/types/encounter.types";
+import type { ConsultationRecord } from "../types/consultation";
+import type { PatientVitals } from "../types/vitals";
 
 export interface ConsultationState {
   selectedAppointment: AppointmentRecord | null;
   selectedEncounter: Encounter | null;
   selectedConsultation: ConsultationRecord | null;
+  selectedPrescription: Prescription | null;
+  selectedVitals: PatientVitals | null;
+  selectedDiagnoses: Diagnosis[];
   consultationStatus:
-    "Waiting" | "Called" | "In Progress" | "Completed" | string;
+    "BOOKED" | "WAITING_FOR_VITALS" | "WAITING_FOR_DOCTOR_CALL" | "CALLED" | "IN_CONSULTATION" | "COMPLETED" | "CANCELLED" | "NO_SHOW" | "FOLLOW_UP_SCHEDULED" | string;
   loading: boolean;
   error: string | null;
 }
@@ -17,7 +21,10 @@ const initialStoreState: ConsultationState = {
   selectedAppointment: null,
   selectedEncounter: null,
   selectedConsultation: null,
-  consultationStatus: "Waiting",
+  selectedPrescription: null,
+  selectedVitals: null,
+  selectedDiagnoses: [],
+  consultationStatus: "BOOKED",
   loading: false,
   error: null,
 };
@@ -59,6 +66,33 @@ export const consultationStoreActions = {
     currentState = {
       ...currentState,
       selectedConsultation: consultation,
+      error: null,
+    };
+    notify();
+  },
+
+  setPrescription: (prescription: Prescription | null) => {
+    currentState = {
+      ...currentState,
+      selectedPrescription: prescription,
+      error: null,
+    };
+    notify();
+  },
+
+  setVitals: (vitals: PatientVitals | null) => {
+    currentState = {
+      ...currentState,
+      selectedVitals: vitals,
+      error: null,
+    };
+    notify();
+  },
+
+  setDiagnoses: (diagnoses: Diagnosis[]) => {
+    currentState = {
+      ...currentState,
+      selectedDiagnoses: diagnoses,
       error: null,
     };
     notify();
@@ -115,6 +149,9 @@ useConsultationStore.subscribe = consultationStoreActions.subscribe;
 useConsultationStore.setAppointment = consultationStoreActions.setAppointment;
 useConsultationStore.setEncounter = consultationStoreActions.setEncounter;
 useConsultationStore.setConsultation = consultationStoreActions.setConsultation;
+useConsultationStore.setPrescription = consultationStoreActions.setPrescription;
+useConsultationStore.setVitals = consultationStoreActions.setVitals;
+useConsultationStore.setDiagnoses = consultationStoreActions.setDiagnoses;
 useConsultationStore.setStatus = consultationStoreActions.setStatus;
 useConsultationStore.setLoading = consultationStoreActions.setLoading;
 useConsultationStore.setError = consultationStoreActions.setError;

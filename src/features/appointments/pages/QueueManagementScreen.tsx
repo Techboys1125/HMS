@@ -7,7 +7,6 @@ import { receptionService } from "../../reception/services/reception.service";
 import { appointmentService } from "../../appointments/services/appointment.service";
 import { departmentsApi } from "../../users/api/departments.api";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
-
 import { type QueueManagementScreenProps } from "../types/appointment-screen.types";
 import { usePermissions } from "../../../permissions";
 import {
@@ -93,7 +92,7 @@ export function QueueManagementScreen({
             ? {
                 ...i,
                 queueToken: genToken,
-                status: "WAITING_FOR_VITALS" as AppointmentRecord["status"],
+                status: "Waiting for Vitals" as AppointmentRecord["status"],
                 arrivalTime: new Date().toLocaleTimeString([], {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -130,9 +129,7 @@ export function QueueManagementScreen({
   const fetchQueue = async () => {
     setIsLoading(true);
     try {
-      const data = await appointmentService.listAppointments({
-        status: "CHECKED_IN",
-      });
+      const data = await appointmentService.getActiveAppointments();
       setQueueItems(data);
     } catch (err) {
       console.warn("Failed to load queue:", err);
@@ -175,17 +172,19 @@ export function QueueManagementScreen({
   const metrics = useMemo(() => {
     const waiting = queueItems.filter(
       (i) =>
-        i.status === "WAITING_FOR_VITALS" ||
-        i.status === "WAITING_FOR_DOCTOR_CALL",
+        i.status === "Waiting for Vitals" ||
+        i.status === "Waiting for Doctor" ||
+        i.status === "Called" ||
+        i.status === "Waiting",
     ).length;
     const checkedIn = queueItems.filter(
-      (i) => i.status === "CHECKED_IN",
+      (i) => i.status === "Checked-In",
     ).length;
     const inConsultation = queueItems.filter(
-      (i) => i.status === "IN_CONSULTATION",
+      (i) => i.status === "In Consultation" || i.status === "In Progress",
     ).length;
-    const completed = queueItems.filter((i) => i.status === "COMPLETED").length;
-    const noShows = queueItems.filter((i) => i.status === "NO_SHOW").length;
+    const completed = queueItems.filter((i) => i.status === "Completed").length;
+    const noShows = queueItems.filter((i) => i.status === "No Show").length;
     return { waiting, checkedIn, inConsultation, completed, noShows };
   }, [queueItems]);
 
@@ -202,7 +201,7 @@ export function QueueManagementScreen({
     setQueueItems((prev) =>
       prev.map((i) =>
         i.id === apt.id
-          ? { ...i, status: "NO_SHOW" as AppointmentRecord["status"] }
+          ? { ...i, status: "No Show" as AppointmentRecord["status"] }
           : i,
       ),
     );
@@ -213,10 +212,13 @@ export function QueueManagementScreen({
     const s = status.toUpperCase();
     switch (s) {
       case "IN_CONSULTATION":
+      case "IN_PROGRESS":
         return "teal";
       case "WAITING_FOR_VITALS":
       case "WAITING_FOR_DOCTOR_CALL":
         return "warning";
+      case "CALLED":
+        return "info";
       case "CHECKED_IN":
         return "info";
       case "BOOKED":
@@ -581,7 +583,9 @@ export function QueueManagementScreen({
                             onClick={(e) => e.stopPropagation()}
                           >
                             <div className="flex items-center justify-end gap-1.5">
-                              {(apt.status === "BOOKED" ||
+                              {(apt.status === "Booked" ||
+                                apt.status === "Scheduled" ||
+                                apt.status === "BOOKED" ||
                                 apt.status === "CONFIRMED") &&
                                 canCheckIn && (
                                   <button
@@ -593,7 +597,10 @@ export function QueueManagementScreen({
                                   </button>
                                 )}
 
-                              {apt.status === "CHECKED_IN" &&
+                              {(apt.status === "Checked-In" ||
+                                apt.status === "CHECKED_IN" ||
+                                apt.status === "Waiting for Vitals" ||
+                                apt.status === "WAITING_FOR_VITALS") &&
                               canRecordVitals ? (
                                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
                                   Vitals Pending
@@ -613,8 +620,11 @@ export function QueueManagementScreen({
                                 View
                               </button>
 
-                              {apt.status !== "COMPLETED" &&
+                              {apt.status !== "Completed" &&
+                                apt.status !== "COMPLETED" &&
+                                apt.status !== "Cancelled" &&
                                 apt.status !== "CANCELLED" &&
+                                apt.status !== "No Show" &&
                                 apt.status !== "NO_SHOW" && (
                                   <button
                                     onClick={() => setNoShowDialogApt(apt)}

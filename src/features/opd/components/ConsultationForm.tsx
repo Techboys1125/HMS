@@ -86,7 +86,7 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
       <div className="space-y-4">
         {fields.map((f) => {
           const isShort =
-              f.key === "chiefComplaint" || f.key === "durationOfSymptoms";
+            f.key === "chiefComplaint" || f.key === "durationOfSymptoms";
           return (
             <div key={f.key} className="space-y-1">
               <div className="flex items-center gap-2 mb-1">

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { authService } from "../services/auth.service";
 import { patientRegisterSchema } from "../validation/login.schema";
-
 import type {
   PatientRegistrationData,
   PatientLinkData,

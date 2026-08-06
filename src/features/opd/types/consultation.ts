@@ -1,12 +1,34 @@
 export type ConsultationStatus =
-  | "Waiting"
-  | "Called"
-  | "In Progress"
-  | "Completed"
-  | "Follow-up Scheduled"
-  | "Cancelled";
+  | "BOOKED"
+  | "WAITING"
+  | "WAITING_FOR_VITALS"
+  | "WAITING_FOR_DOCTOR_CALL"
+  | "CALLED"
+  | "IN_CONSULTATION"
+  | "COMPLETED"
+  | "CANCELLED"
+  | "NO_SHOW"
+  | "FOLLOW_UP_SCHEDULED";
+
+export const appointmentStatusMap: Record<ConsultationStatus, string> = {
+  BOOKED: "Booked",
+  WAITING: "Waiting for Doctor",
+  WAITING_FOR_VITALS: "Waiting for Vitals",
+  WAITING_FOR_DOCTOR_CALL: "Waiting for Doctor",
+  CALLED: "Called",
+  IN_CONSULTATION: "In Consultation",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
+  NO_SHOW: "No Show",
+  FOLLOW_UP_SCHEDULED: "Follow-up Scheduled",
+};
+
 export type VisitType =
   "First Visit" | "Follow-up" | "Walk-In" | "New Consultation";
+
+export type OauthRole = "doctor" | "admin";
+
+export type AdminStatus = "All" | ConsultationStatus;
 
 export interface MedicineItem {
   id: string;
@@ -18,6 +40,13 @@ export interface MedicineItem {
 }
 
 export interface ConsultationRecord {
+  durationOfSymptoms?: string;
+  doctorName?: string;
+  completionTime?: string;
+  allergies?: string[];
+  bloodGroup?: string;
+  doctorSpecialty?: string;
+  doctorExperience?: string;
   id: string;
   appointmentId?: string | number;
   tokenNo: string;
@@ -34,6 +63,8 @@ export interface ConsultationRecord {
   chiefComplaint: string;
   opdRoom: string;
   date: string;
+  duration?: string;
+  visitDate?: string;
   vitals?: {
     height?: string;
     weight?: string;
@@ -41,6 +72,7 @@ export interface ConsultationRecord {
     bp: string;
     pulse: string;
     temp: string;
+    temperature?: string;
     spo2: string;
     respiratoryRate?: string;
     bloodSugar?: string;
@@ -63,7 +95,44 @@ export interface ConsultationRecord {
   billingStatus?: string;
   createdDate?: string;
   completedDate?: string;
-  duration?: string;
+}
+
+export interface AdminConsultationRecord {
+  id: string;
+  tokenNo: string;
+  patientName: string;
+  mrn: string;
+  age: number;
+  gender: "Male" | "Female" | "Other";
+  phone: string;
+  doctor: string;
+  department: string;
+  appointmentTime: string;
+  visitType: VisitType;
+  status: ConsultationStatus;
+  duration: string;
+  chiefComplaint: string;
+  opdRoom: string;
+  date: string;
+}
+
+export interface DoctorWorkload {
+  name: string;
+  dept: string;
+  assigned: number;
+  completed: number;
+  waiting: number;
+  inProgress: number;
+  status: string;
+  opdRoom: string;
+}
+
+export interface DepartmentSummary {
+  dept: string;
+  total: number;
+  completed: number;
+  waiting: number;
+  inProgress: number;
 }
 
 export interface ConsultationFormData {
@@ -73,7 +142,6 @@ export interface ConsultationFormData {
   visitType: "New Consultation" | "Follow-up";
   chiefComplaint: string;
   durationOfSymptoms: string;
-  // Vitals
   height: string;
   weight: string;
   temperature: string;
@@ -82,14 +150,11 @@ export interface ConsultationFormData {
   respiratoryRate: string;
   spo2: string;
   bloodSugar: string;
-  // Examination
   clinicalExamination: string;
   provisionalDiagnosis: string;
   finalDiagnosis: string;
   icdCode: string;
-  // Prescription
   medicines: MedicineItem[];
-  // Investigation Recommendations
   investigations: {
     cbc: boolean;
     ecg: boolean;
@@ -99,12 +164,10 @@ export interface ConsultationFormData {
   };
   customInvestigation: string;
   investigationRemarks: string;
-  // Clinical Notes
   symptoms: string;
   assessment: string;
   advice: string;
   lifestyleRecommendations: string;
-  // Follow-up
   followupRequired: boolean;
   nextVisitDate: string;
   followupNotes: string;

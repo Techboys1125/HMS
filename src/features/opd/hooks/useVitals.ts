@@ -19,7 +19,8 @@ export const useVitals = (encounterId?: string | number) => {
         setVitals(data);
         return data;
       } catch (err) {
-        const errMsg = err instanceof Error ? err.message : "Failed to load vitals";
+        const errMsg =
+          err instanceof Error ? err.message : "Failed to load vitals";
         setError(errMsg);
         return null;
       } finally {
@@ -41,7 +42,8 @@ export const useVitals = (encounterId?: string | number) => {
         setVitals(saved);
         return saved;
       } catch (err) {
-        const errMsg = err instanceof Error ? err.message : "Failed to save vitals";
+        const errMsg =
+          err instanceof Error ? err.message : "Failed to save vitals";
         setError(errMsg);
         throw err;
       } finally {

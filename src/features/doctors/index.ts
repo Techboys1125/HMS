@@ -57,7 +57,6 @@ export {
 export {
   DoctorAppointmentsScreen,
   DoctorConsultationScreen,
-  DoctorPrescriptionsScreen,
   DoctorPrescriptionDetailsScreen,
   DoctorEditPrescriptionScreen,
   DoctorPrescriptionPrintPreviewScreen,

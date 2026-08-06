@@ -122,7 +122,7 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
     if (!activatePatient) return;
     setIsUpdatingStatus(true);
     try {
-      const targetId = activatePatient.mrn || activatePatient.id;
+      const targetId = (activatePatient.mrn || activatePatient.id) as string | number;
       await patientsApi.update(targetId, { status: "ACTIVE" });
       setActivatePatient(null);
       fetchPatients();
@@ -137,7 +137,7 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
     if (!deactivatePatient) return;
     setIsUpdatingStatus(true);
     try {
-      const targetId = deactivatePatient.mrn || deactivatePatient.id;
+      const targetId = (deactivatePatient.mrn || deactivatePatient.id) as string | number;
       await patientsApi.update(targetId, { status: "INACTIVE" });
       setDeactivatePatient(null);
       fetchPatients();

@@ -201,9 +201,9 @@ export function EditConsultationPage({
     }));
   };
 
-  const handleFieldChange = <K extends keyof ConsultationFormData>(
-    field: K,
-    val: ConsultationFormData[K],
+  const handleFieldChange = (
+    field: string,
+    val: unknown,
   ) => {
     setFormData((prev) => ({
       ...prev,

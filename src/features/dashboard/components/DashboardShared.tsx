@@ -126,12 +126,7 @@ export function Av({
 }
 
 export type ChipVariant =
-  | "success"
-  | "warning"
-  | "error"
-  | "info"
-  | "teal"
-  | "default";
+  "success" | "warning" | "error" | "info" | "teal" | "default";
 export function Chip({
   label,
   variant = "default",

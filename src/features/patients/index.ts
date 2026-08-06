@@ -2,7 +2,6 @@
 export * from "./pages/EditPatientScreen";
 export * from "./pages/PatientAppointmentsScreen";
 export * from "./pages/PatientMedicalRecordsScreen";
-export * from "./pages/PatientPrescriptionsScreen";
 export * from "./pages/PatientProfileCenterScreen";
 export * from "./pages/PatientProfileScreen";
 export * from "./pages/PatientSearchScreen";

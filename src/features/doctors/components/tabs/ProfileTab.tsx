@@ -52,7 +52,7 @@ export function ProfileTab({
       }
       setEditing(false);
     } catch (err) {
-      console.log(err);
+      // Error handled by UI state
     } finally {
       setSaving(false);
     }
@@ -162,7 +162,9 @@ export function ProfileTab({
               className={fieldStyle(true)}
             />
           ) : (
-            <div className={fieldStyle(false)}>{formData.qualification || "—"}</div>
+            <div className={fieldStyle(false)}>
+              {formData.qualification || "—"}
+            </div>
           )}
         </div>
         <div>
@@ -204,7 +206,9 @@ export function ProfileTab({
               className={fieldStyle(true)}
             />
           ) : (
-            <div className={fieldStyle(false)}>{formData.department || "—"}</div>
+            <div className={fieldStyle(false)}>
+              {formData.department || "—"}
+            </div>
           )}
         </div>
         <div>

@@ -77,14 +77,14 @@ export const encounterService = {
   async addMedication(
     prescriptionId: string | number,
     payload: AddMedicationRequest,
-  ): Promise<Prescription> {
+  ): Promise<Prescription | null> {
     return encountersApi.addMedication(prescriptionId, payload);
   },
 
   async finalizePrescription(
     prescriptionId: string | number,
     payload: FinalizePrescriptionRequest = { confirmation: true },
-  ): Promise<FinalizePrescriptionResponse> {
+  ): Promise<FinalizePrescriptionResponse | null> {
     return encountersApi.finalizePrescription(prescriptionId, payload);
   },
 };

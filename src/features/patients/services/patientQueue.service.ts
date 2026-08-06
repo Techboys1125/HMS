@@ -7,9 +7,9 @@ export const patientQueueService = {
     if (!res) return null;
     return {
       appointmentId: res.appointmentId,
-      token: res.token,
-      tokenNumber: res.token,
-      position: res.position,
+      token: res.token || "",
+      tokenNumber: res.token || "",
+      position: res.position || 0,
       patientsAhead: res.patientsAhead,
       estimatedWaitMinutes: res.estimatedWaitMinutes,
       status: res.status,

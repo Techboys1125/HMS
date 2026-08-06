@@ -143,14 +143,14 @@ export const encountersApi = {
   addMedication: async (
     prescriptionId: string | number,
     payload: AddMedicationRequest,
-  ): Promise<Prescription> => {
+  ): Promise<Prescription | null> => {
     try {
       const response = await apiClient.post<
         ApiEnvelope<Prescription> | Prescription
       >(`/api/v1/prescriptions/${prescriptionId}/medications`, payload);
       return unwrap<Prescription>(response.data);
-    } catch (error: unknown) {
-      return handleApiError(error);
+    } catch {
+      return null;
     }
   },
 
@@ -160,14 +160,68 @@ export const encountersApi = {
   finalizePrescription: async (
     prescriptionId: string | number,
     payload: FinalizePrescriptionRequest = { confirmation: true },
-  ): Promise<FinalizePrescriptionResponse> => {
+  ): Promise<FinalizePrescriptionResponse | null> => {
     try {
       const response = await apiClient.post<
         ApiEnvelope<FinalizePrescriptionResponse> | FinalizePrescriptionResponse
       >(`/api/v1/prescriptions/${prescriptionId}/finalize`, payload);
       return unwrap<FinalizePrescriptionResponse>(response.data);
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * PUT /api/v1/prescriptions/{prescriptionId}/advice
+   */
+  savePrescriptionAdvice: async (
+    prescriptionId: string | number,
+    payload: {
+      generalAdvice?: string;
+      dietAdvice?: string;
+      precautions?: string;
+    },
+  ): Promise<any> => {
+    try {
+      const response = await apiClient.put<any>(
+        `/api/v1/prescriptions/${prescriptionId}/advice`,
+        payload,
+      );
+      return response.data?.data || response.data;
     } catch (error: unknown) {
       return handleApiError(error);
+    }
+  },
+
+  /**
+   * POST /api/v1/prescriptions/{prescriptionId}/validate
+   */
+  validatePrescription: async (
+    prescriptionId: string | number,
+  ): Promise<{ valid: boolean; errors: string[]; warnings: string[] } | null> => {
+    try {
+      const response = await apiClient.post<
+        ApiEnvelope<{ valid: boolean; errors: string[]; warnings: string[] }>
+      >(`/api/v1/prescriptions/${prescriptionId}/validate`);
+      return unwrap(response.data);
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * GET /api/v1/encounters/{encounterId}/finalization-check
+   */
+  getFinalizationCheck: async (
+    encounterId: string | number,
+  ): Promise<{ ready: boolean; checks: { code: string; passed: boolean }[] } | null> => {
+    try {
+      const response = await apiClient.get<
+        ApiEnvelope<{ ready: boolean; checks: { code: string; passed: boolean }[] }>
+      >(`/api/v1/encounters/${encounterId}/finalization-check`);
+      return unwrap(response.data);
+    } catch {
+      return null;
     }
   },
 };
