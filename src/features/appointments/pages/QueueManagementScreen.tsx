@@ -17,6 +17,7 @@ import {
   Users,
   AlertCircle,
 } from "lucide-react";
+import { Pagination } from "../../../common/components/Pagination";
 
 export function QueueManagementScreen({
   onBack,
@@ -168,6 +169,15 @@ export function QueueManagementScreen({
     });
   }, [queueItems, searchQuery, selectedDoctor, selectedDept, selectedStatus]);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(filteredQueue.length / pageSize);
+  const paginatedQueue = filteredQueue.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
   // Summary KPI Metrics
   const metrics = useMemo(() => {
     const waiting = queueItems.filter(
@@ -268,9 +278,7 @@ export function QueueManagementScreen({
         {/* Primary Header Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => {
-              // Trigger quick refresh
-            }}
+            onClick={() => fetchQueue()}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
             style={{ fontFamily: PP }}
           >
@@ -530,7 +538,7 @@ export function QueueManagementScreen({
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
                   {filteredQueue.length > 0 ? (
-                    filteredQueue.map((apt) => {
+                    paginatedQueue.map((apt) => {
                       const isSelected =
                         selectedTokenId === apt.queueToken ||
                         selectedTokenId === String(apt.id);
@@ -663,26 +671,13 @@ export function QueueManagementScreen({
             </div>
 
             {/* Pagination Component */}
-            <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-[#64748B]">
-              <span>
-                Showing 1-{filteredQueue.length} of {filteredQueue.length} queue
-                records
-              </span>
-              <div className="flex items-center gap-1">
-                <button
-                  className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] disabled:opacity-50 hover:bg-slate-50"
-                  disabled
-                >
-                  Previous
-                </button>
-                <button className="px-3 py-1.5 rounded-lg bg-[#0D47A1] text-white font-semibold">
-                  1
-                </button>
-                <button className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] hover:bg-slate-50">
-                  Next
-                </button>
-              </div>
-            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              pageSize={pageSize}
+              totalCount={filteredQueue.length}
+            />
           </div>
         </div>
       </div>

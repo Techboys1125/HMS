@@ -10,6 +10,73 @@ export const vitalsService = {
     return vitalsApi.getWaitingPatients();
   },
 
+  async getVitals(
+    appointmentId: string | number,
+  ): Promise<RecordedVitalsData | null> {
+    try {
+      const res = await vitalsApi.getVitals(appointmentId);
+      if (!res?.success || !res.data) return null;
+      const d = res.data;
+
+      // Map backend response fields to RecordedVitalsData UI model
+      const recordedByName = d.recordedBy?.name || "";
+      const recordedAtStr = d.recordedAt
+        ? new Date(d.recordedAt).toLocaleString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })
+        : "";
+
+      // Parse blood pressure - handle both string and separate fields
+      let systolic = "";
+      let diastolic = "";
+      if (d.bloodPressure && typeof d.bloodPressure === "string" && d.bloodPressure.includes("/")) {
+        const parts = d.bloodPressure.split("/");
+        systolic = parts[0]?.trim() || "";
+        diastolic = parts[1]?.trim() || "";
+      } else {
+        systolic = d.bloodPressureSystolic != null ? String(d.bloodPressureSystolic) : "";
+        diastolic = d.bloodPressureDiastolic != null ? String(d.bloodPressureDiastolic) : "";
+      }
+
+      // Handle pulse/heartRate - backend may use either field name
+      const pulseVal = d.pulse ?? d.heartRate;
+      // Handle spo2/oxygenSaturation - backend may use either field name
+      const spo2Val = d.spo2 ?? d.oxygenSaturation;
+      // Handle resp/respiratoryRate
+      const respVal = d.respRate ?? d.respiratoryRate;
+      // Handle sugar/bloodSugar
+      const sugarVal = d.sugar ?? d.bloodSugar;
+
+      return {
+        height: d.height != null ? String(d.height) : "",
+        weight: d.weight != null ? String(d.weight) : "",
+        bmi:
+          d.height && d.weight
+            ? ((d.weight as number) / ((d.height as number) / 100) ** 2).toFixed(1)
+            : "",
+        temp: d.temperature != null ? String(d.temperature) : "",
+        systolic,
+        diastolic,
+        pulse: pulseVal != null ? String(pulseVal) : "",
+        resp: respVal != null ? String(respVal) : "",
+        spo2: spo2Val != null ? String(spo2Val) : "",
+        sugar: sugarVal != null ? String(sugarVal) : "",
+        appearance: "Normal / Healthy",
+        consciousness: "Alert & Oriented",
+        observation: d.notes || "Vitals recorded by nurse.",
+        recordedBy: recordedByName,
+        recordedAt: recordedAtStr,
+      };
+    } catch {
+      return null;
+    }
+  },
+
   async submitVitals(
     appointmentId: string | number,
     formData:

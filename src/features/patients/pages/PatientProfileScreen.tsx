@@ -15,6 +15,7 @@ import type { PatientProfileScreenProps } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.mock";
 import { Avatar, Chip } from "../components/Avatar";
 import { StatusBadge } from "../components/StatusBadges";
+import { Pagination } from "../../../common/components/Pagination";
 
 export function PatientProfileScreen({
   onBack,
@@ -182,6 +183,33 @@ export function PatientProfileScreen({
     { id: "billing" as const, label: "Billing" },
     { id: "documents" as const, label: "Documents" },
   ];
+
+  // Pagination for appointment history
+  const [apptPage, setApptPage] = useState(1);
+  const apptPageSize = 10;
+  const apptTotalPages = Math.ceil(appointmentHistory.length / apptPageSize);
+  const paginatedAppointments = appointmentHistory.slice(
+    (apptPage - 1) * apptPageSize,
+    apptPage * apptPageSize,
+  );
+
+  // Pagination for visit history
+  const [visitPage, setVisitPage] = useState(1);
+  const visitPageSize = 10;
+  const visitTotalPages = Math.ceil(visitHistory.length / visitPageSize);
+  const paginatedVisits = visitHistory.slice(
+    (visitPage - 1) * visitPageSize,
+    visitPage * visitPageSize,
+  );
+
+  // Pagination for billing summary
+  const [billingPage, setBillingPage] = useState(1);
+  const billingPageSize = 10;
+  const billingTotalPages = Math.ceil(billingSummary.length / billingPageSize);
+  const paginatedBilling = billingSummary.slice(
+    (billingPage - 1) * billingPageSize,
+    billingPage * billingPageSize,
+  );
 
   return (
     <div
@@ -556,7 +584,7 @@ export function PatientProfileScreen({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 text-[#111827]">
-                        {appointmentHistory.map((item) => (
+                        {paginatedAppointments.map((item) => (
                           <tr
                             key={item.id}
                             className="hover:bg-slate-50 transition-colors"
@@ -600,6 +628,13 @@ export function PatientProfileScreen({
                       </tbody>
                     </table>
                   </div>
+                  <Pagination
+                    currentPage={apptPage}
+                    totalPages={apptTotalPages}
+                    onPageChange={setApptPage}
+                    pageSize={apptPageSize}
+                    totalCount={appointmentHistory.length}
+                  />
                 </div>
               )}
 
@@ -647,7 +682,7 @@ export function PatientProfileScreen({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {visitHistory.map((v) => (
+                        {paginatedVisits.map((v) => (
                           <tr
                             key={v.id}
                             className="hover:bg-blue-50/30 transition-colors"
@@ -716,6 +751,13 @@ export function PatientProfileScreen({
                       </tbody>
                     </table>
                   </div>
+                  <Pagination
+                    currentPage={visitPage}
+                    totalPages={visitTotalPages}
+                    onPageChange={setVisitPage}
+                    pageSize={visitPageSize}
+                    totalCount={visitHistory.length}
+                  />
                 </div>
               )}
 
@@ -778,7 +820,7 @@ export function PatientProfileScreen({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 text-[#111827]">
-                        {billingSummary.map((inv, idx) => (
+                        {paginatedBilling.map((inv, idx) => (
                           <tr key={idx} className="hover:bg-slate-50">
                             <td className="px-3 py-3 font-mono font-bold text-[#0D47A1]">
                               {inv.invoiceNo}
@@ -803,6 +845,13 @@ export function PatientProfileScreen({
                       </tbody>
                     </table>
                   </div>
+                  <Pagination
+                    currentPage={billingPage}
+                    totalPages={billingTotalPages}
+                    onPageChange={setBillingPage}
+                    pageSize={billingPageSize}
+                    totalCount={billingSummary.length}
+                  />
                 </div>
               )}
 

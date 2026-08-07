@@ -30,8 +30,6 @@ import {
   DoctorAssignedPatientsRoute,
   NurseVitalsWorklistPage,
   PatientMyProfileRoute,
-  AccountantPatientBillingPage,
-  PatientBillingScreen,
 } from "../../features/patients";
 import {
   PatientPortalProvider,
@@ -45,10 +43,11 @@ import {
   QueueManagementScreen,
 } from "../../features/appointments";
 import { RecordPatientVitalsScreen } from "../../features/vitals";
-import { OpdConsultationCenterScreen, StartOpdConsultationWorkspaceScreen } from "../../features/opd";
 import {
-  DoctorManagementCenterScreen,
-} from "../../features/doctors";
+  OpdConsultationCenterScreen,
+  StartOpdConsultationWorkspaceScreen,
+} from "../../features/opd";
+import { DoctorManagementCenterScreen } from "../../features/doctors";
 import { PrescriptionManagementPage } from "../../features/prescriptions";
 import { DoctorProfileRoute } from "../../features/doctors/pages/DoctorProfileRoute";
 import { DoctorDirectoryPage } from "../../features/doctors/pages/DoctorDirectoryPage";
@@ -68,9 +67,19 @@ import { DoctorQueueScreen } from "../../features/doctors/components/DoctorQueue
 import { DoctorPatientsScreen } from "../../features/doctors/components/DoctorPatientsScreen";
 import { DoctorMedicalRecordsScreen } from "../../features/doctors/components/DoctorMedicalRecordsScreen";
 import { DoctorAppointmentsScreen } from "../../features/doctors/components/DoctorAppointmentsScreen";
-import { DoctorConsultationScreen } from "../../features/doctors/components/DoctorConsultationScreen";
 import { UserManagementCenterScreen } from "../../features/users";
-import { BillingDashboardScreen } from "../../BillingManagement";
+import {
+  BillingManagementPage,
+  BillingConfigurationPage,
+  InvoiceDetailsPage,
+  PaymentHistoryPage,
+  DailyBillingReportPage,
+  CreateInvoiceWorkspacePage,
+  CollectPaymentWorkspacePage,
+  InvoicePrintPreviewPage,
+  ReceptionistPaymentCollectionPage,
+  PatientMyBillsPage,
+} from "../../features/billing";
 import { ReportsDashboardScreen } from "../../ReportsManagement";
 import { SettingsWorkspace } from "../../SettingsWorkspace";
 import AuditLogsManagementScreen from "../../AuditLogsManagement";
@@ -255,7 +264,7 @@ export function AppRoutes() {
             path={ROUTES.PATIENT_BILLING}
             element={
               <RouteGuard requiredPermission="BILLING_VIEW">
-                <PatientBillingScreen />
+                <BillingManagementPage />
               </RouteGuard>
             }
           />
@@ -311,7 +320,7 @@ export function AppRoutes() {
             path={ROUTES.PATIENT_ACCOUNTANT_BILLING}
             element={
               <RouteGuard requiredPermission="BILLING_VIEW">
-                <AccountantPatientBillingPage />
+                <BillingManagementPage />
               </RouteGuard>
             }
           />
@@ -456,7 +465,79 @@ export function AppRoutes() {
           path={ROUTES.BILLING}
           element={
             <RouteGuard requiredPermission="BILLING_VIEW">
-              <BillingDashboardScreen />
+              <BillingManagementPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.BILLING_CREATE}
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <CreateInvoiceWorkspacePage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.BILLING_COLLECT_PAYMENT}
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <CollectPaymentWorkspacePage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.BILLING_PRINT_PREVIEW}
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <InvoicePrintPreviewPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.BILLING_CONFIGURATION}
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <BillingConfigurationPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.BILLING_INVOICE}
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <InvoiceDetailsPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.BILLING_HISTORY}
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <PaymentHistoryPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.BILLING_REPORT}
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <DailyBillingReportPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.RECEPTIONIST_PAYMENT_COLLECTION}
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <ReceptionistPaymentCollectionPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.PATIENT_MY_BILLS}
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <PatientMyBillsPage />
             </RouteGuard>
           }
         />

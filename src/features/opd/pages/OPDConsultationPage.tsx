@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router";
-  import { Clock, Download, Phone, Plus, FolderOpen } from "lucide-react";
+import { Clock, Download, Phone, Plus, FolderOpen } from "lucide-react";
 import { usePermissions } from "../../../permissions";
 import { useConsultation } from "../hooks/useConsultation";
 import { useQueue } from "../hooks/useQueue";
@@ -49,16 +49,21 @@ function mapQueueItemToConsultation(item: QueueItem): ConsultationRecord {
     patientName: item.patient?.name || "",
     mrn: item.patient?.mrn || "",
     age: Number(item.patient?.age || 0),
-    gender: (item.patient?.gender === "FEMALE" ? "Female" : item.patient?.gender === "MALE" ? "Male" : "Other") as "Male" | "Female" | "Other",
+    gender: (item.patient?.gender === "FEMALE"
+      ? "Female"
+      : item.patient?.gender === "MALE"
+        ? "Male"
+        : "Other") as "Male" | "Female" | "Other",
     phone: item.patient?.contact || "",
     doctor: item.doctor?.name || "",
     department: item.doctor?.department || "",
     appointmentTime: item.checkInTime || "",
     visitType: "First Visit" as const,
-    status: statusMap[item.status] || item.status as ConsultationStatus,
+    status: statusMap[item.status] || (item.status as ConsultationStatus),
     chiefComplaint: "",
     opdRoom: "",
-    date: item.checkInTime?.split("T")[0] || new Date().toISOString().split("T")[0],
+    date:
+      item.checkInTime?.split("T")[0] || new Date().toISOString().split("T")[0],
     vitals: undefined,
     clinicalExamination: undefined,
     advice: undefined,
@@ -78,7 +83,6 @@ export function OPDConsultationPage({
   onViewHistory,
   onPatientSelect,
   onNavigateAppointments,
-  onNavigateReports,
   onExportReport,
 }: OPDConsultationPageProps) {
   const navigate = useNavigate();
@@ -97,13 +101,14 @@ export function OPDConsultationPage({
   const {
     items: queueItems,
     summary: queueSummary,
-    isLoading: apiLoading,
     refetch,
-    updateParams,
-    callPatient: queueCallPatient,
-    callNext: queueCallNext,
-    isCalling,
-  } = useQueue({ doctorId: isDoctor ? (user?.doctorId ?? user?.id ? Number(user.doctorId || user.id) : undefined) : undefined });
+  } = useQueue({
+    doctorId: isDoctor
+      ? (user?.doctorId ?? user?.id)
+        ? Number(user.doctorId || user.id)
+        : undefined
+      : undefined,
+  });
 
   const [consultations, setConsultations] = useState<ConsultationRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -196,7 +201,11 @@ export function OPDConsultationPage({
 
   const tabCounts = useMemo(() => {
     const counts: Record<string, number> = {
-      All: queueSummary.completed + queueSummary.waiting + queueSummary.called + queueSummary.inConsultation,
+      All:
+        queueSummary.completed +
+        queueSummary.waiting +
+        queueSummary.called +
+        queueSummary.inConsultation,
       WAITING: queueSummary.waiting,
       CALLED: queueSummary.called,
       IN_CONSULTATION: queueSummary.inConsultation,
@@ -209,15 +218,9 @@ export function OPDConsultationPage({
   const currentPatient = consultations.find(
     (c) => c.status === "IN_CONSULTATION",
   );
-  const calledPatient = consultations.find(
-    (c) => c.status === "CALLED",
-  );
-  const nextPatient = consultations.find(
-    (c) => c.status === "WAITING",
-  );
-  const hasCalledPatient = consultations.some(
-    (c) => c.status === "CALLED",
-  );
+  const calledPatient = consultations.find((c) => c.status === "CALLED");
+  const nextPatient = consultations.find((c) => c.status === "WAITING");
+  const hasCalledPatient = consultations.some((c) => c.status === "CALLED");
 
   const handleCallPatient = async (record: ConsultationRecord) => {
     const aptId = record.appointmentId || record.id;
@@ -292,14 +295,6 @@ export function OPDConsultationPage({
       onExportReport();
     } else {
       alert("Exporting OPD Operational Report (PDF/Excel)");
-    }
-  };
-
-  const handleNavigateReports = () => {
-    if (onNavigateReports) {
-      onNavigateReports();
-    } else {
-      alert("Navigating to Analytics Reports");
     }
   };
 
@@ -378,15 +373,17 @@ export function OPDConsultationPage({
                   <Plus size={16} /> Start Consultation
                 </button>
               )}
-              {can("CONSULTATION_START") && !hasCalledPatient && nextPatient && (
-                <button
-                  onClick={() => handleCallPatient(nextPatient)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold transition-all shadow-sm"
-                  style={{ fontFamily: PP }}
-                >
-                  <Phone size={16} /> Call Next Patient
-                </button>
-              )}
+              {can("CONSULTATION_START") &&
+                !hasCalledPatient &&
+                nextPatient && (
+                  <button
+                    onClick={() => handleCallPatient(nextPatient)}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold transition-all shadow-sm"
+                    style={{ fontFamily: PP }}
+                  >
+                    <Phone size={16} /> Call Next Patient
+                  </button>
+                )}
               {can("CONSULTATION_START") && currentPatient && (
                 <button
                   onClick={() => handleOpenConsultation(currentPatient.id)}
@@ -397,7 +394,8 @@ export function OPDConsultationPage({
                 </button>
               )}
             </>
-          )}
+          )
+        }
       />
 
       <div className="p-6 space-y-6 flex-1">

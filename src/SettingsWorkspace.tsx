@@ -2,7 +2,7 @@ import { useState } from "react";
 import { HospitalInformationWorkspace } from "./HospitalInformationWorkspace";
 import { UserRolesPermissionsWorkspace } from "./UserRolesPermissionsWorkspace";
 import { AppointmentConfigurationWorkspace } from "./AppointmentConfigurationWorkspace";
-import { BillingConfigurationWorkspace } from "./BillingConfigurationWorkspace";
+import { BillingConfigurationPage } from "./features/billing";
 import { NotificationCommunicationWorkspace } from "./NotificationCommunicationWorkspace";
 import { SecuritySettingsWorkspace } from "./SecuritySettingsWorkspace";
 import { BackupMaintenanceWorkspace } from "./BackupMaintenanceWorkspace";
@@ -2233,7 +2233,7 @@ export function SettingsWorkspace({ onNavigate }: SettingsWorkspaceProps) {
           ) : activeMenu === "appointments" ? (
             <AppointmentConfigurationWorkspace />
           ) : activeMenu === "billing" ? (
-            <BillingConfigurationWorkspace />
+            <BillingConfigurationPage />
           ) : activeMenu === "notifications" ? (
             <NotificationCommunicationWorkspace />
           ) : activeMenu === "security" ? (

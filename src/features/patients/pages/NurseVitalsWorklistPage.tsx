@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Activity, ChevronRight } from "lucide-react";
 import { PP, RB } from "../../doctors/constants/doctors.constants";
 import { patientsApi } from "../api/patient.api";
-import { RecordPatientVitalsForm } from "../../vitals/components/RecordPatientVitalsForm";
+import { RecordPatientVitalsForm } from "../../vitals/pages/VitalsManagementScreen";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
 
 interface VitalsWaitingItem {

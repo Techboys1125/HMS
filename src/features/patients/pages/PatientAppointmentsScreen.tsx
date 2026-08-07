@@ -27,6 +27,7 @@ import {
 } from "../components/PatientDialogs";
 import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentScreen";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
+import { Pagination } from "../../../common/components/Pagination";
 
 export function PatientAppointmentsScreen({
   activePatient: propActivePatient,
@@ -252,6 +253,15 @@ export function PatientAppointmentsScreen({
 
     return true;
   });
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(filteredAppointments.length / pageSize);
+  const paginatedAppointments = filteredAppointments.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
 
   // Handlers
   const handleOpenBookDrawer = (apptToReschedule?: PatientAppointment) => {
@@ -678,7 +688,7 @@ export function PatientAppointmentsScreen({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E5E7EB] text-[#111827]">
-                      {filteredAppointments.map((appt) => {
+                      {paginatedAppointments.map((appt) => {
                         const isUpcoming = [
                           "Confirmed",
                           "Scheduled",
@@ -820,38 +830,19 @@ export function PatientAppointmentsScreen({
                   </table>
                 </div>
 
-                {/* Table Footer */}
-                <div className="p-4 border-t border-[#E5E7EB] bg-white flex items-center justify-between">
-                  <div className="text-xs text-[#64748B]">
-                    Showing{" "}
-                    <span className="font-bold text-[#111827]">
-                      {filteredAppointments.length}
-                    </span>{" "}
-                    of {totalCount} appointments
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      disabled
-                      className="px-3 py-1.5 text-xs text-slate-400 bg-slate-50 rounded-lg font-medium"
-                    >
-                      Previous
-                    </button>
-                    <button className="w-7 h-7 bg-[#0D47A1] text-white rounded-lg text-xs font-bold">
-                      1
-                    </button>
-                    <button
-                      disabled
-                      className="px-3 py-1.5 text-xs text-slate-400 bg-slate-50 rounded-lg font-medium"
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
+                {/* Pagination */}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  pageSize={pageSize}
+                  totalCount={filteredAppointments.length}
+                />
               </div>
 
               {/* Mobile / Tablet Cards View */}
               <div className="md:hidden space-y-3">
-                {filteredAppointments.map((appt) => {
+                {paginatedAppointments.map((appt) => {
                   const isUpcoming = [
                     "Confirmed",
                     "Scheduled",
@@ -951,6 +942,13 @@ export function PatientAppointmentsScreen({
                     </div>
                   );
                 })}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  pageSize={pageSize}
+                  totalCount={filteredAppointments.length}
+                />
               </div>
             </>
           )}

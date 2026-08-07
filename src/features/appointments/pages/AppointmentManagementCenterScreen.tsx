@@ -16,12 +16,10 @@ import {
   Stethoscope,
   User,
   Users,
-  PhoneCall,
   UserPlus,
   Clock,
   Calendar,
   UserCheck,
-  Zap,
   Download,
 } from "lucide-react";
 import { PP, RB } from "../constants/appointment.constants";
@@ -38,6 +36,7 @@ import { CancelAppointmentConfirmationDialog } from "../components/CancelAppoint
 import { StatusBadge } from "../components/StatusBadge";
 import { Avatar } from "../components/Avatar";
 import { CheckInConfirmationModal } from "../../reception/components/CheckInConfirmationModal";
+import { Pagination } from "../../../common/components/Pagination";
 
 export interface Props {
   onPatientSelect?: (id: number | string) => void;
@@ -231,6 +230,15 @@ export function AppointmentManagementCenterScreen({
     todayDateStr,
   ]);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(filteredAppointments.length / pageSize);
+  const paginatedAppointments = filteredAppointments.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
   const handleExportCSV = () => {
     const headers = [
       "ID",
@@ -295,7 +303,6 @@ export function AppointmentManagementCenterScreen({
 
   const handleBookSuccess = async (newApt: AppointmentRecord) => {
     setAppointments((prev) => [newApt, ...prev]);
-    await refetch();
     if (newApt.isWalkIn) {
       triggerToast(`Walk-in patient registered & checked in successfully.`);
     } else {
@@ -385,12 +392,6 @@ export function AppointmentManagementCenterScreen({
     }
   };
 
-  const handleCallNextPatient = async (aptId: string | number) => {
-    await appointmentService.queueCallNext(aptId);
-    await refetch();
-    triggerToast(`Patient called for consultation.`);
-  };
-
   return (
     <div
       className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9]"
@@ -421,6 +422,7 @@ export function AppointmentManagementCenterScreen({
           onPatientSelect={onPatientSelect}
           userRole={userRole}
           onStartConsultation={(apt) => onStartConsultation?.(apt)}
+          onRefresh={() => refetch()}
         />
       ) : (
         <>
@@ -984,8 +986,12 @@ export function AppointmentManagementCenterScreen({
                     <option value="All">All Statuses</option>
                     <option value="Booked">Booked</option>
                     <option value="Checked-In">Checked-In</option>
-                    <option value="Waiting for Vitals">Waiting for Vitals</option>
-                    <option value="Waiting for Doctor">Waiting for Doctor</option>
+                    <option value="Waiting for Vitals">
+                      Waiting for Vitals
+                    </option>
+                    <option value="Waiting for Doctor">
+                      Waiting for Doctor
+                    </option>
                     <option value="Called">Called</option>
                     <option value="In Consultation">In Consultation</option>
                     <option value="Completed">Completed</option>
@@ -1231,7 +1237,7 @@ export function AppointmentManagementCenterScreen({
                       </thead>
 
                       <tbody className="divide-y divide-gray-100 text-[#111827]">
-                        {filteredAppointments.map((apt) => (
+                        {paginatedAppointments.map((apt) => (
                           <tr
                             key={apt.id}
                             className="hover:bg-slate-50/80 transition-colors"
@@ -1353,13 +1359,7 @@ export function AppointmentManagementCenterScreen({
                                   </button>
                                 ) : (
                                   <>
-                                    <button
-                                      onClick={() => handleOpenEditDrawer(apt)}
-                                      className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-amber-50 text-[#F59E0B] transition-colors"
-                                      title="Edit Appointment"
-                                    >
-                                      <Edit size={14} />
-                                    </button>
+                                   
 
                                     {(apt.status === "Scheduled" ||
                                       apt.status === "Booked" ||
@@ -1374,8 +1374,6 @@ export function AppointmentManagementCenterScreen({
                                         <CheckCircle2 size={12} /> Check-In
                                       </button>
                                     )}
-
-
 
                                     <button
                                       onClick={() => setRescheduleApt(apt)}
@@ -1423,9 +1421,15 @@ export function AppointmentManagementCenterScreen({
                     </div>
                   </div>
                 )}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  pageSize={pageSize}
+                  totalCount={filteredAppointments.length}
+                />
               </div>
             </div>
-           
           </div>
         </>
       )}

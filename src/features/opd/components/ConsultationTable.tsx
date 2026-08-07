@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Stethoscope } from "lucide-react";
 import type { ConsultationRecord, OauthRole } from "../types/consultation";
 import { StatusChip } from "./StatusChip";
 import { Avatar } from "./Avatar";
 import { ConsultationActionMenu } from "./ConsultationActionMenu";
+import { Pagination } from "../../../common/components/Pagination";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -49,6 +50,14 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
   canPrint = false,
   totalConsultations,
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(filteredConsultations.length / pageSize);
+  const paginatedConsultations = filteredConsultations.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
   const getVisitTypeColor = (visitType: string): string => {
     return visitTypeColors[visitType] || "bg-slate-100 text-slate-600";
   };
@@ -119,7 +128,7 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E5E7EB] text-xs" style={{ fontFamily: RB }}>
-            {filteredConsultations.map((item) => (
+            {paginatedConsultations.map((item) => (
               <tr key={item.id} className="hover:bg-slate-50/80 transition-colors group">
                 <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">
                   <div className="flex items-center gap-1.5">
@@ -192,24 +201,13 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
         </table>
       </div>
 
-      <div className="px-6 py-4 bg-slate-50 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#64748B]" style={{ fontFamily: RB }}>
-        <div>
-          Showing <span className="font-semibold text-[#111827]">1</span> to{" "}
-          <span className="font-semibold text-[#111827]">{filteredConsultations.length}</span> of{" "}
-          <span className="font-semibold text-[#111827]">{totalConsultations}</span> consultations
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="px-3 py-1.5 border border-[#E5E7EB] rounded-lg bg-white text-slate-400 cursor-not-allowed text-xs font-medium">
-            Previous
-          </button>
-          <button className="px-3 py-1.5 bg-[#0D47A1] text-white rounded-lg text-xs font-semibold">
-            1
-          </button>
-          <button className="px-3 py-1.5 border border-[#E5E7EB] rounded-lg bg-white text-slate-400 cursor-not-allowed text-xs font-medium">
-            Next
-          </button>
-        </div>
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        pageSize={pageSize}
+        totalCount={filteredConsultations.length}
+      />
     </div>
   );
 };

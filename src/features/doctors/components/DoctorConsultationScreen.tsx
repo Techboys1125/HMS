@@ -174,6 +174,7 @@ export function DoctorConsultationScreen({
 }) {
   const [tab, setTab] = useState<ConsultTab>("overview");
   const [isCompleting, setIsCompleting] = useState(false);
+  const [completed, setCompleted] = useState(false);
   const [completeMsg, setCompleteMsg] = useState<string | null>(null);
   const [patientData, setPatientData] = useState<AppointmentData | null>(null);
   const [loadingPatient, setLoadingPatient] = useState(true);
@@ -186,7 +187,6 @@ export function DoctorConsultationScreen({
   });
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!appointmentId) {
       setLoadingPatient(false);
       return;
@@ -245,12 +245,13 @@ export function DoctorConsultationScreen({
   const patientMrn = patient?.patientMrn || "N/A";
 
   const handleCompleteConsultation = async () => {
-    if (!appointmentId || isCompleting) return;
+    if (!appointmentId || isCompleting || completed) return;
     setIsCompleting(true);
     setCompleteMsg(null);
     try {
       await appointmentService.doctorCompleteConsultation(appointmentId);
       setCompleteMsg("Consultation completed. Encounter finalized.");
+      setCompleted(true);
       onComplete?.();
     } catch {
       setCompleteMsg("Failed to complete consultation. Please try again.");
@@ -434,7 +435,7 @@ export function DoctorConsultationScreen({
           )}
           <button
             onClick={handleCompleteConsultation}
-            disabled={isCompleting || !appointmentId}
+            disabled={isCompleting || completed || !appointmentId}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#009688] text-white text-sm font-semibold hover:bg-[#00827a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ fontFamily: PP }}
           >
@@ -443,7 +444,11 @@ export function DoctorConsultationScreen({
             ) : (
               <Check size={14} />
             )}{" "}
-            {isCompleting ? "Completing..." : "Complete Consultation"}
+            {completed
+              ? "Completed"
+              : isCompleting
+                ? "Completing..."
+                : "Complete Consultation"}
           </button>
           {!appointmentId && (
             <p className="text-[10px] text-center text-slate-400">

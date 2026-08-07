@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { useAuthStore } from "../../auth";
 import { usePatientPortal } from "../../patients/context/PatientPortalContext";
-import { usePermissions } from "../../../permissions";
 import { usePrescription, usePrescriptionDetails, usePrescriptionFilters, usePrescriptionActions } from "../hooks/usePrescription";
 import type { UnifiedPrescription } from "../types/prescription.types";
 

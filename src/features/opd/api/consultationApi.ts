@@ -170,9 +170,32 @@ export const consultationApi = {
     }
     try {
       const response = await apiClient.get<
-        ApiEnvelope<PatientVitals> | PatientVitals
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
       >(`/api/v1/encounters/${encounterId}/vitals`);
-      return unwrap<PatientVitals>(response.data);
+      const raw = unwrap<Record<string, unknown>>(response.data);
+      if (!raw) return null;
+
+      // Map backend field names to frontend PatientVitals format
+      const tempVal = raw.temperature ?? raw.temp;
+      const bpVal = raw.bloodPressure ?? raw.bp;
+      const pulseVal = raw.pulse ?? raw.heartRate;
+      const spo2Val = raw.spo2 ?? raw.oxygenSaturation;
+      const respVal = raw.respiratoryRate ?? raw.respRate;
+      const sugarVal = raw.bloodSugar ?? raw.sugar;
+
+      const toStr = (v: unknown): string => (v != null ? String(v) : "");
+
+      return {
+        height: toStr(raw.height),
+        weight: toStr(raw.weight),
+        bmi: toStr(raw.bmi),
+        temp: toStr(tempVal),
+        bp: toStr(bpVal),
+        pulse: toStr(pulseVal),
+        spo2: toStr(spo2Val),
+        respiratoryRate: toStr(respVal),
+        bloodSugar: toStr(sugarVal),
+      };
     } catch {
       return null;
     }
@@ -180,16 +203,49 @@ export const consultationApi = {
 
   /**
    * POST /api/v1/encounters/{encounterId}/vitals
-   * Update vitals for the encounter
+   * Update vitals for the encounter.
+   * Backend expects nested DTO format (e.g. temperature: { value, unit }),
+   * but the frontend stores flat strings with units. This helper converts
+   * the flat PatientVitals model to the nested RecordVitalsRequest DTO.
    */
   updateVitals: async (
     encounterId: string | number,
     vitals: Partial<PatientVitals>,
   ): Promise<PatientVitals> => {
+    const stripUnit = (s?: string) => {
+      if (!s) return undefined;
+      return parseFloat(String(s).replace(/[^0-9.\-]/g, "")) || undefined;
+    };
+    const parseBp = (bp?: string) => {
+      if (!bp) return undefined;
+      const parts = bp.split("/").map((p) => parseFloat(p.trim()));
+      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+        return { systolic: parts[0], diastolic: parts[1], unit: "MMHG" };
+      }
+      return undefined;
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dto: Record<string, any> = {};
+    const temp = stripUnit(vitals.temp);
+    if (temp !== undefined) dto.temperature = { value: temp, unit: "FAHRENHEIT" };
+    const bp = parseBp(vitals.bp);
+    if (bp) dto.bloodPressure = bp;
+    const pulse = stripUnit(vitals.pulse);
+    if (pulse !== undefined) dto.pulse = { value: pulse, unit: "BPM" };
+    const rr = stripUnit(vitals.respiratoryRate);
+    if (rr !== undefined) dto.respiratoryRate = { value: rr, unit: "BREATHS_PER_MINUTE" };
+    const spo2 = stripUnit(vitals.spo2);
+    if (spo2 !== undefined) dto.spo2 = { value: spo2, unit: "PERCENT" };
+    const weight = stripUnit(vitals.weight);
+    if (weight !== undefined) dto.weight = { value: weight, unit: "KG" };
+    const height = stripUnit(vitals.height);
+    if (height !== undefined) dto.height = { value: height, unit: "CM" };
+
     try {
       const response = await apiClient.post<
         ApiEnvelope<PatientVitals> | PatientVitals
-      >(`/api/v1/encounters/${encounterId}/vitals`, vitals);
+      >(`/api/v1/encounters/${encounterId}/vitals`, dto);
       return unwrap<PatientVitals>(response.data);
     } catch (error: unknown) {
       return handleApiError(error);
@@ -341,16 +397,40 @@ export const consultationApi = {
 
   /**
    * PUT /api/v1/consultations/{consultationId}/clinical-notes
-   * Save SOAP notes for the consultation
+   * Save SOAP notes for the consultation.
+   * Backend expects nested DTO format with model field names:
+   *   { subjective: { historyOfPresentIllness: "..." },
+   *     objective: { physicalExamination: "..." },
+   *     assessment: { assessmentSummary: "..." },
+   *     plan: { advice: "..." } }
    */
   saveClinicalNotes: async (
     consultationId: string | number,
-    clinicalNotes: Record<string, unknown>,
+    clinicalNotes: {
+      subjective?: string;
+      objective?: string;
+      assessment?: string;
+      plan?: string;
+      historyOfPresentIllness?: string;
+      physicalExamination?: string;
+      assessmentSummary?: string;
+      advice?: string;
+    },
   ): Promise<{ success: boolean; data: unknown }> => {
+    const dto: Record<string, unknown> = {};
+    const hpi = clinicalNotes.subjective || clinicalNotes.historyOfPresentIllness;
+    if (hpi) dto.subjective = { historyOfPresentIllness: hpi };
+    const pe = clinicalNotes.objective || clinicalNotes.physicalExamination;
+    if (pe) dto.objective = { physicalExamination: pe };
+    const sum = clinicalNotes.assessment || clinicalNotes.assessmentSummary;
+    if (sum) dto.assessment = { assessmentSummary: sum };
+    const adv = clinicalNotes.plan || clinicalNotes.advice;
+    if (adv) dto.plan = { advice: adv };
+
     try {
       const response = await apiClient.put<
         ApiEnvelope<{ success: boolean; data: unknown }> | { success: boolean; data: unknown }
-      >(`/api/v1/consultations/${consultationId}/clinical-notes`, clinicalNotes);
+      >(`/api/v1/consultations/${consultationId}/clinical-notes`, dto);
       return unwrap(response.data);
     } catch (error: unknown) {
       return handleApiError(error);

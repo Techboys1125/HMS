@@ -22,6 +22,7 @@ import type {
   PrescriptionRecord,
 } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.mock";
+import { Pagination } from "../../../common/components/Pagination";
 
 export function PatientMedicalRecordsScreen({
   activePatient: propActivePatient,
@@ -193,6 +194,26 @@ export function PatientMedicalRecordsScreen({
     if (statusFilter !== "All" && rx.status !== statusFilter) return false;
     return true;
   });
+
+  // Pagination for visits
+  const [visitsPage, setVisitsPage] = useState(1);
+  const visitsPageSize = 10;
+  const visitsTotalPages = Math.ceil(filteredVisits.length / visitsPageSize);
+  const paginatedVisits = filteredVisits.slice(
+    (visitsPage - 1) * visitsPageSize,
+    visitsPage * visitsPageSize,
+  );
+
+  // Pagination for prescriptions
+  const [prescriptionsPage, setPrescriptionsPage] = useState(1);
+  const prescriptionsPageSize = 10;
+  const prescriptionsTotalPages = Math.ceil(
+    filteredPrescriptions.length / prescriptionsPageSize,
+  );
+  const paginatedPrescriptions = filteredPrescriptions.slice(
+    (prescriptionsPage - 1) * prescriptionsPageSize,
+    prescriptionsPage * prescriptionsPageSize,
+  );
 
   return (
     <div
@@ -430,7 +451,7 @@ export function PatientMedicalRecordsScreen({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB] text-[#111827]">
-                  {filteredVisits.map((v) => (
+                  {paginatedVisits.map((v) => (
                     <tr
                       key={v.id}
                       className="hover:bg-slate-50 transition-colors"
@@ -486,6 +507,13 @@ export function PatientMedicalRecordsScreen({
                 </tbody>
               </table>
             </div>
+            <Pagination
+              currentPage={visitsPage}
+              totalPages={visitsTotalPages}
+              onPageChange={setVisitsPage}
+              pageSize={visitsPageSize}
+              totalCount={filteredVisits.length}
+            />
           </div>
         </div>
       )}
@@ -545,7 +573,7 @@ export function PatientMedicalRecordsScreen({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E7EB] text-[#111827]">
-                  {filteredPrescriptions.map((rx: PrescriptionRecord) => (
+                  {paginatedPrescriptions.map((rx: PrescriptionRecord) => (
                     <tr
                       key={rx.id}
                       className="hover:bg-slate-50 transition-colors"
@@ -636,6 +664,13 @@ export function PatientMedicalRecordsScreen({
                 </tbody>
               </table>
             </div>
+            <Pagination
+              currentPage={prescriptionsPage}
+              totalPages={prescriptionsTotalPages}
+              onPageChange={setPrescriptionsPage}
+              pageSize={prescriptionsPageSize}
+              totalCount={filteredPrescriptions.length}
+            />
           </div>
         </div>
       )}

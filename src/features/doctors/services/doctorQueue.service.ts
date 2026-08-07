@@ -13,7 +13,10 @@ export const doctorQueueService = {
     nextPatient: DoctorQueueItem | null;
   }> {
     const res = await doctorsApi.getQueue(doctorId);
-    const content = res.content || [];
+    const content = (res.content || []).filter((item) => {
+      const st = String(item.status || "").toUpperCase();
+      return st !== "WAITING_FOR_VITALS" && st !== "CHECKED_IN";
+    });
     const currentPatient =
       content.find(
         (item) => item.status === "CALLED" || item.status === "IN_CONSULTATION",

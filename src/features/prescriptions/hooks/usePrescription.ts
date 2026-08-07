@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePrescriptionStore, prescriptionStoreActions } from "../store/prescription.store";
 import { prescriptionService } from "../services/prescription.service";
-import type { UnifiedPrescription } from "../types/prescription.types";
+import { useAuthStore } from "../../auth";
 
 export function usePrescription(mrn?: string, doctorNameFilter?: string) {
   const { prescriptions, loading, error, filters } = usePrescriptionStore();
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const user = useAuthStore((s) => s.user);
+  const roleRaw = String(user?.role ?? "").toUpperCase();
+  const isPatient = roleRaw === "PATIENT";
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -13,8 +17,13 @@ export function usePrescription(mrn?: string, doctorNameFilter?: string) {
   };
 
   useEffect(() => {
-    prescriptionService.loadPrescriptions(mrn, doctorNameFilter);
-  }, [mrn, doctorNameFilter]);
+    if (isPatient || mrn) {
+      prescriptionService.loadPrescriptions(mrn, doctorNameFilter);
+    } else {
+      prescriptionStoreActions.setPrescriptions([]);
+      prescriptionStoreActions.setLoading(false);
+    }
+  }, [mrn, doctorNameFilter, isPatient]);
 
   const filteredPrescriptions = useMemo(() => {
     return prescriptions.filter((rx) => {
@@ -38,7 +47,9 @@ export function usePrescription(mrn?: string, doctorNameFilter?: string) {
   }, [prescriptions, filters]);
 
   const triggerRefresh = () => {
-    prescriptionService.loadPrescriptions(mrn, doctorNameFilter);
+    if (isPatient || mrn) {
+      prescriptionService.loadPrescriptions(mrn, doctorNameFilter);
+    }
   };
 
   return {

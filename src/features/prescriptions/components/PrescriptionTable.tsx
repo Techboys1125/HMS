@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Eye, Printer, Download, Edit3, ChevronDown, Plus, FileText, Clock, Pill } from "lucide-react";
 import type { UnifiedPrescription } from "../types/prescription.types";
 import { PrescriptionStatusBadge } from "./PrescriptionStatusBadge";
+import { Pagination } from "../../../common/components/Pagination";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -45,6 +46,13 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
   onViewConsultation,
 }) => {
   const [openMoreMenuId, setOpenMoreMenuId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(prescriptions.length / pageSize);
+  const paginatedPrescriptions = prescriptions.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
 
   if (role === "patient") {
     return (
@@ -71,7 +79,7 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {prescriptions.map((rx) => (
+            {paginatedPrescriptions.map((rx) => (
                 <tr key={rx.id} className="hover:bg-slate-50/70 transition-colors">
                   <td className="p-3 font-mono font-bold text-[#0D47A1]">
                     <button onClick={() => onView(rx)} className="hover:underline text-left">
@@ -164,6 +172,14 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
             </div>
           ))}
         </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          pageSize={pageSize}
+          totalCount={prescriptions.length}
+        />
       </div>
     );
   }
@@ -346,22 +362,13 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
           </tbody>
         </table>
       </div>
-      <div className="flex items-center justify-between px-5 py-3.5 border-t border-gray-100 bg-slate-50/50 text-xs text-slate-500" style={{ fontFamily: RB }}>
-        <div>
-          Showing 1 to {prescriptions.length} of {prescriptions.length} entries
-        </div>
-        <div className="flex items-center gap-1">
-          <button disabled className="px-2.5 py-1 rounded-md border border-gray-200 text-slate-400 cursor-not-allowed">
-            Previous
-          </button>
-          <button className="px-2.5 py-1 rounded-md bg-[#0D47A1] text-white font-semibold">
-            1
-          </button>
-          <button disabled className="px-2.5 py-1 rounded-md border border-gray-200 text-slate-400 cursor-not-allowed">
-            Next
-          </button>
-        </div>
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        pageSize={pageSize}
+        totalCount={prescriptions.length}
+      />
     </div>
   );
 };

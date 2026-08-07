@@ -491,6 +491,8 @@ export const doctorsApi = {
         }
       }
     } catch (err) {
+      console.log(err);
+
       const altPayload = { ...(payload as Record<string, unknown>) };
       if (altPayload.phone && !altPayload.mobile)
         altPayload.mobile = altPayload.phone;
@@ -838,9 +840,11 @@ export const doctorsApi = {
       if (axios.isAxiosError(error)) {
         const data = error.response?.data as { message?: string } | undefined;
         if (data?.message) {
-          throw new Error(data.message);
+          console.error("[doctorsApi] Queue fetch failed:", data.message);
+          throw new Error(data.message, { cause: error });
         }
       }
+      console.error("[doctorsApi] Queue fetch failed:", error);
       throw error;
     }
   },
@@ -860,7 +864,7 @@ export const doctorsApi = {
       if (axios.isAxiosError(error)) {
         const data = error.response?.data as { message?: string } | undefined;
         if (data?.message) {
-          throw new Error(data.message);
+          throw new Error(data.message, { cause: error });
         }
       }
       throw error;

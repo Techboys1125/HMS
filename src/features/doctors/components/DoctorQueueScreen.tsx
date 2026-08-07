@@ -13,6 +13,7 @@ import { useAuthStore } from "../../auth";
 import { doctorsApi } from "../api/doctors.api";
 import { appointmentService } from "../../appointments";
 import { PP, RB } from "../constants/doctors.constants";
+import { Pagination } from "../../../common/components/Pagination";
 import type {
   DoctorQueueItem,
   DoctorQueueSummary,
@@ -206,12 +207,13 @@ export function DoctorQueueScreen() {
     }
   };
 
-  const content: DoctorQueueItem[] = queue.content || [];
+  const content: DoctorQueueItem[] = (queue.content || []).filter((p) => {
+    const key = statusKey(p.status || p.queueStatus);
+    return key !== "WAITING_FOR_VITALS" && key !== "CHECKED_IN";
+  });
   const waitingCount = content.filter((p) =>
     [
       "WAITING",
-      "CHECKED_IN",
-      "WAITING_FOR_VITALS",
       "WAITING_FOR_DOCTOR_CALL",
     ].includes(statusKey(p.status || p.queueStatus)),
   ).length;
@@ -223,6 +225,15 @@ export function DoctorQueueScreen() {
   const completedToday = content.filter(
     (p) => statusKey(p.status || p.queueStatus) === "COMPLETED",
   ).length;
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(content.length / pageSize);
+  const paginatedContent = content.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
 
   return (
     <div className="space-y-6">
@@ -339,7 +350,7 @@ export function DoctorQueueScreen() {
           </div>
         ) : (
           <div className="divide-y divide-[#E5E7EB]">
-            {content.map((patient, idx) => {
+            {paginatedContent.map((patient, idx) => {
               const key = statusKey(patient.status || patient.queueStatus);
               const meta = STATUS_META[key] || {
                 label: key.replace(/_/g, " "),
@@ -442,6 +453,15 @@ export function DoctorQueueScreen() {
               );
             })}
           </div>
+        )}
+        {content.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            pageSize={pageSize}
+            totalCount={content.length}
+          />
         )}
       </div>
 

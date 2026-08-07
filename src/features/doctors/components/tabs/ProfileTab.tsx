@@ -52,7 +52,7 @@ export function ProfileTab({
       }
       setEditing(false);
     } catch (err) {
-      // Error handled by UI state
+      console.log(err);
     } finally {
       setSaving(false);
     }

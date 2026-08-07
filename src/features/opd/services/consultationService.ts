@@ -69,12 +69,8 @@ export const consultationService = {
         prescription = await encountersApi.createPrescription(encounter.encounterId, {
           outcome: "NO_MEDICATION_REQUIRED",
         });
-      } catch (e) {
-        prescription = {
-          prescriptionId: `RX-${Date.now()}`,
-          encounterId: encounter.encounterId,
-          status: "DRAFT",
-        };
+      } catch {
+        prescription = null;
       }
       consultationStoreActions.setPrescription(prescription);
 
@@ -235,10 +231,11 @@ export const consultationService = {
     try {
       const { selectedPrescription } = consultationStoreActions.getState();
       // Use numeric id for API calls (not the string prescriptionId like RX-20260806-2292)
-      const rxId = selectedPrescription?.id || selectedPrescription?.prescriptionId;
+      const rxId = selectedPrescription?.id;
+      const hasValidRxId = rxId !== undefined && rxId !== null && !String(rxId).startsWith("RX-");
 
       // Step 16: Save prescription advice (if exists and payload provided)
-      if (rxId && advicePayload) {
+      if (hasValidRxId && rxId && advicePayload) {
         try {
           await encountersApi.savePrescriptionAdvice(rxId, advicePayload);
         } catch {
@@ -247,7 +244,7 @@ export const consultationService = {
       }
 
       // Step 17: Validate prescription (if exists) — non-critical
-      if (rxId) {
+      if (hasValidRxId && rxId) {
         try {
           await encountersApi.validatePrescription(rxId);
         } catch {
@@ -256,7 +253,7 @@ export const consultationService = {
       }
 
       // Step 18: Finalize prescription (if exists) — non-critical
-      if (rxId) {
+      if (hasValidRxId && rxId) {
         try {
           await encountersApi.finalizePrescription(rxId, { confirmation: true });
         } catch {
@@ -279,15 +276,6 @@ export const consultationService = {
 
       // Step 20: Finalize encounter
       await encountersApi.finalizeEncounter(encounterId, { confirmation: true });
-
-      // Step 21: Complete appointment (non-blocking)
-      if (_appointmentId) {
-        try {
-          await consultationApi.completeAppointment(_appointmentId);
-        } catch {
-          // non-blocking
-        }
-      }
 
       consultationStoreActions.setStatus("COMPLETED");
       consultationStoreActions.reset();

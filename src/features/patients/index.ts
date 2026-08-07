@@ -10,7 +10,6 @@ export * from "./pages/FamilyMembersManagement";
 export * from "./pages/PatientDoctorSearchScreen";
 export * from "./pages/PatientQueueStatusScreen";
 export * from "./pages/PatientNotificationsScreen";
-export * from "./pages/PatientBillingScreen";
 
 // Patient Module Pages
 export { PatientListPage } from "./pages/PatientListPage";
@@ -18,7 +17,6 @@ export { PatientProfilePage } from "./pages/PatientProfilePage";
 export { DoctorAssignedPatientsPage } from "./pages/DoctorAssignedPatientsPage";
 export { NurseVitalsWorklistPage } from "./pages/NurseVitalsWorklistPage";
 export { MyProfilePage as PatientMyProfilePage } from "./pages/MyProfilePage";
-export { AccountantPatientBillingPage } from "./pages/AccountantPatientBillingPage";
 
 // Route Wrappers
 export { PatientListPageRoute } from "./routes/PatientListPageRoute";

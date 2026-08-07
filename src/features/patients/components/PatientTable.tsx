@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type { Patient } from "../types/patient.types";
 import { usePermissions } from "../../../permissions";
+import { Pagination } from "../../../common/components/Pagination";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -188,6 +189,22 @@ export function PatientTable({
     });
   }, [patients, sortColumn, sortDirection]);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const totalPages = Math.ceil(sortedPatients.length / pageSize);
+  const paginatedPatients = sortedPatients.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
+  // Reset to page 1 when filters change
+  const displayPatients = useMemo(() => {
+    setCurrentPage(1);
+    return sortedPatients;
+  }, [sortedPatients]);
+
   // Column definitions & role-based visibility
   const isDoctor = activeRole === "DOCTOR";
   const isReceptionist = activeRole === "RECEPTIONIST";
@@ -345,7 +362,7 @@ export function PatientTable({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {sortedPatients.map((p) => {
+              {paginatedPatients.map((p) => {
                 const mrn = p.mrn || String(p.id);
                 const name = (p.patientName || p.name || "").trim();
                 const age = p.age || 0;
@@ -586,34 +603,13 @@ export function PatientTable({
 
       {/* TABLE FOOTER / PAGINATION */}
       {!isLoading && patients.length > 0 && (
-        <div className="p-4 border-t border-[#E5E7EB] flex items-center justify-between bg-white shrink-0">
-          <div
-            className="flex items-center gap-2 text-xs text-[#64748B]"
-            style={{ fontFamily: RB }}
-          >
-            <span>Showing</span>
-            <span className="font-semibold text-[#111827]">
-              {patients.length}
-            </span>
-            <span>of</span>
-            <span className="font-semibold text-[#111827]">{totalCount}</span>
-            <span>patients</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              className="px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-50 rounded-lg font-medium transition-colors"
-              disabled
-            >
-              Previous
-            </button>
-            <button className="w-7 h-7 flex items-center justify-center bg-[#0D47A1] text-white rounded-lg text-xs font-semibold">
-              1
-            </button>
-            <button className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors">
-              Next
-            </button>
-          </div>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          pageSize={pageSize}
+          totalCount={sortedPatients.length}
+        />
       )}
     </div>
   );

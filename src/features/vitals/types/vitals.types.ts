@@ -21,7 +21,6 @@ export interface RecordedVitalsData {
   pulse?: string;
   resp?: string;
   sugar?: string;
-  pain?: number | string;
   appearance?: string;
   consciousness?: string;
   observation?: string;

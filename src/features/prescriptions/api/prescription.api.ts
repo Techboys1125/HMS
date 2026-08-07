@@ -9,9 +9,12 @@ export interface ApiEnvelope<T> {
 export const prescriptionApi = {
   getPrescriptions: async (mrn?: string): Promise<ApiPatientPrescription[]> => {
     try {
-      const url = mrn 
-        ? `/api/v1/patient/prescriptions?mrn=${mrn}`
-        : "/api/v1/patient/prescriptions";
+      let url: string;
+      if (mrn) {
+        url = `/api/v1/patient/prescriptions?mrn=${mrn}`;
+      } else {
+        url = "/api/v1/patient/prescriptions";
+      }
       const response = await apiClient.get<any>(url);
       const body = response.data;
 
@@ -35,6 +38,15 @@ export const prescriptionApi = {
   getPrescriptionById: async (id: string | number): Promise<ApiPatientPrescription | null> => {
     try {
       const response = await apiClient.get<any>(`/api/v1/patient/prescriptions/${id}`);
+      return response.data?.data || response.data || null;
+    } catch {
+      return null;
+    }
+  },
+
+  getEncounterPrescription: async (encounterId: string | number): Promise<any | null> => {
+    try {
+      const response = await apiClient.get<any>(`/api/v1/encounters/${encounterId}/prescription`);
       return response.data?.data || response.data || null;
     } catch {
       return null;

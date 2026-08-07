@@ -8,6 +8,7 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
+import { Pagination } from "../../../common/components/Pagination";
 import { PP, RB } from "../../appointments/constants/appointment.constants";
 import { Chip } from "../../appointments/components/Chip";
 import type { ChipVariant } from "../../appointments/constants/appointment.constants";
@@ -235,6 +236,15 @@ export function ReceptionQueueManagementScreen({
     selectedStatus,
     selectedType,
   ]);
+
+  // Pagination for queue table
+  const [queuePage, setQueuePage] = useState(1);
+  const queuePageSize = 10;
+  const queueTotalPages = Math.ceil(filteredQueue.length / queuePageSize);
+  const paginatedQueue = filteredQueue.slice(
+    (queuePage - 1) * queuePageSize,
+    queuePage * queuePageSize,
+  );
 
   const selectedItem = useMemo(() => {
     return (
@@ -678,7 +688,7 @@ export function ReceptionQueueManagementScreen({
               </thead>
               <tbody className="divide-y divide-gray-100 text-[#111827]">
                 {filteredQueue.length > 0 ? (
-                  filteredQueue.map((item) => {
+                    paginatedQueue.map((item) => {
                     const isSelected = selectedTokenId === item.token;
                     return (
                       <tr
@@ -781,6 +791,15 @@ export function ReceptionQueueManagementScreen({
               </tbody>
             </table>
           </div>
+          {filteredQueue.length > 0 && (
+            <Pagination
+              currentPage={queuePage}
+              totalPages={queueTotalPages}
+              onPageChange={setQueuePage}
+              pageSize={queuePageSize}
+              totalCount={filteredQueue.length}
+            />
+          )}
         </div>
       </div>
 

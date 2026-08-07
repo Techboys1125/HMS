@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router";
 
 import {
   Activity,
@@ -21,6 +22,7 @@ import {
   CheckSquare,
   Stethoscope,
 } from "lucide-react";
+import { Pagination } from "../../../common/components/Pagination";
 import type { AppointmentRecord } from "../../appointments";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { vitalsService } from "../services/vitals.service";
@@ -29,40 +31,12 @@ import type {
   RecordedVitalsData,
   NurseWaitingPatient,
 } from "../types/vitals.types";
+import { Avatar } from "../../../common/components/Avatar";
+import { usePermissions } from "../../../permissions";
 
 // --- Typography Tokens ---
 const PP = "Poppins, sans-serif";
 const RB = "Roboto, sans-serif";
-
-// Local Avatar Component
-function Avatar({
-  name,
-  size = "sm",
-}: {
-  name: string;
-  size?: "sm" | "md" | "lg";
-}) {
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
-  const sizeClass = {
-    sm: "w-8 h-8 text-xs",
-    md: "w-10 h-10 text-sm",
-    lg: "w-14 h-14 text-lg",
-  }[size];
-
-  return (
-    <div
-      className={`${sizeClass} rounded-full bg-[#0D47A1]/10 text-[#0D47A1] font-bold flex items-center justify-center border border-[#0D47A1]/20 shrink-0`}
-    >
-      {initials}
-    </div>
-  );
-}
 
 interface Props {
   onPatientSelect?: (id: number | string) => void;
@@ -86,7 +60,6 @@ export function VitalsDetailsScreen({
     resp: "",
     spo2: "",
     sugar: "",
-    pain: 0,
     appearance: "",
     consciousness: "",
     observation: "",
@@ -177,20 +150,12 @@ export function VitalsDetailsScreen({
             className="text-xl font-bold text-[#111827]"
             style={{ fontFamily: PP }}
           >
-            Vitals Details (Read Only)
+            Vitals Details
           </h1>
           <p className="text-xs text-[#64748B] mt-0.5">
             Review patient vitals before consultation.
           </p>
         </div>
-
-        <button
-          onClick={onBack}
-          className="px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
-          style={{ fontFamily: PP }}
-        >
-          <ArrowLeft size={14} /> Back to Queue
-        </button>
       </div>
 
       {/* STICKY PATIENT SUMMARY STRIP */}
@@ -395,7 +360,7 @@ export function VitalsDetailsScreen({
                   className="text-lg font-bold text-[#111827] font-mono"
                   style={{ fontFamily: PP }}
                 >
-                  {vitalsData.height}{" "}
+                  {vitalsData.height || "—"}{" "}
                   <span className="text-xs text-slate-500 font-normal">cm</span>
                 </div>
                 <div className="text-[10px] text-slate-500 font-medium">
@@ -411,7 +376,7 @@ export function VitalsDetailsScreen({
                   className="text-lg font-bold text-[#111827] font-mono"
                   style={{ fontFamily: PP }}
                 >
-                  {vitalsData.weight}{" "}
+                  {vitalsData.weight || "—"}{" "}
                   <span className="text-xs text-slate-500 font-normal">kg</span>
                 </div>
                 <div className="text-[10px] text-slate-500 font-medium">
@@ -427,7 +392,7 @@ export function VitalsDetailsScreen({
                   className="text-lg font-bold text-[#009688] font-mono"
                   style={{ fontFamily: PP }}
                 >
-                  {vitalsData.bmi}
+                  {vitalsData.bmi || "—"}
                 </div>
                 <div className="text-[10px] text-teal-700 font-semibold">
                   Normal Weight
@@ -442,7 +407,7 @@ export function VitalsDetailsScreen({
                   className="text-lg font-bold text-[#111827] font-mono"
                   style={{ fontFamily: PP }}
                 >
-                  {vitalsData.temp}{" "}
+                  {vitalsData.temp || "—"}{" "}
                   <span className="text-xs text-slate-500 font-normal">°C</span>
                 </div>
                 <div className="text-[10px] text-emerald-600 font-medium">
@@ -458,7 +423,9 @@ export function VitalsDetailsScreen({
                   className="text-lg font-bold text-[#0D47A1] font-mono"
                   style={{ fontFamily: PP }}
                 >
-                  {vitalsData.systolic}/{vitalsData.diastolic}{" "}
+                  {vitalsData.systolic && vitalsData.diastolic
+                    ? `${vitalsData.systolic}/${vitalsData.diastolic}`
+                    : "—"}{" "}
                   <span className="text-xs text-blue-700 font-normal">
                     mmHg
                   </span>
@@ -476,7 +443,7 @@ export function VitalsDetailsScreen({
                   className="text-lg font-bold text-[#111827] font-mono"
                   style={{ fontFamily: PP }}
                 >
-                  {vitalsData.pulse}{" "}
+                  {vitalsData.pulse || "—"}{" "}
                   <span className="text-xs text-slate-500 font-normal">
                     bpm
                   </span>
@@ -494,7 +461,7 @@ export function VitalsDetailsScreen({
                   className="text-lg font-bold text-[#111827] font-mono"
                   style={{ fontFamily: PP }}
                 >
-                  {vitalsData.resp}{" "}
+                  {vitalsData.resp || "—"}{" "}
                   <span className="text-xs text-slate-500 font-normal">
                     cpm
                   </span>
@@ -512,7 +479,7 @@ export function VitalsDetailsScreen({
                   className="text-lg font-bold text-[#66BB6A] font-mono"
                   style={{ fontFamily: PP }}
                 >
-                  {vitalsData.spo2}{" "}
+                  {vitalsData.spo2 || "—"}{" "}
                   <span className="text-xs text-emerald-700 font-normal">
                     %
                   </span>
@@ -530,31 +497,13 @@ export function VitalsDetailsScreen({
                   className="text-lg font-bold text-[#111827] font-mono"
                   style={{ fontFamily: PP }}
                 >
-                  {vitalsData.sugar}{" "}
+                  {vitalsData.sugar || "—"}{" "}
                   <span className="text-xs text-slate-500 font-normal">
                     mg/dL
                   </span>
                 </div>
                 <div className="text-[10px] text-slate-500 font-medium">
                   Fasting / Normal
-                </div>
-              </div>
-
-              <div className="bg-amber-50/60 p-3.5 rounded-xl border border-amber-100 space-y-1">
-                <div className="text-[10px] font-bold text-amber-900 uppercase tracking-wider">
-                  Pain Score
-                </div>
-                <div
-                  className="text-lg font-bold text-[#F59E0B] font-mono"
-                  style={{ fontFamily: PP }}
-                >
-                  {vitalsData.pain}{" "}
-                  <span className="text-xs text-amber-700 font-normal">
-                    / 10
-                  </span>
-                </div>
-                <div className="text-[10px] text-amber-800 font-semibold">
-                  Mild Discomfort
                 </div>
               </div>
             </div>
@@ -689,17 +638,14 @@ export function VitalsDetailsScreen({
                     className="text-xs font-bold text-[#111827]"
                     style={{ fontFamily: PP }}
                   >
-                    Vitals Recording Started
+                    Patient Checked In
                   </h4>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    Patient arrived at OPD prep station 02
+                    {activeApt.appointmentDate} at {activeApt.timeSlot}
                   </p>
                 </div>
                 <div className="text-right shrink-0 text-[10px] text-slate-400 font-mono">
-                  <div>Today, 08:42 AM</div>
-                  <div className="text-slate-500 font-semibold">
-                    {vitalsData.recordedBy}
-                  </div>
+                  <div>{activeApt.timeSlot}</div>
                 </div>
               </div>
 
@@ -712,16 +658,16 @@ export function VitalsDetailsScreen({
                     className="text-xs font-bold text-[#111827]"
                     style={{ fontFamily: PP }}
                   >
-                    Vitals Saved
+                    Vitals Recorded
                   </h4>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    All 8 core parameters recorded and validated
+                    All core parameters recorded and validated
                   </p>
                 </div>
                 <div className="text-right shrink-0 text-[10px] text-slate-400 font-mono">
-                  <div>Today, 08:48 AM</div>
+                  <div>{vitalsData.recordedAt || "—"}</div>
                   <div className="text-slate-500 font-semibold">
-                    {vitalsData.recordedBy}
+                    {vitalsData.recordedBy || "—"}
                   </div>
                 </div>
               </div>
@@ -735,16 +681,16 @@ export function VitalsDetailsScreen({
                     className="text-xs font-bold text-[#111827]"
                     style={{ fontFamily: PP }}
                   >
-                    Patient Marked Ready
+                    Ready for Consultation
                   </h4>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    Queue status updated to Ready for Consultation
+                    Queue status updated — patient ready for doctor review
                   </p>
                 </div>
                 <div className="text-right shrink-0 text-[10px] text-slate-400 font-mono">
-                  <div>Today, 08:50 AM</div>
+                  <div>Now</div>
                   <div className="text-slate-500 font-semibold">
-                    {vitalsData.recordedBy}
+                    {vitalsData.recordedBy || "—"}
                   </div>
                 </div>
               </div>
@@ -759,7 +705,7 @@ export function VitalsDetailsScreen({
             className="px-5 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-bold text-[#64748B] hover:bg-slate-100 transition-colors flex items-center gap-1.5"
             style={{ fontFamily: PP }}
           >
-            <ArrowLeft size={14} /> Back
+            <ArrowLeft size={14} /> Back to Queue
           </button>
 
           <button
@@ -789,6 +735,7 @@ export function RecordPatientVitalsForm({
   onPatientSelect?: (id: number | string) => void;
   onMarkReady: (aptId: string) => void;
 }) {
+  const { can } = usePermissions();
   const [chiefComplaint, setChiefComplaint] = useState(
     activeApt.chiefComplaint || activeApt.reason || "",
   );
@@ -882,14 +829,6 @@ export function RecordPatientVitalsForm({
             consultation.
           </p>
         </div>
-
-        <button
-          onClick={onBack}
-          className="px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
-          style={{ fontFamily: PP }}
-        >
-          <ArrowLeft size={14} /> Back to Center
-        </button>
       </div>
 
       {/* STICKY PATIENT SUMMARY STRIP */}
@@ -1163,12 +1102,13 @@ export function RecordPatientVitalsForm({
             className="px-5 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-bold text-[#64748B] hover:bg-slate-100 transition-colors flex items-center gap-1.5"
             style={{ fontFamily: PP }}
           >
-            <ArrowLeft size={14} /> Back
+            <ArrowLeft size={14} /> Back to Queue
           </button>
 
           <button
             onClick={handleSaveVitals}
-            className="px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5 shadow-sm"
+            disabled={!can("VITALS_CREATE")}
+            className="px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ fontFamily: PP }}
           >
             <Check size={14} /> Save Vitals
@@ -1187,6 +1127,8 @@ export function RecordPatientVitalsScreen({
   onViewAppointmentDetails,
   initialViewMode = "center",
 }: Props) {
+  const navigate = useNavigate();
+  const { can } = usePermissions();
   const [appointments, setAppointments] = useState<AppointmentRecord[]>([]);
   const [selectedAptId, setSelectedAptId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"center" | "record" | "details">(
@@ -1309,6 +1251,22 @@ export function RecordPatientVitalsScreen({
     );
   }, [appointments, selectedAptId]);
 
+  // Fetched vitals data for details view
+  const [detailsVitals, setDetailsVitals] = useState<RecordedVitalsData | null>(null);
+  const [loadingVitals, setLoadingVitals] = useState(false);
+
+  const fetchVitalsForDetails = useCallback(async (aptId: string | number) => {
+    setLoadingVitals(true);
+    try {
+      const data = await vitalsService.getVitals(aptId);
+      setDetailsVitals(data);
+    } catch {
+      setDetailsVitals(null);
+    } finally {
+      setLoadingVitals(false);
+    }
+  }, []);
+
   // Today's Queue list
   const todayQueue = useMemo(() => {
     const todayStr = new Date().toISOString().split("T")[0];
@@ -1411,18 +1369,31 @@ export function RecordPatientVitalsScreen({
     visitTypeFilter,
   ]);
 
+  // Pagination for queue table
+  const [queuePage, setQueuePage] = useState(1);
+  const queuePageSize = 10;
+  const queueTotalPages = Math.ceil(filteredAppointments.length / queuePageSize);
+  const paginatedAppointments = filteredAppointments.slice(
+    (queuePage - 1) * queuePageSize,
+    queuePage * queuePageSize,
+  );
+
   const handleSelectPatient = (
     apt: AppointmentRecord,
     mode: "record" | "details" = "record",
   ) => {
     setSelectedAptId(String(apt.id));
     setViewMode(mode);
+    if (mode === "details") {
+      fetchVitalsForDetails(apt.id);
+    }
     triggerToast(`Loaded ${apt.patientName}`, "info");
   };
 
   const handleMarkPatientReady = async (aptId: string) => {
-    // Nurse vitals POST already advances status to WAITING_FOR_DOCTOR_CALL
-    // No need to call updateAppointmentStatus separately
+    // Nurse API (POST /nurse/appointments/{id}/vitals) already transitions
+    // status to WAITING_FOR_DOCTOR_CALL on the backend.
+    // Only update local state here — no redundant PATCH call.
     setAppointments((prev) =>
       prev.map((a) =>
         String(a.id) === String(aptId)
@@ -1472,7 +1443,11 @@ export function RecordPatientVitalsScreen({
     return (
       <VitalsDetailsScreen
         activeApt={activeApt}
-        onBack={() => setViewMode("center")}
+        vitalsData={detailsVitals || undefined}
+        onBack={() => {
+          setViewMode("center");
+          setDetailsVitals(null);
+        }}
         onPatientSelect={onPatientSelect}
         onPrint={() => triggerToast("Printing Vitals Summary...", "info")}
       />
@@ -1871,7 +1846,7 @@ export function RecordPatientVitalsScreen({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
-                  {filteredAppointments.map((apt) => {
+                  {paginatedAppointments.map((apt) => {
                     const vStatus = getVitalsStatus(apt);
                     const isPending =
                       vStatus === "Waiting for Vitals" ||
@@ -1937,7 +1912,7 @@ export function RecordPatientVitalsScreen({
                         </td>
                         <td className="px-4 py-3.5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            {isPending ? (
+                            {isPending && can("VITALS_CREATE") && (
                               <button
                                 onClick={() =>
                                   handleSelectPatient(apt, "record")
@@ -1947,7 +1922,8 @@ export function RecordPatientVitalsScreen({
                               >
                                 Record Vitals
                               </button>
-                            ) : (
+                            )}
+                            {!isPending && can("VITALS_VIEW") && (
                               <button
                                 onClick={() =>
                                   handleSelectPatient(apt, "details")
@@ -2015,6 +1991,15 @@ export function RecordPatientVitalsScreen({
                 </tbody>
               </table>
             </div>
+            {filteredAppointments.length > 0 && (
+              <Pagination
+                currentPage={queuePage}
+                totalPages={queueTotalPages}
+                onPageChange={setQueuePage}
+                pageSize={queuePageSize}
+                totalCount={filteredAppointments.length}
+              />
+            )}
           </div>
         </div>
       </div>

@@ -22,6 +22,7 @@ import type {
   UserRole,
 } from "../types/appointment-screen.types";
 import type { AppointmentRecord } from "../types/appointment.types";
+import { Pagination } from "../../../common/components/Pagination";
 
 export function DockableQueueWorkspace({
   appointments,
@@ -31,6 +32,7 @@ export function DockableQueueWorkspace({
   onPatientSelect,
   userRole = "Receptionist",
   onStartConsultation,
+  onRefresh,
 }: {
   appointments: AppointmentRecord[];
   onUpdateStatus: (
@@ -44,6 +46,7 @@ export function DockableQueueWorkspace({
   onPatientSelect?: (id: number | string) => void;
   userRole?: UserRole;
   onStartConsultation?: (apt?: AppointmentRecord | null) => void;
+  onRefresh?: () => void;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [doctorFilter] = useState("All");
@@ -81,10 +84,8 @@ export function DockableQueueWorkspace({
       a.status === "Waiting for Doctor",
   );
   const checkedInPatients = todayQueue.filter(
-    (a) =>
-      a.status === "Checked-In" || a.status === "Waiting for Vitals",
+    (a) => a.status === "Checked-In" || a.status === "Waiting for Vitals",
   );
-  const calledPatients = todayQueue.filter((a) => a.status === "Called");
   const inConsultationPatients = todayQueue.filter(
     (a) => a.status === "In Consultation" || a.status === "In Progress",
   );
@@ -153,6 +154,15 @@ export function DockableQueueWorkspace({
     timeFilter,
   ]);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const totalPages = Math.ceil(filteredQueue.length / pageSize);
+  const paginatedQueue = filteredQueue.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
   const handleResetFilters = () => {
     setSearchQuery("");
     setStatusFilter("All");
@@ -210,8 +220,12 @@ export function DockableQueueWorkspace({
         <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={() => {
-              setIsLoading(true);
-              setTimeout(() => setIsLoading(false), 500);
+              if (onRefresh) {
+                onRefresh();
+              } else {
+                setIsLoading(true);
+                setTimeout(() => setIsLoading(false), 500);
+              }
             }}
             className="px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
           >
@@ -566,7 +580,7 @@ export function DockableQueueWorkspace({
                 </thead>
 
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
-                  {filteredQueue.map((q) => (
+                  {paginatedQueue.map((q) => (
                     <tr
                       key={q.id}
                       className="hover:bg-slate-50/80 transition-colors"
@@ -719,6 +733,13 @@ export function DockableQueueWorkspace({
                 </tbody>
               </table>
             </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              pageSize={pageSize}
+              totalCount={filteredQueue.length}
+            />
           </div>
         </div>
       </div>

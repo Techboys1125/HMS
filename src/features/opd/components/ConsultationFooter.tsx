@@ -21,7 +21,7 @@ export const ConsultationFooter: React.FC<ConsultationFooterProps> = ({
   disabled = false,
 }) => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] py-4 px-6 flex items-center justify-between z-40 shadow-lg">
+    <div className="sticky bottom-0 bg-white border-t border-[#E5E7EB] py-4 px-6 flex items-center justify-between z-40 shadow-lg mt-auto">
       <button
         type="button"
         onClick={onCancel}
