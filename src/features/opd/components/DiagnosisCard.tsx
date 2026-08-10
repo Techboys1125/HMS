@@ -93,7 +93,7 @@ export const DiagnosisCard: React.FC<DiagnosisCardProps> = ({
             <span className="text-slate-700" style={{ fontFamily: RB }}>
               {finalDiagnosis || "None recorded"}
               {icdCode && (
-                <span className="block font-mono text-xs text-[#0D47A1] font-bold mt-1 bg-blue-50 px-2 py-0.5 rounded-md inline-block">
+                <span className="block font-mono text-xs text-[#0D47A1] font-bold mt-1 bg-blue-50 px-2 py-0.5 rounded-md">
                   {icdCode}
                 </span>
               )}

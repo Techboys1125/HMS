@@ -151,7 +151,7 @@ export function ConsultationDetailsPage({
 
   if (loading) {
     return (
-      <div className="flex-1 bg-[#F1F5F9] flex items-center justify-center min-h-[400px]">
+      <div className="flex-1 bg-[#F1F5F9] flex items-center justify-center min-h-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#0D47A1] border-t-transparent mx-auto mb-3"></div>
           <p className="text-sm text-slate-600" style={{ fontFamily: RB }}>
@@ -164,7 +164,7 @@ export function ConsultationDetailsPage({
 
   if (error) {
     return (
-      <div className="flex-1 bg-[#F1F5F9] flex items-center justify-center min-h-[400px]">
+      <div className="flex-1 bg-[#F1F5F9] flex items-center justify-center min-h-100">
         <div className="text-center">
           <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-3">
             <AlertCircle size={20} />
@@ -179,7 +179,7 @@ export function ConsultationDetailsPage({
 
   if (!record) {
     return (
-      <div className="flex-1 bg-[#F1F5F9] flex items-center justify-center min-h-[400px]">
+      <div className="flex-1 bg-[#F1F5F9] flex items-center justify-center min-h-100">
         <p className="text-sm text-slate-600" style={{ fontFamily: RB }}>
           No consultation data found.
         </p>

@@ -362,7 +362,7 @@ export function EditPatientInformationDrawer({
               </button>
               <button
                 type="submit"
-                className="flex-[2] py-3 rounded-xl bg-[#0D47A1] text-white font-bold text-xs hover:bg-[#0c3d8a] transition-colors shadow-sm flex items-center justify-center gap-2"
+                className="flex-2 py-3 rounded-xl bg-[#0D47A1] text-white font-bold text-xs hover:bg-[#0c3d8a] transition-colors shadow-sm flex items-center justify-center gap-2"
                 style={{ fontFamily: PP }}
               >
                 <Save size={16} /> Save Changes
@@ -709,7 +709,7 @@ export function ProfileBookApptDrawer({
               </button>
               <button
                 type="submit"
-                className="flex-[2] py-2.5 rounded-xl bg-[#0D47A1] text-white font-bold hover:bg-[#0c3d8a] shadow-sm"
+                className="flex-2 py-2.5 rounded-xl bg-[#0D47A1] text-white font-bold hover:bg-[#0c3d8a] shadow-sm"
               >
                 Confirm Booking
               </button>
@@ -1058,7 +1058,7 @@ export function ProfileDocDrawer({
                   onDownload(`Downloading ${doc.title}...`);
                   onClose();
                 }}
-                className="flex-[2] py-2.5 rounded-xl bg-[#0D47A1] text-white font-bold hover:bg-[#0c3d8a] shadow-sm flex items-center justify-center gap-1.5"
+                className="flex-2 py-2.5 rounded-xl bg-[#0D47A1] text-white font-bold hover:bg-[#0c3d8a] shadow-sm flex items-center justify-center gap-1.5"
                 style={{ fontFamily: PP }}
               >
                 <Download size={15} /> Download PDF
@@ -1266,7 +1266,7 @@ export function ProfileVisitDetailsDrawer({
                 onClick={() => {
                   onPrint(`Printing Visit Summary for ${visit.id}...`);
                 }}
-                className="flex-[2] py-2.5 rounded-xl bg-[#0D47A1] text-white font-bold hover:bg-[#0c3d8a] shadow-sm flex items-center justify-center gap-1.5"
+                className="flex-2 py-2.5 rounded-xl bg-[#0D47A1] text-white font-bold hover:bg-[#0c3d8a] shadow-sm flex items-center justify-center gap-1.5"
                 style={{ fontFamily: PP }}
               >
                 <Printer size={15} /> Print Visit Summary
@@ -1562,7 +1562,7 @@ export function PatientQuickDetailsDrawer({
                   onClose();
                   onPatientSelect(patient.id);
                 }}
-                className="flex-[2] py-2.5 px-4 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-2 shadow-sm"
+                className="flex-2 py-2.5 px-4 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-2 shadow-sm"
                 style={{ fontFamily: PP }}
               >
                 <Eye size={15} /> View Full Profile

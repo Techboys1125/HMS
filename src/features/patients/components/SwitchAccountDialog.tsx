@@ -59,7 +59,7 @@ export function SwitchAccountDialog({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#0D47A1]/[0.08] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-[#0D47A1]/8 flex items-center justify-center">
               <ArrowRightLeft size={15} className="text-[#0D47A1]" />
             </div>
             <div>

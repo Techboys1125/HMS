@@ -284,13 +284,7 @@ export function DailyRevenueReportScreen({
         matchesMethod
       );
     });
-  }, [
-    searchQuery,
-    deptFilter,
-    doctorFilter,
-    paymentStatusFilter,
-    paymentMethodFilter,
-  ]);
+  }, [revenueTableSource, searchQuery, deptFilter, doctorFilter, paymentStatusFilter, paymentMethodFilter]);
 
   // Sorted records
   const sortedData = useMemo(() => {

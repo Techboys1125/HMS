@@ -21,7 +21,7 @@ export function ReportEmptyState({
       <h3 className="text-base font-bold text-[#111827] mb-1" style={{ fontFamily: PP }}>
         {title}
       </h3>
-      <p className="text-xs text-[#64748B] max-w-[300px]" style={{ fontFamily: RB }}>
+      <p className="text-xs text-[#64748B] max-w-75" style={{ fontFamily: RB }}>
         {message}
       </p>
     </div>

@@ -362,7 +362,7 @@ export function DockableQueueWorkspace({
       {(isDoctor || isNurse) && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* CURRENT PATIENT HIGHLIGHT CARD (8 Cols) */}
-          <div className="lg:col-span-8 bg-gradient-to-r from-teal-900 via-[#009688] to-[#0D47A1] rounded-2xl p-5 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="lg:col-span-8 bg-linear-to-r from-teal-900 via-[#009688] to-[#0D47A1] rounded-2xl p-5 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             {currentPatient ? (
               <>
                 <div className="flex items-center gap-4">
@@ -560,7 +560,7 @@ export function DockableQueueWorkspace({
               </span>
             </div>
 
-            <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+            <div className="overflow-x-auto max-h-125 overflow-y-auto">
               <table className="w-full border-collapse text-left text-xs">
                 <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
                   <tr

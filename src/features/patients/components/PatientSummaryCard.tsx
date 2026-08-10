@@ -27,7 +27,7 @@ export function PatientSummaryCard({
           : "bg-white border-[#E5E7EB]"
       }`}
     >
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0D47A1]/10 to-teal-100 text-[#0D47A1] flex items-center justify-center font-bold text-sm shrink-0">
+      <div className="w-10 h-10 rounded-full bg-linear-to-br from-[#0D47A1]/10 to-teal-100 text-[#0D47A1] flex items-center justify-center font-bold text-sm shrink-0">
         {patient.photoUrl ? (
           <img
             src={patient.photoUrl}

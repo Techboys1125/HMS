@@ -192,7 +192,7 @@ export function BillingReportScreen({
         matchesMethod
       );
     });
-  }, [searchQuery, deptFilter, doctorFilter, payStatusFilter, payMethodFilter]);
+  }, [billingTableSource, searchQuery, deptFilter, doctorFilter, payStatusFilter, payMethodFilter]);
 
   // Sorted records
   const sortedData = useMemo(() => {

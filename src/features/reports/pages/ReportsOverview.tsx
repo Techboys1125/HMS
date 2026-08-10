@@ -336,7 +336,7 @@ export function AdminReportsDashboardScreen({
       pending,
       collectionRate: 95.1,
     };
-  }, [filterMultiplier]);
+  }, [dashboardData, filterMultiplier]);
 
   const filteredDoctors = useMemo(() => {
     return doctorSource
@@ -384,7 +384,7 @@ export function AdminReportsDashboardScreen({
               : Math.max(0.4, filterMultiplier)),
         ),
       }));
-  }, [appliedFilters, searchQuery, filterMultiplier]);
+  }, [doctorSource, appliedFilters.dept, appliedFilters.doctor, searchQuery, filterMultiplier]);
 
   const sortedDoctors = useMemo(() => {
     return [...filteredDoctors].sort((a, b) => {

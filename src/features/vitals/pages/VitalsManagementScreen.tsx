@@ -156,7 +156,7 @@ export function VitalsDetailsScreen({
       </div>
 
       {/* STICKY PATIENT SUMMARY STRIP */}
-      <div className="bg-gradient-to-r from-blue-900 via-[#0D47A1] to-[#009688] rounded-2xl p-5 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-linear-to-r from-blue-900 via-[#0D47A1] to-[#009688] rounded-2xl p-5 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Avatar name={activeApt.patientName} size="lg" />
           <div>
@@ -567,7 +567,7 @@ export function VitalsDetailsScreen({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="bg-red-50/80 border border-red-100 p-3.5 rounded-xl space-y-1">
                 <strong
-                  className="text-red-900 block font-bold flex items-center gap-1.5"
+                  className="text-red-900 block font-bold items-center gap-1.5"
                   style={{ fontFamily: PP }}
                 >
                   <AlertTriangle size={14} className="text-[#EF4444]" /> Known
@@ -579,7 +579,7 @@ export function VitalsDetailsScreen({
               </div>
               <div className="bg-amber-50/80 border border-amber-100 p-3.5 rounded-xl space-y-1">
                 <strong
-                  className="text-amber-900 block font-bold flex items-center gap-1.5"
+                  className="text-amber-900 block font-bold items-center gap-1.5"
                   style={{ fontFamily: PP }}
                 >
                   <ShieldAlert size={14} className="text-[#F59E0B]" /> High Risk
@@ -627,7 +627,7 @@ export function VitalsDetailsScreen({
 
             <div className="relative pl-6 space-y-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
               <div className="relative flex items-start justify-between gap-4">
-                <div className="absolute -left-[23px] top-0.5 w-4 h-4 rounded-full bg-blue-100 border-2 border-[#0D47A1] flex items-center justify-center">
+                <div className="absolute -left-5.75 top-0.5 w-4 h-4 rounded-full bg-blue-100 border-2 border-[#0D47A1] flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#0D47A1]" />
                 </div>
                 <div>
@@ -647,7 +647,7 @@ export function VitalsDetailsScreen({
               </div>
 
               <div className="relative flex items-start justify-between gap-4">
-                <div className="absolute -left-[23px] top-0.5 w-4 h-4 rounded-full bg-teal-100 border-2 border-[#009688] flex items-center justify-center">
+                <div className="absolute -left-5.75 top-0.5 w-4 h-4 rounded-full bg-teal-100 border-2 border-[#009688] flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#009688]" />
                 </div>
                 <div>
@@ -670,7 +670,7 @@ export function VitalsDetailsScreen({
               </div>
 
               <div className="relative flex items-start justify-between gap-4">
-                <div className="absolute -left-[23px] top-0.5 w-4 h-4 rounded-full bg-green-100 border-2 border-[#66BB6A] flex items-center justify-center">
+                <div className="absolute -left-5.75 top-0.5 w-4 h-4 rounded-full bg-green-100 border-2 border-[#66BB6A] flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#66BB6A]" />
                 </div>
                 <div>
@@ -829,7 +829,7 @@ export function RecordPatientVitalsForm({
       </div>
 
       {/* STICKY PATIENT SUMMARY STRIP */}
-      <div className="bg-gradient-to-r from-blue-900 via-[#0D47A1] to-[#009688] rounded-2xl p-5 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-linear-to-r from-blue-900 via-[#0D47A1] to-[#009688] rounded-2xl p-5 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Avatar name={activeApt.patientName} size="lg" />
           <div>

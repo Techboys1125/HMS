@@ -246,7 +246,7 @@ export function DailyAppointmentReportScreen({
         matchesVisit
       );
     });
-  }, [searchQuery, deptFilter, doctorFilter, statusFilter, visitTypeFilter]);
+  }, [tableDataSource, searchQuery, deptFilter, doctorFilter, statusFilter, visitTypeFilter]);
 
   const sortedData = useMemo(() => {
     return [...filteredData].sort((a, b) => {

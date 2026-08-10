@@ -529,7 +529,6 @@ export interface ApiPatientPrescription {
   medicines?: Array<{
     dose: any;
     route: string;
-    route: string;
     strength: string;
     medicineName: string;
     name: string;

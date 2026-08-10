@@ -135,7 +135,7 @@ export function SuperAdminDashboard() {
                         <Building2 size={13} className="text-[#0D47A1]" />
                       </div>
                       <span
-                        className="text-sm font-medium text-[#111827] truncate max-w-[180px]"
+                        className="text-sm font-medium text-[#111827] truncate max-w-45"
                         style={{ fontFamily: RB }}
                       >
                         {h.name}

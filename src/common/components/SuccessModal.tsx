@@ -43,7 +43,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
         <div className="px-5 py-4 border-t border-gray-100 bg-slate-50/50 flex justify-center">
           <button
             onClick={onClose}
-            className="w-full max-w-[200px] px-4 py-2 bg-[#0D47A1] hover:bg-[#0c3d8a] text-white rounded-xl font-bold cursor-pointer transition-colors shadow-xs"
+            className="w-full max-w-50 px-4 py-2 bg-[#0D47A1] hover:bg-[#0c3d8a] text-white rounded-xl font-bold cursor-pointer transition-colors shadow-xs"
           >
             {actionText}
           </button>

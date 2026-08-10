@@ -174,7 +174,7 @@ export function DoctorReportScreen({
 
       return matchesSearch && matchesDept && matchesDoctor;
     });
-  }, [searchQuery, deptFilter, doctorFilter]);
+  }, [doctorTableSource, searchQuery, deptFilter, doctorFilter]);
 
   // Sorted records
   const sortedData = useMemo(() => {

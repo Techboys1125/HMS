@@ -252,7 +252,7 @@ export function PatientCheckInScreen({
 
         {/* SUMMARY PANEL */}
         <div className="xl:col-span-4 space-y-6">
-          <div className="bg-white rounded-2xl border border-[#009688] p-5 shadow-xs space-y-3 bg-gradient-to-b from-teal-50/40 to-white">
+          <div className="bg-white rounded-2xl border border-[#009688] p-5 shadow-xs space-y-3 bg-linear-to-b from-teal-50/40 to-white">
             <h3 className="text-xs font-bold text-[#009688] uppercase tracking-wider border-b border-teal-100 pb-2 flex items-center justify-between font-heading">
               <span>Arrival Summary</span>
               <Clock size={14} />

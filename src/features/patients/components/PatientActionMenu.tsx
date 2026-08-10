@@ -99,7 +99,7 @@ export function PatientActionMenu({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-1 z-20 bg-white rounded-xl border border-[#E5E7EB] shadow-lg py-1.5 min-w-[180px] animate-[scaleIn_0.15s_ease-out]">
+        <div className="absolute right-0 top-full mt-1 z-20 bg-white rounded-xl border border-[#E5E7EB] shadow-lg py-1.5 min-w-45 animate-[scaleIn_0.15s_ease-out]">
           {actions.map((action) => {
             const Icon = action.icon;
             return (

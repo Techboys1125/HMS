@@ -247,7 +247,7 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
           </button>
 
           {/* Right Preview/Help Message */}
-          <span className="text-[10px] text-slate-400 font-medium hidden sm:inline flex items-center gap-1">
+          <span className="text-[10px] text-slate-400 font-medium hidden sm:inline items-center gap-1">
             <Shield size={11} />
             Step {currentStep} of {totalSteps} —{" "}
             {stepsList[currentStep - 1]?.label}

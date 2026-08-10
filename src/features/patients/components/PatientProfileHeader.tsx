@@ -57,7 +57,7 @@ export function PatientProfileHeader({
         )}
 
         {/* Avatar */}
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0D47A1]/10 to-teal-100 text-[#0D47A1] flex items-center justify-center font-bold text-lg shrink-0">
+        <div className="w-12 h-12 rounded-full bg-linear-to-br from-[#0D47A1]/10 to-teal-100 text-[#0D47A1] flex items-center justify-center font-bold text-lg shrink-0">
           {patient.photoUrl ? (
             <img
               src={patient.photoUrl}
