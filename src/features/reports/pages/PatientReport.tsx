@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Calendar,
   Download,
@@ -10,12 +10,14 @@ import {
   PieChart,
   CheckCircle2,
   AlertCircle,
+  Activity,
   Users,
   UserCheck,
   TrendingUp,
   Building2,
   Printer,
   ChevronLeft,
+  Shield,
   ChevronRight as ChevronRightIcon,
   Eye,
   FileSpreadsheet,
@@ -40,217 +42,48 @@ import {
 import { PP, RB } from "../constants/reports.constants";
 import type { PatientReportRecord } from "../types/reports.types";
 import {
-  usePatientRegistrationDetails,
-  usePatientMasterRegister,
   usePatientAgeDemographics,
   useDepartmentPatientVisits,
-  useDoctorPatientWorkload,
   useGenderBreakdown,
   usePatientRegistrationSummary,
 } from "../hooks/useReports";
-const PATIENT_REPORT_TABLE_DATA: PatientReportRecord[] = [
-  {
-    mrn: "MRN-89201",
-    patientName: "Sarah Mitchell",
-    age: 34,
-    gender: "Female",
-    mobile: "+91 98765 43210",
-    department: "Cardiology",
-    doctorName: "Dr. Sarah Jenkins",
-    registrationDate: "2026-07-20",
-    lastVisit: "2026-07-26",
-    visitType: "Follow-up",
-    status: "Active",
-  },
-  {
-    mrn: "MRN-89202",
-    patientName: "James Thornton",
-    age: 48,
-    gender: "Male",
-    mobile: "+91 97654 32109",
-    department: "Neurology",
-    doctorName: "Dr. Rajesh Kapoor",
-    registrationDate: "2026-07-26",
-    lastVisit: "2026-07-26",
-    visitType: "New Visit",
-    status: "Active",
-  },
-  {
-    mrn: "MRN-89203",
-    patientName: "Emma Reyes",
-    age: 29,
-    gender: "Female",
-    mobile: "+91 96543 21098",
-    department: "General Medicine",
-    doctorName: "Dr. Priya Sharma",
-    registrationDate: "2026-07-24",
-    lastVisit: "2026-07-26",
-    visitType: "Walk-in",
-    status: "Active",
-  },
-  {
-    mrn: "MRN-89204",
-    patientName: "David Walsh",
-    age: 52,
-    gender: "Male",
-    mobile: "+91 95432 10987",
-    department: "Orthopedics",
-    doctorName: "Dr. Arjun Mehta",
-    registrationDate: "2026-07-22",
-    lastVisit: "2026-07-26",
-    visitType: "Follow-up",
-    status: "Completed",
-  },
-  {
-    mrn: "MRN-89205",
-    patientName: "Aisha Kumar",
-    age: 27,
-    gender: "Female",
-    mobile: "+91 94321 09876",
-    department: "Gynecology",
-    doctorName: "Dr. Sunita Patel",
-    registrationDate: "2026-07-26",
-    lastVisit: "2026-07-26",
-    visitType: "New Visit",
-    status: "Active",
-  },
-  {
-    mrn: "MRN-89206",
-    patientName: "Robert Vance",
-    age: 61,
-    gender: "Male",
-    mobile: "+91 93210 98765",
-    department: "General Medicine",
-    doctorName: "Dr. Priya Sharma",
-    registrationDate: "2026-07-15",
-    lastVisit: "2026-07-25",
-    visitType: "Follow-up",
-    status: "Pending Follow-up",
-  },
-  {
-    mrn: "MRN-89207",
-    patientName: "Elena Rostova",
-    age: 41,
-    gender: "Female",
-    mobile: "+91 92109 87654",
-    department: "Cardiology",
-    doctorName: "Dr. Sarah Jenkins",
-    registrationDate: "2026-07-26",
-    lastVisit: "2026-07-26",
-    visitType: "Walk-in",
-    status: "Active",
-  },
-];
 
-const AGE_DISTRIBUTION_DATA = [
-  { group: "0â€“12", count: 45, percentage: 12 },
-  { group: "13â€“18", count: 30, percentage: 8 },
-  { group: "19â€“30", count: 110, percentage: 28 },
-  { group: "31â€“45", count: 125, percentage: 32 },
-  { group: "46â€“60", count: 55, percentage: 14 },
-  { group: "60+", count: 25, percentage: 6 },
-];
-
-const GENDER_DISTRIBUTION_DATA = [
-  { name: "Female", value: 180, percentage: 46, color: "#009688" },
-  { name: "Male", value: 195, percentage: 50, color: "#0D47A1" },
-  { name: "Other", value: 15, percentage: 4, color: "#4DB6AC" },
-];
-
-const PATIENT_REGISTRATION_TREND_DATA = [
-  { date: "Jul 20", New: 24, Returning: 12, Total: 36 },
-  { date: "Jul 21", New: 28, Returning: 15, Total: 43 },
-  { date: "Jul 22", New: 26, Returning: 14, Total: 40 },
-  { date: "Jul 23", New: 32, Returning: 18, Total: 50 },
-  { date: "Jul 24", New: 30, Returning: 16, Total: 46 },
-  { date: "Jul 25", New: 31, Returning: 19, Total: 50 },
-  { date: "Jul 26", New: 34, Returning: 24, Total: 58 },
-];
-
-const DEPT_PATIENT_VISITS_DATA = [
-  {
-    department: "Gen. Medicine",
-    total: 168,
-    newPatients: 110,
-    returningPatients: 58,
-  },
-  {
-    department: "Cardiology",
-    total: 120,
-    newPatients: 75,
-    returningPatients: 45,
-  },
-  {
-    department: "Orthopedics",
-    total: 95,
-    newPatients: 60,
-    returningPatients: 35,
-  },
-  { department: "ENT", total: 65, newPatients: 45, returningPatients: 20 },
-  {
-    department: "Neurology",
-    total: 80,
-    newPatients: 50,
-    returningPatients: 30,
-  },
-  {
-    department: "Pediatrics",
-    total: 90,
-    newPatients: 65,
-    returningPatients: 25,
-  },
-];
-
-const DOCTOR_PATIENT_DATA = [
-  { doctor: "Dr. S. Jenkins", assigned: 142, completed: 134, followup: 24 },
-  { doctor: "Dr. R. Kapoor", assigned: 118, completed: 110, followup: 18 },
-  { doctor: "Dr. P. Sharma", assigned: 195, completed: 188, followup: 32 },
-  { doctor: "Dr. A. Mehta", assigned: 130, completed: 121, followup: 21 },
-  { doctor: "Dr. S. Patel", assigned: 156, completed: 149, followup: 28 },
-];
-
-const RECENT_PATIENT_TIMELINE = [
-  {
-    id: "PT-101",
-    type: "Patient Registered",
-    patient: "James Thornton",
-    mrn: "MRN-89202",
-    doctor: "Dr. Rajesh Kapoor",
-    time: "09:30 AM",
-  },
-  {
-    id: "PT-102",
-    type: "Appointment Booked",
-    patient: "Aisha Kumar",
-    mrn: "MRN-89205",
-    doctor: "Dr. Sunita Patel",
-    time: "09:15 AM",
-  },
-  {
-    id: "PT-103",
-    type: "Checked-In",
-    patient: "Emma Reyes",
-    mrn: "MRN-89203",
-    doctor: "Dr. Priya Sharma",
-    time: "08:50 AM",
-  },
-  {
-    id: "PT-104",
-    type: "Consultation Completed",
-    patient: "Sarah Mitchell",
-    mrn: "MRN-89201",
-    doctor: "Dr. Sarah Jenkins",
-    time: "08:30 AM",
-  },
-  {
-    id: "PT-105",
-    type: "Follow-up Scheduled",
-    patient: "David Walsh",
-    mrn: "MRN-89204",
-    doctor: "Dr. Arjun Mehta",
-    time: "08:00 AM",
-  },
-];
+function CircularProgress({
+  percentage,
+  size = 64,
+  strokeWidth = 7,
+}: {
+  percentage: number;
+  size?: number;
+  strokeWidth?: number;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (percentage / 100) * circumference;
+  return (
+    <svg width={size} height={size} className="transform -rotate-90">
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="#E5E7EB"
+        strokeWidth={strokeWidth}
+      />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="#0D47A1"
+        strokeWidth={strokeWidth}
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 export function PatientReportScreen({
   onBack,
@@ -283,11 +116,8 @@ export function PatientReportScreen({
 
   // ─── API Data Hooks ──────────────────────────────────────────────────────
   const reportFilters = { fromDate: "2026-08-01", toDate: "2026-08-08" };
-  const { data: registrationDetails } = usePatientRegistrationDetails(reportFilters);
-  const { data: masterRegister } = usePatientMasterRegister(reportFilters);
   const { data: ageDemographics } = usePatientAgeDemographics(reportFilters);
   const { data: deptVisits = [] } = useDepartmentPatientVisits(reportFilters);
-  const { data: doctorWorkload = [] } = useDoctorPatientWorkload(reportFilters);
   const { data: genderData } = useGenderBreakdown(reportFilters);
   const { data: regSummary } = usePatientRegistrationSummary(reportFilters);
 
@@ -306,6 +136,20 @@ export function PatientReportScreen({
   });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdated] = useState(() => {
+    const now = new Date();
+    const day = now.toLocaleDateString("en-US", { weekday: "long" });
+    const time = now.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return `${day}, ${time}`;
+  });
+  const [lastRefreshed] = useState(() => {
+    const now = new Date();
+    return now.toISOString().slice(0, 16).replace("T", " ");
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [trendDays, setTrendDays] = useState<"7 Days" | "30 Days" | "90 Days">(
@@ -362,45 +206,24 @@ export function PatientReportScreen({
     }, 300);
   };
 
-  // Dynamic filter multiplier for KPI updates
-  const patientFilterMultiplier = useMemo(() => {
-    let mult = 1.0;
-    if (appliedFilters.dept !== "All Departments") mult *= 0.35;
-    if (appliedFilters.doctor !== "All Doctors") mult *= 0.2;
-    if (appliedFilters.gender === "Female") mult *= 0.46;
-    if (appliedFilters.gender === "Male") mult *= 0.5;
-    if (appliedFilters.visitType === "New Visit") mult *= 0.65;
-    if (appliedFilters.visitType === "Follow-up") mult *= 0.35;
-    if (appliedFilters.dateRange === "Last 7 Days") mult *= 6.8;
-    if (appliedFilters.dateRange === "This Month") mult *= 28;
-    return mult;
-  }, [appliedFilters]);
-
-  // Computed KPI Card Values
+  // Computed KPI Card Values from API hooks
   const computedPatientStats = useMemo(() => {
-    const totalReg = Math.round(
-      390 *
-        (patientFilterMultiplier > 2
-          ? patientFilterMultiplier / 28
-          : Math.max(0.25, patientFilterMultiplier)),
-    );
-    const newCount = Math.round(totalReg * 0.65);
-    const returningCount = Math.max(0, totalReg - newCount);
-    const walkIns = Math.round(totalReg * 0.24);
-    const scheduled = Math.max(0, totalReg - walkIns);
+    const totalReg = regSummary?.totalRegistrations ?? 0;
+    const newCount = regSummary?.newPatients ?? 0;
+    const returningCount = regSummary?.returningPatients ?? 0;
     return {
       totalReg,
       newCount,
       returningCount,
-      walkIns,
-      scheduled,
-      activeCount: Math.round(totalReg * 0.92),
+      walkIns: 0,
+      scheduled: 0,
+      activeCount: ageDemographics?.totalPatients ?? 0,
     };
-  }, [patientFilterMultiplier]);
+  }, [regSummary, ageDemographics]);
 
   // Filtered records
   const filteredData = useMemo(() => {
-    return PATIENT_REPORT_TABLE_DATA.filter((item) => {
+    return [].filter((item) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -515,7 +338,7 @@ export function PatientReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 10:45 AM</strong>
+                  <strong className="text-[#111827]">{lastUpdated}</strong>
                 </span>
               </div>
 
@@ -945,7 +768,7 @@ export function PatientReportScreen({
                   </div>
                   <div className="h-8">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={PATIENT_REGISTRATION_TREND_DATA}>
+                      <LineChart data={[]}>
                         <Line
                           type="monotone"
                           dataKey="Total"
@@ -972,7 +795,7 @@ export function PatientReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    34
+                    {regSummary?.newPatients ?? 0}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
                     <span className="text-[#009688] font-semibold">
@@ -981,7 +804,7 @@ export function PatientReportScreen({
                   </div>
                   <div className="h-8">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={PATIENT_REGISTRATION_TREND_DATA}>
+                      <AreaChart data={[]}>
                         <Area
                           type="monotone"
                           dataKey="New"
@@ -1008,7 +831,7 @@ export function PatientReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    24
+                    {regSummary?.returningPatients ?? 0}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
                     <span className="text-[#66BB6A] font-semibold">
@@ -1017,7 +840,7 @@ export function PatientReportScreen({
                   </div>
                   <div className="h-8">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={PATIENT_REGISTRATION_TREND_DATA}>
+                      <LineChart data={[]}>
                         <Line
                           type="monotone"
                           dataKey="Returning"
@@ -1044,7 +867,7 @@ export function PatientReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    8
+                    0
                   </div>
                   <div className="text-[11px] text-[#64748B]">
                     26 Scheduled Appointments
@@ -1072,10 +895,11 @@ export function PatientReportScreen({
                     </div>
                   </div>
                   <div className="text-xs font-bold text-[#111827] mb-1">
-                    Male: 50% | Female: 46%
+                    Male: {genderData?.malePercentage ?? 0}% | Female:{" "}
+                    {genderData?.femalePercentage ?? 0}%
                   </div>
                   <div className="text-[11px] text-[#64748B] mb-2">
-                    Other: 4%
+                    Other: {genderData?.otherPercentage ?? 0}%
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
                     <div
@@ -1103,16 +927,19 @@ export function PatientReportScreen({
                       className="text-2xl font-bold text-[#111827] mt-1"
                       style={{ fontFamily: PP }}
                     >
-                      42 / day
+                      {regSummary?.totalRegistrations
+                        ? Math.round(regSummary.totalRegistrations / 7)
+                        : 0}{" "}
+                      / day
                     </div>
                     <p className="text-[11px] text-[#64748B] mt-1">
                       Peak Day: Monday (58)
                     </p>
                     <div className="mt-1 text-[11px] font-semibold text-[#66BB6A]">
-                      âœ“ Optimal Intake Capacity
+                      âœ" Optimal Intake Capacity
                     </div>
                   </div>
-                  <CircularProgress percentage={84} size={64} strokeWidth={7} />
+                  <CircularProgress percentage={0} size={64} strokeWidth={7} />
                 </div>
               </div>
 
@@ -1148,7 +975,7 @@ export function PatientReportScreen({
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
-                      data={PATIENT_REGISTRATION_TREND_DATA}
+                      data={[]}
                       margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
                     >
                       <defs>
@@ -1250,7 +1077,7 @@ export function PatientReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={AGE_DISTRIBUTION_DATA}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1298,7 +1125,7 @@ export function PatientReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={GENDER_DISTRIBUTION_DATA}
+                          data={[]}
                           cx="50%"
                           cy="50%"
                           innerRadius={45}
@@ -1306,7 +1133,7 @@ export function PatientReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {GENDER_DISTRIBUTION_DATA.map((entry, index) => (
+                          {[].map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
@@ -1355,7 +1182,7 @@ export function PatientReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                        data={DEPT_PATIENT_VISITS_DATA}
+                        data={[]}
                         margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1407,7 +1234,7 @@ export function PatientReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={DOCTOR_PATIENT_DATA}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1607,7 +1434,7 @@ export function PatientReportScreen({
                   Recent Patient Registration & Visit Activity
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {RECENT_PATIENT_TIMELINE.map((act) => (
+                  {[].map((act) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1670,28 +1497,39 @@ export function PatientReportScreen({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Total Patients:</span>
-                    <span className="font-bold text-[#0D47A1]">58</span>
+                    <span className="font-bold text-[#0D47A1]">
+                      {regSummary?.totalRegistrations ?? 0}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">New Patients:</span>
-                    <span className="font-bold text-[#009688]">34</span>
+                    <span className="font-bold text-[#009688]">
+                      {regSummary?.newPatients ?? 0}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Returning Patients:</span>
-                    <span className="font-bold text-[#66BB6A]">24</span>
+                    <span className="font-bold text-[#66BB6A]">
+                      {regSummary?.returningPatients ?? 0}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Walk-Ins:</span>
-                    <span className="font-bold text-[#F59E0B]">8</span>
+                    <span className="font-bold text-[#F59E0B]">0</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Avg Daily Intake:</span>
-                    <span className="font-bold text-[#111827]">42 / day</span>
+                    <span className="font-bold text-[#111827]">
+                      {regSummary?.totalRegistrations
+                        ? Math.round(regSummary.totalRegistrations / 7)
+                        : 0}{" "}
+                      / day
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Most Active Dept:</span>
                     <span className="font-bold text-[#0D47A1]">
-                      Gen. Medicine
+                      {deptVisits[0]?.departmentName ?? "--"}
                     </span>
                   </div>
                 </div>
@@ -1793,7 +1631,7 @@ export function PatientReportScreen({
           <div>Hospital Management System â€¢ Patient Report v1.0</div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 01:10</strong>
+            <strong className="text-[#111827]">{lastRefreshed}</strong>
           </div>
         </div>
       </div>

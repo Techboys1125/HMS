@@ -375,7 +375,6 @@ export function PatientMyBillsPage() {
 }
 
 export default PatientMyBillsPage;
-function setDateRange(arg0: string) {
+function setDateRange(_p0: string) {
   throw new Error("Function not implemented.");
 }
-

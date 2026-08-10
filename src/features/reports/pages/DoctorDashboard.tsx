@@ -1,4 +1,4 @@
-import  { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Calendar,
   Download,
@@ -9,7 +9,6 @@ import {
   Users,
   UserCheck,
   Activity,
-  TrendingUp,
   Clock,
   PieChart,
   Eye,
@@ -94,132 +93,6 @@ export interface DoctorConsultationRecord {
   status: string;
 }
 
-const DOCTOR_RECENT_CONSULTATIONS: DoctorConsultationRecord[] = [
-  {
-    id: "CON-801",
-    patientName: "Sarah Mitchell",
-    mrn: "MRN-89201",
-    appointmentDate: "2026-07-26",
-    consultationTime: "10:15 AM",
-    diagnosis: "Hypertension Stage 1",
-    prescription: "Tab. Amlodipine 5mg QD",
-    status: "Completed",
-  },
-  {
-    id: "CON-802",
-    patientName: "James Thornton",
-    mrn: "MRN-89202",
-    appointmentDate: "2026-07-26",
-    consultationTime: "10:45 AM",
-    diagnosis: "Acute Bronchitis",
-    prescription: "Syr. Benadryl 10ml TID",
-    status: "Completed",
-  },
-  {
-    id: "CON-803",
-    patientName: "Emma Reyes",
-    mrn: "MRN-89203",
-    appointmentDate: "2026-07-26",
-    consultationTime: "11:15 AM",
-    diagnosis: "Type 2 Diabetes Routine Check",
-    prescription: "Tab. Metformin 500mg BID",
-    status: "Completed",
-  },
-  {
-    id: "CON-804",
-    patientName: "Aisha Kumar",
-    mrn: "MRN-89204",
-    appointmentDate: "2026-07-26",
-    consultationTime: "11:45 AM",
-    diagnosis: "Migraine Follow-up",
-    prescription: "Tab. Sumatriptan 50mg PRN",
-    status: "In Progress",
-  },
-  {
-    id: "CON-805",
-    patientName: "Michael Chang",
-    mrn: "MRN-89205",
-    appointmentDate: "2026-07-26",
-    consultationTime: "12:15 PM",
-    diagnosis: "Osteoarthritis Knee Evaluation",
-    prescription: "Tab. Naproxen 250mg BID",
-    status: "Scheduled",
-  },
-];
-
-const DOCTOR_APPOINTMENT_TREND = [
-  {
-    date: "Jul 20",
-    appointments: 22,
-    completed: 18,
-    cancelled: 2,
-    followUp: 2,
-  },
-  {
-    date: "Jul 21",
-    appointments: 25,
-    completed: 21,
-    cancelled: 2,
-    followUp: 2,
-  },
-  {
-    date: "Jul 22",
-    appointments: 20,
-    completed: 17,
-    cancelled: 1,
-    followUp: 2,
-  },
-  {
-    date: "Jul 23",
-    appointments: 28,
-    completed: 24,
-    cancelled: 2,
-    followUp: 2,
-  },
-  {
-    date: "Jul 24",
-    appointments: 26,
-    completed: 22,
-    cancelled: 2,
-    followUp: 2,
-  },
-  {
-    date: "Jul 25",
-    appointments: 30,
-    completed: 26,
-    cancelled: 2,
-    followUp: 2,
-  },
-  {
-    date: "Jul 26",
-    appointments: 32,
-    completed: 28,
-    cancelled: 2,
-    followUp: 2,
-  },
-];
-
-const DOCTOR_CONSULTATION_ANALYTICS = [
-  { date: "08:00 AM", completed: 4, avgTime: 16.5 },
-  { date: "09:00 AM", completed: 8, avgTime: 17.2 },
-  { date: "10:00 AM", completed: 14, avgTime: 18.1 },
-  { date: "11:00 AM", completed: 20, avgTime: 18.4 },
-  { date: "12:00 PM", completed: 24, avgTime: 18.2 },
-  { date: "01:00 PM", completed: 28, avgTime: 18.4 },
-];
-
-const DOCTOR_PATIENT_DISTRIBUTION = [
-  { name: "New Patients", value: 34, percentage: 58.6, color: "#009688" },
-  { name: "Returning Patients", value: 16, percentage: 27.6, color: "#0D47A1" },
-  { name: "Follow-up Patients", value: 8, percentage: 13.8, color: "#4DB6AC" },
-];
-
-const DOCTOR_WORKLOAD_SLOTS = [
-  { slot: "Morning (08am-12pm)", total: 18, completed: 16, pending: 2 },
-  { slot: "Afternoon (01pm-04pm)", total: 10, completed: 8, pending: 2 },
-  { slot: "Evening (05pm-08pm)", total: 4, completed: 0, pending: 4 },
-];
-
 export function DoctorReportsDashboardScreen({
   onOpenReport,
   onOpenKpiDetail,
@@ -250,7 +123,7 @@ export function DoctorReportsDashboardScreen({
   };
 
   const filteredConsultations = useMemo(() => {
-    return DOCTOR_RECENT_CONSULTATIONS.filter((item) => {
+    return ([] as DoctorConsultationRecord[]).filter((item) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -300,7 +173,12 @@ export function DoctorReportsDashboardScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:45 AM</strong>
+                  <strong className="text-[#111827]">
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
                 </span>
               </div>
 
@@ -530,11 +408,11 @@ export function DoctorReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    32
+                    0
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> +14.2% vs yesterday
+                      --
                     </span>
                     <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
                       View Detail <ChevronRight className="w-3 h-3" />
@@ -542,15 +420,15 @@ export function DoctorReportsDashboardScreen({
                   </div>
                   <div className="grid grid-cols-3 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#66BB6A] font-bold">28</div>
+                      <div className="text-[#66BB6A] font-bold">0</div>
                       <div className="text-[#64748B]">Done</div>
                     </div>
                     <div>
-                      <div className="text-[#EF4444] font-bold">2</div>
+                      <div className="text-[#EF4444] font-bold">0</div>
                       <div className="text-[#64748B]">Cancel</div>
                     </div>
                     <div>
-                      <div className="text-[#F59E0B] font-bold">2</div>
+                      <div className="text-[#F59E0B] font-bold">0</div>
                       <div className="text-[#64748B]">Pending</div>
                     </div>
                   </div>
@@ -573,11 +451,11 @@ export function DoctorReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    58
+                    0
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#009688] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> Active Intake
+                      --
                     </span>
                     <span className="text-[#009688] font-semibold flex items-center gap-0.5 group-hover:underline">
                       View Detail <ChevronRight className="w-3 h-3" />
@@ -585,15 +463,15 @@ export function DoctorReportsDashboardScreen({
                   </div>
                   <div className="grid grid-cols-3 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#009688] font-bold">34</div>
+                      <div className="text-[#009688] font-bold">0</div>
                       <div className="text-[#64748B]">New</div>
                     </div>
                     <div>
-                      <div className="text-[#0D47A1] font-bold">16</div>
+                      <div className="text-[#0D47A1] font-bold">0</div>
                       <div className="text-[#64748B]">Return</div>
                     </div>
                     <div>
-                      <div className="text-[#4DB6AC] font-bold">8</div>
+                      <div className="text-[#4DB6AC] font-bold">0</div>
                       <div className="text-[#64748B]">Walk-in</div>
                     </div>
                   </div>
@@ -618,23 +496,21 @@ export function DoctorReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    28
+                    0
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#0D47A1] font-semibold">
-                      Today's Completed
-                    </span>
+                    <span className="text-[#0D47A1] font-semibold">--</span>
                     <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
                       View Detail <ChevronRight className="w-3 h-3" />
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#0D47A1] font-bold">28</div>
+                      <div className="text-[#0D47A1] font-bold">0</div>
                       <div className="text-[#64748B]">Today</div>
                     </div>
                     <div>
-                      <div className="text-[#66BB6A] font-bold">134</div>
+                      <div className="text-[#66BB6A] font-bold">0</div>
                       <div className="text-[#64748B]">Monthly</div>
                     </div>
                   </div>
@@ -657,23 +533,21 @@ export function DoctorReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    8
+                    0
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#F59E0B] font-semibold">
-                      Today's Scheduled
-                    </span>
+                    <span className="text-[#F59E0B] font-semibold">--</span>
                     <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
                       View Detail <ChevronRight className="w-3 h-3" />
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#F59E0B] font-bold">8</div>
+                      <div className="text-[#F59E0B] font-bold">0</div>
                       <div className="text-[#64748B]">Today</div>
                     </div>
                     <div>
-                      <div className="text-[#009688] font-bold">24</div>
+                      <div className="text-[#009688] font-bold">0</div>
                       <div className="text-[#64748B]">Upcoming</div>
                     </div>
                   </div>
@@ -698,23 +572,21 @@ export function DoctorReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    18.4 min
+                    --
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#009688] font-semibold">
-                      -1.2 min vs dept avg
-                    </span>
+                    <span className="text-[#009688] font-semibold">--</span>
                     <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
                       View Detail <ChevronRight className="w-3 h-3" />
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#009688] font-bold">18.4 min</div>
+                      <div className="text-[#009688] font-bold">--</div>
                       <div className="text-[#64748B]">My Avg</div>
                     </div>
                     <div>
-                      <div className="text-[#64748B] font-bold">19.6 min</div>
+                      <div className="text-[#64748B] font-bold">--</div>
                       <div className="text-[#64748B]">Dept Avg</div>
                     </div>
                   </div>
@@ -735,11 +607,9 @@ export function DoctorReportsDashboardScreen({
                       className="text-2xl font-bold text-[#111827] mt-1"
                       style={{ fontFamily: PP }}
                     >
-                      4.90 / 5
+                      --
                     </div>
-                    <p className="text-[11px] text-[#64748B] mt-1">
-                      Based on 134 reviews
-                    </p>
+                    <p className="text-[11px] text-[#64748B] mt-1">--</p>
                     <div className="mt-2 text-[11px] font-semibold text-[#66BB6A] flex items-center gap-0.5 group-hover:underline">
                       View Detail <ChevronRight className="w-3 h-3" />
                     </div>
@@ -948,7 +818,7 @@ export function DoctorReportsDashboardScreen({
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
-                      data={DOCTOR_APPOINTMENT_TREND}
+                      data={[]}
                       margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
                     >
                       <defs>
@@ -1050,7 +920,7 @@ export function DoctorReportsDashboardScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
-                        data={DOCTOR_CONSULTATION_ANALYTICS}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1108,7 +978,7 @@ export function DoctorReportsDashboardScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={DOCTOR_PATIENT_DISTRIBUTION}
+                          data={[]}
                           cx="50%"
                           cy="50%"
                           innerRadius={45}
@@ -1116,7 +986,7 @@ export function DoctorReportsDashboardScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {DOCTOR_PATIENT_DISTRIBUTION.map((entry, index) => (
+                          {[].map((entry: any, index: number) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
@@ -1164,7 +1034,7 @@ export function DoctorReportsDashboardScreen({
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       layout="vertical"
-                      data={DOCTOR_WORKLOAD_SLOTS}
+                      data={[]}
                       margin={{ top: 5, right: 10, left: 35, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1326,7 +1196,9 @@ export function DoctorReportsDashboardScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 01:32</strong>
+            <strong className="text-[#111827]">
+              {new Date().toLocaleString()}
+            </strong>
           </div>
         </div>
       </div>

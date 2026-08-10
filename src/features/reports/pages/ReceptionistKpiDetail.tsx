@@ -58,290 +58,7 @@ interface ReceptionistKpiMeta {
   unit: string;
 }
 
-const RECEPTIONIST_KPI_META_MAP: Record<
-  ReceptionistKpiType,
-  ReceptionistKpiMeta
-> = {
-  "Today's Registrations": {
-    title: "Today's Registrations",
-    currentValue: "66",
-    yesterdayComp: "58 yesterday (+8)",
-    monthlyComp: "54/day avg benchmark",
-    growthPercent: "+12.4%",
-    isPositive: true,
-    description:
-      "Total new and returning patient registrations logged at front-desk counters today.",
-    unit: "Patients",
-  },
-  "Today's Appointments": {
-    title: "Today's Appointments",
-    currentValue: "86",
-    yesterdayComp: "80 yesterday (+6)",
-    monthlyComp: "78/day avg benchmark",
-    growthPercent: "+8.2%",
-    isPositive: true,
-    description:
-      "Total appointment bookings scheduled for OPD consultation today.",
-    unit: "Appointments",
-  },
-  "Checked-In Patients": {
-    title: "Checked-In Patients",
-    currentValue: "72",
-    yesterdayComp: "65 yesterday (+7)",
-    monthlyComp: "83.7% check-in rate",
-    growthPercent: "+10.7%",
-    isPositive: true,
-    description:
-      "Number of patients physically checked in at reception desk for OPD slots.",
-    unit: "Patients",
-  },
-  "Patients Waiting": {
-    title: "Patients Waiting",
-    currentValue: "14",
-    yesterdayComp: "18 yesterday (-4)",
-    monthlyComp: "3.2 avg queue length",
-    growthPercent: "-22.2%",
-    isPositive: true,
-    description:
-      "Current number of checked-in patients waiting in the reception lobby.",
-    unit: "Patients",
-  },
-  "Completed Check-Ins": {
-    title: "Completed Check-Ins",
-    currentValue: "64",
-    yesterdayComp: "56 yesterday (+8)",
-    monthlyComp: "88.8% completion rate",
-    growthPercent: "+14.2%",
-    isPositive: true,
-    description:
-      "Number of checked-in patients whose reception queue processing is completed.",
-    unit: "Completed",
-  },
-  "Average Waiting Time": {
-    title: "Average Waiting Time",
-    currentValue: "11.5 min",
-    yesterdayComp: "14.2 min yesterday (-2.7m)",
-    monthlyComp: "15.0 min target benchmark",
-    growthPercent: "-19.0%",
-    isPositive: true,
-    description:
-      "Average time spent by patients in reception queue before doctor consultation.",
-    unit: "Minutes",
-  },
-  "Walk-In Patients": {
-    title: "Walk-In Patients",
-    currentValue: "28",
-    yesterdayComp: "22 yesterday (+6)",
-    monthlyComp: "42.4% walk-in share",
-    growthPercent: "+27.2%",
-    isPositive: true,
-    description:
-      "Patients registering at front-desk without prior online appointment booking.",
-    unit: "Walk-Ins",
-  },
-  "Returning Patients": {
-    title: "Returning Patients",
-    currentValue: "24",
-    yesterdayComp: "20 yesterday (+4)",
-    monthlyComp: "36.3% returning rate",
-    growthPercent: "+20.0%",
-    isPositive: true,
-    description:
-      "Existing registered patients returning for follow-up or routine checkups.",
-    unit: "Patients",
-  },
-};
 
-const RECEPTIONIST_KPI_TREND_SERIES: Record<
-  ReceptionistKpiType,
-  { date: string; current: number; previous: number }[]
-> = {
-  "Today's Registrations": [
-    { date: "Jul 20", current: 50, previous: 44 },
-    { date: "Jul 21", current: 55, previous: 48 },
-    { date: "Jul 22", current: 46, previous: 42 },
-    { date: "Jul 23", current: 62, previous: 50 },
-    { date: "Jul 24", current: 59, previous: 52 },
-    { date: "Jul 25", current: 64, previous: 56 },
-    { date: "Jul 26", current: 66, previous: 58 },
-  ],
-  "Today's Appointments": [
-    { date: "Jul 20", current: 75, previous: 68 },
-    { date: "Jul 21", current: 80, previous: 72 },
-    { date: "Jul 22", current: 78, previous: 70 },
-    { date: "Jul 23", current: 84, previous: 76 },
-    { date: "Jul 24", current: 82, previous: 74 },
-    { date: "Jul 25", current: 85, previous: 78 },
-    { date: "Jul 26", current: 86, previous: 80 },
-  ],
-  "Checked-In Patients": [
-    { date: "Jul 20", current: 62, previous: 55 },
-    { date: "Jul 21", current: 68, previous: 60 },
-    { date: "Jul 22", current: 65, previous: 58 },
-    { date: "Jul 23", current: 70, previous: 62 },
-    { date: "Jul 24", current: 69, previous: 61 },
-    { date: "Jul 25", current: 71, previous: 63 },
-    { date: "Jul 26", current: 72, previous: 65 },
-  ],
-  "Patients Waiting": [
-    { date: "Jul 20", current: 18, previous: 22 },
-    { date: "Jul 21", current: 16, previous: 20 },
-    { date: "Jul 22", current: 19, previous: 24 },
-    { date: "Jul 23", current: 15, previous: 18 },
-    { date: "Jul 24", current: 17, previous: 21 },
-    { date: "Jul 25", current: 15, previous: 19 },
-    { date: "Jul 26", current: 14, previous: 18 },
-  ],
-  "Completed Check-Ins": [
-    { date: "Jul 20", current: 55, previous: 48 },
-    { date: "Jul 21", current: 60, previous: 52 },
-    { date: "Jul 22", current: 58, previous: 50 },
-    { date: "Jul 23", current: 62, previous: 54 },
-    { date: "Jul 24", current: 61, previous: 53 },
-    { date: "Jul 25", current: 63, previous: 55 },
-    { date: "Jul 26", current: 64, previous: 56 },
-  ],
-  "Average Waiting Time": [
-    { date: "Jul 20", current: 16.5, previous: 18.0 },
-    { date: "Jul 21", current: 15.0, previous: 17.2 },
-    { date: "Jul 22", current: 14.8, previous: 16.5 },
-    { date: "Jul 23", current: 13.2, previous: 15.8 },
-    { date: "Jul 24", current: 12.8, previous: 15.0 },
-    { date: "Jul 25", current: 12.0, previous: 14.5 },
-    { date: "Jul 26", current: 11.5, previous: 14.2 },
-  ],
-  "Walk-In Patients": [
-    { date: "Jul 20", current: 20, previous: 16 },
-    { date: "Jul 21", current: 24, previous: 18 },
-    { date: "Jul 22", current: 21, previous: 17 },
-    { date: "Jul 23", current: 26, previous: 20 },
-    { date: "Jul 24", current: 25, previous: 19 },
-    { date: "Jul 25", current: 27, previous: 21 },
-    { date: "Jul 26", current: 28, previous: 22 },
-  ],
-  "Returning Patients": [
-    { date: "Jul 20", current: 18, previous: 15 },
-    { date: "Jul 21", current: 20, previous: 16 },
-    { date: "Jul 22", current: 16, previous: 14 },
-    { date: "Jul 23", current: 22, previous: 18 },
-    { date: "Jul 24", current: 21, previous: 17 },
-    { date: "Jul 25", current: 23, previous: 19 },
-    { date: "Jul 26", current: 24, previous: 20 },
-  ],
-};
-
-const RECEPTIONIST_KPI_DONUT_MAP: Record<
-  ReceptionistKpiType,
-  { name: string; value: number; color: string }[]
-> = {
-  "Today's Registrations": [
-    { name: "New Patients", value: 42, color: "#0D47A1" },
-    { name: "Returning Patients", value: 24, color: "#009688" },
-    { name: "Walk-In Patients", value: 28, color: "#F59E0B" },
-  ],
-  "Today's Appointments": [
-    { name: "Booked", value: 86, color: "#0D47A1" },
-    { name: "Checked-In", value: 72, color: "#009688" },
-    { name: "Waiting", value: 14, color: "#F59E0B" },
-    { name: "Completed", value: 64, color: "#66BB6A" },
-    { name: "Cancelled", value: 4, color: "#EF4444" },
-  ],
-  "Checked-In Patients": [
-    { name: "Completed Check-In", value: 64, color: "#66BB6A" },
-    { name: "Pending Check-In", value: 14, color: "#F59E0B" },
-  ],
-  "Patients Waiting": [
-    { name: "Waiting Lobby", value: 14, color: "#F59E0B" },
-    { name: "In Consultation", value: 12, color: "#0D47A1" },
-    { name: "Completed Queue", value: 64, color: "#66BB6A" },
-  ],
-  "Completed Check-Ins": [
-    { name: "Completed Today", value: 64, color: "#66BB6A" },
-    { name: "In Queue", value: 14, color: "#F59E0B" },
-  ],
-  "Average Waiting Time": [
-    { name: "< 10 Mins", value: 48, color: "#66BB6A" },
-    { name: "10-20 Mins", value: 20, color: "#F59E0B" },
-    { name: "> 20 Mins", value: 4, color: "#EF4444" },
-  ],
-  "Walk-In Patients": [
-    { name: "New Walk-Ins", value: 18, color: "#0D47A1" },
-    { name: "Returning Walk-Ins", value: 10, color: "#009688" },
-  ],
-  "Returning Patients": [
-    { name: "Follow-up Visit", value: 16, color: "#009688" },
-    { name: "Routine Checkup", value: 8, color: "#4DB6AC" },
-  ],
-};
-
-const RECEPTIONIST_SHIFT_PERFORMANCE_BAR = [
-  {
-    shift: "Morning Shift",
-    regCount: 42,
-    apptCount: 48,
-    checkInCount: 42,
-    queueComp: 38,
-  },
-  {
-    shift: "Afternoon Shift",
-    regCount: 26,
-    apptCount: 26,
-    checkInCount: 26,
-    queueComp: 22,
-  },
-  {
-    shift: "Evening Shift",
-    regCount: 18,
-    apptCount: 12,
-    checkInCount: 18,
-    queueComp: 14,
-  },
-];
-
-const RECEPTIONIST_RECENT_KPI_TIMELINE = [
-  {
-    id: "KTL-401",
-    action: "Patient Registered",
-    detail: "New intake logged for Sarah Mitchell (MRN-89201)",
-    time: "08:45 AM",
-    status: "Completed",
-  },
-  {
-    id: "KTL-402",
-    action: "Walk-In Registered",
-    detail: "Walk-in registration created for David Miller (MRN-89206)",
-    time: "09:00 AM",
-    status: "Completed",
-  },
-  {
-    id: "KTL-403",
-    action: "Appointment Booked",
-    detail: "APT-902 confirmed for James Thornton",
-    time: "09:10 AM",
-    status: "Scheduled",
-  },
-  {
-    id: "KTL-404",
-    action: "Patient Checked-In",
-    detail: "Emma Reyes marked present at reception counter",
-    time: "09:50 AM",
-    status: "Checked-In",
-  },
-  {
-    id: "KTL-405",
-    action: "Queue Updated",
-    detail: "Aisha Kumar moved to OPD Consultation Room 3",
-    time: "10:15 AM",
-    status: "In Progress",
-  },
-  {
-    id: "KTL-406",
-    action: "Appointment Completed",
-    detail: "Consultation finished for Michael Chang",
-    time: "11:00 AM",
-    status: "Completed",
-  },
-];
 
 export function ReceptionistDashboardKpiDetailScreen({
   onBack,
@@ -373,9 +90,9 @@ export function ReceptionistDashboardKpiDetailScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  const meta = RECEPTIONIST_KPI_META_MAP[selectedKpi];
-  const trendData = RECEPTIONIST_KPI_TREND_SERIES[selectedKpi];
-  const donutData = RECEPTIONIST_KPI_DONUT_MAP[selectedKpi];
+  const meta: ReceptionistKpiMeta = { title: "", currentValue: "", yesterdayComp: "", monthlyComp: "", growthPercent: "", isPositive: false, description: "", unit: "" };
+  const trendData: { date: string; current: number; previous: number }[] = [];
+  const donutData: { name: string; value: number; color: string }[] = [];
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -444,7 +161,7 @@ export function ReceptionistDashboardKpiDetailScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:45 AM</strong>
+                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </span>
               </div>
 
@@ -1038,7 +755,7 @@ export function ReceptionistDashboardKpiDetailScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                        data={RECEPTIONIST_SHIFT_PERFORMANCE_BAR}
+                        data={[]}
                         margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1125,7 +842,7 @@ export function ReceptionistDashboardKpiDetailScreen({
                       </span>
                     </div>
                     <p className="text-[#64748B]">
-                      Average reception waiting time decreased to 11.5 minutes,
+                      Average reception waiting time decreased to -- minutes,
                       meeting the 15-minute operational SLA target.
                     </p>
                     <div className="mt-2 font-semibold text-[#009688]">
@@ -1145,7 +862,7 @@ export function ReceptionistDashboardKpiDetailScreen({
                   Recent KPI Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {RECEPTIONIST_RECENT_KPI_TIMELINE.map((act) => (
+                  {[].map((act: any) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1216,7 +933,7 @@ export function ReceptionistDashboardKpiDetailScreen({
                   <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
                     <span className="text-[#64748B]">Last Updated:</span>
                     <span className="font-semibold text-[#0D47A1]">
-                      Today, 11:45 AM
+                      {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                 </div>
@@ -1311,7 +1028,7 @@ export function ReceptionistDashboardKpiDetailScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 13:40</strong>
+            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
           </div>
         </div>
       </div>

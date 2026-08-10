@@ -1,4 +1,4 @@
-import{ useState } from "react";
+import { useState } from "react";
 import {
   Download,
   RefreshCw,
@@ -38,7 +38,6 @@ import {
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
 
-
 export type AccountantKpiType =
   | "Today's Revenue"
   | "Today's Invoices"
@@ -48,236 +47,6 @@ export type AccountantKpiType =
   | "Refunded Bills"
   | "Payment Collection Rate"
   | "Average Invoice Value";
-
-interface AccountantKpiMeta {
-  title: string;
-  currentValue: string;
-  yesterdayComp: string;
-  monthlyComp: string;
-  growthPercent: string;
-  isPositive: boolean;
-  description: string;
-  unit: string;
-}
-
-const ACCOUNTANT_KPI_META_MAP: Record<AccountantKpiType, AccountantKpiMeta> = {
-  "Today's Revenue": {
-    title: "Today's Revenue",
-    currentValue: "$14,850",
-    yesterdayComp: "$13,500 yesterday (+$1,350)",
-    monthlyComp: "$13,200/day avg benchmark",
-    growthPercent: "+14.2%",
-    isPositive: true,
-    description:
-      "Total revenue generated from OPD billing and hospital services today.",
-    unit: "USD",
-  },
-  "Today's Invoices": {
-    title: "Today's Invoices",
-    currentValue: "48",
-    yesterdayComp: "42 yesterday (+6)",
-    monthlyComp: "40/day avg benchmark",
-    growthPercent: "+12.4%",
-    isPositive: true,
-    description:
-      "Total billing invoices created across hospital counters today.",
-    unit: "Invoices",
-  },
-  "Paid Bills": {
-    title: "Paid Bills",
-    currentValue: "42",
-    yesterdayComp: "36 yesterday (+6)",
-    monthlyComp: "87.5% collection rate",
-    growthPercent: "+16.7%",
-    isPositive: true,
-    description: "Number of invoices fully settled by patients today.",
-    unit: "Invoices",
-  },
-  "Pending Payments": {
-    title: "Pending Payments",
-    currentValue: "6",
-    yesterdayComp: "8 yesterday (-2)",
-    monthlyComp: "4.2 avg pending count",
-    growthPercent: "-25.0%",
-    isPositive: true,
-    description: "Invoices awaiting full payment clearance from patients.",
-    unit: "Invoices",
-  },
-  "Outstanding Amount": {
-    title: "Outstanding Amount",
-    currentValue: "$3,250",
-    yesterdayComp: "$3,650 yesterday (-$400)",
-    monthlyComp: "$2,800 avg benchmark",
-    growthPercent: "-10.9%",
-    isPositive: true,
-    description: "Uncollected balances across active OPD patient accounts.",
-    unit: "USD",
-  },
-  "Refunded Bills": {
-    title: "Refunded Bills",
-    currentValue: "$450",
-    yesterdayComp: "$300 yesterday (+$150)",
-    monthlyComp: "$350 avg benchmark",
-    growthPercent: "+50.0%",
-    isPositive: false,
-    description:
-      "Total funds refunded due to service adjustments or cancellations.",
-    unit: "USD",
-  },
-  "Payment Collection Rate": {
-    title: "Payment Collection Rate",
-    currentValue: "92.8%",
-    yesterdayComp: "88.5% yesterday (+4.3%)",
-    monthlyComp: "90.0% target benchmark",
-    growthPercent: "+4.8%",
-    isPositive: true,
-    description:
-      "Percentage of total billed revenue collected on the same day.",
-    unit: "Percentage",
-  },
-  "Average Invoice Value": {
-    title: "Average Invoice Value",
-    currentValue: "$309.38",
-    yesterdayComp: "$321.42 yesterday (-$12.04)",
-    monthlyComp: "$310.00 target benchmark",
-    growthPercent: "-3.7%",
-    isPositive: true,
-    description: "Mean revenue generated per issued billing invoice.",
-    unit: "USD",
-  },
-};
-
-const ACCOUNTANT_KPI_TREND_SERIES: Record<
-  AccountantKpiType,
-  { date: string; current: number; previous: number }[]
-> = {
-  "Today's Revenue": [
-    { date: "Jul 20", current: 11200, previous: 10400 },
-    { date: "Jul 21", current: 12500, previous: 11800 },
-    { date: "Jul 22", current: 10800, previous: 9900 },
-    { date: "Jul 23", current: 13800, previous: 12900 },
-    { date: "Jul 24", current: 14200, previous: 13500 },
-    { date: "Jul 25", current: 14500, previous: 13800 },
-    { date: "Jul 26", current: 14850, previous: 13500 },
-  ],
-  "Today's Invoices": [
-    { date: "Jul 20", current: 38, previous: 34 },
-    { date: "Jul 21", current: 42, previous: 36 },
-    { date: "Jul 22", current: 36, previous: 32 },
-    { date: "Jul 23", current: 45, previous: 40 },
-    { date: "Jul 24", current: 44, previous: 38 },
-    { date: "Jul 25", current: 46, previous: 40 },
-    { date: "Jul 26", current: 48, previous: 42 },
-  ],
-  "Paid Bills": [
-    { date: "Jul 20", current: 32, previous: 28 },
-    { date: "Jul 21", current: 36, previous: 30 },
-    { date: "Jul 22", current: 30, previous: 26 },
-    { date: "Jul 23", current: 40, previous: 34 },
-    { date: "Jul 24", current: 39, previous: 33 },
-    { date: "Jul 25", current: 40, previous: 35 },
-    { date: "Jul 26", current: 42, previous: 36 },
-  ],
-  "Pending Payments": [
-    { date: "Jul 20", current: 8, previous: 10 },
-    { date: "Jul 21", current: 7, previous: 9 },
-    { date: "Jul 22", current: 9, previous: 11 },
-    { date: "Jul 23", current: 6, previous: 8 },
-    { date: "Jul 24", current: 7, previous: 9 },
-    { date: "Jul 25", current: 6, previous: 8 },
-    { date: "Jul 26", current: 6, previous: 8 },
-  ],
-  "Outstanding Amount": [
-    { date: "Jul 20", current: 3800, previous: 4200 },
-    { date: "Jul 21", current: 3500, previous: 4000 },
-    { date: "Jul 22", current: 4100, previous: 4500 },
-    { date: "Jul 23", current: 3400, previous: 3800 },
-    { date: "Jul 24", current: 3600, previous: 3900 },
-    { date: "Jul 25", current: 3300, previous: 3700 },
-    { date: "Jul 26", current: 3250, previous: 3650 },
-  ],
-  "Refunded Bills": [
-    { date: "Jul 20", current: 300, previous: 200 },
-    { date: "Jul 21", current: 200, previous: 150 },
-    { date: "Jul 22", current: 400, previous: 250 },
-    { date: "Jul 23", current: 250, previous: 180 },
-    { date: "Jul 24", current: 350, previous: 220 },
-    { date: "Jul 25", current: 300, previous: 200 },
-    { date: "Jul 26", current: 450, previous: 300 },
-  ],
-  "Payment Collection Rate": [
-    { date: "Jul 20", current: 89.2, previous: 85.0 },
-    { date: "Jul 21", current: 90.5, previous: 86.2 },
-    { date: "Jul 22", current: 88.0, previous: 84.5 },
-    { date: "Jul 23", current: 93.1, previous: 89.0 },
-    { date: "Jul 24", current: 92.0, previous: 88.4 },
-    { date: "Jul 25", current: 91.5, previous: 87.8 },
-    { date: "Jul 26", current: 92.8, previous: 88.5 },
-  ],
-  "Average Invoice Value": [
-    { date: "Jul 20", current: 294.7, previous: 305.8 },
-    { date: "Jul 21", current: 297.6, previous: 327.7 },
-    { date: "Jul 22", current: 300.0, previous: 309.3 },
-    { date: "Jul 23", current: 306.6, previous: 322.5 },
-    { date: "Jul 24", current: 322.7, previous: 355.2 },
-    { date: "Jul 25", current: 315.2, previous: 345.0 },
-    { date: "Jul 26", current: 309.3, previous: 321.4 },
-  ],
-};
-
-const ACCOUNTANT_KPI_DONUT_MAP: Record<
-  AccountantKpiType,
-  { name: string; value: number; color: string }[]
-> = {
-  "Today's Revenue": [
-    { name: "Collected", value: 14100, color: "#66BB6A" },
-    { name: "Outstanding", value: 750, color: "#F59E0B" },
-    { name: "Refunded", value: 450, color: "#EF4444" },
-  ],
-  "Today's Invoices": [
-    { name: "Paid", value: 42, color: "#66BB6A" },
-    { name: "Pending", value: 4, color: "#F59E0B" },
-    { name: "Partially Paid", value: 2, color: "#0D47A1" },
-  ],
-  "Paid Bills": [
-    { name: "Card Paid", value: 20, color: "#0D47A1" },
-    { name: "Cash Paid", value: 12, color: "#009688" },
-    { name: "UPI Paid", value: 10, color: "#66BB6A" },
-  ],
-  "Pending Payments": [
-    { name: "Overdue > 7 Days", value: 2, color: "#EF4444" },
-    { name: "Due Today", value: 4, color: "#F59E0B" },
-  ],
-  "Outstanding Amount": [
-    { name: "OPD Consultations", value: 2150, color: "#F59E0B" },
-    { name: "Lab Services", value: 1100, color: "#0D47A1" },
-  ],
-  "Refunded Bills": [
-    { name: "Service Adjustment", value: 300, color: "#EF4444" },
-    { name: "Patient Cancellation", value: 150, color: "#F59E0B" },
-  ],
-  "Payment Collection Rate": [
-    { name: "Collected Same-Day", value: 92.8, color: "#66BB6A" },
-    { name: "Uncollected Share", value: 7.2, color: "#F59E0B" },
-  ],
-  "Average Invoice Value": [
-    { name: "Consultation Fee", value: 150, color: "#0D47A1" },
-    { name: "Procedures & Tests", value: 159.38, color: "#009688" },
-  ],
-};
-
-const ACCOUNTANT_METHOD_PERFORMANCE_BAR = [
-  { method: "Card", collectedPct: 37.7, revenue: 5600, transactions: 20 },
-  { method: "Cash", collectedPct: 28.2, revenue: 4200, transactions: 14 },
-  { method: "UPI", collectedPct: 22.8, revenue: 3400, transactions: 10 },
-  {
-    method: "Bank Transfer",
-    collectedPct: 8.4,
-    revenue: 1250,
-    transactions: 3,
-  },
-  { method: "Other", collectedPct: 2.9, revenue: 400, transactions: 1 },
-];
 
 export function AccountantDashboardKpiDetailScreen({
   onBack,
@@ -308,9 +77,9 @@ export function AccountantDashboardKpiDetailScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  const meta = ACCOUNTANT_KPI_META_MAP[selectedKpi];
-  const trendData = ACCOUNTANT_KPI_TREND_SERIES[selectedKpi];
-  const donutData = ACCOUNTANT_KPI_DONUT_MAP[selectedKpi];
+  const meta = ({} as any)[selectedKpi] ?? ({} as any);
+  const trendData: any[] = [];
+  const donutData: any[] = [];
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -377,7 +146,7 @@ export function AccountantDashboardKpiDetailScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:45 AM</strong>
+                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </span>
               </div>
 
@@ -970,7 +739,7 @@ export function AccountantDashboardKpiDetailScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                        data={ACCOUNTANT_METHOD_PERFORMANCE_BAR}
+                        data={[]}
                         margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1037,7 +806,7 @@ export function AccountantDashboardKpiDetailScreen({
                       </span>
                     </div>
                     <p className="text-[#64748B]">
-                      Daily billing collections reached $14,850 today compared
+                      Daily billing collections reached -- today compared
                       to $13,500 yesterday, driven by card settlements.
                     </p>
                     <div className="mt-2 font-semibold text-[#0D47A1]">
@@ -1050,7 +819,7 @@ export function AccountantDashboardKpiDetailScreen({
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-bold text-[#009688] flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Collection Rate
-                        Improved to 92.8%
+                        Improved to --
                       </span>
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-[#009688]">
                         Positive
@@ -1077,7 +846,7 @@ export function AccountantDashboardKpiDetailScreen({
                   Recent Financial Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {ACCOUNTANT_FINANCIAL_TIMELINE.map((act) => (
+                  {[].map((act: any) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1148,7 +917,7 @@ export function AccountantDashboardKpiDetailScreen({
                   <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
                     <span className="text-[#64748B]">Last Updated:</span>
                     <span className="font-semibold text-[#0D47A1]">
-                      Today, 11:45 AM
+                      {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                 </div>
@@ -1256,7 +1025,7 @@ export function AccountantDashboardKpiDetailScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 13:51</strong>
+            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
           </div>
         </div>
       </div>

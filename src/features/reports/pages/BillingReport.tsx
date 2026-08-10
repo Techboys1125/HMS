@@ -1,4 +1,4 @@
-﻿import  { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 import {
   Download,
   RefreshCw,
@@ -10,7 +10,6 @@ import {
   CheckCircle2,
   AlertCircle,
   DollarSign,
-  TrendingUp,
   Building2,
   Printer,
   ChevronLeft,
@@ -37,177 +36,45 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { PP, RB } from "../constants/reports.constants";
-import type { BillingReportRecord, InvoiceRegisterRecord } from "../types/reports.types";
+import type { BillingReportRecord } from "../types/reports.types";
 import { useInvoiceRegister, useInvoiceSummary } from "../hooks/useReports";
-const BILLING_REPORT_TABLE_DATA: BillingReportRecord[] = [
-  {
-    invoiceId: "INV-2026-0891",
-    patientName: "Sarah Mitchell",
-    mrn: "MRN-89201",
-    doctorName: "Dr. Sarah Jenkins",
-    department: "Cardiology",
-    invoiceDate: "2026-07-26",
-    invoiceAmount: 850,
-    collectedAmount: 850,
-    outstandingAmount: 0,
-    paymentMethod: "Card",
-    paymentStatus: "Paid",
-  },
-  {
-    invoiceId: "INV-2026-0892",
-    patientName: "James Thornton",
-    mrn: "MRN-89202",
-    doctorName: "Dr. Rajesh Kapoor",
-    department: "Neurology",
-    invoiceDate: "2026-07-26",
-    invoiceAmount: 1200,
-    collectedAmount: 1200,
-    outstandingAmount: 0,
-    paymentMethod: "UPI",
-    paymentStatus: "Paid",
-  },
-  {
-    invoiceId: "INV-2026-0893",
-    patientName: "Emma Reyes",
-    mrn: "MRN-89203",
-    doctorName: "Dr. Priya Sharma",
-    department: "General Medicine",
-    invoiceDate: "2026-07-26",
-    invoiceAmount: 450,
-    collectedAmount: 450,
-    outstandingAmount: 0,
-    paymentMethod: "Cash",
-    paymentStatus: "Paid",
-  },
-  {
-    invoiceId: "INV-2026-0894",
-    patientName: "David Walsh",
-    mrn: "MRN-89204",
-    doctorName: "Dr. Arjun Mehta",
-    department: "Orthopedics",
-    invoiceDate: "2026-07-26",
-    invoiceAmount: 1500,
-    collectedAmount: 1000,
-    outstandingAmount: 500,
-    paymentMethod: "Card",
-    paymentStatus: "Partially Paid",
-  },
-  {
-    invoiceId: "INV-2026-0895",
-    patientName: "Aisha Kumar",
-    mrn: "MRN-89205",
-    doctorName: "Dr. Sunita Patel",
-    department: "Pediatrics",
-    invoiceDate: "2026-07-26",
-    invoiceAmount: 600,
-    collectedAmount: 0,
-    outstandingAmount: 600,
-    paymentMethod: "Cash",
-    paymentStatus: "Pending",
-  },
-  {
-    invoiceId: "INV-2026-0896",
-    patientName: "Robert Vance",
-    mrn: "MRN-89206",
-    doctorName: "Dr. Priya Sharma",
-    department: "General Medicine",
-    invoiceDate: "2026-07-25",
-    invoiceAmount: 350,
-    collectedAmount: 350,
-    outstandingAmount: 0,
-    paymentMethod: "UPI",
-    paymentStatus: "Paid",
-  },
-  {
-    invoiceId: "INV-2026-0897",
-    patientName: "Elena Rostova",
-    mrn: "MRN-89207",
-    doctorName: "Dr. Sarah Jenkins",
-    department: "Cardiology",
-    invoiceDate: "2026-07-25",
-    invoiceAmount: 2400,
-    collectedAmount: 2400,
-    outstandingAmount: 0,
-    paymentMethod: "Bank Transfer",
-    paymentStatus: "Paid",
-  },
-];
 
-const BILLING_REVENUE_TREND_DATA = [
-  { date: "Jul 20", Revenue: 62000, Collections: 58500, Outstanding: 3500 },
-  { date: "Jul 21", Revenue: 65000, Collections: 62000, Outstanding: 3000 },
-  { date: "Jul 22", Revenue: 61000, Collections: 57500, Outstanding: 3500 },
-  { date: "Jul 23", Revenue: 70000, Collections: 67000, Outstanding: 3000 },
-  { date: "Jul 24", Revenue: 68000, Collections: 64500, Outstanding: 3500 },
-  { date: "Jul 25", Revenue: 69000, Collections: 66000, Outstanding: 3000 },
-  { date: "Jul 26", Revenue: 72000, Collections: 68500, Outstanding: 3500 },
-];
-
-const PAYMENT_STATUS_DIST_DATA = [
-  { name: "Paid", value: 128, percentage: 90.1, color: "#009688" },
-  { name: "Pending", value: 10, percentage: 7.0, color: "#F59E0B" },
-  { name: "Partially Paid", value: 2, percentage: 1.5, color: "#4DB6AC" },
-  { name: "Cancelled", value: 2, percentage: 1.4, color: "#EF4444" },
-];
-
-const PAYMENT_METHOD_ANALYSIS_DATA = [
-  { method: "Cash", count: 48, amount: 24500, fill: "#0D47A1" },
-  { method: "Card", count: 42, amount: 22000, fill: "#009688" },
-  { method: "UPI", count: 38, amount: 18000, fill: "#4DB6AC" },
-  { method: "Bank Transfer", count: 14, amount: 4000, fill: "#66BB6A" },
-];
-
-const DEPT_BILLING_PERFORMANCE_DATA = [
-  {
-    department: "Gen. Medicine",
-    revenue: 18500,
-    invoices: 45,
-    collections: 17800,
-  },
-  {
-    department: "Cardiology",
-    revenue: 22400,
-    invoices: 28,
-    collections: 21500,
-  },
-  {
-    department: "Orthopedics",
-    revenue: 14200,
-    invoices: 22,
-    collections: 13200,
-  },
-  { department: "ENT", revenue: 6800, invoices: 18, collections: 6500 },
-  { department: "Neurology", revenue: 10100, invoices: 15, collections: 9500 },
-  { department: "Pediatrics", revenue: 8000, invoices: 14, collections: 7800 },
-];
-
-const DOCTOR_REVENUE_CONTRIB_DATA = [
-  {
-    doctor: "Dr. S. Jenkins",
-    revenue: 22400,
-    invoices: 28,
-    collectionRate: 96.0,
-  },
-  {
-    doctor: "Dr. R. Kapoor",
-    revenue: 10100,
-    invoices: 15,
-    collectionRate: 94.1,
-  },
-  {
-    doctor: "Dr. P. Sharma",
-    revenue: 18500,
-    invoices: 45,
-    collectionRate: 96.2,
-  },
-  {
-    doctor: "Dr. A. Mehta",
-    revenue: 14200,
-    invoices: 22,
-    collectionRate: 93.0,
-  },
-  { doctor: "Dr. S. Patel", revenue: 8000, invoices: 14, collectionRate: 97.5 },
-];
+function CircularProgress({
+  percentage,
+  size = 64,
+  strokeWidth = 7,
+}: {
+  percentage: number;
+  size?: number;
+  strokeWidth?: number;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (percentage / 100) * circumference;
+  return (
+    <svg width={size} height={size} className="transform -rotate-90">
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="#E5E7EB"
+        strokeWidth={strokeWidth}
+      />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="#0D47A1"
+        strokeWidth={strokeWidth}
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 export function BillingReportScreen({
   onBack,
@@ -238,8 +105,29 @@ export function BillingReportScreen({
   const { data: invoiceRegisterData } = useInvoiceRegister(reportFilters);
   const { data: invoiceSummaryData } = useInvoiceSummary(reportFilters);
 
+  const totalBilled = invoiceSummaryData?.totalBilledAmount ?? 0;
+  const totalPaid = invoiceSummaryData?.totalPaidAmount ?? 0;
+  const totalOutstanding = invoiceSummaryData?.totalOutstandingAmount ?? 0;
+  const totalInvoices = invoiceSummaryData?.totalInvoices ?? 0;
+  const paidInvoices = invoiceSummaryData?.paidInvoices ?? 0;
+  const unpaidInvoices = invoiceSummaryData?.unpaidInvoices ?? 0;
+  const collectionRate =
+    totalBilled > 0 ? ((totalPaid / totalBilled) * 100).toFixed(1) : "--";
+  const outstandingRate =
+    totalBilled > 0
+      ? ((totalOutstanding / totalBilled) * 100).toFixed(1)
+      : "--";
+  const paidRate =
+    totalInvoices > 0
+      ? ((paidInvoices / totalInvoices) * 100).toFixed(1)
+      : "--";
+  const avgInvoiceValue =
+    totalInvoices > 0 ? Math.round(totalBilled / totalInvoices) : 0;
+
   // Map API invoice register to table format
-  const apiTableData: BillingReportRecord[] = (invoiceRegisterData?.content ?? []).map((d) => ({
+  const apiTableData: BillingReportRecord[] = (
+    invoiceRegisterData?.content ?? []
+  ).map((d) => ({
     invoiceId: d.invoiceNumber,
     patientName: d.patientName,
     mrn: "",
@@ -250,9 +138,11 @@ export function BillingReportScreen({
     collectedAmount: d.paidAmount,
     outstandingAmount: d.outstandingAmount,
     paymentMethod: "Card" as const,
-    paymentStatus: (d.paymentStatus?.toLowerCase() as BillingReportRecord["paymentStatus"]) ?? "Pending",
+    paymentStatus:
+      (d.paymentStatus?.toLowerCase() as BillingReportRecord["paymentStatus"]) ??
+      "Pending",
   }));
-  const billingTableSource = apiTableData.length > 0 ? apiTableData : BILLING_REPORT_TABLE_DATA;
+  const billingTableSource = apiTableData;
 
   // Table sorting & pagination
   const [sortField, setSortField] =
@@ -382,7 +272,12 @@ export function BillingReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:30 AM</strong>
+                  <strong className="text-[#111827]">
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
                 </span>
               </div>
 
@@ -671,17 +566,14 @@ export function BillingReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    â‚¹72,000
+                    ₹{totalBilled.toLocaleString()}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
-                    <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> +15.2%
-                    </span>
-                    <span>â‚¹14.8L monthly</span>
+                    <span className="text-[#64748B] font-semibold">--</span>
                   </div>
                   <div className="h-8">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={BILLING_REVENUE_TREND_DATA}>
+                      <LineChart data={[]}>
                         <Line
                           type="monotone"
                           dataKey="Revenue"
@@ -708,16 +600,16 @@ export function BillingReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    142
+                    {totalInvoices}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
                     <span className="text-[#009688] font-semibold">
-                      2,840 monthly invoices
+                      {totalInvoices.toLocaleString()} invoices
                     </span>
                   </div>
                   <div className="h-8">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={BILLING_REVENUE_TREND_DATA}>
+                      <AreaChart data={[]}>
                         <Area
                           type="monotone"
                           dataKey="Revenue"
@@ -744,16 +636,16 @@ export function BillingReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    â‚¹68,500
+                    ₹{totalPaid.toLocaleString()}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
                     <span className="text-[#66BB6A] font-semibold">
-                      95.1% Collection Rate
+                      {collectionRate}% Collection Rate
                     </span>
                   </div>
                   <div className="h-8">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={BILLING_REVENUE_TREND_DATA}>
+                      <LineChart data={[]}>
                         <Line
                           type="monotone"
                           dataKey="Collections"
@@ -780,19 +672,23 @@ export function BillingReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    â‚¹3,500
+                    ₹{totalOutstanding.toLocaleString()}
                   </div>
                   <div className="text-[11px] text-[#64748B]">
-                    4.9% Outstanding Rate
+                    {outstandingRate}% Outstanding Rate
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden mt-3">
                     <div
                       className="bg-[#F59E0B] h-full"
-                      style={{ width: "5%" }}
+                      style={{
+                        width: `${totalBilled > 0 ? (totalOutstanding / totalBilled) * 100 : 0}%`,
+                      }}
                     />
                     <div
                       className="bg-[#009688] h-full"
-                      style={{ width: "95%" }}
+                      style={{
+                        width: `${totalBilled > 0 ? (totalPaid / totalBilled) * 100 : 0}%`,
+                      }}
                     />
                   </div>
                 </div>
@@ -811,23 +707,23 @@ export function BillingReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    128
+                    {paidInvoices}
                   </div>
                   <div className="text-[11px] text-[#64748B] mb-2">
-                    90.1% Paid Rate (10 Pending, 2 Void)
+                    {paidRate}% Paid Rate ({unpaidInvoices} Pending)
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
                     <div
                       className="bg-[#0D47A1] h-full"
-                      style={{ width: "90%" }}
+                      style={{
+                        width: `${totalInvoices > 0 ? (paidInvoices / totalInvoices) * 100 : 0}%`,
+                      }}
                     />
                     <div
                       className="bg-[#F59E0B] h-full"
-                      style={{ width: "7%" }}
-                    />
-                    <div
-                      className="bg-[#EF4444] h-full"
-                      style={{ width: "3%" }}
+                      style={{
+                        width: `${totalInvoices > 0 ? (unpaidInvoices / totalInvoices) * 100 : 0}%`,
+                      }}
                     />
                   </div>
                 </div>
@@ -842,16 +738,27 @@ export function BillingReportScreen({
                       className="text-2xl font-bold text-[#111827] mt-1"
                       style={{ fontFamily: PP }}
                     >
-                      â‚¹507
+                      ₹{avgInvoiceValue.toLocaleString()}
                     </div>
                     <p className="text-[11px] text-[#64748B] mt-1">
-                      High: â‚¹3,200 | Low: â‚¹200
+                      High: -- | Low: --
                     </p>
-                    <div className="mt-1 text-[11px] font-semibold text-[#66BB6A]">
-                      âœ“ Optimal Billing Ticket
+                    <div className="mt-1 text-[11px] font-semibold text-[#64748B]">
+                      --
                     </div>
                   </div>
-                  <CircularProgress percentage={92} size={64} strokeWidth={7} />
+                  <CircularProgress
+                    percentage={
+                      totalInvoices > 0
+                        ? Math.min(
+                            100,
+                            Math.round((paidInvoices / totalInvoices) * 100),
+                          )
+                        : 0
+                    }
+                    size={64}
+                    strokeWidth={7}
+                  />
                 </div>
               </div>
 
@@ -887,7 +794,7 @@ export function BillingReportScreen({
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
-                      data={BILLING_REVENUE_TREND_DATA}
+                      data={[]}
                       margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
                     >
                       <defs>
@@ -990,7 +897,7 @@ export function BillingReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={PAYMENT_STATUS_DIST_DATA}
+                          data={[]}
                           cx="50%"
                           cy="50%"
                           innerRadius={45}
@@ -998,7 +905,7 @@ export function BillingReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {PAYMENT_STATUS_DIST_DATA.map((entry, index) => (
+                          {[].map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
@@ -1043,7 +950,7 @@ export function BillingReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={PAYMENT_METHOD_ANALYSIS_DATA}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1094,7 +1001,7 @@ export function BillingReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                        data={DEPT_BILLING_PERFORMANCE_DATA}
+                        data={[]}
                         margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1146,7 +1053,7 @@ export function BillingReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={DOCTOR_REVENUE_CONTRIB_DATA}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1367,7 +1274,15 @@ export function BillingReportScreen({
           <div>Hospital Management System â€¢ Billing Report v1.0</div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 01:14</strong>
+            <strong className="text-[#111827]">
+              {new Date().toLocaleString("en-US", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </strong>
           </div>
         </div>
       </div>

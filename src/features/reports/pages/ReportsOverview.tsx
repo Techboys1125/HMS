@@ -50,11 +50,8 @@ import {
   useDoctorPerformance,
   useMostViewedReports,
   useReportCategoryShare,
-  usePatientRegistrationTrend,
   useCollectionRate,
 } from "../hooks/useReports";
-
-
 
 // ─── Custom Circular Progress Component ──────────────────────────────────────
 function CircularProgress({
@@ -105,6 +102,14 @@ function CircularProgress({
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────────
+
+function safeNumber(val: unknown, fallback = 0): number {
+  if (typeof val === "number") return val;
+  if (val && typeof val === "object" && "rate" in val) return (val as any).rate ?? fallback;
+  if (val && typeof val === "object" && "percentage" in val) return (val as any).percentage ?? fallback;
+  return fallback;
+}
+
 export function AdminReportsDashboardScreen({
   onOpenReport,
   onOpenKpiDetail,
@@ -181,16 +186,19 @@ export function AdminReportsDashboardScreen({
 
   const { data: hospitalDashboard } = useHospitalDashboard(reportFilters);
   const { data: operationalTrend = [] } = useOperationalTrend(reportFilters);
-  const { data: deptConsultVolume = [] } = useDepartmentConsultationVolume(reportFilters);
-  const { data: revenueVsCollection = [] } = useRevenueVsCollection(reportFilters);
+  const { data: deptConsultVolume = [] } =
+    useDepartmentConsultationVolume(reportFilters);
+  const { data: revenueVsCollection = [] } =
+    useRevenueVsCollection(reportFilters);
   const { data: doctorPerformanceData } = useDoctorPerformance(reportFilters);
   const { data: mostViewedReports = [] } = useMostViewedReports();
   const { data: categoryShare = [] } = useReportCategoryShare();
   const { data: collectionRateData } = useCollectionRate(reportFilters);
-  const { data: registrationTrend } = usePatientRegistrationTrend("7D");
 
   // Merge API doctors with mock fallback
-  const apiDoctors: DoctorSummaryPerformanceRecord[] = (doctorPerformanceData?.content ?? []).map((d) => ({
+  const apiDoctors: DoctorSummaryPerformanceRecord[] = (
+    doctorPerformanceData?.content ?? []
+  ).map((d) => ({
     id: d.doctorId,
     doctorName: d.doctorName,
     department: d.department,
@@ -207,14 +215,17 @@ export function AdminReportsDashboardScreen({
   const trendSource = operationalTrend;
 
   // Merge API dept consultation volume with mock fallback
-  const deptSource = deptConsultVolume.map((d) => ({
-        ...d,
-        department: d.departmentName,
-        appointments: d.totalConsultations,
-        completionRate: d.totalConsultations > 0
-          ? Math.round((d.completedConsultations / d.totalConsultations) * 100)
-          : 0,
-      }));
+  const deptSource = (
+    Array.isArray(deptConsultVolume) ? deptConsultVolume : []
+  ).map((d: any) => ({
+    ...d,
+    department: d.departmentName,
+    appointments: d.totalConsultations,
+    completionRate:
+      d.totalConsultations > 0
+        ? Math.round((d.completedConsultations / d.totalConsultations) * 100)
+        : 0,
+  }));
 
   // Merge API revenue vs collection with mock fallback
   const revenueSource = revenueVsCollection;
@@ -290,15 +301,15 @@ export function AdminReportsDashboardScreen({
     // Use API dashboard data when available, fallback to computed mock values
     if (dashboardData) {
       return {
-        appointments: dashboardData.totalAppointments,
-        registrations: 0,
-        revenue: Math.round(dashboardData.totalRevenue),
-        invoices: dashboardData.totalAppointments,
-        consultations: dashboardData.completedConsultations,
-        completed: dashboardData.completedConsultations,
-        cancelled: dashboardData.cancelledConsultations,
-        pending: dashboardData.pendingConsultations,
-        collectionRate: dashboardData.collectionRate,
+        appointments: safeNumber(dashboardData.totalAppointments),
+        registrations: safeNumber(dashboardData.totalPatients),
+        revenue: Math.round(safeNumber(dashboardData.totalRevenue)),
+        invoices: safeNumber(dashboardData.totalAppointments),
+        consultations: safeNumber(dashboardData.completedConsultations),
+        completed: safeNumber(dashboardData.completedConsultations),
+        cancelled: safeNumber(dashboardData.cancelledConsultations),
+        pending: safeNumber(dashboardData.pendingConsultations),
+        collectionRate: safeNumber(dashboardData.collectionRate),
       };
     }
     const baseApp = 184,
@@ -328,49 +339,51 @@ export function AdminReportsDashboardScreen({
   }, [filterMultiplier]);
 
   const filteredDoctors = useMemo(() => {
-    return doctorSource.filter((doc) => {
-      const matchesDept =
-        appliedFilters.dept === "All Departments" ||
-        doc.department
-          .toLowerCase()
-          .includes(appliedFilters.dept.toLowerCase()) ||
-        appliedFilters.dept
-          .toLowerCase()
-          .includes(doc.department.toLowerCase());
-      const matchesDoc =
-        appliedFilters.doctor === "All Doctors" ||
-        doc.doctorName
-          .toLowerCase()
-          .includes(appliedFilters.doctor.toLowerCase()) ||
-        appliedFilters.doctor
-          .toLowerCase()
-          .includes(doc.doctorName.toLowerCase());
-      const matchesSearch =
-        !searchQuery ||
-        doc.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        doc.department.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesDept && matchesDoc && matchesSearch;
-    }).map((doc) => ({
-      ...doc,
-      appointments: Math.round(
-        doc.appointments *
-          (filterMultiplier > 2
-            ? filterMultiplier / 20
-            : Math.max(0.4, filterMultiplier)),
-      ),
-      completed: Math.round(
-        doc.completed *
-          (filterMultiplier > 2
-            ? filterMultiplier / 20
-            : Math.max(0.4, filterMultiplier)),
-      ),
-      revenue: Math.round(
-        doc.revenue *
-          (filterMultiplier > 2
-            ? filterMultiplier / 20
-            : Math.max(0.4, filterMultiplier)),
-      ),
-    }));
+    return doctorSource
+      .filter((doc) => {
+        const matchesDept =
+          appliedFilters.dept === "All Departments" ||
+          doc.department
+            .toLowerCase()
+            .includes(appliedFilters.dept.toLowerCase()) ||
+          appliedFilters.dept
+            .toLowerCase()
+            .includes(doc.department.toLowerCase());
+        const matchesDoc =
+          appliedFilters.doctor === "All Doctors" ||
+          doc.doctorName
+            .toLowerCase()
+            .includes(appliedFilters.doctor.toLowerCase()) ||
+          appliedFilters.doctor
+            .toLowerCase()
+            .includes(doc.doctorName.toLowerCase());
+        const matchesSearch =
+          !searchQuery ||
+          doc.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          doc.department.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesDept && matchesDoc && matchesSearch;
+      })
+      .map((doc) => ({
+        ...doc,
+        appointments: Math.round(
+          doc.appointments *
+            (filterMultiplier > 2
+              ? filterMultiplier / 20
+              : Math.max(0.4, filterMultiplier)),
+        ),
+        completed: Math.round(
+          doc.completed *
+            (filterMultiplier > 2
+              ? filterMultiplier / 20
+              : Math.max(0.4, filterMultiplier)),
+        ),
+        revenue: Math.round(
+          doc.revenue *
+            (filterMultiplier > 2
+              ? filterMultiplier / 20
+              : Math.max(0.4, filterMultiplier)),
+        ),
+      }));
   }, [appliedFilters, searchQuery, filterMultiplier]);
 
   const sortedDoctors = useMemo(() => {
@@ -514,7 +527,12 @@ export function AdminReportsDashboardScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 10:45 AM</strong>
+                  <strong className="text-[#111827]">
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
                 </span>
               </div>
               <button
@@ -593,7 +611,7 @@ export function AdminReportsDashboardScreen({
               </div>
               <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
                 <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                  <TrendingUp className="w-3 h-3" /> +12.4% vs yesterday
+                  <TrendingUp className="w-3 h-3" /> --
                 </span>
                 <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
                   View Detail <ChevronRight className="w-3 h-3" />
@@ -642,7 +660,7 @@ export function AdminReportsDashboardScreen({
               </div>
               <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
                 <span className="text-[#009688] font-semibold flex items-center gap-0.5">
-                  <TrendingUp className="w-3 h-3" /> +8.1% new admissions
+                  <TrendingUp className="w-3 h-3" /> --
                 </span>
                 <span className="text-[#009688] font-semibold flex items-center gap-0.5 group-hover:underline">
                   View Detail <ChevronRight className="w-3 h-3" />
@@ -691,7 +709,7 @@ export function AdminReportsDashboardScreen({
               </div>
               <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
                 <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                  <TrendingUp className="w-3 h-3" /> +15.2% today's total
+                  <TrendingUp className="w-3 h-3" /> --
                 </span>
                 <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5 group-hover:underline">
                   View Detail <ChevronRight className="w-3 h-3" />
@@ -734,7 +752,9 @@ export function AdminReportsDashboardScreen({
               </div>
               <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
                 <span className="text-[#0D47A1] font-semibold">
-                  95% Collection Rate
+                  {dashboardData?.collectionRate != null
+                    ? `${safeNumber(dashboardData.collectionRate)}% Collection Rate`
+                    : "--"}
                 </span>
                 <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
                   View Detail <ChevronRight className="w-3 h-3" />
@@ -779,7 +799,9 @@ export function AdminReportsDashboardScreen({
                 className="text-2xl font-bold text-[#111827] mb-1"
                 style={{ fontFamily: PP }}
               >
-                18.4 min
+                {dashboardData?.averageConsultationDurationMinutes != null
+                  ? `${dashboardData.averageConsultationDurationMinutes} min`
+                  : "--"}
               </div>
               <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
                 <span className="text-[#009688] font-semibold">
@@ -791,11 +813,19 @@ export function AdminReportsDashboardScreen({
               </div>
               <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                 <div>
-                  <div className="text-[#0D47A1] font-bold">94%</div>
+                  <div className="text-[#0D47A1] font-bold">
+                    {dashboardData?.doctorUtilizationPercentage != null
+                      ? `${dashboardData.doctorUtilizationPercentage}%`
+                      : "--"}
+                  </div>
                   <div className="text-[#64748B]">Completion</div>
                 </div>
                 <div>
-                  <div className="text-[#66BB6A] font-bold">4.85 / 5</div>
+                  <div className="text-[#66BB6A] font-bold">
+                    {dashboardData?.patientSatisfaction != null
+                      ? `${dashboardData.patientSatisfaction} / 5`
+                      : "--"}
+                  </div>
                   <div className="text-[#64748B]">Avg Rating</div>
                 </div>
               </div>
@@ -814,17 +844,27 @@ export function AdminReportsDashboardScreen({
                   className="text-2xl font-bold text-[#111827] mt-1"
                   style={{ fontFamily: PP }}
                 >
-                  95.1%
+                  {dashboardData?.collectionRate != null
+                    ? `${safeNumber(dashboardData.collectionRate)}%`
+                    : "--"}
                 </div>
                 <p className="text-[11px] text-[#64748B] mt-1">
-                  {formatCurrency(Math.round(computedKpis.revenue * 0.95))}{" "}
+                  {collectionRateData?.totalCollected != null
+                    ? formatCurrency(
+                        Math.round(collectionRateData.totalCollected),
+                      )
+                    : "--"}{" "}
                   collected
                 </p>
                 <div className="mt-2 text-[11px] font-semibold text-[#009688] flex items-center gap-0.5 group-hover:underline">
                   View Detail <ChevronRight className="w-3 h-3" />
                 </div>
               </div>
-              <CircularProgress percentage={95} size={64} strokeWidth={7} />
+              <CircularProgress
+                percentage={typeof dashboardData?.collectionRate === 'object' ? (dashboardData.collectionRate as any)?.rate ?? 0 : dashboardData?.collectionRate ?? 0}
+                size={64}
+                strokeWidth={7}
+              />
             </div>
           </div>
         )}
@@ -1662,11 +1702,17 @@ export function AdminReportsDashboardScreen({
                           >
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-3">
-                                <img
-                                  src={doc.avatar}
-                                  alt={doc.doctorName}
-                                  className="w-8 h-8 rounded-full object-cover border border-[#E5E7EB]"
-                                />
+                                {doc.avatar ? (
+                                  <img
+                                    src={doc.avatar}
+                                    alt={doc.doctorName}
+                                    className="w-8 h-8 rounded-full object-cover border border-[#E5E7EB]"
+                                  />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-[#E0F2F1] border border-[#E5E7EB] flex items-center justify-center text-[#009688] font-bold text-xs">
+                                    {doc.doctorName?.charAt(0) || "?"}
+                                  </div>
+                                )}
                                 <div>
                                   <div className="font-bold text-[#111827]">
                                     {doc.doctorName}
@@ -1734,7 +1780,9 @@ export function AdminReportsDashboardScreen({
           <div>Hospital Management System • Reports Module v1.0</div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 00:47</strong>
+            <strong className="text-[#111827]">
+              {new Date().toLocaleString()}
+            </strong>
           </div>
         </div>
       </div>

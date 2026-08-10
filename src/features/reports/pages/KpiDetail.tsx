@@ -40,293 +40,6 @@ import type {
 } from "../types/reports.types";
 
 
-const MOCK_KPI_REVENUE_DATA: KpiRevenueRecord[] = [
-  {
-    invoiceId: "INV-2026-0891",
-    patientName: "Sarah Mitchell",
-    mrn: "MRN-89201",
-    doctorName: "Dr. Sarah Jenkins",
-    department: "Cardiology",
-    invoiceDate: "2026-07-26",
-    paymentMethod: "Card",
-    invoiceAmount: 850,
-    collectedAmount: 850,
-    invoiceStatus: "Paid",
-  },
-  {
-    invoiceId: "INV-2026-0892",
-    patientName: "James Thornton",
-    mrn: "MRN-89202",
-    doctorName: "Dr. Rajesh Kapoor",
-    department: "Neurology",
-    invoiceDate: "2026-07-26",
-    paymentMethod: "UPI",
-    invoiceAmount: 1200,
-    collectedAmount: 1200,
-    invoiceStatus: "Paid",
-  },
-  {
-    invoiceId: "INV-2026-0893",
-    patientName: "Emma Reyes",
-    mrn: "MRN-89203",
-    doctorName: "Dr. Priya Sharma",
-    department: "General Medicine",
-    invoiceDate: "2026-07-26",
-    paymentMethod: "Cash",
-    invoiceAmount: 450,
-    collectedAmount: 450,
-    invoiceStatus: "Paid",
-  },
-  {
-    invoiceId: "INV-2026-0894",
-    patientName: "David Walsh",
-    mrn: "MRN-89204",
-    doctorName: "Dr. Arjun Mehta",
-    department: "Orthopedics",
-    invoiceDate: "2026-07-26",
-    paymentMethod: "Card",
-    invoiceAmount: 1500,
-    collectedAmount: 1000,
-    invoiceStatus: "Partially Paid",
-  },
-  {
-    invoiceId: "INV-2026-0895",
-    patientName: "Aisha Kumar",
-    mrn: "MRN-89205",
-    doctorName: "Dr. Sunita Patel",
-    department: "Pediatrics",
-    invoiceDate: "2026-07-26",
-    paymentMethod: "Cash",
-    invoiceAmount: 600,
-    collectedAmount: 0,
-    invoiceStatus: "Pending",
-  },
-  {
-    invoiceId: "INV-2026-0896",
-    patientName: "Robert Vance",
-    mrn: "MRN-89206",
-    doctorName: "Dr. Priya Sharma",
-    department: "General Medicine",
-    invoiceDate: "2026-07-25",
-    paymentMethod: "UPI",
-    invoiceAmount: 350,
-    collectedAmount: 350,
-    invoiceStatus: "Paid",
-  },
-  {
-    invoiceId: "INV-2026-0897",
-    patientName: "Elena Rostova",
-    mrn: "MRN-89207",
-    doctorName: "Dr. Sarah Jenkins",
-    department: "Cardiology",
-    invoiceDate: "2026-07-25",
-    paymentMethod: "Bank Transfer",
-    invoiceAmount: 2400,
-    collectedAmount: 2400,
-    invoiceStatus: "Paid",
-  },
-];
-
-const MOCK_KPI_APPOINTMENT_DATA: KpiAppointmentRecord[] = [
-  {
-    appointmentId: "APT-2026-101",
-    patientName: "Sarah Mitchell",
-    mrn: "MRN-89201",
-    doctorName: "Dr. Sarah Jenkins",
-    department: "Cardiology",
-    visitType: "Follow-up",
-    appointmentTime: "09:00 AM",
-    tokenNumber: "C-01",
-    appointmentStatus: "Completed",
-  },
-  {
-    appointmentId: "APT-2026-102",
-    patientName: "James Thornton",
-    mrn: "MRN-89202",
-    doctorName: "Dr. Rajesh Kapoor",
-    department: "Neurology",
-    visitType: "New Visit",
-    appointmentTime: "09:30 AM",
-    tokenNumber: "N-01",
-    appointmentStatus: "Completed",
-  },
-  {
-    appointmentId: "APT-2026-103",
-    patientName: "Emma Reyes",
-    mrn: "MRN-89203",
-    doctorName: "Dr. Priya Sharma",
-    department: "General Medicine",
-    visitType: "Walk-in",
-    appointmentTime: "10:00 AM",
-    tokenNumber: "G-05",
-    appointmentStatus: "Checked-In",
-  },
-  {
-    appointmentId: "APT-2026-104",
-    patientName: "David Walsh",
-    mrn: "MRN-89204",
-    doctorName: "Dr. Arjun Mehta",
-    department: "Orthopedics",
-    visitType: "Follow-up",
-    appointmentTime: "10:30 AM",
-    tokenNumber: "O-02",
-    appointmentStatus: "Scheduled",
-  },
-  {
-    appointmentId: "APT-2026-105",
-    patientName: "Aisha Kumar",
-    mrn: "MRN-89205",
-    doctorName: "Dr. Sunita Patel",
-    department: "Pediatrics",
-    visitType: "New Visit",
-    appointmentTime: "11:00 AM",
-    tokenNumber: "P-03",
-    appointmentStatus: "Scheduled",
-  },
-  {
-    appointmentId: "APT-2026-106",
-    patientName: "Robert Vance",
-    mrn: "MRN-89206",
-    doctorName: "Dr. Priya Sharma",
-    department: "General Medicine",
-    visitType: "Follow-up",
-    appointmentTime: "11:30 AM",
-    tokenNumber: "G-09",
-    appointmentStatus: "Cancelled",
-  },
-];
-
-const MOCK_KPI_PATIENT_DATA: KpiPatientRecord[] = [
-  {
-    patientId: "PAT-89201",
-    patientName: "Sarah Mitchell",
-    mrn: "MRN-89201",
-    gender: "Female",
-    age: 34,
-    registrationDate: "2026-07-26 08:30 AM",
-    registeredBy: "Receptionist Anita",
-    visitType: "Follow-up",
-  },
-  {
-    patientId: "PAT-89202",
-    patientName: "James Thornton",
-    mrn: "MRN-89202",
-    gender: "Male",
-    age: 48,
-    registrationDate: "2026-07-26 09:10 AM",
-    registeredBy: "Receptionist Rahul",
-    visitType: "New Visit",
-  },
-  {
-    patientId: "PAT-89203",
-    patientName: "Emma Reyes",
-    mrn: "MRN-89203",
-    gender: "Female",
-    age: 29,
-    registrationDate: "2026-07-26 09:45 AM",
-    registeredBy: "Receptionist Anita",
-    visitType: "Walk-in",
-  },
-  {
-    patientId: "PAT-89204",
-    patientName: "David Walsh",
-    mrn: "MRN-89204",
-    gender: "Male",
-    age: 52,
-    registrationDate: "2026-07-25 14:20 PM",
-    registeredBy: "Receptionist Rahul",
-    visitType: "Follow-up",
-  },
-  {
-    patientId: "PAT-89205",
-    patientName: "Aisha Kumar",
-    mrn: "MRN-89205",
-    gender: "Female",
-    age: 27,
-    registrationDate: "2026-07-25 15:10 PM",
-    registeredBy: "Receptionist Anita",
-    visitType: "New Visit",
-  },
-];
-
-const MOCK_KPI_CONSULTATION_DATA: KpiConsultationRecord[] = [
-  {
-    consultationId: "CNS-501",
-    patientName: "Sarah Mitchell",
-    doctorName: "Dr. Sarah Jenkins",
-    department: "Cardiology",
-    consultationTime: "09:15 AM",
-    durationMinutes: 18,
-    status: "Completed",
-  },
-  {
-    consultationId: "CNS-502",
-    patientName: "James Thornton",
-    doctorName: "Dr. Rajesh Kapoor",
-    department: "Neurology",
-    consultationTime: "09:45 AM",
-    durationMinutes: 22,
-    status: "Completed",
-  },
-  {
-    consultationId: "CNS-503",
-    patientName: "Emma Reyes",
-    doctorName: "Dr. Priya Sharma",
-    department: "General Medicine",
-    consultationTime: "10:15 AM",
-    durationMinutes: 12,
-    status: "Completed",
-  },
-  {
-    consultationId: "CNS-504",
-    patientName: "David Walsh",
-    doctorName: "Dr. Arjun Mehta",
-    department: "Orthopedics",
-    consultationTime: "10:50 AM",
-    durationMinutes: 15,
-    status: "In-Progress",
-  },
-  {
-    consultationId: "CNS-505",
-    patientName: "Aisha Kumar",
-    doctorName: "Dr. Sunita Patel",
-    department: "Pediatrics",
-    consultationTime: "11:20 AM",
-    durationMinutes: 0,
-    status: "Cancelled",
-  },
-];
-
-const MOCK_KPI_PENDING_PAYMENT_DATA: KpiPendingPaymentRecord[] = [
-  {
-    invoiceId: "INV-2026-0894",
-    patientName: "David Walsh",
-    doctorName: "Dr. Arjun Mehta",
-    department: "Orthopedics",
-    pendingAmount: 500,
-    dueDate: "2026-07-28",
-    status: "Partially Paid",
-  },
-  {
-    invoiceId: "INV-2026-0895",
-    patientName: "Aisha Kumar",
-    doctorName: "Dr. Sunita Patel",
-    department: "Pediatrics",
-    pendingAmount: 600,
-    dueDate: "2026-07-26",
-    status: "Pending",
-  },
-  {
-    invoiceId: "INV-2026-0880",
-    patientName: "Vikram Malhotra",
-    doctorName: "Dr. Rajesh Kapoor",
-    department: "Neurology",
-    pendingAmount: 1800,
-    dueDate: "2026-07-20",
-    status: "Overdue",
-  },
-];
-
 export function DashboardKpiDetailScreen({
   onBack,
   initialKpi = "Today's Revenue",
@@ -442,7 +155,7 @@ export function DashboardKpiDetailScreen({
     const q = searchQuery.toLowerCase();
 
     if (isRevenueKpi) {
-      return MOCK_KPI_REVENUE_DATA.filter((item) => {
+      return [].filter((item) => {
         const matchesSearch =
           item.invoiceId.toLowerCase().includes(q) ||
           item.patientName.toLowerCase().includes(q) ||
@@ -463,7 +176,7 @@ export function DashboardKpiDetailScreen({
     }
 
     if (isAppointmentKpi) {
-      return MOCK_KPI_APPOINTMENT_DATA.filter((item) => {
+      return [].filter((item) => {
         const matchesSearch =
           item.appointmentId.toLowerCase().includes(q) ||
           item.patientName.toLowerCase().includes(q) ||
@@ -493,7 +206,7 @@ export function DashboardKpiDetailScreen({
     }
 
     if (isPatientKpi) {
-      return MOCK_KPI_PATIENT_DATA.filter((item) => {
+      return [].filter((item) => {
         const matchesSearch =
           item.patientId.toLowerCase().includes(q) ||
           item.patientName.toLowerCase().includes(q) ||
@@ -507,7 +220,7 @@ export function DashboardKpiDetailScreen({
     }
 
     if (isConsultationKpi) {
-      return MOCK_KPI_CONSULTATION_DATA.filter((item) => {
+      return [].filter((item) => {
         const matchesSearch =
           item.consultationId.toLowerCase().includes(q) ||
           item.patientName.toLowerCase().includes(q) ||
@@ -524,7 +237,7 @@ export function DashboardKpiDetailScreen({
     }
 
     // Default to Pending Payment KPI
-    return MOCK_KPI_PENDING_PAYMENT_DATA.filter((item) => {
+    return [].filter((item) => {
       const matchesSearch =
         item.invoiceId.toLowerCase().includes(q) ||
         item.patientName.toLowerCase().includes(q) ||
@@ -694,7 +407,7 @@ export function DashboardKpiDetailScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:45 AM</strong>
+                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </span>
               </div>
 
@@ -745,7 +458,7 @@ export function DashboardKpiDetailScreen({
                   {selectedKpi}
                 </h2>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-[#66BB6A] border border-green-200 flex items-center gap-1">
-                  <TrendingUp className="w-3.5 h-3.5" /> +12.5% Today
+                  <TrendingUp className="w-3.5 h-3.5" /> --
                 </span>
               </div>
             </div>
@@ -799,10 +512,10 @@ export function DashboardKpiDetailScreen({
                     className="text-xl font-bold text-[#0D47A1] block"
                     style={{ fontFamily: PP }}
                   >
-                    â‚¹62,500
+                    â‚¹--
                   </strong>
                   <span className="text-[10px] text-[#66BB6A] font-semibold">
-                    +15.2% Increase
+                    --
                   </span>
                 </div>
                 <div className="bg-[#F1F5F9] rounded-xl p-3.5 border border-[#E5E7EB]">
@@ -813,7 +526,7 @@ export function DashboardKpiDetailScreen({
                     className="text-xl font-bold text-[#009688] block"
                     style={{ fontFamily: PP }}
                   >
-                    +18.4%
+                    --
                   </strong>
                   <span className="text-[10px] text-[#64748B]">
                     vs monthly baseline
@@ -827,7 +540,7 @@ export function DashboardKpiDetailScreen({
                     className="text-xl font-bold text-[#66BB6A] block"
                     style={{ fontFamily: PP }}
                   >
-                    +24.1%
+                    --
                   </strong>
                   <span className="text-[10px] text-[#64748B]">
                     YoY growth trajectory
@@ -863,7 +576,7 @@ export function DashboardKpiDetailScreen({
                     38
                   </strong>
                   <span className="text-[10px] text-[#66BB6A] font-semibold">
-                    +10.5% Increase
+                    --
                   </span>
                 </div>
                 <div className="bg-[#F1F5F9] rounded-xl p-3.5 border border-[#E5E7EB]">
@@ -874,7 +587,7 @@ export function DashboardKpiDetailScreen({
                     className="text-xl font-bold text-[#009688] block"
                     style={{ fontFamily: PP }}
                   >
-                    40 / day
+                    --
                   </strong>
                   <span className="text-[10px] text-[#64748B]">
                     7-day rolling avg
@@ -888,7 +601,7 @@ export function DashboardKpiDetailScreen({
                     className="text-xl font-bold text-[#66BB6A] block"
                     style={{ fontFamily: PP }}
                   >
-                    36 / day
+                    --
                   </strong>
                   <span className="text-[10px] text-[#64748B]">
                     Monthly baseline
@@ -924,7 +637,7 @@ export function DashboardKpiDetailScreen({
                     45
                   </strong>
                   <span className="text-[10px] text-[#66BB6A] font-semibold">
-                    +12.0% Increase
+                    --
                   </span>
                 </div>
                 <div className="bg-[#F1F5F9] rounded-xl p-3.5 border border-[#E5E7EB]">
@@ -935,7 +648,7 @@ export function DashboardKpiDetailScreen({
                     className="text-xl font-bold text-[#009688] block"
                     style={{ fontFamily: PP }}
                   >
-                    42 / day
+                    --
                   </strong>
                   <span className="text-[10px] text-[#64748B]">
                     Stable registration
@@ -949,7 +662,7 @@ export function DashboardKpiDetailScreen({
                     className="text-xl font-bold text-[#66BB6A] block"
                     style={{ fontFamily: PP }}
                   >
-                    39 / day
+                    --
                   </strong>
                   <span className="text-[10px] text-[#64748B]">
                     Monthly average
@@ -989,7 +702,7 @@ export function DashboardKpiDetailScreen({
                     28
                   </strong>
                   <span className="text-[10px] text-[#66BB6A] font-semibold">
-                    +8.5% Increase
+                    --
                   </span>
                 </div>
                 <div className="bg-[#F1F5F9] rounded-xl p-3.5 border border-[#E5E7EB]">
@@ -1000,7 +713,7 @@ export function DashboardKpiDetailScreen({
                     className="text-xl font-bold text-[#009688] block"
                     style={{ fontFamily: PP }}
                   >
-                    16.8 mins
+                    --
                   </strong>
                   <span className="text-[10px] text-[#64748B]">
                     Optimized flow
@@ -1014,7 +727,7 @@ export function DashboardKpiDetailScreen({
                     className="text-xl font-bold text-[#66BB6A] block"
                     style={{ fontFamily: PP }}
                   >
-                    94.2%
+                    --
                   </strong>
                   <span className="text-[10px] text-[#66BB6A] font-semibold">
                     High turnaround
@@ -1075,7 +788,7 @@ export function DashboardKpiDetailScreen({
                     className="text-xl font-bold text-[#66BB6A] block"
                     style={{ fontFamily: PP }}
                   >
-                    88.6%
+                    --
                   </strong>
                   <span className="text-[10px] text-[#66BB6A] font-semibold">
                     Settled transactions
@@ -2056,7 +1769,7 @@ export function DashboardKpiDetailScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 11:45 AM</strong>
+            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
           </div>
         </div>
       </div>

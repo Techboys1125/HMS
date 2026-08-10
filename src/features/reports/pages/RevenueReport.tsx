@@ -1,4 +1,4 @@
-﻿import  { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 import {
   Download,
   RefreshCw,
@@ -9,6 +9,7 @@ import {
   PieChart,
   CheckCircle2,
   AlertCircle,
+  UserCheck,
   DollarSign,
   TrendingUp,
   Building2,
@@ -36,8 +37,12 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { PP, RB } from "../constants/reports.constants";
-import type { RevenueReportRecord, DailyRevenuePoint, RevenueVsCollectionPoint } from "../types/reports.types";
-import { useDailyRevenue, useRevenueVsCollection, useDailyRevenueDetails } from "../hooks/useReports";
+import type { RevenueReportRecord } from "../types/reports.types";
+import {
+  useDailyRevenue,
+  useDailyRevenueDetails,
+  useCollectionRate,
+} from "../hooks/useReports";
 function CircularProgress({
   percentage,
   size = 54,
@@ -85,154 +90,6 @@ function CircularProgress({
   );
 }
 
-const REVENUE_REPORT_TABLE_DATA: RevenueReportRecord[] = [
-  {
-    id: "INV-1042",
-    patientName: "Sarah Mitchell",
-    mrn: "MRN-89201",
-    doctorName: "Dr. Sarah Jenkins",
-    department: "Cardiology",
-    invoiceDate: "2026-07-26 09:40 AM",
-    invoiceAmount: 1500,
-    collectedAmount: 1500,
-    outstandingAmount: 0,
-    paymentMethod: "UPI",
-    paymentStatus: "Paid",
-  },
-  {
-    id: "INV-1041",
-    patientName: "James Thornton",
-    mrn: "MRN-89202",
-    doctorName: "Dr. Rajesh Kapoor",
-    department: "Neurology",
-    invoiceDate: "2026-07-26 09:15 AM",
-    invoiceAmount: 2200,
-    collectedAmount: 1100,
-    outstandingAmount: 1100,
-    paymentMethod: "Cash",
-    paymentStatus: "Partially Paid",
-  },
-  {
-    id: "INV-1040",
-    patientName: "Emma Reyes",
-    mrn: "MRN-89203",
-    doctorName: "Dr. Priya Sharma",
-    department: "General Medicine",
-    invoiceDate: "2026-07-26 08:50 AM",
-    invoiceAmount: 500,
-    collectedAmount: 500,
-    outstandingAmount: 0,
-    paymentMethod: "Card",
-    paymentStatus: "Paid",
-  },
-  {
-    id: "INV-1039",
-    patientName: "David Walsh",
-    mrn: "MRN-89204",
-    doctorName: "Dr. Arjun Mehta",
-    department: "Orthopedics",
-    invoiceDate: "2026-07-26 08:20 AM",
-    invoiceAmount: 3200,
-    collectedAmount: 3200,
-    outstandingAmount: 0,
-    paymentMethod: "Bank Transfer",
-    paymentStatus: "Paid",
-  },
-  {
-    id: "INV-1038",
-    patientName: "Aisha Kumar",
-    mrn: "MRN-89205",
-    doctorName: "Dr. Sunita Patel",
-    department: "Gynecology",
-    invoiceDate: "2026-07-26 08:00 AM",
-    invoiceAmount: 1800,
-    collectedAmount: 0,
-    outstandingAmount: 1800,
-    paymentMethod: "Card",
-    paymentStatus: "Pending",
-  },
-  {
-    id: "INV-1037",
-    patientName: "Robert Vance",
-    mrn: "MRN-89206",
-    doctorName: "Dr. Priya Sharma",
-    department: "General Medicine",
-    invoiceDate: "2026-07-25 05:45 PM",
-    invoiceAmount: 900,
-    collectedAmount: 0,
-    outstandingAmount: 0,
-    paymentMethod: "Cash",
-    paymentStatus: "Cancelled",
-  },
-  {
-    id: "INV-1036",
-    patientName: "Elena Rostova",
-    mrn: "MRN-89207",
-    doctorName: "Dr. Sarah Jenkins",
-    department: "Cardiology",
-    invoiceDate: "2026-07-25 04:30 PM",
-    invoiceAmount: 1200,
-    collectedAmount: 1200,
-    outstandingAmount: 0,
-    paymentMethod: "UPI",
-    paymentStatus: "Paid",
-  },
-];
-
-const PAYMENT_METHOD_DISTRIBUTION_DATA = [
-  { name: "Cash", value: 24500, percentage: 35, color: "#009688" },
-  { name: "Card", value: 22000, percentage: 32, color: "#0D47A1" },
-  { name: "UPI", value: 18000, percentage: 26, color: "#4DB6AC" },
-  { name: "Bank Transfer", value: 4000, percentage: 7, color: "#66BB6A" },
-];
-
-const DAILY_REVENUE_TREND_DATA = [
-  { date: "Jul 20", Revenue: 45000, Collections: 42000, Outstanding: 3000 },
-  { date: "Jul 21", Revenue: 52000, Collections: 49000, Outstanding: 3000 },
-  { date: "Jul 22", Revenue: 48500, Collections: 46000, Outstanding: 2500 },
-  { date: "Jul 23", Revenue: 61000, Collections: 58000, Outstanding: 3000 },
-  { date: "Jul 24", Revenue: 59000, Collections: 54000, Outstanding: 5000 },
-  { date: "Jul 25", Revenue: 67400, Collections: 63200, Outstanding: 4200 },
-  { date: "Jul 26", Revenue: 72000, Collections: 68500, Outstanding: 3500 },
-];
-
-const DEPT_REVENUE_DATA = [
-  {
-    department: "Gen. Medicine",
-    revenue: 84000,
-    invoices: 168,
-    avgInvoice: 500,
-  },
-  { department: "Cardiology", revenue: 126000, invoices: 84, avgInvoice: 1500 },
-  { department: "Orthopedics", revenue: 95000, invoices: 48, avgInvoice: 1979 },
-  { department: "ENT", revenue: 52000, invoices: 65, avgInvoice: 800 },
-  { department: "Neurology", revenue: 88000, invoices: 44, avgInvoice: 2000 },
-  { department: "Pediatrics", revenue: 68000, invoices: 85, avgInvoice: 800 },
-];
-
-const DOCTOR_REVENUE_DATA = [
-  {
-    doctor: "Dr. S. Jenkins",
-    revenue: 168000,
-    invoices: 112,
-    collectionRate: 96,
-  },
-  {
-    doctor: "Dr. R. Kapoor",
-    revenue: 145000,
-    invoices: 73,
-    collectionRate: 94,
-  },
-  { doctor: "Dr. A. Mehta", revenue: 122000, invoices: 61, collectionRate: 92 },
-  { doctor: "Dr. S. Patel", revenue: 109200, invoices: 78, collectionRate: 95 },
-  {
-    doctor: "Dr. P. Sharma",
-    revenue: 97500,
-    invoices: 195,
-    collectionRate: 98,
-  },
-];
-
 export function DailyRevenueReportScreen({
   onBack,
 }: {
@@ -252,11 +109,13 @@ export function DailyRevenueReportScreen({
   // ─── API Data Hooks ──────────────────────────────────────────────────────
   const reportFilters = { fromDate: "2026-08-01", toDate: "2026-08-08" };
   const { data: dailyRevenueData = [] } = useDailyRevenue(reportFilters);
-  const { data: revenueVsCollData = [] } = useRevenueVsCollection(reportFilters);
   const { data: revenueDetailsData } = useDailyRevenueDetails(reportFilters);
+  const { data: collectionRateData } = useCollectionRate(reportFilters);
 
   // Map API revenue details to table format
-  const apiTableData: RevenueReportRecord[] = (revenueDetailsData?.content ?? []).map((d) => ({
+  const apiTableData: RevenueReportRecord[] = (
+    revenueDetailsData?.content ?? []
+  ).map((d) => ({
     id: d.paymentId,
     patientName: d.receiptNumber,
     mrn: "",
@@ -269,14 +128,32 @@ export function DailyRevenueReportScreen({
     paymentMethod: d.paymentMethod as RevenueReportRecord["paymentMethod"],
     paymentStatus: "Paid" as const,
   }));
-  const revenueTableSource = apiTableData.length > 0 ? apiTableData : REVENUE_REPORT_TABLE_DATA;
+  const revenueTableSource = apiTableData;
 
   // Map API daily revenue to trend chart format
-  const trendSource: (DailyRevenuePoint & { Revenue?: number; Collections?: number; Outstanding?: number })[] = dailyRevenueData.length > 0
-    ? dailyRevenueData.map((d) => ({ date: d.date, amount: d.amount, Revenue: d.amount, Collections: Math.round(d.amount * 0.93), Outstanding: Math.round(d.amount * 0.07) }))
-    : DAILY_REVENUE_TREND_DATA;
+  const trendSource = dailyRevenueData.map((d) => ({
+    date: d.date,
+    amount: d.amount,
+    Revenue: d.amount,
+    Collections: Math.round(d.amount * 0.93),
+    Outstanding: Math.round(d.amount * 0.07),
+  }));
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdated] = useState(() => {
+    const now = new Date();
+    const day = now.toLocaleDateString("en-US", { weekday: "long" });
+    const time = now.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return `${day}, ${time}`;
+  });
+  const [lastRefreshed] = useState(() => {
+    const now = new Date();
+    return now.toISOString().slice(0, 16).replace("T", " ");
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -353,47 +230,23 @@ export function DailyRevenueReportScreen({
     }, 300);
   };
 
-  // Dynamic filter multiplier for KPI updates
-  const revenueFilterMultiplier = useMemo(() => {
-    let mult = 1.0;
-    if (appliedFilters.dept !== "All Departments") mult *= 0.38;
-    if (appliedFilters.doctor !== "All Doctors") mult *= 0.22;
-    if (appliedFilters.paymentStatus === "Paid") mult *= 0.85;
-    if (appliedFilters.paymentStatus === "Pending") mult *= 0.12;
-    if (appliedFilters.paymentMethod === "Cash") mult *= 0.35;
-    if (appliedFilters.paymentMethod === "UPI") mult *= 0.26;
-    if (appliedFilters.dateRange === "Last 7 Days") mult *= 6.2;
-    if (appliedFilters.dateRange === "This Month") mult *= 25;
-    return mult;
-  }, [appliedFilters]);
-
-  // Computed KPI Card Values
+  // Computed KPI Card Values from API hooks
   const computedRevenueStats = useMemo(() => {
-    const totalRev = Math.round(72000 * revenueFilterMultiplier);
-    const collectedRev = Math.round(68500 * revenueFilterMultiplier);
-    const outstanding = Math.round(3500 * revenueFilterMultiplier);
-    const invoicesCount = Math.round(
-      142 *
-        (revenueFilterMultiplier > 2
-          ? revenueFilterMultiplier / 25
-          : Math.max(0.3, revenueFilterMultiplier)),
-    );
+    const totalRev = collectionRateData?.totalBilled ?? 0;
+    const collectedRev = collectionRateData?.totalCollected ?? 0;
+    const outstanding = collectionRateData?.outstandingAmount ?? 0;
+    const invoicesCount = revenueDetailsData?.content?.length ?? 0;
     return {
       totalRev,
       collectedRev,
       outstanding,
       invoicesCount,
-      paidInvoices: Math.round(invoicesCount * 0.9),
-      pendingInvoices: Math.round(invoicesCount * 0.07),
-      voidInvoices: Math.max(
-        0,
-        invoicesCount -
-          Math.round(invoicesCount * 0.9) -
-          Math.round(invoicesCount * 0.07),
-      ),
+      paidInvoices: 0,
+      pendingInvoices: 0,
+      voidInvoices: 0,
       avgValue: invoicesCount > 0 ? Math.round(totalRev / invoicesCount) : 0,
     };
-  }, [revenueFilterMultiplier]);
+  }, [collectionRateData, revenueDetailsData]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -555,7 +408,7 @@ export function DailyRevenueReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 10:45 AM</strong>
+                  <strong className="text-[#111827]">{lastUpdated}</strong>
                 </span>
               </div>
 
@@ -959,13 +812,13 @@ export function DailyRevenueReportScreen({
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
                     <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> +15.2%
+                      <TrendingUp className="w-3 h-3" /> --
                     </span>
                     <span>vs period average</span>
                   </div>
                   <div className="h-8">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={DAILY_REVENUE_TREND_DATA}>
+                      <LineChart data={trendSource}>
                         <Line
                           type="monotone"
                           dataKey="Revenue"
@@ -1006,7 +859,7 @@ export function DailyRevenueReportScreen({
                   </div>
                   <div className="h-8">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={DAILY_REVENUE_TREND_DATA}>
+                      <AreaChart data={trendSource}>
                         <Area
                           type="monotone"
                           dataKey="Collections"
@@ -1047,7 +900,7 @@ export function DailyRevenueReportScreen({
                   </div>
                   <div className="h-8">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={DAILY_REVENUE_TREND_DATA}>
+                      <LineChart data={trendSource}>
                         <Line
                           type="monotone"
                           dataKey="Outstanding"
@@ -1109,10 +962,10 @@ export function DailyRevenueReportScreen({
                     </div>
                   </div>
                   <div className="text-xs font-bold text-[#111827] mb-1">
-                    Cash: â‚¹24.5k | Card: â‚¹22k
+                    Cash: -- | Card: --
                   </div>
                   <div className="text-[11px] text-[#64748B] mb-2">
-                    UPI: â‚¹18k | Bank: â‚¹4k
+                    UPI: -- | Bank: --
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
                     <div
@@ -1147,13 +1000,17 @@ export function DailyRevenueReportScreen({
                       {formatCurrency(computedRevenueStats.avgValue)}
                     </div>
                     <p className="text-[11px] text-[#64748B] mt-1">
-                      Highest: â‚¹3,200 | Min: â‚¹200
+                      Highest: -- | Min: --
                     </p>
                     <div className="mt-1 text-[11px] font-semibold text-[#0D47A1]">
-                      âœ“ OPD Fee Benchmark
+                      âœ" OPD Fee Benchmark
                     </div>
                   </div>
-                  <CircularProgress percentage={88} size={64} strokeWidth={7} />
+                  <CircularProgress
+                    percentage={collectionRateData?.collectionRate ?? 0}
+                    size={64}
+                    strokeWidth={7}
+                  />
                 </div>
               </div>
 
@@ -1191,7 +1048,7 @@ export function DailyRevenueReportScreen({
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
-                      data={DAILY_REVENUE_TREND_DATA}
+                      data={trendSource}
                       margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
                     >
                       <defs>
@@ -1291,7 +1148,7 @@ export function DailyRevenueReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={DAILY_REVENUE_TREND_DATA}
+                        data={trendSource}
                         margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1348,7 +1205,7 @@ export function DailyRevenueReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={PAYMENT_METHOD_DISTRIBUTION_DATA}
+                          data={[]}
                           cx="50%"
                           cy="50%"
                           innerRadius={45}
@@ -1356,11 +1213,9 @@ export function DailyRevenueReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {PAYMENT_METHOD_DISTRIBUTION_DATA.map(
-                            (entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ),
-                          )}
+                          {[].map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
                         </Pie>
                         <Tooltip
                           contentStyle={{
@@ -1407,7 +1262,7 @@ export function DailyRevenueReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                        data={DEPT_REVENUE_DATA}
+                        data={[]}
                         margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1458,7 +1313,7 @@ export function DailyRevenueReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={DOCTOR_REVENUE_DATA}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1662,7 +1517,7 @@ export function DailyRevenueReportScreen({
           <div>Hospital Management System â€¢ Daily Revenue Report v1.0</div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 01:08</strong>
+            <strong className="text-[#111827]">{lastRefreshed}</strong>
           </div>
         </div>
       </div>

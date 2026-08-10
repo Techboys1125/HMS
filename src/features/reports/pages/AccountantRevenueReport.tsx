@@ -85,11 +85,7 @@ function CircularProgress({
     </div>
   );
 }
-const ACCOUNTANT_REVENUE_COMPARISON_GROUPED_BAR = [
-  { period: "Today", revenue: 14850, collection: 14100, outstanding: 750 },
-  { period: "Yesterday", revenue: 13500, collection: 12800, outstanding: 700 },
-  { period: "7-Day Avg", revenue: 13200, collection: 12400, outstanding: 800 },
-];
+
 
 export function AccountantDailyRevenueReportScreen({
   onBack,
@@ -132,7 +128,7 @@ export function AccountantDailyRevenueReportScreen({
   };
 
   const filteredRevenueRows = useMemo(() => {
-    return ACCOUNTANT_DAILY_REVENUE_TABLE_DATA.filter((item) => {
+    return [].filter((item: any) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -199,7 +195,7 @@ export function AccountantDailyRevenueReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:45 AM</strong>
+                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </span>
               </div>
 
@@ -470,20 +466,20 @@ export function AccountantDailyRevenueReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    $14,850
+                    {"--"}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> +14.2% Growth
+                    <span className="text-[#64748B] font-semibold flex items-center gap-0.5">
+                      <TrendingUp className="w-3 h-3" /> {"--"}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#0D47A1] font-bold">$14,850</div>
+                      <div className="text-[#0D47A1] font-bold">{"--"}</div>
                       <div className="text-[#64748B]">Today Total</div>
                     </div>
                     <div>
-                      <div className="text-[#009688] font-bold">+14.2%</div>
+                      <div className="text-[#009688] font-bold">{"--"}</div>
                       <div className="text-[#64748B]">Growth</div>
                     </div>
                   </div>
@@ -503,20 +499,20 @@ export function AccountantDailyRevenueReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    $14,100
+                    {"--"}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#009688] font-semibold">
-                      94.9% Collection Rate
+                      {"--"}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#009688] font-bold">$14,100</div>
+                      <div className="text-[#009688] font-bold">{"--"}</div>
                       <div className="text-[#64748B]">Collected</div>
                     </div>
                     <div>
-                      <div className="text-[#0D47A1] font-bold">94.9%</div>
+                      <div className="text-[#0D47A1] font-bold">{"--"}</div>
                       <div className="text-[#64748B]">Rate</div>
                     </div>
                   </div>
@@ -536,20 +532,20 @@ export function AccountantDailyRevenueReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    $3,250
+                    {"--"}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#F59E0B] font-semibold">
-                      6 Invoices Pending
+                      {"--"}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#F59E0B] font-bold">$3,250</div>
+                      <div className="text-[#F59E0B] font-bold">{"--"}</div>
                       <div className="text-[#64748B]">Outstanding</div>
                     </div>
                     <div>
-                      <div className="text-[#0D47A1] font-bold">6</div>
+                      <div className="text-[#0D47A1] font-bold">{"--"}</div>
                       <div className="text-[#64748B]">Invoices</div>
                     </div>
                   </div>
@@ -569,20 +565,20 @@ export function AccountantDailyRevenueReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    42
+                    {"--"}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#66BB6A] font-semibold">
-                      87.5% Paid Share
+                      {"--"}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#66BB6A] font-bold">42</div>
+                      <div className="text-[#66BB6A] font-bold">{"--"}</div>
                       <div className="text-[#64748B]">Paid Invoices</div>
                     </div>
                     <div>
-                      <div className="text-[#0D47A1] font-bold">87.5%</div>
+                      <div className="text-[#0D47A1] font-bold">{"--"}</div>
                       <div className="text-[#64748B]">Rate</div>
                     </div>
                   </div>
@@ -602,20 +598,20 @@ export function AccountantDailyRevenueReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    $450
+                    {"--"}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#EF4444] font-semibold">
-                      2 Refund Claims
+                      {"--"}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#EF4444] font-bold">2</div>
+                      <div className="text-[#EF4444] font-bold">{"--"}</div>
                       <div className="text-[#64748B]">Count</div>
                     </div>
                     <div>
-                      <div className="text-[#64748B] font-bold">$450</div>
+                      <div className="text-[#64748B] font-bold">{"--"}</div>
                       <div className="text-[#64748B]">Refunded</div>
                     </div>
                   </div>
@@ -631,16 +627,16 @@ export function AccountantDailyRevenueReportScreen({
                       className="text-2xl font-bold text-[#111827] mt-1"
                       style={{ fontFamily: PP }}
                     >
-                      $309.38
+                      {"--"}
                     </div>
                     <p className="text-[11px] text-[#64748B] mt-1">
-                      Highest Today: $1,500
+                      {"--"}
                     </p>
-                    <div className="mt-2 text-[11px] font-semibold text-[#66BB6A]">
-                      âœ“ Target Met
+                    <div className="mt-2 text-[11px] font-semibold text-[#64748B]">
+                      {"--"}
                     </div>
                   </div>
-                  <CircularProgress percentage={88} size={64} strokeWidth={7} />
+                  <CircularProgress percentage={0} size={64} strokeWidth={7} />
                 </div>
               </div>
 
@@ -679,7 +675,7 @@ export function AccountantDailyRevenueReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
-                        data={ACCOUNTANT_REVENUE_TREND_SERIES}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <defs>
@@ -775,7 +771,7 @@ export function AccountantDailyRevenueReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={ACCOUNTANT_PAYMENT_STATUS_DONUT}
+                          data={[]}
                           cx="50%"
                           cy="50%"
                           innerRadius={45}
@@ -783,8 +779,8 @@ export function AccountantDailyRevenueReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {ACCOUNTANT_PAYMENT_STATUS_DONUT.map(
-                            (entry, index) => (
+                          {[].map(
+                            (entry: any, index: any) => (
                               <Cell key={`cell-${index}`} fill={entry.color} />
                             ),
                           )}
@@ -833,7 +829,7 @@ export function AccountantDailyRevenueReportScreen({
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={ACCOUNTANT_HOURLY_COLLECTION_BAR}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -880,7 +876,7 @@ export function AccountantDailyRevenueReportScreen({
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={ACCOUNTANT_REVENUE_COMPARISON_GROUPED_BAR}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1102,7 +1098,7 @@ export function AccountantDailyRevenueReportScreen({
                   Recent Revenue Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {ACCOUNTANT_FINANCIAL_TIMELINE.map((act) => (
+                  {[].map((act: any) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1142,7 +1138,7 @@ export function AccountantDailyRevenueReportScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 13:48</strong>
+            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
           </div>
         </div>
       </div>

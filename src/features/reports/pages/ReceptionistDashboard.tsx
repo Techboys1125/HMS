@@ -95,143 +95,6 @@ export interface ReceptionistActivityRecord {
   appointmentStatus: string;
 }
 
-const RECEPTIONIST_ACTIVITY_TABLE_DATA: ReceptionistActivityRecord[] = [
-  {
-    mrn: "MRN-89201",
-    patientName: "Sarah Mitchell",
-    appointmentId: "APT-901",
-    visitType: "New Patient",
-    registrationTime: "08:45 AM",
-    checkInTime: "08:55 AM",
-    queueStatus: "Completed Queue",
-    appointmentStatus: "Completed",
-  },
-  {
-    mrn: "MRN-89202",
-    patientName: "James Thornton",
-    appointmentId: "APT-902",
-    visitType: "Follow-up",
-    registrationTime: "09:10 AM",
-    checkInTime: "09:20 AM",
-    queueStatus: "Completed Queue",
-    appointmentStatus: "Completed",
-  },
-  {
-    mrn: "MRN-89203",
-    patientName: "Emma Reyes",
-    appointmentId: "APT-903",
-    visitType: "Routine Checkup",
-    registrationTime: "09:35 AM",
-    checkInTime: "09:50 AM",
-    queueStatus: "Completed Queue",
-    appointmentStatus: "Completed",
-  },
-  {
-    mrn: "MRN-89204",
-    patientName: "Aisha Kumar",
-    appointmentId: "APT-904",
-    visitType: "Follow-up",
-    registrationTime: "10:05 AM",
-    checkInTime: "10:15 AM",
-    queueStatus: "In Consultation",
-    appointmentStatus: "In Progress",
-  },
-  {
-    mrn: "MRN-89205",
-    patientName: "Michael Chang",
-    appointmentId: "APT-905",
-    visitType: "New Patient",
-    registrationTime: "10:30 AM",
-    checkInTime: "10:45 AM",
-    queueStatus: "Waiting Room",
-    appointmentStatus: "Scheduled",
-  },
-  {
-    mrn: "MRN-89206",
-    patientName: "David Miller",
-    appointmentId: "APT-906",
-    visitType: "Walk-In",
-    registrationTime: "11:00 AM",
-    checkInTime: "11:10 AM",
-    queueStatus: "Cancelled Queue",
-    appointmentStatus: "Cancelled",
-  },
-];
-
-const RECEPTIONIST_REGISTRATION_TREND_DATA = [
-  { date: "Jul 20", newReg: 32, returning: 18, walkIn: 12 },
-  { date: "Jul 21", newReg: 35, returning: 20, walkIn: 14 },
-  { date: "Jul 22", newReg: 30, returning: 16, walkIn: 10 },
-  { date: "Jul 23", newReg: 40, returning: 22, walkIn: 15 },
-  { date: "Jul 24", newReg: 38, returning: 21, walkIn: 13 },
-  { date: "Jul 25", newReg: 41, returning: 23, walkIn: 16 },
-  { date: "Jul 26", newReg: 42, returning: 24, walkIn: 14 },
-];
-
-const RECEPTIONIST_APPT_STATUS_DONUT = [
-  { name: "Booked", value: 86, color: "#0D47A1" },
-  { name: "Checked-In", value: 72, color: "#009688" },
-  { name: "Waiting", value: 14, color: "#F59E0B" },
-  { name: "Completed", value: 64, color: "#66BB6A" },
-  { name: "Cancelled", value: 4, color: "#EF4444" },
-  { name: "No Show", value: 2, color: "#64748B" },
-];
-
-const RECEPTIONIST_CHECKIN_SLOT_BAR = [
-  { slot: "Morning (08am-12pm)", count: 42 },
-  { slot: "Afternoon (01pm-04pm)", count: 26 },
-  { slot: "Evening (05pm-08pm)", count: 18 },
-];
-
-const RECEPTIONIST_QUEUE_PERFORMANCE_BAR = [
-  { queue: "Waiting Patients", count: 14 },
-  { queue: "Avg Waiting Time (min)", count: 11 },
-  { queue: "Completed Queue", count: 64 },
-];
-
-const RECEPTIONIST_RECENT_TIMELINE = [
-  {
-    id: "RECP-101",
-    action: "Patient Registered",
-    detail: "New intake completed for Sarah Mitchell (MRN-89201)",
-    date: "Jul 26",
-    time: "08:45 AM",
-    status: "Completed",
-  },
-  {
-    id: "RECP-102",
-    action: "Appointment Booked",
-    detail: "Slot confirmed for James Thornton (APT-902)",
-    date: "Jul 26",
-    time: "09:10 AM",
-    status: "Scheduled",
-  },
-  {
-    id: "RECP-103",
-    action: "Patient Checked-In",
-    detail: "Emma Reyes marked present at reception counter",
-    date: "Jul 26",
-    time: "09:50 AM",
-    status: "Active",
-  },
-  {
-    id: "RECP-104",
-    action: "Queue Updated",
-    detail: "Aisha Kumar moved to OPD Consultation Room 3",
-    date: "Jul 26",
-    time: "10:15 AM",
-    status: "In Progress",
-  },
-  {
-    id: "RECP-105",
-    action: "Appointment Completed",
-    detail: "Consultation finished for Michael Chang",
-    date: "Jul 26",
-    time: "11:00 AM",
-    status: "Completed",
-  },
-];
-
 export function ReceptionistReportsDashboardScreen({
   onOpenDailyAppointments,
   onOpenPatientReport,
@@ -256,6 +119,15 @@ export function ReceptionistReportsDashboardScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
+  const [kpi] = useState({
+    todayRegistrations: 0,
+    todayAppointments: 0,
+    checkedInPatients: 0,
+    receptionQueue: 0,
+    completedCheckIns: 0,
+    avgWaitingTime: "--",
+  });
+
   const handleRefresh = () => {
     setIsRefreshing(true);
     setTimeout(() => setIsRefreshing(false), 600);
@@ -271,7 +143,7 @@ export function ReceptionistReportsDashboardScreen({
   };
 
   const filteredActivities = useMemo(() => {
-    return RECEPTIONIST_ACTIVITY_TABLE_DATA.filter((item) => {
+    return [].filter((item: any) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -326,7 +198,12 @@ export function ReceptionistReportsDashboardScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:45 AM</strong>
+                  <strong className="text-[#111827]">
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
                 </span>
               </div>
 
@@ -589,21 +466,21 @@ export function ReceptionistReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    66
+                    {kpi.todayRegistrations}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> +12.4%
+                      <TrendingUp className="w-3 h-3" /> --
                     </span>
                     <span>vs yesterday</span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#0D47A1] font-bold">42</div>
+                      <div className="text-[#0D47A1] font-bold">0</div>
                       <div className="text-[#64748B]">New Reg</div>
                     </div>
                     <div>
-                      <div className="text-[#009688] font-bold">24</div>
+                      <div className="text-[#009688] font-bold">0</div>
                       <div className="text-[#64748B]">Returning</div>
                     </div>
                   </div>
@@ -623,20 +500,20 @@ export function ReceptionistReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    86
+                    {kpi.todayAppointments}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#009688] font-semibold">
-                      64 Completed Today
+                      0 Completed Today
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#0D47A1] font-bold">86</div>
+                      <div className="text-[#0D47A1] font-bold">0</div>
                       <div className="text-[#64748B]">Booked</div>
                     </div>
                     <div>
-                      <div className="text-[#66BB6A] font-bold">64</div>
+                      <div className="text-[#66BB6A] font-bold">0</div>
                       <div className="text-[#64748B]">Completed</div>
                     </div>
                   </div>
@@ -656,20 +533,20 @@ export function ReceptionistReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    72
+                    {kpi.checkedInPatients}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#66BB6A] font-semibold">
-                      83.7% Check-in Rate
+                      -- Check-in Rate
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#66BB6A] font-bold">72</div>
+                      <div className="text-[#66BB6A] font-bold">0</div>
                       <div className="text-[#64748B]">Checked In</div>
                     </div>
                     <div>
-                      <div className="text-[#F59E0B] font-bold">14</div>
+                      <div className="text-[#F59E0B] font-bold">0</div>
                       <div className="text-[#64748B]">Waiting</div>
                     </div>
                   </div>
@@ -689,7 +566,7 @@ export function ReceptionistReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    14
+                    {kpi.receptionQueue}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#F59E0B] font-semibold">
@@ -698,11 +575,11 @@ export function ReceptionistReportsDashboardScreen({
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#F59E0B] font-bold">14</div>
+                      <div className="text-[#F59E0B] font-bold">0</div>
                       <div className="text-[#64748B]">Waiting</div>
                     </div>
                     <div>
-                      <div className="text-[#0D47A1] font-bold">3.2</div>
+                      <div className="text-[#0D47A1] font-bold">--</div>
                       <div className="text-[#64748B]">Avg Queue</div>
                     </div>
                   </div>
@@ -722,20 +599,20 @@ export function ReceptionistReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    64
+                    {kpi.completedCheckIns}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#0D47A1] font-semibold">
-                      88.8% Completion Rate
+                      -- Completion Rate
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#66BB6A] font-bold">64</div>
+                      <div className="text-[#66BB6A] font-bold">0</div>
                       <div className="text-[#64748B]">Done</div>
                     </div>
                     <div>
-                      <div className="text-[#0D47A1] font-bold">88.8%</div>
+                      <div className="text-[#0D47A1] font-bold">--</div>
                       <div className="text-[#64748B]">Rate</div>
                     </div>
                   </div>
@@ -751,10 +628,10 @@ export function ReceptionistReportsDashboardScreen({
                       className="text-2xl font-bold text-[#111827] mt-1"
                       style={{ fontFamily: PP }}
                     >
-                      11.5 min
+                      {kpi.avgWaitingTime}
                     </div>
                     <p className="text-[11px] text-[#64748B] mt-1">
-                      Longest Today: 22.0m
+                      Longest Today: --
                     </p>
                     <div className="mt-2 text-[11px] font-semibold text-[#66BB6A]">
                       âœ“ Target Met
@@ -797,7 +674,7 @@ export function ReceptionistReportsDashboardScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
-                        data={RECEPTIONIST_REGISTRATION_TREND_DATA}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <defs>
@@ -893,7 +770,7 @@ export function ReceptionistReportsDashboardScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={RECEPTIONIST_APPT_STATUS_DONUT}
+                          data={[]}
                           cx="50%"
                           cy="50%"
                           innerRadius={45}
@@ -901,11 +778,9 @@ export function ReceptionistReportsDashboardScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {RECEPTIONIST_APPT_STATUS_DONUT.map(
-                            (entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ),
-                          )}
+                          {[].map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
                         </Pie>
                         <Tooltip
                           contentStyle={{
@@ -951,7 +826,7 @@ export function ReceptionistReportsDashboardScreen({
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={RECEPTIONIST_CHECKIN_SLOT_BAR}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -999,7 +874,7 @@ export function ReceptionistReportsDashboardScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                        data={RECEPTIONIST_QUEUE_PERFORMANCE_BAR}
+                        data={[]}
                         margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1193,7 +1068,7 @@ export function ReceptionistReportsDashboardScreen({
                   Recent Reception Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {RECEPTIONIST_RECENT_TIMELINE.map((act) => (
+                  {[].map((act: any) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1242,30 +1117,38 @@ export function ReceptionistReportsDashboardScreen({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Registrations:</span>
-                    <span className="font-bold text-[#111827]">66 Total</span>
+                    <span className="font-bold text-[#111827]">
+                      {kpi.todayRegistrations} Total
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Appointments:</span>
-                    <span className="font-bold text-[#0D47A1]">86 Booked</span>
+                    <span className="font-bold text-[#0D47A1]">
+                      {kpi.todayAppointments} Booked
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Checked-In:</span>
                     <span className="font-bold text-[#66BB6A]">
-                      72 Checked In
+                      {kpi.checkedInPatients} Checked In
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Patients Waiting:</span>
-                    <span className="font-bold text-[#F59E0B]">14 Waiting</span>
+                    <span className="font-bold text-[#F59E0B]">
+                      {kpi.receptionQueue} Waiting
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Completed Check-Ins:</span>
-                    <span className="font-bold text-[#009688]">64 Done</span>
+                    <span className="font-bold text-[#009688]">
+                      {kpi.completedCheckIns} Done
+                    </span>
                   </div>
                   <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
                     <span className="text-[#64748B]">Avg Waiting Time:</span>
                     <span className="font-semibold text-[#0D47A1]">
-                      11.5 min
+                      {kpi.avgWaitingTime}
                     </span>
                   </div>
                 </div>

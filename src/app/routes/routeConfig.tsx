@@ -82,7 +82,7 @@ import {
 import { DailyBillingReportPage } from "../../features/reports/pages/DailyBillingReport";
 import { ReportsDashboardScreen } from "../../ReportsManagement";
 import { SettingsWorkspace } from "../../SettingsWorkspace";
-import AuditLogsManagementScreen from "../../AuditLogsManagement";
+import { AuditLogManagementPage } from "../../features/auditlog";
 import { NotificationCenterManagement } from "../../NotificationCenterManagement";
 
 // Main HMS Layout shell
@@ -603,7 +603,7 @@ export function AppRoutes() {
           path={ROUTES.AUDIT_LOGS}
           element={
             <RouteGuard requiredPermission="USER_VIEW">
-              <AuditLogsManagementScreen />
+              <AuditLogManagementPage />
             </RouteGuard>
           }
         />

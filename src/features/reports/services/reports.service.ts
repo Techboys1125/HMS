@@ -35,6 +35,17 @@ function unwrap<T>(response: { data: ApiEnvelope<T> | T }): T {
   return body as T;
 }
 
+// Unwrap that always returns an array — handles cases where API returns
+// { data: [...] } or { data: { content: [...] } } or just [...]
+function unwrapArray<T>(response: { data: ApiEnvelope<T[] | { content: T[] }> | T[] | { content: T[] } }): T[] {
+  const unwrapped = unwrap(response) as T[] | { content: T[] } | undefined;
+  if (Array.isArray(unwrapped)) return unwrapped;
+  if (unwrapped && typeof unwrapped === "object" && "content" in unwrapped) {
+    return (unwrapped as { content: T[] }).content;
+  }
+  return [];
+}
+
 function buildQuery(params: Record<string, string | number | undefined>): string {
   const entries = Object.entries(params).filter(
     ([, v]) => v !== undefined && v !== "",
@@ -80,7 +91,7 @@ export async function fetchDailyAppointments(
   const res = await apiClient.get<ApiEnvelope<DailyAppointmentSummary[]>>(
     `/api/v1/admin/reports/hospital/appointments/daily${qs}`,
   );
-  return unwrap(res);
+  return unwrapArray(res);
 }
 
 // ─── 3. Daily Appointments Detail ───────────────────────────────────────────
@@ -142,7 +153,7 @@ export async function fetchDepartmentConsultationVolume(
   const res = await apiClient.get<ApiEnvelope<DepartmentConsultationVolume[]>>(
     `/api/v1/admin/reports/hospital/departments/consultation-volume${qs}`,
   );
-  return unwrap(res);
+  return unwrapArray(res);
 }
 
 // ─── 7. Doctor Performance (Hospital alias) ─────────────────────────────────
@@ -206,7 +217,7 @@ export async function fetchOperationalTrend(
   const res = await apiClient.get<ApiEnvelope<OperationalTrendPoint[]>>(
     `/api/v1/admin/reports/hospital/operational-trend${qs}`,
   );
-  return unwrap(res);
+  return unwrapArray(res);
 }
 
 // ─── 11. Patient Registration Summary ───────────────────────────────────────
@@ -253,7 +264,7 @@ export async function fetchRevenueVsCollection(
   const res = await apiClient.get<ApiEnvelope<RevenueVsCollectionPoint[]>>(
     `/api/v1/admin/reports/hospital/revenue-vs-collection${qs}`,
   );
-  return unwrap(res);
+  return unwrapArray(res);
 }
 
 // ─── 14. Daily Revenue ──────────────────────────────────────────────────────
@@ -268,7 +279,7 @@ export async function fetchDailyRevenue(
   const res = await apiClient.get<ApiEnvelope<DailyRevenuePoint[]>>(
     `/api/v1/admin/reports/hospital/revenue/daily${qs}`,
   );
-  return unwrap(res);
+  return unwrapArray(res);
 }
 
 // ─── 15. Daily Revenue Detail ───────────────────────────────────────────────
@@ -294,7 +305,7 @@ export async function fetchReportCategoryShare(): Promise<ReportCategoryShare[]>
   const res = await apiClient.get<ApiEnvelope<ReportCategoryShare[]>>(
     `/api/v1/admin/reports/usage/category-share`,
   );
-  return unwrap(res);
+  return unwrapArray(res);
 }
 
 // ─── 17. Most Viewed Reports ────────────────────────────────────────────────
@@ -303,7 +314,7 @@ export async function fetchMostViewedReports(): Promise<MostViewedReport[]> {
   const res = await apiClient.get<ApiEnvelope<MostViewedReport[]>>(
     `/api/v1/admin/reports/usage/most-viewed`,
   );
-  return unwrap(res);
+  return unwrapArray(res);
 }
 
 // ─── 18. Patient Age Demographics ───────────────────────────────────────────
@@ -348,7 +359,7 @@ export async function fetchDepartmentPatientVisits(
   const res = await apiClient.get<ApiEnvelope<DepartmentPatientVisit[]>>(
     `/api/v1/admin/reports/hospital/patients/department-visits${qs}`,
   );
-  return unwrap(res);
+  return unwrapArray(res);
 }
 
 // ─── 21. Doctor Patient Workload ────────────────────────────────────────────
@@ -363,7 +374,7 @@ export async function fetchDoctorPatientWorkload(
   const res = await apiClient.get<ApiEnvelope<DoctorPatientWorkload[]>>(
     `/api/v1/admin/reports/hospital/patients/doctor-workload${qs}`,
   );
-  return unwrap(res);
+  return unwrapArray(res);
 }
 
 // ─── 22. Gender Breakdown ───────────────────────────────────────────────────

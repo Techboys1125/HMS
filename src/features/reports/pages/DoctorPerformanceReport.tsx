@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Calendar,
   Download,
@@ -41,230 +41,44 @@ import {
 } from "recharts";
 import { PP, RB } from "../constants/reports.constants";
 import type { DoctorReportRecord } from "../types/reports.types";
-import { useDoctorPerformance, useHospitalDoctorPerformance } from "../hooks/useReports";
-const DOCTOR_REPORT_TABLE_DATA: DoctorReportRecord[] = [
-  {
-    doctorId: "DOC-101",
-    doctorName: "Dr. Sarah Jenkins",
-    department: "Cardiology",
-    appointments: 142,
-    completed: 134,
-    pending: 4,
-    cancelled: 4,
-    followup: 24,
-    avgTimeMinutes: 14.5,
-    patientRating: 4.9,
-  },
-  {
-    doctorId: "DOC-102",
-    doctorName: "Dr. Rajesh Kapoor",
-    department: "Neurology",
-    appointments: 118,
-    completed: 110,
-    pending: 5,
-    cancelled: 3,
-    followup: 18,
-    avgTimeMinutes: 16.2,
-    patientRating: 4.8,
-  },
-  {
-    doctorId: "DOC-103",
-    doctorName: "Dr. Priya Sharma",
-    department: "General Medicine",
-    appointments: 195,
-    completed: 188,
-    pending: 4,
-    cancelled: 3,
-    followup: 32,
-    avgTimeMinutes: 12.0,
-    patientRating: 4.7,
-  },
-  {
-    doctorId: "DOC-104",
-    doctorName: "Dr. Arjun Mehta",
-    department: "Orthopedics",
-    appointments: 130,
-    completed: 121,
-    pending: 6,
-    cancelled: 3,
-    followup: 21,
-    avgTimeMinutes: 15.0,
-    patientRating: 4.9,
-  },
-  {
-    doctorId: "DOC-105",
-    doctorName: "Dr. Sunita Patel",
-    department: "Pediatrics",
-    appointments: 156,
-    completed: 149,
-    pending: 4,
-    cancelled: 3,
-    followup: 28,
-    avgTimeMinutes: 13.8,
-    patientRating: 4.8,
-  },
-];
+import { useDoctorPerformance } from "../hooks/useReports";
 
-const DOCTOR_CONSULTATION_TREND_DATA = [
-  {
-    date: "Jul 20",
-    Completed: 160,
-    Pending: 15,
-    Cancelled: 6,
-    Followup: 32,
-    CompletionRate: 90.4,
-  },
-  {
-    date: "Jul 21",
-    Completed: 172,
-    Pending: 12,
-    Cancelled: 5,
-    Followup: 35,
-    CompletionRate: 92.5,
-  },
-  {
-    date: "Jul 22",
-    Completed: 168,
-    Pending: 18,
-    Cancelled: 7,
-    Followup: 30,
-    CompletionRate: 88.8,
-  },
-  {
-    date: "Jul 23",
-    Completed: 180,
-    Pending: 14,
-    Cancelled: 4,
-    Followup: 38,
-    CompletionRate: 92.8,
-  },
-  {
-    date: "Jul 24",
-    Completed: 175,
-    Pending: 16,
-    Cancelled: 8,
-    Followup: 36,
-    CompletionRate: 89.7,
-  },
-  {
-    date: "Jul 25",
-    Completed: 182,
-    Pending: 13,
-    Cancelled: 5,
-    Followup: 40,
-    CompletionRate: 91.9,
-  },
-  {
-    date: "Jul 26",
-    Completed: 184,
-    Pending: 18,
-    Cancelled: 8,
-    Followup: 42,
-    CompletionRate: 90.6,
-  },
-];
-
-const DOCTOR_WORKLOAD_DATA = [
-  { doctor: "Dr. S. Jenkins", appointments: 142, completed: 134, pending: 4 },
-  { doctor: "Dr. R. Kapoor", appointments: 118, completed: 110, pending: 5 },
-  { doctor: "Dr. P. Sharma", appointments: 195, completed: 188, pending: 4 },
-  { doctor: "Dr. A. Mehta", appointments: 130, completed: 121, pending: 6 },
-  { doctor: "Dr. S. Patel", appointments: 156, completed: 149, pending: 4 },
-];
-
-const CONSULTATION_STATUS_DIST_DATA = [
-  { name: "Completed", value: 184, percentage: 73.6, color: "#009688" },
-  { name: "Follow-up", value: 42, percentage: 16.8, color: "#66BB6A" },
-  { name: "Pending", value: 16, percentage: 6.4, color: "#F59E0B" },
-  { name: "Cancelled", value: 8, percentage: 3.2, color: "#EF4444" },
-];
-
-const DEPT_PERFORMANCE_DATA = [
-  {
-    department: "Gen. Medicine",
-    doctors: 6,
-    consultations: 210,
-    completionRate: 94.2,
-  },
-  {
-    department: "Cardiology",
-    doctors: 4,
-    consultations: 145,
-    completionRate: 92.8,
-  },
-  {
-    department: "Orthopedics",
-    doctors: 4,
-    consultations: 135,
-    completionRate: 90.5,
-  },
-  { department: "ENT", doctors: 3, consultations: 98, completionRate: 95.0 },
-  {
-    department: "Neurology",
-    doctors: 3,
-    consultations: 120,
-    completionRate: 91.6,
-  },
-  {
-    department: "Pediatrics",
-    doctors: 4,
-    consultations: 160,
-    completionRate: 93.4,
-  },
-];
-
-const AVG_CONSULTATION_TIME_DATA = [
-  { date: "Jul 20", minutes: 15.2 },
-  { date: "Jul 21", minutes: 14.8 },
-  { date: "Jul 22", minutes: 15.6 },
-  { date: "Jul 23", minutes: 14.0 },
-  { date: "Jul 24", minutes: 14.5 },
-  { date: "Jul 25", minutes: 13.9 },
-  { date: "Jul 26", minutes: 14.2 },
-];
-
-const RECENT_DOCTOR_ACTIVITIES = [
-  {
-    id: "ACT-201",
-    type: "Consultation Completed",
-    doctor: "Dr. Sarah Jenkins",
-    patient: "Sarah Mitchell",
-    department: "Cardiology",
-    time: "10:30 AM",
-  },
-  {
-    id: "ACT-202",
-    type: "Patient Follow-up Scheduled",
-    doctor: "Dr. Rajesh Kapoor",
-    patient: "James Thornton",
-    department: "Neurology",
-    time: "10:15 AM",
-  },
-  {
-    id: "ACT-203",
-    type: "Prescription Issued",
-    doctor: "Dr. Priya Sharma",
-    patient: "Emma Reyes",
-    department: "General Medicine",
-    time: "09:55 AM",
-  },
-  {
-    id: "ACT-204",
-    type: "Appointment Cancelled",
-    doctor: "Dr. Arjun Mehta",
-    patient: "David Walsh",
-    department: "Orthopedics",
-    time: "09:20 AM",
-  },
-  {
-    id: "ACT-205",
-    type: "Consultation Started",
-    doctor: "Dr. Sunita Patel",
-    patient: "Aisha Kumar",
-    department: "Pediatrics",
-    time: "09:00 AM",
-  },
-];
+function CircularProgress({
+  percentage,
+  size = 64,
+  strokeWidth = 7,
+}: {
+  percentage: number;
+  size?: number;
+  strokeWidth?: number;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const offset = circumference - (percentage / 100) * circumference;
+  return (
+    <svg width={size} height={size} className="transform -rotate-90">
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="#E5E7EB"
+        strokeWidth={strokeWidth}
+      />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="#0D47A1"
+        strokeWidth={strokeWidth}
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 export function DoctorReportScreen({
   onBack,
@@ -285,6 +99,20 @@ export function DoctorReportScreen({
   const [shiftFilter, setShiftFilter] = useState("All Shifts");
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdated] = useState(() => {
+    const now = new Date();
+    const day = now.toLocaleDateString("en-US", { weekday: "long" });
+    const time = now.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return `${day}, ${time}`;
+  });
+  const [lastRefreshed] = useState(() => {
+    const now = new Date();
+    return now.toISOString().slice(0, 16).replace("T", " ");
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [trendDays, setTrendDays] = useState<"7 Days" | "30 Days" | "90 Days">(
@@ -296,7 +124,9 @@ export function DoctorReportScreen({
   const { data: doctorPerformanceData } = useDoctorPerformance(reportFilters);
 
   // Map API doctor performance to table format
-  const apiTableData: DoctorReportRecord[] = (doctorPerformanceData?.content ?? []).map((d) => ({
+  const apiTableData: DoctorReportRecord[] = (
+    doctorPerformanceData?.content ?? []
+  ).map((d) => ({
     doctorId: d.doctorId,
     doctorName: d.doctorName,
     department: d.department,
@@ -308,7 +138,7 @@ export function DoctorReportScreen({
     avgTimeMinutes: d.averageDurationMinutes,
     patientRating: d.rating ?? 0,
   }));
-  const doctorTableSource = apiTableData.length > 0 ? apiTableData : DOCTOR_REPORT_TABLE_DATA;
+  const doctorTableSource = apiTableData;
 
   // Table sorting & pagination
   const [sortField, setSortField] =
@@ -424,7 +254,7 @@ export function DoctorReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:15 AM</strong>
+                  <strong className="text-[#111827]">{lastUpdated}</strong>
                 </span>
               </div>
 
@@ -712,17 +542,22 @@ export function DoctorReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    24
+                    {doctorPerformanceData?.summary?.totalDoctors ?? 0}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
                     <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> +8.3%
+                      <TrendingUp className="w-3 h-3" /> --
                     </span>
-                    <span>22 Active | 2 On Leave</span>
+                    <span>
+                      {doctorPerformanceData?.summary?.activeDoctors ?? 0}{" "}
+                      Active |{" "}
+                      {doctorPerformanceData?.summary?.onLeaveDoctors ?? 0} On
+                      Leave
+                    </span>
                   </div>
                   <div className="h-8">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={DOCTOR_CONSULTATION_TREND_DATA}>
+                      <LineChart data={[]}>
                         <Line
                           type="monotone"
                           dataKey="Completed"
@@ -749,16 +584,24 @@ export function DoctorReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    184
+                    {doctorPerformanceData?.summary?.totalConsultations ?? 0}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
                     <span className="text-[#009688] font-semibold">
-                      184 Completed | 18 Pending | 8 Cancelled
+                      {doctorPerformanceData?.summary?.completedConsultations ??
+                        0}{" "}
+                      Completed |{" "}
+                      {doctorPerformanceData?.summary?.pendingConsultations ??
+                        0}{" "}
+                      Pending |{" "}
+                      {doctorPerformanceData?.summary?.cancelledConsultations ??
+                        0}{" "}
+                      Cancelled
                     </span>
                   </div>
                   <div className="h-8">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={DOCTOR_CONSULTATION_TREND_DATA}>
+                      <AreaChart data={[]}>
                         <Area
                           type="monotone"
                           dataKey="Completed"
@@ -785,16 +628,18 @@ export function DoctorReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    14.2 min
+                    {doctorPerformanceData?.summary
+                      ?.averageConsultationDurationMinutes ?? 0}{" "}
+                    min
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
                     <span className="text-[#66BB6A] font-semibold">
-                      -1.8 min vs target avg
+                      -- min vs target avg
                     </span>
                   </div>
                   <div className="h-8">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={AVG_CONSULTATION_TIME_DATA}>
+                      <LineChart data={[]}>
                         <Line
                           type="monotone"
                           dataKey="minutes"
@@ -821,10 +666,18 @@ export function DoctorReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    42
+                    {doctorPerformanceData?.summary?.followUpConsultations ?? 0}
                   </div>
                   <div className="text-[11px] text-[#64748B]">
-                    22.8% of Total Consultations
+                    {doctorPerformanceData?.summary?.totalConsultations
+                      ? Math.round(
+                          ((doctorPerformanceData?.summary
+                            ?.followUpConsultations ?? 0) /
+                            doctorPerformanceData.summary.totalConsultations) *
+                            100,
+                        )
+                      : 0}
+                    % of Total Consultations
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden mt-3">
                     <div
@@ -852,10 +705,12 @@ export function DoctorReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    88%
+                    {doctorPerformanceData?.summary
+                      ?.doctorUtilizationPercentage ?? 0}
+                    %
                   </div>
                   <div className="text-[11px] text-[#64748B] mb-2">
-                    Avg 16 Patients per Doctor / Day
+                    Avg -- Patients per Doctor / Day
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
                     <div
@@ -875,16 +730,28 @@ export function DoctorReportScreen({
                       className="text-2xl font-bold text-[#111827] mt-1"
                       style={{ fontFamily: PP }}
                     >
-                      4.8 / 5.0
+                      {doctorPerformanceData?.summary?.patientSatisfaction ??
+                        "--"}{" "}
+                      / 5.0
                     </div>
                     <p className="text-[11px] text-[#64748B] mt-1">
-                      Based on 162 feedbacks
+                      Based on -- feedbacks
                     </p>
                     <div className="mt-1 text-[11px] font-semibold text-[#66BB6A]">
                       â˜… Top Rated Service
                     </div>
                   </div>
-                  <CircularProgress percentage={96} size={64} strokeWidth={7} />
+                  <CircularProgress
+                    percentage={
+                      doctorPerformanceData?.summary?.patientSatisfaction
+                        ? (doctorPerformanceData.summary.patientSatisfaction /
+                            5) *
+                          100
+                        : 0
+                    }
+                    size={64}
+                    strokeWidth={7}
+                  />
                 </div>
               </div>
 
@@ -920,7 +787,7 @@ export function DoctorReportScreen({
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
-                      data={DOCTOR_CONSULTATION_TREND_DATA}
+                      data={[]}
                       margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
                     >
                       <defs>
@@ -1023,7 +890,7 @@ export function DoctorReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                        data={DOCTOR_WORKLOAD_DATA}
+                        data={[]}
                         margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1083,7 +950,7 @@ export function DoctorReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={CONSULTATION_STATUS_DIST_DATA}
+                          data={[]}
                           cx="50%"
                           cy="50%"
                           innerRadius={45}
@@ -1091,7 +958,7 @@ export function DoctorReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {CONSULTATION_STATUS_DIST_DATA.map((entry, index) => (
+                          {[].map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
@@ -1139,7 +1006,7 @@ export function DoctorReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={DEPT_PERFORMANCE_DATA}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1186,7 +1053,7 @@ export function DoctorReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
-                        data={AVG_CONSULTATION_TIME_DATA}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1399,7 +1266,7 @@ export function DoctorReportScreen({
                   Recent Doctor OPD Activities & Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {RECENT_DOCTOR_ACTIVITIES.map((act) => (
+                  {[].map((act) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1462,32 +1329,49 @@ export function DoctorReportScreen({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Active Doctors:</span>
-                    <span className="font-bold text-[#0D47A1]">24</span>
+                    <span className="font-bold text-[#0D47A1]">
+                      {doctorPerformanceData?.summary?.activeDoctors ?? 0}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Total Consultations:</span>
-                    <span className="font-bold text-[#111827]">184</span>
+                    <span className="font-bold text-[#111827]">
+                      {doctorPerformanceData?.summary?.totalConsultations ?? 0}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Completed:</span>
-                    <span className="font-bold text-[#009688]">184</span>
+                    <span className="font-bold text-[#009688]">
+                      {doctorPerformanceData?.summary?.completedConsultations ??
+                        0}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Pending:</span>
-                    <span className="font-bold text-[#F59E0B]">18</span>
+                    <span className="font-bold text-[#F59E0B]">
+                      {doctorPerformanceData?.summary?.pendingConsultations ??
+                        0}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Cancelled:</span>
-                    <span className="font-bold text-[#EF4444]">8</span>
+                    <span className="font-bold text-[#EF4444]">
+                      {doctorPerformanceData?.summary?.cancelledConsultations ??
+                        0}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Avg Duration:</span>
-                    <span className="font-bold text-[#111827]">14.2 min</span>
+                    <span className="font-bold text-[#111827]">
+                      {doctorPerformanceData?.summary
+                        ?.averageConsultationDurationMinutes ?? 0}{" "}
+                      min
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Top Department:</span>
                     <span className="font-bold text-[#0D47A1]">
-                      Gen. Medicine
+                      {doctorPerformanceData?.content?.[0]?.department ?? "--"}
                     </span>
                   </div>
                 </div>
@@ -1589,7 +1473,7 @@ export function DoctorReportScreen({
           <div>Hospital Management System â€¢ Doctor Report v1.0</div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 01:12</strong>
+            <strong className="text-[#111827]">{lastRefreshed}</strong>
           </div>
         </div>
       </div>

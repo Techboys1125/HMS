@@ -97,165 +97,7 @@ export interface ReceptionistPatientReportRecord {
   registrationStatus: string;
 }
 
-const RECEPTIONIST_PATIENT_REPORT_DATA: ReceptionistPatientReportRecord[] = [
-  {
-    mrn: "MRN-89201",
-    patientName: "Sarah Mitchell",
-    mobileNumber: "+1 555-0192",
-    age: 34,
-    gender: "Female",
-    registrationDate: "2026-07-26",
-    visitType: "New Patient",
-    appointmentStatus: "Completed",
-    checkInStatus: "Checked-In",
-    registrationStatus: "Completed",
-  },
-  {
-    mrn: "MRN-89202",
-    patientName: "James Thornton",
-    mobileNumber: "+1 555-0193",
-    age: 48,
-    gender: "Male",
-    registrationDate: "2026-07-26",
-    visitType: "Follow-up",
-    appointmentStatus: "Completed",
-    checkInStatus: "Checked-In",
-    registrationStatus: "Completed",
-  },
-  {
-    mrn: "MRN-89203",
-    patientName: "Emma Reyes",
-    mobileNumber: "+1 555-0194",
-    age: 29,
-    gender: "Female",
-    registrationDate: "2026-07-26",
-    visitType: "Routine Checkup",
-    appointmentStatus: "Completed",
-    checkInStatus: "Checked-In",
-    registrationStatus: "Completed",
-  },
-  {
-    mrn: "MRN-89204",
-    patientName: "Aisha Kumar",
-    mobileNumber: "+1 555-0195",
-    age: 52,
-    gender: "Female",
-    registrationDate: "2026-07-26",
-    visitType: "Follow-up",
-    appointmentStatus: "In Progress",
-    checkInStatus: "Checked-In",
-    registrationStatus: "Completed",
-  },
-  {
-    mrn: "MRN-89205",
-    patientName: "Michael Chang",
-    mobileNumber: "+1 555-0196",
-    age: 41,
-    gender: "Male",
-    registrationDate: "2026-07-26",
-    visitType: "New Patient",
-    appointmentStatus: "Scheduled",
-    checkInStatus: "Pending Check-In",
-    registrationStatus: "Completed",
-  },
-  {
-    mrn: "MRN-89206",
-    patientName: "David Miller",
-    mobileNumber: "+1 555-0197",
-    age: 37,
-    gender: "Male",
-    registrationDate: "2026-07-26",
-    visitType: "Walk-In",
-    appointmentStatus: "Cancelled",
-    checkInStatus: "Cancelled",
-    registrationStatus: "Completed",
-  },
-  {
-    mrn: "MRN-89207",
-    patientName: "Grace Hopper",
-    mobileNumber: "+1 555-0198",
-    age: 64,
-    gender: "Female",
-    registrationDate: "2026-07-26",
-    visitType: "Routine Checkup",
-    appointmentStatus: "Scheduled",
-    checkInStatus: "Pending Check-In",
-    registrationStatus: "Completed",
-  },
-];
 
-const RECEPTIONIST_PATIENT_TREND_SERIES = [
-  { date: "Jul 20", newReg: 32, returning: 18, walkIn: 12 },
-  { date: "Jul 21", newReg: 35, returning: 20, walkIn: 14 },
-  { date: "Jul 22", newReg: 30, returning: 16, walkIn: 10 },
-  { date: "Jul 23", newReg: 40, returning: 22, walkIn: 15 },
-  { date: "Jul 24", newReg: 38, returning: 21, walkIn: 13 },
-  { date: "Jul 25", newReg: 41, returning: 23, walkIn: 16 },
-  { date: "Jul 26", newReg: 42, returning: 24, walkIn: 14 },
-];
-
-const RECEPTIONIST_PATIENT_DONUT = [
-  { name: "New Patients", value: 42, color: "#0D47A1" },
-  { name: "Returning Patients", value: 24, color: "#009688" },
-  { name: "Walk-In Patients", value: 28, color: "#F59E0B" },
-  { name: "Appointment Patients", value: 38, color: "#66BB6A" },
-];
-
-const RECEPTIONIST_PATIENT_CHECKIN_SHIFT_BAR = [
-  { shift: "Morning Shift", count: 42 },
-  { shift: "Afternoon Shift", count: 26 },
-  { shift: "Evening Shift", count: 18 },
-];
-
-const RECEPTIONIST_PATIENT_REG_PERFORMANCE_HORIZONTAL = [
-  { metric: "Completed Registrations", value: 66 },
-  { metric: "Pending Registrations", value: 4 },
-  { metric: "Avg Reg Time (min)", value: 4.2 },
-  { metric: "Registration Queue", value: 3 },
-];
-
-const RECEPTIONIST_PATIENT_ACTIVITY_TIMELINE = [
-  {
-    id: "PACT-301",
-    action: "Patient Registered",
-    detail: "New intake completed for Sarah Mitchell (MRN-89201)",
-    date: "Jul 26",
-    time: "08:45 AM",
-    status: "Completed",
-  },
-  {
-    id: "PACT-302",
-    action: "Walk-In Registered",
-    detail: "Walk-in registration created for David Miller (MRN-89206)",
-    date: "Jul 26",
-    time: "09:00 AM",
-    status: "Completed",
-  },
-  {
-    id: "PACT-303",
-    action: "Appointment Booked",
-    detail: "APT-902 linked to James Thornton",
-    date: "Jul 26",
-    time: "09:10 AM",
-    status: "Scheduled",
-  },
-  {
-    id: "PACT-304",
-    action: "Patient Checked-In",
-    detail: "Emma Reyes verified present at reception desk",
-    date: "Jul 26",
-    time: "09:50 AM",
-    status: "Checked-In",
-  },
-  {
-    id: "PACT-305",
-    action: "Appointment Cancelled",
-    detail: "Cancellation logged for MRN-89206",
-    date: "Jul 26",
-    time: "11:10 AM",
-    status: "Cancelled",
-  },
-];
 
 export function ReceptionistPatientReportScreen({
   onBack,
@@ -295,7 +137,7 @@ export function ReceptionistPatientReportScreen({
   };
 
   const filteredPatients = useMemo(() => {
-    return RECEPTIONIST_PATIENT_REPORT_DATA.filter((item) => {
+    return [].filter((item: any) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -362,7 +204,7 @@ export function ReceptionistPatientReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:45 AM</strong>
+                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </span>
               </div>
 
@@ -832,7 +674,7 @@ export function ReceptionistPatientReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
-                        data={RECEPTIONIST_PATIENT_TREND_SERIES}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <defs>
@@ -928,7 +770,7 @@ export function ReceptionistPatientReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={RECEPTIONIST_PATIENT_DONUT}
+                          data={[]}
                           cx="50%"
                           cy="50%"
                           innerRadius={45}
@@ -936,7 +778,7 @@ export function ReceptionistPatientReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {RECEPTIONIST_PATIENT_DONUT.map((entry, index) => (
+                          {[].map((entry: any, index: any) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
@@ -984,7 +826,7 @@ export function ReceptionistPatientReportScreen({
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={RECEPTIONIST_PATIENT_CHECKIN_SHIFT_BAR}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1032,7 +874,7 @@ export function ReceptionistPatientReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                        data={RECEPTIONIST_PATIENT_REG_PERFORMANCE_HORIZONTAL}
+                        data={[]}
                         margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1229,7 +1071,7 @@ export function ReceptionistPatientReportScreen({
                   Reception Patient Activity Timeline
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {RECEPTIONIST_PATIENT_ACTIVITY_TIMELINE.map((act) => (
+                  {[].map((act: any) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1402,7 +1244,7 @@ export function ReceptionistPatientReportScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 13:38</strong>
+            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
           </div>
         </div>
       </div>

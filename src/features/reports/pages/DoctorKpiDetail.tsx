@@ -59,242 +59,15 @@ interface DoctorKpiMeta {
   unit: string;
 }
 
-const DOCTOR_KPI_METADATA_MAP: Record<DoctorKpiKey, DoctorKpiMeta> = {
-  "today-appointments": {
-    key: "today-appointments",
-    title: "Today's Appointments",
-    value: "32",
-    yesterdayComp: "28 (+14.2%)",
-    monthlyComp: "134 Total",
-    growth: "+14.2%",
-    isPositive: true,
-    unit: "Appts",
-  },
-  "completed-consultations": {
-    key: "completed-consultations",
-    title: "Completed Consultations",
-    value: "28",
-    yesterdayComp: "24 (+16.6%)",
-    monthlyComp: "118 Total",
-    growth: "+16.6%",
-    isPositive: true,
-    unit: "Done",
-  },
-  "my-patients": {
-    key: "my-patients",
-    title: "My Patients",
-    value: "58",
-    yesterdayComp: "54 (+7.4%)",
-    monthlyComp: "58 Total",
-    growth: "+7.4%",
-    isPositive: true,
-    unit: "Patients",
-  },
-  "returning-patients": {
-    key: "returning-patients",
-    title: "Returning Patients",
-    value: "10",
-    yesterdayComp: "8 (+25.0%)",
-    monthlyComp: "36 Total",
-    growth: "+25.0%",
-    isPositive: true,
-    unit: "Visits",
-  },
-  "followup-patients": {
-    key: "followup-patients",
-    title: "Follow-up Patients",
-    value: "8",
-    yesterdayComp: "6 (+33.3%)",
-    monthlyComp: "24 Done",
-    growth: "+33.3%",
-    isPositive: true,
-    unit: "Follow-ups",
-  },
-  "avg-consult-time": {
-    key: "avg-consult-time",
-    title: "Average Consultation Time",
-    value: "14.2 min",
-    yesterdayComp: "15.5m (-8.3%)",
-    monthlyComp: "14.5m Avg",
-    growth: "-8.3%",
-    isPositive: true,
-    unit: "Minutes",
-  },
-  "patient-satisfaction": {
-    key: "patient-satisfaction",
-    title: "Patient Satisfaction",
-    value: "4.9 / 5.0",
-    yesterdayComp: "4.8 (+2.1%)",
-    monthlyComp: "42 Reviews",
-    growth: "+2.1%",
-    isPositive: true,
-    unit: "Rating",
-  },
-};
 
-const DOCTOR_KPI_TREND_SERIES: Record<
-  DoctorKpiKey,
-  { date: string; current: number; previous: number; growth: string }[]
-> = {
-  "today-appointments": [
-    { date: "Jul 20", current: 22, previous: 20, growth: "+10.0%" },
-    { date: "Jul 21", current: 25, previous: 22, growth: "+13.6%" },
-    { date: "Jul 22", current: 20, previous: 19, growth: "+5.2%" },
-    { date: "Jul 23", current: 28, previous: 24, growth: "+16.6%" },
-    { date: "Jul 24", current: 26, previous: 23, growth: "+13.0%" },
-    { date: "Jul 25", current: 30, previous: 25, growth: "+20.0%" },
-    { date: "Jul 26", current: 32, previous: 28, growth: "+14.2%" },
-  ],
-  "completed-consultations": [
-    { date: "Jul 20", current: 18, previous: 16, growth: "+12.5%" },
-    { date: "Jul 21", current: 21, previous: 18, growth: "+16.6%" },
-    { date: "Jul 22", current: 17, previous: 15, growth: "+13.3%" },
-    { date: "Jul 23", current: 24, previous: 20, growth: "+20.0%" },
-    { date: "Jul 24", current: 22, previous: 19, growth: "+15.7%" },
-    { date: "Jul 25", current: 26, previous: 22, growth: "+18.1%" },
-    { date: "Jul 26", current: 28, previous: 24, growth: "+16.6%" },
-  ],
-  "my-patients": [
-    { date: "Jul 20", current: 48, previous: 44, growth: "+9.0%" },
-    { date: "Jul 21", current: 50, previous: 45, growth: "+11.1%" },
-    { date: "Jul 22", current: 52, previous: 47, growth: "+10.6%" },
-    { date: "Jul 23", current: 54, previous: 48, growth: "+12.5%" },
-    { date: "Jul 24", current: 55, previous: 50, growth: "+10.0%" },
-    { date: "Jul 25", current: 56, previous: 52, growth: "+7.6%" },
-    { date: "Jul 26", current: 58, previous: 54, growth: "+7.4%" },
-  ],
-  "returning-patients": [
-    { date: "Jul 20", current: 6, previous: 5, growth: "+20.0%" },
-    { date: "Jul 21", current: 7, previous: 6, growth: "+16.6%" },
-    { date: "Jul 22", current: 6, previous: 5, growth: "+20.0%" },
-    { date: "Jul 23", current: 8, previous: 6, growth: "+33.3%" },
-    { date: "Jul 24", current: 8, previous: 7, growth: "+14.2%" },
-    { date: "Jul 25", current: 9, previous: 7, growth: "+28.5%" },
-    { date: "Jul 26", current: 10, previous: 8, growth: "+25.0%" },
-  ],
-  "followup-patients": [
-    { date: "Jul 20", current: 4, previous: 3, growth: "+33.3%" },
-    { date: "Jul 21", current: 5, previous: 4, growth: "+25.0%" },
-    { date: "Jul 22", current: 4, previous: 3, growth: "+33.3%" },
-    { date: "Jul 23", current: 6, previous: 5, growth: "+20.0%" },
-    { date: "Jul 24", current: 6, previous: 5, growth: "+20.0%" },
-    { date: "Jul 25", current: 7, previous: 6, growth: "+16.6%" },
-    { date: "Jul 26", current: 8, previous: 6, growth: "+33.3%" },
-  ],
-  "avg-consult-time": [
-    { date: "Jul 20", current: 15.2, previous: 16.5, growth: "-7.8%" },
-    { date: "Jul 21", current: 14.8, previous: 16.0, growth: "-7.5%" },
-    { date: "Jul 22", current: 16.0, previous: 17.2, growth: "-6.9%" },
-    { date: "Jul 23", current: 13.9, previous: 15.5, growth: "-10.3%" },
-    { date: "Jul 24", current: 14.5, previous: 15.8, growth: "-8.2%" },
-    { date: "Jul 25", current: 14.0, previous: 15.2, growth: "-7.8%" },
-    { date: "Jul 26", current: 14.2, previous: 15.5, growth: "-8.3%" },
-  ],
-  "patient-satisfaction": [
-    { date: "Jul 20", current: 4.7, previous: 4.6, growth: "+2.1%" },
-    { date: "Jul 21", current: 4.8, previous: 4.6, growth: "+4.3%" },
-    { date: "Jul 22", current: 4.7, previous: 4.5, growth: "+4.4%" },
-    { date: "Jul 23", current: 4.9, previous: 4.7, growth: "+4.2%" },
-    { date: "Jul 24", current: 4.8, previous: 4.7, growth: "+2.1%" },
-    { date: "Jul 25", current: 4.9, previous: 4.7, growth: "+4.2%" },
-    { date: "Jul 26", current: 4.9, previous: 4.8, growth: "+2.1%" },
-  ],
-};
 
-const DOCTOR_KPI_DONUT_MAP: Record<
-  DoctorKpiKey,
-  { name: string; value: number; color: string }[]
-> = {
-  "today-appointments": [
-    { name: "Completed", value: 28, color: "#66BB6A" },
-    { name: "Scheduled", value: 2, color: "#0D47A1" },
-    { name: "Waiting", value: 1, color: "#F59E0B" },
-    { name: "Cancelled", value: 1, color: "#EF4444" },
-  ],
-  "completed-consultations": [
-    { name: "Completed", value: 28, color: "#66BB6A" },
-    { name: "Pending", value: 2, color: "#F59E0B" },
-    { name: "Cancelled", value: 1, color: "#EF4444" },
-    { name: "Follow-up", value: 1, color: "#0D47A1" },
-  ],
-  "my-patients": [
-    { name: "New Patients", value: 18, color: "#009688" },
-    { name: "Returning Patients", value: 10, color: "#0D47A1" },
-    { name: "Routine Patients", value: 24, color: "#4DB6AC" },
-    { name: "Walk-In Patients", value: 6, color: "#F59E0B" },
-  ],
-  "returning-patients": [
-    { name: "Follow-up 1 Week", value: 5, color: "#0D47A1" },
-    { name: "Follow-up 2 Weeks", value: 3, color: "#009688" },
-    { name: "Follow-up 1 Month", value: 2, color: "#66BB6A" },
-  ],
-  "followup-patients": [
-    { name: "Completed", value: 24, color: "#66BB6A" },
-    { name: "Scheduled", value: 5, color: "#0D47A1" },
-    { name: "Pending", value: 2, color: "#F59E0B" },
-    { name: "Missed", value: 1, color: "#EF4444" },
-  ],
-  "avg-consult-time": [
-    { name: "Under 10 Min", value: 4, color: "#66BB6A" },
-    { name: "10 - 15 Min", value: 20, color: "#009688" },
-    { name: "15 - 20 Min", value: 6, color: "#F59E0B" },
-    { name: "Over 20 Min", value: 2, color: "#EF4444" },
-  ],
-  "patient-satisfaction": [
-    { name: "5 Star Rating", value: 36, color: "#66BB6A" },
-    { name: "4 Star Rating", value: 5, color: "#009688" },
-    { name: "3 Star Rating", value: 1, color: "#F59E0B" },
-  ],
-};
 
-const DOCTOR_KPI_SHIFT_CONTRIBUTORS = [
-  { category: "Morning Shift (08am-12pm)", volume: 18 },
-  { category: "Afternoon Shift (01pm-04pm)", volume: 10 },
-  { category: "Evening Shift (05pm-08pm)", volume: 4 },
-];
 
-const DOCTOR_RECENT_KPI_TIMELINE = [
-  {
-    id: "DKPI-101",
-    action: "Consultation Completed",
-    detail: "Completed consultation for Sarah Mitchell (MRN-89201)",
-    date: "Jul 26",
-    time: "10:40 AM",
-    status: "Completed",
-  },
-  {
-    id: "DKPI-102",
-    action: "Prescription Issued",
-    detail: "Rx issued for James Thornton (MRN-89202)",
-    date: "Jul 26",
-    time: "10:15 AM",
-    status: "Completed",
-  },
-  {
-    id: "DKPI-103",
-    action: "Patient Checked-In",
-    detail: "Michael Chang checked in at reception desk",
-    date: "Jul 26",
-    time: "09:40 AM",
-    status: "Waiting",
-  },
-  {
-    id: "DKPI-104",
-    action: "Follow-up Scheduled",
-    detail: "Scheduled 2-week follow-up for Emma Reyes",
-    date: "Jul 26",
-    time: "09:15 AM",
-    status: "Scheduled",
-  },
-  {
-    id: "DKPI-105",
-    action: "Patient Feedback Submitted",
-    detail: "Aisha Kumar rated consultation 5/5 stars",
-    date: "Jul 25",
-    time: "04:50 PM",
-    status: "Active",
-  },
-];
+
+
+
+
+
 
 export function DoctorDashboardKpiDetailScreen({
   initialKpiKey = "today-appointments",
@@ -323,15 +96,10 @@ export function DoctorDashboardKpiDetailScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  const meta =
-    DOCTOR_KPI_METADATA_MAP[selectedKpi] ||
-    DOCTOR_KPI_METADATA_MAP["today-appointments"];
-  const trendData =
-    DOCTOR_KPI_TREND_SERIES[selectedKpi] ||
-    DOCTOR_KPI_TREND_SERIES["today-appointments"];
-  const donutData =
-    DOCTOR_KPI_DONUT_MAP[selectedKpi] ||
-    DOCTOR_KPI_DONUT_MAP["today-appointments"];
+  const meta: DoctorKpiMeta =
+    { key: selectedKpi, title: "", value: "", yesterdayComp: "", monthlyComp: "", growth: "", isPositive: true, unit: "" };
+  const trendData: { date: string; current: number; previous: number; growth: string }[] = [];
+  const donutData: { name: string; value: number; color: string }[] = [];
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -398,7 +166,7 @@ export function DoctorDashboardKpiDetailScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:45 AM</strong>
+                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </span>
               </div>
 
@@ -923,8 +691,8 @@ export function DoctorDashboardKpiDetailScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                        data={DOCTOR_KPI_SHIFT_CONTRIBUTORS}
-                        margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
+                         data={[]}
+                         margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                         <XAxis
@@ -1171,7 +939,7 @@ export function DoctorDashboardKpiDetailScreen({
                   Recent KPI Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {DOCTOR_RECENT_KPI_TIMELINE.map((act) => (
+                  {[].map((act: any) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1338,7 +1106,7 @@ export function DoctorDashboardKpiDetailScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 13:19</strong>
+            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
           </div>
         </div>
       </div>

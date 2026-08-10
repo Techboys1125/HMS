@@ -132,7 +132,7 @@ export function AccountantBillingReportScreen({
   };
 
   const filteredBillingRows = useMemo(() => {
-    return ACCOUNTANT_BILLING_TABLE_DATA.filter((item) => {
+    return [].filter((item: any) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -208,7 +208,7 @@ export function AccountantBillingReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:45 AM</strong>
+                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </span>
               </div>
 
@@ -546,7 +546,7 @@ export function AccountantBillingReportScreen({
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#F59E0B] font-semibold">
-                      $3,250 Outstanding
+                      --
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
@@ -555,7 +555,7 @@ export function AccountantBillingReportScreen({
                       <div className="text-[#64748B]">Invoices</div>
                     </div>
                     <div>
-                      <div className="text-[#0D47A1] font-bold">$3,250</div>
+                      <div className="text-[#0D47A1] font-bold">--</div>
                       <div className="text-[#64748B]">Amount</div>
                     </div>
                   </div>
@@ -579,7 +579,7 @@ export function AccountantBillingReportScreen({
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#0D47A1] font-semibold">
-                      $300 Remaining Balance
+                      --
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
@@ -588,7 +588,7 @@ export function AccountantBillingReportScreen({
                       <div className="text-[#64748B]">Partial Count</div>
                     </div>
                     <div>
-                      <div className="text-[#F59E0B] font-bold">$300</div>
+                      <div className="text-[#F59E0B] font-bold">--</div>
                       <div className="text-[#64748B]">Balance</div>
                     </div>
                   </div>
@@ -608,7 +608,7 @@ export function AccountantBillingReportScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    $450
+                    --
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#EF4444] font-semibold">
@@ -621,7 +621,7 @@ export function AccountantBillingReportScreen({
                       <div className="text-[#64748B]">Count</div>
                     </div>
                     <div>
-                      <div className="text-[#64748B] font-bold">$450</div>
+                      <div className="text-[#64748B] font-bold">--</div>
                       <div className="text-[#64748B]">Amount</div>
                     </div>
                   </div>
@@ -637,10 +637,10 @@ export function AccountantBillingReportScreen({
                       className="text-2xl font-bold text-[#111827] mt-1"
                       style={{ fontFamily: PP }}
                     >
-                      $309.38
+                      --
                     </div>
                     <p className="text-[11px] text-[#64748B] mt-1">
-                      Daily Total: $14,850
+                      --
                     </p>
                     <div className="mt-2 text-[11px] font-semibold text-[#66BB6A]">
                       âœ“ Target Met
@@ -683,7 +683,7 @@ export function AccountantBillingReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
-                        data={ACCOUNTANT_BILLING_TREND_SERIES}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <defs>
@@ -779,7 +779,7 @@ export function AccountantBillingReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={ACCOUNTANT_PAYMENT_STATUS_DONUT}
+                          data={[]}
                           cx="50%"
                           cy="50%"
                           innerRadius={45}
@@ -787,11 +787,9 @@ export function AccountantBillingReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {ACCOUNTANT_PAYMENT_STATUS_DONUT.map(
-                            (entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ),
-                          )}
+                          {[].map((entry: any, index: any) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
                         </Pie>
                         <Tooltip
                           contentStyle={{
@@ -837,7 +835,7 @@ export function AccountantBillingReportScreen({
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={ACCOUNTANT_PAYMENT_METHOD_BAR}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -896,7 +894,7 @@ export function AccountantBillingReportScreen({
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={ACCOUNTANT_METHOD_PERFORMANCE_BAR}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1127,7 +1125,7 @@ export function AccountantBillingReportScreen({
                   Recent Billing Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {ACCOUNTANT_FINANCIAL_TIMELINE.map((act) => (
+                  {[].map((act: any) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1184,24 +1182,24 @@ export function AccountantBillingReportScreen({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Pending Payments:</span>
-                    <span className="font-bold text-[#F59E0B]">$3,250</span>
+                    <span className="font-bold text-[#F59E0B]">--</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Partially Paid:</span>
                     <span className="font-bold text-[#0D47A1]">
-                      2 Partial ($300)
+                      --
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Refunded Bills:</span>
-                    <span className="font-bold text-[#EF4444]">$450</span>
+                    <span className="font-bold text-[#EF4444]">--</span>
                   </div>
                   <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
                     <span className="text-[#64748B]">
                       Average Invoice Value:
                     </span>
                     <span className="font-semibold text-[#009688]">
-                      $309.38
+                      --
                     </span>
                   </div>
                 </div>
@@ -1305,7 +1303,7 @@ export function AccountantBillingReportScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 13:50</strong>
+            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
           </div>
         </div>
       </div>
@@ -1323,288 +1321,3 @@ export type AccountantKpiType =
   | "Refunded Bills"
   | "Payment Collection Rate"
   | "Average Invoice Value";
-
-
-
-
-const ACCOUNTANT_KPI_TREND_SERIES: Record<
-  AccountantKpiType,
-  { date: string; current: number; previous: number }[]
-> = {
-  "Today's Revenue": [
-    { date: "Jul 20", current: 11200, previous: 10400 },
-    { date: "Jul 21", current: 12500, previous: 11800 },
-    { date: "Jul 22", current: 10800, previous: 9900 },
-    { date: "Jul 23", current: 13800, previous: 12900 },
-    { date: "Jul 24", current: 14200, previous: 13500 },
-    { date: "Jul 25", current: 14500, previous: 13800 },
-    { date: "Jul 26", current: 14850, previous: 13500 },
-  ],
-  "Today's Invoices": [
-    { date: "Jul 20", current: 38, previous: 34 },
-    { date: "Jul 21", current: 42, previous: 36 },
-    { date: "Jul 22", current: 36, previous: 32 },
-    { date: "Jul 23", current: 45, previous: 40 },
-    { date: "Jul 24", current: 44, previous: 38 },
-    { date: "Jul 25", current: 46, previous: 40 },
-    { date: "Jul 26", current: 48, previous: 42 },
-  ],
-  "Paid Bills": [
-    { date: "Jul 20", current: 32, previous: 28 },
-    { date: "Jul 21", current: 36, previous: 30 },
-    { date: "Jul 22", current: 30, previous: 26 },
-    { date: "Jul 23", current: 40, previous: 34 },
-    { date: "Jul 24", current: 39, previous: 33 },
-    { date: "Jul 25", current: 40, previous: 35 },
-    { date: "Jul 26", current: 42, previous: 36 },
-  ],
-  "Pending Payments": [
-    { date: "Jul 20", current: 8, previous: 10 },
-    { date: "Jul 21", current: 7, previous: 9 },
-    { date: "Jul 22", current: 9, previous: 11 },
-    { date: "Jul 23", current: 6, previous: 8 },
-    { date: "Jul 24", current: 7, previous: 9 },
-    { date: "Jul 25", current: 6, previous: 8 },
-    { date: "Jul 26", current: 6, previous: 8 },
-  ],
-  "Outstanding Amount": [
-    { date: "Jul 20", current: 3800, previous: 4200 },
-    { date: "Jul 21", current: 3500, previous: 4000 },
-    { date: "Jul 22", current: 4100, previous: 4500 },
-    { date: "Jul 23", current: 3400, previous: 3800 },
-    { date: "Jul 24", current: 3600, previous: 3900 },
-    { date: "Jul 25", current: 3300, previous: 3700 },
-    { date: "Jul 26", current: 3250, previous: 3650 },
-  ],
-  "Refunded Bills": [
-    { date: "Jul 20", current: 300, previous: 200 },
-    { date: "Jul 21", current: 200, previous: 150 },
-    { date: "Jul 22", current: 400, previous: 250 },
-    { date: "Jul 23", current: 250, previous: 180 },
-    { date: "Jul 24", current: 350, previous: 220 },
-    { date: "Jul 25", current: 300, previous: 200 },
-    { date: "Jul 26", current: 450, previous: 300 },
-  ],
-  "Payment Collection Rate": [
-    { date: "Jul 20", current: 89.2, previous: 85.0 },
-    { date: "Jul 21", current: 90.5, previous: 86.2 },
-    { date: "Jul 22", current: 88.0, previous: 84.5 },
-    { date: "Jul 23", current: 93.1, previous: 89.0 },
-    { date: "Jul 24", current: 92.0, previous: 88.4 },
-    { date: "Jul 25", current: 91.5, previous: 87.8 },
-    { date: "Jul 26", current: 92.8, previous: 88.5 },
-  ],
-  "Average Invoice Value": [
-    { date: "Jul 20", current: 294.7, previous: 305.8 },
-    { date: "Jul 21", current: 297.6, previous: 327.7 },
-    { date: "Jul 22", current: 300.0, previous: 309.3 },
-    { date: "Jul 23", current: 306.6, previous: 322.5 },
-    { date: "Jul 24", current: 322.7, previous: 355.2 },
-    { date: "Jul 25", current: 315.2, previous: 345.0 },
-    { date: "Jul 26", current: 309.3, previous: 321.4 },
-  ],
-};
-
-const ACCOUNTANT_KPI_DONUT_MAP: Record<
-  AccountantKpiType,
-  { name: string; value: number; color: string }[]
-> = {
-  "Today's Revenue": [
-    { name: "Collected", value: 14100, color: "#66BB6A" },
-    { name: "Outstanding", value: 750, color: "#F59E0B" },
-    { name: "Refunded", value: 450, color: "#EF4444" },
-  ],
-  "Today's Invoices": [
-    { name: "Paid", value: 42, color: "#66BB6A" },
-    { name: "Pending", value: 4, color: "#F59E0B" },
-    { name: "Partially Paid", value: 2, color: "#0D47A1" },
-  ],
-  "Paid Bills": [
-    { name: "Card Paid", value: 20, color: "#0D47A1" },
-    { name: "Cash Paid", value: 12, color: "#009688" },
-    { name: "UPI Paid", value: 10, color: "#66BB6A" },
-  ],
-  "Pending Payments": [
-    { name: "Overdue > 7 Days", value: 2, color: "#EF4444" },
-    { name: "Due Today", value: 4, color: "#F59E0B" },
-  ],
-  "Outstanding Amount": [
-    { name: "OPD Consultations", value: 2150, color: "#F59E0B" },
-    { name: "Lab Services", value: 1100, color: "#0D47A1" },
-  ],
-  "Refunded Bills": [
-    { name: "Service Adjustment", value: 300, color: "#EF4444" },
-    { name: "Patient Cancellation", value: 150, color: "#F59E0B" },
-  ],
-  "Payment Collection Rate": [
-    { name: "Collected Same-Day", value: 92.8, color: "#66BB6A" },
-    { name: "Uncollected Share", value: 7.2, color: "#F59E0B" },
-  ],
-  "Average Invoice Value": [
-    { name: "Consultation Fee", value: 150, color: "#0D47A1" },
-    { name: "Procedures & Tests", value: 159.38, color: "#009688" },
-  ],
-};
-
-const ACCOUNTANT_METHOD_PERFORMANCE_BAR = [
-  { method: "Card", collectedPct: 37.7, revenue: 5600, transactions: 20 },
-  { method: "Cash", collectedPct: 28.2, revenue: 4200, transactions: 14 },
-  { method: "UPI", collectedPct: 22.8, revenue: 3400, transactions: 10 },
-  {
-    method: "Bank Transfer",
-    collectedPct: 8.4,
-    revenue: 1250,
-    transactions: 3,
-  },
-  { method: "Other", collectedPct: 2.9, revenue: 400, transactions: 1 },
-];
-
-const ACCOUNTANT_BILLING_TABLE_DATA = [
-  {
-    invoiceId: "INV-80901",
-    patientName: "Sarah Mitchell",
-    mrn: "MRN-89201",
-    invoiceDate: "2026-07-26",
-    invoiceAmount: 450.0,
-    amountPaid: 450.0,
-    outstandingBalance: 0.0,
-    paymentMethod: "Card",
-    paymentStatus: "Paid",
-    invoiceStatus: "Cleared",
-    collectedBy: "Robert Vance",
-  },
-  {
-    invoiceId: "INV-80902",
-    patientName: "James Thornton",
-    mrn: "MRN-89202",
-    invoiceDate: "2026-07-26",
-    invoiceAmount: 1200.0,
-    amountPaid: 1200.0,
-    outstandingBalance: 0.0,
-    paymentMethod: "UPI",
-    paymentStatus: "Paid",
-    invoiceStatus: "Cleared",
-    collectedBy: "Robert Vance",
-  },
-  {
-    invoiceId: "INV-80903",
-    patientName: "Emma Reyes",
-    mrn: "MRN-89203",
-    invoiceDate: "2026-07-26",
-    invoiceAmount: 650.0,
-    amountPaid: 350.0,
-    outstandingBalance: 300.0,
-    paymentMethod: "Cash",
-    paymentStatus: "Partially Paid",
-    invoiceStatus: "Issued",
-    collectedBy: "Elena Rostova",
-  },
-  {
-    invoiceId: "INV-80904",
-    patientName: "Aisha Kumar",
-    mrn: "MRN-89204",
-    invoiceDate: "2026-07-26",
-    invoiceAmount: 890.0,
-    amountPaid: 890.0,
-    outstandingBalance: 0.0,
-    paymentMethod: "Card",
-    paymentStatus: "Paid",
-    invoiceStatus: "Cleared",
-    collectedBy: "Robert Vance",
-  },
-  {
-    invoiceId: "INV-80905",
-    patientName: "Michael Chang",
-    mrn: "MRN-89205",
-    invoiceDate: "2026-07-26",
-    invoiceAmount: 1500.0,
-    amountPaid: 0.0,
-    outstandingBalance: 1500.0,
-    paymentMethod: "Pending",
-    paymentStatus: "Pending",
-    invoiceStatus: "Overdue",
-    collectedBy: "Unassigned",
-  },
-  {
-    invoiceId: "INV-80906",
-    patientName: "David Miller",
-    mrn: "MRN-89206",
-    invoiceDate: "2026-07-26",
-    invoiceAmount: 450.0,
-    amountPaid: 0.0,
-    outstandingBalance: 450.0,
-    paymentMethod: "Refunded",
-    paymentStatus: "Refunded",
-    invoiceStatus: "Refunded",
-    collectedBy: "Elena Rostova",
-  },
-];
-
-const ACCOUNTANT_BILLING_TREND_SERIES = [
-  { date: "Jul 20", revenue: 11200, collections: 10400 },
-  { date: "Jul 21", revenue: 12500, collections: 11800 },
-  { date: "Jul 22", revenue: 10800, collections: 9900 },
-  { date: "Jul 23", revenue: 13800, collections: 12900 },
-  { date: "Jul 24", revenue: 14200, collections: 13500 },
-  { date: "Jul 25", revenue: 14500, collections: 13800 },
-  { date: "Jul 26", revenue: 14850, collections: 13500 },
-];
-
-const ACCOUNTANT_PAYMENT_STATUS_DONUT = [
-  { name: "Paid", value: 12400, color: "#66BB6A" },
-  { name: "Pending", value: 2250, color: "#F59E0B" },
-  { name: "Partially Paid", value: 1000, color: "#0D47A1" },
-  { name: "Cancelled", value: 200, color: "#64748B" },
-  { name: "Refunded", value: 450, color: "#EF4444" },
-];
-
-const ACCOUNTANT_PAYMENT_METHOD_BAR = [
-  { method: "Card", amount: 5600 },
-  { method: "Cash", amount: 4200 },
-  { method: "UPI", amount: 3400 },
-  { method: "Bank Transfer", amount: 1250 },
-  { method: "Other", amount: 400 },
-];
-
-const ACCOUNTANT_FINANCIAL_TIMELINE = [
-  {
-    id: "FTL-501",
-    action: "Invoice Generated",
-    detail: "INV-80901 created for Sarah Mitchell ($450.00)",
-    date: "Jul 26",
-    time: "08:50 AM",
-    status: "Generated",
-  },
-  {
-    id: "FTL-502",
-    action: "Payment Collected",
-    detail: "Payment of $1,200.00 processed via UPI for James Thornton",
-    date: "Jul 26",
-    time: "09:25 AM",
-    status: "Completed",
-  },
-  {
-    id: "FTL-503",
-    action: "Partial Payment Received",
-    detail: "Deposit of $350.00 received for Emma Reyes (INV-80903)",
-    date: "Jul 26",
-    time: "10:00 AM",
-    status: "Partial",
-  },
-  {
-    id: "FTL-504",
-    action: "Refund Processed",
-    detail: "Refund of $450.00 issued to David Miller (INV-80906)",
-    date: "Jul 26",
-    time: "11:15 AM",
-    status: "Refunded",
-  },
-  {
-    id: "FTL-505",
-    action: "Invoice Overdue Alert",
-    detail: "INV-80905 for Michael Chang is past due ($1,500.00)",
-    date: "Jul 26",
-    time: "12:00 PM",
-    status: "Overdue",
-  },
-];

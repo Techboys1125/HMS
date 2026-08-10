@@ -96,169 +96,7 @@ export interface ReceptionistDailyAppointmentRecord {
   appointmentStatus: string;
 }
 
-const RECEPTIONIST_DAILY_APPOINTMENTS_DATA: ReceptionistDailyAppointmentRecord[] =
-  [
-    {
-      appointmentId: "APT-901",
-      patientName: "Sarah Mitchell",
-      mrn: "MRN-89201",
-      mobileNumber: "+1 555-0192",
-      appointmentTime: "09:00 AM",
-      visitType: "New Patient",
-      checkInTime: "08:55 AM",
-      queueStatus: "Completed Queue",
-      appointmentStatus: "Completed",
-    },
-    {
-      appointmentId: "APT-902",
-      patientName: "James Thornton",
-      mrn: "MRN-89202",
-      mobileNumber: "+1 555-0193",
-      appointmentTime: "09:30 AM",
-      visitType: "Follow-up",
-      checkInTime: "09:20 AM",
-      queueStatus: "Completed Queue",
-      appointmentStatus: "Completed",
-    },
-    {
-      appointmentId: "APT-903",
-      patientName: "Emma Reyes",
-      mrn: "MRN-89203",
-      mobileNumber: "+1 555-0194",
-      appointmentTime: "10:00 AM",
-      visitType: "Routine Checkup",
-      checkInTime: "09:50 AM",
-      queueStatus: "Completed Queue",
-      appointmentStatus: "Completed",
-    },
-    {
-      appointmentId: "APT-904",
-      patientName: "Aisha Kumar",
-      mrn: "MRN-89204",
-      mobileNumber: "+1 555-0195",
-      appointmentTime: "10:30 AM",
-      visitType: "Follow-up",
-      checkInTime: "10:15 AM",
-      queueStatus: "In Consultation",
-      appointmentStatus: "In Progress",
-    },
-    {
-      appointmentId: "APT-905",
-      patientName: "Michael Chang",
-      mrn: "MRN-89205",
-      mobileNumber: "+1 555-0196",
-      appointmentTime: "11:00 AM",
-      visitType: "New Patient",
-      checkInTime: "10:45 AM",
-      queueStatus: "Waiting Room",
-      appointmentStatus: "Scheduled",
-    },
-    {
-      appointmentId: "APT-906",
-      patientName: "David Miller",
-      mrn: "MRN-89206",
-      mobileNumber: "+1 555-0197",
-      appointmentTime: "11:30 AM",
-      visitType: "Walk-In",
-      checkInTime: "11:10 AM",
-      queueStatus: "Cancelled Queue",
-      appointmentStatus: "Cancelled",
-    },
-    {
-      appointmentId: "APT-907",
-      patientName: "Grace Hopper",
-      mrn: "MRN-89207",
-      mobileNumber: "+1 555-0198",
-      appointmentTime: "12:00 PM",
-      visitType: "Routine Checkup",
-      checkInTime: "11:45 AM",
-      queueStatus: "Waiting Room",
-      appointmentStatus: "Scheduled",
-    },
-  ];
 
-const RECEPTIONIST_APPT_TREND_SERIES = [
-  { date: "Jul 20", booked: 75, checkedIn: 62, completed: 58, cancelled: 3 },
-  { date: "Jul 21", booked: 80, checkedIn: 68, completed: 60, cancelled: 4 },
-  { date: "Jul 22", booked: 78, checkedIn: 65, completed: 59, cancelled: 2 },
-  { date: "Jul 23", booked: 84, checkedIn: 70, completed: 62, cancelled: 5 },
-  { date: "Jul 24", booked: 82, checkedIn: 69, completed: 61, cancelled: 3 },
-  { date: "Jul 25", booked: 85, checkedIn: 71, completed: 63, cancelled: 4 },
-  { date: "Jul 26", booked: 86, checkedIn: 72, completed: 64, cancelled: 4 },
-];
-
-const RECEPTIONIST_APPT_DONUT = [
-  { name: "Booked", value: 86, color: "#0D47A1" },
-  { name: "Checked-In", value: 72, color: "#009688" },
-  { name: "Waiting", value: 14, color: "#F59E0B" },
-  { name: "Completed", value: 64, color: "#66BB6A" },
-  { name: "Cancelled", value: 4, color: "#EF4444" },
-  { name: "No Show", value: 2, color: "#64748B" },
-];
-
-const RECEPTIONIST_CHECKIN_PERFORMANCE_BAR = [
-  { shift: "Morning Shift", count: 42 },
-  { shift: "Afternoon Shift", count: 26 },
-  { shift: "Evening Shift", count: 18 },
-];
-
-const RECEPTIONIST_QUEUE_PERFORMANCE_HORIZONTAL = [
-  { item: "Waiting Queue", value: 14 },
-  { item: "Avg Waiting Time (m)", value: 11.5 },
-  { item: "Completed Queue", value: 64 },
-  { item: "Longest Waiting (m)", value: 22 },
-];
-
-const RECEPTIONIST_APPT_TIMELINE = [
-  {
-    id: "ACT-201",
-    action: "Appointment Booked",
-    detail: "APT-901 confirmed for Sarah Mitchell",
-    date: "Jul 26",
-    time: "08:15 AM",
-    status: "Booked",
-  },
-  {
-    id: "ACT-202",
-    action: "Patient Registered",
-    detail: "Intake details updated for MRN-89201",
-    date: "Jul 26",
-    time: "08:45 AM",
-    status: "Registered",
-  },
-  {
-    id: "ACT-203",
-    action: "Patient Checked-In",
-    detail: "Sarah Mitchell checked in at reception desk",
-    date: "Jul 26",
-    time: "08:55 AM",
-    status: "Checked-In",
-  },
-  {
-    id: "ACT-204",
-    action: "Queue Updated",
-    detail: "Patient called to OPD Room 1",
-    date: "Jul 26",
-    time: "09:05 AM",
-    status: "Queue Updated",
-  },
-  {
-    id: "ACT-205",
-    action: "Appointment Completed",
-    detail: "Consultation completed successfully",
-    date: "Jul 26",
-    time: "09:30 AM",
-    status: "Completed",
-  },
-  {
-    id: "ACT-206",
-    action: "Appointment Cancelled",
-    detail: "APT-906 cancelled by patient David Miller",
-    date: "Jul 26",
-    time: "11:10 AM",
-    status: "Cancelled",
-  },
-];
 
 export function ReceptionistDailyAppointmentReportScreen({
   onBack,
@@ -301,7 +139,7 @@ export function ReceptionistDailyAppointmentReportScreen({
   };
 
   const filteredAppointments = useMemo(() => {
-    return RECEPTIONIST_DAILY_APPOINTMENTS_DATA.filter((item) => {
+    return [].filter((item: any) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -369,7 +207,7 @@ export function ReceptionistDailyAppointmentReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:45 AM</strong>
+                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </span>
               </div>
 
@@ -810,10 +648,10 @@ export function ReceptionistDailyAppointmentReportScreen({
                       className="text-2xl font-bold text-[#111827] mt-1"
                       style={{ fontFamily: PP }}
                     >
-                      11.5 min
+                      --
                     </div>
                     <p className="text-[11px] text-[#64748B] mt-1">
-                      Longest Today: 22.0m
+                      Longest Today: --
                     </p>
                     <div className="mt-2 text-[11px] font-semibold text-[#66BB6A]">
                       âœ“ Target Met
@@ -856,7 +694,7 @@ export function ReceptionistDailyAppointmentReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
-                        data={RECEPTIONIST_APPT_TREND_SERIES}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <defs>
@@ -952,7 +790,7 @@ export function ReceptionistDailyAppointmentReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={RECEPTIONIST_APPT_DONUT}
+                          data={[]}
                           cx="50%"
                           cy="50%"
                           innerRadius={45}
@@ -960,7 +798,7 @@ export function ReceptionistDailyAppointmentReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {RECEPTIONIST_APPT_DONUT.map((entry, index) => (
+                          {[].map((entry: any, index: any) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
@@ -1008,7 +846,7 @@ export function ReceptionistDailyAppointmentReportScreen({
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={RECEPTIONIST_CHECKIN_PERFORMANCE_BAR}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1056,7 +894,7 @@ export function ReceptionistDailyAppointmentReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                        data={RECEPTIONIST_QUEUE_PERFORMANCE_HORIZONTAL}
+                        data={[]}
                         margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1256,7 +1094,7 @@ export function ReceptionistDailyAppointmentReportScreen({
                   Reception Activity Timeline
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {RECEPTIONIST_APPT_TIMELINE.map((act) => (
+                  {[].map((act: any) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1332,7 +1170,7 @@ export function ReceptionistDailyAppointmentReportScreen({
                   <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
                     <span className="text-[#64748B]">Avg Waiting Time:</span>
                     <span className="font-semibold text-[#0D47A1]">
-                      11.5 min
+                      --
                     </span>
                   </div>
                 </div>
@@ -1426,7 +1264,7 @@ export function ReceptionistDailyAppointmentReportScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 13:36</strong>
+            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
           </div>
         </div>
       </div>

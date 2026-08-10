@@ -97,154 +97,17 @@ export interface DoctorPatientRecord {
   status: string;
 }
 
-const DOCTOR_PATIENT_TABLE_DATA: DoctorPatientRecord[] = [
-  {
-    mrn: "MRN-89201",
-    patientName: "Sarah Mitchell",
-    age: 34,
-    gender: "Female",
-    mobileNumber: "+91 98765 43210",
-    lastConsultationDate: "2026-07-26",
-    visitType: "New Patient",
-    diagnosis: "Hypertension Stage 1",
-    followUpDate: "2026-08-09",
-    status: "Active",
-  },
-  {
-    mrn: "MRN-89202",
-    patientName: "James Thornton",
-    age: 48,
-    gender: "Male",
-    mobileNumber: "+91 98765 43211",
-    lastConsultationDate: "2026-07-26",
-    visitType: "Follow-up",
-    diagnosis: "Acute Bronchitis",
-    followUpDate: "2026-08-02",
-    status: "Active",
-  },
-  {
-    mrn: "MRN-89203",
-    patientName: "Emma Reyes",
-    age: 52,
-    gender: "Female",
-    mobileNumber: "+91 98765 43212",
-    lastConsultationDate: "2026-07-26",
-    visitType: "Routine Checkup",
-    diagnosis: "Type 2 Diabetes",
-    followUpDate: "2026-08-10",
-    status: "Active",
-  },
-  {
-    mrn: "MRN-89204",
-    patientName: "Aisha Kumar",
-    age: 29,
-    gender: "Female",
-    mobileNumber: "+91 98765 43213",
-    lastConsultationDate: "2026-07-26",
-    visitType: "Follow-up",
-    diagnosis: "Migraine",
-    followUpDate: "2026-08-05",
-    status: "In Progress",
-  },
-  {
-    mrn: "MRN-89205",
-    patientName: "Michael Chang",
-    age: 61,
-    gender: "Male",
-    mobileNumber: "+91 98765 43214",
-    lastConsultationDate: "2026-07-25",
-    visitType: "New Patient",
-    diagnosis: "Osteoarthritis Knee",
-    followUpDate: "2026-08-08",
-    status: "Active",
-  },
-  {
-    mrn: "MRN-89206",
-    patientName: "David Miller",
-    age: 43,
-    gender: "Male",
-    mobileNumber: "+91 98765 43215",
-    lastConsultationDate: "2026-07-24",
-    visitType: "Walk-In",
-    diagnosis: "Gastritis",
-    followUpDate: "2026-07-31",
-    status: "Completed",
-  },
-];
 
-const DOCTOR_PATIENT_CONSULTATION_TREND = [
-  { date: "Jul 20", patients: 22, completed: 18, followUps: 4 },
-  { date: "Jul 21", patients: 25, completed: 21, followUps: 4 },
-  { date: "Jul 22", patients: 20, completed: 17, followUps: 3 },
-  { date: "Jul 23", patients: 28, completed: 24, followUps: 4 },
-  { date: "Jul 24", patients: 26, completed: 22, followUps: 4 },
-  { date: "Jul 25", patients: 30, completed: 26, followUps: 4 },
-  { date: "Jul 26", patients: 32, completed: 28, followUps: 4 },
-];
 
-const DOCTOR_FOLLOWUP_DONUT_DATA = [
-  { name: "Completed", value: 24, percentage: 75.0, color: "#66BB6A" },
-  { name: "Scheduled", value: 5, percentage: 15.6, color: "#0D47A1" },
-  { name: "Pending", value: 2, percentage: 6.2, color: "#F59E0B" },
-  { name: "Missed", value: 1, percentage: 3.1, color: "#EF4444" },
-];
 
-const DOCTOR_PATIENT_VISIT_TYPE_BAR = [
-  { visitType: "New Patients", count: 18 },
-  { visitType: "Returning Patients", count: 8 },
-  { visitType: "Follow-up Visits", count: 4 },
-  { visitType: "Walk-in Consultations", count: 2 },
-];
 
-const DOCTOR_PATIENT_STATUS_BAR = [
-  { status: "Completed", count: 28 },
-  { status: "Pending", count: 2 },
-  { status: "Cancelled", count: 1 },
-  { status: "Follow-up", count: 1 },
-];
 
-const DOCTOR_RECENT_PATIENT_TIMELINE = [
-  {
-    id: "DPAT-801",
-    action: "Patient Consulted",
-    detail: "Completed consultation for Sarah Mitchell (MRN-89201)",
-    date: "Jul 26",
-    time: "10:40 AM",
-    status: "Completed",
-  },
-  {
-    id: "DPAT-802",
-    action: "Prescription Issued",
-    detail: "Rx issued for James Thornton (MRN-89202)",
-    date: "Jul 26",
-    time: "10:15 AM",
-    status: "Completed",
-  },
-  {
-    id: "DPAT-803",
-    action: "Follow-up Scheduled",
-    detail: "Scheduled 2-week follow-up for Emma Reyes",
-    date: "Jul 26",
-    time: "09:50 AM",
-    status: "Scheduled",
-  },
-  {
-    id: "DPAT-804",
-    action: "Consultation Completed",
-    detail: "Finished intake for Aisha Kumar (MRN-89204)",
-    date: "Jul 26",
-    time: "09:10 AM",
-    status: "Completed",
-  },
-  {
-    id: "DPAT-805",
-    action: "Patient Revisited",
-    detail: "Michael Chang returned for follow-up review",
-    date: "Jul 25",
-    time: "04:30 PM",
-    status: "Active",
-  },
-];
+
+
+
+
+
+
 
 export function DoctorPatientReportScreen({
   onBack,
@@ -285,7 +148,7 @@ export function DoctorPatientReportScreen({
   };
 
   const filteredPatients = useMemo(() => {
-    return DOCTOR_PATIENT_TABLE_DATA.filter((item) => {
+    return ([] as DoctorPatientRecord[]).filter((item) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -351,7 +214,7 @@ export function DoctorPatientReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:45 AM</strong>
+                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </span>
               </div>
 
@@ -804,7 +667,7 @@ export function DoctorPatientReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
-                        data={DOCTOR_PATIENT_CONSULTATION_TREND}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <defs>
@@ -900,17 +763,17 @@ export function DoctorPatientReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={DOCTOR_FOLLOWUP_DONUT_DATA}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={45}
-                          outerRadius={75}
-                          paddingAngle={3}
-                          dataKey="value"
-                        >
-                          {DOCTOR_FOLLOWUP_DONUT_DATA.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
+                           data={[]}
+                           cx="50%"
+                           cy="50%"
+                           innerRadius={45}
+                           outerRadius={75}
+                           paddingAngle={3}
+                           dataKey="value"
+                         >
+                           {[].map((entry: any, index: number) => (
+                             <Cell key={`cell-${index}`} fill={entry.color} />
+                           ))}
                         </Pie>
                         <Tooltip
                           contentStyle={{
@@ -956,7 +819,7 @@ export function DoctorPatientReportScreen({
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={DOCTOR_PATIENT_VISIT_TYPE_BAR}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1004,8 +867,8 @@ export function DoctorPatientReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                        data={DOCTOR_PATIENT_STATUS_BAR}
-                        margin={{ top: 5, right: 10, left: 30, bottom: 5 }}
+                         data={[]}
+                         margin={{ top: 5, right: 10, left: 30, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                         <XAxis
@@ -1202,7 +1065,7 @@ export function DoctorPatientReportScreen({
                   Recent Patient Activity Timeline
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {DOCTOR_RECENT_PATIENT_TIMELINE.map((act) => (
+                  {[].map((act: any) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1369,7 +1232,7 @@ export function DoctorPatientReportScreen({
           <div>Hospital Management System â€¢ Doctor Patient Report v1.0</div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 13:12</strong>
+            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
           </div>
         </div>
       </div>

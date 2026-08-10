@@ -35,6 +35,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { useInvoiceSummary, useDailyRevenue } from "../hooks/useReports";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -98,158 +99,6 @@ export interface AccountantFinancialTransactionRecord {
   collectedBy: string;
 }
 
-const ACCOUNTANT_FINANCIAL_TRANSACTIONS_DATA: AccountantFinancialTransactionRecord[] =
-  [
-    {
-      invoiceId: "INV-80901",
-      patientName: "Sarah Mitchell",
-      mrn: "MRN-89201",
-      invoiceDate: "2026-07-26",
-      grandTotal: 450.0,
-      amountPaid: 450.0,
-      balance: 0.0,
-      paymentMethod: "Card",
-      paymentStatus: "Paid",
-      collectedBy: "Robert Vance",
-    },
-    {
-      invoiceId: "INV-80902",
-      patientName: "James Thornton",
-      mrn: "MRN-89202",
-      invoiceDate: "2026-07-26",
-      grandTotal: 1200.0,
-      amountPaid: 1200.0,
-      balance: 0.0,
-      paymentMethod: "UPI",
-      paymentStatus: "Paid",
-      collectedBy: "Robert Vance",
-    },
-    {
-      invoiceId: "INV-80903",
-      patientName: "Emma Reyes",
-      mrn: "MRN-89203",
-      invoiceDate: "2026-07-26",
-      grandTotal: 650.0,
-      amountPaid: 350.0,
-      balance: 300.0,
-      paymentMethod: "Cash",
-      paymentStatus: "Partially Paid",
-      collectedBy: "Elena Rostova",
-    },
-    {
-      invoiceId: "INV-80904",
-      patientName: "Aisha Kumar",
-      mrn: "MRN-89204",
-      invoiceDate: "2026-07-26",
-      grandTotal: 890.0,
-      amountPaid: 890.0,
-      balance: 0.0,
-      paymentMethod: "Card",
-      paymentStatus: "Paid",
-      collectedBy: "Robert Vance",
-    },
-    {
-      invoiceId: "INV-80905",
-      patientName: "Michael Chang",
-      mrn: "MRN-89205",
-      invoiceDate: "2026-07-26",
-      grandTotal: 1500.0,
-      amountPaid: 0.0,
-      balance: 1500.0,
-      paymentMethod: "Pending",
-      paymentStatus: "Pending",
-      collectedBy: "Unassigned",
-    },
-    {
-      invoiceId: "INV-80906",
-      patientName: "David Miller",
-      mrn: "MRN-89206",
-      invoiceDate: "2026-07-26",
-      grandTotal: 450.0,
-      amountPaid: 0.0,
-      balance: 450.0,
-      paymentMethod: "Refunded",
-      paymentStatus: "Refunded",
-      collectedBy: "Elena Rostova",
-    },
-  ];
-
-const ACCOUNTANT_REVENUE_TREND_SERIES = [
-  { date: "Jul 20", revenue: 11200, collections: 10400, outstanding: 800 },
-  { date: "Jul 21", revenue: 12500, collections: 11800, outstanding: 700 },
-  { date: "Jul 22", revenue: 10800, collections: 9900, outstanding: 900 },
-  { date: "Jul 23", revenue: 13800, collections: 12900, outstanding: 900 },
-  { date: "Jul 24", revenue: 14200, collections: 13500, outstanding: 700 },
-  { date: "Jul 25", revenue: 14500, collections: 13800, outstanding: 700 },
-  { date: "Jul 26", revenue: 14850, collections: 14100, outstanding: 750 },
-];
-
-const ACCOUNTANT_PAYMENT_STATUS_DONUT = [
-  { name: "Paid", value: 12400, color: "#66BB6A" },
-  { name: "Pending", value: 2250, color: "#F59E0B" },
-  { name: "Partially Paid", value: 1000, color: "#0D47A1" },
-  { name: "Cancelled", value: 200, color: "#64748B" },
-  { name: "Refunded", value: 450, color: "#EF4444" },
-];
-
-const ACCOUNTANT_PAYMENT_METHOD_BAR = [
-  { method: "Card", amount: 5600 },
-  { method: "Cash", amount: 4200 },
-  { method: "UPI", amount: 3400 },
-  { method: "Bank Transfer", amount: 1250 },
-  { method: "Other", amount: 400 },
-];
-
-const ACCOUNTANT_MONTHLY_PERFORMANCE_BAR = [
-  { item: "Monthly Collections ($)", value: 145000 },
-  { item: "Outstanding ($)", value: 18500 },
-  { item: "Refunds ($)", value: 2400 },
-  { item: "Collection Rate (%)", value: 92.8 },
-];
-
-const ACCOUNTANT_FINANCIAL_TIMELINE = [
-  {
-    id: "FTL-501",
-    action: "Invoice Generated",
-    detail: "INV-80901 created for Sarah Mitchell ($450.00)",
-    date: "Jul 26",
-    time: "08:50 AM",
-    status: "Generated",
-  },
-  {
-    id: "FTL-502",
-    action: "Payment Collected",
-    detail: "Payment of $1,200.00 processed via UPI for James Thornton",
-    date: "Jul 26",
-    time: "09:25 AM",
-    status: "Completed",
-  },
-  {
-    id: "FTL-503",
-    action: "Partial Payment Received",
-    detail: "Deposit of $350.00 received for Emma Reyes (INV-80903)",
-    date: "Jul 26",
-    time: "10:00 AM",
-    status: "Partial",
-  },
-  {
-    id: "FTL-504",
-    action: "Refund Processed",
-    detail: "Refund of $450.00 issued to David Miller (INV-80906)",
-    date: "Jul 26",
-    time: "11:15 AM",
-    status: "Refunded",
-  },
-  {
-    id: "FTL-505",
-    action: "Receipt Generated",
-    detail: "Official tax receipt issued for INV-80904",
-    date: "Jul 26",
-    time: "11:40 AM",
-    status: "Issued",
-  },
-];
-
 export function AccountantReportsDashboardScreen({
   onOpenDailyRevenue,
   onOpenBillingReport,
@@ -275,8 +124,48 @@ export function AccountantReportsDashboardScreen({
     "Today" | "7 Days" | "30 Days" | "90 Days"
   >("7 Days");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
+
+  const dateFilters = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    if (dateRange === "Today") return { fromDate: today, toDate: today };
+    if (dateRange === "Yesterday") {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      return {
+        fromDate: d.toISOString().slice(0, 10),
+        toDate: d.toISOString().slice(0, 10),
+      };
+    }
+    if (dateRange === "Last 7 Days") {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(start.getDate() - 6);
+      return {
+        fromDate: start.toISOString().slice(0, 10),
+        toDate: end.toISOString().slice(0, 10),
+      };
+    }
+    const start = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const end = new Date();
+    return {
+      fromDate: start.toISOString().slice(0, 10),
+      toDate: end.toISOString().slice(0, 10),
+    };
+  }, [dateRange]);
+
+  const {
+    data: invoiceSummary,
+    isLoading: invLoading,
+    error: invError,
+  } = useInvoiceSummary(dateFilters);
+  const {
+    data: dailyRevenue,
+    isLoading: revLoading,
+    error: revError,
+  } = useDailyRevenue(dateFilters);
+
+  const isLoading = invLoading || revLoading;
+  const hasError = !!(invError || revError);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -293,11 +182,11 @@ export function AccountantReportsDashboardScreen({
   };
 
   const filteredTransactions = useMemo(() => {
-    return ACCOUNTANT_FINANCIAL_TRANSACTIONS_DATA.filter((item) => {
+    return (dailyRevenue ?? []).filter((item: any) => {
       const matchesSearch =
-        item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.invoiceId.toLowerCase().includes(searchQuery.toLowerCase());
+        item.patientName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.mrn?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.invoiceId?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus =
         paymentStatusFilter === "All Payment Statuses" ||
         item.paymentStatus === paymentStatusFilter;
@@ -306,7 +195,7 @@ export function AccountantReportsDashboardScreen({
         item.paymentMethod === paymentMethodFilter;
       return matchesSearch && matchesStatus && matchesMethod;
     });
-  }, [searchQuery, paymentStatusFilter, paymentMethodFilter]);
+  }, [dailyRevenue, searchQuery, paymentStatusFilter, paymentMethodFilter]);
 
   return (
     <div
@@ -348,7 +237,12 @@ export function AccountantReportsDashboardScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:45 AM</strong>
+                  <strong className="text-[#111827]">
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
                 </span>
               </div>
 
@@ -531,36 +425,6 @@ export function AccountantReportsDashboardScreen({
           </div>
         </div>
 
-        {/* Demo State Controls */}
-        <div className="flex items-center justify-between mb-4 bg-white p-2.5 rounded-xl border border-[#E5E7EB] text-xs">
-          <div className="flex items-center gap-3">
-            <span className="font-semibold text-[#111827]">
-              Demo State Toggles:
-            </span>
-            <button
-              onClick={() => {
-                setIsLoading(!isLoading);
-                setHasError(false);
-              }}
-              className={`px-2.5 py-1 rounded-lg border text-xs ${isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
-            >
-              Toggle Loading Skeleton
-            </button>
-            <button
-              onClick={() => {
-                setHasError(!hasError);
-                setIsLoading(false);
-              }}
-              className={`px-2.5 py-1 rounded-lg border text-xs ${hasError ? "bg-red-50 border-red-[#EF4444] text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
-            >
-              Toggle Error State
-            </button>
-          </div>
-          <span className="text-[11px] text-[#64748B]">
-            Simulate Accountant reports state
-          </span>
-        </div>
-
         {/* ERROR STATE */}
         {hasError && (
           <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-6 text-center">
@@ -576,7 +440,7 @@ export function AccountantReportsDashboardScreen({
               retry.
             </p>
             <button
-              onClick={() => setHasError(false)}
+              onClick={() => window.location.reload()}
               className="mt-4 px-4 py-2 bg-[#EF4444] text-white rounded-xl text-xs font-semibold hover:bg-red-600 transition"
             >
               Retry
@@ -619,21 +483,31 @@ export function AccountantReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    $14,850
+                    {invoiceSummary?.totalBilledAmount != null
+                      ? `$${invoiceSummary.totalBilledAmount.toLocaleString()}`
+                      : "--"}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> +14.2%
+                    <span className="text-[#64748B] font-semibold flex items-center gap-0.5">
+                      <TrendingUp className="w-3 h-3" /> Revenue
                     </span>
-                    <span>Revenue Growth</span>
+                    <span>Revenue Summary</span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#0D47A1] font-bold">$14,100</div>
+                      <div className="text-[#0D47A1] font-bold">
+                        {invoiceSummary?.totalPaidAmount != null
+                          ? `$${invoiceSummary.totalPaidAmount.toLocaleString()}`
+                          : "--"}
+                      </div>
                       <div className="text-[#64748B]">Collected</div>
                     </div>
                     <div>
-                      <div className="text-[#009688] font-bold">$750</div>
+                      <div className="text-[#009688] font-bold">
+                        {invoiceSummary?.totalOutstandingAmount != null
+                          ? `$${invoiceSummary.totalOutstandingAmount.toLocaleString()}`
+                          : "--"}
+                      </div>
                       <div className="text-[#64748B]">Pending</div>
                     </div>
                   </div>
@@ -653,20 +527,24 @@ export function AccountantReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    48
+                    {invoiceSummary?.totalInvoices ?? "--"}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#009688] font-semibold">
-                      42 Paid Today
+                      {invoiceSummary?.paidInvoices ?? "--"} Paid Today
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#0D47A1] font-bold">48</div>
+                      <div className="text-[#0D47A1] font-bold">
+                        {invoiceSummary?.totalInvoices ?? "--"}
+                      </div>
                       <div className="text-[#64748B]">Generated</div>
                     </div>
                     <div>
-                      <div className="text-[#66BB6A] font-bold">42</div>
+                      <div className="text-[#66BB6A] font-bold">
+                        {invoiceSummary?.paidInvoices ?? "--"}
+                      </div>
                       <div className="text-[#64748B]">Paid</div>
                     </div>
                   </div>
@@ -686,20 +564,28 @@ export function AccountantReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    42
+                    {invoiceSummary?.paidInvoices ?? "--"}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#66BB6A] font-semibold">
-                      87.5% Collection Rate
+                      {invoiceSummary?.totalInvoices
+                        ? `${Math.round((invoiceSummary.paidInvoices / invoiceSummary.totalInvoices) * 100)}% Collection Rate`
+                        : "--"}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#66BB6A] font-bold">42</div>
+                      <div className="text-[#66BB6A] font-bold">
+                        {invoiceSummary?.paidInvoices ?? "--"}
+                      </div>
                       <div className="text-[#64748B]">Paid Count</div>
                     </div>
                     <div>
-                      <div className="text-[#0D47A1] font-bold">87.5%</div>
+                      <div className="text-[#0D47A1] font-bold">
+                        {invoiceSummary?.totalInvoices
+                          ? `${Math.round((invoiceSummary.paidInvoices / invoiceSummary.totalInvoices) * 100)}%`
+                          : "--"}
+                      </div>
                       <div className="text-[#64748B]">Rate</div>
                     </div>
                   </div>
@@ -719,20 +605,28 @@ export function AccountantReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    $3,250
+                    {invoiceSummary?.totalOutstandingAmount != null
+                      ? `$${invoiceSummary.totalOutstandingAmount.toLocaleString()}`
+                      : "--"}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#F59E0B] font-semibold">
-                      6 Pending Invoices
+                      {invoiceSummary?.unpaidInvoices ?? "--"} Pending Invoices
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#F59E0B] font-bold">$3,250</div>
+                      <div className="text-[#F59E0B] font-bold">
+                        {invoiceSummary?.totalOutstandingAmount != null
+                          ? `$${invoiceSummary.totalOutstandingAmount.toLocaleString()}`
+                          : "--"}
+                      </div>
                       <div className="text-[#64748B]">Outstanding</div>
                     </div>
                     <div>
-                      <div className="text-[#0D47A1] font-bold">6</div>
+                      <div className="text-[#0D47A1] font-bold">
+                        {invoiceSummary?.unpaidInvoices ?? "--"}
+                      </div>
                       <div className="text-[#64748B]">Pending</div>
                     </div>
                   </div>
@@ -752,20 +646,20 @@ export function AccountantReportsDashboardScreen({
                     className="text-2xl font-bold text-[#111827] mb-1"
                     style={{ fontFamily: PP }}
                   >
-                    $450
+                    {"--"}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#EF4444] font-semibold">
-                      2 Refund Transactions
+                      {"--"} Refund Transactions
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
-                      <div className="text-[#EF4444] font-bold">2</div>
+                      <div className="text-[#EF4444] font-bold">{"--"}</div>
                       <div className="text-[#64748B]">Count</div>
                     </div>
                     <div>
-                      <div className="text-[#64748B] font-bold">$450</div>
+                      <div className="text-[#64748B] font-bold">{"--"}</div>
                       <div className="text-[#64748B]">Amount</div>
                     </div>
                   </div>
@@ -781,16 +675,30 @@ export function AccountantReportsDashboardScreen({
                       className="text-2xl font-bold text-[#111827] mt-1"
                       style={{ fontFamily: PP }}
                     >
-                      92.8%
+                      {invoiceSummary?.totalInvoices
+                        ? `${Math.round((invoiceSummary.paidInvoices / invoiceSummary.totalInvoices) * 100)}%`
+                        : "--"}
                     </div>
                     <p className="text-[11px] text-[#64748B] mt-1">
-                      Avg Time: 4.5 hrs
+                      Avg Time: --
                     </p>
-                    <div className="mt-2 text-[11px] font-semibold text-[#66BB6A]">
-                      âœ“ Target Met
+                    <div className="mt-2 text-[11px] font-semibold text-[#64748B]">
+                      --
                     </div>
                   </div>
-                  <CircularProgress percentage={93} size={64} strokeWidth={7} />
+                  <CircularProgress
+                    percentage={
+                      invoiceSummary?.totalInvoices
+                        ? Math.round(
+                            (invoiceSummary.paidInvoices /
+                              invoiceSummary.totalInvoices) *
+                              100,
+                          )
+                        : 0
+                    }
+                    size={64}
+                    strokeWidth={7}
+                  />
                 </div>
               </div>
 
@@ -829,7 +737,7 @@ export function AccountantReportsDashboardScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
-                        data={ACCOUNTANT_REVENUE_TREND_SERIES}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <defs>
@@ -925,7 +833,7 @@ export function AccountantReportsDashboardScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={ACCOUNTANT_PAYMENT_STATUS_DONUT}
+                          data={[]}
                           cx="50%"
                           cy="50%"
                           innerRadius={45}
@@ -933,11 +841,9 @@ export function AccountantReportsDashboardScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {ACCOUNTANT_PAYMENT_STATUS_DONUT.map(
-                            (entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ),
-                          )}
+                          {[].map((entry: any, index: any) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
                         </Pie>
                         <Tooltip
                           contentStyle={{
@@ -983,7 +889,7 @@ export function AccountantReportsDashboardScreen({
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={ACCOUNTANT_PAYMENT_METHOD_BAR}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1031,7 +937,7 @@ export function AccountantReportsDashboardScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                        data={ACCOUNTANT_MONTHLY_PERFORMANCE_BAR}
+                        data={[]}
                         margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1133,7 +1039,7 @@ export function AccountantReportsDashboardScreen({
                       ) : (
                         filteredTransactions.map((item) => (
                           <tr
-                            key={item.invoiceId}
+                            key={item.invoiceId as string | number}
                             className="hover:bg-slate-50 transition-colors"
                           >
                             <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">
@@ -1247,7 +1153,7 @@ export function AccountantReportsDashboardScreen({
                   Recent Financial Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {ACCOUNTANT_FINANCIAL_TIMELINE.map((act) => (
+                  {[].map((act: any) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1296,27 +1202,43 @@ export function AccountantReportsDashboardScreen({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Today's Revenue:</span>
-                    <span className="font-bold text-[#0D47A1]">$14,850</span>
+                    <span className="font-bold text-[#0D47A1]">
+                      {invoiceSummary?.totalBilledAmount != null
+                        ? `$${invoiceSummary.totalBilledAmount.toLocaleString()}`
+                        : "--"}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Today's Invoices:</span>
-                    <span className="font-bold text-[#111827]">48 Total</span>
+                    <span className="font-bold text-[#111827]">
+                      {invoiceSummary?.totalInvoices ?? "--"} Total
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Paid Bills:</span>
-                    <span className="font-bold text-[#66BB6A]">42 Paid</span>
+                    <span className="font-bold text-[#66BB6A]">
+                      {invoiceSummary?.paidInvoices ?? "--"} Paid
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Pending Payments:</span>
-                    <span className="font-bold text-[#F59E0B]">$3,250</span>
+                    <span className="font-bold text-[#F59E0B]">
+                      {invoiceSummary?.totalOutstandingAmount != null
+                        ? `$${invoiceSummary.totalOutstandingAmount.toLocaleString()}`
+                        : "--"}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Refunded Bills:</span>
-                    <span className="font-bold text-[#EF4444]">$450</span>
+                    <span className="font-bold text-[#EF4444]">{"--"}</span>
                   </div>
                   <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
                     <span className="text-[#64748B]">Collection Rate:</span>
-                    <span className="font-semibold text-[#009688]">92.8%</span>
+                    <span className="font-semibold text-[#009688]">
+                      {invoiceSummary?.totalInvoices
+                        ? `${Math.round((invoiceSummary.paidInvoices / invoiceSummary.totalInvoices) * 100)}%`
+                        : "--"}
+                    </span>
                   </div>
                 </div>
 
@@ -1442,6 +1364,3 @@ export interface AccountantDailyRevenueRecord {
   paymentStatus: string;
   collectedBy: string;
 }
-
-
-

@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 // Typography tokens
 export const PP = "Poppins, system-ui, sans-serif";
 export const RB = "Roboto, system-ui, sans-serif";
@@ -424,6 +426,7 @@ export interface DailyAppointmentSummary {
 
 // 3. Daily Appointments Detail
 export interface DailyAppointmentDetail {
+  patientId: string;
   appointmentId: number;
   appointmentNumber: string;
   patientName: string;
@@ -489,6 +492,7 @@ export interface InvoiceSummaryData {
 
 // 10. Hospital Operational Trend
 export interface OperationalTrendPoint {
+  collected: number;
   date: string;
   registrations: number;
   appointments: number;
@@ -513,6 +517,9 @@ export interface PatientRegistrationDetail {
 
 // 13. Revenue vs Collection
 export interface RevenueVsCollectionPoint {
+  outstanding: number;
+  revenue: number;
+  month: string;
   date: string;
   billed: number;
   collected: number;
@@ -520,6 +527,16 @@ export interface RevenueVsCollectionPoint {
 
 // 14. Daily Revenue
 export interface DailyRevenuePoint {
+  invoiceDate: ReactNode;
+  mrn: ReactNode;
+  patientName: ReactNode;
+  invoiceId: ReactNode;
+  grandTotal: any;
+  amountPaid: any;
+  balance: any;
+  paymentMethod: ReactNode;
+  paymentStatus: string;
+  collectedBy: ReactNode;
   date: string;
   amount: number;
 }
@@ -535,6 +552,7 @@ export interface DailyRevenueDetail {
 
 // 16. Report Category Share
 export interface ReportCategoryShare {
+  color: string;
   category: string;
   viewCount: number;
   percentage: number;

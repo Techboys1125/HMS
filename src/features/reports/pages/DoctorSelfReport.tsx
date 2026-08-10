@@ -99,151 +99,17 @@ export interface DoctorConsultationPerformanceRecord {
   consultationStatus: string;
 }
 
-const DOCTOR_PERFORMANCE_TABLE_DATA: DoctorConsultationPerformanceRecord[] = [
-  {
-    consultationId: "CNS-701",
-    patientName: "Sarah Mitchell",
-    mrn: "MRN-89201",
-    appointmentDate: "2026-07-26",
-    consultationTime: "09:15 AM",
-    diagnosis: "Hypertension Stage 1",
-    prescriptionStatus: "Issued",
-    followUp: "Aug 09, 2026",
-    consultationStatus: "Completed",
-  },
-  {
-    consultationId: "CNS-702",
-    patientName: "James Thornton",
-    mrn: "MRN-89202",
-    appointmentDate: "2026-07-26",
-    consultationTime: "09:45 AM",
-    diagnosis: "Acute Bronchitis",
-    prescriptionStatus: "Issued",
-    followUp: "Aug 02, 2026",
-    consultationStatus: "Completed",
-  },
-  {
-    consultationId: "CNS-703",
-    patientName: "Emma Reyes",
-    mrn: "MRN-89203",
-    appointmentDate: "2026-07-26",
-    consultationTime: "10:15 AM",
-    diagnosis: "Type 2 Diabetes",
-    prescriptionStatus: "Issued",
-    followUp: "Aug 10, 2026",
-    consultationStatus: "Completed",
-  },
-  {
-    consultationId: "CNS-704",
-    patientName: "Aisha Kumar",
-    mrn: "MRN-89204",
-    appointmentDate: "2026-07-26",
-    consultationTime: "10:45 AM",
-    diagnosis: "Migraine",
-    prescriptionStatus: "Pending",
-    followUp: "Aug 05, 2026",
-    consultationStatus: "In Progress",
-  },
-  {
-    consultationId: "CNS-705",
-    patientName: "Michael Chang",
-    mrn: "MRN-89205",
-    appointmentDate: "2026-07-25",
-    consultationTime: "02:30 PM",
-    diagnosis: "Osteoarthritis Knee",
-    prescriptionStatus: "Issued",
-    followUp: "Aug 08, 2026",
-    consultationStatus: "Completed",
-  },
-  {
-    consultationId: "CNS-706",
-    patientName: "David Miller",
-    mrn: "MRN-89206",
-    appointmentDate: "2026-07-24",
-    consultationTime: "11:15 AM",
-    diagnosis: "Gastritis",
-    prescriptionStatus: "Issued",
-    followUp: "Jul 31, 2026",
-    consultationStatus: "Completed",
-  },
-];
 
-const DOCTOR_PERFORMANCE_TREND_DATA = [
-  { date: "Jul 20", completed: 18, pending: 2, cancelled: 1, followUp: 4 },
-  { date: "Jul 21", completed: 21, pending: 1, cancelled: 0, followUp: 4 },
-  { date: "Jul 22", completed: 17, pending: 3, cancelled: 1, followUp: 3 },
-  { date: "Jul 23", completed: 24, pending: 2, cancelled: 0, followUp: 4 },
-  { date: "Jul 24", completed: 22, pending: 1, cancelled: 1, followUp: 4 },
-  { date: "Jul 25", completed: 26, pending: 2, cancelled: 0, followUp: 4 },
-  { date: "Jul 26", completed: 28, pending: 2, cancelled: 1, followUp: 4 },
-];
 
-const DOCTOR_PERFORMANCE_STATUS_DONUT = [
-  { name: "Completed", value: 28, percentage: 87.5, color: "#66BB6A" },
-  { name: "Pending", value: 2, percentage: 6.2, color: "#F59E0B" },
-  { name: "Cancelled", value: 1, percentage: 3.1, color: "#EF4444" },
-  { name: "Follow-up", value: 1, percentage: 3.1, color: "#0D47A1" },
-];
 
-const DOCTOR_PERFORMANCE_VISIT_BAR = [
-  { visitType: "New Patients", count: 18 },
-  { visitType: "Returning Patients", count: 8 },
-  { visitType: "Follow-up Visits", count: 4 },
-  { visitType: "Walk-in Consultations", count: 2 },
-];
 
-const DOCTOR_CONSULTATION_TIME_LINE = [
-  { date: "Jul 20", avgMinutes: 15.2 },
-  { date: "Jul 21", avgMinutes: 14.8 },
-  { date: "Jul 22", avgMinutes: 16.0 },
-  { date: "Jul 23", avgMinutes: 13.9 },
-  { date: "Jul 24", avgMinutes: 14.5 },
-  { date: "Jul 25", avgMinutes: 14.0 },
-  { date: "Jul 26", avgMinutes: 14.2 },
-];
 
-const DOCTOR_RECENT_PROFESSIONAL_ACTIVITIES = [
-  {
-    id: "DPRO-901",
-    action: "Consultation Completed",
-    detail: "Completed consultation for Sarah Mitchell (MRN-89201)",
-    date: "Jul 26",
-    time: "10:40 AM",
-    status: "Completed",
-  },
-  {
-    id: "DPRO-902",
-    action: "Prescription Issued",
-    detail: "Rx issued for James Thornton (MRN-89202)",
-    date: "Jul 26",
-    time: "10:15 AM",
-    status: "Completed",
-  },
-  {
-    id: "DPRO-903",
-    action: "Follow-up Scheduled",
-    detail: "Scheduled 2-week follow-up for Emma Reyes",
-    date: "Jul 26",
-    time: "09:50 AM",
-    status: "Scheduled",
-  },
-  {
-    id: "DPRO-904",
-    action: "Patient Revisited",
-    detail: "Michael Chang returned for follow-up review",
-    date: "Jul 25",
-    time: "04:30 PM",
-    status: "Active",
-  },
-  {
-    id: "DPRO-905",
-    action: "Consultation Cancelled",
-    detail: "Patient David Miller cancelled afternoon slot",
-    date: "Jul 24",
-    time: "02:00 PM",
-    status: "Cancelled",
-  },
-];
+
+
+
+
+
+
 
 export function DoctorDoctorReportScreen({
   onBack,
@@ -286,7 +152,7 @@ export function DoctorDoctorReportScreen({
   };
 
   const filteredPerformance = useMemo(() => {
-    return DOCTOR_PERFORMANCE_TABLE_DATA.filter((item) => {
+    return ([] as DoctorConsultationPerformanceRecord[]).filter((item) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -350,7 +216,7 @@ export function DoctorDoctorReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:45 AM</strong>
+                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </span>
               </div>
 
@@ -818,7 +684,7 @@ export function DoctorDoctorReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
-                        data={DOCTOR_PERFORMANCE_TREND_DATA}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <defs>
@@ -914,19 +780,19 @@ export function DoctorDoctorReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={DOCTOR_PERFORMANCE_STATUS_DONUT}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={45}
-                          outerRadius={75}
-                          paddingAngle={3}
-                          dataKey="value"
-                        >
-                          {DOCTOR_PERFORMANCE_STATUS_DONUT.map(
-                            (entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ),
-                          )}
+                           data={[]}
+                           cx="50%"
+                           cy="50%"
+                           innerRadius={45}
+                           outerRadius={75}
+                           paddingAngle={3}
+                           dataKey="value"
+                         >
+                           {[].map(
+                             (entry: any, index: number) => (
+                               <Cell key={`cell-${index}`} fill={entry.color} />
+                             ),
+                           )}
                         </Pie>
                         <Tooltip
                           contentStyle={{
@@ -972,7 +838,7 @@ export function DoctorDoctorReportScreen({
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={DOCTOR_PERFORMANCE_VISIT_BAR}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1019,7 +885,7 @@ export function DoctorDoctorReportScreen({
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
-                        data={DOCTOR_CONSULTATION_TIME_LINE}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1219,7 +1085,7 @@ export function DoctorDoctorReportScreen({
                   Recent Professional Activities
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {DOCTOR_RECENT_PROFESSIONAL_ACTIVITIES.map((act) => (
+                  {[].map((act: any) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1394,7 +1260,7 @@ export function DoctorDoctorReportScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 13:14</strong>
+            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
           </div>
         </div>
       </div>

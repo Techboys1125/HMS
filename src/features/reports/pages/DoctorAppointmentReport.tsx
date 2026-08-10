@@ -86,57 +86,7 @@ function CircularProgress({
     </div>
   );
 }
-const DOCTOR_APPOINTMENT_TREND = [
-  {
-    date: "Jul 20",
-    appointments: 22,
-    completed: 18,
-    cancelled: 2,
-    followUp: 2,
-  },
-  {
-    date: "Jul 21",
-    appointments: 25,
-    completed: 21,
-    cancelled: 2,
-    followUp: 2,
-  },
-  {
-    date: "Jul 22",
-    appointments: 20,
-    completed: 17,
-    cancelled: 1,
-    followUp: 2,
-  },
-  {
-    date: "Jul 23",
-    appointments: 28,
-    completed: 24,
-    cancelled: 2,
-    followUp: 2,
-  },
-  {
-    date: "Jul 24",
-    appointments: 26,
-    completed: 22,
-    cancelled: 2,
-    followUp: 2,
-  },
-  {
-    date: "Jul 25",
-    appointments: 30,
-    completed: 26,
-    cancelled: 2,
-    followUp: 2,
-  },
-  {
-    date: "Jul 26",
-    appointments: 32,
-    completed: 28,
-    cancelled: 2,
-    followUp: 2,
-  },
-];
+
 
 export interface DoctorDailyAppointmentRecord {
   id: string;
@@ -149,151 +99,15 @@ export interface DoctorDailyAppointmentRecord {
   consultationStatus: string;
 }
 
-const DOCTOR_DAILY_APPOINTMENT_TABLE_DATA: DoctorDailyAppointmentRecord[] = [
-  {
-    id: "APT-901",
-    patientName: "Sarah Mitchell",
-    mrn: "MRN-89201",
-    appointmentDate: "2026-07-26",
-    appointmentTime: "09:00 AM",
-    visitType: "New Patient",
-    status: "Completed",
-    consultationStatus: "Finished",
-  },
-  {
-    id: "APT-902",
-    patientName: "James Thornton",
-    mrn: "MRN-89202",
-    appointmentDate: "2026-07-26",
-    appointmentTime: "09:30 AM",
-    visitType: "Follow-up",
-    status: "Completed",
-    consultationStatus: "Finished",
-  },
-  {
-    id: "APT-903",
-    patientName: "Emma Reyes",
-    mrn: "MRN-89203",
-    appointmentDate: "2026-07-26",
-    appointmentTime: "10:00 AM",
-    visitType: "Routine Checkup",
-    status: "Completed",
-    consultationStatus: "Finished",
-  },
-  {
-    id: "APT-904",
-    patientName: "Aisha Kumar",
-    mrn: "MRN-89204",
-    appointmentDate: "2026-07-26",
-    appointmentTime: "10:30 AM",
-    visitType: "Follow-up",
-    status: "In Progress",
-    consultationStatus: "Active",
-  },
-  {
-    id: "APT-905",
-    patientName: "Michael Chang",
-    mrn: "MRN-89205",
-    appointmentDate: "2026-07-26",
-    appointmentTime: "11:00 AM",
-    visitType: "New Patient",
-    status: "Scheduled",
-    consultationStatus: "Waiting",
-  },
-  {
-    id: "APT-906",
-    patientName: "David Miller",
-    mrn: "MRN-89206",
-    appointmentDate: "2026-07-26",
-    appointmentTime: "11:30 AM",
-    visitType: "Walk-In",
-    status: "Cancelled",
-    consultationStatus: "Cancelled",
-  },
-  {
-    id: "APT-907",
-    patientName: "Rachel Green",
-    mrn: "MRN-89207",
-    appointmentDate: "2026-07-26",
-    appointmentTime: "12:00 PM",
-    visitType: "Follow-up",
-    status: "No Show",
-    consultationStatus: "Absent",
-  },
-];
 
-const DOCTOR_APPOINTMENT_STATUS_DONUT = [
-  { name: "Completed", value: 28, percentage: 87.5, color: "#66BB6A" },
-  { name: "Scheduled", value: 2, percentage: 6.2, color: "#0D47A1" },
-  { name: "Waiting", value: 1, percentage: 3.1, color: "#F59E0B" },
-  { name: "Cancelled", value: 1, percentage: 3.1, color: "#EF4444" },
-];
 
-const DOCTOR_VISIT_TYPE_BAR_DATA = [
-  { visitType: "New Patients", count: 18 },
-  { visitType: "Returning Patients", count: 8 },
-  { visitType: "Follow-up Patients", count: 4 },
-  { visitType: "Walk-In Patients", count: 2 },
-];
 
-const DOCTOR_WORKLOAD_SHIFT_DATA = [
-  {
-    shift: "Morning Slot (08am-12pm)",
-    appointments: 18,
-    completed: 16,
-    pending: 2,
-  },
-  {
-    shift: "Afternoon Slot (01pm-04pm)",
-    appointments: 10,
-    completed: 8,
-    pending: 2,
-  },
-  {
-    shift: "Evening Slot (05pm-08pm)",
-    appointments: 4,
-    completed: 0,
-    pending: 4,
-  },
-];
 
-const DOCTOR_RECENT_APPOINTMENT_TIMELINE = [
-  {
-    id: "DAPT-701",
-    action: "Consultation Completed",
-    detail: "Finished appointment for Sarah Mitchell (MRN-89201)",
-    time: "10:40 AM",
-    status: "Completed",
-  },
-  {
-    id: "DAPT-702",
-    action: "Prescription Issued",
-    detail: "Rx issued for James Thornton (MRN-89202)",
-    time: "10:15 AM",
-    status: "Completed",
-  },
-  {
-    id: "DAPT-703",
-    action: "Consultation Started",
-    detail: "Started consult with Aisha Kumar (MRN-89204)",
-    time: "09:50 AM",
-    status: "Active",
-  },
-  {
-    id: "DAPT-704",
-    action: "Patient Checked-In",
-    detail: "Michael Chang checked in at reception desk",
-    time: "09:15 AM",
-    status: "Waiting",
-  },
-  {
-    id: "DAPT-705",
-    action: "Follow-up Scheduled",
-    detail: "Scheduled 2-week follow-up for Emma Reyes",
-    time: "08:45 AM",
-    status: "Scheduled",
-  },
-];
+
+
+
+
+
 
 export function DoctorDailyAppointmentReportScreen({
   onBack,
@@ -331,7 +145,7 @@ export function DoctorDailyAppointmentReportScreen({
   };
 
   const filteredAppointments = useMemo(() => {
-    return DOCTOR_DAILY_APPOINTMENT_TABLE_DATA.filter((item) => {
+    return ([] as DoctorDailyAppointmentRecord[]).filter((item) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -397,7 +211,7 @@ export function DoctorDailyAppointmentReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">Today, 11:45 AM</strong>
+                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </span>
               </div>
 
@@ -843,19 +657,19 @@ export function DoctorDailyAppointmentReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                          data={DOCTOR_APPOINTMENT_STATUS_DONUT}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={45}
-                          outerRadius={75}
-                          paddingAngle={3}
-                          dataKey="value"
-                        >
-                          {DOCTOR_APPOINTMENT_STATUS_DONUT.map(
-                            (entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ),
-                          )}
+                           data={[]}
+                           cx="50%"
+                           cy="50%"
+                           innerRadius={45}
+                           outerRadius={75}
+                           paddingAngle={3}
+                           dataKey="value"
+                         >
+                           {[].map(
+                             (entry: any, index: number) => (
+                               <Cell key={`cell-${index}`} fill={entry.color} />
+                             ),
+                           )}
                         </Pie>
                         <Tooltip
                           contentStyle={{
@@ -912,7 +726,7 @@ export function DoctorDailyAppointmentReportScreen({
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
-                        data={DOCTOR_APPOINTMENT_TREND}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <defs>
@@ -1011,8 +825,8 @@ export function DoctorDailyAppointmentReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                        data={DOCTOR_WORKLOAD_SHIFT_DATA}
-                        margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
+                         data={[]}
+                         margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                         <XAxis
@@ -1069,7 +883,7 @@ export function DoctorDailyAppointmentReportScreen({
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={DOCTOR_VISIT_TYPE_BAR_DATA}
+                        data={[]}
                         margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
@@ -1260,7 +1074,7 @@ export function DoctorDailyAppointmentReportScreen({
                   Recent Appointment Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {DOCTOR_RECENT_APPOINTMENT_TIMELINE.map((act) => (
+                  {[].map((act: any) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1431,7 +1245,7 @@ export function DoctorDailyAppointmentReportScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 13:10</strong>
+            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
           </div>
         </div>
       </div>
