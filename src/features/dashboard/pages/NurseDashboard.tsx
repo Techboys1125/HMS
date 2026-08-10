@@ -207,104 +207,16 @@ function SH({
   );
 }
 // Section 02: Current Patient Pipeline (Doughnut Chart)
-const NURSE_PATIENT_PIPELINE = [
-  { name: "Waiting For Vitals", value: 8, color: "#F59E0B" },
-  { name: "Vitals In Progress", value: 3, color: "#4DB6AC" },
-  { name: "Ready For Consultation", value: 15, color: "#0D47A1" },
-  { name: "Consultation Completed", value: 38, color: "#66BB6A" },
-];
+const NURSE_PATIENT_PIPELINE: { name: string; value: number; color: string }[] = [];
 
 // Section 04: Patient Visit Type Distribution (Doughnut Chart)
-const NURSE_VISIT_TYPE_DIST = [
-  { name: "First Visit", value: 18, percentage: "28%", color: "#0D47A1" },
-  { name: "Follow-up", value: 29, percentage: "45%", color: "#009688" },
-  { name: "Consultation", value: 12, percentage: "19%", color: "#4DB6AC" },
-  { name: "Walk-in", value: 5, percentage: "8%", color: "#F59E0B" },
-];
+const NURSE_VISIT_TYPE_DIST: { name: string; value: number; percentage: string; color: string }[] = [];
 
 // Section 03: Current Nursing Queue Table
-const NURSE_QUEUES = [
-  {
-    token: "T-101",
-    patient: "Sarah Mitchell",
-    doctor: "Dr. A. Mehta",
-    dept: "Cardiology",
-    apptTime: "09:15 AM",
-    vitalsStatus: "Completed",
-    consultStatus: "Ready",
-    priority: "High",
-  },
-  {
-    token: "T-102",
-    patient: "James Thornton",
-    doctor: "Dr. P. Sharma",
-    dept: "General OPD",
-    apptTime: "09:30 AM",
-    vitalsStatus: "Waiting",
-    consultStatus: "Waiting",
-    priority: "Normal",
-  },
-  {
-    token: "T-103",
-    patient: "Emma Reyes",
-    doctor: "Dr. R. Kapoor",
-    dept: "Pediatrics",
-    apptTime: "09:45 AM",
-    vitalsStatus: "Completed",
-    consultStatus: "Vitals Completed",
-    priority: "Normal",
-  },
-  {
-    token: "T-104",
-    patient: "Robert Chen",
-    doctor: "Dr. A. Mehta",
-    dept: "Cardiology",
-    apptTime: "10:00 AM",
-    vitalsStatus: "Waiting",
-    consultStatus: "Waiting",
-    priority: "High",
-  },
-  {
-    token: "T-105",
-    patient: "Aisha Kumar",
-    doctor: "Dr. S. Nair",
-    dept: "Gynecology",
-    apptTime: "10:15 AM",
-    vitalsStatus: "Completed",
-    consultStatus: "Ready",
-    priority: "Normal",
-  },
-  {
-    token: "T-106",
-    patient: "Marcus Brown",
-    doctor: "Dr. V. Rao",
-    dept: "Orthopedics",
-    apptTime: "10:30 AM",
-    vitalsStatus: "Completed",
-    consultStatus: "Completed",
-    priority: "Normal",
-  },
-  {
-    token: "T-107",
-    patient: "Nina Patel",
-    doctor: "Dr. K. Verma",
-    dept: "Neurology",
-    apptTime: "10:45 AM",
-    vitalsStatus: "Waiting",
-    consultStatus: "Waiting",
-    priority: "Normal",
-  },
-];
+const NURSE_QUEUES: { token: string; patient: string; doctor: string; dept: string; apptTime: string; vitalsStatus: string; consultStatus: string; priority: string }[] = [];
 
 // Section 05: Patient Distribution by Department (Horizontal Bar Chart)
-const NURSE_DEPT_DIST = [
-  { department: "General OPD", assisted: 18 },
-  { department: "Cardiology", assisted: 14 },
-  { department: "Orthopedics", assisted: 10 },
-  { department: "Pediatrics", assisted: 8 },
-  { department: "Neurology", assisted: 5 },
-  { department: "Gynecology", assisted: 9 },
-];
+const NURSE_DEPT_DIST: { department: string; assisted: number }[] = [];
 
 const NURSE_STATUS_CHIP: Record<
   string,
@@ -408,83 +320,55 @@ export function NurseDashboard({
       <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
         <DKpi
           title="Patients Assigned Today"
-          value="64"
-          sub="Assigned for Nursing Assistance"
-          trend="+8.5% vs Yesterday"
+          value="0"
+          sub="--"
+          trend="--"
           up={true}
-          data={[
-            { v: 48 },
-            { v: 52 },
-            { v: 55 },
-            { v: 58 },
-            { v: 60 },
-            { v: 64 },
-          ]}
+          data={[{ v: 0 }]}
           color="#0D47A1"
           gid="nr1"
           Icon={Users}
         />
         <DKpi
           title="Vitals Recorded"
-          value="54"
-          sub="Completed Vital Signs"
-          trend="84.4% Today's Progress"
+          value="0"
+          sub="--"
+          trend="--"
           up={true}
-          data={[
-            { v: 35 },
-            { v: 40 },
-            { v: 42 },
-            { v: 48 },
-            { v: 50 },
-            { v: 54 },
-          ]}
+          data={[{ v: 0 }]}
           color="#009688"
           gid="nr2"
           Icon={Activity}
         />
         <DKpi
           title="Waiting for Vitals"
-          value="8"
-          sub="Pending Nursing Assessment"
-          trend="Current Queue Count"
+          value="0"
+          sub="--"
+          trend="--"
           up={false}
-          data={[
-            { v: 14 },
-            { v: 12 },
-            { v: 11 },
-            { v: 10 },
-            { v: 9 },
-            { v: 8 },
-          ]}
+          data={[{ v: 0 }]}
           color="#F59E0B"
           gid="nr3"
           Icon={Clock}
         />
         <DKpi
           title="Waiting for Doctor"
-          value="14"
-          sub="Vitals Done, Awaiting Consult"
-          trend="Current Queue Count"
+          value="0"
+          sub="--"
+          trend="--"
           up={false}
-          data={[
-            { v: 18 },
-            { v: 16 },
-            { v: 15 },
-            { v: 14 },
-            { v: 14 },
-            { v: 14 },
-          ]}
+          data={[{ v: 0 }]}
           color="#009688"
           gid="nr4"
           Icon={Stethoscope}
         />
         <DKpi
           title="Critical Patients"
-          value="3"
-          sub="High Priority / Immediate Care"
-          trend="Requires Urgent Attention"
+          value="0"
+          sub="--"
+          trend="--"
           up={false}
-          data={[{ v: 5 }, { v: 4 }, { v: 4 }, { v: 3 }, { v: 3 }, { v: 3 }]}
+          data={[{ v: 0 }]}
           color="#EF4444"
           gid="nr5"
           Icon={AlertTriangle}
@@ -515,23 +399,12 @@ export function NurseDashboard({
               className="text-[10px] font-semibold text-[#0D47A1] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100"
               style={{ fontFamily: RB }}
             >
-              64 Patients Total Today
+              0 Patients Total Today
             </span>
           </div>
           <ResponsiveContainer width="100%" height={210}>
             <LineChart
-              data={[
-                { hour: "08 AM", assisted: 4 },
-                { hour: "09 AM", assisted: 8 },
-                { hour: "10 AM", assisted: 14 },
-                { hour: "11 AM", assisted: 11 },
-                { hour: "12 PM", assisted: 7 },
-                { hour: "01 PM", assisted: 4 },
-                { hour: "02 PM", assisted: 6 },
-                { hour: "03 PM", assisted: 5 },
-                { hour: "04 PM", assisted: 3 },
-                { hour: "05 PM", assisted: 2 },
-              ]}
+              data={[]}
               margin={{ top: 10, right: 15, left: -15, bottom: 0 }}
             >
               <XAxis
@@ -576,10 +449,10 @@ export function NurseDashboard({
                 className="text-[#0D47A1] font-bold text-xs"
                 style={{ fontFamily: PP }}
               >
-                10 AM – 11 AM
+                --
               </strong>
               <span className="text-[10px] text-[#64748B] block">
-                14 Patients
+                0 Patients
               </span>
             </div>
             <div className="bg-slate-50 p-2 rounded-xl text-center">
@@ -590,7 +463,7 @@ export function NurseDashboard({
                 className="text-[#009688] font-bold text-xs"
                 style={{ fontFamily: PP }}
               >
-                6 / Hour
+                0 / Hour
               </strong>
               <span className="text-[10px] text-[#64748B] block">
                 Steady OPD Pace
@@ -604,7 +477,7 @@ export function NurseDashboard({
                 className="text-[#111827] font-bold text-xs"
                 style={{ fontFamily: PP }}
               >
-                5 This Hour
+                0 This Hour
               </strong>
               <span className="text-[10px] text-[#66BB6A] block">
                 Active Session
@@ -651,7 +524,7 @@ export function NurseDashboard({
                 className="text-xl font-bold text-[#111827]"
                 style={{ fontFamily: PP }}
               >
-                64
+                0
               </span>
               <span className="text-[10px] text-[#64748B]">Total Flow</span>
             </div>
@@ -665,25 +538,25 @@ export function NurseDashboard({
               <span className="text-[#64748B] text-[10px]">
                 Waiting For Vitals:
               </span>
-              <span className="font-bold text-[#F59E0B]">8</span>
+              <span className="font-bold text-[#F59E0B]">0</span>
             </div>
             <div className="flex items-center justify-between p-1.5 rounded-lg bg-teal-50/60 border border-teal-100">
               <span className="text-[#64748B] text-[10px]">
                 Patients Recorded:
               </span>
-              <span className="font-bold text-[#4DB6AC]">3</span>
+              <span className="font-bold text-[#4DB6AC]">0</span>
             </div>
             <div className="flex items-center justify-between p-1.5 rounded-lg bg-blue-50/60 border border-blue-100">
               <span className="text-[#64748B] text-[10px]">
                 Ready for Doctor:
               </span>
-              <span className="font-bold text-[#0D47A1]">15</span>
+              <span className="font-bold text-[#0D47A1]">0</span>
             </div>
             <div className="flex items-center justify-between p-1.5 rounded-lg bg-green-50/60 border border-green-100">
               <span className="text-[#64748B] text-[10px]">
                 Completed Today:
               </span>
-              <span className="font-bold text-[#66BB6A]">38</span>
+              <span className="font-bold text-[#66BB6A]">0</span>
             </div>
           </div>
 
@@ -691,7 +564,7 @@ export function NurseDashboard({
             className="mt-2 text-[11px] text-center font-medium text-[#0D47A1]"
             style={{ fontFamily: PP }}
           >
-            Total Patients in Queue: 26 (Active OPD)
+            Total Patients in Queue: 0 (Active OPD)
           </div>
         </div>
       </div>
@@ -718,7 +591,7 @@ export function NurseDashboard({
             className="text-xs font-semibold text-[#009688] bg-teal-50 px-2.5 py-1 rounded-lg"
             style={{ fontFamily: RB }}
           >
-            8 Waiting for Vitals
+            0 Waiting for Vitals
           </span>
         </div>
         <div className="overflow-x-auto">
@@ -844,7 +717,7 @@ export function NurseDashboard({
                   className="text-lg font-bold text-[#111827]"
                   style={{ fontFamily: PP }}
                 >
-                  64
+                  0
                 </span>
                 <span className="text-[9px] text-[#64748B]">Total</span>
               </div>
@@ -895,10 +768,10 @@ export function NurseDashboard({
                 className="text-[#009688] font-bold text-xs block"
                 style={{ fontFamily: PP }}
               >
-                Follow-up
+                --
               </strong>
               <span className="text-[9px] text-[#009688] font-semibold">
-                45% of OPD
+                0%
               </span>
             </div>
             <div className="bg-slate-50 p-2 rounded-xl text-center border border-slate-100">
@@ -909,7 +782,7 @@ export function NurseDashboard({
                 className="text-[#0D47A1] font-bold text-xs block"
                 style={{ fontFamily: PP }}
               >
-                18
+                0
               </strong>
               <span className="text-[9px] text-[#64748B]">First Visits</span>
             </div>
@@ -921,7 +794,7 @@ export function NurseDashboard({
                 className="text-[#111827] font-bold text-xs block"
                 style={{ fontFamily: PP }}
               >
-                46
+                0
               </strong>
               <span className="text-[9px] text-[#64748B]">
                 Follow-up & Consult
@@ -977,9 +850,9 @@ export function NurseDashboard({
             className="mt-2 pt-2 border-t border-gray-50 text-xs text-[#64748B] flex items-center justify-between"
             style={{ fontFamily: RB }}
           >
-            <span>Highest Workload: General OPD</span>
+            <span>No Data</span>
             <span className="font-semibold text-[#0D47A1]">
-              64 Total Assisted
+              0 Total Assisted
             </span>
           </div>
         </div>

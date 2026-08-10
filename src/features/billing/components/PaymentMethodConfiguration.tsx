@@ -10,7 +10,10 @@ import type { PaymentMethodItem } from "../types/billing.types";
 
 interface PaymentMethodConfigurationProps {
   paymentMethods: PaymentMethodItem[];
-  onTogglePayment: (id: string, field: "enabled" | "isDefault" | "reqRef") => void;
+  onTogglePayment: (
+    id: string,
+    field: "enabled" | "isDefault" | "reqRef",
+  ) => void;
 }
 
 const iconMap: Record<string, React.ElementType> = {
@@ -131,7 +134,9 @@ export function PaymentMethodConfiguration({
                     justifyContent: "space-between",
                   }}
                 >
-                  <span style={{ color: "#64748B" }}>Enable Payment Method</span>
+                  <span style={{ color: "#64748B" }}>
+                    Enable Payment Method
+                  </span>
                   <input
                     type="checkbox"
                     checked={pm.enabled}
@@ -146,7 +151,9 @@ export function PaymentMethodConfiguration({
                     justifyContent: "space-between",
                   }}
                 >
-                  <span style={{ color: "#64748B" }}>Set as Default Option</span>
+                  <span style={{ color: "#64748B" }}>
+                    Set as Default Option
+                  </span>
                   <input
                     type="radio"
                     name="defaultPayment"
@@ -162,7 +169,9 @@ export function PaymentMethodConfiguration({
                     justifyContent: "space-between",
                   }}
                 >
-                  <span style={{ color: "#64748B" }}>Txn Ref / Cheque No Req.</span>
+                  <span style={{ color: "#64748B" }}>
+                    Txn Ref / Cheque No Req.
+                  </span>
                   <input
                     type="checkbox"
                     checked={pm.reqRef}

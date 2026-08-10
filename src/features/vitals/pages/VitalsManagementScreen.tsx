@@ -1,6 +1,4 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router";
-
 import {
   Activity,
   Heart,
@@ -24,7 +22,6 @@ import {
 } from "lucide-react";
 import { Pagination } from "../../../common/components/Pagination";
 import type { AppointmentRecord } from "../../appointments";
-import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { vitalsService } from "../services/vitals.service";
 import { vitalsApi } from "../api/vitals.api";
 import type {
@@ -1127,7 +1124,6 @@ export function RecordPatientVitalsScreen({
   onViewAppointmentDetails,
   initialViewMode = "center",
 }: Props) {
-  const navigate = useNavigate();
   const { can } = usePermissions();
   const [appointments, setAppointments] = useState<AppointmentRecord[]>([]);
   const [selectedAptId, setSelectedAptId] = useState<string | null>(null);
@@ -1253,17 +1249,13 @@ export function RecordPatientVitalsScreen({
 
   // Fetched vitals data for details view
   const [detailsVitals, setDetailsVitals] = useState<RecordedVitalsData | null>(null);
-  const [loadingVitals, setLoadingVitals] = useState(false);
 
   const fetchVitalsForDetails = useCallback(async (aptId: string | number) => {
-    setLoadingVitals(true);
     try {
       const data = await vitalsService.getVitals(aptId);
       setDetailsVitals(data);
     } catch {
       setDetailsVitals(null);
-    } finally {
-      setLoadingVitals(false);
     }
   }, []);
 
@@ -1399,7 +1391,7 @@ export function RecordPatientVitalsScreen({
         String(a.id) === String(aptId)
           ? {
               ...a,
-              status: "Waiting",
+              status: "Waiting for Doctor",
               queueStatus: "WAITING_FOR_DOCTOR_CALL",
               vitalsRecorded: true,
               waitingTimeMinutes: 0,

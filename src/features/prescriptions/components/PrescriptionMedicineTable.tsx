@@ -1,7 +1,7 @@
 import React from "react";
 import { Pill } from "lucide-react";
 
-export const PrescriptionMedicineTable: React.FC<{ medicines: any[] }> = ({ medicines }) => {
+export const PrescriptionMedicineTable: React.FC<{ medicines: { name: string; strength?: string; dosage?: string; doseValue?: string; frequency?: string; frequencyCode?: string; duration?: string; durationValue?: string }[] }> = ({ medicines }) => {
   return (
     <div className="space-y-2">
       {medicines.map((m, idx) => (

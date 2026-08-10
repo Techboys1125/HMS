@@ -1,6 +1,9 @@
 import { FileText, Percent } from "lucide-react";
-import { PP, RB } from "../constants/billing.constants";
-import type { InvoiceConfiguration as InvConfig, TaxConfiguration as TaxConfig } from "../types/billing.types";
+import { PP} from "../constants/billing.constants";
+import type {
+  InvoiceConfiguration as InvConfig,
+  TaxConfiguration as TaxConfig,
+} from "../types/billing.types";
 
 interface InvoiceConfigurationProps {
   invoiceConfig: InvConfig;

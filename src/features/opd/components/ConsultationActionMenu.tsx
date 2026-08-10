@@ -115,8 +115,13 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
         {canStartConsultation && onCallPatient && isWaiting && (
           <button
             onClick={() => onCallPatient(item)}
-            className="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1"
-            title="Call Patient"
+            disabled={(item.status as string) === "WAITING_FOR_VITALS" || (item.status as string) === "CHECKED_IN"}
+            className={`px-2.5 py-1.5 text-white rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 ${
+              (item.status as string) === "WAITING_FOR_VITALS" || (item.status as string) === "CHECKED_IN"
+                ? "bg-slate-300 cursor-not-allowed text-slate-500"
+                : "bg-purple-600 hover:bg-purple-700"
+            }`}
+            title={(item.status as string) === "WAITING_FOR_VITALS" || (item.status as string) === "CHECKED_IN" ? "Waiting for Vitals" : "Call Patient"}
             style={{ fontFamily: PP }}
           >
             <Phone size={13} /> Call

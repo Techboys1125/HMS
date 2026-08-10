@@ -2,6 +2,7 @@ export type ConsultationStatus =
   | "BOOKED"
   | "WAITING"
   | "WAITING_FOR_VITALS"
+  | "WAITING_FOR_DOCTOR"
   | "WAITING_FOR_DOCTOR_CALL"
   | "CALLED"
   | "IN_CONSULTATION"
@@ -14,6 +15,7 @@ export const appointmentStatusMap: Record<ConsultationStatus, string> = {
   BOOKED: "Booked",
   WAITING: "Waiting for Doctor",
   WAITING_FOR_VITALS: "Waiting for Vitals",
+  WAITING_FOR_DOCTOR: "Waiting for Doctor",
   WAITING_FOR_DOCTOR_CALL: "Waiting for Doctor",
   CALLED: "Called",
   IN_CONSULTATION: "In Consultation",

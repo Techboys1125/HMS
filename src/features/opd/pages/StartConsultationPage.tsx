@@ -60,6 +60,11 @@ const emptyFormData: ConsultationFormData = {
   followupNotes: "",
 };
 
+const TODAY_STR = new Date().toISOString().split("T")[0];
+const NEXT_VISIT_STR = new Date(Date.now() + 7 * 86400000)
+  .toISOString()
+  .split("T")[0];
+
 export function StartConsultationPage({
   onBack,
   onCompleteSuccess,
@@ -101,84 +106,73 @@ export function StartConsultationPage({
     setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const todayStr = TODAY_STR;
+  const nextVisitStr = NEXT_VISIT_STR;
+
+  const dept =
+    selectedAppointment?.departmentName ||
+    (typeof selectedAppointment?.department === "string"
+      ? selectedAppointment.department
+      : selectedAppointment?.department?.name ||
+        selectedAppointment?.department?.departmentName) ||
+    "";
+
   const [formData, setFormData] = useState<ConsultationFormData>({
     ...emptyFormData,
+    visitDate: todayStr,
+    nextVisitDate: nextVisitStr,
+    doctorName: selectedAppointment?.doctorName || "",
+    department: dept,
+    visitType:
+      selectedAppointment?.visitType === "Follow-up"
+        ? "Follow-up"
+        : "New Consultation",
+    chiefComplaint:
+      selectedAppointment?.chiefComplaint ||
+      selectedConsultation?.chiefComplaint ||
+      "",
   });
 
   useEffect(() => {
+    if (!activeEncounterId) return;
+
     let active = true;
 
-    const todayStr = new Date().toISOString().split("T")[0];
-    const nextVisitStr = new Date(Date.now() + 7 * 86400000)
-      .toISOString()
-      .split("T")[0];
-
-    const dept =
-      selectedAppointment?.departmentName ||
-      (typeof selectedAppointment?.department === "string"
-        ? selectedAppointment.department
-        : selectedAppointment?.department?.name ||
-          selectedAppointment?.department?.departmentName) ||
-      "";
-
-    setFormData((prev) => ({
-      ...prev,
-      visitDate: todayStr,
-      nextVisitDate: nextVisitStr,
-      doctorName: selectedAppointment?.doctorName || "",
-      department: dept,
-      visitType:
-        selectedAppointment?.visitType === "Follow-up"
-          ? "Follow-up"
-          : "New Consultation",
-      chiefComplaint:
-        selectedAppointment?.chiefComplaint ||
-        selectedConsultation?.chiefComplaint ||
-        "",
-    }));
-
-    if (activeEncounterId) {
-      loadVitals().then((data) => {
-        if (active && data) {
-          const toStr = (v: unknown) => (v != null ? String(v) : "");
-          setFormData((prev) => ({
-            ...prev,
-            height: data.height
-              ? toStr(data.height).replace(" cm", "")
-              : prev.height,
-            weight: data.weight
-              ? toStr(data.weight).replace(" kg", "")
-              : prev.weight,
-            temperature: data.temp
-              ? toStr(data.temp).replace(" °C", "").replace("°C", "")
-              : prev.temperature,
-            bp: data.bp ? toStr(data.bp).replace(" mmHg", "") : prev.bp,
-            pulse: data.pulse
-              ? toStr(data.pulse).replace(" bpm", "")
-              : prev.pulse,
-            respiratoryRate: data.respiratoryRate
-              ? toStr(data.respiratoryRate).replace(" /min", "")
-              : prev.respiratoryRate,
-            spo2: data.spo2
-              ? toStr(data.spo2).replace(" %", "").replace("%", "")
-              : prev.spo2,
-            bloodSugar: data.bloodSugar
-              ? toStr(data.bloodSugar).replace(" mg/dL", "")
-              : prev.bloodSugar,
-          }));
-        }
-      });
-    }
+    loadVitals().then((data) => {
+      if (active && data) {
+        const toStr = (v: unknown) => (v != null ? String(v) : "");
+        setFormData((prev) => ({
+          ...prev,
+          height: data.height
+            ? toStr(data.height).replace(" cm", "")
+            : prev.height,
+          weight: data.weight
+            ? toStr(data.weight).replace(" kg", "")
+            : prev.weight,
+          temperature: data.temp
+            ? toStr(data.temp).replace(" °C", "").replace("°C", "")
+            : prev.temperature,
+          bp: data.bp ? toStr(data.bp).replace(" mmHg", "") : prev.bp,
+          pulse: data.pulse
+            ? toStr(data.pulse).replace(" bpm", "")
+            : prev.pulse,
+          respiratoryRate: data.respiratoryRate
+            ? toStr(data.respiratoryRate).replace(" /min", "")
+            : prev.respiratoryRate,
+          spo2: data.spo2
+            ? toStr(data.spo2).replace(" %", "").replace("%", "")
+            : prev.spo2,
+          bloodSugar: data.bloodSugar
+            ? toStr(data.bloodSugar).replace(" mg/dL", "")
+            : prev.bloodSugar,
+        }));
+      }
+    });
 
     return () => {
       active = false;
     };
-  }, [
-    selectedAppointment,
-    selectedConsultation,
-    activeEncounterId,
-    loadVitals,
-  ]);
+  }, [activeEncounterId, loadVitals]);
 
   const calculatedBmi = useMemo(() => {
     const h = parseFloat(formData.height) / 100;
@@ -192,7 +186,37 @@ export function StartConsultationPage({
   const [isDraftSaved, setIsDraftSaved] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
-  const [finalizedData, setFinalizedData] = useState<any>(null);
+  const [finalizedData, setFinalizedData] = useState<{
+    date: string;
+    patientName: string;
+    mrn: string;
+    age: number | string;
+    gender: string;
+    phone: string;
+    encounterId: string | number;
+    appointmentId?: string | number;
+    doctor: string;
+    department: string;
+    visitType: string;
+    vitals: {
+      height: string;
+      weight: string;
+      bp: string;
+      pulse: string;
+      temp: string;
+      spo2: string;
+      bmi: string;
+    };
+    chiefComplaint: string;
+    clinicalExamination?: string;
+    finalDiagnosis: string;
+    icdCode?: string;
+    medicines: MedicineItem[];
+    advice?: string;
+    dietAdvice?: string;
+    nextVisitDate?: string;
+    followupNotes?: string;
+  } | null>(null);
 
   const handleAddMedicine = () => {
     const newMed: MedicineItem = {
@@ -234,7 +258,11 @@ export function StartConsultationPage({
   };
 
   const handleVitalsChange = (field: string, val: string) => {
-    setFormData((prev) => ({ ...prev, [field]: val }));
+    const fieldMap: Record<string, string> = {
+      temp: "temperature",
+    };
+    const actualField = fieldMap[field] || field;
+    setFormData((prev) => ({ ...prev, [actualField]: val }));
   };
 
   const saveMedications = async (
@@ -891,7 +919,7 @@ export function StartConsultationPage({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
-                        {finalizedData.medicines.map((med: any, idx: number) => (
+                        {finalizedData.medicines.map((med: MedicineItem, idx: number) => (
                           <tr key={idx} className="text-slate-700">
                             <td className="py-2.5 pr-4 font-bold text-slate-800">{med.name}</td>
                             <td className="py-2.5 px-4">{med.dosage}</td>

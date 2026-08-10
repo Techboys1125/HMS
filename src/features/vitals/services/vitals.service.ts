@@ -1,4 +1,5 @@
 import { vitalsApi } from "../api/vitals.api";
+import { appointmentsApi } from "../../appointments/api/appointments.api";
 import type {
   NurseVitalsPayload,
   NurseWaitingPatient,
@@ -157,6 +158,16 @@ export const vitalsService = {
     }
 
     const res = await vitalsApi.recordVitals(appointmentId, payload);
+    if (res?.success !== false) {
+      try {
+        await appointmentsApi.updateAppointmentStatus(
+          appointmentId,
+          "WAITING_FOR_DOCTOR_CALL",
+        );
+      } catch (err) {
+        console.warn("Failed to transition status to WAITING_FOR_DOCTOR_CALL:", err);
+      }
+    }
     return res?.success !== false;
   },
 };

@@ -111,6 +111,18 @@ export function PatientAppointmentsScreen({
                 rawStatus === "IN-PROGRESS"
               ) {
                 formattedStatus = "In-Progress";
+              } else if (
+                rawStatus === "CHECKED_IN" ||
+                rawStatus === "WAITING_FOR_VITALS"
+              ) {
+                formattedStatus = "Waiting for Vitals";
+              } else if (
+                rawStatus === "WAITING_FOR_DOCTOR" ||
+                rawStatus === "WAITING_FOR_DOCTOR_CALL" ||
+                rawStatus === "WAITING_FOR_CONSULTATION" ||
+                rawStatus === "VITALS_DONE"
+              ) {
+                formattedStatus = "Waiting for Doctor";
               }
 
               return {
@@ -179,6 +191,7 @@ export function PatientAppointmentsScreen({
   );
   const [formReason, setFormReason] = useState("");
   const [formNotes, setFormNotes] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const triggerToast = (msg: string) => {
     setToastMsg(msg);
@@ -255,7 +268,6 @@ export function PatientAppointmentsScreen({
   });
 
   // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const totalPages = Math.ceil(filteredAppointments.length / pageSize);
   const paginatedAppointments = filteredAppointments.slice(

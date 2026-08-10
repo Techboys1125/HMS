@@ -26,6 +26,12 @@ const STATUS_CONFIG: Record<
     dot: "bg-orange-500",
     border: "border-orange-200",
   },
+  WAITING_FOR_DOCTOR: {
+    bg: "bg-sky-50",
+    text: "text-sky-700",
+    dot: "bg-sky-500",
+    border: "border-sky-200",
+  },
   WAITING_FOR_DOCTOR_CALL: {
     bg: "bg-sky-50",
     text: "text-sky-700",

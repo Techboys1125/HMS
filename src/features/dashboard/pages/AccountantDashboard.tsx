@@ -1,14 +1,17 @@
+import { useNavigate } from "react-router";
+import { ROUTES } from "../../../app/routes/routes";
 import {
   CheckSquare,
   Clock,
   Receipt,
   TrendingDown,
-  TrendingUp,
-  Download,
+  TrendingUp, 
   DollarSign,
   CreditCard,
   BarChart2,
   Search,
+  Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import {
   AreaChart,
@@ -21,6 +24,11 @@ import {
   Tooltip,
   Cell,
 } from "recharts";
+import {
+  useAccountantDashboard,
+  useAccountantPaymentMethods,
+  useAccountantRecentTransactions,
+} from "../hooks/useAccountantDashboard";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -36,6 +44,7 @@ function DKpi({
   color,
   gid,
   Icon,
+  onClick,
 }: {
   title: string;
   value: string;
@@ -46,9 +55,15 @@ function DKpi({
   color: string;
   gid: string;
   Icon: React.ElementType;
+  onClick?: () => void;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm">
+    <div
+      onClick={onClick}
+      className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
+        onClick ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-all duration-200" : ""
+      }`}
+    >
       <div className="flex items-start justify-between">
         <div>
           <div
@@ -203,147 +218,6 @@ function SH({
     </div>
   );
 }
-// Section 01: Revenue Collection Trend (Large Line Chart)
-const ACC_REVENUE_TREND = [
-  { hour: "08 AM", revenue: 1250, invoices: 4 },
-  { hour: "09 AM", revenue: 3400, invoices: 9 },
-  { hour: "10 AM", revenue: 6200, invoices: 15 },
-  { hour: "11 AM", revenue: 9800, invoices: 22 },
-  { hour: "12 PM", revenue: 14500, invoices: 31 },
-  { hour: "01 PM", revenue: 17200, invoices: 36 },
-  { hour: "02 PM", revenue: 20800, invoices: 42 },
-  { hour: "03 PM", revenue: 23500, invoices: 48 },
-  { hour: "04 PM", revenue: 26100, invoices: 53 },
-  { hour: "05 PM", revenue: 28450, invoices: 58 },
-];
-
-// Section 02: Payment Method Distribution (Donut Chart)
-const ACC_PAYMENT_METHODS_DIST = [
-  { name: "Cash", value: 8400, color: "#009688" },
-  { name: "Card", value: 11650, color: "#0D47A1" },
-  { name: "UPI", value: 5800, color: "#4DB6AC" },
-  { name: "Bank Transfer", value: 2200, color: "#66BB6A" },
-  { name: "Other", value: 400, color: "#F59E0B" },
-];
-
-// Section 03: Today's Billing Transactions Table
-const ACC_BILLING_TRANSACTIONS = [
-  {
-    invoice: "INV-847",
-    patient: "Sarah Mitchell",
-    type: "Consultation Fee",
-    amount: 488.0,
-    method: "Card",
-    status: "Paid",
-    time: "09:20 AM",
-  },
-  {
-    invoice: "INV-848",
-    patient: "James Thornton",
-    type: "Registration Fee",
-    amount: 228.0,
-    method: "Cash",
-    status: "Pending",
-    time: "09:45 AM",
-  },
-  {
-    invoice: "INV-849",
-    patient: "Emma Reyes",
-    type: "Follow-up Consultation",
-    amount: 320.0,
-    method: "UPI",
-    status: "Paid",
-    time: "10:12 AM",
-  },
-  {
-    invoice: "INV-850",
-    patient: "Robert Chen",
-    type: "Consultation Fee",
-    amount: 395.0,
-    method: "Card",
-    status: "Partial",
-    time: "10:30 AM",
-  },
-  {
-    invoice: "INV-851",
-    patient: "Marcus Brown",
-    type: "Other Charges",
-    amount: 175.0,
-    method: "Cash",
-    status: "Paid",
-    time: "11:00 AM",
-  },
-  {
-    invoice: "INV-852",
-    patient: "Aisha Kumar",
-    type: "Consultation Fee",
-    amount: 290.0,
-    method: "Bank Transfer",
-    status: "Paid",
-    time: "11:15 AM",
-  },
-  {
-    invoice: "INV-853",
-    patient: "David Walsh",
-    type: "Registration Fee",
-    amount: 150.0,
-    method: "None",
-    status: "Cancelled",
-    time: "11:40 AM",
-  },
-];
-
-// Section 05: Revenue by Billing Category (Horizontal Bar Chart)
-const ACC_REVENUE_CATEGORIES = [
-  { category: "Consultation Fee", amount: 14850 },
-  { category: "Registration Fee", amount: 6240 },
-  { category: "Follow-up Consultation", amount: 5120 },
-  { category: "Other Charges", amount: 2240 },
-];
-
-// Section 06: Invoice Status Distribution (Pie / Bar Chart)
-const ACC_INVOICE_STATUS_DIST = [
-  { name: "Paid", count: 42, color: "#66BB6A" },
-  { name: "Pending", count: 12, color: "#F59E0B" },
-  { name: "Partial", count: 3, color: "#0D47A1" },
-  { name: "Cancelled", count: 1, color: "#EF4444" },
-];
-
-// Section 09: Today's Financial Summary (Statistics Table)
-const ACC_FINANCIAL_SUMMARY_METRICS = [
-  {
-    metric: "Invoices Generated",
-    today: "58",
-    yesterday: "52",
-    status: "Optimal (+11.5%)",
-  },
-  {
-    metric: "Payments Received",
-    today: "45",
-    yesterday: "41",
-    status: "Ahead (+9.7%)",
-  },
-  {
-    metric: "Pending Bills",
-    today: "12",
-    yesterday: "15",
-    status: "Reduced (-20.0%)",
-  },
-  {
-    metric: "Collected Revenue",
-    today: "$28,450.00",
-    yesterday: "$25,120.00",
-    status: "High (+13.2%)",
-  },
-  {
-    metric: "Refund Requests",
-    today: "3",
-    yesterday: "2",
-    status: "Under Review",
-  },
-  { metric: "Cancelled Bills", today: "1", yesterday: "2", status: "Low" },
-];
-
 const ACC_TRANSACTION_STATUS_CHIP: Record<
   string,
   "success" | "warning" | "info" | "error" | "teal" | "default"
@@ -397,14 +271,116 @@ export function AccountantDashboard({
   onCollectPaymentClick?: (invoiceNo?: string) => void;
   onNavigateNav?: (nav: string) => void;
 }) {
-  const totalInvoices = ACC_INVOICE_STATUS_DIST.reduce(
-    (acc, curr) => acc + curr.count,
-    0,
-  );
-  const totalPaymentValue = ACC_PAYMENT_METHODS_DIST.reduce(
-    (acc, curr) => acc + curr.value,
-    0,
-  );
+  const navigate = useNavigate();
+  const { data: dashboard, isLoading: loadingDashboard, isError: isDashboardError } = useAccountantDashboard();
+  const { data: paymentMethods, isError: isPaymentMethodsError } = useAccountantPaymentMethods();
+  const { data: recentTransactions, isError: isTransactionsError } = useAccountantRecentTransactions(10);
+
+  const hasError = isDashboardError || isPaymentMethodsError || isTransactionsError;
+
+  // Map API data to chart formats
+  const revenueTrend = dashboard?.hourlyRevenue?.map((h) => ({
+    hour: h.hour,
+    revenue: h.amount,
+    invoices: 0,
+  })) || [];
+
+  const paymentMethodsDist = paymentMethods?.map((m) => {
+    const colorMap: Record<string, string> = {
+      CASH: "#009688",
+      CARD: "#0D47A1",
+      UPI: "#4DB6AC",
+      BANK_TRANSFER: "#66BB6A",
+      OTHER: "#F59E0B",
+    };
+    return {
+      name: m.paymentMethod.replace("_", " "),
+      value: m.amount,
+      color: colorMap[m.paymentMethod] || "#64748B",
+    };
+  }) || [];
+
+  const billingTransactions = recentTransactions?.map((t) => ({
+    invoice: t.invoiceId,
+    patient: t.patientName,
+    type: t.billType,
+    amount: t.amount,
+    method: t.paymentMethod,
+    status: t.status === "PAID" ? "Paid" : t.status === "UNPAID" ? "Pending" : t.status === "PARTIALLY_PAID" ? "Partial" : t.status,
+    time: t.generatedAt ? new Date(t.generatedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }) : "",
+  })) || [];
+
+  // Compute derived data
+  const totalInvoices = dashboard?.todayInvoices ?? 0;
+  const totalPaymentValue = paymentMethods?.reduce((acc, m) => acc + m.amount, 0) ?? 0;
+
+  // Derive invoice status from transactions
+  const invoiceStatusDist = (() => {
+    if (!recentTransactions || recentTransactions.length === 0) return [];
+    const statusCounts: Record<string, number> = {};
+    recentTransactions.forEach((t) => {
+      const key = t.status === "PAID" ? "Paid" : t.status === "UNPAID" ? "Pending" : t.status === "PARTIALLY_PAID" ? "Partial" : "Other";
+      statusCounts[key] = (statusCounts[key] || 0) + 1;
+    });
+    const colorMap: Record<string, string> = { Paid: "#66BB6A", Pending: "#F59E0B", Partial: "#0D47A1", Other: "#EF4444", Cancelled: "#EF4444" };
+    return Object.entries(statusCounts).map(([name, count]) => ({ name, count, color: colorMap[name] || "#64748B" }));
+  })();
+
+  // Derive revenue by billing category from transactions
+  const revenueCategories = (() => {
+    if (!recentTransactions || recentTransactions.length === 0) return [];
+    const categoryMap: Record<string, number> = {};
+    recentTransactions.forEach((t) => {
+      categoryMap[t.billType] = (categoryMap[t.billType] || 0) + t.amount;
+    });
+    return Object.entries(categoryMap)
+      .map(([category, amount]) => ({ category, amount }))
+      .sort((a, b) => b.amount - a.amount);
+  })();
+
+  // Financial summary metrics from API data
+  const financialMetrics = [
+    { metric: "Invoices Generated", today: String(dashboard?.todayInvoices ?? 0), yesterday: "--", status: "Today's Count" },
+    { metric: "Pending Payments", today: `$${(dashboard?.pendingPayments ?? 0).toLocaleString()}`, yesterday: "--", status: "Outstanding" },
+    { metric: "Collection Rate", today: `${dashboard?.collectionRate ?? 0}%`, yesterday: "--", status: "Efficiency" },
+    { metric: "Today's Revenue", today: `$${(dashboard?.todayRevenue ?? 0).toLocaleString()}`, yesterday: "--", status: "Total Collected" },
+    { metric: "Payment Methods", today: String(paymentMethods?.length ?? 0), yesterday: "--", status: "Active Methods" },
+    { metric: "Recent Transactions", today: String(recentTransactions?.length ?? 0), yesterday: "--", status: "Last 10" },
+  ];
+
+  if (loadingDashboard) {
+    return (
+      <div className="flex-1 overflow-y-auto p-6 flex items-center justify-center" style={{ background: "#F1F5F9" }}>
+        <div className="flex items-center gap-3 text-[#64748B]">
+          <Loader2 size={20} className="animate-spin" />
+          <span className="text-sm font-medium" style={{ fontFamily: RB }}>Loading accountant dashboard...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <div className="flex-1 overflow-y-auto p-6 flex items-center justify-center" style={{ background: "#F1F5F9" }}>
+        <div className="bg-white rounded-2xl border border-red-200 p-8 max-w-md w-full text-center shadow-sm">
+          <AlertTriangle size={40} className="mx-auto text-[#EF4444] mb-4" />
+          <h3 className="text-base font-semibold text-[#111827] mb-2" style={{ fontFamily: PP }}>
+            Failed to Load Dashboard
+          </h3>
+          <p className="text-sm text-[#64748B] mb-4" style={{ fontFamily: RB }}>
+            Unable to fetch accountant dashboard data. Please check your connection and try again.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-800 transition-colors"
+            style={{ fontFamily: PP }}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -427,18 +403,20 @@ export function AccountantDashboard({
                 onCreateInvoiceClick();
               else if (action === "collect" && onCollectPaymentClick)
                 onCollectPaymentClick();
-              else if (action === "create" && onNavigateNav)
-                onNavigateNav("billing");
-              else if (action === "collect" && onNavigateNav)
-                onNavigateNav("billing");
-              else if (action === "pending" && onNavigateNav)
-                onNavigateNav("billing");
-              else if (action === "report" && onNavigateNav)
-                onNavigateNav("reports");
-              else if (action === "revenue" && onNavigateNav)
-                onNavigateNav("reports");
-              else if (action === "search" && onNavigateNav)
-                onNavigateNav("billing");
+              else if (action === "create")
+                navigate(ROUTES.BILLING_CREATE);
+              else if (action === "collect")
+                navigate(ROUTES.RECEPTIONIST_PAYMENT_COLLECTION);
+              else if (action === "pending")
+                navigate(ROUTES.BILLING);
+              else if (action === "report")
+                navigate(`${ROUTES.REPORTS}?report=billing-report`);
+              else if (action === "revenue")
+                navigate(`${ROUTES.REPORTS}?report=daily-revenue`);
+              else if (action === "search")
+                navigate(ROUTES.BILLING);
+              else if (onNavigateNav)
+                onNavigateNav(action === "report" || action === "revenue" ? "reports" : "billing");
             }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#0D47A1]/40 hover:text-[#0D47A1] hover:bg-blue-50 transition-all shadow-sm"
             style={{ fontFamily: RB }}
@@ -453,86 +431,63 @@ export function AccountantDashboard({
       <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
         <DKpi
           title="Today's Revenue"
-          value="$28,450"
+          value={`$${(dashboard?.todayRevenue ?? 0).toLocaleString()}`}
           sub="Total Amount Collected Today"
-          trend="+13.2% vs Yesterday"
-          up={true}
-          data={[
-            { v: 18000 },
-            { v: 21000 },
-            { v: 24000 },
-            { v: 22000 },
-            { v: 25120 },
-            { v: 28450 },
-          ]}
+          trend={dashboard?.collectionRate ? `${dashboard.collectionRate}% Collection Rate` : "Loading..."}
+          up={(dashboard?.collectionRate ?? 0) >= 50}
+          data={revenueTrend.slice(-6).map((h) => ({ v: h.revenue }))}
           color="#0D47A1"
           gid="acc1"
           Icon={DollarSign}
+          onClick={() => navigate(`${ROUTES.REPORTS}?report=daily-revenue`)}
         />
         <DKpi
           title="Invoices Generated"
-          value="58"
+          value={String(dashboard?.todayInvoices ?? 0)}
           sub="Today's Billing Count"
-          trend="+11.5% Billing Volume"
+          trend="Today's Volume"
           up={true}
-          data={[
-            { v: 40 },
-            { v: 45 },
-            { v: 48 },
-            { v: 52 },
-            { v: 50 },
-            { v: 58 },
-          ]}
+          data={revenueTrend.slice(-6).map((h) => ({ v: h.invoices }))}
           color="#009688"
           gid="acc2"
           Icon={Receipt}
+          onClick={() => navigate(`${ROUTES.REPORTS}?report=billing-report`)}
         />
         <DKpi
           title="Pending Payments"
-          value="$8,450"
-          sub="12 Outstanding Bills"
-          trend="Avg Due: $704.16"
+          value={`$${(dashboard?.pendingPayments ?? 0).toLocaleString()}`}
+          sub="Outstanding Bills"
+          trend="Outstanding Amount"
           up={false}
-          data={[
-            { v: 11000 },
-            { v: 9800 },
-            { v: 10500 },
-            { v: 9200 },
-            { v: 9000 },
-            { v: 8450 },
-          ]}
+          data={[{ v: (dashboard?.pendingPayments ?? 0) + 2000 }, { v: (dashboard?.pendingPayments ?? 0) + 1000 }, { v: dashboard?.pendingPayments ?? 0 }]}
           color="#F59E0B"
           gid="acc3"
           Icon={Clock}
+          onClick={() => navigate(`${ROUTES.REPORTS}?report=billing-report`)}
         />
         <DKpi
-          title="Payments Received"
-          value="45"
-          sub="Completed Payments Today"
-          trend="77.5% Collection Rate"
-          up={true}
-          data={[
-            { v: 30 },
-            { v: 35 },
-            { v: 38 },
-            { v: 41 },
-            { v: 42 },
-            { v: 45 },
-          ]}
+          title="Collection Rate"
+          value={`${dashboard?.collectionRate ?? 0}%`}
+          sub="Today's Collection Efficiency"
+          trend="Collection Rate"
+          up={(dashboard?.collectionRate ?? 0) >= 50}
+          data={[{ v: (dashboard?.collectionRate ?? 0) - 10 }, { v: (dashboard?.collectionRate ?? 0) - 5 }, { v: dashboard?.collectionRate ?? 0 }]}
           color="#66BB6A"
           gid="acc4"
           Icon={CheckSquare}
+          onClick={() => navigate(`${ROUTES.REPORTS}?kpi=Payment Collection Rate`)}
         />
         <DKpi
-          title="Refund Requests"
-          value="3"
-          sub="Pending Refund Requests"
-          trend="1 Approved Today"
-          up={false}
-          data={[{ v: 1 }, { v: 2 }, { v: 1 }, { v: 3 }, { v: 2 }, { v: 3 }]}
-          color="#EF4444"
+          title="Payment Methods"
+          value={String(paymentMethods?.length ?? 0)}
+          sub="Active Payment Methods"
+          trend="Methods Available"
+          up={true}
+          data={paymentMethodsDist.slice(-6).map((m) => ({ v: m.value }))}
+          color="#4DB6AC"
           gid="acc5"
-          Icon={Download}
+          Icon={CreditCard}
+          onClick={() => navigate(`${ROUTES.REPORTS}?kpi=Payment Collection Rate`)}
         />
       </div>
 
@@ -559,12 +514,12 @@ export function AccountantDashboard({
               className="text-[10px] font-semibold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded-full"
               style={{ fontFamily: RB }}
             >
-              Today: $28,450.00
+              Today: ${(dashboard?.todayRevenue ?? 0).toLocaleString()}
             </span>
           </div>
           <ResponsiveContainer width="100%" height={210}>
             <AreaChart
-              data={ACC_REVENUE_TREND}
+              data={revenueTrend.length > 0 ? revenueTrend : [{ hour: "No Data", revenue: 0, invoices: 0 }]}
               margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
             >
               <defs>
@@ -615,9 +570,9 @@ export function AccountantDashboard({
             className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-[#64748B]"
             style={{ fontFamily: RB }}
           >
-            <span>Peak Collection Hour: 11 AM - 12 PM ($4,700 Collected)</span>
+            <span>{dashboard?.peakHourLabel ?? "Peak hour data unavailable"}</span>
             <span className="font-semibold text-[#111827]">
-              58 Invoices Processed
+              {dashboard?.todayInvoices ?? 0} Invoices Processed
             </span>
           </div>
         </div>
@@ -630,7 +585,7 @@ export function AccountantDashboard({
           />
           <ResponsiveContainer width="100%" height={170}>
             <BarChart
-              data={ACC_PAYMENT_METHODS_DIST}
+              data={paymentMethodsDist.length > 0 ? paymentMethodsDist : [{ name: "No Data", value: 0, color: "#64748B" }]}
               layout="vertical"
               margin={{ top: 0, right: 15, left: 10, bottom: 0 }}
             >
@@ -656,7 +611,7 @@ export function AccountantDashboard({
                 ]}
               />
               <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={13}>
-                {ACC_PAYMENT_METHODS_DIST.map((entry, idx) => (
+                {(paymentMethodsDist.length > 0 ? paymentMethodsDist : [{ name: "No Data", value: 0, color: "#64748B" }]).map((entry, idx) => (
                   <Cell key={idx} fill={entry.color} />
                 ))}
               </Bar>
@@ -666,7 +621,7 @@ export function AccountantDashboard({
             className="grid grid-cols-2 gap-1.5 mt-2 pt-3 border-t border-gray-50 text-xs"
             style={{ fontFamily: RB }}
           >
-            {ACC_PAYMENT_METHODS_DIST.map((m) => (
+            {(paymentMethodsDist.length > 0 ? paymentMethodsDist : [{ name: "No Data", value: 0, color: "#64748B" }]).map((m) => (
               <div
                 key={m.name}
                 className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50"
@@ -714,7 +669,7 @@ export function AccountantDashboard({
             className="text-xs font-semibold text-[#0D47A1] bg-blue-50 px-2.5 py-1 rounded-lg"
             style={{ fontFamily: RB }}
           >
-            58 Invoices Today
+            {dashboard?.todayInvoices ?? 0} Invoices Today
           </span>
         </div>
         <div className="overflow-x-auto">
@@ -742,73 +697,81 @@ export function AccountantDashboard({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {ACC_BILLING_TRANSACTIONS.map((t, i) => (
-                <tr key={i} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                    {t.invoice}
-                  </td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-2">
-                      <Av name={t.patient} size="sm" />
-                      <span
-                        className="text-xs font-medium text-[#111827]"
-                        style={{ fontFamily: RB }}
-                      >
-                        {t.patient}
-                      </span>
-                    </div>
-                  </td>
-                  <td
-                    className="px-5 py-3 text-xs text-[#64748B]"
-                    style={{ fontFamily: RB }}
-                  >
-                    {t.type}
-                  </td>
-                  <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
-                    ${t.amount.toFixed(2)}
-                  </td>
-                  <td
-                    className="px-5 py-3 text-xs text-[#64748B]"
-                    style={{ fontFamily: RB }}
-                  >
-                    {t.method}
-                  </td>
-                  <td className="px-5 py-3">
-                    <Chip
-                      label={t.status}
-                      variant={
-                        ACC_TRANSACTION_STATUS_CHIP[t.status] || "default"
-                      }
-                    />
-                  </td>
-                  <td className="px-5 py-3 font-mono text-xs text-slate-500">
-                    {t.time}
-                  </td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-1.5">
-                      {t.status === "Pending" || t.status === "Partial" ? (
-                        <button
-                          onClick={() => onCollectPaymentClick?.(t.invoice)}
-                          className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
-                          style={{ fontFamily: PP }}
+              {billingTransactions.length > 0 ? (
+                billingTransactions.map((t, i) => (
+                  <tr key={i} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                      {t.invoice}
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2">
+                        <Av name={t.patient} size="sm" />
+                        <span
+                          className="text-xs font-medium text-[#111827]"
+                          style={{ fontFamily: RB }}
                         >
-                          Collect
-                        </button>
-                      ) : (
-                        <span className="text-xs text-slate-400 font-medium">
-                          Logged
+                          {t.patient}
                         </span>
-                      )}
-                      <button
-                        onClick={() => onCreateInvoiceClick?.()}
-                        className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
-                      >
-                        View
-                      </button>
-                    </div>
+                      </div>
+                    </td>
+                    <td
+                      className="px-5 py-3 text-xs text-[#64748B]"
+                      style={{ fontFamily: RB }}
+                    >
+                      {t.type}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
+                      ${t.amount.toFixed(2)}
+                    </td>
+                    <td
+                      className="px-5 py-3 text-xs text-[#64748B]"
+                      style={{ fontFamily: RB }}
+                    >
+                      {t.method}
+                    </td>
+                    <td className="px-5 py-3">
+                      <Chip
+                        label={t.status}
+                        variant={
+                          ACC_TRANSACTION_STATUS_CHIP[t.status] || "default"
+                        }
+                      />
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs text-slate-500">
+                      {t.time}
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-1.5">
+                        {t.status === "Pending" || t.status === "Partial" ? (
+                          <button
+                            onClick={() => onCollectPaymentClick?.(t.invoice)}
+                            className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
+                            style={{ fontFamily: PP }}
+                          >
+                            Collect
+                          </button>
+                        ) : (
+                          <span className="text-xs text-slate-400 font-medium">
+                            Logged
+                          </span>
+                        )}
+                        <button
+                          onClick={() => onCreateInvoiceClick?.()}
+                          className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
+                        >
+                          View
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="px-5 py-8 text-center text-xs text-[#64748B]" style={{ fontFamily: RB }}>
+                    No recent transactions found
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -834,7 +797,7 @@ export function AccountantDashboard({
                 className="text-sm font-bold text-[#111827]"
                 style={{ fontFamily: PP }}
               >
-                12 Bills
+                {dashboard?.pendingBillsCount ?? "N/A"}
               </span>
             </div>
             <div className="flex items-center justify-between p-2.5 rounded-xl border border-red-100 bg-red-50/50">
@@ -848,7 +811,7 @@ export function AccountantDashboard({
                 className="text-sm font-bold text-[#EF4444]"
                 style={{ fontFamily: PP }}
               >
-                $8,450.00
+                ${(dashboard?.pendingPayments ?? 0).toLocaleString()}
               </span>
             </div>
             <div className="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 bg-slate-50">
@@ -862,7 +825,7 @@ export function AccountantDashboard({
                 className="text-sm font-bold text-[#F59E0B]"
                 style={{ fontFamily: PP }}
               >
-                4 Bills
+                {dashboard?.overdueBillsCount ?? "N/A"}
               </span>
             </div>
             <div className="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 bg-slate-50">
@@ -876,7 +839,7 @@ export function AccountantDashboard({
                 className="text-sm font-bold text-[#111827]"
                 style={{ fontFamily: PP }}
               >
-                $704.16
+                {dashboard?.avgDueAmount != null ? `$${dashboard.avgDueAmount.toLocaleString()}` : "N/A"}
               </span>
             </div>
             <div className="flex items-center justify-between p-2.5 rounded-xl border border-teal-100 bg-teal-50/50">
@@ -890,7 +853,7 @@ export function AccountantDashboard({
                 className="text-sm font-bold text-[#009688]"
                 style={{ fontFamily: PP }}
               >
-                $28,450.00
+                ${(dashboard?.todayRevenue ?? 0).toLocaleString()}
               </span>
             </div>
           </div>
@@ -910,7 +873,7 @@ export function AccountantDashboard({
           />
           <ResponsiveContainer width="100%" height={180}>
             <BarChart
-              data={ACC_REVENUE_CATEGORIES}
+              data={revenueCategories.length > 0 ? revenueCategories : [{ category: "No Data", amount: 0 }]}
               layout="vertical"
               margin={{ top: 0, right: 20, left: 25, bottom: 0 }}
             >
@@ -953,8 +916,8 @@ export function AccountantDashboard({
             className="mt-2 pt-2 border-t border-gray-50 text-xs text-[#64748B] flex items-center justify-between"
             style={{ fontFamily: RB }}
           >
-            <span>Top Source: Consultation Fee</span>
-            <span className="font-semibold text-[#0D47A1]">$28,450 Total</span>
+            <span>Top Source: {dashboard?.topSource ?? "N/A"}</span>
+            <span className="font-semibold text-[#0D47A1]">${totalPaymentValue.toLocaleString()} Total</span>
           </div>
         </div>
 
@@ -966,7 +929,7 @@ export function AccountantDashboard({
           />
           <ResponsiveContainer width="100%" height={160}>
             <BarChart
-              data={ACC_INVOICE_STATUS_DIST}
+              data={invoiceStatusDist.length > 0 ? invoiceStatusDist : [{ name: "No Data", count: 0, color: "#64748B" }]}
               margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
             >
               <XAxis
@@ -990,7 +953,7 @@ export function AccountantDashboard({
                 formatter={(v: unknown) => [`${v} Invoices`, "Count"]}
               />
               <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={22}>
-                {ACC_INVOICE_STATUS_DIST.map((entry, idx) => (
+                {(invoiceStatusDist.length > 0 ? invoiceStatusDist : [{ name: "No Data", count: 0, color: "#64748B" }]).map((entry, idx) => (
                   <Cell key={idx} fill={entry.color} />
                 ))}
               </Bar>
@@ -1000,7 +963,7 @@ export function AccountantDashboard({
             className="grid grid-cols-2 gap-1.5 mt-2 pt-2 border-t border-gray-50 text-xs"
             style={{ fontFamily: RB }}
           >
-            {ACC_INVOICE_STATUS_DIST.map((r) => (
+            {(invoiceStatusDist.length > 0 ? invoiceStatusDist : [{ name: "No Data", count: 0, color: "#64748B" }]).map((r) => (
               <div key={r.name} className="flex items-center justify-between">
                 <span className="text-[#64748B] text-[11px]">{r.name}:</span>
                 <span className="font-bold text-[#111827]">{r.count}</span>
@@ -1055,7 +1018,7 @@ export function AccountantDashboard({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {ACC_FINANCIAL_SUMMARY_METRICS.map((m) => (
+            {financialMetrics.map((m) => (
               <tr
                 key={m.metric}
                 className="hover:bg-slate-50 transition-colors"

@@ -181,9 +181,9 @@ export const encountersApi = {
       dietAdvice?: string;
       precautions?: string;
     },
-  ): Promise<any> => {
+  ): Promise<Prescription | null> => {
     try {
-      const response = await apiClient.put<any>(
+      const response = await apiClient.put<{ data?: Prescription; status?: number }>(
         `/api/v1/prescriptions/${prescriptionId}/advice`,
         payload,
       );

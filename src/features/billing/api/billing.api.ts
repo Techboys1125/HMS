@@ -1,4 +1,8 @@
 import { apiClient, axios } from "../../../lib/axios";
+import type {
+  BillPaymentRecord,
+  BillWorkspace,
+} from "../types/billing.types";
 
 // ─── Shared Response Wrapper ────────────────────────────────────────────────
 interface ApiResponse<T = unknown> {
@@ -14,6 +18,7 @@ export interface BillListItem {
   billNumber: string;
   patientName: string;
   mrn: string;
+  patientMrn: string;
   status: string;
   paymentStatus: string;
   netAmount: number;
@@ -36,18 +41,7 @@ export interface BillCreateResponse {
   balanceAmount: number;
 }
 
-export interface BillWorkspace {
-  bill: {
-    id: number;
-    billNumber: string;
-    status: string;
-    patientMrn: string;
-    patientName: string;
-    doctorName: string;
-    items: BillItem[];
-    netAmount: number;
-  };
-}
+export type { BillWorkspace };
 
 export interface BillItem {
   id: number;
@@ -108,14 +102,7 @@ export interface PaymentHistoryResponse {
     balanceAmount: number;
     refundedAmount: number;
   };
-  payments: Array<{
-    id?: number;
-    method: string;
-    amount: number;
-    referenceNumber?: string;
-    paidAt?: string;
-    remarks?: string;
-  }>;
+  payments: BillPaymentRecord[];
 }
 
 export interface PaymentReceivePayload {
@@ -138,6 +125,7 @@ export interface ReceiptData {
   mrn: string;
   grossAmount: number;
   discountAmount: number;
+  taxAmount: number;
   netAmount: number;
   totalPaid: number;
   balance: number;
@@ -268,9 +256,9 @@ export const billingApi = {
       if (params?.size != null) query.set("size", String(params.size));
       if (params?.sort) query.set("sort", params.sort);
       const qs = query.toString();
-      const response = await apiClient.get<ApiResponse<PaginatedData<BillListItem>>>(
-        `/api/v1/billing${qs ? `?${qs}` : ""}`,
-      );
+      const response = await apiClient.get<
+        ApiResponse<PaginatedData<BillListItem>>
+      >(`/api/v1/billing${qs ? `?${qs}` : ""}`);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -282,7 +270,9 @@ export const billingApi = {
   },
 
   // ── 2. Create New Bill ─────────────────────────────────────────────────
-  async createBill(payload: BillCreatePayload): Promise<ApiResponse<BillCreateResponse>> {
+  async createBill(
+    payload: BillCreatePayload,
+  ): Promise<ApiResponse<BillCreateResponse>> {
     try {
       const response = await apiClient.post<ApiResponse<BillCreateResponse>>(
         "/api/v1/billing",
@@ -395,7 +385,9 @@ export const billingApi = {
   },
 
   // ── 8. View Bill Summary ───────────────────────────────────────────────
-  async getBillSummary(billId: number | string): Promise<ApiResponse<BillSummary>> {
+  async getBillSummary(
+    billId: number | string,
+  ): Promise<ApiResponse<BillSummary>> {
     try {
       const response = await apiClient.get<ApiResponse<BillSummary>>(
         `/api/v1/billing/${billId}/summary`,
@@ -411,7 +403,9 @@ export const billingApi = {
   },
 
   // ── 9. Finalize Bill ──────────────────────────────────────────────────
-  async finalizeBill(billId: number | string): Promise<ApiResponse<BillFinalizeResponse>> {
+  async finalizeBill(
+    billId: number | string,
+  ): Promise<ApiResponse<BillFinalizeResponse>> {
     try {
       const response = await apiClient.patch<ApiResponse<BillFinalizeResponse>>(
         `/api/v1/billing/${billId}/finalize`,
@@ -427,7 +421,9 @@ export const billingApi = {
   },
 
   // ── 10. Payment History ────────────────────────────────────────────────
-  async getPaymentHistory(billId: number | string): Promise<ApiResponse<PaymentHistoryResponse>> {
+  async getPaymentHistory(
+    billId: number | string,
+  ): Promise<ApiResponse<PaymentHistoryResponse>> {
     try {
       const response = await apiClient.get<ApiResponse<PaymentHistoryResponse>>(
         `/api/v1/billing/${billId}/payments`,
@@ -448,10 +444,9 @@ export const billingApi = {
     payload: PaymentReceivePayload,
   ): Promise<ApiResponse<PaymentReceiveResponse>> {
     try {
-      const response = await apiClient.post<ApiResponse<PaymentReceiveResponse>>(
-        `/api/v1/billing/${billId}/payments`,
-        payload,
-      );
+      const response = await apiClient.post<
+        ApiResponse<PaymentReceiveResponse>
+      >(`/api/v1/billing/${billId}/payments`, payload);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -479,7 +474,9 @@ export const billingApi = {
   },
 
   // ── 13. Reprint Receipt ────────────────────────────────────────────────
-  async reprintReceipt(billId: number | string): Promise<ApiResponse<ReceiptData>> {
+  async reprintReceipt(
+    billId: number | string,
+  ): Promise<ApiResponse<ReceiptData>> {
     try {
       const response = await apiClient.post<ApiResponse<ReceiptData>>(
         `/api/v1/billing/${billId}/receipt/reprint`,
@@ -587,9 +584,9 @@ export const billingApi = {
       if (params?.fromDate) query.set("fromDate", params.fromDate);
       if (params?.toDate) query.set("toDate", params.toDate);
       const qs = query.toString();
-      const response = await apiClient.get<ApiResponse<BillingDashboardSummary>>(
-        `/api/v1/billing/dashboard/summary${qs ? `?${qs}` : ""}`,
-      );
+      const response = await apiClient.get<
+        ApiResponse<BillingDashboardSummary>
+      >(`/api/v1/billing/dashboard/summary${qs ? `?${qs}` : ""}`);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -619,7 +616,9 @@ export const billingApi = {
   },
 
   // ── 20. Patient Billing History ────────────────────────────────────────
-  async getPatientBilling(mrn: string): Promise<ApiResponse<PatientBillingHistory>> {
+  async getPatientBilling(
+    mrn: string,
+  ): Promise<ApiResponse<PatientBillingHistory>> {
     try {
       const response = await apiClient.get<ApiResponse<PatientBillingHistory>>(
         `/api/v1/billing/patient/${mrn}`,
@@ -667,7 +666,9 @@ export const billingApi = {
   },
 
   // ── 23. Bill Audit History ─────────────────────────────────────────────
-  async getBillAudit(billId: number | string): Promise<ApiResponse<BillAuditResponse>> {
+  async getBillAudit(
+    billId: number | string,
+  ): Promise<ApiResponse<BillAuditResponse>> {
     try {
       const response = await apiClient.get<ApiResponse<BillAuditResponse>>(
         `/api/v1/billing/${billId}/audit`,

@@ -41,8 +41,8 @@ export function ReceiptConfiguration({
           gap: "8px",
         }}
       >
-        <Receipt size={18} style={{ color: "#0D47A1" }} /> Section 05:
-        Receipt Template Layout & Print Options
+        <Receipt size={18} style={{ color: "#0D47A1" }} /> Section 05: Receipt
+        Template Layout & Print Options
       </h3>
 
       <div
@@ -66,7 +66,9 @@ export function ReceiptConfiguration({
           >
             <input
               type="checkbox"
-              checked={(receiptConfig as unknown as Record<string, boolean>)[item.key]}
+              checked={
+                (receiptConfig as unknown as Record<string, boolean>)[item.key]
+              }
               onChange={(e) =>
                 setReceiptConfig((prev) => ({
                   ...prev,

@@ -78,7 +78,9 @@ const APPT_STATUS_STYLE: Record<string, string> = {
   Completed: "bg-emerald-50 text-[#66BB6A] border-emerald-200",
   "In Progress": "bg-blue-50 text-[#0D47A1] border-blue-200",
   "Checked-In": "bg-sky-50 text-sky-700 border-sky-200",
+  "Waiting for Vitals": "bg-sky-50 text-sky-700 border-sky-200",
   Waiting: "bg-amber-50 text-[#F59E0B] border-amber-200",
+  "Waiting for Doctor": "bg-amber-50 text-[#F59E0B] border-amber-200",
   Cancelled: "bg-red-50 text-[#EF4444] border-red-200",
   Scheduled: "bg-slate-100 text-slate-600 border-slate-200",
 };
@@ -213,8 +215,36 @@ export function DoctorProfileScreen({
   const [availDate, setAvailDate] = useState(todayKey);
   const [appointments, setAppointments] = useState<DoctorAppointment[]>([]);
   const [exceptions, setExceptions] = useState<ApiScheduleExceptionItem[]>([]);
-  const [queueSummary, setQueueSummary] = useState<DoctorQueueSummary>({});
+  const [, setQueueSummary] = useState<DoctorQueueSummary>({});
   const [queueItems, setQueueItems] = useState<DoctorQueueItem[]>([]);
+  const visibleQueueItems = useMemo(() => {
+    return (queueItems || []).filter((item) => {
+      const s = String(item.status || item.queueStatus || "").toUpperCase().replace(/[\s-]/g, "_");
+      return s !== "WAITING_FOR_VITALS" && s !== "CHECKED_IN";
+    });
+  }, [queueItems]);
+
+  const localWaitingCount = useMemo(() => {
+    return visibleQueueItems.filter((item) => {
+      const s = String(item.status || item.queueStatus || "").toUpperCase().replace(/[\s-]/g, "_");
+      return s === "WAITING" || s === "WAITING_FOR_DOCTOR" || s === "WAITING_FOR_DOCTOR_CALL";
+    }).length;
+  }, [visibleQueueItems]);
+
+  const localInConsultationCount = useMemo(() => {
+    return visibleQueueItems.filter((item) => {
+      const s = String(item.status || item.queueStatus || "").toUpperCase().replace(/[\s-]/g, "_");
+      return s === "IN_CONSULTATION" || s === "IN_PROGRESS";
+    }).length;
+  }, [visibleQueueItems]);
+
+  const localCompletedCount = useMemo(() => {
+    return visibleQueueItems.filter((item) => {
+      const s = String(item.status || item.queueStatus || "").toUpperCase().replace(/[\s-]/g, "_");
+      return s === "COMPLETED";
+    }).length;
+  }, [visibleQueueItems]);
+
   const [isQueueLoading, setIsQueueLoading] = useState(false);
   const [isCallingNext, setIsCallingNext] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -384,7 +414,12 @@ export function DoctorProfileScreen({
     try {
       const data = await doctorsService.getQueue(id);
       setQueueSummary(data?.summary || {});
-      setQueueItems(data?.content || []);
+      setQueueItems(
+        (data?.content || []).filter((item: { status?: string; queueStatus?: string }) => {
+          const st = String(item.status || item.queueStatus || "").toUpperCase();
+          return st !== "WAITING_FOR_VITALS" && st !== "CHECKED_IN";
+        }),
+      );
     } catch {
       setQueueSummary({});
       setQueueItems([]);
@@ -1806,17 +1841,31 @@ export function DoctorProfileScreen({
                   Real-time OPD queue for {docState.name}.
                 </p>
               </div>
-              {can("QUEUE_CALL_NEXT") && (
-                <button
-                  onClick={handleCallNext}
-                  disabled={isCallingNext || queueItems.length === 0}
-                  className="px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-[#00796b] transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                  style={{ fontFamily: PP }}
-                >
-                  <PhoneCall size={14} />
-                  {isCallingNext ? "Calling..." : "Call Next Patient"}
-                </button>
-              )}
+              {(() => {
+                const firstWaiting = queueItems.find(
+                  (item) => {
+                    const s = String(item.status || item.queueStatus || "").toUpperCase().replace(/[\s-]/g, "_");
+                    return s === "WAITING" || s === "WAITING_FOR_VITALS" || s === "WAITING_FOR_DOCTOR" || s === "WAITING_FOR_DOCTOR_CALL" || s === "BOOKED" || s === "CHECKED_IN";
+                  }
+                );
+                const isFirstWaitingVitals = firstWaiting && (() => {
+                  const s = String(firstWaiting.status || firstWaiting.queueStatus || "").toUpperCase().replace(/[\s-]/g, "_");
+                  return s === "WAITING_FOR_VITALS" || s === "CHECKED_IN";
+                })();
+
+                return can("QUEUE_CALL_NEXT") && (
+                  <button
+                    onClick={handleCallNext}
+                    disabled={isCallingNext || visibleQueueItems.length === 0 || isFirstWaitingVitals}
+                    className="px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-[#00796b] transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                    style={{ fontFamily: PP }}
+                    title={isFirstWaitingVitals ? "Next patient is waiting for vitals" : undefined}
+                  >
+                    <PhoneCall size={14} />
+                    {isCallingNext ? "Calling..." : "Call Next Patient"}
+                  </button>
+                );
+              })()}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1828,7 +1877,7 @@ export function DoctorProfileScreen({
                   className="text-2xl font-bold text-[#F59E0B] block"
                   style={{ fontFamily: PP }}
                 >
-                  {queueSummary.waitingCount ?? 0}
+                  {localWaitingCount}
                 </span>
               </div>
               <div className="bg-slate-50 rounded-2xl border border-[#E5E7EB] p-4">
@@ -1839,7 +1888,7 @@ export function DoctorProfileScreen({
                   className="text-2xl font-bold text-[#0D47A1] block"
                   style={{ fontFamily: PP }}
                 >
-                  {queueSummary.inConsultationCount ?? 0}
+                  {localInConsultationCount}
                 </span>
               </div>
               <div className="bg-slate-50 rounded-2xl border border-[#E5E7EB] p-4">
@@ -1850,7 +1899,7 @@ export function DoctorProfileScreen({
                   className="text-2xl font-bold text-[#66BB6A] block"
                   style={{ fontFamily: PP }}
                 >
-                  {queueSummary.completedCount ?? 0}
+                  {localCompletedCount}
                 </span>
               </div>
             </div>
@@ -1890,7 +1939,7 @@ export function DoctorProfileScreen({
                         </td>
                       </tr>
                     ))
-                  ) : queueItems.length === 0 ? (
+                  ) : visibleQueueItems.length === 0 ? (
                     <tr>
                       <td
                         colSpan={5}
@@ -1911,7 +1960,7 @@ export function DoctorProfileScreen({
                       </td>
                     </tr>
                   ) : (
-                    queueItems.map((item) => (
+                    visibleQueueItems.map((item) => (
                       <tr
                         key={item.queueId ?? item.id ?? item.appointmentId}
                         className="hover:bg-slate-50/80 transition-colors"

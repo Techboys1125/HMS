@@ -112,6 +112,7 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
       label: "Clinical",
       items: [
         { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard" },
+        { id: "patients", Icon: Users, label: "Patients" },
         { id: "appointments", Icon: Calendar, label: "Appointments" },
         { id: "consultation", Icon: MessageSquare, label: "Consultation" },
         { id: "prescriptions", Icon: Pill, label: "Prescriptions" },

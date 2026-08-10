@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { Clock, Download, Phone, Plus, FolderOpen } from "lucide-react";
 import { usePermissions } from "../../../permissions";
@@ -11,6 +11,7 @@ import {
   appointmentStatusMap,
 } from "../types/consultation";
 import type { QueueItem } from "../types/queue.types";
+import type { AppointmentStatus } from "../../appointments/types/appointment.types";
 import { useAuthStore } from "../../auth";
 
 import { ConsultationHeader } from "../components/ConsultationHeader";
@@ -37,6 +38,9 @@ export interface OPDConsultationPageProps {
 function mapQueueItemToConsultation(item: QueueItem): ConsultationRecord {
   const statusMap: Record<string, ConsultationStatus> = {
     WAITING: "WAITING",
+    WAITING_FOR_VITALS: "WAITING_FOR_VITALS",
+    WAITING_FOR_DOCTOR: "WAITING_FOR_DOCTOR",
+    WAITING_FOR_DOCTOR_CALL: "WAITING_FOR_DOCTOR_CALL",
     CALLED: "CALLED",
     IN_CONSULTATION: "IN_CONSULTATION",
     COMPLETED: "COMPLETED",
@@ -100,7 +104,6 @@ export function OPDConsultationPage({
 
   const {
     items: queueItems,
-    summary: queueSummary,
     refetch,
   } = useQueue({
     doctorId: isDoctor
@@ -110,24 +113,22 @@ export function OPDConsultationPage({
       : undefined,
   });
 
-  const [consultations, setConsultations] = useState<ConsultationRecord[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(false);
+  const [statusOverrides, setStatusOverrides] = useState<Map<string, ConsultationStatus>>(new Map());
 
   const mappedConsultations = useMemo(() => {
     return queueItems.map(mapQueueItemToConsultation);
   }, [queueItems]);
 
-  useEffect(() => {
-    if (mappedConsultations.length > 0) {
-      setConsultations(mappedConsultations);
-    }
-  }, [mappedConsultations]);
-
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const consultations = useMemo(() => {
+    if (statusOverrides.size === 0) return mappedConsultations;
+    return mappedConsultations.map((c) => {
+      const override = statusOverrides.get(c.id);
+      return override ? { ...c, status: override } : c;
+    });
+  }, [mappedConsultations, statusOverrides]);
 
   const [filterDate, setFilterDate] = useState(
     new Date().toISOString().split("T")[0],
@@ -139,12 +140,16 @@ export function OPDConsultationPage({
   const [showSummaryModal, setShowSummaryModal] = useState(false);
 
   const waitingStatuses: ConsultationStatus[] = useMemo(
-    () => ["WAITING", "CALLED"],
+    () => ["WAITING", "WAITING_FOR_DOCTOR", "WAITING_FOR_DOCTOR_CALL", "CALLED"],
     [],
   );
 
   const filteredConsultations = useMemo(() => {
     return consultations.filter((item) => {
+      const statusUpper = String(item.status || "").toUpperCase().replace(/[\s-]/g, "_");
+      if (statusUpper === "WAITING_FOR_VITALS" || statusUpper === "CHECKED_IN") {
+        return false;
+      }
       if (activeTab === "Waiting") {
         if (!waitingStatuses.includes(item.status as ConsultationStatus)) {
           return false;
@@ -200,38 +205,76 @@ export function OPDConsultationPage({
   }, [refetch]);
 
   const tabCounts = useMemo(() => {
+    const visibleConsultations = consultations.filter((c) => {
+      const statusUpper = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+      return statusUpper !== "WAITING_FOR_VITALS" && statusUpper !== "CHECKED_IN";
+    });
+    const waitingCount = visibleConsultations.filter((c) => {
+      const statusUpper = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+      return (
+        statusUpper === "WAITING" ||
+        statusUpper === "WAITING_FOR_DOCTOR" ||
+        statusUpper === "WAITING_FOR_DOCTOR_CALL"
+      );
+    }).length;
     const counts: Record<string, number> = {
-      All:
-        queueSummary.completed +
-        queueSummary.waiting +
-        queueSummary.called +
-        queueSummary.inConsultation,
-      WAITING: queueSummary.waiting,
-      CALLED: queueSummary.called,
-      IN_CONSULTATION: queueSummary.inConsultation,
-      COMPLETED: queueSummary.completed,
-      Waiting: queueSummary.waiting + queueSummary.called,
+      All: visibleConsultations.length,
+      WAITING: visibleConsultations.filter((c) => {
+        const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+        return s === "WAITING" || s === "WAITING_FOR_DOCTOR" || s === "WAITING_FOR_DOCTOR_CALL";
+      }).length,
+      CALLED: visibleConsultations.filter((c) => {
+        const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+        return s === "CALLED";
+      }).length,
+      IN_CONSULTATION: visibleConsultations.filter((c) => {
+        const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+        return s === "IN_CONSULTATION";
+      }).length,
+      COMPLETED: visibleConsultations.filter((c) => {
+        const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+        return s === "COMPLETED";
+      }).length,
+      Waiting: waitingCount + visibleConsultations.filter((c) => {
+        const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+        return s === "CALLED";
+      }).length,
     };
     return counts;
-  }, [queueSummary]);
+  }, [consultations]);
 
-  const currentPatient = consultations.find(
-    (c) => c.status === "IN_CONSULTATION",
-  );
-  const calledPatient = consultations.find((c) => c.status === "CALLED");
-  const nextPatient = consultations.find((c) => c.status === "WAITING");
-  const hasCalledPatient = consultations.some((c) => c.status === "CALLED");
+  const currentPatient = consultations.find((c) => {
+    const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+    return s === "IN_CONSULTATION";
+  });
+  const calledPatient = consultations.find((c) => {
+    const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+    return s === "CALLED";
+  });
+  const nextPatient = consultations.find((c) => {
+    const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+    return s === "WAITING" || s === "WAITING_FOR_DOCTOR" || s === "WAITING_FOR_DOCTOR_CALL";
+  });
+  const hasCalledPatient = consultations.some((c) => {
+    const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+    return s === "CALLED";
+  });
 
   const handleCallPatient = async (record: ConsultationRecord) => {
+    const statusUpper = String(record.status || "").toUpperCase().replace(/[\s-]/g, "_");
+    if (
+      statusUpper === "WAITING_FOR_VITALS" ||
+      statusUpper === "CHECKED_IN"
+    ) {
+      return;
+    }
     const aptId = record.appointmentId || record.id;
     await apiCallPatient(aptId);
-    setConsultations((prev) =>
-      prev.map((c) =>
-        c.id === record.id
-          ? { ...c, status: "CALLED" as ConsultationStatus }
-          : c,
-      ),
-    );
+    setStatusOverrides((prev) => {
+      const next = new Map(prev);
+      next.set(record.id, "CALLED" as ConsultationStatus);
+      return next;
+    });
   };
 
   const handleStartConsultation = async (
@@ -246,30 +289,26 @@ export function OPDConsultationPage({
       await apiStartConsultation(
         {
           id: record.id,
+          patientId: record.id,
           patientName: record.patientName,
-          mrn: record.mrn,
-          patientAge: record.age,
-          patientGender: record.gender,
-          patientPhone: record.phone,
+          doctorId: 0,
           doctorName: record.doctor,
           departmentName: record.department,
           appointmentTime: record.appointmentTime,
           appointmentDate: record.date,
-          tokenNo: record.tokenNo,
-          opdRoom: record.opdRoom,
+          tokenNumber: record.tokenNo,
+          roomNumber: record.opdRoom,
           appointmentType: record.visitType,
+          status: record.status as AppointmentStatus,
           chiefComplaint: record.chiefComplaint,
-          status: record.status,
-        } as any,
+        },
         record.chiefComplaint,
       );
-      setConsultations((prev) =>
-        prev.map((c) =>
-          c.id === record.id
-            ? { ...c, status: "IN_CONSULTATION" as ConsultationStatus }
-            : c,
-        ),
-      );
+      setStatusOverrides((prev) => {
+        const next = new Map(prev);
+        next.set(record.id, "IN_CONSULTATION" as ConsultationStatus);
+        return next;
+      });
       if (onStartConsultation) {
         onStartConsultation(record.id);
       } else {
@@ -469,7 +508,6 @@ export function OPDConsultationPage({
             onResetFilters={handleResetFilters}
             canStartConsultation={can("CONSULTATION_START")}
             canPrint={can("CONSULTATION_PRINT")}
-            totalConsultations={consultations.length}
           />
         </div>
       </div>

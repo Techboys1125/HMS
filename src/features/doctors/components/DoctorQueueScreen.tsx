@@ -41,7 +41,7 @@ const STATUS_META: Record<
   },
   WAITING_FOR_VITALS: {
     label: "Waiting for Vitals",
-    chip: "bg-amber-100 text-amber-700",
+    chip: "bg-blue-100 text-[#0D47A1]",
     row: "bg-white",
   },
   WAITING_FOR_DOCTOR: {
@@ -50,12 +50,12 @@ const STATUS_META: Record<
     row: "bg-white",
   },
   WAITING_FOR_DOCTOR_CALL: {
-    label: "Ready - Waiting Call",
+    label: "Waiting for Doctor",
     chip: "bg-amber-100 text-amber-700",
     row: "bg-white",
   },
   CHECKED_IN: {
-    label: "Checked-In",
+    label: "Waiting for Vitals",
     chip: "bg-blue-100 text-[#0D47A1]",
     row: "bg-white",
   },
@@ -87,7 +87,7 @@ const STATUS_META: Record<
 };
 
 const statusKey = (status: unknown): QueueItemStatus =>
-  String(status || "WAITING").toUpperCase();
+  String(status || "WAITING").toUpperCase().replace(/[\s-]/g, "_");
 
 export function DoctorQueueScreen() {
   const { user } = useAuthStore();
@@ -235,6 +235,21 @@ export function DoctorQueueScreen() {
     currentPage * pageSize,
   );
 
+  const firstWaitingPatient = (queue.content || []).find((p) =>
+    [
+      "WAITING",
+      "WAITING_FOR_DOCTOR",
+      "WAITING_FOR_DOCTOR_CALL",
+      "WAITING_FOR_VITALS",
+      "CHECKED_IN",
+      "BOOKED"
+    ].includes(statusKey(p.status || p.queueStatus)),
+  );
+  const isCallNextBlocked =
+    firstWaitingPatient &&
+    (statusKey(firstWaitingPatient.status || firstWaitingPatient.queueStatus) === "WAITING_FOR_VITALS" ||
+     statusKey(firstWaitingPatient.status || firstWaitingPatient.queueStatus) === "CHECKED_IN");
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -255,9 +270,10 @@ export function DoctorQueueScreen() {
         </div>
         <button
           onClick={handleCallNext}
-          disabled={callingNext || waitingCount === 0 || !isDoctor}
+          disabled={callingNext || waitingCount === 0 || !isDoctor || isCallNextBlocked}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm shadow-[#0D47A1]/20 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ fontFamily: PP }}
+          title={isCallNextBlocked ? "Next patient is waiting for vitals" : undefined}
         >
           {callingNext ? (
             <RefreshCw size={16} className="animate-spin" />

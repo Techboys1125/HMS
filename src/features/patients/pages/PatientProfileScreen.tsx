@@ -160,8 +160,10 @@ export function PatientProfileScreen({
       case "Scheduled":
         return "info";
       case "Checked-In":
+      case "Waiting for Vitals":
         return "teal";
       case "Waiting":
+      case "Waiting for Doctor":
         return "warning";
       case "Completed":
         return "success";

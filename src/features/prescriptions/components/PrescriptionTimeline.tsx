@@ -1,6 +1,6 @@
 import React from "react";
 
-export const PrescriptionTimeline: React.FC<{ timeline: any[] }> = ({ timeline }) => {
+export const PrescriptionTimeline: React.FC<{ timeline: { title: string; time: string; desc: string }[] }> = ({ timeline }) => {
   if (!timeline || timeline.length === 0) {
     return <div className="text-xs text-slate-400 p-2">No timeline events available.</div>;
   }

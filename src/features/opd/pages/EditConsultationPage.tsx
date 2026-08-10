@@ -212,9 +212,13 @@ export function EditConsultationPage({
   };
 
   const handleVitalsChange = (field: string, val: string) => {
+    const fieldMap: Record<string, string> = {
+      temp: "temperature",
+    };
+    const actualField = fieldMap[field] || field;
     setFormData((prev) => ({
       ...prev,
-      [field]: val,
+      [actualField]: val,
     }));
   };
 

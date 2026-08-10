@@ -3,12 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { billingService } from "../services/billing.service";
 import type {
   InvoiceRecord,
-  BillWorkspace,
-  BillSummary,
-  PaymentReceiveResponse,
-  BillingDashboardSummary,
   BillingConfiguration,
-  PaymentMethod,
+  BillDiscountPayload,
 } from "../types/billing.types";
 
 export const billingKeys = {
@@ -41,7 +37,7 @@ export function useBilling(patientMrn?: string) {
   });
 
   return {
-    invoices: patientMrn ? (patientQuery.data || []) : [],
+    invoices: patientMrn ? patientQuery.data || [] : [],
     loading: patientMrn ? patientQuery.isLoading : false,
     refetch: () => {
       if (patientMrn) patientQuery.refetch();
@@ -112,7 +108,9 @@ export function useInvoice(billId?: number | string) {
     onSuccess: () => {
       if (billId) {
         queryClient.invalidateQueries({ queryKey: billingKeys.detail(billId) });
-        queryClient.invalidateQueries({ queryKey: billingKeys.summary(billId) });
+        queryClient.invalidateQueries({
+          queryKey: billingKeys.summary(billId),
+        });
       }
     },
   });
@@ -128,7 +126,9 @@ export function useInvoice(billId?: number | string) {
     onSuccess: () => {
       if (billId) {
         queryClient.invalidateQueries({ queryKey: billingKeys.detail(billId) });
-        queryClient.invalidateQueries({ queryKey: billingKeys.summary(billId) });
+        queryClient.invalidateQueries({
+          queryKey: billingKeys.summary(billId),
+        });
       }
     },
   });
@@ -163,6 +163,26 @@ export function useInvoice(billId?: number | string) {
     },
   });
 
+  const applyDiscountMutation = useMutation({
+    mutationFn: ({
+      billId,
+      ...payload
+    }: {
+      billId: number | string;
+    } & BillDiscountPayload) => billingService.applyDiscount(billId, payload),
+    onSuccess: (_data, variables) => {
+      const targetBillId = variables.billId || billId;
+      if (targetBillId) {
+        queryClient.invalidateQueries({
+          queryKey: billingKeys.detail(targetBillId),
+        });
+        queryClient.invalidateQueries({
+          queryKey: billingKeys.summary(targetBillId),
+        });
+      }
+    },
+  });
+
   return {
     bill: billQuery.data?.bill || null,
     summary: summaryQuery.data || null,
@@ -194,6 +214,9 @@ export function useInvoice(billId?: number | string) {
     deleteBillItem: deleteBillItemMutation.mutateAsync,
     isDeletingItem: deleteBillItemMutation.isPending,
 
+    applyDiscount: applyDiscountMutation.mutateAsync,
+    isApplyingDiscount: applyDiscountMutation.isPending,
+
     refetch: () => {
       billQuery.refetch();
       summaryQuery.refetch();
@@ -219,7 +242,11 @@ export function usePayment(billId?: number | string) {
       remarks,
     }: {
       billId: number | string;
-      payments: Array<{ method: string; amount: number; referenceNumber?: string }>;
+      payments: Array<{
+        method: string;
+        amount: number;
+        referenceNumber?: string;
+      }>;
       remarks?: string;
     }) => billingService.receivePayment(billId, { payments, remarks }),
     onSuccess: () => {
@@ -304,9 +331,8 @@ function saveBillingConfig(config: BillingConfiguration) {
 }
 
 export function useBillingConfiguration() {
-  const [configuration, setConfiguration] = useState<BillingConfiguration | null>(
-    () => loadBillingConfig(),
-  );
+  const [configuration, setConfiguration] =
+    useState<BillingConfiguration | null>(() => loadBillingConfig());
 
   const saveConfiguration = (config: BillingConfiguration) => {
     saveBillingConfig(config);

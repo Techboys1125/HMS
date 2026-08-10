@@ -1,7 +1,7 @@
 import React from "react";
 import { FileText } from "lucide-react";
 
-export const InvestigationTable: React.FC<{ investigations: any[] }> = ({ investigations }) => {
+export const InvestigationTable: React.FC<{ investigations: string[] }> = ({ investigations }) => {
   if (!investigations || investigations.length === 0) {
     return <div className="text-xs text-slate-400">No investigations recommended.</div>;
   }
@@ -10,7 +10,7 @@ export const InvestigationTable: React.FC<{ investigations: any[] }> = ({ invest
       {investigations.map((inv, idx) => (
         <div key={idx} className="flex items-center gap-2">
           <FileText size={12} className="text-blue-500" />
-          <span>{String(inv)}</span>
+          <span>{inv}</span>
         </div>
       ))}
     </div>

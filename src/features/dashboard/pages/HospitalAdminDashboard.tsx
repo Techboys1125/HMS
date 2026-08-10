@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router";
+import { ROUTES } from "../../../app/routes/routes";
 // React imports
 import {
   Calendar,
@@ -37,6 +39,7 @@ function DKpi({
   color,
   gid,
   Icon,
+  onClick,
 }: {
   title: string;
   value: string;
@@ -47,9 +50,15 @@ function DKpi({
   color: string;
   gid: string;
   Icon: React.ElementType;
+  onClick?: () => void;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm">
+    <div
+      onClick={onClick}
+      className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
+        onClick ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-all duration-200" : ""
+      }`}
+    >
       <div className="flex items-start justify-between">
         <div>
           <div
@@ -206,188 +215,25 @@ function SH({
 }
 
 // Section 01: Appointment Flow Today (Line Chart)
-const HA_APPT_FLOW = [
-  { hour: "8 AM", completed: 8 },
-  { hour: "9 AM", completed: 18 },
-  { hour: "10 AM", completed: 32 },
-  { hour: "11 AM", completed: 48 },
-  { hour: "12 PM", completed: 62 },
-  { hour: "1 PM", completed: 74 },
-  { hour: "2 PM", completed: 86 },
-  { hour: "3 PM", completed: 104 },
-  { hour: "4 PM", completed: 122 },
-  { hour: "5 PM", completed: 142 },
-];
+const HA_APPT_FLOW: { hour: string; completed: number }[] = [];
 
 // Section 02: Patient Status Distribution (Pie Chart)
-const HA_STATUS_DIST = [
-  { name: "Waiting", value: 24, color: "#F59E0B" },
-  { name: "In Consultation", value: 16, color: "#009688" },
-  { name: "Completed", value: 142, color: "#66BB6A" },
-  { name: "Cancelled", value: 12, color: "#EF4444" },
-];
+const HA_STATUS_DIST: { name: string; value: number; color: string }[] = [];
 
 // Section 03: Department Workload (Horizontal Bar Chart)
-const HA_DEPT_WORKLOAD = [
-  { dept: "General OPD", appts: 48 },
-  { dept: "Cardiology", appts: 34 },
-  { dept: "Orthopedics", appts: 26 },
-  { dept: "Pediatrics", appts: 22 },
-  { dept: "Neurology", appts: 18 },
-  { dept: "Gynecology", appts: 16 },
-];
+const HA_DEPT_WORKLOAD: { dept: string; appts: number }[] = [];
 
 // Section 04: Doctor Availability (Stacked Card)
-const HA_DOC_AVAILABILITY = [
-  { status: "Available", count: 10, color: "#66BB6A" },
-  { status: "In Consultation", count: 6, color: "#009688" },
-  { status: "On Break", count: 2, color: "#F59E0B" },
-  { status: "Leave", count: 6, color: "#EF4444" },
-];
+const HA_DOC_AVAILABILITY: { status: string; count: number; color: string }[] = [];
 
 // Section 05: Today's Appointment Timeline
-const HA_TIMELINE = [
-  {
-    time: "08:00 AM",
-    patient: "Helen Brooks",
-    doctor: "Dr. Priya Sharma",
-    dept: "General OPD",
-    status: "Completed",
-    token: "T-001",
-    room: "OPD-3",
-    stage: "Discharged",
-  },
-  {
-    time: "08:30 AM",
-    patient: "Alex Monroe",
-    doctor: "Dr. Arjun Mehta",
-    dept: "Cardiology",
-    status: "Completed",
-    token: "T-002",
-    room: "OPD-1",
-    stage: "Discharged",
-  },
-  {
-    time: "09:00 AM",
-    patient: "Sarah Mitchell",
-    doctor: "Dr. Arjun Mehta",
-    dept: "Cardiology",
-    status: "In Consultation",
-    token: "T-003",
-    room: "OPD-1",
-    stage: "Doctor Review",
-  },
-  {
-    time: "09:30 AM",
-    patient: "James Thornton",
-    doctor: "Dr. Priya Sharma",
-    dept: "General OPD",
-    status: "Waiting",
-    token: "T-004",
-    room: "Waiting Hall A",
-    stage: "Vitals Recorded",
-  },
-  {
-    time: "10:00 AM",
-    patient: "Emma Reyes",
-    doctor: "Dr. Sarah Patel",
-    dept: "Gynecology",
-    status: "In Consultation",
-    token: "T-005",
-    room: "OPD-5",
-    stage: "Examination",
-  },
-  {
-    time: "10:30 AM",
-    patient: "Robert Chen",
-    doctor: "Dr. Arjun Mehta",
-    dept: "Cardiology",
-    status: "Scheduled",
-    token: "T-006",
-    room: "OPD-1",
-    stage: "Checked In",
-  },
-  {
-    time: "11:00 AM",
-    patient: "Aisha Kumar",
-    doctor: "Dr. Raj Kapoor",
-    dept: "Neurology",
-    status: "Scheduled",
-    token: "T-007",
-    room: "OPD-4",
-    stage: "Registered",
-  },
-  {
-    time: "11:30 AM",
-    patient: "David Walsh",
-    doctor: "Dr. Chen Wei",
-    dept: "Orthopedics",
-    status: "Cancelled",
-    token: "T-008",
-    room: "N/A",
-    stage: "Patient Cancelled",
-  },
-];
+const HA_TIMELINE: { time: string; patient: string; doctor: string; dept: string; status: string; token: string; room: string; stage: string }[] = [];
 
 // Section 06: Revenue Collection Summary (Donut Chart)
-const HA_REVENUE_DIST = [
-  { name: "Cash", value: 8400, color: "#0D47A1" },
-  { name: "Card", value: 11200, color: "#009688" },
-  { name: "UPI", value: 4200, color: "#4DB6AC" },
-  { name: "Other", value: 1000, color: "#64748B" },
-];
+const HA_REVENUE_DIST: { name: string; value: number; color: string }[] = [];
 
 // Section 09: Quick Department Summary Table
-const HA_DEPT_SUMMARY_TABLE = [
-  {
-    dept: "General OPD",
-    appts: 48,
-    completed: 36,
-    waiting: 8,
-    doctors: 6,
-    status: "Normal",
-  },
-  {
-    dept: "Cardiology",
-    appts: 34,
-    completed: 24,
-    waiting: 6,
-    doctors: 4,
-    status: "Busy",
-  },
-  {
-    dept: "Orthopedics",
-    appts: 26,
-    completed: 18,
-    waiting: 4,
-    doctors: 3,
-    status: "Normal",
-  },
-  {
-    dept: "Pediatrics",
-    appts: 22,
-    completed: 18,
-    waiting: 2,
-    doctors: 3,
-    status: "Normal",
-  },
-  {
-    dept: "Neurology",
-    appts: 18,
-    completed: 12,
-    waiting: 3,
-    doctors: 2,
-    status: "Delayed",
-  },
-  {
-    dept: "Gynecology",
-    appts: 16,
-    completed: 14,
-    waiting: 1,
-    doctors: 2,
-    status: "Normal",
-  },
-];
+const HA_DEPT_SUMMARY_TABLE: { dept: string; appts: number; completed: number; waiting: number; doctors: number; status: string }[] = [];
 
 const HA_STATUS_COLOR: Record<string, string> = {
   Completed: "#66BB6A",
@@ -423,6 +269,7 @@ export function HospitalAdminDashboard({
   onRegisterPatient,
   onNavigateNav,
 }: HospitalAdminDashboardProps = {}) {
+  const navigate = useNavigate();
   const totalRevenue = HA_REVENUE_DIST.reduce(
     (acc, curr) => acc + curr.value,
     0,
@@ -454,7 +301,17 @@ export function HospitalAdminDashboard({
         {HA_QUICK_ACTIONS.map(({ label, Icon, color, nav }) => (
           <button
             key={label}
-            onClick={() => onNavigateNav?.(nav)}
+            onClick={() => {
+              if (nav === "reports") {
+                navigate(ROUTES.REPORTS);
+              } else if (nav === "patients") {
+                navigate(ROUTES.PATIENTS);
+              } else if (nav === "appointments") {
+                navigate(ROUTES.APPOINTMENTS);
+              } else if (onNavigateNav) {
+                onNavigateNav(nav);
+              }
+            }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#0D47A1]/40 hover:text-[#0D47A1] hover:bg-blue-50 transition-all shadow-sm"
             style={{ fontFamily: RB }}
           >
@@ -474,95 +331,59 @@ export function HospitalAdminDashboard({
       <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
         <DKpi
           title="Today's OPD Patients"
-          value="238"
-          sub="Active visits today"
-          trend="+14 vs Yesterday"
+          value="0"
+          sub="--"
+          trend="--"
           up={true}
-          data={[
-            { v: 195 },
-            { v: 205 },
-            { v: 210 },
-            { v: 218 },
-            { v: 224 },
-            { v: 230 },
-            { v: 238 },
-          ]}
+          data={[{ v: 0 }]}
           color="#0D47A1"
           gid="ha1"
           Icon={Users}
+          onClick={() => navigate(`${ROUTES.REPORTS}?report=patient-registrations`)}
         />
         <DKpi
           title="Today's Appointments"
-          value="142"
-          sub="Scheduled visits"
-          trend="+8% vs Yesterday"
+          value="0"
+          sub="--"
+          trend="--"
           up={true}
-          data={[
-            { v: 98 },
-            { v: 115 },
-            { v: 108 },
-            { v: 132 },
-            { v: 119 },
-            { v: 138 },
-            { v: 142 },
-          ]}
+          data={[{ v: 0 }]}
           color="#009688"
           gid="ha2"
           Icon={Calendar}
+          onClick={() => navigate(`${ROUTES.REPORTS}?report=daily-appointments`)}
         />
         <DKpi
           title="Today's Revenue"
-          value="$24.8K"
-          sub="Gross Collections"
-          trend="+12% vs Yesterday"
+          value="0"
+          sub="--"
+          trend="--"
           up={true}
-          data={[
-            { v: 18 },
-            { v: 21 },
-            { v: 19 },
-            { v: 24 },
-            { v: 22 },
-            { v: 23 },
-            { v: 24.8 },
-          ]}
+          data={[{ v: 0 }]}
           color="#66BB6A"
           gid="ha3"
           Icon={DollarSign}
+          onClick={() => navigate(`${ROUTES.REPORTS}?report=daily-revenue`)}
         />
         <DKpi
           title="New Patient Registrations"
-          value="47"
-          sub="Registered Today"
-          trend="+9 vs Yesterday"
+          value="0"
+          sub="--"
+          trend="--"
           up={true}
-          data={[
-            { v: 32 },
-            { v: 38 },
-            { v: 35 },
-            { v: 41 },
-            { v: 44 },
-            { v: 45 },
-            { v: 47 },
-          ]}
+          data={[{ v: 0 }]}
           color="#F59E0B"
           gid="ha4"
           Icon={UserPlus}
+          onClick={() => navigate(`${ROUTES.REPORTS}?report=patient-registrations`)}
         />
         <DKpi
           title="Doctors Available Today"
-          value="18 / 24"
-          sub="Available / Total"
-          trend="18 Active on Duty"
+          value="0"
+          sub="--"
+          trend="--"
           up={true}
-          data={[
-            { v: 14 },
-            { v: 16 },
-            { v: 15 },
-            { v: 17 },
-            { v: 16 },
-            { v: 18 },
-            { v: 18 },
-          ]}
+          data={[{ v: 0 }]}
           color="#0D47A1"
           gid="ha5"
           Icon={Stethoscope}
@@ -647,10 +468,10 @@ export function HospitalAdminDashboard({
           >
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#0D47A1]" /> Peak
-              Patient Flow: 3 PM - 4 PM (18 appts/hr)
+              Patient Flow: No Data
             </span>
             <span className="font-semibold text-[#111827]">
-              Total Cumulative: 142 Completed
+              Total Cumulative: 0 Completed
             </span>
           </div>
         </div>
@@ -716,7 +537,7 @@ export function HospitalAdminDashboard({
             className="mt-2 text-[11px] text-center text-[#64748B]"
             style={{ fontFamily: RB }}
           >
-            Period: Today · 194 Total Recorded Visits
+            Period: Today · 0 Total Recorded Visits
           </div>
         </div>
       </div>
@@ -770,9 +591,9 @@ export function HospitalAdminDashboard({
             className="mt-3 pt-3 border-t border-gray-50 text-xs text-[#64748B] flex items-center justify-between"
             style={{ fontFamily: RB }}
           >
-            <span>Busiest: General OPD (48 appts)</span>
+            <span>No Data</span>
             <span className="font-semibold text-[#0D47A1]">
-              164 Total Appts
+              0 Total Appts
             </span>
           </div>
         </div>
@@ -781,7 +602,7 @@ export function HospitalAdminDashboard({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
           <SH
             title="Doctor Availability"
-            sub="Current Staffing Overview (24 Doctors)"
+            sub="Current Staffing Overview"
           />
           <div className="space-y-3 my-auto">
             {HA_DOC_AVAILABILITY.map((d) => {
@@ -819,8 +640,8 @@ export function HospitalAdminDashboard({
             className="mt-4 pt-3 border-t border-gray-50 text-xs text-[#64748B] flex items-center justify-between"
             style={{ fontFamily: RB }}
           >
-            <span>Available + In Consult: 16 Active</span>
-            <span className="font-semibold text-[#66BB6A]">66.7% On Duty</span>
+            <span>Available + In Consult: 0 Active</span>
+            <span className="font-semibold text-[#66BB6A]">0% On Duty</span>
           </div>
         </div>
 

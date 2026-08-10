@@ -19,7 +19,7 @@ export const ROUTES = {
   PATIENT_DOCTORS: "/patient-doctors",
   PATIENT_QUEUE: "/my-queue",
   PATIENT_NOTIFICATIONS: "/patient-notifications",
-  PATIENT_DOCTOR_ASSIGNED: "/doctor/patients",
+  PATIENT_DOCTOR_ASSIGNED: "/doctors/:doctorId/patients",
   PATIENT_NURSE_VITALS: "/nurse/vitals",
   PATIENT_ACCOUNTANT_BILLING: "/accountant/patients/billing",
   APPOINTMENTS: "/appointments",

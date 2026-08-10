@@ -854,4 +854,87 @@ export const patientsApi = {
       return [];
     }
   },
+
+  /**
+   * GET /api/v1/doctor/patients
+   * Fetch patients assigned to the logged-in doctor
+   */
+  getDoctorPatients: async (params?: {
+    page?: number;
+    size?: number;
+    search?: string;
+  }): Promise<PaginatedResponse<Patient>> => {
+    try {
+      const searchParams = new URLSearchParams();
+      if (params?.page !== undefined)
+        searchParams.append("page", String(params.page));
+      if (params?.size !== undefined)
+        searchParams.append("size", String(params.size));
+      if (params?.search) searchParams.append("search", params.search);
+
+      const url = `/api/v1/doctor/patients${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+      const response = await apiClient.get<{
+        doctorId?: string;
+        doctorName?: string;
+        totalPatients?: number;
+        page?: number;
+        size?: number;
+        totalPages?: number;
+        patients?: Array<{
+          patientId?: string;
+          mrn?: string;
+          fullName?: string;
+          gender?: string;
+          age?: number;
+          mobileNumber?: string;
+          bloodGroup?: string;
+          visitCount?: number;
+          lastVisitDate?: string;
+          nextAppointmentDate?: string;
+          lastVisit?: string;
+          totalVisits?: number;
+        }>;
+      }>(url);
+
+      const data = response.data;
+      const patients: Patient[] = (data?.patients || []).map((p) => ({
+        id: p.patientId ? Number(p.patientId) || undefined : undefined,
+        mrn: p.mrn || "",
+        fullName: p.fullName || "",
+        name: p.fullName,
+        patientName: p.fullName,
+        gender: p.gender || "MALE",
+        age: p.age,
+        phone: p.mobileNumber,
+        mobileNumber: p.mobileNumber,
+        mobile: p.mobileNumber,
+        bloodGroup: p.bloodGroup,
+        status: "ACTIVE",
+        registrationDate: p.lastVisitDate,
+        insuranceDetails: null,
+        visitCount: p.visitCount,
+        lastVisitDate: p.lastVisitDate,
+        nextAppointmentDate: p.nextAppointmentDate,
+        lastVisit: p.lastVisit,
+        totalVisits: p.totalVisits,
+      }));
+
+      return {
+        items: patients,
+        total: data?.totalPatients || patients.length,
+        page: (data?.page || 0) + 1,
+        limit: data?.size || 20,
+        totalPages: data?.totalPages || 1,
+      };
+    } catch (error) {
+      console.warn("[patientApi] Failed to fetch doctor patients:", error);
+      return {
+        items: [],
+        total: 0,
+        page: params?.page || 1,
+        limit: params?.size || 20,
+        totalPages: 1,
+      };
+    }
+  },
 };

@@ -97,6 +97,8 @@ const navIdToPath = (role: Role, navId: NavId): string => {
         return ROUTES.DASHBOARD;
       case "my-schedule":
         return ROUTES.DOCTOR_MY_SCHEDULE;
+      case "patients":
+        return ROUTES.DOCTOR_PATIENTS;
       case "appointments":
         return ROUTES.DOCTOR_APPOINTMENTS;
       case "my-queue":

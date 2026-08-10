@@ -40,8 +40,8 @@ export function BillingRuleConfiguration({
           gap: "8px",
         }}
       >
-        <FileText size={18} style={{ color: "#009688" }} /> Section 06:
-        General Financial & Credit Rules
+        <FileText size={18} style={{ color: "#009688" }} /> Section 06: General
+        Financial & Credit Rules
       </h3>
 
       <div
@@ -76,7 +76,9 @@ export function BillingRuleConfiguration({
             </span>
             <input
               type="checkbox"
-              checked={(billingRules as unknown as Record<string, boolean>)[item.key]}
+              checked={
+                (billingRules as unknown as Record<string, boolean>)[item.key]
+              }
               onChange={(e) =>
                 setBillingRules((prev) => ({
                   ...prev,

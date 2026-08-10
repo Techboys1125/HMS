@@ -7,3 +7,7 @@ export * from "./pages/ReceptionDashboard";
 export * from "./pages/AccountantDashboard";
 export * from "./pages/PatientDashboard";
 export * from "./components/DashboardShared";
+export * from "./hooks/useNurseDashboard";
+export * from "./hooks/useReceptionDashboard";
+export * from "./hooks/useAccountantDashboard";
+export * from "./types/dashboard.types";

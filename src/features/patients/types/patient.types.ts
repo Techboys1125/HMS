@@ -130,6 +130,11 @@ export interface Patient {
     fullName?: string;
     role?: string;
   };
+  visitCount?: number;
+  lastVisitDate?: string;
+  nextAppointmentDate?: string | null;
+  lastVisit?: string;
+  totalVisits?: number;
 }
 
 export interface PatientStatistics {
@@ -261,7 +266,9 @@ export type PatientAppointment = {
     | "In-Progress"
     | "Completed"
     | "Cancelled"
-    | "Pending";
+    | "Pending"
+    | "Waiting for Vitals"
+    | "Waiting for Doctor";
   roomLocation: string;
   reason: string;
   notes: string;
@@ -520,6 +527,11 @@ export interface ApiPatientPrescription {
   diagnosis?: string;
   followUpDate?: string;
   medicines?: Array<{
+    dose: any;
+    route: string;
+    route: string;
+    strength: string;
+    medicineName: string;
     name: string;
     dosage?: string;
     frequency?: string;

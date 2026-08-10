@@ -12,7 +12,10 @@ export type BillingAction =
   | "view_history"
   | "view_daily_report";
 
-export function checkBillingPermission(role: string | undefined, action: BillingAction): boolean {
+export function checkBillingPermission(
+  role: string | undefined,
+  action: BillingAction,
+): boolean {
   if (!role) return false;
   const r = String(role).toUpperCase();
 
@@ -27,21 +30,20 @@ export function checkBillingPermission(role: string | undefined, action: Billing
       // Accountant can do everything related to billing
       return true;
 
-    case "RECEPTIONIST":
+    case "RECEPTIONIST": {
       // Receptionist: only Create Invoice + Collect Payment
       const receptionistAllowed: BillingAction[] = [
         "generate_invoice",
         "collect_payment",
       ];
       return receptionistAllowed.includes(action);
+    }
 
-    case "PATIENT":
+    case "PATIENT": {
       // Patient permissions
-      const patientAllowed: BillingAction[] = [
-        "view_bills",
-        "view_history",
-      ];
+      const patientAllowed: BillingAction[] = ["view_bills", "view_history"];
       return patientAllowed.includes(action);
+    }
 
     default:
       return false;

@@ -27,7 +27,7 @@ export interface AppointmentPage<T> {
 const STATUS_MAP: Record<string, AppointmentRecord["status"]> = {
   BOOKED: "Booked",
   CONFIRMED: "Booked",
-  CHECKED_IN: "Checked-In",
+  CHECKED_IN: "Waiting for Vitals",
   IN_CONSULTATION: "In Consultation",
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
@@ -835,13 +835,12 @@ export const appointmentService = {
   ): Promise<boolean> {
     const slots = await this.listAvailableSlots(doctorId, date);
     const slot = slots.find(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (s: any) =>
+      (s: Record<string, unknown>) =>
         s.time === startTime ||
         s.startTime === startTime ||
         s.slot === startTime,
     );
-    return (slot as any)?.available !== false;
+    return (slot as Record<string, unknown>)?.available !== false;
   },
 
   async getBlockedStatuses(): Promise<string[]> {

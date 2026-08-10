@@ -1,9 +1,5 @@
 export type PaymentStatus =
-  | "Pending"
-  | "Partially Paid"
-  | "Paid"
-  | "Cancelled"
-  | "Refunded";
+  "Pending" | "Partially Paid" | "Paid" | "Cancelled" | "Refunded";
 
 export type PaymentMethod = "Cash" | "Card" | "UPI" | "Bank Transfer";
 
@@ -210,6 +206,13 @@ export interface BillDetailEncounter {
 }
 
 export interface BillDetailBill {
+  bill: any;
+  summary: BillSummaryAmount;
+  paymentHistory: BillPaymentRecord[];
+  items: BillItem[];
+  appointment?: BillDetailAppointment;
+  doctor?: BillDetailDoctor;
+  patient?: BillDetailPatient;
   id: number;
   billNumber: string;
   billType: string;
@@ -263,6 +266,7 @@ export interface BillFinalizeResponse {
 }
 
 export interface BillPaymentRecord {
+  transactionDate?: string;
   id?: number;
   paymentId?: number;
   paymentNumber?: string;

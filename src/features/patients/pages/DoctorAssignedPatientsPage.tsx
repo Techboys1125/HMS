@@ -25,7 +25,11 @@ export function DoctorAssignedPatientsPage({ doctorId }: { doctorId: string }) {
         if (!cancelled) {
           const records = response.items.map(mapApiPatientToPatientRecord);
           setPatients(
-            records.filter((p) => p.assignedDoctor === doctorId || true),
+            records.filter((p) => {
+              const assigned = String(p.assignedDoctor || "").toLowerCase();
+              const docId = String(doctorId || "").toLowerCase();
+              return assigned === docId || assigned.includes(docId);
+            }),
           );
         }
       })

@@ -375,6 +375,206 @@ export function EditPatientInformationDrawer({
   );
 }
 
+export function RegisterPatientDrawer({
+  isOpen,
+  onClose,
+  onSaveSuccess,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSaveSuccess?: () => void;
+}) {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    dob: "",
+    gender: "Male" as "Male" | "Female" | "Other",
+    bloodGroup: "O+",
+    phone: "",
+    email: "",
+    address: "",
+    emergencyName: "",
+    emergencyNumber: "",
+    relationship: "Spouse",
+    patientCategory: "General" as
+      "General" | "Senior Citizen" | "Corporate" | "VIP" | "Emergency",
+  });
+
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
+    setSuccessMessage(`Patient ${fullName} registered successfully!`);
+    setTimeout(() => {
+      setSuccessMessage(null);
+      if (onSaveSuccess) onSaveSuccess();
+      onClose();
+    }, 1200);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-hidden">
+      <div
+        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      />
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+        <div className="w-screen max-w-md bg-slate-50 shadow-2xl flex flex-col">
+          {/* Header */}
+          <div className="bg-white px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                Register New Patient
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">Enter demographics for registration</p>
+            </div>
+            <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+            {successMessage && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-4 py-3 rounded-xl flex items-center gap-2 animate-in fade-in zoom-in-95">
+                <CheckCircle2 size={16} className="text-[#66BB6A] shrink-0" />
+                <span>{successMessage}</span>
+              </div>
+            )}
+
+            {/* Demographics */}
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+              <h3 className="text-xs font-bold text-[#0D47A1] uppercase tracking-wider" style={{ fontFamily: PP }}>
+                Demographics
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">First Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Last Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Date of Birth *</label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.dob}
+                    onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                    className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Gender *</label>
+                  <select
+                    value={formData.gender}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value as "Male" | "Female" | "Other" })}
+                    className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Phone Number *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Full Residential Address</label>
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                />
+              </div>
+            </div>
+
+            {/* Emergency Contact */}
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+              <h3 className="text-xs font-bold text-[#0D47A1] uppercase tracking-wider" style={{ fontFamily: PP }}>
+                Emergency Contact &amp; Category
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Contact Person Name</label>
+                  <input
+                    type="text"
+                    value={formData.emergencyName}
+                    onChange={(e) => setFormData({ ...formData, emergencyName: e.target.value })}
+                    className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 mb-1">Contact Phone</label>
+                  <input
+                    type="text"
+                    value={formData.emergencyNumber}
+                    onChange={(e) => setFormData({ ...formData, emergencyNumber: e.target.value })}
+                    className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex items-center gap-3 pt-4">
+              <button
+                type="submit"
+                className="flex-1 py-3 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                style={{ fontFamily: PP }}
+              >
+                <Save size={15} /> Save Patient
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 py-3 rounded-xl border border-gray-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ProfileBookApptDrawer({
   isOpen,
   onClose,

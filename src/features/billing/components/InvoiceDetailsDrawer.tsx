@@ -1,7 +1,6 @@
 import { X, Printer } from "lucide-react";
 import { PP, RB } from "../constants/billing.constants";
 import type { InvoiceRecord } from "../types/billing.types";
-import { BillingStatusBadge } from "./BillingStatusBadge";
 
 interface InvoiceDetailsDrawerProps {
   invoice: InvoiceRecord | null;
@@ -50,7 +49,9 @@ export function InvoiceDetailsDrawer({
             </div>
             <div className="text-right">
               <div className="text-slate-500">Date: {invoice.invoiceDate}</div>
-              <div className="font-medium text-[#009688]">{invoice.department}</div>
+              <div className="font-medium text-[#009688]">
+                {invoice.department}
+              </div>
               <div className="text-slate-700">{invoice.doctorName}</div>
             </div>
           </div>

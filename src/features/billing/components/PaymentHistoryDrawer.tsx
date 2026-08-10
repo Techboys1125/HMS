@@ -38,9 +38,7 @@ export function PaymentHistoryDrawer({
               <div className="font-bold text-[#111827]">
                 {invoice.patientName}
               </div>
-              <div className="text-slate-400 font-mono">
-                {invoice.mrn}
-              </div>
+              <div className="text-slate-400 font-mono">{invoice.mrn}</div>
             </div>
             <BillingStatusBadge status={invoice.paymentStatus} />
           </div>
@@ -52,7 +50,7 @@ export function PaymentHistoryDrawer({
             >
               Audit Trail
             </div>
-            
+
             <div className="p-3 rounded-xl border border-slate-200 space-y-1 bg-white">
               <div className="flex justify-between font-semibold text-[#111827]">
                 <span>Initial Invoice Created</span>
@@ -66,9 +64,7 @@ export function PaymentHistoryDrawer({
             {invoice.paidAmount > 0 && (
               <div className="p-3 rounded-xl border border-teal-200 bg-teal-50/50 space-y-1">
                 <div className="flex justify-between font-semibold text-[#009688]">
-                  <span>
-                    Payment Collected ({invoice.paymentMethod})
-                  </span>
+                  <span>Payment Collected ({invoice.paymentMethod})</span>
                   <span>₹{invoice.paidAmount.toLocaleString()}</span>
                 </div>
                 <div className="text-[11px] text-slate-500">

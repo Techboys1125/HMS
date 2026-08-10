@@ -2,7 +2,6 @@ export { BillingManagementPage } from "./pages/BillingManagementPage";
 export { BillingConfigurationPage } from "./pages/BillingConfigurationPage";
 export { InvoiceDetailsPage } from "./pages/InvoiceDetailsPage";
 export { PaymentHistoryPage } from "./pages/PaymentHistoryPage";
-export { DailyBillingReportPage } from "./pages/DailyBillingReportPage";
 export { CreateInvoiceWorkspacePage } from "./pages/CreateInvoiceWorkspacePage";
 export { CollectPaymentWorkspacePage } from "./pages/CollectPaymentWorkspacePage";
 export { InvoicePrintPreviewPage } from "./pages/InvoicePrintPreviewPage";

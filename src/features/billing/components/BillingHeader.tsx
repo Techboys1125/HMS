@@ -1,4 +1,11 @@
-import { Plus, Download, RotateCcw, History, BarChart2, Activity } from "lucide-react";
+import {
+  Plus,
+  Download,
+  RotateCcw,
+  History,
+  BarChart2,
+  Activity,
+} from "lucide-react";
 import { useAuthStore } from "../../auth";
 import { checkBillingPermission } from "../permissions/billing.permissions";
 import { PP, RB } from "../constants/billing.constants";
@@ -24,8 +31,10 @@ export function BillingHeader({
 }: HeaderProps) {
   const user = useAuthStore((s) => s.user);
   const role = user?.role;
-  const showGenerate = checkBillingPermission(role, "generate_invoice") && !isAdminReadOnly;
-  const showExport = checkBillingPermission(role, "export_reports") || isAdminReadOnly;
+  const showGenerate =
+    checkBillingPermission(role, "generate_invoice") && !isAdminReadOnly;
+  const showExport =
+    checkBillingPermission(role, "export_reports") || isAdminReadOnly;
   const showDailyReport = checkBillingPermission(role, "view_daily_report");
   const showPaymentsLedger = checkBillingPermission(role, "view_history");
 
@@ -53,10 +62,14 @@ export function BillingHeader({
             {isAdminReadOnly ? "Hospital Administration" : "Home"}
           </span>
           <span className="text-slate-400">/</span>
-          <span className="text-[#0D47A1] font-semibold">Billing & Payment</span>
+          <span className="text-[#0D47A1] font-semibold">
+            Billing & Payment
+          </span>
           {isAdminReadOnly && <span className="text-slate-400">/</span>}
           {isAdminReadOnly && (
-            <span className="text-[#0D47A1] font-semibold">Billing Dashboard</span>
+            <span className="text-[#0D47A1] font-semibold">
+              Billing Dashboard
+            </span>
           )}
         </div>
         {/* Title & Subtitle */}
@@ -88,7 +101,9 @@ export function BillingHeader({
 
         {showExport && !showGenerate && (
           <button
-            onClick={onExportReport || (() => alert("Exporting Billing Report..."))}
+            onClick={
+              onExportReport || (() => alert("Exporting Billing Report..."))
+            }
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95 cursor-pointer"
             style={{ fontFamily: PP }}
           >
@@ -147,7 +162,9 @@ export function BillingHeader({
               className="text-[10px] text-[#64748B]"
               style={{ fontFamily: RB }}
             >
-              {user?.role ? String(user.role).replace("_", " ") : "Chief Accountant"}
+              {user?.role
+                ? String(user.role).replace("_", " ")
+                : "Chief Accountant"}
             </div>
           </div>
         </div>

@@ -14,13 +14,10 @@ import type {
   ReceiptData,
   BillingDashboardSummary,
   OutstandingBill,
-  PatientBillingHistory,
   DailyReport,
   PaymentModeReport,
   BillAuditResponse,
   InvoiceRecord,
-  PaymentMethod,
-  PaymentStatus,
 } from "../types/billing.types";
 import { mapApiBillToInvoiceRecord } from "../utils/billing.utils";
 
@@ -31,7 +28,11 @@ export const billingService = {
     page?: number;
     size?: number;
     sort?: string;
-  }): Promise<{ bills: BillListItem[]; totalElements: number; totalPages: number }> {
+  }): Promise<{
+    bills: BillListItem[];
+    totalElements: number;
+    totalPages: number;
+  }> {
     const response = await billingApi.searchBills(params);
     const data = response.data;
     return {
@@ -90,23 +91,19 @@ export const billingService = {
     return response.data;
   },
 
-  async cancelBill(
-    billId: number | string,
-    reason?: string,
-  ): Promise<void> {
+  async cancelBill(billId: number | string, reason?: string): Promise<void> {
     await billingApi.cancelBill(billId, reason ? { reason } : undefined);
   },
 
-  async voidBill(
-    billId: number | string,
-    reason: string,
-  ): Promise<void> {
+  async voidBill(billId: number | string, reason: string): Promise<void> {
     await billingApi.voidBill(billId, { reason });
   },
 
   // ── Payments ─────────────────────────────────────────────────────────────
 
-  async getPaymentHistory(billId: number | string): Promise<PaymentHistoryResponse> {
+  async getPaymentHistory(
+    billId: number | string,
+  ): Promise<PaymentHistoryResponse> {
     const response = await billingApi.getPaymentHistory(billId);
     return response.data;
   },
@@ -181,10 +178,7 @@ export const billingService = {
               : bill.paymentStatus === "PARTIALLY_PAID"
                 ? bill.amount / 2
                 : 0,
-          balanceAmount:
-            bill.paymentStatus === "PAID"
-              ? 0
-              : bill.amount,
+          balanceAmount: bill.paymentStatus === "PAID" ? 0 : bill.amount,
         },
       }),
     );

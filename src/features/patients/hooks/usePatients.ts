@@ -68,3 +68,14 @@ export function usePatientAudit(mrn: string) {
     enabled: !!mrn,
   });
 }
+
+export function useDoctorPatients(params?: {
+  page?: number;
+  size?: number;
+  search?: string;
+}) {
+  return useQuery({
+    queryKey: [...patientKeys.all, "doctor", params?.search ?? ""],
+    queryFn: () => patientsApi.getDoctorPatients(params),
+  });
+}

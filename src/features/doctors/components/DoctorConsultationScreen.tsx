@@ -177,7 +177,9 @@ export function DoctorConsultationScreen({
   const [completed, setCompleted] = useState(false);
   const [completeMsg, setCompleteMsg] = useState<string | null>(null);
   const [patientData, setPatientData] = useState<AppointmentData | null>(null);
-  const [loadingPatient, setLoadingPatient] = useState(true);
+  const [loadComplete, setLoadComplete] = useState(false);
+
+  const loadingPatient = appointmentId != null && !loadComplete;
 
   const [soapData, setSoapData] = useState({
     subjective: "",
@@ -188,7 +190,6 @@ export function DoctorConsultationScreen({
 
   useEffect(() => {
     if (!appointmentId) {
-      setLoadingPatient(false);
       return;
     }
     let cancelled = false;
@@ -231,7 +232,7 @@ export function DoctorConsultationScreen({
       } catch {
         /* keep null */
       } finally {
-        if (!cancelled) setLoadingPatient(false);
+        if (!cancelled) setLoadComplete(true);
       }
     }
     load();

@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Eye, DollarSign, Printer, MoreVertical, History, Ban, FileText } from "lucide-react";
+import {
+  Eye,
+  DollarSign,
+  Printer,
+  MoreVertical,
+  History,
+  Ban,
+  FileText,
+} from "lucide-react";
 import { PP, RB } from "../constants/billing.constants";
 import type { InvoiceRecord } from "../types/billing.types";
 import { BillingStatusBadge } from "./BillingStatusBadge";
@@ -47,13 +55,19 @@ export function InvoiceRow({
       </td>
       {/* Patient */}
       <td className="py-3 px-4">
-        <div className="font-semibold text-[#111827]">{invoice.patientName}</div>
-        <div className="text-[11px] text-slate-400 font-mono">{invoice.mrn}</div>
+        <div className="font-semibold text-[#111827]">
+          {invoice.patientName}
+        </div>
+        <div className="text-[11px] text-slate-400 font-mono">
+          {invoice.mrn}
+        </div>
       </td>
       {/* Doctor & Department */}
       <td className="py-3 px-4">
         <div className="font-medium text-[#111827]">{invoice.doctorName}</div>
-        <div className="text-[11px] text-[#009688] font-medium">{invoice.department}</div>
+        <div className="text-[11px] text-[#009688] font-medium">
+          {invoice.department}
+        </div>
       </td>
       {/* Amounts */}
       <td className="py-3 px-4 text-right font-semibold text-[#111827]">
@@ -80,15 +94,17 @@ export function InvoiceRow({
             <Eye size={14} />
           </button>
 
-          {!isAdminReadOnly && invoice.balance > 0 && invoice.paymentStatus !== "Cancelled" && (
-            <button
-              onClick={() => onCollectPaymentClick?.(invoice)}
-              className="p-1.5 rounded-lg text-[#009688] hover:bg-teal-50 transition-colors"
-              title="Collect Payment"
-            >
-              <DollarSign size={14} />
-            </button>
-          )}
+          {!isAdminReadOnly &&
+            invoice.balance > 0 &&
+            invoice.paymentStatus !== "Cancelled" && (
+              <button
+                onClick={() => onCollectPaymentClick?.(invoice)}
+                className="p-1.5 rounded-lg text-[#009688] hover:bg-teal-50 transition-colors"
+                title="Collect Payment"
+              >
+                <DollarSign size={14} />
+              </button>
+            )}
 
           <button
             onClick={() => onViewInvoiceDetailsClick?.(invoice)}
@@ -101,7 +117,9 @@ export function InvoiceRow({
           {/* More Actions Dropdown */}
           <div className="relative">
             <button
-              onClick={() => setActiveMenuId(activeMenuId === invoice.id ? null : invoice.id)}
+              onClick={() =>
+                setActiveMenuId(activeMenuId === invoice.id ? null : invoice.id)
+              }
               className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
             >
               <MoreVertical size={14} />
@@ -119,18 +137,20 @@ export function InvoiceRow({
                   <History size={13} className="text-slate-400" />
                   View Payment History
                 </button>
-                {!isAdminReadOnly && invoice.paymentStatus !== "Cancelled" && invoice.paymentStatus !== "Refunded" && (
-                  <button
-                    onClick={() => {
-                      if (onCancelInvoice) onCancelInvoice(invoice.id);
-                      setActiveMenuId(null);
-                    }}
-                    className="w-full px-3 py-2 text-xs text-[#EF4444] hover:bg-red-50 flex items-center gap-2"
-                  >
-                    <Ban size={13} className="text-slate-400" />
-                    Cancel Invoice
-                  </button>
-                )}
+                {!isAdminReadOnly &&
+                  invoice.paymentStatus !== "Cancelled" &&
+                  invoice.paymentStatus !== "Refunded" && (
+                    <button
+                      onClick={() => {
+                        if (onCancelInvoice) onCancelInvoice(invoice.id);
+                        setActiveMenuId(null);
+                      }}
+                      className="w-full px-3 py-2 text-xs text-[#EF4444] hover:bg-red-50 flex items-center gap-2"
+                    >
+                      <Ban size={13} className="text-slate-400" />
+                      Cancel Invoice
+                    </button>
+                  )}
               </div>
             )}
           </div>
@@ -152,7 +172,10 @@ export function BillingTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse" style={{ fontFamily: RB }}>
+      <table
+        className="w-full text-left border-collapse"
+        style={{ fontFamily: RB }}
+      >
         <thead>
           <tr className="bg-slate-50 border-b border-gray-100 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
             <th className="py-3 px-4">Invoice ID</th>
@@ -189,11 +212,18 @@ export function BillingTable({
                   <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
                     <FileText size={24} />
                   </div>
-                  <h3 className="text-sm font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                  <h3
+                    className="text-sm font-bold text-[#111827]"
+                    style={{ fontFamily: PP }}
+                  >
                     No invoices available
                   </h3>
-                  <p className="text-xs text-slate-500" style={{ fontFamily: RB }}>
-                    There are no billing records matching your search query or filter selection.
+                  <p
+                    className="text-xs text-slate-500"
+                    style={{ fontFamily: RB }}
+                  >
+                    There are no billing records matching your search query or
+                    filter selection.
                   </p>
                 </div>
               </td>

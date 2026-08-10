@@ -28,7 +28,7 @@ export function BillingStatusBadge({ status }: { status: string }) {
       dot: "bg-[#EF4444]",
     },
   };
-  
+
   const style = map[status] || {
     bg: "bg-slate-100 border-slate-200",
     text: "text-[#64748B]",

@@ -175,6 +175,18 @@ export function PatientTable({
           valA = a.registrationDate || "";
           valB = b.registrationDate || "";
           break;
+        case "visit_count":
+          valA = a.visitCount || 0;
+          valB = b.visitCount || 0;
+          break;
+        case "last_visit":
+          valA = a.lastVisitDate || "";
+          valB = b.lastVisitDate || "";
+          break;
+        case "next_appointment":
+          valA = a.nextAppointmentDate || "";
+          valB = b.nextAppointmentDate || "";
+          break;
         case "status":
           valA = (a.status || "").toLowerCase();
           valB = (b.status || "").toLowerCase();
@@ -191,19 +203,14 @@ export function PatientTable({
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize] = useState(10);
 
   const totalPages = Math.ceil(sortedPatients.length / pageSize);
+  const safeCurrentPage = currentPage > totalPages ? 1 : currentPage;
   const paginatedPatients = sortedPatients.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
+    (safeCurrentPage - 1) * pageSize,
+    safeCurrentPage * pageSize,
   );
-
-  // Reset to page 1 when filters change
-  const displayPatients = useMemo(() => {
-    setCurrentPage(1);
-    return sortedPatients;
-  }, [sortedPatients]);
 
   // Column definitions & role-based visibility
   const isDoctor = activeRole === "DOCTOR";
@@ -222,9 +229,12 @@ export function PatientTable({
       visible: !isDoctor && !isReceptionist,
     },
     { key: "reg_type", label: "Reg. Type", visible: !isDoctor },
-    { key: "assigned_doctor", label: "Assigned Doctor", visible: true },
+    { key: "assigned_doctor", label: "Assigned Doctor", visible: !isDoctor },
     { key: "reg_date", label: "Registration Date", visible: !isDoctor },
-    { key: "status", label: "Status", visible: true },
+    { key: "visit_count", label: "Visit Count", visible: isDoctor },
+    { key: "last_visit", label: "Last Visit", visible: isDoctor },
+    { key: "next_appointment", label: "Next Appointment", visible: isDoctor },
+    { key: "status", label: "Status", visible: !isDoctor },
     { key: "actions", label: "Actions", visible: true },
   ].filter((c) => c.visible);
 
@@ -435,7 +445,7 @@ export function PatientTable({
 
                     {columns.some((c) => c.key === "blood_group") && (
                       <td className="px-4 py-3.5 whitespace-nowrap text-xs font-bold text-[#009688]">
-                        {p.bloodGroup || "O+"}
+                        {p.bloodGroup ? p.bloodGroup.replace("_POSITIVE", "+").replace("_NEGATIVE", "-").replace("UNKNOWN", "N/A").replace("N/A", "N/A") : "-"}
                       </td>
                     )}
 
@@ -460,6 +470,24 @@ export function PatientTable({
                     {columns.some((c) => c.key === "reg_date") && (
                       <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-600">
                         {regDate}
+                      </td>
+                    )}
+
+                    {columns.some((c) => c.key === "visit_count") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-medium">
+                        {p.visitCount ?? 0}
+                      </td>
+                    )}
+
+                    {columns.some((c) => c.key === "last_visit") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-medium">
+                        {p.lastVisitDate || "-"}
+                      </td>
+                    )}
+
+                    {columns.some((c) => c.key === "next_appointment") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
+                        {p.nextAppointmentDate || "-"}
                       </td>
                     )}
 
@@ -604,7 +632,7 @@ export function PatientTable({
       {/* TABLE FOOTER / PAGINATION */}
       {!isLoading && patients.length > 0 && (
         <Pagination
-          currentPage={currentPage}
+          currentPage={safeCurrentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
           pageSize={pageSize}

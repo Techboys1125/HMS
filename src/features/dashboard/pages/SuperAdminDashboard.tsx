@@ -4,9 +4,6 @@ import {
   Globe,
   Server,
   Plus,
-  HardDrive,
-  Database,
-  Wifi,
   Shield,
   Settings,
   Star,
@@ -15,111 +12,18 @@ import {
   DKpi,
   Chip,
   SH,
-  AlertRow,
   ProgressBar,
   PP,
   RB,
 } from "../components/DashboardShared";
 
-const HOSPITALS = [
-  {
-    name: "City General Hospital",
-    city: "New York",
-    units: 450,
-    staff: 312,
-    status: "active",
-    plan: "Enterprise",
-  },
-  {
-    name: "St. Mary Medical Center",
-    city: "Los Angeles",
-    units: 280,
-    staff: 198,
-    status: "active",
-    plan: "Professional",
-  },
-  {
-    name: "Green Valley Clinic",
-    city: "Chicago",
-    units: 120,
-    staff: 87,
-    status: "active",
-    plan: "Standard",
-  },
-  {
-    name: "Sunrise Healthcare",
-    city: "Houston",
-    units: 340,
-    staff: 241,
-    status: "active",
-    plan: "Enterprise",
-  },
-  {
-    name: "Metro Health Institute",
-    city: "Phoenix",
-    units: 210,
-    staff: 163,
-    status: "inactive",
-    plan: "Standard",
-  },
-  {
-    name: "Harbor Point Hospital",
-    city: "Philadelphia",
-    units: 380,
-    staff: 279,
-    status: "active",
-    plan: "Professional",
-  },
-];
+const HOSPITALS: { name: string; city: string; units: number; staff: number; status: string; plan: string }[] = [];
 
-const SA_AUDIT = [
-  {
-    user: "Admin Kumar",
-    action: "Modified hospital settings for City General",
-    time: "2m ago",
-    type: "settings",
-  },
-  {
-    user: "System",
-    action: "Automated backup completed successfully",
-    time: "18m ago",
-    type: "system",
-  },
-  {
-    user: "Admin Sharma",
-    action: "Created new user account — Dr. R. Kapoor",
-    time: "32m ago",
-    type: "user",
-  },
-  {
-    user: "Admin Kumar",
-    action: "Assigned Admin role to J. Williams",
-    time: "1h ago",
-    type: "role",
-  },
-  {
-    user: "System",
-    action: "License renewed for Harbor Point Hospital",
-    time: "2h ago",
-    type: "license",
-  },
-];
+const SA_AUDIT: { user: string; action: string; time: string; type: string }[] = [];
 
-const ROLE_DIST = [
-  { label: "Patients", count: 550, color: "#4DB6AC" },
-  { label: "Nurses", count: 689, color: "#009688" },
-  { label: "Doctors", count: 342, color: "#0D47A1" },
-  { label: "Receptionists", count: 156, color: "#66BB6A" },
-  { label: "Accountants", count: 87, color: "#F59E0B" },
-  { label: "Admins", count: 23, color: "#EF4444" },
-];
+const ROLE_DIST: { label: string; count: number; color: string }[] = [];
 
-const SYS_METRICS = [
-  { label: "CPU Usage", value: 42, color: "#009688", icon: Server },
-  { label: "Memory", value: 67, color: "#0D47A1", icon: HardDrive },
-  { label: "Disk Space", value: 38, color: "#66BB6A", icon: Database },
-  { label: "Network I/O", value: 24, color: "#F59E0B", icon: Wifi },
-];
+const SYS_METRICS: { label: string; value: number; color: string; icon: React.ElementType }[] = [];
 
 export function SuperAdminDashboard() {
   const totalUsers = ROLE_DIST.reduce((s, r) => s + r.count, 0);
@@ -129,76 +33,44 @@ export function SuperAdminDashboard() {
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <DKpi
           title="Total Hospitals"
-          value="12"
-          sub="10 active · 2 inactive"
-          trend="+2 this quarter"
+          value="0"
+          sub="--"
+          trend="--"
           up={true}
-          data={[
-            { v: 8 },
-            { v: 9 },
-            { v: 9 },
-            { v: 10 },
-            { v: 11 },
-            { v: 11 },
-            { v: 12 },
-          ]}
+          data={[{ v: 0 }]}
           color="#0D47A1"
           gid="sa1"
           Icon={Building2}
         />
         <DKpi
           title="Total Users"
-          value="1,847"
-          sub="Across all facilities"
-          trend="+124 this month"
+          value="0"
+          sub="--"
+          trend="--"
           up={true}
-          data={[
-            { v: 1600 },
-            { v: 1650 },
-            { v: 1690 },
-            { v: 1720 },
-            { v: 1770 },
-            { v: 1810 },
-            { v: 1847 },
-          ]}
+          data={[{ v: 0 }]}
           color="#009688"
           gid="sa2"
           Icon={Users}
         />
         <DKpi
           title="Active Sessions"
-          value="284"
-          sub="Right now"
-          trend="+12% peak hours"
+          value="0"
+          sub="--"
+          trend="--"
           up={true}
-          data={[
-            { v: 180 },
-            { v: 210 },
-            { v: 195 },
-            { v: 240 },
-            { v: 270 },
-            { v: 260 },
-            { v: 284 },
-          ]}
+          data={[{ v: 0 }]}
           color="#0D47A1"
           gid="sa3"
           Icon={Globe}
         />
         <DKpi
           title="System Uptime"
-          value="99.94%"
-          sub="Last 30 days"
-          trend="0 incidents today"
+          value="0"
+          sub="--"
+          trend="--"
           up={true}
-          data={[
-            { v: 99.8 },
-            { v: 99.9 },
-            { v: 99.7 },
-            { v: 99.9 },
-            { v: 100 },
-            { v: 99.9 },
-            { v: 99.94 },
-          ]}
+          data={[{ v: 0 }]}
           color="#66BB6A"
           gid="sa4"
           Icon={Server}
@@ -360,24 +232,7 @@ export function SuperAdminDashboard() {
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
             <SH title="Security Alerts" sub="Requires attention" />
             <div className="space-y-2">
-              <AlertRow
-                level="critical"
-                msg="Failed login attempts — 8 in 10 min"
-                time="4m ago"
-                sub="IP: 192.168.1.45 · User: admin@metro"
-              />
-              <AlertRow
-                level="warning"
-                msg="API rate limit approached (92%)"
-                time="22m ago"
-                sub="Endpoint: /api/v2/patients"
-              />
-              <AlertRow
-                level="info"
-                msg="New device login for Admin Sharma"
-                time="1h ago"
-                sub="Chrome · Windows · Los Angeles"
-              />
+              <div className="text-xs text-[#64748B] text-center py-4" style={{ fontFamily: RB }}>No alerts</div>
             </div>
           </div>
 
@@ -393,13 +248,13 @@ export function SuperAdminDashboard() {
                   Seats Used
                 </span>
                 <span className="font-mono text-xs font-bold text-[#0D47A1]">
-                  847 / 1,000
+                  0 / 1,000
                 </span>
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full bg-[#0D47A1]"
-                  style={{ width: "84.7%" }}
+                  style={{ width: "0%" }}
                 />
               </div>
             </div>
@@ -415,7 +270,7 @@ export function SuperAdminDashboard() {
                   className="text-xs font-semibold text-[#111827]"
                   style={{ fontFamily: PP }}
                 >
-                  Dec 31, 2025
+                  --
                 </div>
               </div>
               <div className="bg-blue-50 rounded-xl p-3 border border-blue-100">
@@ -429,7 +284,7 @@ export function SuperAdminDashboard() {
                   className="text-xs font-semibold text-[#0D47A1]"
                   style={{ fontFamily: PP }}
                 >
-                  Enterprise+
+                  --
                 </div>
               </div>
             </div>

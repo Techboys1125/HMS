@@ -34,7 +34,9 @@ export function BillingConfigurationForm({
   const [taxConfig, setTaxConfig] = useState(initialConfig.tax);
 
   // Section 03: Payment Methods Configuration
-  const [paymentMethods, setPaymentMethods] = useState(initialConfig.paymentMethods);
+  const [paymentMethods, setPaymentMethods] = useState(
+    initialConfig.paymentMethods,
+  );
 
   // Section 04: Discount Configuration
   const [discountConfig, setDiscountConfig] = useState(initialConfig.discount);
@@ -50,7 +52,7 @@ export function BillingConfigurationForm({
 
   const handleTogglePayment = (
     id: string,
-    field: "enabled" | "isDefault" | "reqRef"
+    field: "enabled" | "isDefault" | "reqRef",
   ) => {
     setPaymentMethods((prev) =>
       prev.map((p) => {
@@ -64,7 +66,7 @@ export function BillingConfigurationForm({
           return { ...p, isDefault: false };
         }
         return p;
-      })
+      }),
     );
   };
 
@@ -226,7 +228,9 @@ export function BillingConfigurationForm({
               marginBottom: "8px",
             }}
           >
-            <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
+            <span
+              style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
+            >
               Invoice Series
             </span>
             <div
@@ -298,7 +302,9 @@ export function BillingConfigurationForm({
               marginBottom: "8px",
             }}
           >
-            <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
+            <span
+              style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
+            >
               Payment Methods
             </span>
             <div
@@ -369,7 +375,9 @@ export function BillingConfigurationForm({
               marginBottom: "8px",
             }}
           >
-            <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
+            <span
+              style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
+            >
               Tax Rules
             </span>
             <div
@@ -440,7 +448,9 @@ export function BillingConfigurationForm({
               marginBottom: "8px",
             }}
           >
-            <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
+            <span
+              style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
+            >
               Receipt Template
             </span>
             <div
@@ -571,7 +581,9 @@ export function BillingConfigurationForm({
               boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
             }}
           >
-            <h4 style={{ fontFamily: PP, margin: "0 0 16px 0", fontSize: "16px" }}>
+            <h4
+              style={{ fontFamily: PP, margin: "0 0 16px 0", fontSize: "16px" }}
+            >
               Invoice Layout Preview
             </h4>
             <div
@@ -584,21 +596,42 @@ export function BillingConfigurationForm({
                 fontFamily: RB,
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: "12px",
+                }}
+              >
                 <div>
                   <strong>ST. JUDE HOSPITAL</strong>
-                  <div style={{ fontSize: "10px", color: "#64748B" }}>OPD Receipt</div>
+                  <div style={{ fontSize: "10px", color: "#64748B" }}>
+                    OPD Receipt
+                  </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <strong>{invoiceConfig.prefix}{invoiceConfig.startingNumber}</strong>
-                  <div style={{ fontSize: "10px", color: "#64748B" }}>Date: N/A</div>
+                  <strong>
+                    {invoiceConfig.prefix}
+                    {invoiceConfig.startingNumber}
+                  </strong>
+                  <div style={{ fontSize: "10px", color: "#64748B" }}>
+                    Date: N/A
+                  </div>
                 </div>
               </div>
-              <div style={{ borderTop: "1px solid #E2E8F0", paddingTop: "12px", marginBottom: "12px" }}>
+              <div
+                style={{
+                  borderTop: "1px solid #E2E8F0",
+                  paddingTop: "12px",
+                  marginBottom: "12px",
+                }}
+              >
                 <div>Patient: Sarah Mitchell</div>
                 <div>MRN: MRN-89201</div>
               </div>
-              <table style={{ width: "100%", textAlign: "left", fontSize: "11px" }}>
+              <table
+                style={{ width: "100%", textAlign: "left", fontSize: "11px" }}
+              >
                 <thead>
                   <tr style={{ borderBottom: "1px solid #CBD5E1" }}>
                     <th>Service</th>
@@ -612,14 +645,30 @@ export function BillingConfigurationForm({
                   </tr>
                   {taxConfig.enableTax && (
                     <tr>
-                      <td>{taxConfig.taxName} ({taxConfig.defaultPercentage}%)</td>
-                      <td style={{ textAlign: "right" }}>₹{1000 * (taxConfig.defaultPercentage / 100)}</td>
+                      <td>
+                        {taxConfig.taxName} ({taxConfig.defaultPercentage}%)
+                      </td>
+                      <td style={{ textAlign: "right" }}>
+                        ₹{1000 * (taxConfig.defaultPercentage / 100)}
+                      </td>
                     </tr>
                   )}
                 </tbody>
               </table>
-              <div style={{ borderTop: "1px dashed #CBD5E1", marginTop: "12px", paddingTop: "12px", textAlign: "right", fontWeight: "bold" }}>
-                Grand Total: ₹{1000 + (taxConfig.enableTax ? 1000 * (taxConfig.defaultPercentage / 100) : 0)}
+              <div
+                style={{
+                  borderTop: "1px dashed #CBD5E1",
+                  marginTop: "12px",
+                  paddingTop: "12px",
+                  textAlign: "right",
+                  fontWeight: "bold",
+                }}
+              >
+                Grand Total: ₹
+                {1000 +
+                  (taxConfig.enableTax
+                    ? 1000 * (taxConfig.defaultPercentage / 100)
+                    : 0)}
               </div>
             </div>
             <button

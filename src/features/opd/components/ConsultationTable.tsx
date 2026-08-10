@@ -23,7 +23,6 @@ export interface ConsultationTableProps {
   onResetFilters: () => void;
   canStartConsultation?: boolean;
   canPrint?: boolean;
-  totalConsultations: number;
 }
 
 const visitTypeColors: Record<string, string> = {
@@ -48,7 +47,6 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
   onResetFilters,
   canStartConsultation = false,
   canPrint = false,
-  totalConsultations,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 import { PP, RB } from "../constants/billing.constants";
 import type { InvoiceRecord, PaymentMethod } from "../types/billing.types";
@@ -10,7 +10,7 @@ interface CollectPaymentDrawerProps {
     invoiceId: string,
     amount: number,
     method: PaymentMethod,
-    notes?: string
+    notes?: string,
   ) => void;
 }
 
@@ -19,23 +19,19 @@ export function CollectPaymentDrawer({
   onClose,
   onConfirm,
 }: CollectPaymentDrawerProps) {
-  const [collectAmount, setCollectAmount] = useState<number>(0);
+  const [collectAmount, setCollectAmount] = useState<number>(
+    invoice?.balance ?? 0,
+  );
   const [collectMethod, setCollectMethod] = useState<PaymentMethod>("UPI");
   const [collectNotes, setCollectNotes] = useState("");
-
-  useEffect(() => {
-    if (invoice) {
-      setCollectAmount(invoice.balance);
-      setCollectMethod("UPI");
-      setCollectNotes("");
-    }
-  }, [invoice]);
 
   if (!invoice) return null;
 
   const handleProcessCollection = () => {
     if (collectAmount <= 0 || collectAmount > invoice.balance) {
-      alert(`Please enter a valid amount between ₹1 and ₹${invoice.balance.toLocaleString()}`);
+      alert(
+        `Please enter a valid amount between ₹1 and ₹${invoice.balance.toLocaleString()}`,
+      );
       return;
     }
     onConfirm(invoice.id, collectAmount, collectMethod, collectNotes);
@@ -117,7 +113,9 @@ export function CollectPaymentDrawer({
                 Payment Method *
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {(["UPI", "Cash", "Card", "Bank Transfer"] as PaymentMethod[]).map((m) => (
+                {(
+                  ["UPI", "Cash", "Card", "Bank Transfer"] as PaymentMethod[]
+                ).map((m) => (
                   <button
                     key={m}
                     type="button"

@@ -73,13 +73,13 @@ import {
   BillingConfigurationPage,
   InvoiceDetailsPage,
   PaymentHistoryPage,
-  DailyBillingReportPage,
   CreateInvoiceWorkspacePage,
   CollectPaymentWorkspacePage,
   InvoicePrintPreviewPage,
   ReceptionistPaymentCollectionPage,
   PatientMyBillsPage,
 } from "../../features/billing";
+import { DailyBillingReportPage } from "../../features/reports/pages/DailyBillingReport";
 import { ReportsDashboardScreen } from "../../ReportsManagement";
 import { SettingsWorkspace } from "../../SettingsWorkspace";
 import AuditLogsManagementScreen from "../../AuditLogsManagement";

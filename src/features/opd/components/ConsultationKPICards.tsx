@@ -68,11 +68,16 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
 }) => {
   const waitingTotal = countBy(
     tabCounts,
+    "WAITING",
     "WAITING_FOR_VITALS",
     "WAITING_FOR_DOCTOR_CALL",
     "CALLED",
   );
-  const waitingForDoctor = tabCounts["WAITING_FOR_DOCTOR_CALL"] || 0;
+  const waitingForDoctor = countBy(
+    tabCounts,
+    "WAITING",
+    "WAITING_FOR_DOCTOR_CALL",
+  );
   const inConsultation = tabCounts["IN_CONSULTATION"] || 0;
   const completed = tabCounts["COMPLETED"] || 0;
   const followUps = tabCounts["FOLLOW_UP_SCHEDULED"] || 0;

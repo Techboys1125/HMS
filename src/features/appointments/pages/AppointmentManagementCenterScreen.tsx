@@ -6,7 +6,6 @@ import {
   Filter,
   X,
   Plus,
-  Edit,
   Eye,
   ArrowUpDown,
   RotateCcw,

@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router";
+import { ROUTES } from "../../../app/routes/routes";
 import {
   Calendar,
   CheckSquare,
@@ -8,6 +10,7 @@ import {
   Bell,
   CreditCard,
   Search,
+  Loader2,
 } from "lucide-react";
 import {
   AreaChart,
@@ -20,6 +23,14 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import {
+  useReceptionSummary,
+  useReceptionRegistrationTrend,
+  useReceptionAppointmentStatus,
+  useReceptionPatientsByDepartment,
+  useReceptionRegistrationCategories,
+  useReceptionPerformanceSummary,
+} from "../hooks/useReceptionDashboard";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -34,6 +45,7 @@ function DKpi({
   color,
   gid,
   Icon,
+  onClick,
 }: {
   title: string;
   value: string;
@@ -44,9 +56,15 @@ function DKpi({
   color: string;
   gid: string;
   Icon: React.ElementType;
+  onClick?: () => void;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm">
+    <div
+      onClick={onClick}
+      className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
+        onClick ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-all duration-200" : ""
+      }`}
+    >
       <div className="flex items-start justify-between">
         <div>
           <div
@@ -202,191 +220,6 @@ function SH({
   );
 }
 
-// Section 01: Patient Registration Trend (Large Line Chart)
-const REC_REGISTRATION_TREND = [
-  { hour: "08 AM", registered: 4, walkins: 2 },
-  { hour: "09 AM", registered: 9, walkins: 5 },
-  { hour: "10 AM", registered: 15, walkins: 8 },
-  { hour: "11 AM", registered: 22, walkins: 11 },
-  { hour: "12 PM", registered: 27, walkins: 14 },
-  { hour: "01 PM", registered: 30, walkins: 15 },
-  { hour: "02 PM", registered: 33, walkins: 17 },
-  { hour: "03 PM", registered: 35, walkins: 18 },
-  { hour: "04 PM", registered: 37, walkins: 19 },
-  { hour: "05 PM", registered: 38, walkins: 20 },
-];
-
-// Section 02: Today's Appointment Status (Donut Chart)
-const REC_APPT_STATUS_DIST = [
-  { name: "Scheduled", value: 45, color: "#0D47A1" },
-  { name: "Checked In", value: 89, color: "#4DB6AC" },
-  { name: "Completed", value: 48, color: "#66BB6A" },
-  { name: "Cancelled", value: 8, color: "#EF4444" },
-  { name: "No Show", value: 4, color: "#F59E0B" },
-];
-
-// Section 03: Current Patient Queue
-const REC_FRONTDESK_QUEUE = [
-  {
-    token: "TK-084",
-    name: "Helen Brooks",
-    doctor: "Dr. Priya Sharma",
-    dept: "General OPD",
-    time: "08:00 AM",
-    pos: "Q-01",
-    status: "Completed",
-  },
-  {
-    token: "TK-085",
-    name: "Alex Monroe",
-    doctor: "Dr. Arjun Mehta",
-    dept: "Cardiology",
-    time: "08:30 AM",
-    pos: "Q-02",
-    status: "Completed",
-  },
-  {
-    token: "TK-086",
-    name: "Sarah Mitchell",
-    doctor: "Dr. Arjun Mehta",
-    dept: "Cardiology",
-    time: "09:00 AM",
-    pos: "Q-03",
-    status: "In Consultation",
-  },
-  {
-    token: "TK-087",
-    name: "James Thornton",
-    doctor: "Dr. Priya Sharma",
-    dept: "General OPD",
-    time: "09:15 AM",
-    pos: "Q-04",
-    status: "Waiting",
-  },
-  {
-    token: "TK-088",
-    name: "Emma Reyes",
-    doctor: "Dr. Sunita Patel",
-    dept: "Gynecology",
-    time: "09:30 AM",
-    pos: "Q-05",
-    status: "Checked In",
-  },
-  {
-    token: "TK-089",
-    name: "Robert Chen",
-    doctor: "Dr. Arjun Mehta",
-    dept: "Cardiology",
-    time: "10:00 AM",
-    pos: "Q-06",
-    status: "Ready",
-  },
-  {
-    token: "TK-090",
-    name: "Aisha Kumar",
-    doctor: "Dr. Rajesh Kapoor",
-    dept: "Neurology",
-    time: "10:15 AM",
-    pos: "Q-07",
-    status: "Scheduled",
-  },
-  {
-    token: "TK-091",
-    name: "David Walsh",
-    doctor: "Dr. Chen Wei",
-    dept: "Orthopedics",
-    time: "10:30 AM",
-    pos: "N/A",
-    status: "Cancelled",
-  },
-];
-
-// Section 04: Doctor Availability (Summary Cards)
-const REC_DOCTOR_AVAILABILITY = [
-  {
-    name: "Dr. Priya Sharma",
-    dept: "General OPD",
-    status: "Available",
-    color: "#66BB6A",
-  },
-  {
-    name: "Dr. Arjun Mehta",
-    dept: "Cardiology",
-    status: "In Consultation",
-    color: "#009688",
-  },
-  {
-    name: "Dr. Sunita Patel",
-    dept: "Gynecology",
-    status: "Available",
-    color: "#66BB6A",
-  },
-  {
-    name: "Dr. Rajesh Kapoor",
-    dept: "Neurology",
-    status: "Unavailable",
-    color: "#EF4444",
-  },
-];
-
-// Section 05: Department Patient Distribution (Horizontal Bar Chart)
-const REC_DEPT_DISTRIBUTION = [
-  { dept: "General OPD", count: 48 },
-  { dept: "Cardiology", count: 34 },
-  { dept: "Orthopedics", count: 26 },
-  { dept: "Pediatrics", count: 22 },
-  { dept: "Neurology", count: 18 },
-  { dept: "Gynecology", count: 16 },
-];
-
-// Section 06: Registration Categories (Pie Chart)
-const REC_REGISTRATION_TYPES = [
-  { category: "New Patient", count: 18, color: "#0D47A1" },
-  { category: "Returning Patient", count: 12, color: "#009688" },
-  { category: "Walk-In", count: 6, color: "#4DB6AC" },
-  { category: "Follow-Up", count: 2, color: "#F59E0B" },
-];
-
-// Section 09: Reception Performance Summary (Statistics Table)
-const REC_PERFORMANCE_METRICS = [
-  {
-    metric: "Patients Registered",
-    today: "38",
-    yesterday: "32",
-    status: "Optimal (+18.7%)",
-  },
-  {
-    metric: "Appointments Booked",
-    today: "142",
-    yesterday: "130",
-    status: "Ahead (+9.2%)",
-  },
-  {
-    metric: "Patients Checked In",
-    today: "89",
-    yesterday: "79",
-    status: "Normal",
-  },
-  {
-    metric: "Appointments Rescheduled",
-    today: "6",
-    yesterday: "8",
-    status: "Reduced (-25%)",
-  },
-  {
-    metric: "Billing Initiated",
-    today: "45",
-    yesterday: "38",
-    status: "Efficient",
-  },
-  {
-    metric: "Cancelled Appointments",
-    today: "8",
-    yesterday: "10",
-    status: "Low",
-  },
-];
-
 const REC_STATUS_CHIP: Record<
   string,
   "success" | "teal" | "warning" | "error" | "info" | "default"
@@ -449,10 +282,76 @@ export function ReceptionDashboard({
   onEditPatient?: (mrn: string) => void;
   onCreateInvoiceClick?: () => void;
 }) {
-  const regTotal = REC_REGISTRATION_TYPES.reduce(
-    (acc, curr) => acc + curr.count,
-    0,
-  );
+  const navigate = useNavigate();
+  const { data: summary, isLoading: loadingSummary, error: summaryError } = useReceptionSummary();
+  const { data: regTrend, error: regTrendError } = useReceptionRegistrationTrend();
+  const { data: apptStatus, error: apptStatusError } = useReceptionAppointmentStatus();
+  const { data: deptData, error: deptDataError } = useReceptionPatientsByDepartment();
+  const { data: regCategories, error: regCategoriesError } = useReceptionRegistrationCategories();
+  const { data: perfSummary, error: perfSummaryError } = useReceptionPerformanceSummary();
+
+  const hasError = summaryError || regTrendError || apptStatusError || deptDataError || regCategoriesError || perfSummaryError;
+
+  // Map API data to chart formats
+  const registrationTrend = regTrend?.registrations?.map((r) => ({
+    hour: r.hour,
+    registered: r.count,
+    walkins: 0,
+  })) || [];
+
+  const apptStatusDist = apptStatus ? [
+    { name: "Scheduled", value: apptStatus.scheduled, color: "#0D47A1" },
+    { name: "Checked In", value: apptStatus.checkedIn, color: "#4DB6AC" },
+    { name: "In Consultation", value: apptStatus.inConsultation, color: "#009688" },
+    { name: "Completed", value: apptStatus.completed, color: "#66BB6A" },
+    { name: "Cancelled", value: apptStatus.cancelled, color: "#EF4444" },
+    { name: "No Show", value: apptStatus.noShow, color: "#F59E0B" },
+  ] : [];
+
+  const deptDistribution = deptData?.departments?.map((d) => ({
+    dept: d.departmentName,
+    count: d.patientCount,
+  })) || [];
+
+  const regTypes = regCategories ? [
+    { category: "New Patient", count: regCategories.newPatients, color: "#0D47A1" },
+    { category: "Returning Patient", count: regCategories.returningPatients, color: "#009688" },
+    { category: "Walk-In", count: regCategories.walkIn, color: "#4DB6AC" },
+    { category: "Follow-Up", count: regCategories.followUp, color: "#F59E0B" },
+  ] : [];
+
+  const regTotal = regTypes.reduce((acc, curr) => acc + curr.count, 0);
+
+  const performanceMetrics = perfSummary ? [
+    { metric: "Patients Registered", today: String(perfSummary.patientsRegistered.today), yesterday: String(perfSummary.patientsRegistered.yesterday), status: `${perfSummary.patientsRegistered.status} (${perfSummary.patientsRegistered.changePercentage > 0 ? "+" : ""}${perfSummary.patientsRegistered.changePercentage}%)` },
+    { metric: "Appointments Booked", today: String(perfSummary.appointmentsBooked.today), yesterday: String(perfSummary.appointmentsBooked.yesterday), status: `${perfSummary.appointmentsBooked.status} (${perfSummary.appointmentsBooked.changePercentage > 0 ? "+" : ""}${perfSummary.appointmentsBooked.changePercentage}%)` },
+    { metric: "Patients Checked In", today: String(perfSummary.patientsCheckedIn.today), yesterday: String(perfSummary.patientsCheckedIn.yesterday), status: perfSummary.patientsCheckedIn.status },
+    { metric: "Appointments Rescheduled", today: String(perfSummary.appointmentsRescheduled.today), yesterday: String(perfSummary.appointmentsRescheduled.yesterday), status: perfSummary.appointmentsRescheduled.status },
+    { metric: "Billing Initiated", today: String(perfSummary.billingInitiated.today), yesterday: String(perfSummary.billingInitiated.yesterday), status: perfSummary.billingInitiated.status },
+    { metric: "Cancelled Appointments", today: String(perfSummary.cancelledAppointments.today), yesterday: String(perfSummary.cancelledAppointments.yesterday), status: perfSummary.cancelledAppointments.status },
+  ] : [];
+
+  if (loadingSummary) {
+    return (
+      <div className="flex-1 overflow-y-auto p-6 flex items-center justify-center" style={{ background: "#F1F5F9" }}>
+        <div className="flex items-center gap-3 text-[#64748B]">
+          <Loader2 size={20} className="animate-spin" />
+          <span className="text-sm font-medium" style={{ fontFamily: RB }}>Loading reception dashboard...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (hasError && !summary) {
+    return (
+      <div className="flex-1 overflow-y-auto p-6 flex items-center justify-center" style={{ background: "#F1F5F9" }}>
+        <div className="text-center">
+          <div className="text-red-500 text-sm font-medium mb-2" style={{ fontFamily: PP }}>Failed to load dashboard data</div>
+          <div className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>Please try refreshing the page</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -505,90 +404,57 @@ export function ReceptionDashboard({
       <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
         <DKpi
           title="Today's Registrations"
-          value="38"
+          value={String(summary?.registrations?.today ?? 0)}
           sub="New Patients Registered Today"
-          trend="+14% vs Yesterday"
-          up={true}
-          data={[
-            { v: 24 },
-            { v: 28 },
-            { v: 31 },
-            { v: 35 },
-            { v: 32 },
-            { v: 38 },
-          ]}
+          trend={summary?.registrations ? `${summary.registrations.change > 0 ? "+" : ""}${summary.registrations.change} vs Yesterday` : "Loading..."}
+          up={(summary?.registrations?.change ?? 0) >= 0}
+          data={registrationTrend.slice(-6).map((r) => ({ v: r.registered }))}
           color="#0D47A1"
           gid="rec1"
           Icon={UserPlus}
+          onClick={() => navigate(`${ROUTES.REPORTS}?report=patient-registrations`)}
         />
         <DKpi
           title="Today's Appointments"
-          value="142"
+          value={String(summary?.appointments?.today ?? 0)}
           sub="Appointments Scheduled Today"
-          trend="63% Completion Progress"
-          up={true}
-          data={[
-            { v: 110 },
-            { v: 125 },
-            { v: 130 },
-            { v: 128 },
-            { v: 138 },
-            { v: 142 },
-          ]}
+          trend={summary?.appointments ? `${summary.appointments.completionPercentage}% Completion Progress` : "Loading..."}
+          up={(summary?.appointments?.completionPercentage ?? 0) >= 50}
+          data={registrationTrend.slice(-6).map((r) => ({ v: r.registered }))}
           color="#009688"
           gid="rec2"
           Icon={Calendar}
+          onClick={() => navigate(`${ROUTES.REPORTS}?report=daily-appointments`)}
         />
         <DKpi
           title="Patients Waiting"
-          value="18"
+          value={String(summary?.waitingPatients?.count ?? 0)}
           sub="Current Waiting Queue"
-          trend="Avg Wait: 14 mins"
+          trend={summary?.waitingPatients ? `Avg Wait: ${summary.waitingPatients.averageWaitMinutes} mins` : "Loading..."}
           up={false}
-          data={[
-            { v: 12 },
-            { v: 15 },
-            { v: 22 },
-            { v: 19 },
-            { v: 21 },
-            { v: 18 },
-          ]}
+          data={[{ v: (summary?.waitingPatients?.count ?? 0) + 5 }, { v: (summary?.waitingPatients?.count ?? 0) + 3 }, { v: summary?.waitingPatients?.count ?? 0 }]}
           color="#F59E0B"
           gid="rec3"
           Icon={Clock}
         />
         <DKpi
           title="Billing Pending"
-          value="12"
+          value={String(summary?.billingPending?.count ?? 0)}
           sub="Patients Waiting for Billing"
-          trend="-3 vs Yesterday"
-          up={true}
-          data={[
-            { v: 18 },
-            { v: 15 },
-            { v: 14 },
-            { v: 16 },
-            { v: 13 },
-            { v: 12 },
-          ]}
+          trend={summary?.billingPending ? `${summary.billingPending.difference > 0 ? "+" : ""}${summary.billingPending.difference} vs Yesterday` : "Loading..."}
+          up={(summary?.billingPending?.difference ?? 0) <= 0}
+          data={[{ v: (summary?.billingPending?.count ?? 0) + 5 }, { v: (summary?.billingPending?.count ?? 0) + 3 }, { v: summary?.billingPending?.count ?? 0 }]}
           color="#EF4444"
           gid="rec4"
           Icon={CreditCard}
         />
         <DKpi
           title="Check-ins Completed"
-          value="89"
+          value={String(summary?.checkedIn?.count ?? 0)}
           sub="Patients Successfully Checked In"
           trend="Today's Progress"
           up={true}
-          data={[
-            { v: 50 },
-            { v: 62 },
-            { v: 71 },
-            { v: 79 },
-            { v: 84 },
-            { v: 89 },
-          ]}
+          data={[{ v: (summary?.checkedIn?.count ?? 0) - 10 }, { v: (summary?.checkedIn?.count ?? 0) - 5 }, { v: summary?.checkedIn?.count ?? 0 }]}
           color="#4DB6AC"
           gid="rec5"
           Icon={CheckSquare}
@@ -618,12 +484,12 @@ export function ReceptionDashboard({
               className="text-[10px] font-semibold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded-full"
               style={{ fontFamily: RB }}
             >
-              Today: 38 Registrations
+              Today: {summary?.registrations?.today ?? 0} Registrations
             </span>
           </div>
           <ResponsiveContainer width="100%" height={210}>
             <AreaChart
-              data={REC_REGISTRATION_TREND}
+              data={registrationTrend.length > 0 ? registrationTrend : [{ hour: "No Data", registered: 0, walkins: 0 }]}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
             >
               <defs>
@@ -671,9 +537,13 @@ export function ReceptionDashboard({
             className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-[#64748B]"
             style={{ fontFamily: RB }}
           >
-            <span>Workload Peak: 11 AM - 12 PM (7 registrations/hr)</span>
+            <span>
+              {registrationTrend.length > 0
+                ? `Peak: ${registrationTrend.reduce((max, r) => r.registered > max.registered ? r : max, registrationTrend[0]).hour}`
+                : "No trend data"}
+            </span>
             <span className="font-semibold text-[#111827]">
-              38 Registered Patients Today
+              {summary?.registrations?.today ?? 0} Registered Patients Today
             </span>
           </div>
         </div>
@@ -686,7 +556,7 @@ export function ReceptionDashboard({
           />
           <ResponsiveContainer width="100%" height={170}>
             <BarChart
-              data={REC_APPT_STATUS_DIST}
+              data={apptStatusDist.length > 0 ? apptStatusDist : [{ name: "No Data", value: 0, color: "#64748B" }]}
               layout="vertical"
               margin={{ top: 0, right: 15, left: 10, bottom: 0 }}
             >
@@ -709,7 +579,7 @@ export function ReceptionDashboard({
                 formatter={(v: unknown) => [`${v} Patients`, "Count"]}
               />
               <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={13}>
-                {REC_APPT_STATUS_DIST.map((entry, idx) => (
+                {(apptStatusDist.length > 0 ? apptStatusDist : [{ name: "No Data", value: 0, color: "#64748B" }]).map((entry, idx) => (
                   <Cell key={idx} fill={entry.color} />
                 ))}
               </Bar>
@@ -719,7 +589,7 @@ export function ReceptionDashboard({
             className="grid grid-cols-2 gap-1.5 mt-2 pt-3 border-t border-gray-50 text-xs"
             style={{ fontFamily: RB }}
           >
-            {REC_APPT_STATUS_DIST.map((s) => (
+            {(apptStatusDist.length > 0 ? apptStatusDist : [{ name: "No Data", value: 0, color: "#64748B" }]).map((s) => (
               <div
                 key={s.name}
                 className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50"
@@ -739,7 +609,7 @@ export function ReceptionDashboard({
             className="mt-2 text-[11px] text-center text-[#64748B]"
             style={{ fontFamily: RB }}
           >
-            194 Total Appointments Scheduled Today
+            {summary?.appointments?.today ?? 0} Total Appointments Scheduled Today
           </div>
         </div>
       </div>
@@ -765,7 +635,7 @@ export function ReceptionDashboard({
             className="text-xs font-semibold text-[#009688] bg-teal-50 px-2.5 py-1 rounded-lg"
             style={{ fontFamily: RB }}
           >
-            18 Patients Waiting
+            {summary?.waitingPatients?.count ?? 0} Patients Waiting
           </span>
         </div>
         <div className="overflow-x-auto">
@@ -793,7 +663,13 @@ export function ReceptionDashboard({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {REC_FRONTDESK_QUEUE.map((q, i) => (
+              {([] as Array<{token: string; name: string; doctor: string; dept: string; time: string; pos: string; status: string}>).length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-5 py-8 text-center text-xs text-[#64748B]" style={{ fontFamily: RB }}>
+                    No patients in queue
+                  </td>
+                </tr>
+              ) : ([] as Array<{token: string; name: string; doctor: string; dept: string; time: string; pos: string; status: string}>).map((q, i) => (
                 <tr key={i} className="hover:bg-slate-50 transition-colors">
                   <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
                     {q.token}
@@ -878,7 +754,11 @@ export function ReceptionDashboard({
             sub="Help Reception Assign Appointments Efficiently"
           />
           <div className="space-y-2.5 my-auto">
-            {REC_DOCTOR_AVAILABILITY.map((d) => (
+            {([] as Array<{name: string; dept: string; status: string; color: string}>).length === 0 ? (
+              <div className="text-center text-xs text-[#64748B] py-4" style={{ fontFamily: RB }}>
+                No doctor availability data
+              </div>
+            ) : ([] as Array<{name: string; dept: string; status: string; color: string}>).map((d) => (
               <div
                 key={d.name}
                 className="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 bg-slate-50"
@@ -926,7 +806,7 @@ export function ReceptionDashboard({
           />
           <ResponsiveContainer width="100%" height={180}>
             <BarChart
-              data={REC_DEPT_DISTRIBUTION}
+              data={deptDistribution.length > 0 ? deptDistribution : [{ dept: "No Data", count: 0 }]}
               layout="vertical"
               margin={{ top: 0, right: 20, left: 15, bottom: 0 }}
             >
@@ -965,9 +845,13 @@ export function ReceptionDashboard({
             className="mt-2 pt-2 border-t border-gray-50 text-xs text-[#64748B] flex items-center justify-between"
             style={{ fontFamily: RB }}
           >
-            <span>Busiest: General OPD (48)</span>
+            <span>
+              {deptDistribution.length > 0
+                ? `Busiest: ${deptDistribution.reduce((max, d) => d.count > max.count ? d : max, deptDistribution[0]).dept} (${deptDistribution.reduce((max, d) => d.count > max.count ? d : max, deptDistribution[0]).count})`
+                : "No department data"}
+            </span>
             <span className="font-semibold text-[#0D47A1]">
-              164 Total Patients
+              {deptDistribution.reduce((sum, d) => sum + d.count, 0)} Total Patients
             </span>
           </div>
         </div>
@@ -980,7 +864,7 @@ export function ReceptionDashboard({
           />
           <ResponsiveContainer width="100%" height={160}>
             <BarChart
-              data={REC_REGISTRATION_TYPES}
+              data={regTypes.length > 0 ? regTypes : [{ category: "No Data", count: 0, color: "#64748B" }]}
               margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
             >
               <XAxis
@@ -1004,7 +888,7 @@ export function ReceptionDashboard({
                 formatter={(v: unknown) => [`${v} Registrations`, "Count"]}
               />
               <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={22}>
-                {REC_REGISTRATION_TYPES.map((entry, idx) => (
+                {(regTypes.length > 0 ? regTypes : [{ category: "No Data", count: 0, color: "#64748B" }]).map((entry, idx) => (
                   <Cell key={idx} fill={entry.color} />
                 ))}
               </Bar>
@@ -1014,7 +898,7 @@ export function ReceptionDashboard({
             className="grid grid-cols-2 gap-1.5 mt-2 pt-2 border-t border-gray-50 text-xs"
             style={{ fontFamily: RB }}
           >
-            {REC_REGISTRATION_TYPES.map((r) => (
+            {(regTypes.length > 0 ? regTypes : [{ category: "No Data", count: 0, color: "#64748B" }]).map((r) => (
               <div
                 key={r.category}
                 className="flex items-center justify-between"
@@ -1074,7 +958,7 @@ export function ReceptionDashboard({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {REC_PERFORMANCE_METRICS.map((m) => (
+            {(performanceMetrics.length > 0 ? performanceMetrics : [{ metric: "No Data", today: "0", yesterday: "0", status: "N/A" }]).map((m) => (
               <tr
                 key={m.metric}
                 className="hover:bg-slate-50 transition-colors"

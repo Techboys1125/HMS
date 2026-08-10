@@ -214,7 +214,7 @@ export const consultationApi = {
   ): Promise<PatientVitals> => {
     const stripUnit = (s?: string) => {
       if (!s) return undefined;
-      return parseFloat(String(s).replace(/[^0-9.\-]/g, "")) || undefined;
+      return parseFloat(String(s).replace(/[^0-9.-]/g, "")) || undefined;
     };
     const parseBp = (bp?: string) => {
       if (!bp) return undefined;
@@ -316,7 +316,7 @@ export const consultationApi = {
     encounterId: string | number,
   ): Promise<Encounter | null> => {
     try {
-      const response = await apiClient.get<any>(
+      const response = await apiClient.get<{ data?: Encounter; content?: Encounter }>(
         `/api/v1/encounters/${encounterId}`,
       );
       return response.data?.data || response.data || null;
@@ -333,7 +333,7 @@ export const consultationApi = {
     encounterId: string | number,
   ): Promise<Diagnosis[]> => {
     try {
-      const response = await apiClient.get<any>(
+      const response = await apiClient.get<{ data?: Diagnosis[]; content?: Diagnosis[] }>(
         `/api/v1/encounters/${encounterId}/diagnoses`,
       );
       const list = response.data?.data || response.data;
@@ -509,7 +509,7 @@ export const consultationApi = {
    */
   getConsultationQueue: async (): Promise<unknown[]> => {
     try {
-      const response = await apiClient.get<any>(
+      const response = await apiClient.get<{ data?: unknown[]; content?: unknown[] }>(
         "/api/v1/doctors/me/consultation-queue",
       );
       const list = response.data?.data || response.data;

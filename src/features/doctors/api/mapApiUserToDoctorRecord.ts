@@ -5,6 +5,7 @@ import type {
   UpdateDoctorPayload,
   ApiDoctorProfile,
   ApiScheduleExceptionItem,
+  ApiSpecialtyRef,
 } from "../types/doctors.types";
 
 export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
@@ -189,7 +190,7 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
       profile?.scheduleExceptions || anyProfile?.scheduleExceptions || [],
     rawAvailability: rawAvail,
     secondarySpecialties:
-      profile?.secondarySpecialties?.map((s: any) => s.specialtyName) || [],
+      profile?.secondarySpecialties?.map((s: ApiSpecialtyRef) => s.specialtyName) || [],
     effectiveFrom: anyProfile?.effectiveFrom,
     effectiveTo: anyProfile?.effectiveTo,
     availabilityTemplate: anyProfile?.availabilityTemplate,

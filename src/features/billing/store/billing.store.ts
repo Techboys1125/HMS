@@ -3,8 +3,6 @@ import type {
   InvoiceRecord,
   BillingConfiguration,
   BillingReport,
-  PaymentStatus,
-  PaymentMethod,
 } from "../types/billing.types";
 import { DEFAULT_CONFIGURATION } from "../constants/billing.constants";
 
@@ -53,7 +51,8 @@ function loadInitialState(): BillingState {
             pageSize: 10,
           },
           reports: parsed.reports || null,
-          billingConfiguration: parsed.billingConfiguration || DEFAULT_CONFIGURATION,
+          billingConfiguration:
+            parsed.billingConfiguration || DEFAULT_CONFIGURATION,
         };
       }
     }
@@ -124,7 +123,7 @@ export const billingStoreActions = {
     currentState = {
       ...currentState,
       invoices: currentState.invoices.map((inv) =>
-        inv.id === invoiceId ? { ...inv, ...fields } : inv
+        inv.id === invoiceId ? { ...inv, ...fields } : inv,
       ),
       selectedInvoice:
         currentState.selectedInvoice?.id === invoiceId
@@ -198,12 +197,12 @@ export const billingStoreActions = {
 };
 
 export function useBillingStore<T = BillingState>(
-  selector?: (state: BillingState) => T
+  selector?: (state: BillingState) => T,
 ): T {
   const snapshot = useSyncExternalStore(
     billingStoreActions.subscribe,
     billingStoreActions.getState,
-    billingStoreActions.getState
+    billingStoreActions.getState,
   );
 
   return selector ? selector(snapshot) : (snapshot as unknown as T);

@@ -170,106 +170,22 @@ function SH({
     </div>
   );
 }
-const PAT_APPOINTMENT_TIMELINE = [
-  {
-    date: "Mar 15, 2025",
-    time: "10:30 AM",
-    doctor: "Dr. Arjun Mehta",
-    dept: "Cardiology",
-    status: "Upcoming",
-  },
-  {
-    date: "Mar 12, 2025",
-    time: "09:15 AM",
-    doctor: "Dr. Arjun Mehta",
-    dept: "Cardiology",
-    status: "Completed",
-  },
-  {
-    date: "Feb 20, 2025",
-    time: "11:00 AM",
-    doctor: "Dr. Arjun Mehta",
-    dept: "Cardiology",
-    status: "Completed",
-  },
-  {
-    date: "Feb 05, 2025",
-    time: "02:30 PM",
-    doctor: "Dr. Priya Sharma",
-    dept: "General OPD",
-    status: "Cancelled",
-  },
-  {
-    date: "Jan 08, 2025",
-    time: "10:00 AM",
-    doctor: "Dr. Priya Sharma",
-    dept: "General OPD",
-    status: "Completed",
-  },
-];
+const PAT_APPOINTMENT_TIMELINE: { date: string; time: string; doctor: string; dept: string; status: string }[] = [];
 
 // Section 02: Consultation History Trend (Line Chart)
-const PAT_CONSULTATION_TREND = [
-  { month: "Oct", visits: 1 },
-  { month: "Nov", visits: 0 },
-  { month: "Dec", visits: 1 },
-  { month: "Jan", visits: 1 },
-  { month: "Feb", visits: 2 },
-  { month: "Mar", visits: 2 },
-];
+const PAT_CONSULTATION_TREND: { month: string; visits: number }[] = [];
 
 // Section 03: Prescription Summary (Pie / Bar Chart)
-const PAT_PRESCRIPTION_SUMMARY = [
-  { name: "Active", count: 3, color: "#009688" },
-  { name: "Completed", count: 5, color: "#66BB6A" },
-  { name: "Expired", count: 2, color: "#EF4444" },
-];
+const PAT_PRESCRIPTION_SUMMARY: { name: string; count: number; color: string }[] = [];
 
 // Section 04: Billing Summary (Donut / Bar Chart)
-const PAT_BILLING_SUMMARY = [
-  { name: "Paid", amount: 370.6, color: "#66BB6A" },
-  { name: "Pending", amount: 142.6, color: "#F59E0B" },
-];
+const PAT_BILLING_SUMMARY: { name: string; amount: number; color: string }[] = [];
 
 // Section 05: Recent Prescriptions Table
-const PAT_RECENT_PRESCRIPTIONS = [
-  {
-    rxId: "RX-9042",
-    doctor: "Dr. Arjun Mehta",
-    date: "Mar 12, 2025",
-    medsCount: 3,
-    status: "Active",
-  },
-  {
-    rxId: "RX-8812",
-    doctor: "Dr. Arjun Mehta",
-    date: "Feb 20, 2025",
-    medsCount: 2,
-    status: "Active",
-  },
-  {
-    rxId: "RX-8510",
-    doctor: "Dr. Priya Sharma",
-    date: "Jan 08, 2025",
-    medsCount: 1,
-    status: "Completed",
-  },
-  {
-    rxId: "RX-8204",
-    doctor: "Dr. Arjun Mehta",
-    date: "Dec 14, 2024",
-    medsCount: 2,
-    status: "Expired",
-  },
-];
+const PAT_RECENT_PRESCRIPTIONS: { rxId: string; doctor: string; date: string; medsCount: number; status: string }[] = [];
 
 // Section 06: Recent Bills Table
-const PAT_RECENT_BILLS = [
-  { invoice: "INV-847", date: "Mar 12, 2025", amount: 97.6, status: "Unpaid" },
-  { invoice: "INV-831", date: "Feb 20, 2025", amount: 45.0, status: "Pending" },
-  { invoice: "INV-810", date: "Jan 08, 2025", amount: 28.0, status: "Paid" },
-  { invoice: "INV-790", date: "Dec 14, 2024", amount: 200.0, status: "Paid" },
-];
+const PAT_RECENT_BILLS: { invoice: string; date: string; amount: number; status: string }[] = [];
 
 const PAT_STATUS_CHIP: Record<
   string,
@@ -496,61 +412,54 @@ export function PatientDashboard({
         <DKpi
           title="Upcoming Appointment"
           value={upcomingStr}
-          sub="Dr. Arjun Mehta (Cardiology)"
-          trend="Confirmed Slot"
+          sub="--"
+          trend="--"
           up={true}
-          data={[{ v: 1 }, { v: 1 }, { v: 2 }, { v: 1 }, { v: 1 }, { v: 1 }]}
+          data={[{ v: 0 }]}
           color="#0D47A1"
           gid="pt1"
           Icon={Calendar}
         />
         <DKpi
           title="Active Prescriptions"
-          value="3 Active"
-          sub="Metoprolol, Aspirin..."
-          trend="All Meds Refilled"
+          value="0"
+          sub="--"
+          trend="--"
           up={true}
-          data={[{ v: 2 }, { v: 3 }, { v: 3 }, { v: 4 }, { v: 3 }, { v: 3 }]}
+          data={[{ v: 0 }]}
           color="#009688"
           gid="pt2"
           Icon={Pill}
         />
         <DKpi
           title="Outstanding Bills"
-          value="$142.60"
-          sub="2 Pending Invoices"
-          trend="Due Mar 15 & Mar 20"
+          value="$0.00"
+          sub="--"
+          trend="--"
           up={false}
-          data={[
-            { v: 200 },
-            { v: 180 },
-            { v: 160 },
-            { v: 150 },
-            { v: 142.6 },
-            { v: 142.6 },
-          ]}
+          data={[{ v: 0 }]}
           color="#F59E0B"
           gid="pt3"
           Icon={Receipt}
         />
         <DKpi
           title="Completed Consultations"
-          value="7 OPD Visits"
-          sub="Recent: Mar 12, 2025"
-          trend="Stable Angina Review"
+          value="0"
+          sub="--"
+          trend="--"
           up={true}
-          data={[{ v: 2 }, { v: 3 }, { v: 4 }, { v: 5 }, { v: 6 }, { v: 7 }]}
+          data={[{ v: 0 }]}
           color="#66BB6A"
           gid="pt4"
           Icon={Stethoscope}
         />
         <DKpi
           title="Health Notifications"
-          value="3 Unread"
-          sub="1 Reminder, 1 Bill, 1 Rx"
-          trend="Action Required"
+          value="0"
+          sub="--"
+          trend="--"
           up={false}
-          data={[{ v: 5 }, { v: 4 }, { v: 2 }, { v: 4 }, { v: 3 }, { v: 3 }]}
+          data={[{ v: 0 }]}
           color="#EF4444"
           gid="pt5"
           Icon={Bell}
@@ -618,7 +527,7 @@ export function PatientDashboard({
           >
             Next Visit:{" "}
             <span className="font-semibold text-[#0D47A1]">
-              Dr. Arjun Mehta on Sat, Mar 15, 2025 (10:30 AM)
+              --
             </span>
           </div>
         </div>
@@ -671,8 +580,8 @@ export function PatientDashboard({
             className="mt-2 pt-2 border-t border-gray-50 text-xs text-[#64748B] flex items-center justify-between"
             style={{ fontFamily: RB }}
           >
-            <span>Total OPD Visits: 7 Visits</span>
-            <span className="font-semibold text-[#0D47A1]">Avg 1.2/Month</span>
+            <span>Total OPD Visits: 0 Visits</span>
+            <span className="font-semibold text-[#0D47A1]">Avg 0/Month</span>
           </div>
         </div>
       </div>
@@ -786,7 +695,7 @@ export function PatientDashboard({
               Total Billing History: ${totalBillsAmount.toFixed(2)}
             </span>
             <span className="font-bold text-[#F59E0B]">
-              $142.60 Pending Due
+              $0.00 Pending Due
             </span>
           </div>
         </div>
@@ -813,7 +722,7 @@ export function PatientDashboard({
             className="text-xs font-semibold text-[#009688] bg-teal-50 px-2.5 py-1 rounded-lg"
             style={{ fontFamily: RB }}
           >
-            3 Active Meds
+            0 Active Meds
           </span>
         </div>
         <div className="overflow-x-auto">

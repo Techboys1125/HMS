@@ -6,6 +6,11 @@ export interface ApiEnvelope<T> {
   status: number;
 }
 
+interface ApiResponseBody<T> {
+  data: T;
+  content?: T;
+}
+
 export const prescriptionApi = {
   getPrescriptions: async (mrn?: string): Promise<ApiPatientPrescription[]> => {
     try {
@@ -15,7 +20,7 @@ export const prescriptionApi = {
       } else {
         url = "/api/v1/patient/prescriptions";
       }
-      const response = await apiClient.get<any>(url);
+      const response = await apiClient.get<ApiResponseBody<ApiPatientPrescription[]>>(url);
       const body = response.data;
 
       if (Array.isArray(body)) return body;
@@ -37,16 +42,16 @@ export const prescriptionApi = {
 
   getPrescriptionById: async (id: string | number): Promise<ApiPatientPrescription | null> => {
     try {
-      const response = await apiClient.get<any>(`/api/v1/patient/prescriptions/${id}`);
+      const response = await apiClient.get<ApiResponseBody<ApiPatientPrescription>>(`/api/v1/patient/prescriptions/${id}`);
       return response.data?.data || response.data || null;
     } catch {
       return null;
     }
   },
 
-  getEncounterPrescription: async (encounterId: string | number): Promise<any | null> => {
+  getEncounterPrescription: async (encounterId: string | number): Promise<ApiPatientPrescription | null> => {
     try {
-      const response = await apiClient.get<any>(`/api/v1/encounters/${encounterId}/prescription`);
+      const response = await apiClient.get<ApiResponseBody<ApiPatientPrescription>>(`/api/v1/encounters/${encounterId}/prescription`);
       return response.data?.data || response.data || null;
     } catch {
       return null;
@@ -56,8 +61,8 @@ export const prescriptionApi = {
   finalizePrescription: async (
     prescriptionId: string | number,
     payload: { confirmation: boolean } = { confirmation: true }
-  ): Promise<any> => {
-    const response = await apiClient.post<any>(
+  ): Promise<ApiPatientPrescription> => {
+    const response = await apiClient.post<ApiResponseBody<ApiPatientPrescription>>(
       `/api/v1/prescriptions/${prescriptionId}/finalize`,
       payload
     );

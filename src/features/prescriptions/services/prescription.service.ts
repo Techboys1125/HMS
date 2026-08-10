@@ -26,17 +26,15 @@ export const prescriptionService = {
       status = "Archived";
     }
 
-    const medicines = (apiRx.medicines || []).map((m: any) => ({
+    const medicines = (apiRx.medicines || []).map((m) => ({
       name: m.medicineName || m.name || "",
       strength: m.strength || "",
       route: m.route || "ORAL",
       dosage: m.dose?.value
         ? `${m.dose.value}${m.dose.unit || ""}`
         : m.dosage || "",
-      frequency: m.frequency?.display || m.frequencyCode || m.frequency || "",
-      duration: m.duration?.value
-        ? `${m.duration.value} ${m.duration.unit || "DAYS"}`
-        : m.duration || "",
+      frequency: m.frequency || "",
+      duration: m.duration || "",
       instructions: m.instructions || "",
     }));
 

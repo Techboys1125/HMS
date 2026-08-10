@@ -139,9 +139,7 @@ export function BillingKPICards({
       .reduce((sum, i) => sum + i.balance, 0);
 
   const countGenerated =
-    dashboardData?.readyForBilling ??
-    dashboardData?.draft ??
-    invoices.length;
+    dashboardData?.readyForBilling ?? dashboardData?.draft ?? invoices.length;
   const countPaid = dashboardData?.partiallyPaid
     ? invoices.filter((i) => i.paymentStatus === "Paid").length
     : invoices.filter((i) => i.paymentStatus === "Paid").length;
@@ -202,7 +200,13 @@ export function BillingKPICards({
         color="#66BB6A"
         Icon={CheckCircle2}
         bgTint="rgba(102, 187, 106, 0.12)"
-        dataTrend={[{ v: 70 }, { v: 80 }, { v: 85 }, { v: 90 }, { v: countPaid }]}
+        dataTrend={[
+          { v: 70 },
+          { v: 80 },
+          { v: 85 },
+          { v: 90 },
+          { v: countPaid },
+        ]}
       />
       {/* Card 4: Pending Payments */}
       <BillingKpiCard
@@ -228,7 +232,13 @@ export function BillingKPICards({
         color="#0D47A1"
         Icon={CreditCard}
         bgTint="rgba(13, 71, 161, 0.08)"
-        dataTrend={[{ v: 5 }, { v: 6 }, { v: 7 }, { v: 9 }, { v: countPartial }]}
+        dataTrend={[
+          { v: 5 },
+          { v: 6 },
+          { v: 7 },
+          { v: 9 },
+          { v: countPartial },
+        ]}
       />
       {/* Card 6: Refunded Bills */}
       <BillingKpiCard
