@@ -24,7 +24,7 @@ export function ReportExportActions({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
       <div
-        className="bg-white rounded-2xl shadow-xl w-[400px] max-w-[90vw]"
+        className="bg-white rounded-2xl shadow-xl w-100 max-w-[90vw]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#E5E7EB]">

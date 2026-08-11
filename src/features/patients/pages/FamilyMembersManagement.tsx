@@ -1384,7 +1384,7 @@ export function FamilyMembersManagement({
 
       {/* ── REMOVE FAMILY MEMBER CONFIRMATION DIALOG ── */}
       {removeDialogMember && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-150">
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 max-w-md w-full shadow-2xl space-y-4">
             {/* HEADER */}
             <div className="flex items-center gap-3 border-b border-[#E5E7EB] pb-3">

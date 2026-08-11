@@ -1035,10 +1035,8 @@ export function PatientSearchScreen({
           </div>
 
           {/* CENTER WORKSPACE CONTENT CONTAINER (Dynamic tab content) */}
-          <div
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 min-h-[420px]"
-            style={{ fontFamily: RB }}
-          >
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 min-h-105" style={{ fontFamily: RB }}>
+
             {/* 1. OVERVIEW TAB */}
             {activeTab === "overview" && (
               <div className="space-y-6">
@@ -1364,64 +1362,28 @@ export function PatientSearchScreen({
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                       <tr className="hover:bg-blue-50/30">
-                        <td className="px-3.5 py-3 font-medium text-slate-700">
-                          March 12, 2024
-                        </td>
-                        <td className="px-3.5 py-3 font-bold text-[#111827]">
-                          Primary Essential Hypertension
-                        </td>
-                        <td className="px-3.5 py-3 font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
-                          I10
-                        </td>
-                        <td className="px-3.5 py-3 text-slate-600">
-                          Oral anti-hypertensive daily (Lisinopril 10mg)
-                        </td>
-                        <td className="px-3.5 py-3 text-slate-700 font-medium">
-                          Dr. A. Mehta
-                        </td>
-                        <td className="px-3.5 py-3">
-                          <StatusBadge status="Active" />
-                        </td>
+                        <td className="px-3.5 py-3 font-medium text-slate-700">March 12, 2024</td>
+                        <td className="px-3.5 py-3 font-bold text-[#111827]">Primary Essential Hypertension</td>
+                        <td className="font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">I10</td>
+                        <td className="px-3.5 py-3 text-slate-600">Oral anti-hypertensive daily (Lisinopril 10mg)</td>
+                        <td className="px-3.5 py-3 text-slate-700 font-medium">Dr. A. Mehta</td>
+                        <td className="px-3.5 py-3"><StatusBadge status="Active" /></td>
                       </tr>
                       <tr className="hover:bg-blue-50/30">
-                        <td className="px-3.5 py-3 font-medium text-slate-700">
-                          Feb 10, 2024
-                        </td>
-                        <td className="px-3.5 py-3 font-bold text-[#111827]">
-                          Type 2 Diabetes Mellitus
-                        </td>
-                        <td className="px-3.5 py-3 font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
-                          E11.9
-                        </td>
-                        <td className="px-3.5 py-3 text-slate-600">
-                          Dietary control &amp; Metformin 500mg BD
-                        </td>
-                        <td className="px-3.5 py-3 text-slate-700 font-medium">
-                          Dr. P. Sharma
-                        </td>
-                        <td className="px-3.5 py-3">
-                          <StatusBadge status="Active" />
-                        </td>
+                        <td className="px-3.5 py-3 font-medium text-slate-700">Feb 10, 2024</td>
+                        <td className="px-3.5 py-3 font-bold text-[#111827]">Type 2 Diabetes Mellitus</td>
+                        <td className="px-3.5 py-3 font-mono text-blue-700 bg-blue-50 rounded">E11.9</td>
+                        <td className="px-3.5 py-3 text-slate-600">Dietary control &amp; Metformin 500mg BD</td>
+                        <td className="px-3.5 py-3 text-slate-700 font-medium">Dr. P. Sharma</td>
+                        <td className="px-3.5 py-3"><StatusBadge status="Active" /></td>
                       </tr>
                       <tr className="hover:bg-blue-50/30">
-                        <td className="px-3.5 py-3 font-medium text-slate-700">
-                          Nov 14, 2023
-                        </td>
-                        <td className="px-3.5 py-3 font-bold text-[#111827]">
-                          Mild Bronchial Asthma
-                        </td>
-                        <td className="px-3.5 py-3 font-mono text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
-                          J45.20
-                        </td>
-                        <td className="px-3.5 py-3 text-slate-600">
-                          Inhaler PRN during seasonal exacerbation
-                        </td>
-                        <td className="px-3.5 py-3 text-slate-700 font-medium">
-                          Dr. R. Kapoor
-                        </td>
-                        <td className="px-3.5 py-3">
-                          <StatusBadge status="Discharged" />
-                        </td>
+                        <td className="px-3.5 py-3 font-medium text-slate-700">Nov 14, 2023</td>
+                        <td className="px-3.5 py-3 font-bold text-[#111827]">Mild Bronchial Asthma</td>
+                        <td className="px-3.5 py-3 font-mono text-blue-700 bg-blue-50 rounded">J45.20</td>
+                        <td className="px-3.5 py-3 text-slate-600">Inhaler PRN during seasonal exacerbation</td>
+                        <td className="px-3.5 py-3 text-slate-700 font-medium">Dr. R. Kapoor</td>
+                        <td className="px-3.5 py-3"><StatusBadge status="Discharged" /></td>
                       </tr>
                     </tbody>
                   </table>

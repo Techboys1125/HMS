@@ -1,11 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  Search,
-  User,
-  ChevronRight,
-  RefreshCw,
-  Phone,
-} from "lucide-react";
+import { Search, User, ChevronRight, RefreshCw, Phone } from "lucide-react";
 import { useAuthStore } from "../../auth";
 import { patientsApi } from "../../patients/api/patient.api";
 import { mapApiPatientToPatientRecord } from "../../patients/api/mapApiPatientToPatientRecord";
@@ -34,7 +28,9 @@ export function DoctorPatientsScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const doctorIdRef = useRef(doctorId);
-  const [prevDoctorId, setPrevDoctorId] = useState<number | string | undefined>(undefined);
+  const [prevDoctorId, setPrevDoctorId] = useState<number | string | undefined>(
+    undefined,
+  );
   if (doctorId !== prevDoctorId) {
     setPrevDoctorId(doctorId);
     setIsLoading(Boolean(doctorId));
@@ -53,8 +49,8 @@ export function DoctorPatientsScreen() {
       gender: p.gender || "",
       age: p.age || 0,
       mobile: p.mobileNumber || p.phone || p.mobile || "",
-      lastVisit: (p as Record<string, unknown>).lastVisit as string || (p as Record<string, unknown>).lastVisitDate as string || "",
-      visits: ((p as Record<string, unknown>).totalVisits as number) || ((p as Record<string, unknown>).visitCount as number) || 0,
+      lastVisit: p.lastVisit || p.lastVisitDate || "",
+      visits: p.totalVisits || p.visitCount || 0,
     }));
   };
 
@@ -118,7 +114,7 @@ export function DoctorPatientsScreen() {
         age: patientRow.age,
         mobileNumber: patientRow.mobile,
         status: "ACTIVE",
-      } as Patient);
+      } as unknown as Patient);
     } finally {
       setIsLoading(false);
     }
@@ -189,8 +185,12 @@ export function DoctorPatientsScreen() {
 
         <div className="p-2 border-b border-[#E5E7EB] bg-slate-50/50">
           <div className="flex items-center justify-between px-2">
-            <span className="text-xs font-semibold text-[#64748B]" style={{ fontFamily: PP }}>
-              {filteredPatients.length} Patient{filteredPatients.length !== 1 ? "s" : ""}
+            <span
+              className="text-xs font-semibold text-[#64748B]"
+              style={{ fontFamily: PP }}
+            >
+              {filteredPatients.length} Patient
+              {filteredPatients.length !== 1 ? "s" : ""}
             </span>
           </div>
         </div>
@@ -202,11 +202,19 @@ export function DoctorPatientsScreen() {
         ) : filteredPatients.length === 0 ? (
           <div className="text-center py-12">
             <User size={40} className="mx-auto text-slate-300 mb-3" />
-            <p className="text-sm font-semibold text-[#111827]" style={{ fontFamily: PP }}>
+            <p
+              className="text-sm font-semibold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
               No patients found
             </p>
-            <p className="text-xs text-[#64748B] mt-1" style={{ fontFamily: RB }}>
-              {searchQuery ? "Try a different search term" : "No patients have been assigned to you yet."}
+            <p
+              className="text-xs text-[#64748B] mt-1"
+              style={{ fontFamily: RB }}
+            >
+              {searchQuery
+                ? "Try a different search term"
+                : "No patients have been assigned to you yet."}
             </p>
           </div>
         ) : (
@@ -228,10 +236,15 @@ export function DoctorPatientsScreen() {
                     >
                       {patient.name}
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-[#64748B]" style={{ fontFamily: RB }}>
+                    <div
+                      className="flex items-center gap-3 text-xs text-[#64748B]"
+                      style={{ fontFamily: RB }}
+                    >
                       <span className="font-mono">{patient.mrn}</span>
                       <span>|</span>
-                      <span>{patient.gender} · {patient.age} yrs</span>
+                      <span>
+                        {patient.gender} · {patient.age} yrs
+                      </span>
                       {patient.mobile && (
                         <>
                           <span>|</span>
@@ -246,16 +259,26 @@ export function DoctorPatientsScreen() {
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <div className="text-xs font-semibold text-[#111827]" style={{ fontFamily: PP }}>
+                    <div
+                      className="text-xs font-semibold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
                       {patient.visits} visit{patient.visits !== 1 ? "s" : ""}
                     </div>
                     {patient.lastVisit && (
-                      <div className="text-[10px] text-[#64748B]" style={{ fontFamily: RB }}>
-                        Last: {new Date(patient.lastVisit).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
+                      <div
+                        className="text-[10px] text-[#64748B]"
+                        style={{ fontFamily: RB }}
+                      >
+                        Last:{" "}
+                        {new Date(patient.lastVisit).toLocaleDateString(
+                          "en-IN",
+                          {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          },
+                        )}
                       </div>
                     )}
                   </div>

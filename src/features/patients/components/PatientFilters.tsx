@@ -39,7 +39,7 @@ export function PatientFilters({
     <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         {/* Search Input (Search by Patient ID, Patient Name, Phone Number) */}
-        <div className="relative flex-1 min-w-[280px]">
+        <div className="relative flex-1 min-w-70">
           <Search
             size={16}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]"

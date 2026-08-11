@@ -113,7 +113,7 @@ export function EditDoctorProfileModal({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
+              <label className="block font-bold text-[#111827] mb-1 items-center gap-1">
                 Full Name{" "}
                 {isFieldDisabled("name") && (
                   <Lock size={11} className="text-slate-400" />
@@ -131,7 +131,7 @@ export function EditDoctorProfileModal({
             </div>
 
             <div>
-              <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
+              <label className="font-bold text-[#111827] mb-1 flex items-center gap-1">
                 Gender{" "}
                 {isFieldDisabled("gender") && (
                   <Lock size={11} className="text-slate-400" />
@@ -187,7 +187,7 @@ export function EditDoctorProfileModal({
             </div>
 
             <div>
-              <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
+              <label className="font-bold text-[#111827] mb-1 flex items-center gap-1">
                 Employee ID{" "}
                 {isFieldDisabled("empId") && (
                   <Lock size={11} className="text-slate-400" />
@@ -205,7 +205,7 @@ export function EditDoctorProfileModal({
             </div>
 
             <div>
-              <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
+              <label className="font-bold text-[#111827] mb-1 flex items-center gap-1">
                 Medical Reg Number{" "}
                 {isFieldDisabled("regNumber") && (
                   <Lock size={11} className="text-slate-400" />
@@ -223,7 +223,7 @@ export function EditDoctorProfileModal({
             </div>
 
             <div>
-              <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
+              <label className="font-bold text-[#111827] mb-1 flex items-center gap-1">
                 Qualification{" "}
                 {isFieldDisabled("qualification") && (
                   <Lock size={11} className="text-slate-400" />
@@ -241,7 +241,7 @@ export function EditDoctorProfileModal({
             </div>
 
             <div>
-              <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
+              <label className="font-bold text-[#111827] mb-1 flex items-center gap-1">
                 Experience Years{" "}
                 {isFieldDisabled("experienceYrs") && (
                   <Lock size={11} className="text-slate-400" />
@@ -263,7 +263,7 @@ export function EditDoctorProfileModal({
             </div>
 
             <div>
-              <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
+              <label className="block font-bold text-[#111827] mb-1 items-center gap-1">
                 Department{" "}
                 {isFieldDisabled("department") && (
                   <Lock size={11} className="text-slate-400" />
@@ -281,7 +281,7 @@ export function EditDoctorProfileModal({
             </div>
 
             <div>
-              <label className="block font-bold text-[#111827] mb-1 flex items-center gap-1">
+              <label className="block font-bold text-[#111827] mb-1 items-center gap-1">
                 Specialty{" "}
                 {isFieldDisabled("specialty") && (
                   <Lock size={11} className="text-slate-400" />

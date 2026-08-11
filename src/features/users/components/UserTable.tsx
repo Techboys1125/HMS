@@ -43,7 +43,7 @@ export const UserTable: React.FC<UserTableProps> = ({
   };
 
   return (
-    <div className="overflow-x-auto max-h-[600px] overflow-y-auto w-full">
+    <div className="overflow-x-auto max-h-150 overflow-y-auto w-full">
       <table className="w-full border-collapse text-left text-xs bg-white">
         <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10 text-[#64748B] font-bold">
           <tr style={{ fontFamily: PP }}>
@@ -93,7 +93,7 @@ export const UserTable: React.FC<UserTableProps> = ({
                     className="hover:text-[#0D47A1] hover:underline flex items-center gap-1"
                   >
                     <Mail size={12} className="text-slate-400 shrink-0" />
-                    <span className="truncate max-w-[160px]">{user.email}</span>
+                    <span className="truncate max-w-40">{user.email}</span>
                   </a>
                 </td>
                 <td className="px-4 py-3.5 text-slate-600 font-mono">

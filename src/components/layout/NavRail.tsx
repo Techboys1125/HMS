@@ -189,7 +189,7 @@ export function NavRail({
                     <Icon size={18} />
                     {!!badge && !expanded && (
                       <span
-                        className="absolute top-0 right-0 w-[14px] h-[14px] bg-[#EF4444] text-white text-[8px] font-bold rounded-full flex items-center justify-center leading-none"
+                        className="absolute top-0 right-0 w-3.5 h-3.5 bg-[#EF4444] text-white text-[8px] font-bold rounded-full flex items-center justify-center leading-none"
                         style={{ fontFamily: PP }}
                       >
                         {badge}
@@ -208,7 +208,7 @@ export function NavRail({
 
                   {!!badge && expanded && (
                     <span
-                      className="shrink-0 min-w-[18px] h-[18px] bg-[#EF4444] text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none"
+                      className="shrink-0 min-w-4.5 h-4.5 bg-[#EF4444] text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 leading-none"
                       style={{ fontFamily: PP }}
                     >
                       {badge}

@@ -371,7 +371,7 @@ export function DoctorDashboard() {
         </div>
         <div className="flex items-center gap-4 flex-wrap xl:flex-nowrap">
           <Av name="No Active Patient" size="lg" />
-          <div className="flex-1 min-w-[200px]">
+          <div className="flex-1 min-w-50">
             <div className="flex items-center gap-2">
               <span
                 className="text-lg font-bold text-[#111827]"

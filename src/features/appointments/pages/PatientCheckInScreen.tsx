@@ -150,7 +150,7 @@ export function PatientCheckInScreen({
       </div>
 
       {/* ── INFORMATION ALERT CARD ── */}
-      <div className="bg-gradient-to-r from-blue-50 via-teal-50 to-white p-4 rounded-2xl border border-blue-100 shadow-sm flex items-start gap-3">
+      <div className="bg-linear-to-r from-blue-50 via-teal-50 to-white p-4 rounded-2xl border border-blue-100 shadow-sm flex items-start gap-3">
         <div className="w-8 h-8 rounded-xl bg-[#0D47A1] text-white flex items-center justify-center shrink-0 mt-0.5">
           <Info size={18} />
         </div>

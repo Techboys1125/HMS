@@ -65,7 +65,7 @@ export const CheckInConfirmationModal: React.FC<
         </div>
 
         {/* Token Card */}
-        <div className="w-full bg-gradient-to-br from-[#0D47A1] via-blue-900 to-indigo-900 text-white rounded-2xl p-5 shadow-lg border border-blue-800 text-left relative overflow-hidden">
+        <div className="w-full bg-linear-to-br from-[#0D47A1] via-blue-900 to-indigo-900 text-white rounded-2xl p-5 shadow-lg border border-blue-800 text-left relative overflow-hidden">
           <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
 
           <div className="flex items-center justify-between text-xs font-semibold text-blue-200 uppercase tracking-wider mb-1">

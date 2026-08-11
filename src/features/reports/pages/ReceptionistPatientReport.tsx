@@ -1,4 +1,4 @@
-import  { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Calendar,
   Download,
@@ -13,6 +13,7 @@ import {
   TrendingUp,
   CheckCircle2,
   Clock,
+  UserPlus,
   PieChart,
   Printer,
   ChevronLeft,
@@ -97,8 +98,6 @@ export interface ReceptionistPatientReportRecord {
   checkInStatus: string;
   registrationStatus: string;
 }
-
-
 
 export function ReceptionistPatientReportScreen({
   onBack,
@@ -217,7 +216,12 @@ export function ReceptionistPatientReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
+                  <strong className="text-[#111827]">
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
                 </span>
               </div>
 
@@ -1257,7 +1261,9 @@ export function ReceptionistPatientReportScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
+            <strong className="text-[#111827]">
+              {new Date().toLocaleString()}
+            </strong>
           </div>
         </div>
       </div>

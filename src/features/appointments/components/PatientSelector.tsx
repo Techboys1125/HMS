@@ -160,7 +160,7 @@ export const PatientSelector: React.FC<PatientSelectorProps> = ({
           <button
             type="button"
             onClick={onAddNewFamilyMember}
-            className="p-3.5 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-blue-50/40 hover:border-blue-300 text-slate-600 hover:text-[#0D47A1] transition-all flex flex-col items-center justify-center gap-1 cursor-pointer min-h-[90px]"
+            className="p-3.5 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-blue-50/40 hover:border-blue-300 text-slate-600 hover:text-[#0D47A1] transition-all flex flex-col items-center justify-center gap-1 cursor-pointer min-h-22.5"
           >
             <PlusCircle size={18} />
             <span className="text-xs font-bold" style={{ fontFamily: PP }}>

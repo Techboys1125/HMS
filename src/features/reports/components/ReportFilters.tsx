@@ -49,7 +49,7 @@ export function ReportFilters({ filters, values, onChange, onReset }: ReportFilt
               <select
                 value={values[filter.key] || ""}
                 onChange={(e) => onChange(filter.key, e.target.value)}
-                className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-xs text-[#111827] bg-white focus:outline-none focus:border-[#0D47A1]/40 min-w-[140px]"
+                className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-xs text-[#111827] bg-white focus:outline-none focus:border-[#0D47A1]/40 min-w-35"
                 style={{ fontFamily: RB }}
               >
                 <option value="">All</option>
@@ -73,7 +73,7 @@ export function ReportFilters({ filters, values, onChange, onReset }: ReportFilt
                 placeholder={filter.placeholder || `Search ${filter.label.toLowerCase()}...`}
                 value={values[filter.key] || ""}
                 onChange={(e) => onChange(filter.key, e.target.value)}
-                className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-xs text-[#111827] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0D47A1]/40 min-w-[180px]"
+                className="px-3 py-1.5 rounded-lg border border-[#E5E7EB] text-xs text-[#111827] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0D47A1]/40 min-w-45"
                 style={{ fontFamily: RB }}
               />
             )}
