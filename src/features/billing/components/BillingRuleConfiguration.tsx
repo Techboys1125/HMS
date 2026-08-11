@@ -52,9 +52,9 @@ export function BillingRuleConfiguration({
           marginBottom: "16px",
         }}
       >
-        {items.map((item, idx) => (
+        {items.map((item) => (
           <div
-            key={idx}
+            key={item.key}
             style={{
               background: "#F8FAFC",
               padding: "10px 12px",

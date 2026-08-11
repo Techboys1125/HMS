@@ -475,9 +475,9 @@ export function PatientMedicalRecordsScreen({
 
                       <td className="px-4 py-4">
                         <div className="flex flex-wrap gap-1">
-                          {v.prescriptions.map((p, idx) => (
+                          {v.prescriptions.map((p) => (
                             <span
-                              key={idx}
+                              key={p}
                               className="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-[#0D47A1]"
                             >
                               {p}
@@ -592,12 +592,9 @@ export function PatientMedicalRecordsScreen({
                       <td className="px-4 py-4">
                         <div className="space-y-1">
                           {rx.medicines.map(
-                            (
-                              m: { name: string; dosage?: string },
-                              idx: number,
-                            ) => (
+                            (m: { name: string; dosage?: string }) => (
                               <div
-                                key={idx}
+                                key={m.name}
                                 className="font-bold text-[#111827] text-xs"
                               >
                                 {m.name}{" "}
@@ -768,9 +765,9 @@ export function PatientMedicalRecordsScreen({
 
                   {selectedRx ? (
                     <div className="space-y-3">
-                      {selectedRx.medicines.map((m, idx) => (
+                      {selectedRx.medicines.map((m) => (
                         <div
-                          key={idx}
+                          key={m.name}
                           className="p-3.5 rounded-xl bg-slate-50 border border-gray-100 space-y-1.5"
                         >
                           <div className="flex items-center justify-between">
@@ -796,9 +793,9 @@ export function PatientMedicalRecordsScreen({
                     </div>
                   ) : (
                     <div className="flex flex-wrap gap-2">
-                      {selectedVisit?.prescriptions.map((p, idx) => (
+                      {selectedVisit?.prescriptions.map((p) => (
                         <span
-                          key={idx}
+                          key={p}
                           className="px-3 py-1.5 rounded-xl bg-blue-50 text-[#0D47A1] text-xs font-bold"
                         >
                           {p}

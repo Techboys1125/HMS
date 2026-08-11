@@ -627,14 +627,11 @@ export function RegisterPatientScreen({
           rawUser?.mrn ||
           rawUser?.patientMrn ||
           user?.patientId ||
-          user?.id ||
           "",
       );
       let mrn = "";
 
       if (effectiveMode === "PATIENT_SELF" && primaryMrn) {
-        // The backend auto-created the patient record during online account
-        // registration; complete it in place (fall back to create if missing).
         try {
           const updated = await patientsApi.updatePatient(primaryMrn, {
             ...payload,

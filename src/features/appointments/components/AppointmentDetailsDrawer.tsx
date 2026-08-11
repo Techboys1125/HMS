@@ -655,8 +655,11 @@ export function AppointmentDetailsDrawer({
                 </h3>
 
                 <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-                  {timelineSteps.map((step, idx) => (
-                    <div key={idx} className="relative">
+                  {timelineSteps.map((step) => (
+                    <div
+                      key={step.title}
+                      className="relative"
+                    >
                       <div
                         className={`absolute -left-6 top-0.5 w-4 h-4 rounded-full border-2 bg-white flex items-center justify-center ${step.status === "completed" ? "border-[#66BB6A] text-[#66BB6A]" : step.status === "active" ? "border-[#0D47A1] text-[#0D47A1]" : "border-slate-300"}`}
                       >

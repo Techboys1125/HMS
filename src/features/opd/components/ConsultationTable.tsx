@@ -41,12 +41,8 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
   onOpenConsultation,
   onCallPatient,
   onViewDetails,
-  onViewHistory,
-  onPatientSelect,
-  onPrint,
   onResetFilters,
   canStartConsultation = false,
-  canPrint = false,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -187,11 +183,7 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
                   onOpenConsultation={onOpenConsultation}
                   onCallPatient={onCallPatient}
                   onViewDetails={onViewDetails}
-                  onViewHistory={onViewHistory}
-                  onPatientSelect={onPatientSelect}
-                  onPrint={onPrint}
                   canStartConsultation={canStartConsultation}
-                  canPrint={canPrint}
                 />
               </tr>
             ))}

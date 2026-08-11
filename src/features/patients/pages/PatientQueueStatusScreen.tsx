@@ -41,9 +41,11 @@ export function PatientQueueStatusScreen() {
   const fetchQueue = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = activeMrn
-        ? await patientsApi.getPatientQueue(activeMrn)
-        : await patientsApi.getMyQueue();
+      if (!activeMrn) {
+        setQueueStatus(null);
+        return;
+      }
+      const data = await patientsApi.getPatientQueue(activeMrn);
       if (!data) {
         setQueueStatus(null);
         return;

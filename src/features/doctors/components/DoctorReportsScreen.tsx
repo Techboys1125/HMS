@@ -144,7 +144,7 @@ export function DoctorReportsScreen() {
                     radius={[6, 6, 0, 0]}
                   >
                     {WEEKLY_CONSULTATIONS.map((_, i) => (
-                      <Cell key={i} fill={i === 3 ? "#0D47A1" : "#DBEAFE"} />
+                      <Cell key={_?.id || _?._id || _?.key || _?.value || _?.code || _?.name || _?.title || _?.label || (typeof _ === 'object' ? JSON.stringify(_) : String(_))} fill={i === 3 ? "#0D47A1" : "#DBEAFE"} />
                     ))}
                   </Bar>
                 </BarChart>

@@ -185,9 +185,9 @@ export function DoctorMedicalRecordsScreen() {
             </div>
           ) : (
             <div className="space-y-3">
-              {filteredRecords.map((record, idx) => (
+              {filteredRecords.map((record) => (
                 <div
-                  key={record.id || idx}
+                  key={record.id || record.mrn}
                   className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-[#E5E7EB] hover:bg-white hover:shadow-sm transition-all"
                 >
                   <div className="flex items-center gap-4">

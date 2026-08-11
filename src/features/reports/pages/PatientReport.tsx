@@ -1133,8 +1133,8 @@ export function PatientReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {[].map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          {([] as Array<{ color?: string; [key: string]: unknown }>).map((entry) => (
+                            <Cell key={entry?.id ? String(entry.id) : String(entry?.name || entry?.color || "cell")} fill={entry.color || "#0D47A1"} />
                           ))}
                         </Pie>
                         <Tooltip

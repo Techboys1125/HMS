@@ -24,7 +24,7 @@ export interface AppointmentPage<T> {
   empty?: boolean;
 }
 
-const STATUS_MAP: Record<string, AppointmentRecord["status"]> = {
+export const STATUS_MAP: Record<string, AppointmentRecord["status"]> = {
   BOOKED: "Booked",
   CONFIRMED: "Booked",
   CHECKED_IN: "Waiting for Vitals",
@@ -43,7 +43,7 @@ const STATUS_MAP: Record<string, AppointmentRecord["status"]> = {
   SCHEDULED: "Booked",
 };
 
-const toDisplayStatus = (status?: string): AppointmentRecord["status"] =>
+export const toDisplayStatus = (status?: string): AppointmentRecord["status"] =>
   STATUS_MAP[String(status || "").toUpperCase()] ||
   (status as AppointmentRecord["status"]) ||
   "Booked";
@@ -727,7 +727,7 @@ export const appointmentService = {
     try {
       const apptRes = await appointmentsApi.getAppointments({ doctorId, date });
       const appointments = unwrapAppointmentCollection(apptRes).map((item) =>
-        normalizeAppointmentRecord(item)
+        normalizeAppointmentRecord(item),
       );
 
       const occupiedSlots = new Set<string>();

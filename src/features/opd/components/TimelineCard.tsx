@@ -36,7 +36,7 @@ export const TimelineCard: React.FC<TimelineCardProps> = ({
 
       <div className="space-y-0 pl-1">
         {events.map((e, idx) => (
-          <div key={idx} className="flex gap-3">
+          <div key={e?.id || e?._id || e?.key || e?.value || e?.code || e?.name || e?.title || e?.label || (typeof e === 'object' ? JSON.stringify(e) : String(e))} className="flex gap-3">
             <div className="flex flex-col items-center shrink-0">
               <div className="w-2.5 h-2.5 rounded-full bg-[#0D47A1] mt-1.5" />
               {idx < events.length - 1 && (

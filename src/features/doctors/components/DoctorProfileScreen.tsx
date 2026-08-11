@@ -219,28 +219,40 @@ export function DoctorProfileScreen({
   const [queueItems, setQueueItems] = useState<DoctorQueueItem[]>([]);
   const visibleQueueItems = useMemo(() => {
     return (queueItems || []).filter((item) => {
-      const s = String(item.status || item.queueStatus || "").toUpperCase().replace(/[\s-]/g, "_");
+      const s = String(item.status || item.queueStatus || "")
+        .toUpperCase()
+        .replace(/[\s-]/g, "_");
       return s !== "WAITING_FOR_VITALS" && s !== "CHECKED_IN";
     });
   }, [queueItems]);
 
   const localWaitingCount = useMemo(() => {
     return visibleQueueItems.filter((item) => {
-      const s = String(item.status || item.queueStatus || "").toUpperCase().replace(/[\s-]/g, "_");
-      return s === "WAITING" || s === "WAITING_FOR_DOCTOR" || s === "WAITING_FOR_DOCTOR_CALL";
+      const s = String(item.status || item.queueStatus || "")
+        .toUpperCase()
+        .replace(/[\s-]/g, "_");
+      return (
+        s === "WAITING" ||
+        s === "WAITING_FOR_DOCTOR" ||
+        s === "WAITING_FOR_DOCTOR_CALL"
+      );
     }).length;
   }, [visibleQueueItems]);
 
   const localInConsultationCount = useMemo(() => {
     return visibleQueueItems.filter((item) => {
-      const s = String(item.status || item.queueStatus || "").toUpperCase().replace(/[\s-]/g, "_");
+      const s = String(item.status || item.queueStatus || "")
+        .toUpperCase()
+        .replace(/[\s-]/g, "_");
       return s === "IN_CONSULTATION" || s === "IN_PROGRESS";
     }).length;
   }, [visibleQueueItems]);
 
   const localCompletedCount = useMemo(() => {
     return visibleQueueItems.filter((item) => {
-      const s = String(item.status || item.queueStatus || "").toUpperCase().replace(/[\s-]/g, "_");
+      const s = String(item.status || item.queueStatus || "")
+        .toUpperCase()
+        .replace(/[\s-]/g, "_");
       return s === "COMPLETED";
     }).length;
   }, [visibleQueueItems]);
@@ -415,10 +427,14 @@ export function DoctorProfileScreen({
       const data = await doctorsService.getQueue(id);
       setQueueSummary(data?.summary || {});
       setQueueItems(
-        (data?.content || []).filter((item: { status?: string; queueStatus?: string }) => {
-          const st = String(item.status || item.queueStatus || "").toUpperCase();
-          return st !== "WAITING_FOR_VITALS" && st !== "CHECKED_IN";
-        }),
+        (data?.content || []).filter(
+          (item: { status?: string; queueStatus?: string }) => {
+            const st = String(
+              item.status || item.queueStatus || "",
+            ).toUpperCase();
+            return st !== "WAITING_FOR_VITALS" && st !== "CHECKED_IN";
+          },
+        ),
       );
     } catch {
       setQueueSummary({});
@@ -1143,7 +1159,7 @@ export function DoctorProfileScreen({
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
-                  {dailyAvailability.map((slot, idx) => {
+                  {dailyAvailability.map((slot) => {
                     const key = String(slot.status || "").toUpperCase();
                     const style =
                       SLOT_STATUS_STYLE[key] ||
@@ -1152,7 +1168,7 @@ export function DoctorProfileScreen({
                       SLOT_STATUS_LABEL[key] || slot.status || "Unknown";
                     return (
                       <div
-                        key={`${slot.startTime}-${idx}`}
+                        key={`${slot.startTime}-${slot.endTime}`}
                         className={`px-3 py-2 rounded-xl border text-center ${style}`}
                       >
                         <span className="block font-mono font-bold text-xs">
@@ -1288,8 +1304,8 @@ export function DoctorProfileScreen({
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
                   {isLoading ? (
-                    Array.from({ length: 4 }).map((_, idx) => (
-                      <tr key={idx} className="animate-pulse">
+                    Array.from({ length: 4 }).map((_, i) => (
+                      <tr key={i} className="animate-pulse">
                         <td className="px-4 py-3">
                           <div className="h-3 bg-slate-200 rounded w-16" />
                         </td>
@@ -1418,8 +1434,8 @@ export function DoctorProfileScreen({
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
                   {isLoading ? (
-                    Array.from({ length: 4 }).map((_, idx) => (
-                      <tr key={idx} className="animate-pulse">
+                    Array.from({ length: 4 }).map((_, i) => (
+                      <tr key={i} className="animate-pulse">
                         <td className="px-4 py-3">
                           <div className="h-3 bg-slate-200 rounded w-16" />
                         </td>
@@ -1842,28 +1858,51 @@ export function DoctorProfileScreen({
                 </p>
               </div>
               {(() => {
-                const firstWaiting = queueItems.find(
-                  (item) => {
-                    const s = String(item.status || item.queueStatus || "").toUpperCase().replace(/[\s-]/g, "_");
-                    return s === "WAITING" || s === "WAITING_FOR_VITALS" || s === "WAITING_FOR_DOCTOR" || s === "WAITING_FOR_DOCTOR_CALL" || s === "BOOKED" || s === "CHECKED_IN";
-                  }
-                );
-                const isFirstWaitingVitals = firstWaiting && (() => {
-                  const s = String(firstWaiting.status || firstWaiting.queueStatus || "").toUpperCase().replace(/[\s-]/g, "_");
-                  return s === "WAITING_FOR_VITALS" || s === "CHECKED_IN";
-                })();
+                const firstWaiting = queueItems.find((item) => {
+                  const s = String(item.status || item.queueStatus || "")
+                    .toUpperCase()
+                    .replace(/[\s-]/g, "_");
+                  return (
+                    s === "WAITING" ||
+                    s === "WAITING_FOR_VITALS" ||
+                    s === "WAITING_FOR_DOCTOR" ||
+                    s === "WAITING_FOR_DOCTOR_CALL" ||
+                    s === "BOOKED" ||
+                    s === "CHECKED_IN"
+                  );
+                });
+                const isFirstWaitingVitals =
+                  firstWaiting &&
+                  (() => {
+                    const s = String(
+                      firstWaiting.status || firstWaiting.queueStatus || "",
+                    )
+                      .toUpperCase()
+                      .replace(/[\s-]/g, "_");
+                    return s === "WAITING_FOR_VITALS" || s === "CHECKED_IN";
+                  })();
 
-                return can("QUEUE_CALL_NEXT") && (
-                  <button
-                    onClick={handleCallNext}
-                    disabled={isCallingNext || visibleQueueItems.length === 0 || isFirstWaitingVitals}
-                    className="px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-[#00796b] transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                    style={{ fontFamily: PP }}
-                    title={isFirstWaitingVitals ? "Next patient is waiting for vitals" : undefined}
-                  >
-                    <PhoneCall size={14} />
-                    {isCallingNext ? "Calling..." : "Call Next Patient"}
-                  </button>
+                return (
+                  can("QUEUE_CALL_NEXT") && (
+                    <button
+                      onClick={handleCallNext}
+                      disabled={
+                        isCallingNext ||
+                        visibleQueueItems.length === 0 ||
+                        isFirstWaitingVitals
+                      }
+                      className="px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-[#00796b] transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                      style={{ fontFamily: PP }}
+                      title={
+                        isFirstWaitingVitals
+                          ? "Next patient is waiting for vitals"
+                          : undefined
+                      }
+                    >
+                      <PhoneCall size={14} />
+                      {isCallingNext ? "Calling..." : "Call Next Patient"}
+                    </button>
+                  )
                 );
               })()}
             </div>
@@ -1920,8 +1959,8 @@ export function DoctorProfileScreen({
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-[#111827]">
                   {isQueueLoading ? (
-                    Array.from({ length: 3 }).map((_, idx) => (
-                      <tr key={idx} className="animate-pulse">
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <tr key={i} className="animate-pulse">
                         <td className="px-4 py-3">
                           <div className="h-3 bg-slate-200 rounded w-16" />
                         </td>

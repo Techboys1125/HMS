@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Download,
   RefreshCw,
@@ -125,24 +125,23 @@ export function BillingReportScreen({
     totalInvoices > 0 ? Math.round(totalBilled / totalInvoices) : 0;
 
   // Map API invoice register to table format
-  const apiTableData: BillingReportRecord[] = (
-    invoiceRegisterData?.content ?? []
-  ).map((d) => ({
-    invoiceId: d.invoiceNumber,
-    patientName: d.patientName,
-    mrn: "",
-    doctorName: "",
-    department: "",
-    invoiceDate: d.invoiceDate,
-    invoiceAmount: d.billedAmount,
-    collectedAmount: d.paidAmount,
-    outstandingAmount: d.outstandingAmount,
-    paymentMethod: "Card" as const,
-    paymentStatus:
-      (d.paymentStatus?.toLowerCase() as BillingReportRecord["paymentStatus"]) ??
-      "Pending",
-  }));
-  const billingTableSource = apiTableData;
+  const billingTableSource = useMemo(() => {
+    return (invoiceRegisterData?.content ?? []).map((d) => ({
+      invoiceId: d.invoiceNumber,
+      patientName: d.patientName,
+      mrn: "",
+      doctorName: "",
+      department: "",
+      invoiceDate: d.invoiceDate,
+      invoiceAmount: d.billedAmount,
+      collectedAmount: d.paidAmount,
+      outstandingAmount: d.outstandingAmount,
+      paymentMethod: "Card" as const,
+      paymentStatus:
+        (d.paymentStatus?.toLowerCase() as BillingReportRecord["paymentStatus"]) ??
+        "Pending",
+    }));
+  }, [invoiceRegisterData?.content]);
 
   // Table sorting & pagination
   const [sortField, setSortField] =
@@ -192,7 +191,7 @@ export function BillingReportScreen({
         matchesMethod
       );
     });
-  }, [searchQuery, deptFilter, doctorFilter, payStatusFilter, payMethodFilter]);
+  }, [searchQuery, deptFilter, doctorFilter, payStatusFilter, payMethodFilter, billingTableSource]);
 
   // Sorted records
   const sortedData = useMemo(() => {
@@ -905,8 +904,8 @@ export function BillingReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {[].map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          {([] as Array<{ name?: string; color: string }>).map((entry) => (
+                            <Cell key={entry.name} fill={entry.color} />
                           ))}
                         </Pie>
                         <Tooltip

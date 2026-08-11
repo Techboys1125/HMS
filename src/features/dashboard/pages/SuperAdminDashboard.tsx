@@ -330,7 +330,7 @@ export function SuperAdminDashboard() {
           <div>
             {SA_AUDIT.map((a, i) => (
               <div
-                key={i}
+                key={`${a.user}-${i}`}
                 className="flex items-start gap-3 py-2.5 border-b border-[#E5E7EB] last:border-0"
               >
                 <div

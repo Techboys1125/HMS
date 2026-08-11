@@ -77,7 +77,7 @@ export function QueueManagementScreen({
     status?: string;
   } | null>(null);
 
-  const [tokenCounter] = useState(() => Math.floor(100 + Math.random() * 900));
+  const [tokenCounter] = useState(() => 100 + (window.crypto.getRandomValues(new Uint32Array(1))[0] % 900));
 
   const handleExecuteCheckIn = async (apt: AppointmentRecord) => {
     try {
@@ -301,6 +301,91 @@ export function QueueManagementScreen({
         </div>
       </div>
 
+      {/* ── GLOBAL SEARCH & FILTER BAR ── */}
+      <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
+        <div className="relative w-full">
+          <Search
+            size={18}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search queue by Patient Name, MRN, Token Number or Appointment ID..."
+            className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
+          />
+        </div>
+
+        <div className="flex items-center justify-between gap-3 flex-wrap pt-1 border-t border-slate-100">
+          <div className="flex items-center gap-2 flex-wrap">
+            <select
+              value={selectedDoctor}
+              onChange={(e) => setSelectedDoctor(e.target.value)}
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
+            >
+              <option>All Doctors</option>
+            </select>
+
+            <select
+              value={selectedDept}
+              onChange={(e) => setSelectedDept(e.target.value)}
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
+            >
+              <option value="All Departments">All Departments</option>
+              {apiDepts.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
+            >
+              <option>All Statuses</option>
+              <option>Scheduled</option>
+              <option>Checked-In</option>
+              <option>Waiting</option>
+              <option>In Consultation</option>
+              <option>Completed</option>
+              <option>No Show</option>
+              <option>Cancelled</option>
+            </select>
+
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
+            >
+              <option>All Types</option>
+              <option>New Visit</option>
+              <option>Follow-up</option>
+              <option>Routine</option>
+              <option>Emergency</option>
+              <option>Consultation</option>
+            </select>
+
+            <button
+              onClick={resetFilters}
+              className="px-3 py-2 rounded-xl text-xs text-[#EF4444] font-semibold hover:bg-red-50 transition-colors"
+            >
+              Reset Filters
+            </button>
+          </div>
+
+          <div className="text-xs text-[#64748B] font-medium">
+            Showing{" "}
+            <span className="font-bold text-[#0D47A1]">
+              {filteredQueue.length}
+            </span>{" "}
+            queue entries
+          </div>
+        </div>
+      </div>
+
       {/* ── 6 SUMMARY KPI CARDS ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {/* Card 01: Waiting Patients */}
@@ -407,91 +492,6 @@ export function QueueManagementScreen({
           <span className="text-[10px] text-slate-400 font-medium">
             OPD bench target
           </span>
-        </div>
-      </div>
-
-      {/* ── GLOBAL SEARCH & FILTER BAR ── */}
-      <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
-        <div className="relative w-full">
-          <Search
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search queue by Patient Name, MRN, Token Number or Appointment ID..."
-            className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
-          />
-        </div>
-
-        <div className="flex items-center justify-between gap-3 flex-wrap pt-1 border-t border-slate-100">
-          <div className="flex items-center gap-2 flex-wrap">
-            <select
-              value={selectedDoctor}
-              onChange={(e) => setSelectedDoctor(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
-            >
-              <option>All Doctors</option>
-            </select>
-
-            <select
-              value={selectedDept}
-              onChange={(e) => setSelectedDept(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
-            >
-              <option value="All Departments">All Departments</option>
-              {apiDepts.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
-            >
-              <option>All Statuses</option>
-              <option>Scheduled</option>
-              <option>Checked-In</option>
-              <option>Waiting</option>
-              <option>In Consultation</option>
-              <option>Completed</option>
-              <option>No Show</option>
-              <option>Cancelled</option>
-            </select>
-
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
-            >
-              <option>All Types</option>
-              <option>New Visit</option>
-              <option>Follow-up</option>
-              <option>Routine</option>
-              <option>Emergency</option>
-              <option>Consultation</option>
-            </select>
-
-            <button
-              onClick={resetFilters}
-              className="px-3 py-2 rounded-xl text-xs text-[#EF4444] font-semibold hover:bg-red-50 transition-colors"
-            >
-              Reset Filters
-            </button>
-          </div>
-
-          <div className="text-xs text-[#64748B] font-medium">
-            Showing{" "}
-            <span className="font-bold text-[#0D47A1]">
-              {filteredQueue.length}
-            </span>{" "}
-            queue entries
-          </div>
         </div>
       </div>
 

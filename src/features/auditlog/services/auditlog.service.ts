@@ -27,7 +27,7 @@ import type {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function unwrap<T>(response: { data: ApiEnvelope<T> | T }): T {
+function unwrap<T>(response: { data: unknown }): T {
   const body = response.data;
   if (body && typeof body === "object" && "data" in body) {
     return (body as ApiEnvelope<T>).data;
@@ -35,9 +35,7 @@ function unwrap<T>(response: { data: ApiEnvelope<T> | T }): T {
   return body as T;
 }
 
-function unwrapPaginated<T>(
-  response: { data: ApiEnvelope<PaginatedData<T>> | PaginatedData<T> },
-): PaginatedData<T> {
+function unwrapPaginated<T>(response: { data: unknown }): PaginatedData<T> {
   const body = response.data;
   const inner =
     body && typeof body === "object" && "data" in body
@@ -46,13 +44,22 @@ function unwrapPaginated<T>(
   return inner;
 }
 
-function buildQuery(params?: Record<string, string | number | undefined>): string {
+function buildQuery(
+  params?: Record<string, string | number | undefined>,
+): string {
   if (!params) return "";
   const entries = Object.entries(params).filter(
     ([, v]) => v !== undefined && v !== "" && v !== "All",
   );
   if (entries.length === 0) return "";
-  return "?" + entries.map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`).join("&");
+  return (
+    "?" +
+    entries
+      .map(
+        ([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`,
+      )
+      .join("&")
+  );
 }
 
 function normalizeSeverity(s: string): AuditRecord["severity"] {
@@ -73,11 +80,16 @@ function normalizeStatus(s: string): AuditRecord["status"] {
 
 function normalizeCategory(c: string): AuditRecord["category"] {
   const up = c.toUpperCase().replace(/[_\s]/g, "");
-  if (up.includes("LOGINHISTORY") || up.includes("LOGIN")) return "Login History";
-  if (up.includes("USERACTIVITY") || up.includes("USERACTIVITIES")) return "User Activities";
-  if (up.includes("DATACHANGE") || up.includes("DATACHANGES")) return "Data Changes";
-  if (up.includes("DELETEDRECORD") || up.includes("DELETEDRECORDS")) return "Deleted Records";
-  if (up.includes("SYSTEMLOG") || up.includes("SYSTEMLOGS")) return "System Logs";
+  if (up.includes("LOGINHISTORY") || up.includes("LOGIN"))
+    return "Login History";
+  if (up.includes("USERACTIVITY") || up.includes("USERACTIVITIES"))
+    return "User Activities";
+  if (up.includes("DATACHANGE") || up.includes("DATACHANGES"))
+    return "Data Changes";
+  if (up.includes("DELETEDRECORD") || up.includes("DELETEDRECORDS"))
+    return "Deleted Records";
+  if (up.includes("SYSTEMLOG") || up.includes("SYSTEMLOGS"))
+    return "System Logs";
   return "User Activities";
 }
 
@@ -223,7 +235,9 @@ function adaptSystemLog(raw: RawSystemLog): AuditRecord {
 export async function fetchAuditLogs(
   params?: AuditLogListParams,
 ): Promise<PaginatedData<AuditRecord>> {
-  const query = buildQuery(params as Record<string, string | number | undefined>);
+  const query = buildQuery(
+    params as Record<string, string | number | undefined>,
+  );
   const res = await apiClient.get(`/api/v1/admin/audit-logs${query}`);
   const raw = unwrapPaginated(res);
   return {
@@ -238,7 +252,7 @@ export async function fetchAuditLogSummary(): Promise<AuditLogSummary> {
 }
 
 export async function fetchAuditLogById(id: string): Promise<AuditRecord> {
-  const res = await apiClient.get(`/api/v1/admin/audit-logs/${id}`);
+  const res = await apiClient.get(`/api/v1/admin/audit/logs/${id}`);
   return adaptAuditLog(unwrap(res) as RawAuditLog);
 }
 
@@ -261,8 +275,12 @@ export async function flagAuditLog(
 export async function fetchCriticalEvents(
   params?: AuditLogListParams,
 ): Promise<PaginatedData<AuditRecord>> {
-  const query = buildQuery(params as Record<string, string | number | undefined>);
-  const res = await apiClient.get(`/api/v1/admin/audit/critical-events${query}`);
+  const query = buildQuery(
+    params as Record<string, string | number | undefined>,
+  );
+  const res = await apiClient.get(
+    `/api/v1/admin/audit/critical-events${query}`,
+  );
   const raw = unwrapPaginated(res);
   return {
     ...raw,
@@ -287,7 +305,9 @@ export async function fetchAuditFilterOptions(): Promise<AuditFilterOptions> {
 export async function fetchMainAuditLogs(
   params?: AuditLogListParams,
 ): Promise<PaginatedData<AuditRecord>> {
-  const query = buildQuery(params as Record<string, string | number | undefined>);
+  const query = buildQuery(
+    params as Record<string, string | number | undefined>,
+  );
   const res = await apiClient.get(`/api/v1/admin/audit/logs${query}`);
   const raw = unwrapPaginated(res);
   return {
@@ -320,37 +340,55 @@ export async function fetchAuditWorkspaces(): Promise<AuditWorkspace[]> {
 export async function fetchActiveSessions(
   params?: AuditLogListParams,
 ): Promise<PaginatedData<RawActiveSession>> {
-  const query = buildQuery(params as Record<string, string | number | undefined>);
-  const res = await apiClient.get(`/api/v1/admin/audit/login-history/active-sessions${query}`);
+  const query = buildQuery(
+    params as Record<string, string | number | undefined>,
+  );
+  const res = await apiClient.get(
+    `/api/v1/admin/audit/login-history/active-sessions${query}`,
+  );
   return unwrapPaginated(res);
 }
 
 export async function fetchLoginHistoryDashboard(): Promise<LoginHistoryDashboard> {
-  const res = await apiClient.get("/api/v1/admin/audit/login-history/dashboard");
+  const res = await apiClient.get(
+    "/api/v1/admin/audit/login-history/dashboard",
+  );
   return unwrap(res) as LoginHistoryDashboard;
 }
 
 export async function fetchFailedLoginAttempts(
   params?: AuditLogListParams,
 ): Promise<PaginatedData<RawFailedAttempt>> {
-  const query = buildQuery(params as Record<string, string | number | undefined>);
-  const res = await apiClient.get(`/api/v1/admin/audit/login-history/failed-attempts${query}`);
+  const query = buildQuery(
+    params as Record<string, string | number | undefined>,
+  );
+  const res = await apiClient.get(
+    `/api/v1/admin/audit/login-history/failed-attempts${query}`,
+  );
   return unwrapPaginated(res);
 }
 
 export async function fetchLockedAccounts(
   params?: AuditLogListParams,
 ): Promise<PaginatedData<RawLockedAccount>> {
-  const query = buildQuery(params as Record<string, string | number | undefined>);
-  const res = await apiClient.get(`/api/v1/admin/audit/login-history/locked-accounts${query}`);
+  const query = buildQuery(
+    params as Record<string, string | number | undefined>,
+  );
+  const res = await apiClient.get(
+    `/api/v1/admin/audit/login-history/locked-accounts${query}`,
+  );
   return unwrapPaginated(res);
 }
 
 export async function fetchLoginHistoryLogs(
   params?: AuditLogListParams,
 ): Promise<PaginatedData<AuditRecord>> {
-  const query = buildQuery(params as Record<string, string | number | undefined>);
-  const res = await apiClient.get(`/api/v1/admin/audit/login-history/logs${query}`);
+  const query = buildQuery(
+    params as Record<string, string | number | undefined>,
+  );
+  const res = await apiClient.get(
+    `/api/v1/admin/audit/login-history/logs${query}`,
+  );
   const raw = unwrapPaginated(res);
   return {
     ...raw,
@@ -361,7 +399,9 @@ export async function fetchLoginHistoryLogs(
 export async function fetchLoginEventDetail(
   eventId: string,
 ): Promise<AuditRecord> {
-  const res = await apiClient.get(`/api/v1/admin/audit/login-history/logs/${eventId}`);
+  const res = await apiClient.get(
+    `/api/v1/admin/audit/login-history/logs/${eventId}`,
+  );
   return adaptAuditEvent(unwrap(res) as RawAuditEvent);
 }
 
@@ -370,15 +410,21 @@ export async function fetchLoginEventDetail(
 // ═════════════════════════════════════════════════════════════════════════════
 
 export async function fetchUserActivitiesDashboard(): Promise<UserActivitiesDashboard> {
-  const res = await apiClient.get("/api/v1/admin/audit/user-activities/dashboard");
+  const res = await apiClient.get(
+    "/api/v1/admin/audit/user-activities/dashboard",
+  );
   return unwrap(res) as UserActivitiesDashboard;
 }
 
 export async function fetchUserActivityLogs(
   params?: AuditLogListParams,
 ): Promise<PaginatedData<AuditRecord>> {
-  const query = buildQuery(params as Record<string, string | number | undefined>);
-  const res = await apiClient.get(`/api/v1/admin/audit/user-activities/logs${query}`);
+  const query = buildQuery(
+    params as Record<string, string | number | undefined>,
+  );
+  const res = await apiClient.get(
+    `/api/v1/admin/audit/user-activities/logs${query}`,
+  );
   const raw = unwrapPaginated(res);
   return {
     ...raw,
@@ -389,7 +435,9 @@ export async function fetchUserActivityLogs(
 export async function fetchUserActivityDetail(
   eventId: string,
 ): Promise<AuditRecord> {
-  const res = await apiClient.get(`/api/v1/admin/audit/user-activities/logs/${eventId}`);
+  const res = await apiClient.get(
+    `/api/v1/admin/audit/user-activities/logs/${eventId}`,
+  );
   return adaptAuditEvent(unwrap(res) as RawAuditEvent);
 }
 
@@ -405,8 +453,12 @@ export async function fetchDataChangesDashboard(): Promise<DataChangesDashboard>
 export async function fetchDataChangeLogs(
   params?: AuditLogListParams,
 ): Promise<PaginatedData<AuditRecord>> {
-  const query = buildQuery(params as Record<string, string | number | undefined>);
-  const res = await apiClient.get(`/api/v1/admin/audit/data-changes/logs${query}`);
+  const query = buildQuery(
+    params as Record<string, string | number | undefined>,
+  );
+  const res = await apiClient.get(
+    `/api/v1/admin/audit/data-changes/logs${query}`,
+  );
   const raw = unwrapPaginated(res);
   return {
     ...raw,
@@ -417,7 +469,9 @@ export async function fetchDataChangeLogs(
 export async function fetchDataChangeDetail(
   eventId: string,
 ): Promise<AuditRecord> {
-  const res = await apiClient.get(`/api/v1/admin/audit/data-changes/logs/${eventId}`);
+  const res = await apiClient.get(
+    `/api/v1/admin/audit/data-changes/logs/${eventId}`,
+  );
   return adaptAuditEvent(unwrap(res) as RawAuditEvent);
 }
 
@@ -426,15 +480,21 @@ export async function fetchDataChangeDetail(
 // ═════════════════════════════════════════════════════════════════════════════
 
 export async function fetchDeletedRecordsDashboard(): Promise<DeletedRecordsDashboard> {
-  const res = await apiClient.get("/api/v1/admin/audit/deleted-records/dashboard");
+  const res = await apiClient.get(
+    "/api/v1/admin/audit/deleted-records/dashboard",
+  );
   return unwrap(res) as DeletedRecordsDashboard;
 }
 
 export async function fetchDeletedRecordLogs(
   params?: AuditLogListParams,
 ): Promise<PaginatedData<AuditRecord>> {
-  const query = buildQuery(params as Record<string, string | number | undefined>);
-  const res = await apiClient.get(`/api/v1/admin/audit/deleted-records/logs${query}`);
+  const query = buildQuery(
+    params as Record<string, string | number | undefined>,
+  );
+  const res = await apiClient.get(
+    `/api/v1/admin/audit/deleted-records/logs${query}`,
+  );
   const raw = unwrapPaginated(res);
   return {
     ...raw,
@@ -445,7 +505,9 @@ export async function fetchDeletedRecordLogs(
 export async function fetchDeletedRecordDetail(
   eventId: string,
 ): Promise<AuditRecord> {
-  const res = await apiClient.get(`/api/v1/admin/audit/deleted-records/logs/${eventId}`);
+  const res = await apiClient.get(
+    `/api/v1/admin/audit/deleted-records/logs/${eventId}`,
+  );
   return adaptAuditEvent(unwrap(res) as RawAuditEvent);
 }
 
@@ -461,8 +523,12 @@ export async function fetchSystemLogsDashboard(): Promise<SystemLogsDashboard> {
 export async function fetchSystemLogLogs(
   params?: AuditLogListParams,
 ): Promise<PaginatedData<AuditRecord>> {
-  const query = buildQuery(params as Record<string, string | number | undefined>);
-  const res = await apiClient.get(`/api/v1/admin/audit/system-logs/logs${query}`);
+  const query = buildQuery(
+    params as Record<string, string | number | undefined>,
+  );
+  const res = await apiClient.get(
+    `/api/v1/admin/audit/system-logs/logs${query}`,
+  );
   const raw = unwrapPaginated(res);
   return {
     ...raw,
@@ -473,6 +539,8 @@ export async function fetchSystemLogLogs(
 export async function fetchSystemLogDetail(
   eventId: string,
 ): Promise<AuditRecord> {
-  const res = await apiClient.get(`/api/v1/admin/audit/system-logs/logs/${eventId}`);
+  const res = await apiClient.get(
+    `/api/v1/admin/audit/system-logs/logs/${eventId}`,
+  );
   return adaptAuditEvent(unwrap(res) as RawAuditEvent);
 }

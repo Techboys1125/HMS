@@ -326,8 +326,8 @@ export function EditConsultationPage({
                 className="list-disc pl-5 mt-1.5 text-xs space-y-1"
                 style={{ fontFamily: RB }}
               >
-                {validationErrors.map((err, idx) => (
-                  <li key={idx}>{err}</li>
+                {validationErrors.map((err) => (
+                  <li key={err}>{err}</li>
                 ))}
               </ul>
             </div>

@@ -1,12 +1,16 @@
 const API_BASE = "http://192.168.1.44:8081";
 
 async function login(email, password) {
-  var r = await fetch(API_BASE + "/api/v1/auth/login", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: email, password: password }),
-  });
-  var d = await r.json();
-  return d && d.data && d.data.accessToken;
+  for (let i = 0; i < 3; i++) {
+    var r = await fetch(API_BASE + "/api/v1/auth/login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, password: password }),
+    });
+    var d = await r.json();
+    if (d && d.data && d.data.accessToken) return d.data.accessToken;
+    await new Promise((res) => setTimeout(res, 1000));
+  }
+  return null;
 }
 
 async function api(token, method, url, body) {
@@ -20,22 +24,39 @@ async function api(token, method, url, body) {
 
 var results = [];
 function record(name, r) { results.push({ name: name, ok: r.ok, status: r.status }); }
+function delay(ms) { return new Promise(res => setTimeout(res, ms)); }
 
 async function run() {
   console.log("=== FULL OPD WORKFLOW TEST (v2) ===\n");
 
-  var doctorToken = await login("thangam@gmail.com", "123456789");
+  var doctorToken = await login("sandeep@gmail.com", "123456789");
+  await delay(3500);
   var nurseToken = await login("nurse@gmail.com", "Nurse@123");
-  var adminToken = await login("hmsadmin@gmail.com", "Admin@123");
+  await delay(3500);
+  var adminToken = await login("receptionist@gmail.com", "Reception@123");
+  await delay(3500);
+  var accountantToken = await login("accountant@gmail.com", "Accountant@123");
+  await delay(3500);
+
+  console.log("Tokens: ", { doctorToken: !!doctorToken, nurseToken: !!nurseToken, adminToken: !!adminToken, accountantToken: !!accountantToken });
 
   var today = new Date().toISOString().split("T")[0];
+  const scheduleRes = await api(adminToken, "GET", `/api/v1/doctors/1374/schedule?date=${today}`);
+  let startTime = "10:00";
+  let endTime = "10:15";
+  if (scheduleRes.ok && Array.isArray(scheduleRes.data?.data) && scheduleRes.data.data.length > 0) {
+    const avail = scheduleRes.data.data.find(s => s.available || s.isAvailable) || scheduleRes.data.data[0];
+    startTime = avail.startTime || avail.slotTime || "10:00";
+    endTime = avail.endTime || "10:15";
+  }
 
   // 1. Book appointment
   var r1 = await api(adminToken, "POST", "/api/v1/appointments", {
-    mrn: "MRN-2026526598", doctorId: 1368,
-    appointmentDate: today, startTime: "14:00", endTime: "14:15",
+    mrn: "MRN-2026526598", doctorId: 1374,
+    appointmentDate: today, startTime: startTime, endTime: endTime,
     appointmentType: "CONSULTATION", reason: "Workflow test v2", symptoms: "Test",
   });
+  console.log("Booking response: ", JSON.stringify(r1, null, 2));
   record("1. Book appointment", r1);
   var aptId = r1.ok && r1.data && r1.data.data && r1.data.data.id;
   if (!aptId) { console.log("FAIL - no aptId"); return; }
@@ -120,13 +141,45 @@ async function run() {
   var r16 = await api(doctorToken, "POST", "/api/v1/encounters/" + encId + "/finalize", { confirmation: true });
   record("16. Finalize encounter", r16);
 
-  // 17. Complete appointment
+  // 17. Complete appointment (or finalize consultation)
   var r17 = await api(doctorToken, "PATCH", "/api/v1/doctor/appointments/" + aptId + "/complete");
+  console.log("r17 complete response: ", JSON.stringify(r17, null, 2));
   record("17. Complete appointment", r17);
 
   // 18. Read prescription back
   var r18 = await api(doctorToken, "GET", "/api/v1/encounters/" + encId + "/prescription");
   record("18. Read prescription", r18);
+
+  // 19. Create invoice (Accountant)
+  var r19 = await api(accountantToken, "POST", "/api/v1/billing", {
+    appointmentId: aptId,
+    encounterId: encId,
+    patientMrn: "MRN-2026526598",
+    doctorId: 1374
+  });
+  record("19. Create bill", r19);
+  var billId = r19.ok && r19.data && r19.data.data && r19.data.data.billId;
+  console.log("  Bill ID: " + billId);
+  if (!billId) { console.log("FAIL - no billId"); return; }
+
+  // 20. Add bill item
+  var r20 = await api(accountantToken, "POST", "/api/v1/billing/" + billId + "/items", {
+    serviceId: "OPD Consultation Fee",
+    quantity: 1
+  });
+  record("20. Add bill item", r20);
+
+  // 21. Finalize bill
+  var r21 = await api(accountantToken, "PATCH", "/api/v1/billing/" + billId + "/finalize");
+  record("21. Finalize bill", r21);
+
+  // 22. Receive payment
+  var r22 = await api(accountantToken, "POST", "/api/v1/billing/" + billId + "/payments", {
+    payments: [{ method: "UPI", amount: 500, referenceNumber: "UPI-987654" }],
+    remarks: "Test payment workflow"
+  });
+  console.log("r22 receive payment response: ", JSON.stringify(r22, null, 2));
+  record("22. Receive payment", r22);
 
   // SUMMARY
   console.log("\n=== RESULTS ===");

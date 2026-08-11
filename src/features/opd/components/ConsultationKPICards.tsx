@@ -56,28 +56,12 @@ const KpiCard: React.FC<KpiCardProps> = ({
   </div>
 );
 
-const countBy = (
-  tabCounts: Record<string, number>,
-  ...keys: string[]
-): number => keys.reduce((sum, k) => sum + (tabCounts[k] || 0), 0);
-
 export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
   role,
   consultations,
   tabCounts,
 }) => {
-  const waitingTotal = countBy(
-    tabCounts,
-    "WAITING",
-    "WAITING_FOR_VITALS",
-    "WAITING_FOR_DOCTOR_CALL",
-    "CALLED",
-  );
-  const waitingForDoctor = countBy(
-    tabCounts,
-    "WAITING",
-    "WAITING_FOR_DOCTOR_CALL",
-  );
+  const waitingForDoctor = tabCounts["WAITING_FOR_DOCTOR_CALL"] || 0;
   const inConsultation = tabCounts["IN_CONSULTATION"] || 0;
   const completed = tabCounts["COMPLETED"] || 0;
   const followUps = tabCounts["FOLLOW_UP_SCHEDULED"] || 0;
@@ -103,7 +87,7 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
         />
         <KpiCard
           label="Patients Waiting"
-          value={waitingTotal}
+          value={waitingForDoctor}
           icon={<Clock size={18} />}
           iconBg="bg-amber-50"
           iconColor="text-[#F59E0B]"

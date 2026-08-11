@@ -30,7 +30,10 @@ export const PrescriptionDrawer: React.FC<DrawerProps> = ({
         <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-slate-50">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>
+              <h3
+                className="text-base font-bold text-[#111827]"
+                style={{ fontFamily: PP }}
+              >
                 Prescription Quick Preview
               </h3>
               <PrescriptionStatusBadge status={prescription.status} />
@@ -48,12 +51,20 @@ export const PrescriptionDrawer: React.FC<DrawerProps> = ({
         </div>
 
         {/* Drawer Content */}
-        <div className="p-5 overflow-y-auto space-y-5 flex-1 text-xs" style={{ fontFamily: RB }}>
+        <div
+          className="p-5 overflow-y-auto space-y-5 flex-1 text-xs"
+          style={{ fontFamily: RB }}
+        >
           <div className="p-4 rounded-xl bg-slate-50 border border-gray-100 space-y-2">
             {prescription.patientName && (
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-500 font-medium">Patient Name</span>
-                <span className="text-xs font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                <span className="text-xs text-slate-500 font-medium">
+                  Patient Name
+                </span>
+                <span
+                  className="text-xs font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
                   {prescription.patientName}
                 </span>
               </div>
@@ -61,27 +72,42 @@ export const PrescriptionDrawer: React.FC<DrawerProps> = ({
             {prescription.mrn && (
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-500 font-medium">MRN</span>
-                <span className="text-xs font-mono font-semibold text-[#0D47A1]">{prescription.mrn}</span>
+                <span className="text-xs font-mono font-semibold text-[#0D47A1]">
+                  {prescription.mrn}
+                </span>
               </div>
             )}
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500 font-medium">Attending Doctor</span>
-              <span className="text-xs font-semibold text-slate-850">{prescription.doctorName}</span>
+              <span className="text-xs text-slate-500 font-medium">
+                Attending Doctor
+              </span>
+              <span className="text-xs font-semibold text-slate-850">
+                {prescription.doctorName}
+              </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500 font-medium">Department</span>
-              <span className="text-xs text-slate-700">{prescription.department}</span>
+              <span className="text-xs text-slate-500 font-medium">
+                Department
+              </span>
+              <span className="text-xs text-slate-700">
+                {prescription.department}
+              </span>
             </div>
             {prescription.consultationDate && (
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-500 font-medium">Date</span>
-                <span className="text-xs text-slate-700">{prescription.consultationDate}</span>
+                <span className="text-xs text-slate-700">
+                  {prescription.consultationDate}
+                </span>
               </div>
             )}
           </div>
 
           <div>
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2" style={{ fontFamily: PP }}>
+            <div
+              className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2"
+              style={{ fontFamily: PP }}
+            >
               Clinical Diagnosis
             </div>
             <div className="p-3 bg-blue-50/60 border border-blue-100 rounded-xl text-xs text-slate-800 font-medium">
@@ -90,15 +116,29 @@ export const PrescriptionDrawer: React.FC<DrawerProps> = ({
           </div>
 
           <div>
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2" style={{ fontFamily: PP }}>
+            <div
+              className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2"
+              style={{ fontFamily: PP }}
+            >
               Prescribed Medicines ({prescription.medicineCount})
             </div>
             <div className="space-y-2">
-              {prescription.medicines.map((m, idx) => (
-                <div key={idx} className="p-3 rounded-xl border border-gray-100 flex items-center justify-between">
+              {prescription.medicines.map((m) => (
+                <div
+                  key={m.name}
+                  className="p-3 rounded-xl border border-gray-100 flex items-center justify-between"
+                >
                   <div>
-                    <div className="font-bold text-[#111827]" style={{ fontFamily: PP }}>
-                      {m.name} {m.strength && <span className="font-normal text-slate-500">({m.strength})</span>}
+                    <div
+                      className="font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      {m.name}{" "}
+                      {m.strength && (
+                        <span className="font-normal text-slate-500">
+                          ({m.strength})
+                        </span>
+                      )}
                     </div>
                     <div className="text-[11px] text-slate-500">
                       {m.frequency} • {m.duration}
@@ -112,7 +152,10 @@ export const PrescriptionDrawer: React.FC<DrawerProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="p-3 rounded-xl bg-slate-50 border border-gray-100">
-              <div className="text-[10px] font-bold text-slate-400 uppercase" style={{ fontFamily: PP }}>
+              <div
+                className="text-[10px] font-bold text-slate-400 uppercase"
+                style={{ fontFamily: PP }}
+              >
                 Follow-up Date
               </div>
               <div className="text-xs font-bold text-[#111827] mt-0.5">
@@ -120,7 +163,10 @@ export const PrescriptionDrawer: React.FC<DrawerProps> = ({
               </div>
             </div>
             <div className="p-3 rounded-xl bg-slate-50 border border-gray-100">
-              <div className="text-[10px] font-bold text-slate-400 uppercase" style={{ fontFamily: PP }}>
+              <div
+                className="text-[10px] font-bold text-slate-400 uppercase"
+                style={{ fontFamily: PP }}
+              >
                 Prescription Status
               </div>
               <div className="mt-1">
@@ -201,20 +247,32 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
       <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between border-b border-gray-100 pb-3">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-bold text-[#111827]" style={{ fontFamily: PP }}>
+            <h3
+              className="text-lg font-bold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
               Full Prescription Details
             </h3>
             <PrescriptionStatusBadge status={prescription.status} />
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-700"
+          >
             <X size={18} />
           </button>
         </div>
 
-        <div className="p-5 bg-slate-50 rounded-xl border border-gray-200 space-y-4 text-xs" style={{ fontFamily: RB }}>
+        <div
+          className="p-5 bg-slate-50 rounded-xl border border-gray-200 space-y-4 text-xs"
+          style={{ fontFamily: RB }}
+        >
           <div className="flex justify-between items-center border-b border-gray-200 pb-3">
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>
+              <span
+                className="text-[10px] font-bold text-slate-400 uppercase block"
+                style={{ fontFamily: PP }}
+              >
                 Hospital
               </span>
               <span className="font-bold text-[#0D47A1] text-sm">
@@ -222,39 +280,64 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
               </span>
             </div>
             <div className="text-right">
-              <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>
+              <span
+                className="text-[10px] font-bold text-slate-400 uppercase block"
+                style={{ fontFamily: PP }}
+              >
                 Prescription ID
               </span>
-              <span className="font-mono font-bold text-slate-800 text-sm">{prescription.id}</span>
+              <span className="font-mono font-bold text-slate-800 text-sm">
+                {prescription.id}
+              </span>
             </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>
+              <span
+                className="text-[10px] font-bold text-slate-400 uppercase block"
+                style={{ fontFamily: PP }}
+              >
                 Attending Doctor
               </span>
-              <span className="font-bold text-[#111827]">{prescription.doctorName}</span>
-              <span className="text-[10px] text-slate-500 block">{prescription.department}</span>
+              <span className="font-bold text-[#111827]">
+                {prescription.doctorName}
+              </span>
+              <span className="text-[10px] text-slate-500 block">
+                {prescription.department}
+              </span>
             </div>
             {prescription.consultationId && (
               <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>
+                <span
+                  className="text-[10px] font-bold text-slate-400 uppercase block"
+                  style={{ fontFamily: PP }}
+                >
                   Consultation ID
                 </span>
-                <span className="font-mono font-medium text-slate-700">{prescription.consultationId}</span>
+                <span className="font-mono font-medium text-slate-700">
+                  {prescription.consultationId}
+                </span>
               </div>
             )}
             <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase block" style={{ fontFamily: PP }}>
+              <span
+                className="text-[10px] font-bold text-slate-400 uppercase block"
+                style={{ fontFamily: PP }}
+              >
                 Date
               </span>
-              <span className="font-medium text-slate-700">{prescription.consultationDate}</span>
+              <span className="font-medium text-slate-700">
+                {prescription.consultationDate}
+              </span>
             </div>
           </div>
 
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1" style={{ fontFamily: PP }}>
+            <span
+              className="text-[10px] font-bold text-slate-400 uppercase block mb-1"
+              style={{ fontFamily: PP }}
+            >
               Clinical Diagnosis
             </span>
             <p className="p-2.5 bg-white rounded-lg border border-gray-200 text-slate-800 font-medium">
@@ -263,12 +346,18 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
           </div>
 
           <div>
-            <span className="text-[10px] font-bold text-[#009688] uppercase block mb-2" style={{ fontFamily: PP }}>
+            <span
+              className="text-[10px] font-bold text-[#009688] uppercase block mb-2"
+              style={{ fontFamily: PP }}
+            >
               Prescribed Medications ({prescription.medicines.length})
             </span>
             <table className="w-full text-left border-collapse bg-white rounded-lg overflow-hidden border border-gray-200">
               <thead>
-                <tr className="bg-slate-100 text-[10px] font-bold text-slate-600 uppercase border-b border-gray-200" style={{ fontFamily: PP }}>
+                <tr
+                  className="bg-slate-100 text-[10px] font-bold text-slate-600 uppercase border-b border-gray-200"
+                  style={{ fontFamily: PP }}
+                >
                   <th className="p-2">Medicine</th>
                   <th className="p-2">Route</th>
                   <th className="p-2">Dosage</th>
@@ -277,14 +366,16 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {prescription.medicines.map((m, idx) => (
-                  <tr key={idx}>
+                {prescription.medicines.map((m) => (
+                  <tr key={m.name}>
                     <td className="p-2 font-bold text-[#111827]">
                       {m.name} {m.strength && <span>{m.strength}</span>}
                     </td>
                     <td className="p-2 text-slate-600">{m.route || "ORAL"}</td>
                     <td className="p-2 text-slate-700">{m.dosage}</td>
-                    <td className="p-2 font-semibold text-[#0D47A1]">{m.frequency}</td>
+                    <td className="p-2 font-semibold text-[#0D47A1]">
+                      {m.frequency}
+                    </td>
                     <td className="p-2 text-slate-600">{m.duration}</td>
                   </tr>
                 ))}
@@ -293,10 +384,15 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
           </div>
 
           <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 flex justify-between items-center">
-            <span className="text-[10px] font-bold text-amber-800 uppercase" style={{ fontFamily: PP }}>
+            <span
+              className="text-[10px] font-bold text-amber-800 uppercase"
+              style={{ fontFamily: PP }}
+            >
               Next Follow-up Review
             </span>
-            <span className="font-bold text-amber-900">{prescription.followupDate || "Not required"}</span>
+            <span className="font-bold text-amber-900">
+              {prescription.followupDate || "Not required"}
+            </span>
           </div>
         </div>
 
@@ -338,18 +434,29 @@ export const PrescriptionPrintModal: React.FC<PrintModalProps> = ({
         <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-4">
           <div className="flex items-center gap-2">
             <Printer size={18} className="text-[#0D47A1]" />
-            <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>
+            <h3
+              className="text-base font-bold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
               Print Prescription Preview
             </h3>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600"
+          >
             <X size={18} />
           </button>
         </div>
 
-        <div className="p-4 bg-slate-50 rounded-xl border border-gray-200 mb-5 text-xs text-slate-700 space-y-3" style={{ fontFamily: RB }}>
+        <div
+          className="p-4 bg-slate-50 rounded-xl border border-gray-200 mb-5 text-xs text-slate-700 space-y-3"
+          style={{ fontFamily: RB }}
+        >
           <div className="flex justify-between border-b border-gray-200 pb-2">
-            <span className="font-bold text-[#0D47A1]">HMS Hospital & Research Center</span>
+            <span className="font-bold text-[#0D47A1]">
+              HMS Hospital & Research Center
+            </span>
             <span className="font-mono text-slate-500">{prescription.id}</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -371,14 +478,16 @@ export const PrescriptionPrintModal: React.FC<PrintModalProps> = ({
             </div>
           </div>
           <div>
-            <strong>Diagnosis:</strong> {prescription.diagnosis || "No diagnosis details recorded."}
+            <strong>Diagnosis:</strong>{" "}
+            {prescription.diagnosis || "No diagnosis details recorded."}
           </div>
           <div className="pt-2 border-t border-gray-200">
             <div className="font-bold mb-1">Medicines Rx:</div>
             <ul className="list-disc pl-4 space-y-0.5">
-              {prescription.medicines.map((m, i) => (
-                <li key={i}>
-                  {m.name} {m.strength && `(${m.strength})`} — {m.dosage} • {m.frequency} ({m.duration})
+              {prescription.medicines.map((m) => (
+                <li key={m.name}>
+                  {m.name} {m.strength && `(${m.strength})`} — {m.dosage} •{" "}
+                  {m.frequency} ({m.duration})
                 </li>
               ))}
             </ul>

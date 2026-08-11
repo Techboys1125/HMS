@@ -30,5 +30,13 @@ export {
   useSystemLogLogs,
   useSystemLogDetail,
 } from "./hooks/useAuditLog";
-export { canAccessAuditLog, getAuditLogPermission } from "./permissions/auditlog.permissions";
-export type { AuditRecord, AuditCategory, AuditSeverity, AuditStatus } from "./types/auditlog.types";
+export {
+  canAccessAuditLog,
+  getAuditLogPermission,
+} from "./permissions/auditlog.permissions";
+export type {
+  AuditRecord,
+  AuditCategory,
+  AuditSeverity,
+  AuditStatus,
+} from "./types/auditlog.types";

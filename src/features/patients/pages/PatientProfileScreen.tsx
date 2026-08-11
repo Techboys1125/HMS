@@ -822,8 +822,11 @@ export function PatientProfileScreen({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 text-[#111827]">
-                        {paginatedBilling.map((inv, idx) => (
-                          <tr key={idx} className="hover:bg-slate-50">
+                        {paginatedBilling.map((inv) => (
+                          <tr
+                            key={inv.invoiceNo}
+                            className="hover:bg-slate-50"
+                          >
                             <td className="px-3 py-3 font-mono font-bold text-[#0D47A1]">
                               {inv.invoiceNo}
                             </td>

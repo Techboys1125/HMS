@@ -21,7 +21,7 @@ interface DataTableProps<T> {
   sortColumn?: keyof T | string;
   sortDirection?: "asc" | "desc";
   onSort?: (key: unknown) => void;
-  rowKeyAccessor: (row: T, index: number) => string;
+  rowKeyAccessor?: (row: T, index: number) => string;
   maxHeight?: string;
 }
 
@@ -57,7 +57,7 @@ export function DataTable<T>({
               const isSortable = col.sortable && onSort && col.sortKey;
               return (
                 <th
-                  key={idx}
+                  key={col.header || idx}
                   onClick={() => isSortable && onSort(col.sortKey)}
                   className={`px-4 py-3.5 ${
                     isSortable
@@ -86,7 +86,13 @@ export function DataTable<T>({
         <tbody className="divide-y divide-gray-100 text-[#111827]">
           {data.map((row, rIdx) => (
             <tr
-              key={rowKeyAccessor(row, rIdx)}
+              key={
+                rowKeyAccessor
+                  ? rowKeyAccessor(row, rIdx)
+                  : ((row as Record<string, unknown>)?.id as string) ||
+                    ((row as Record<string, unknown>)?._id as string) ||
+                    rIdx
+              }
               className="hover:bg-slate-50/80 transition-colors"
             >
               {columns.map((col, cIdx) => {
@@ -97,7 +103,7 @@ export function DataTable<T>({
 
                 return (
                   <td
-                    key={cIdx}
+                    key={col.header || cIdx}
                     className={`px-4 py-3.5 ${col.className || ""}`}
                   >
                     {cellVal}

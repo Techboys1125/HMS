@@ -1153,11 +1153,11 @@ export function DepartmentsSpecialtiesWorkspace() {
                 gap: "14px",
               }}
             >
-              {specialties.map((sp, idx) => {
+              {specialties.map((sp) => {
                 const IconC = sp.icon;
                 return (
                   <div
-                    key={idx}
+                    key={sp?.id || sp?._id || sp?.key || sp?.value || sp?.code || sp?.name || sp?.title || sp?.label || (typeof sp === 'object' ? JSON.stringify(sp) : String(sp))}
                     style={{
                       background: "#F8FAFC",
                       borderRadius: "12px",
@@ -1877,11 +1877,11 @@ export function DepartmentsSpecialtiesWorkspace() {
                           }}
                         >
                           {(selectedDept.rawSpecialties || []).map(
-                            (spec: ApiSpecialtyItem, idx: number) => {
+                            (spec: ApiSpecialtyItem) => {
                               const specName = spec.name ?? "";
                               return (
                                 <span
-                                  key={idx}
+                                  key={spec?.id || spec?._id || spec?.key || spec?.value || spec?.code || spec?.name || spec?.title || spec?.label || (typeof spec === 'object' ? JSON.stringify(spec) : String(spec))}
                                   style={{
                                     display: "inline-flex",
                                     alignItems: "center",
@@ -1942,9 +1942,9 @@ export function DepartmentsSpecialtiesWorkspace() {
                         }}
                       >
                         {(selectedDept.rawSpecialties || []).map(
-                          (spec: ApiSpecialtyItem, idx: number) => (
+                          (spec: ApiSpecialtyItem) => (
                             <span
-                              key={idx}
+                              key={spec?.id || spec?._id || spec?.key || spec?.value || spec?.code || spec?.name || spec?.title || spec?.label || (typeof spec === 'object' ? JSON.stringify(spec) : String(spec))}
                               style={{
                                 background: "#E0F2F1",
                                 color: "#009688",
@@ -2417,9 +2417,9 @@ export function DepartmentsSpecialtiesWorkspace() {
                       border: "1px solid #E2E8F0",
                     }}
                   >
-                    {newDeptSpecialties.map((spec, idx) => (
+                    {newDeptSpecialties.map((spec) => (
                       <span
-                        key={idx}
+                        key={spec?.id || spec?._id || spec?.key || spec?.value || spec?.code || spec?.name || spec?.title || spec?.label || (typeof spec === 'object' ? JSON.stringify(spec) : String(spec))}
                         style={{
                           display: "inline-flex",
                           alignItems: "center",

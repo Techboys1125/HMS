@@ -1,4 +1,4 @@
-import  { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Calendar,
   Download,
@@ -96,8 +96,6 @@ export interface ReceptionistDailyAppointmentRecord {
   appointmentStatus: string;
 }
 
-
-
 export function ReceptionistDailyAppointmentReportScreen({
   onBack,
   onOpenPatientReport,
@@ -139,7 +137,7 @@ export function ReceptionistDailyAppointmentReportScreen({
   };
 
   const filteredAppointments = useMemo(() => {
-    return [].filter((item: any) => {
+    return ([] as ReceptionistDailyAppointmentRecord[]).filter((item) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -207,7 +205,12 @@ export function ReceptionistDailyAppointmentReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
+                  <strong className="text-[#111827]">
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
                 </span>
               </div>
 
@@ -798,9 +801,11 @@ export function ReceptionistDailyAppointmentReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {[].map((entry: any, index: any) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
+                          {([] as Array<{ name?: string; color: string }>).map(
+                            (entry) => (
+                              <Cell key={entry.name} fill={entry.color} />
+                            ),
+                          )}
                         </Pie>
                         <Tooltip
                           contentStyle={{
@@ -1094,7 +1099,16 @@ export function ReceptionistDailyAppointmentReportScreen({
                   Reception Activity Timeline
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {[].map((act: any) => (
+                  {(
+                    [] as Array<{
+                      id: string;
+                      title: string;
+                      time: string;
+                      action?: string;
+                      date?: string;
+                      detail?: string;
+                    }>
+                  ).map((act) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1169,9 +1183,7 @@ export function ReceptionistDailyAppointmentReportScreen({
                   </div>
                   <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
                     <span className="text-[#64748B]">Avg Waiting Time:</span>
-                    <span className="font-semibold text-[#0D47A1]">
-                      --
-                    </span>
+                    <span className="font-semibold text-[#0D47A1]">--</span>
                   </div>
                 </div>
 
@@ -1264,7 +1276,9 @@ export function ReceptionistDailyAppointmentReportScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
+            <strong className="text-[#111827]">
+              {new Date().toLocaleString()}
+            </strong>
           </div>
         </div>
       </div>

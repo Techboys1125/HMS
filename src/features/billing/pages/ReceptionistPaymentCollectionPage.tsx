@@ -184,7 +184,7 @@ export function ReceptionistPaymentCollectionPage() {
             { label: "Payment Method Selected", done: true },
           ].map((item, i) => (
             <div
-              key={i}
+              key={item?.id || item?._id || item?.key || item?.value || item?.code || item?.name || item?.title || item?.label || (typeof item === 'object' ? JSON.stringify(item) : String(item))}
               className={`p-3 rounded-xl border flex items-center gap-2 ${item.done ? "border-green-200 bg-green-50" : "border-slate-200 bg-slate-50"}`}
             >
               <div

@@ -38,13 +38,13 @@ export const InvestigationCard: React.FC<InvestigationCardProps> = ({
       <div className="space-y-3">
         {investigations.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            {investigations.map((i, idx) => (
+            {investigations.map((inv) => (
               <span
-                key={idx}
+                key={inv}
                 className="px-2.5 py-1 bg-blue-50 text-[#0D47A1] text-xs rounded-full font-medium border border-blue-100"
                 style={{ fontFamily: RB }}
               >
-                {i}
+                {inv}
               </span>
             ))}
           </div>

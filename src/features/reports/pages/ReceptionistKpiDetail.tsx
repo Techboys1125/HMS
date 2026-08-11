@@ -1,4 +1,4 @@
-import  { useState} from "react";
+import { useState } from "react";
 import {
   Calendar,
   Download,
@@ -36,7 +36,6 @@ import {
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
 
-
 export type ReceptionistKpiType =
   | "Today's Registrations"
   | "Today's Appointments"
@@ -57,8 +56,6 @@ interface ReceptionistKpiMeta {
   description: string;
   unit: string;
 }
-
-
 
 export function ReceptionistDashboardKpiDetailScreen({
   onBack,
@@ -90,7 +87,16 @@ export function ReceptionistDashboardKpiDetailScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  const meta: ReceptionistKpiMeta = { title: "", currentValue: "", yesterdayComp: "", monthlyComp: "", growthPercent: "", isPositive: false, description: "", unit: "" };
+  const meta: ReceptionistKpiMeta = {
+    title: "",
+    currentValue: "",
+    yesterdayComp: "",
+    monthlyComp: "",
+    growthPercent: "",
+    isPositive: false,
+    description: "",
+    unit: "",
+  };
   const trendData: { date: string; current: number; previous: number }[] = [];
   const donutData: { name: string; value: number; color: string }[] = [];
 
@@ -161,7 +167,12 @@ export function ReceptionistDashboardKpiDetailScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
+                  <strong className="text-[#111827]">
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
                 </span>
               </div>
 
@@ -709,8 +720,8 @@ export function ReceptionistDashboardKpiDetailScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {donutData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          {donutData.map((entry) => (
+                            <Cell key={entry.name} fill={entry.color} />
                           ))}
                         </Pie>
                         <Tooltip
@@ -862,7 +873,16 @@ export function ReceptionistDashboardKpiDetailScreen({
                   Recent KPI Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {[].map((act: any) => (
+                  {(
+                    [] as Array<{
+                      id: string;
+                      title: string;
+                      time: string;
+                      action?: string;
+                      date?: string;
+                      detail?: string;
+                    }>
+                  ).map((act) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -933,7 +953,10 @@ export function ReceptionistDashboardKpiDetailScreen({
                   <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
                     <span className="text-[#64748B]">Last Updated:</span>
                     <span className="font-semibold text-[#0D47A1]">
-                      {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date().toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </span>
                   </div>
                 </div>
@@ -1024,11 +1047,14 @@ export function ReceptionistDashboardKpiDetailScreen({
             </strong>
           </div>
           <div>
-            Hospital Management System â€¢ Receptionist Dashboard KPI Detail v1.0
+            Hospital Management System â€¢ Receptionist Dashboard KPI Detail
+            v1.0
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
+            <strong className="text-[#111827]">
+              {new Date().toLocaleString()}
+            </strong>
           </div>
         </div>
       </div>

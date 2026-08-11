@@ -58,11 +58,11 @@ export const UserTable: React.FC<UserTableProps> = ({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 text-[#111827]">
-          {users.map((user, idx) => {
+          {users.map((user) => {
             const isSelf = currentUserEmail === user.email;
             return (
               <tr
-                key={user.id || user.empId || `user-row-${idx}`}
+                key={user?.id || user?._id || user?.key || user?.value || user?.code || user?.name || user?.title || user?.label || (typeof user === 'object' ? JSON.stringify(user) : String(user))}
                 className="hover:bg-slate-50/80 transition-colors group"
               >
                 <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">

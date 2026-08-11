@@ -51,9 +51,9 @@ export function useSwitchAccount(primaryMrn: string) {
 
   // The authenticated patient context is loaded asynchronously. Keep this
   // hook aligned when the primary MRN arrives after the first render.
-  useEffect(() => {
-    if (!primaryMrn) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+  const [prevPrimaryMrn, setPrevPrimaryMrn] = useState(primaryMrn);
+  if (primaryMrn && primaryMrn !== prevPrimaryMrn) {
+    setPrevPrimaryMrn(primaryMrn);
     setContext((prev) => {
       const storedMrn = localStorage.getItem(SWITCH_ACCOUNT_STORAGE_KEY);
       const activeMrn = storedMrn || prev.activeMrn || primaryMrn;
@@ -64,7 +64,7 @@ export function useSwitchAccount(primaryMrn: string) {
         isFamilyMember: activeMrn !== primaryMrn,
       };
     });
-  }, [primaryMrn]);
+  }
 
   // Load active patient data
   useEffect(() => {

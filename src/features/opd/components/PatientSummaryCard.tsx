@@ -139,9 +139,9 @@ export const PatientSummaryCard: React.FC<PatientSummaryCardProps> = ({
           </span>
           <div className="flex flex-wrap gap-1">
             {allergies.length > 0 ? (
-              allergies.map((a, idx) => (
+              allergies.map((a) => (
                 <span
-                  key={idx}
+                  key={a}
                   className="px-2 py-0.5 bg-red-50 text-red-600 text-[10px] rounded-full border border-red-100 font-semibold"
                 >
                   ⚠ {a}

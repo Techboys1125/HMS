@@ -719,9 +719,9 @@ export function BackupMaintenanceWorkspace() {
                 sub: "GZIP compression to save disk space",
                 key: "compressFiles",
               },
-            ].map((item, idx) => (
+            ].map((item) => (
               <div
-                key={idx}
+                key={item.key}
                 style={{
                   background: "#F8FAFC",
                   padding: "10px 12px",
@@ -977,9 +977,9 @@ export function BackupMaintenanceWorkspace() {
                 pct: 95.1,
                 color: "#66BB6A",
               },
-            ].map((st, i) => (
+            ].map((st) => (
               <div
-                key={i}
+                key={st.label}
                 style={{
                   background: "#F8FAFC",
                   padding: "14px",
@@ -1317,11 +1317,11 @@ export function BackupMaintenanceWorkspace() {
                 bg: "#E8F5E9",
                 color: "#2E7D32",
               },
-            ].map((srv, idx) => {
+            ].map((srv) => {
               const SrvIcon = srv.icon;
               return (
                 <div
-                  key={idx}
+                  key={srv.service}
                   style={{
                     background: "#F8FAFC",
                     borderRadius: "10px",
@@ -1430,9 +1430,9 @@ export function BackupMaintenanceWorkspace() {
                 module: "System Admin",
                 status: "Scheduled",
               },
-            ].map((act, idx) => (
+            ].map((act) => (
               <div
-                key={idx}
+                key={act.title}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -1625,8 +1625,8 @@ export function BackupMaintenanceWorkspace() {
                   { day: "24 Jul", min: "3.6m" },
                   { day: "25 Jul", min: "3.7m" },
                   { day: "26 Jul", min: "3.8m" },
-                ].map((bar, idx) => (
-                  <div key={idx} style={{ flex: 1, textAlign: "center" }}>
+                ].map((bar) => (
+                  <div key={bar.day} style={{ flex: 1, textAlign: "center" }}>
                     <div
                       style={{
                         width: "100%",

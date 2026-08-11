@@ -1,5 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
-import { CheckCircle2, AlertCircle, ChevronDown, Printer, X, FileText } from "lucide-react";
+import {
+  CheckCircle2,
+  AlertCircle,
+  ChevronDown,
+  Printer,
+  X,
+} from "lucide-react";
 import { usePermissions } from "../../../permissions";
 import { useConsultation } from "../hooks/useConsultation";
 import { useEncounter } from "../hooks/useEncounter";
@@ -82,8 +88,10 @@ export function StartConsultationPage({
   const { selectedEncounter, selectedPrescription, finalizeConsultation } =
     useEncounter();
 
-  const activeEncounterId = selectedEncounter?.encounterId;
-  const activeAppointmentId = selectedAppointment?.id;
+  const activeEncounterId =
+    selectedEncounter?.encounterId || selectedConsultation?.encounterId;
+  const activeAppointmentId =
+    selectedAppointment?.id || selectedConsultation?.id;
   const activePrescriptionId = selectedPrescription?.id;
 
   const { loadVitals, saveVitals } = useVitals(activeEncounterId);
@@ -205,6 +213,8 @@ export function StartConsultationPage({
       pulse: string;
       temp: string;
       spo2: string;
+      respiratoryRate?: string;
+      bloodSugar?: string;
       bmi: string;
     };
     chiefComplaint: string;
@@ -342,26 +352,44 @@ export function StartConsultationPage({
     setShowToast(true);
 
     try {
-      if (can("DIAGNOSIS_CREATE") && formData.icdCode) {
-        await addDiagnosis(formData.icdCode, formData.finalDiagnosis);
+      if (can("DIAGNOSIS_CREATE") && formData.icdCode && activeEncounterId) {
+        try {
+          await addDiagnosis(
+            formData.icdCode,
+            formData.finalDiagnosis,
+            activeEncounterId,
+          );
+        } catch (diagErr) {
+          console.warn("Non-blocking diagnosis save warning:", diagErr);
+        }
       }
       if (activePrescriptionId) {
-        await saveMedications(activePrescriptionId, formData.medicines);
+        try {
+          await saveMedications(activePrescriptionId, formData.medicines);
+        } catch (medErr) {
+          console.warn("Non-blocking medication save warning:", medErr);
+        }
       }
       if (selectedConsultation?.id) {
-        await consultationApi.saveClinicalNotes(selectedConsultation.id, {
-          subjective: formData.symptoms || formData.chiefComplaint,
-          objective: formData.clinicalExamination,
-          assessment: formData.assessment,
-          plan: formData.advice,
-        });
+        try {
+          await consultationApi.saveClinicalNotes(selectedConsultation.id, {
+            subjective: formData.symptoms || formData.chiefComplaint,
+            objective: formData.clinicalExamination,
+            assessment: formData.assessment,
+            plan: formData.advice,
+          });
+        } catch (notesErr) {
+          console.warn("Non-blocking clinical notes warning:", notesErr);
+        }
       }
-      if (
-        can("CONSULTATION_FINALIZE") &&
-        activeEncounterId &&
-        activeAppointmentId
-      ) {
-        await finalizeConsultation(activeEncounterId, activeAppointmentId, {
+      if (can("CONSULTATION_FINALIZE")) {
+        const encId =
+          activeEncounterId ||
+          selectedConsultation?.encounterId ||
+          selectedConsultation?.id ||
+          "";
+        const aptId = activeAppointmentId || selectedConsultation?.id || 0;
+        await finalizeConsultation(encId, aptId, {
           generalAdvice: formData.advice,
           dietAdvice: formData.lifestyleRecommendations || "",
           precautions: formData.followupNotes || "",
@@ -474,8 +502,8 @@ export function StartConsultationPage({
                 className="list-disc pl-5 mt-1.5 text-xs space-y-1"
                 style={{ fontFamily: RB }}
               >
-                {validationErrors.map((err, idx) => (
-                  <li key={idx}>{err}</li>
+                {validationErrors.map((err) => (
+                  <li key={err}>{err}</li>
                 ))}
               </ul>
             </div>
@@ -712,7 +740,7 @@ export function StartConsultationPage({
       {showCompleteModal && finalizedData && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm overflow-y-auto flex justify-center items-start p-4 py-8">
           {/* Modal Container */}
-          <div 
+          <div
             id="printable-consultation-modal"
             className="bg-white rounded-2xl max-w-4xl w-full p-8 shadow-2xl border border-slate-100 flex flex-col space-y-6 animate-in fade-in zoom-in-95 duration-200 my-auto"
           >
@@ -754,7 +782,10 @@ export function StartConsultationPage({
                   <CheckCircle2 size={28} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-800" style={{ fontFamily: PP }}>
+                  <h2
+                    className="text-xl font-bold text-slate-800"
+                    style={{ fontFamily: PP }}
+                  >
                     Consultation Finalized
                   </h2>
                   <p className="text-xs text-slate-500">
@@ -767,7 +798,7 @@ export function StartConsultationPage({
                   setShowCompleteModal(false);
                   if (onCompleteSuccess) onCompleteSuccess();
                   else if (onBack) onBack();
-                  else navigate("/opd-consultation", { replace: true });
+                  else navigate("/billing", { replace: true });
                 }}
                 className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
               >
@@ -777,11 +808,13 @@ export function StartConsultationPage({
 
             {/* Printable Content Wrapper */}
             <div className="space-y-6 flex-1">
-              
               {/* Receipt Header for Print */}
               <div className="hidden print:flex items-center justify-between border-b-2 border-[#0D47A1] pb-4 mb-4">
                 <div>
-                  <h1 className="text-2xl font-black text-[#0D47A1] tracking-tight uppercase" style={{ fontFamily: PP }}>
+                  <h1
+                    className="text-2xl font-black text-[#0D47A1] tracking-tight uppercase"
+                    style={{ fontFamily: PP }}
+                  >
                     METROPOLITAN HEALTH HOSPITAL
                   </h1>
                   <p className="text-xs text-slate-500">
@@ -789,8 +822,12 @@ export function StartConsultationPage({
                   </p>
                 </div>
                 <div className="text-right">
-                  <h2 className="text-base font-bold text-slate-800">OPD VISIT SUMMARY</h2>
-                  <p className="text-xs text-slate-500">Date: {finalizedData.date}</p>
+                  <h2 className="text-base font-bold text-slate-800">
+                    OPD VISIT SUMMARY
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Date: {finalizedData.date}
+                  </p>
                 </div>
               </div>
 
@@ -798,65 +835,113 @@ export function StartConsultationPage({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Patient Details */}
                 <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider" style={{ fontFamily: PP }}>
+                  <h3
+                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                    style={{ fontFamily: PP }}
+                  >
                     Patient Information
                   </h3>
                   <div className="grid grid-cols-2 gap-y-2 text-xs">
                     <span className="text-slate-500">Name:</span>
-                    <span className="font-bold text-slate-800">{finalizedData.patientName}</span>
+                    <span className="font-bold text-slate-800">
+                      {finalizedData.patientName}
+                    </span>
                     <span className="text-slate-500">MRN:</span>
-                    <span className="font-mono font-bold text-slate-800">{finalizedData.mrn}</span>
+                    <span className="font-mono font-bold text-slate-800">
+                      {finalizedData.mrn}
+                    </span>
                     <span className="text-slate-500">Age / Gender:</span>
-                    <span className="font-bold text-slate-800">{finalizedData.age} Years / {finalizedData.gender}</span>
+                    <span className="font-bold text-slate-800">
+                      {finalizedData.age} Years / {finalizedData.gender}
+                    </span>
                     <span className="text-slate-500">Phone:</span>
-                    <span className="font-bold text-slate-800">{finalizedData.phone}</span>
+                    <span className="font-bold text-slate-800">
+                      {finalizedData.phone}
+                    </span>
                   </div>
                 </div>
 
                 {/* Encounter Details */}
                 <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider" style={{ fontFamily: PP }}>
+                  <h3
+                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                    style={{ fontFamily: PP }}
+                  >
                     Encounter Details
                   </h3>
                   <div className="grid grid-cols-2 gap-y-2 text-xs">
                     <span className="text-slate-500">Encounter ID:</span>
-                    <span className="font-mono font-bold text-slate-800">ENC-{finalizedData.encounterId}</span>
+                    <span className="font-mono font-bold text-slate-800">
+                      ENC-{finalizedData.encounterId}
+                    </span>
                     <span className="text-slate-500">Doctor Name:</span>
-                    <span className="font-bold text-slate-800">{finalizedData.doctor}</span>
+                    <span className="font-bold text-slate-800">
+                      {finalizedData.doctor}
+                    </span>
                     <span className="text-slate-500">Department:</span>
-                    <span className="font-bold text-slate-800">{finalizedData.department}</span>
+                    <span className="font-bold text-slate-800">
+                      {finalizedData.department}
+                    </span>
                     <span className="text-slate-500">Visit Type:</span>
-                    <span className="font-bold text-slate-800">{finalizedData.visitType}</span>
+                    <span className="font-bold text-slate-800">
+                      {finalizedData.visitType}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Vitals Summary Card */}
               <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider" style={{ fontFamily: PP }}>
+                <h3
+                  className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                  style={{ fontFamily: PP }}
+                >
                   Patient Vitals
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                   <div className="p-3 bg-blue-50/50 rounded-xl">
-                    <div className="text-slate-400 text-[10px]">Height / Weight</div>
+                    <div className="text-slate-400 text-[10px]">
+                      Height / Weight
+                    </div>
                     <div className="font-bold text-slate-800">
-                      {finalizedData.vitals.height ? `${finalizedData.vitals.height} cm` : "--"} / {finalizedData.vitals.weight ? `${finalizedData.vitals.weight} kg` : "--"}
+                      {finalizedData.vitals.height
+                        ? `${finalizedData.vitals.height} cm`
+                        : "--"}{" "}
+                      /{" "}
+                      {finalizedData.vitals.weight
+                        ? `${finalizedData.vitals.weight} kg`
+                        : "--"}
                     </div>
                   </div>
                   <div className="p-3 bg-blue-50/50 rounded-xl">
-                    <div className="text-slate-400 text-[10px]">Blood Pressure</div>
-                    <div className="font-bold text-slate-800">{finalizedData.vitals.bp || "--"}</div>
+                    <div className="text-slate-400 text-[10px]">
+                      Blood Pressure
+                    </div>
+                    <div className="font-bold text-slate-800">
+                      {finalizedData.vitals.bp || "--"}
+                    </div>
                   </div>
                   <div className="p-3 bg-blue-50/50 rounded-xl">
-                    <div className="text-slate-400 text-[10px]">Pulse / Temp</div>
+                    <div className="text-slate-400 text-[10px]">
+                      Pulse / Temp
+                    </div>
                     <div className="font-bold text-slate-800">
-                      {finalizedData.vitals.pulse ? `${finalizedData.vitals.pulse} bpm` : "--"} / {finalizedData.vitals.temp ? `${finalizedData.vitals.temp} °C` : "--"}
+                      {finalizedData.vitals.pulse
+                        ? `${finalizedData.vitals.pulse} bpm`
+                        : "--"}{" "}
+                      /{" "}
+                      {finalizedData.vitals.temp
+                        ? `${finalizedData.vitals.temp} °C`
+                        : "--"}
                     </div>
                   </div>
                   <div className="p-3 bg-blue-50/50 rounded-xl">
                     <div className="text-slate-400 text-[10px]">SpO2 / BMI</div>
                     <div className="font-bold text-slate-800">
-                      {finalizedData.vitals.spo2 ? `${finalizedData.vitals.spo2} %` : "--"} / {finalizedData.vitals.bmi || "--"}
+                      {finalizedData.vitals.spo2
+                        ? `${finalizedData.vitals.spo2} %`
+                        : "--"}{" "}
+                      / {finalizedData.vitals.bmi || "--"}
                     </div>
                   </div>
                 </div>
@@ -865,36 +950,58 @@ export function StartConsultationPage({
               {/* Clinical Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print-page-break">
                 <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider" style={{ fontFamily: PP }}>
+                  <h3
+                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                    style={{ fontFamily: PP }}
+                  >
                     Symptoms & SOAP Notes
                   </h3>
                   <div className="space-y-2 text-xs">
                     <div>
-                      <span className="font-bold text-slate-700 block">Chief Complaint:</span>
-                      <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1">{finalizedData.chiefComplaint || "None"}</span>
+                      <span className="font-bold text-slate-700 block">
+                        Chief Complaint:
+                      </span>
+                      <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1">
+                        {finalizedData.chiefComplaint || "None"}
+                      </span>
                     </div>
                     {finalizedData.clinicalExamination && (
                       <div>
-                        <span className="font-bold text-slate-700 block">Clinical Examination:</span>
-                        <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1">{finalizedData.clinicalExamination}</span>
+                        <span className="font-bold text-slate-700 block">
+                          Clinical Examination:
+                        </span>
+                        <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1">
+                          {finalizedData.clinicalExamination}
+                        </span>
                       </div>
                     )}
                   </div>
                 </div>
 
                 <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider" style={{ fontFamily: PP }}>
+                  <h3
+                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                    style={{ fontFamily: PP }}
+                  >
                     Diagnosis
                   </h3>
                   <div className="space-y-2 text-xs">
                     <div>
-                      <span className="font-bold text-slate-700 block">Final Diagnosis:</span>
-                      <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1 font-semibold">{finalizedData.finalDiagnosis}</span>
+                      <span className="font-bold text-slate-700 block">
+                        Final Diagnosis:
+                      </span>
+                      <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1 font-semibold">
+                        {finalizedData.finalDiagnosis}
+                      </span>
                     </div>
                     {finalizedData.icdCode && (
                       <div>
-                        <span className="font-bold text-slate-700 block">ICD-10 Code:</span>
-                        <span className="font-mono text-[#0D47A1] block bg-blue-50 p-2 rounded-lg mt-1">{finalizedData.icdCode}</span>
+                        <span className="font-bold text-slate-700 block">
+                          ICD-10 Code:
+                        </span>
+                        <span className="font-mono text-[#0D47A1] block bg-blue-50 p-2 rounded-lg mt-1">
+                          {finalizedData.icdCode}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -902,75 +1009,118 @@ export function StartConsultationPage({
               </div>
 
               {/* Prescribed Medications */}
-              {finalizedData.medicines && finalizedData.medicines.length > 0 && (
-                <div className="border border-slate-100 rounded-2xl p-5 space-y-3 print-page-break">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider" style={{ fontFamily: PP }}>
-                    Prescribed Medications (Rx)
-                  </h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className="border-b border-slate-100 text-slate-400 font-medium">
-                          <th className="py-2 pr-4 font-bold text-slate-500">Medicine</th>
-                          <th className="py-2 px-4 font-bold text-slate-500">Dosage</th>
-                          <th className="py-2 px-4 font-bold text-slate-500">Frequency</th>
-                          <th className="py-2 px-4 font-bold text-slate-500">Duration</th>
-                          <th className="py-2 pl-4 font-bold text-slate-500">Instructions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-50">
-                        {finalizedData.medicines.map((med: MedicineItem, idx: number) => (
-                          <tr key={idx} className="text-slate-700">
-                            <td className="py-2.5 pr-4 font-bold text-slate-800">{med.name}</td>
-                            <td className="py-2.5 px-4">{med.dosage}</td>
-                            <td className="py-2.5 px-4">{med.frequency}</td>
-                            <td className="py-2.5 px-4">{med.duration}</td>
-                            <td className="py-2.5 pl-4 text-slate-500 italic">{med.instructions || "After food"}</td>
+              {finalizedData.medicines &&
+                finalizedData.medicines.length > 0 && (
+                  <div className="border border-slate-100 rounded-2xl p-5 space-y-3 print-page-break">
+                    <h3
+                      className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                      style={{ fontFamily: PP }}
+                    >
+                      Prescribed Medications (Rx)
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-100 text-slate-400 font-medium">
+                            <th className="py-2 pr-4 font-bold text-slate-500">
+                              Medicine
+                            </th>
+                            <th className="py-2 px-4 font-bold text-slate-500">
+                              Dosage
+                            </th>
+                            <th className="py-2 px-4 font-bold text-slate-500">
+                              Frequency
+                            </th>
+                            <th className="py-2 px-4 font-bold text-slate-500">
+                              Duration
+                            </th>
+                            <th className="py-2 pl-4 font-bold text-slate-500">
+                              Instructions
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                          {finalizedData.medicines.map((med: MedicineItem) => (
+                            <tr
+                              key={med.id || med.name}
+                              className="text-slate-700"
+                            >
+                              <td className="py-2.5 pr-4 font-bold text-slate-800">
+                                {med.name}
+                              </td>
+                              <td className="py-2.5 px-4">{med.dosage}</td>
+                              <td className="py-2.5 px-4">{med.frequency}</td>
+                              <td className="py-2.5 px-4">{med.duration}</td>
+                              <td className="py-2.5 pl-4 text-slate-500 italic">
+                                {med.instructions || "After food"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Advice and follow up */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print-page-break">
                 <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider" style={{ fontFamily: PP }}>
+                  <h3
+                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                    style={{ fontFamily: PP }}
+                  >
                     General & Diet Advice
                   </h3>
                   <div className="space-y-2 text-xs">
                     {finalizedData.advice && (
                       <div>
-                        <span className="font-bold text-slate-700 block">General Advice:</span>
-                        <span className="text-slate-600 block mt-1">{finalizedData.advice}</span>
+                        <span className="font-bold text-slate-700 block">
+                          General Advice:
+                        </span>
+                        <span className="text-slate-600 block mt-1">
+                          {finalizedData.advice}
+                        </span>
                       </div>
                     )}
                     {finalizedData.dietAdvice && (
                       <div>
-                        <span className="font-bold text-slate-700 block">Diet & Lifestyle:</span>
-                        <span className="text-slate-600 block mt-1">{finalizedData.dietAdvice}</span>
+                        <span className="font-bold text-slate-700 block">
+                          Diet & Lifestyle:
+                        </span>
+                        <span className="text-slate-600 block mt-1">
+                          {finalizedData.dietAdvice}
+                        </span>
                       </div>
                     )}
                   </div>
                 </div>
 
                 <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider" style={{ fontFamily: PP }}>
+                  <h3
+                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                    style={{ fontFamily: PP }}
+                  >
                     Follow-up Instructions
                   </h3>
                   <div className="space-y-2 text-xs">
                     {finalizedData.nextVisitDate && (
                       <div className="p-3 bg-amber-50 rounded-xl border border-amber-100/50">
-                        <span className="font-bold text-amber-800 block">Next Recommended Visit:</span>
-                        <span className="text-amber-700 block font-semibold mt-1">{finalizedData.nextVisitDate}</span>
+                        <span className="font-bold text-amber-800 block">
+                          Next Recommended Visit:
+                        </span>
+                        <span className="text-amber-700 block font-semibold mt-1">
+                          {finalizedData.nextVisitDate}
+                        </span>
                       </div>
                     )}
                     {finalizedData.followupNotes && (
                       <div>
-                        <span className="font-bold text-slate-700 block">Precautions:</span>
-                        <span className="text-slate-600 block mt-1">{finalizedData.followupNotes}</span>
+                        <span className="font-bold text-slate-700 block">
+                          Precautions:
+                        </span>
+                        <span className="text-slate-600 block mt-1">
+                          {finalizedData.followupNotes}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -980,8 +1130,12 @@ export function StartConsultationPage({
               {/* Signature Line for Print */}
               <div className="hidden print:block pt-16 border-t border-slate-100 text-right">
                 <div className="inline-block border-t border-slate-400 pt-2 w-48 text-center">
-                  <p className="text-xs font-bold text-slate-800">{finalizedData.doctor}</p>
-                  <p className="text-[10px] text-slate-500">Authorized Signature</p>
+                  <p className="text-xs font-bold text-slate-800">
+                    {finalizedData.doctor}
+                  </p>
+                  <p className="text-[10px] text-slate-500">
+                    Authorized Signature
+                  </p>
                 </div>
               </div>
             </div>
@@ -993,7 +1147,7 @@ export function StartConsultationPage({
                   setShowCompleteModal(false);
                   if (onCompleteSuccess) onCompleteSuccess();
                   else if (onBack) onBack();
-                  else navigate("/opd-consultation", { replace: true });
+                  else navigate("/billing", { replace: true });
                 }}
                 className="px-6 py-2.5 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-all"
                 style={{ fontFamily: PP }}
@@ -1001,22 +1155,6 @@ export function StartConsultationPage({
                 Close & Exit
               </button>
               <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    const params = new URLSearchParams();
-                    if (finalizedData.encounterId) params.set("encounterId", String(finalizedData.encounterId));
-                    if (finalizedData.appointmentId) params.set("appointmentId", String(finalizedData.appointmentId));
-                    if (finalizedData.mrn) params.set("patientMrn", finalizedData.mrn);
-                    if (selectedAppointment?.doctorId) params.set("doctorId", String(selectedAppointment.doctorId));
-                    setShowCompleteModal(false);
-                    navigate(`/billing/create?${params.toString()}`);
-                  }}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition-all"
-                  style={{ fontFamily: PP }}
-                >
-                  <FileText size={14} />
-                  Generate Invoice
-                </button>
                 <button
                   onClick={() => window.print()}
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-bold rounded-xl shadow-md transition-all"

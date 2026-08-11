@@ -3,7 +3,7 @@
 # Tests all 24 report APIs across 5 user roles
 # ============================================================
 
-$BASE_URL = "http://localhost:8081"
+$BASE_URL = "http://192.168.1.44:8081"
 $RESULTS_DIR = "test-results"
 
 if (!(Test-Path $RESULTS_DIR)) { New-Item -ItemType Directory -Path $RESULTS_DIR | Out-Null }
@@ -19,23 +19,22 @@ $USERS = @{
 
 # ─── Login Function ───────────────────────────────────────────
 function Login($email, $password) {
-    $body = @{ email = $email; password = $password } | ConvertTo-Json
-    try {
-        $response = curl.exe -s -X POST "$BASE_URL/api/v1/auth/login" `
-            -H "Content-Type: application/json" `
-            -d $body 2>$null
-        $json = $response | ConvertFrom-Json
-        if ($json.data.accessToken) {
-            return $json.data.accessToken
-        } elseif ($json.accessToken) {
-            return $json.accessToken
-        }
-        Write-Host "  [WARN] Login response missing token: $response" -ForegroundColor Yellow
-        return $null
-    } catch {
-        Write-Host "  [ERROR] Login failed: $_" -ForegroundColor Red
-        return $null
+    for ($i = 0; $i -lt 3; $i++) {
+        $jsonPayload = "{`"email`":`"$email`",`"password`":`"$password`"}"
+        try {
+            $response = curl.exe -s -X POST "$BASE_URL/api/v1/auth/login" `
+                -H "Content-Type: application/json" `
+                -d $jsonPayload 2>$null
+            $json = $response | ConvertFrom-Json
+            if ($json.data.accessToken) {
+                return $json.data.accessToken
+            } elseif ($json.accessToken) {
+                return $json.accessToken
+            }
+        } catch {}
+        Start-Sleep -Milliseconds 1500
     }
+    return $null
 }
 
 # ─── API Test Function ────────────────────────────────────────

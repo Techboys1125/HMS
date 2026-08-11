@@ -10,15 +10,19 @@ export const patientKeys = {
   audit: (mrn: string) => [...patientKeys.all, "audit", mrn] as const,
 };
 
-export function usePatients(params?: {
-  query?: string;
-  page?: number;
-  size?: number;
-  status?: string;
-}) {
+export function usePatients(
+  params?: {
+    query?: string;
+    page?: number;
+    size?: number;
+    status?: string;
+  },
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: patientKeys.list(params?.query),
     queryFn: () => patientsApi.listPatients(params),
+    enabled: options?.enabled,
   });
 }
 
@@ -69,13 +73,17 @@ export function usePatientAudit(mrn: string) {
   });
 }
 
-export function useDoctorPatients(params?: {
-  page?: number;
-  size?: number;
-  search?: string;
-}) {
+export function useDoctorPatients(
+  params?: {
+    page?: number;
+    size?: number;
+    search?: string;
+  },
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: [...patientKeys.all, "doctor", params?.search ?? ""],
     queryFn: () => patientsApi.getDoctorPatients(params),
+    enabled: options?.enabled,
   });
 }

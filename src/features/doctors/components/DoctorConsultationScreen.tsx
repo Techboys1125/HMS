@@ -32,6 +32,7 @@ import { PP, RB } from "../constants/doctors.constants";
 import { Card } from "./Card";
 import { Avatar } from "./Avatar";
 import { appointmentService } from "../../appointments";
+import { billingService } from "../../billing/services/billing.service";
 
 type ConsultTab = "overview" | "vitals" | "soap" | "prescription" | "history";
 
@@ -50,6 +51,7 @@ interface AppointmentData {
   department: string;
   opdRoom: string;
   status: string;
+  doctorId: number | string;
 }
 
 const CONSULT_TABS: {
@@ -228,9 +230,15 @@ export function DoctorConsultationScreen({
           ),
           opdRoom: String(apt.roomNumber || apt.opdRoom || "N/A"),
           status: String(apt.status || "BOOKED"),
+          doctorId: Number(
+            (apt as unknown as Record<string, unknown>).doctorId ||
+              (doctor as Record<string, unknown>).doctorId ||
+              (doctor as Record<string, unknown>).id ||
+              0,
+          ),
         });
-      } catch {
-        /* keep null */
+      } catch (err) {
+        console.log(err);
       } finally {
         if (!cancelled) setLoadComplete(true);
       }
@@ -250,8 +258,30 @@ export function DoctorConsultationScreen({
     setIsCompleting(true);
     setCompleteMsg(null);
     try {
-      await appointmentService.doctorCompleteConsultation(appointmentId);
-      setCompleteMsg("Consultation completed. Encounter finalized.");
+      const result =
+        await appointmentService.doctorCompleteConsultation(appointmentId);
+      const encounterId =
+        (result.data as unknown as Record<string, unknown> | undefined)
+          ?.encounterId || Number(appointmentId);
+
+      let billNumber = "";
+      try {
+        const bill = await billingService.createBill({
+          appointmentId: Number(appointmentId),
+          encounterId: Number(encounterId),
+          patientMrn: patientData?.patientMrn || "",
+          doctorId: Number(patientData?.doctorId || 0),
+        });
+        billNumber = bill.billNumber || "";
+      } catch {
+        /* bill creation failed; consultation still completes */
+      }
+
+      setCompleteMsg(
+        billNumber
+          ? `Consultation completed. Invoice ${billNumber} generated.`
+          : "Consultation completed. Encounter finalized.",
+      );
       setCompleted(true);
       onComplete?.();
     } catch {
@@ -398,7 +428,7 @@ export function DoctorConsultationScreen({
             </div>
             <div className="space-y-0">
               {TIMELINE.map((t, i) => (
-                <div key={i} className="flex gap-2.5">
+                <div key={`${t.time}-${t.event}`} className="flex gap-2.5">
                   <div className="flex flex-col items-center">
                     <div className="w-1.5 h-1.5 rounded-full bg-[#0D47A1] mt-1 shrink-0" />
                     {i < TIMELINE.length - 1 && (
@@ -1058,9 +1088,9 @@ export function DoctorConsultationScreen({
                       doctor: "Dr. A. Mehta",
                       outcome: "ECG normal, advised lifestyle mod",
                     },
-                  ].map((v, i) => (
+                  ].map((v) => (
                     <div
-                      key={i}
+                      key={`${v.date}-${v.complaint}`}
                       className="flex items-start gap-4 px-5 py-4 hover:bg-slate-50/50 transition-colors"
                     >
                       <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">

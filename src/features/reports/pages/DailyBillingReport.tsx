@@ -424,9 +424,9 @@ export function DailyBillingReportPage() {
                       : 0,
                   color: "#66BB6A",
                 },
-              ].map((pm, i) => (
+              ].map((pm) => (
                 <div
-                  key={i}
+                  key={pm.method}
                   className="p-3.5 rounded-xl border border-slate-100 bg-slate-50 flex items-center justify-between"
                 >
                   <div>

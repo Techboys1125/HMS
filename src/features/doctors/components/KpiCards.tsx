@@ -19,9 +19,9 @@ export function KpiCards({
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {Array.from({ length: 4 }).map((_, idx) => (
+        {Array.from({ length: 4 }).map((_, i) => (
           <div
-            key={idx}
+            key={i}
             className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm animate-pulse flex items-center justify-between"
           >
             <div className="space-y-2 flex-1 pr-4">

@@ -797,11 +797,11 @@ export function UserRolesPermissionsWorkspace() {
             icon: Download,
             action: () => {},
           },
-        ].map((qa, i) => {
+        ].map((qa) => {
           const IconC = qa.icon;
           return (
             <div
-              key={i}
+              key={qa.title}
               onClick={qa.action}
               style={{
                 background: "#FFFFFF",
@@ -1382,9 +1382,9 @@ export function UserRolesPermissionsWorkspace() {
                 blocked: ["Other External Roles"],
                 summary: "Personal health record view & appointment booking",
               },
-            ].map((m, idx) => (
+            ].map((m) => (
               <div
-                key={idx}
+                key={m.module}
                 style={{
                   background: "#F8FAFC",
                   borderRadius: "12px",
@@ -1585,8 +1585,8 @@ export function UserRolesPermissionsWorkspace() {
                   { module: "Appointments Module", roles: 6, color: "#009688" },
                   { module: "Billing Module", roles: 3, color: "#F59E0B" },
                   { module: "Settings Module", roles: 2, color: "#EF4444" },
-                ].map((b, idx) => (
-                  <div key={idx}>
+                ].map((b) => (
+                  <div key={b.module}>
                     <div
                       style={{
                         display: "flex",
@@ -1979,9 +1979,9 @@ export function UserRolesPermissionsWorkspace() {
                   <div
                     style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}
                   >
-                    {selectedRole.modules.map((m, i) => (
+                    {selectedRole.modules.map((m) => (
                       <span
-                        key={i}
+                        key={m}
                         style={{
                           fontSize: "11px",
                           background: "#E3F2FD",

@@ -653,8 +653,8 @@ export function ReceptionManagementCenter({
                   paddingAngle={3}
                   dataKey="count"
                 >
-                  {QUEUE_STATUS_DONUT_DATA.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  {QUEUE_STATUS_DONUT_DATA.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
                 <Tooltip

@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Download,
   RefreshCw,
@@ -112,23 +112,21 @@ export function DailyRevenueReportScreen({
   const { data: revenueDetailsData } = useDailyRevenueDetails(reportFilters);
   const { data: collectionRateData } = useCollectionRate(reportFilters);
 
-  // Map API revenue details to table format
-  const apiTableData: RevenueReportRecord[] = (
-    revenueDetailsData?.content ?? []
-  ).map((d) => ({
-    id: d.paymentId,
-    patientName: d.receiptNumber,
-    mrn: "",
-    doctorName: "",
-    department: "",
-    invoiceDate: d.paidAt,
-    invoiceAmount: d.amount,
-    collectedAmount: d.amount,
-    outstandingAmount: 0,
-    paymentMethod: d.paymentMethod as RevenueReportRecord["paymentMethod"],
-    paymentStatus: "Paid" as const,
-  }));
-  const revenueTableSource = apiTableData;
+  const revenueTableSource = useMemo(() => {
+    return (revenueDetailsData?.content ?? []).map((d) => ({
+      id: d.paymentId,
+      patientName: d.receiptNumber,
+      mrn: "",
+      doctorName: "",
+      department: "",
+      invoiceDate: d.paidAt,
+      invoiceAmount: d.amount,
+      collectedAmount: d.amount,
+      outstandingAmount: 0,
+      paymentMethod: d.paymentMethod as RevenueReportRecord["paymentMethod"],
+      paymentStatus: "Paid" as const,
+    }));
+  }, [revenueDetailsData?.content]);
 
   // Map API daily revenue to trend chart format
   const trendSource = dailyRevenueData.map((d) => ({
@@ -290,6 +288,7 @@ export function DailyRevenueReportScreen({
     doctorFilter,
     paymentStatusFilter,
     paymentMethodFilter,
+    revenueTableSource,
   ]);
 
   // Sorted records
@@ -1213,8 +1212,8 @@ export function DailyRevenueReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {[].map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          {[].map((entry) => (
+                            <Cell key={entry?.id || entry?._id || entry?.key || entry?.value || entry?.code || entry?.name || entry?.title || entry?.label || (typeof entry === 'object' ? JSON.stringify(entry) : String(entry))} fill={entry.color} />
                           ))}
                         </Pie>
                         <Tooltip

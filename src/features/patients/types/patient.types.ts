@@ -527,9 +527,8 @@ export interface ApiPatientPrescription {
   diagnosis?: string;
   followUpDate?: string;
   medicines?: Array<{
-    dose: any;
-    route: string;
-    route: string;
+    dose?: string | number;
+    route?: string;
     strength: string;
     medicineName: string;
     name: string;

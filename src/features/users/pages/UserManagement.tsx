@@ -873,7 +873,7 @@ export const UserManagement: React.FC = () => {
 
                   <tbody className="divide-y divide-gray-100 text-[#111827]">
                     {filteredUsers.length > 0 ? (
-                      paginatedUsers.map((user, idx) => {
+                      paginatedUsers.map((user) => {
                         const initials = user.fullName
                           .split(" ")
                           .filter((n) => n.length > 0)
@@ -884,7 +884,7 @@ export const UserManagement: React.FC = () => {
 
                         return (
                           <tr
-                            key={user.id || user.empId || `user-row-${idx}`}
+                            key={user.id}
                             className="hover:bg-slate-50/80 transition-colors group"
                           >
                             <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
@@ -1395,9 +1395,9 @@ export const UserManagement: React.FC = () => {
                           </span>
                           <div className="flex flex-wrap gap-2">
                             {fullUserDetail.doctorProfile.availability.map(
-                              (slot, idx) => (
+                              (slot) => (
                                 <span
-                                  key={idx}
+                                  key={`slot-${slot.dayOfWeek || ""}-${slot.startTime}-${slot.endTime}`}
                                   className="bg-teal-50 border border-teal-200 text-teal-800 text-[11px] font-semibold px-2.5 py-1 rounded-lg"
                                 >
                                   {slot.dayOfWeek}: {slot.startTime} -{" "}

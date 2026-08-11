@@ -664,9 +664,9 @@ export function BookAppointmentScreen({
             {patientQuery.trim() !== "" && (
               <div className="max-h-48 overflow-y-auto border border-[#E5E7EB] rounded-xl divide-y divide-gray-100 bg-white shadow-lg">
                 {searchedPatients.length > 0 ? (
-                  searchedPatients.map((p, idx) => (
+                  searchedPatients.map((p) => (
                     <div
-                      key={p.id || p.mrn || `patient-search-${idx}-${p.name}`}
+                      key={p.id}
                       onClick={() => {
                         setSelectedPatient(p);
                         setPatientQuery("");
@@ -793,9 +793,9 @@ export function BookAppointmentScreen({
                   className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#009688] font-medium"
                 >
                   <option value="">-- Select Department --</option>
-                  {departments.map((dept, idx) => (
+                  {departments.map((dept) => (
                     <option
-                      key={dept.id || dept.departmentName || idx}
+                      key={dept.departmentName}
                       value={dept.departmentName}
                     >
                       {dept.departmentName}
@@ -831,8 +831,8 @@ export function BookAppointmentScreen({
                   ) : (
                     <>
                       <option value="">All Specialties</option>
-                      {specialties.map((spec, idx) => (
-                        <option key={spec || idx} value={spec}>
+                      {specialties.map((spec) => (
+                        <option key={spec} value={spec}>
                           {spec}
                         </option>
                       ))}

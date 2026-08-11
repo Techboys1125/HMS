@@ -1214,7 +1214,7 @@ export function DoctorEditPrescriptionScreen({
                     isPending: status === "Draft",
                   },
                 ].map((ev, i, arr) => (
-                  <div key={i} className="flex gap-2.5 items-start">
+                  <div key={ev?.id || ev?._id || ev?.key || ev?.value || ev?.code || ev?.name || ev?.title || ev?.label || (typeof ev === 'object' ? JSON.stringify(ev) : String(ev))} className="flex gap-2.5 items-start">
                     <div className="flex flex-col items-center">
                       <div
                         className={`w-2 h-2 rounded-full mt-1 shrink-0 ${ev.isPending ? "bg-amber-400" : "bg-[#009688]"}`}

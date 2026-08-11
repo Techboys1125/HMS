@@ -42,41 +42,62 @@ const auditLogKeys = {
   detail: (id: string) => [...auditLogKeys.all, "detail", id] as const,
 
   // Workspaces
-  criticalEvents: (p?: AuditLogListParams) => [...auditLogKeys.all, "critical-events", p] as const,
-  dashboard: (from?: string, to?: string) => [...auditLogKeys.all, "dashboard", from, to] as const,
+  criticalEvents: (p?: AuditLogListParams) =>
+    [...auditLogKeys.all, "critical-events", p] as const,
+  dashboard: (from?: string, to?: string) =>
+    [...auditLogKeys.all, "dashboard", from, to] as const,
   filterOptions: () => [...auditLogKeys.all, "filter-options"] as const,
-  mainLogs: (p?: AuditLogListParams) => [...auditLogKeys.all, "main-logs", p] as const,
-  eventDetail: (id: string) => [...auditLogKeys.all, "event-detail", id] as const,
+  mainLogs: (p?: AuditLogListParams) =>
+    [...auditLogKeys.all, "main-logs", p] as const,
+  eventDetail: (id: string) =>
+    [...auditLogKeys.all, "event-detail", id] as const,
   metrics: () => [...auditLogKeys.all, "metrics"] as const,
   workspaces: () => [...auditLogKeys.all, "workspaces"] as const,
 
   // Login History
   loginDashboard: () => [...auditLogKeys.all, "login-dashboard"] as const,
-  loginLogs: (p?: AuditLogListParams) => [...auditLogKeys.all, "login-logs", p] as const,
-  loginDetail: (id: string) => [...auditLogKeys.all, "login-detail", id] as const,
-  activeSessions: (p?: AuditLogListParams) => [...auditLogKeys.all, "active-sessions", p] as const,
-  failedAttempts: (p?: AuditLogListParams) => [...auditLogKeys.all, "failed-attempts", p] as const,
-  lockedAccounts: (p?: AuditLogListParams) => [...auditLogKeys.all, "locked-accounts", p] as const,
+  loginLogs: (p?: AuditLogListParams) =>
+    [...auditLogKeys.all, "login-logs", p] as const,
+  loginDetail: (id: string) =>
+    [...auditLogKeys.all, "login-detail", id] as const,
+  activeSessions: (p?: AuditLogListParams) =>
+    [...auditLogKeys.all, "active-sessions", p] as const,
+  failedAttempts: (p?: AuditLogListParams) =>
+    [...auditLogKeys.all, "failed-attempts", p] as const,
+  lockedAccounts: (p?: AuditLogListParams) =>
+    [...auditLogKeys.all, "locked-accounts", p] as const,
 
   // User Activities
-  userActivitiesDashboard: () => [...auditLogKeys.all, "user-activities-dashboard"] as const,
-  userActivityLogs: (p?: AuditLogListParams) => [...auditLogKeys.all, "user-activity-logs", p] as const,
-  userActivityDetail: (id: string) => [...auditLogKeys.all, "user-activity-detail", id] as const,
+  userActivitiesDashboard: () =>
+    [...auditLogKeys.all, "user-activities-dashboard"] as const,
+  userActivityLogs: (p?: AuditLogListParams) =>
+    [...auditLogKeys.all, "user-activity-logs", p] as const,
+  userActivityDetail: (id: string) =>
+    [...auditLogKeys.all, "user-activity-detail", id] as const,
 
   // Data Changes
-  dataChangesDashboard: () => [...auditLogKeys.all, "data-changes-dashboard"] as const,
-  dataChangeLogs: (p?: AuditLogListParams) => [...auditLogKeys.all, "data-change-logs", p] as const,
-  dataChangeDetail: (id: string) => [...auditLogKeys.all, "data-change-detail", id] as const,
+  dataChangesDashboard: () =>
+    [...auditLogKeys.all, "data-changes-dashboard"] as const,
+  dataChangeLogs: (p?: AuditLogListParams) =>
+    [...auditLogKeys.all, "data-change-logs", p] as const,
+  dataChangeDetail: (id: string) =>
+    [...auditLogKeys.all, "data-change-detail", id] as const,
 
   // Deleted Records
-  deletedRecordsDashboard: () => [...auditLogKeys.all, "deleted-records-dashboard"] as const,
-  deletedRecordLogs: (p?: AuditLogListParams) => [...auditLogKeys.all, "deleted-record-logs", p] as const,
-  deletedRecordDetail: (id: string) => [...auditLogKeys.all, "deleted-record-detail", id] as const,
+  deletedRecordsDashboard: () =>
+    [...auditLogKeys.all, "deleted-records-dashboard"] as const,
+  deletedRecordLogs: (p?: AuditLogListParams) =>
+    [...auditLogKeys.all, "deleted-record-logs", p] as const,
+  deletedRecordDetail: (id: string) =>
+    [...auditLogKeys.all, "deleted-record-detail", id] as const,
 
   // System Logs
-  systemLogsDashboard: () => [...auditLogKeys.all, "system-logs-dashboard"] as const,
-  systemLogLogs: (p?: AuditLogListParams) => [...auditLogKeys.all, "system-log-logs", p] as const,
-  systemLogDetail: (id: string) => [...auditLogKeys.all, "system-log-detail", id] as const,
+  systemLogsDashboard: () =>
+    [...auditLogKeys.all, "system-logs-dashboard"] as const,
+  systemLogLogs: (p?: AuditLogListParams) =>
+    [...auditLogKeys.all, "system-log-logs", p] as const,
+  systemLogDetail: (id: string) =>
+    [...auditLogKeys.all, "system-log-detail", id] as const,
 };
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
@@ -104,6 +125,7 @@ export function useAuditLogDetail(id: string | null) {
     queryFn: () => fetchAuditLogById(id!),
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 }
 
@@ -146,6 +168,7 @@ export function useAuditEventDetail(eventId: string | null) {
     queryFn: () => fetchAuditEventDetail(eventId!),
     enabled: !!eventId,
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 }
 
@@ -188,6 +211,7 @@ export function useLoginEventDetail(eventId: string | null) {
     queryFn: () => fetchLoginEventDetail(eventId!),
     enabled: !!eventId,
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 }
 
@@ -238,6 +262,7 @@ export function useUserActivityDetail(eventId: string | null) {
     queryFn: () => fetchUserActivityDetail(eventId!),
     enabled: !!eventId,
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 }
 
@@ -264,6 +289,7 @@ export function useDataChangeDetail(eventId: string | null) {
     queryFn: () => fetchDataChangeDetail(eventId!),
     enabled: !!eventId,
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 }
 
@@ -290,6 +316,7 @@ export function useDeletedRecordDetail(eventId: string | null) {
     queryFn: () => fetchDeletedRecordDetail(eventId!),
     enabled: !!eventId,
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 }
 
@@ -316,6 +343,7 @@ export function useSystemLogDetail(eventId: string | null) {
     queryFn: () => fetchSystemLogDetail(eventId!),
     enabled: !!eventId,
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 }
 

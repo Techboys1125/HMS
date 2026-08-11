@@ -21,8 +21,8 @@ export const InfoCard: React.FC<InfoCardProps> = ({ title, items, icon }) => {
         </h3>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-xs">
-        {items.map((item, i) => (
-          <div key={i} className="flex flex-col space-y-1">
+        {items.map((item) => (
+          <div key={item.label} className="flex flex-col space-y-1">
             <span className="text-[#64748B] font-medium">{item.label}</span>
             <span className="text-[#1E293B] font-bold leading-relaxed">
               {item.value || "—"}

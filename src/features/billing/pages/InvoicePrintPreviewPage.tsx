@@ -32,7 +32,10 @@ export function InvoicePrintPreviewPage() {
   const patientName = bill?.patient?.name || receipt?.patientName || "N/A";
   const patientMrn = bill?.patient?.mrn || receipt?.mrn || "N/A";
   const doctorName = bill?.doctor?.name || "N/A";
-  const billData = bill?.bill;
+  const billData = (bill?.bill || {}) as Record<
+    string,
+    string | number | boolean | null | undefined
+  >;
   const summaryData = bill?.summary;
   const items = bill?.items || [];
   const payments = bill?.paymentHistory || receipt?.payments || [];
@@ -302,7 +305,7 @@ export function InvoicePrintPreviewPage() {
                 </span>
                 <span className="font-medium text-[#111827]">
                   {billData.createdAt
-                    ? new Date(billData.createdAt).toLocaleDateString()
+                    ? new Date(String(billData.createdAt)).toLocaleDateString()
                     : new Date().toLocaleDateString()}
                 </span>
               </div>
@@ -453,9 +456,9 @@ export function InvoicePrintPreviewPage() {
                 <h3 className="text-[10px] text-[#0D47A1] font-bold tracking-widest uppercase">
                   Payment Methods Used
                 </h3>
-                {payments.map((p: BillPaymentRecord, i: number) => (
+                {payments.map((p: BillPaymentRecord) => (
                   <div
-                    key={i}
+                    key={p.receiptNumber || p.paymentNumber || p.id}
                     className="flex justify-between p-2 rounded-lg bg-slate-50 border border-slate-100"
                   >
                     <span className="text-slate-600">{p.method}</span>

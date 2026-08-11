@@ -65,33 +65,31 @@ export const ConsultationDetailsSection: React.FC<
     return [];
   }, [form.secondaryDepartment, deptSpecialtiesMap]);
 
-  // Auto-select first primary specialty when department changes
-  useEffect(() => {
-    if (
-      primarySpecialties.length > 0 &&
-      !primarySpecialties.includes(form.primarySpecialty)
-    ) {
-      setFieldValue("primarySpecialty", primarySpecialties[0]);
-    }
-  }, [primarySpecialties, form.primarySpecialty, setFieldValue]);
+  const handlePrimaryDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newDept = e.target.value;
+    setFieldValue("primaryDepartment", newDept);
 
-  // Auto-select first secondary specialty when secondary department changes
-  useEffect(() => {
-    if (
-      form.secondaryDepartment &&
-      secondarySpecialties.length > 0 &&
-      !secondarySpecialties.includes(form.secondarySpecialty)
-    ) {
-      setFieldValue("secondarySpecialty", secondarySpecialties[0]);
-    } else if (!form.secondaryDepartment && form.secondarySpecialty !== "") {
-      setFieldValue("secondarySpecialty", "");
+    const specialties = deptSpecialtiesMap[newDept] || [];
+    if (specialties.length > 0 && !specialties.includes(form.primarySpecialty)) {
+      setFieldValue("primarySpecialty", specialties[0]);
     }
-  }, [
-    form.secondaryDepartment,
-    secondarySpecialties,
-    form.secondarySpecialty,
-    setFieldValue,
-  ]);
+  };
+
+  const handleSecondaryDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newDept = e.target.value;
+    setFieldValue("secondaryDepartment", newDept);
+
+    if (newDept) {
+      const specialties = deptSpecialtiesMap[newDept] || [];
+      if (specialties.length > 0 && !specialties.includes(form.secondarySpecialty)) {
+        setFieldValue("secondarySpecialty", specialties[0]);
+      }
+    } else {
+      if (form.secondarySpecialty !== "") {
+        setFieldValue("secondarySpecialty", "");
+      }
+    }
+  };
 
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-4 animate-fade-in">
@@ -112,9 +110,7 @@ export const ConsultationDetailsSection: React.FC<
             />
             <select
               value={form.primaryDepartment}
-              onChange={(e) =>
-                setFieldValue("primaryDepartment", e.target.value)
-              }
+              onChange={handlePrimaryDepartmentChange}
               className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-[#1E293B] cursor-pointer ${
                 errors.primaryDepartment
                   ? "border-red-500 bg-red-50/50"
@@ -148,9 +144,7 @@ export const ConsultationDetailsSection: React.FC<
             />
             <select
               value={form.secondaryDepartment}
-              onChange={(e) =>
-                setFieldValue("secondaryDepartment", e.target.value)
-              }
+              onChange={handleSecondaryDepartmentChange}
               className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-[#1E293B] cursor-pointer"
             >
               <option value="">None (Optional)</option>

@@ -1,4 +1,4 @@
-import  { useState} from "react";
+import { useState } from "react";
 import {
   Calendar,
   Download,
@@ -38,7 +38,6 @@ import {
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
 
-
 export type DoctorKpiKey =
   | "today-appointments"
   | "completed-consultations"
@@ -58,16 +57,6 @@ interface DoctorKpiMeta {
   isPositive: boolean;
   unit: string;
 }
-
-
-
-
-
-
-
-
-
-
 
 export function DoctorDashboardKpiDetailScreen({
   initialKpiKey = "today-appointments",
@@ -96,9 +85,22 @@ export function DoctorDashboardKpiDetailScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  const meta: DoctorKpiMeta =
-    { key: selectedKpi, title: "", value: "", yesterdayComp: "", monthlyComp: "", growth: "", isPositive: true, unit: "" };
-  const trendData: { date: string; current: number; previous: number; growth: string }[] = [];
+  const meta: DoctorKpiMeta = {
+    key: selectedKpi,
+    title: "",
+    value: "",
+    yesterdayComp: "",
+    monthlyComp: "",
+    growth: "",
+    isPositive: true,
+    unit: "",
+  };
+  const trendData: {
+    date: string;
+    current: number;
+    previous: number;
+    growth: string;
+  }[] = [];
   const donutData: { name: string; value: number; color: string }[] = [];
 
   const handleRefresh = () => {
@@ -166,7 +168,12 @@ export function DoctorDashboardKpiDetailScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
+                  <strong className="text-[#111827]">
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
                 </span>
               </div>
 
@@ -645,8 +652,8 @@ export function DoctorDashboardKpiDetailScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {donutData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          {donutData.map((entry) => (
+                            <Cell key={entry.name} fill={entry.color} />
                           ))}
                         </Pie>
                         <Tooltip
@@ -691,8 +698,8 @@ export function DoctorDashboardKpiDetailScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
-                         data={[]}
-                         margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
+                        data={[]}
+                        margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                         <XAxis
@@ -939,7 +946,16 @@ export function DoctorDashboardKpiDetailScreen({
                   Recent KPI Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {[].map((act: any) => (
+                  {(
+                    [] as Array<{
+                      id: string;
+                      title: string;
+                      time: string;
+                      action?: string;
+                      date?: string;
+                      detail?: string;
+                    }>
+                  ).map((act) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1106,7 +1122,9 @@ export function DoctorDashboardKpiDetailScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
+            <strong className="text-[#111827]">
+              {new Date().toLocaleString()}
+            </strong>
           </div>
         </div>
       </div>

@@ -703,11 +703,11 @@ export function PatientRescheduleAppointmentDialog({
                       {d}
                     </div>
                   ))}
-                  {calendarDays.map((item, idx) => {
+                  {calendarDays.map((item) => {
                     const isSelected = selectedDate === item.fullDate;
                     return (
                       <button
-                        key={idx}
+                        key={item.fullDate || item.day}
                         type="button"
                         disabled={!item.isAvailable}
                         onClick={() =>

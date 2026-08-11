@@ -34,7 +34,7 @@ export function PatientCheckInScreen({
   const [generatedToken, setGeneratedToken] = useState("");
 
   const handleConfirmCheckIn = () => {
-    const token = `TK-${Math.floor(100 + Math.random() * 900)}`;
+    const token = `TK-${100 + (window.crypto.getRandomValues(new Uint32Array(1))[0] % 900)}`;
     setGeneratedToken(token);
     setShowSuccessModal(true);
   };

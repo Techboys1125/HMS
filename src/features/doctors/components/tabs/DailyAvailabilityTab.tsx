@@ -78,9 +78,9 @@ export function DailyAvailabilityTab({ doctor }: DailyAvailabilityTabProps) {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {slots.map((slot, idx) => (
+          {slots.map((slot) => (
             <div
-              key={idx}
+              key={slot.id || slot.startTime}
               className={`px-3 py-2 rounded-xl border text-xs font-medium ${SLOT_STATUS_STYLE[slot.status] || "bg-slate-50 text-slate-600 border-slate-200"}`}
             >
               <div className="flex items-center justify-between">

@@ -24,7 +24,7 @@ export function ReportKpiCards({ kpis, onKpiClick }: ReportKpiCardsProps) {
         const Icon = kpi.icon;
         return (
           <div
-            key={idx}
+            key={kpi?.id || kpi?._id || kpi?.key || kpi?.value || kpi?.code || kpi?.name || kpi?.title || kpi?.label || (typeof kpi === 'object' ? JSON.stringify(kpi) : String(kpi))}
             onClick={() => onKpiClick?.(idx)}
             className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm ${onKpiClick ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-all" : ""}`}
           >

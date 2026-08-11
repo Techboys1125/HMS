@@ -27,7 +27,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           {breadcrumb.map((item, idx) => {
             const isLast = idx === breadcrumb.length - 1;
             return (
-              <React.Fragment key={idx}>
+              <React.Fragment key={item?.id || item?._id || item?.key || item?.value || item?.code || item?.name || item?.title || item?.label || (typeof item === 'object' ? JSON.stringify(item) : String(item))}>
                 {idx > 0 && (
                   <ChevronRight size={13} className="text-slate-300" />
                 )}

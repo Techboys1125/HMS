@@ -171,7 +171,7 @@ export function AddDoctorDrawer({
   };
 
   const handleRegeneratePassword = () => {
-    setTempPassword(`TempPass#${Math.floor(1000 + Math.random() * 9000)}`);
+    setTempPassword(`TempPass#${1000 + (window.crypto.getRandomValues(new Uint32Array(1))[0] % 9000)}`);
   };
 
   const validateForm = () => {

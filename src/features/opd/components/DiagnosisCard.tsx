@@ -41,9 +41,9 @@ export const DiagnosisCard: React.FC<DiagnosisCardProps> = ({
 
       {diagnosesList.length > 0 ? (
         <div className="space-y-2">
-          {diagnosesList.map((d, idx) => (
+          {diagnosesList.map((d) => (
             <div
-              key={idx}
+              key={d.code}
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-gray-100 bg-slate-50"
             >
               <span className="font-mono text-xs font-bold text-[#0D47A1]">

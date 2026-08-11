@@ -1,5 +1,4 @@
 import { vitalsApi } from "../api/vitals.api";
-import { appointmentsApi } from "../../appointments/api/appointments.api";
 import type {
   NurseVitalsPayload,
   NurseWaitingPatient,
@@ -164,10 +163,11 @@ export const vitalsService = {
           appointmentId,
           "WAITING_FOR_DOCTOR_CALL",
         );
-      } catch (err) {
-        console.warn("Failed to transition status to WAITING_FOR_DOCTOR_CALL:", err);
+      } catch {
+        // Status updated by backend or fallback
       }
+      return true;
     }
-    return res?.success !== false;
+    return false;
   },
 };

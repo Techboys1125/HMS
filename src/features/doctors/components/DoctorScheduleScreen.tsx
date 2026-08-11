@@ -451,8 +451,11 @@ export function DoctorScheduleScreen() {
                                 Working day, no periods configured.
                               </div>
                             )}
-                            {periods.map((period, idx) => (
-                              <div key={idx} className="space-y-1">
+                            {periods.map((period) => (
+                              <div
+                                key={period.id || period.startTime}
+                                className="space-y-1"
+                              >
                                 <div
                                   className="text-[11px] text-[#0D47A1] font-mono font-semibold"
                                   style={{ fontFamily: RB }}
@@ -465,9 +468,9 @@ export function DoctorScheduleScreen() {
                                 </div>
                                 {period.breaks && period.breaks.length > 0 && (
                                   <div className="flex flex-wrap gap-1 pt-0.5">
-                                    {period.breaks.map((brk, bIdx) => (
+                                    {period.breaks.map((brk) => (
                                       <span
-                                        key={bIdx}
+                                        key={brk.id || brk.startTime}
                                         className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-100 text-[9px] font-semibold"
                                       >
                                         {brk.breakType}{" "}
@@ -526,7 +529,7 @@ export function DoctorScheduleScreen() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {scheduleExceptions.map((ex, idx) => {
+                  {scheduleExceptions.map((ex) => {
                     const type = (
                       ex.type ||
                       ex.exceptionType ||
@@ -544,7 +547,7 @@ export function DoctorScheduleScreen() {
                       (!ex.startTime && !ex.endTime);
                     return (
                       <div
-                        key={ex.id ?? idx}
+                        key={ex.id || ex.exceptionDate || ex.startDate || ex.reason}
                         className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-[#E5E7EB]"
                       >
                         <div className="flex items-center gap-3">
@@ -680,7 +683,7 @@ export function DoctorScheduleScreen() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                      {dailyAvailability.slots.map((slot, idx) => {
+                      {dailyAvailability.slots.map((slot) => {
                         const status = (
                           slot.status || "AVAILABLE"
                         ).toUpperCase();
@@ -690,7 +693,7 @@ export function DoctorScheduleScreen() {
                         const Icon = meta.icon;
                         return (
                           <div
-                            key={idx}
+                            key={`${slot.startTime}-${slot.endTime}`}
                             className={`p-4 rounded-2xl border ${meta.card}`}
                           >
                             <div className="flex items-center gap-2 mb-2">
@@ -800,9 +803,9 @@ export function DoctorScheduleScreen() {
                     )}
                   </div>
                   <div className="grid grid-cols-7 gap-2">
-                    {buildCalendarGrid().map((dayNum, idx) => {
+                    {buildCalendarGrid().map((dayNum, i) => {
                       if (dayNum === null) {
-                        return <div key={`empty-${idx}`} />;
+                        return <div key={i} />;
                       }
                       const dateStr = `${calendarMonth}-${String(dayNum).padStart(2, "0")}`;
                       const dayInfo = calendarDaysByDate.get(dateStr);

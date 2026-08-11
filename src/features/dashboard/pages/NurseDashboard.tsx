@@ -207,13 +207,28 @@ function SH({
   );
 }
 // Section 02: Current Patient Pipeline (Doughnut Chart)
-const NURSE_PATIENT_PIPELINE: { name: string; value: number; color: string }[] = [];
+const NURSE_PATIENT_PIPELINE: { name: string; value: number; color: string }[] =
+  [];
 
 // Section 04: Patient Visit Type Distribution (Doughnut Chart)
-const NURSE_VISIT_TYPE_DIST: { name: string; value: number; percentage: string; color: string }[] = [];
+const NURSE_VISIT_TYPE_DIST: {
+  name: string;
+  value: number;
+  percentage: string;
+  color: string;
+}[] = [];
 
 // Section 03: Current Nursing Queue Table
-const NURSE_QUEUES: { token: string; patient: string; doctor: string; dept: string; apptTime: string; vitalsStatus: string; consultStatus: string; priority: string }[] = [];
+const NURSE_QUEUES: {
+  token: string;
+  patient: string;
+  doctor: string;
+  dept: string;
+  apptTime: string;
+  vitalsStatus: string;
+  consultStatus: string;
+  priority: string;
+}[] = [];
 
 // Section 05: Patient Distribution by Department (Horizontal Bar Chart)
 const NURSE_DEPT_DIST: { department: string; assisted: number }[] = [];
@@ -504,8 +519,8 @@ export function NurseDashboard({
                   paddingAngle={3}
                   dataKey="value"
                 >
-                  {NURSE_PATIENT_PIPELINE.map((entry, idx) => (
-                    <Cell key={idx} fill={entry.color} />
+                  {NURSE_PATIENT_PIPELINE.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
                 <Tooltip
@@ -619,8 +634,11 @@ export function NurseDashboard({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {NURSE_QUEUES.map((q, i) => (
-                <tr key={i} className="hover:bg-slate-50 transition-colors">
+              {NURSE_QUEUES.map((q) => (
+                <tr
+                  key={q.token || q.patient}
+                  className="hover:bg-slate-50 transition-colors"
+                >
                   <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
                     {q.token}
                   </td>
@@ -697,8 +715,8 @@ export function NurseDashboard({
                     paddingAngle={3}
                     dataKey="value"
                   >
-                    {NURSE_VISIT_TYPE_DIST.map((entry, idx) => (
-                      <Cell key={idx} fill={entry.color} />
+                    {NURSE_VISIT_TYPE_DIST.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
                     ))}
                   </Pie>
                   <Tooltip

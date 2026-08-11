@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Users,
   UserCheck,
+  UserPlus,
   Activity,
   TrendingUp,
   CheckCircle2,
@@ -137,7 +138,19 @@ export function ReceptionistPatientReportScreen({
   };
 
   const filteredPatients = useMemo(() => {
-    return [].filter((item: any) => {
+    return ([] as Array<{
+      id?: string | number;
+      patientName: string;
+      mrn: string;
+      mobileNumber: string;
+      appointmentStatus: string;
+      visitType: string;
+      age?: number | string;
+      gender?: string;
+      registrationDate?: string;
+      checkInStatus?: string;
+      registrationStatus?: string;
+    }>).filter((item) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -778,8 +791,8 @@ export function ReceptionistPatientReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {[].map((entry: any, index: any) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          {([] as Array<{ color?: string; [key: string]: unknown }>).map((entry) => (
+                            <Cell key={entry?.id ? String(entry.id) : String(entry?.name || entry?.color || "cell")} fill={entry.color || "#0D47A1"} />
                           ))}
                         </Pie>
                         <Tooltip
@@ -1071,7 +1084,7 @@ export function ReceptionistPatientReportScreen({
                   Reception Patient Activity Timeline
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {[].map((act: any) => (
+                  {([] as Array<{ id: string | number; action?: string; date?: string; time?: string; detail?: string; details?: string }>).map((act) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"

@@ -172,8 +172,8 @@ export function DoctorTable({
 
           <tbody className="divide-y divide-gray-100 text-[#111827]">
             {isLoading ? (
-              Array.from({ length: 6 }).map((_, idx) => (
-                <tr key={idx} className="animate-pulse">
+              Array.from({ length: 6 }).map((_, i) => (
+                <tr key={i} className="animate-pulse">
                   <td className="px-4 py-3.5">
                     <div className="h-3 bg-slate-200 rounded w-16" />
                   </td>

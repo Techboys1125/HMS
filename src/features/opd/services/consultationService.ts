@@ -220,7 +220,7 @@ export const consultationService = {
    */
   finalizeConsultation: async (
     encounterId: string | number,
-    _appointmentId: string | number,
+    appointmentId: string | number,
     advicePayload?: {
       generalAdvice?: string;
       dietAdvice?: string;
@@ -263,19 +263,50 @@ export const consultationService = {
 
       // Step 14: Set prescription resolution (PRESCRIPTION_CREATED if meds exist, else NO_PRESCRIPTION_REQUIRED)
       const hasMeds = selectedPrescription?.medications && selectedPrescription.medications.length > 0;
-      await consultationApi.setPrescriptionResolution(encounterId, {
-        outcome: hasMeds ? "PRESCRIPTION_CREATED" : "NO_PRESCRIPTION_REQUIRED",
-      });
+      if (encounterId && String(encounterId) !== "ENC-TEMP") {
+        try {
+          await consultationApi.setPrescriptionResolution(encounterId, {
+            outcome: hasMeds ? "PRESCRIPTION_CREATED" : "NO_PRESCRIPTION_REQUIRED",
+          });
+        } catch (resErr) {
+          console.warn("Prescription resolution warning:", resErr);
+        }
 
-      // Step 19: Finalization check (non-blocking, just log)
-      try {
-        await encountersApi.getFinalizationCheck(encounterId);
-      } catch {
-        // non-blocking
+        // Step 19: Finalization check (non-blocking)
+        try {
+          await encountersApi.getFinalizationCheck(encounterId);
+        } catch {
+          // non-blocking
+        }
+
+        // Step 20: Finalize encounter (non-blocking if encounter missing in backend)
+        try {
+          await encountersApi.finalizeEncounter(encounterId, { confirmation: true });
+        } catch (encErr) {
+          console.warn("Finalize encounter warning:", encErr);
+        }
       }
 
-      // Step 20: Finalize encounter
-      await encountersApi.finalizeEncounter(encounterId, { confirmation: true });
+      // Complete appointment using dedicated doctor endpoint & update status to COMPLETED
+      if (appointmentId) {
+        try {
+          await appointmentsApi.updateAppointmentStatus(appointmentId, "IN_CONSULTATION");
+        } catch {
+          // May already be in consultation or completed
+        }
+        try {
+          await consultationApi.completeAppointment(appointmentId);
+        } catch (compErr: unknown) {
+          const msg = compErr instanceof Error ? compErr.message : String(compErr || "");
+          if (!msg.includes("COMPLETED")) {
+            try {
+              await appointmentsApi.updateAppointmentStatus(appointmentId, "COMPLETED");
+            } catch {
+              // Ignore if already completed in backend
+            }
+          }
+        }
+      }
 
       consultationStoreActions.setStatus("COMPLETED");
       consultationStoreActions.reset();

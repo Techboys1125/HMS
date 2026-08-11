@@ -62,7 +62,9 @@ function DKpi({
     <div
       onClick={onClick}
       className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
-        onClick ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-all duration-200" : ""
+        onClick
+          ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-all duration-200"
+          : ""
       }`}
     >
       <div className="flex items-start justify-between">
@@ -283,60 +285,134 @@ export function ReceptionDashboard({
   onCreateInvoiceClick?: () => void;
 }) {
   const navigate = useNavigate();
-  const { data: summary, isLoading: loadingSummary, error: summaryError } = useReceptionSummary();
-  const { data: regTrend, error: regTrendError } = useReceptionRegistrationTrend();
-  const { data: apptStatus, error: apptStatusError } = useReceptionAppointmentStatus();
-  const { data: deptData, error: deptDataError } = useReceptionPatientsByDepartment();
-  const { data: regCategories, error: regCategoriesError } = useReceptionRegistrationCategories();
-  const { data: perfSummary, error: perfSummaryError } = useReceptionPerformanceSummary();
+  const {
+    data: summary,
+    isLoading: loadingSummary,
+    error: summaryError,
+  } = useReceptionSummary();
+  const { data: regTrend, error: regTrendError } =
+    useReceptionRegistrationTrend();
+  const { data: apptStatus, error: apptStatusError } =
+    useReceptionAppointmentStatus();
+  const { data: deptData, error: deptDataError } =
+    useReceptionPatientsByDepartment();
+  const { data: regCategories, error: regCategoriesError } =
+    useReceptionRegistrationCategories();
+  const { data: perfSummary, error: perfSummaryError } =
+    useReceptionPerformanceSummary();
 
-  const hasError = summaryError || regTrendError || apptStatusError || deptDataError || regCategoriesError || perfSummaryError;
+  const hasError =
+    summaryError ||
+    regTrendError ||
+    apptStatusError ||
+    deptDataError ||
+    regCategoriesError ||
+    perfSummaryError;
 
   // Map API data to chart formats
-  const registrationTrend = regTrend?.registrations?.map((r) => ({
-    hour: r.hour,
-    registered: r.count,
-    walkins: 0,
-  })) || [];
+  const registrationTrend =
+    regTrend?.registrations?.map((r) => ({
+      hour: r.hour,
+      registered: r.count,
+      walkins: 0,
+    })) || [];
 
-  const apptStatusDist = apptStatus ? [
-    { name: "Scheduled", value: apptStatus.scheduled, color: "#0D47A1" },
-    { name: "Checked In", value: apptStatus.checkedIn, color: "#4DB6AC" },
-    { name: "In Consultation", value: apptStatus.inConsultation, color: "#009688" },
-    { name: "Completed", value: apptStatus.completed, color: "#66BB6A" },
-    { name: "Cancelled", value: apptStatus.cancelled, color: "#EF4444" },
-    { name: "No Show", value: apptStatus.noShow, color: "#F59E0B" },
-  ] : [];
+  const apptStatusDist = apptStatus
+    ? [
+        { name: "Scheduled", value: apptStatus.scheduled, color: "#0D47A1" },
+        { name: "Checked In", value: apptStatus.checkedIn, color: "#4DB6AC" },
+        {
+          name: "In Consultation",
+          value: apptStatus.inConsultation,
+          color: "#009688",
+        },
+        { name: "Completed", value: apptStatus.completed, color: "#66BB6A" },
+        { name: "Cancelled", value: apptStatus.cancelled, color: "#EF4444" },
+        { name: "No Show", value: apptStatus.noShow, color: "#F59E0B" },
+      ]
+    : [];
 
-  const deptDistribution = deptData?.departments?.map((d) => ({
-    dept: d.departmentName,
-    count: d.patientCount,
-  })) || [];
+  const deptDistribution =
+    deptData?.departments?.map((d) => ({
+      dept: d.departmentName,
+      count: d.patientCount,
+    })) || [];
 
-  const regTypes = regCategories ? [
-    { category: "New Patient", count: regCategories.newPatients, color: "#0D47A1" },
-    { category: "Returning Patient", count: regCategories.returningPatients, color: "#009688" },
-    { category: "Walk-In", count: regCategories.walkIn, color: "#4DB6AC" },
-    { category: "Follow-Up", count: regCategories.followUp, color: "#F59E0B" },
-  ] : [];
+  const regTypes = regCategories
+    ? [
+        {
+          category: "New Patient",
+          count: regCategories.newPatients,
+          color: "#0D47A1",
+        },
+        {
+          category: "Returning Patient",
+          count: regCategories.returningPatients,
+          color: "#009688",
+        },
+        { category: "Walk-In", count: regCategories.walkIn, color: "#4DB6AC" },
+        {
+          category: "Follow-Up",
+          count: regCategories.followUp,
+          color: "#F59E0B",
+        },
+      ]
+    : [];
 
   const regTotal = regTypes.reduce((acc, curr) => acc + curr.count, 0);
 
-  const performanceMetrics = perfSummary ? [
-    { metric: "Patients Registered", today: String(perfSummary.patientsRegistered.today), yesterday: String(perfSummary.patientsRegistered.yesterday), status: `${perfSummary.patientsRegistered.status} (${perfSummary.patientsRegistered.changePercentage > 0 ? "+" : ""}${perfSummary.patientsRegistered.changePercentage}%)` },
-    { metric: "Appointments Booked", today: String(perfSummary.appointmentsBooked.today), yesterday: String(perfSummary.appointmentsBooked.yesterday), status: `${perfSummary.appointmentsBooked.status} (${perfSummary.appointmentsBooked.changePercentage > 0 ? "+" : ""}${perfSummary.appointmentsBooked.changePercentage}%)` },
-    { metric: "Patients Checked In", today: String(perfSummary.patientsCheckedIn.today), yesterday: String(perfSummary.patientsCheckedIn.yesterday), status: perfSummary.patientsCheckedIn.status },
-    { metric: "Appointments Rescheduled", today: String(perfSummary.appointmentsRescheduled.today), yesterday: String(perfSummary.appointmentsRescheduled.yesterday), status: perfSummary.appointmentsRescheduled.status },
-    { metric: "Billing Initiated", today: String(perfSummary.billingInitiated.today), yesterday: String(perfSummary.billingInitiated.yesterday), status: perfSummary.billingInitiated.status },
-    { metric: "Cancelled Appointments", today: String(perfSummary.cancelledAppointments.today), yesterday: String(perfSummary.cancelledAppointments.yesterday), status: perfSummary.cancelledAppointments.status },
-  ] : [];
+  const performanceMetrics = perfSummary
+    ? [
+        {
+          metric: "Patients Registered",
+          today: String(perfSummary.patientsRegistered.today),
+          yesterday: String(perfSummary.patientsRegistered.yesterday),
+          status: `${perfSummary.patientsRegistered.status} (${perfSummary.patientsRegistered.changePercentage > 0 ? "+" : ""}${perfSummary.patientsRegistered.changePercentage}%)`,
+        },
+        {
+          metric: "Appointments Booked",
+          today: String(perfSummary.appointmentsBooked.today),
+          yesterday: String(perfSummary.appointmentsBooked.yesterday),
+          status: `${perfSummary.appointmentsBooked.status} (${perfSummary.appointmentsBooked.changePercentage > 0 ? "+" : ""}${perfSummary.appointmentsBooked.changePercentage}%)`,
+        },
+        {
+          metric: "Patients Checked In",
+          today: String(perfSummary.patientsCheckedIn.today),
+          yesterday: String(perfSummary.patientsCheckedIn.yesterday),
+          status: perfSummary.patientsCheckedIn.status,
+        },
+        {
+          metric: "Appointments Rescheduled",
+          today: String(perfSummary.appointmentsRescheduled.today),
+          yesterday: String(perfSummary.appointmentsRescheduled.yesterday),
+          status: perfSummary.appointmentsRescheduled.status,
+        },
+        {
+          metric: "Billing Initiated",
+          today: String(perfSummary.billingInitiated.today),
+          yesterday: String(perfSummary.billingInitiated.yesterday),
+          status: perfSummary.billingInitiated.status,
+        },
+        {
+          metric: "Cancelled Appointments",
+          today: String(perfSummary.cancelledAppointments.today),
+          yesterday: String(perfSummary.cancelledAppointments.yesterday),
+          status: perfSummary.cancelledAppointments.status,
+        },
+      ]
+    : [];
 
   if (loadingSummary) {
     return (
-      <div className="flex-1 overflow-y-auto p-6 flex items-center justify-center" style={{ background: "#F1F5F9" }}>
+      <div
+        className="flex-1 overflow-y-auto p-6 flex items-center justify-center"
+        style={{ background: "#F1F5F9" }}
+      >
         <div className="flex items-center gap-3 text-[#64748B]">
           <Loader2 size={20} className="animate-spin" />
-          <span className="text-sm font-medium" style={{ fontFamily: RB }}>Loading reception dashboard...</span>
+          <span className="text-sm font-medium" style={{ fontFamily: RB }}>
+            Loading reception dashboard...
+          </span>
         </div>
       </div>
     );
@@ -344,10 +420,20 @@ export function ReceptionDashboard({
 
   if (hasError && !summary) {
     return (
-      <div className="flex-1 overflow-y-auto p-6 flex items-center justify-center" style={{ background: "#F1F5F9" }}>
+      <div
+        className="flex-1 overflow-y-auto p-6 flex items-center justify-center"
+        style={{ background: "#F1F5F9" }}
+      >
         <div className="text-center">
-          <div className="text-red-500 text-sm font-medium mb-2" style={{ fontFamily: PP }}>Failed to load dashboard data</div>
-          <div className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>Please try refreshing the page</div>
+          <div
+            className="text-red-500 text-sm font-medium mb-2"
+            style={{ fontFamily: PP }}
+          >
+            Failed to load dashboard data
+          </div>
+          <div className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>
+            Please try refreshing the page
+          </div>
         </div>
       </div>
     );
@@ -406,33 +492,53 @@ export function ReceptionDashboard({
           title="Today's Registrations"
           value={String(summary?.registrations?.today ?? 0)}
           sub="New Patients Registered Today"
-          trend={summary?.registrations ? `${summary.registrations.change > 0 ? "+" : ""}${summary.registrations.change} vs Yesterday` : "Loading..."}
+          trend={
+            summary?.registrations
+              ? `${summary.registrations.change > 0 ? "+" : ""}${summary.registrations.change} vs Yesterday`
+              : "Loading..."
+          }
           up={(summary?.registrations?.change ?? 0) >= 0}
           data={registrationTrend.slice(-6).map((r) => ({ v: r.registered }))}
           color="#0D47A1"
           gid="rec1"
           Icon={UserPlus}
-          onClick={() => navigate(`${ROUTES.REPORTS}?report=patient-registrations`)}
+          onClick={() =>
+            navigate(`${ROUTES.REPORTS}?report=patient-registrations`)
+          }
         />
         <DKpi
           title="Today's Appointments"
           value={String(summary?.appointments?.today ?? 0)}
           sub="Appointments Scheduled Today"
-          trend={summary?.appointments ? `${summary.appointments.completionPercentage}% Completion Progress` : "Loading..."}
+          trend={
+            summary?.appointments
+              ? `${summary.appointments.completionPercentage}% Completion Progress`
+              : "Loading..."
+          }
           up={(summary?.appointments?.completionPercentage ?? 0) >= 50}
           data={registrationTrend.slice(-6).map((r) => ({ v: r.registered }))}
           color="#009688"
           gid="rec2"
           Icon={Calendar}
-          onClick={() => navigate(`${ROUTES.REPORTS}?report=daily-appointments`)}
+          onClick={() =>
+            navigate(`${ROUTES.REPORTS}?report=daily-appointments`)
+          }
         />
         <DKpi
           title="Patients Waiting"
           value={String(summary?.waitingPatients?.count ?? 0)}
           sub="Current Waiting Queue"
-          trend={summary?.waitingPatients ? `Avg Wait: ${summary.waitingPatients.averageWaitMinutes} mins` : "Loading..."}
+          trend={
+            summary?.waitingPatients
+              ? `Avg Wait: ${summary.waitingPatients.averageWaitMinutes} mins`
+              : "Loading..."
+          }
           up={false}
-          data={[{ v: (summary?.waitingPatients?.count ?? 0) + 5 }, { v: (summary?.waitingPatients?.count ?? 0) + 3 }, { v: summary?.waitingPatients?.count ?? 0 }]}
+          data={[
+            { v: (summary?.waitingPatients?.count ?? 0) + 5 },
+            { v: (summary?.waitingPatients?.count ?? 0) + 3 },
+            { v: summary?.waitingPatients?.count ?? 0 },
+          ]}
           color="#F59E0B"
           gid="rec3"
           Icon={Clock}
@@ -441,9 +547,17 @@ export function ReceptionDashboard({
           title="Billing Pending"
           value={String(summary?.billingPending?.count ?? 0)}
           sub="Patients Waiting for Billing"
-          trend={summary?.billingPending ? `${summary.billingPending.difference > 0 ? "+" : ""}${summary.billingPending.difference} vs Yesterday` : "Loading..."}
+          trend={
+            summary?.billingPending
+              ? `${summary.billingPending.difference > 0 ? "+" : ""}${summary.billingPending.difference} vs Yesterday`
+              : "Loading..."
+          }
           up={(summary?.billingPending?.difference ?? 0) <= 0}
-          data={[{ v: (summary?.billingPending?.count ?? 0) + 5 }, { v: (summary?.billingPending?.count ?? 0) + 3 }, { v: summary?.billingPending?.count ?? 0 }]}
+          data={[
+            { v: (summary?.billingPending?.count ?? 0) + 5 },
+            { v: (summary?.billingPending?.count ?? 0) + 3 },
+            { v: summary?.billingPending?.count ?? 0 },
+          ]}
           color="#EF4444"
           gid="rec4"
           Icon={CreditCard}
@@ -454,7 +568,11 @@ export function ReceptionDashboard({
           sub="Patients Successfully Checked In"
           trend="Today's Progress"
           up={true}
-          data={[{ v: (summary?.checkedIn?.count ?? 0) - 10 }, { v: (summary?.checkedIn?.count ?? 0) - 5 }, { v: summary?.checkedIn?.count ?? 0 }]}
+          data={[
+            { v: (summary?.checkedIn?.count ?? 0) - 10 },
+            { v: (summary?.checkedIn?.count ?? 0) - 5 },
+            { v: summary?.checkedIn?.count ?? 0 },
+          ]}
           color="#4DB6AC"
           gid="rec5"
           Icon={CheckSquare}
@@ -489,7 +607,11 @@ export function ReceptionDashboard({
           </div>
           <ResponsiveContainer width="100%" height={210}>
             <AreaChart
-              data={registrationTrend.length > 0 ? registrationTrend : [{ hour: "No Data", registered: 0, walkins: 0 }]}
+              data={
+                registrationTrend.length > 0
+                  ? registrationTrend
+                  : [{ hour: "No Data", registered: 0, walkins: 0 }]
+              }
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
             >
               <defs>
@@ -539,7 +661,7 @@ export function ReceptionDashboard({
           >
             <span>
               {registrationTrend.length > 0
-                ? `Peak: ${registrationTrend.reduce((max, r) => r.registered > max.registered ? r : max, registrationTrend[0]).hour}`
+                ? `Peak: ${registrationTrend.reduce((max, r) => (r.registered > max.registered ? r : max), registrationTrend[0]).hour}`
                 : "No trend data"}
             </span>
             <span className="font-semibold text-[#111827]">
@@ -556,7 +678,11 @@ export function ReceptionDashboard({
           />
           <ResponsiveContainer width="100%" height={170}>
             <BarChart
-              data={apptStatusDist.length > 0 ? apptStatusDist : [{ name: "No Data", value: 0, color: "#64748B" }]}
+              data={
+                apptStatusDist.length > 0
+                  ? apptStatusDist
+                  : [{ name: "No Data", value: 0, color: "#64748B" }]
+              }
               layout="vertical"
               margin={{ top: 0, right: 15, left: 10, bottom: 0 }}
             >
@@ -579,8 +705,14 @@ export function ReceptionDashboard({
                 formatter={(v: unknown) => [`${v} Patients`, "Count"]}
               />
               <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={13}>
-                {(apptStatusDist.length > 0 ? apptStatusDist : [{ name: "No Data", value: 0, color: "#64748B" }]).map((entry, idx) => (
-                  <Cell key={idx} fill={entry.color} />
+                {(apptStatusDist.length > 0
+                  ? apptStatusDist
+                  : [{ name: "No Data", value: 0, color: "#64748B" }]
+                ).map((entry) => (
+                  <Cell
+                    key={entry.name}
+                    fill={entry.color}
+                  />
                 ))}
               </Bar>
             </BarChart>
@@ -589,7 +721,10 @@ export function ReceptionDashboard({
             className="grid grid-cols-2 gap-1.5 mt-2 pt-3 border-t border-gray-50 text-xs"
             style={{ fontFamily: RB }}
           >
-            {(apptStatusDist.length > 0 ? apptStatusDist : [{ name: "No Data", value: 0, color: "#64748B" }]).map((s) => (
+            {(apptStatusDist.length > 0
+              ? apptStatusDist
+              : [{ name: "No Data", value: 0, color: "#64748B" }]
+            ).map((s) => (
               <div
                 key={s.name}
                 className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50"
@@ -609,7 +744,8 @@ export function ReceptionDashboard({
             className="mt-2 text-[11px] text-center text-[#64748B]"
             style={{ fontFamily: RB }}
           >
-            {summary?.appointments?.today ?? 0} Total Appointments Scheduled Today
+            {summary?.appointments?.today ?? 0} Total Appointments Scheduled
+            Today
           </div>
         </div>
       </div>
@@ -663,83 +799,112 @@ export function ReceptionDashboard({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {([] as Array<{token: string; name: string; doctor: string; dept: string; time: string; pos: string; status: string}>).length === 0 ? (
+              {(
+                [] as Array<{
+                  token: string;
+                  name: string;
+                  doctor: string;
+                  dept: string;
+                  time: string;
+                  pos: string;
+                  status: string;
+                }>
+              ).length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-8 text-center text-xs text-[#64748B]" style={{ fontFamily: RB }}>
+                  <td
+                    colSpan={8}
+                    className="px-5 py-8 text-center text-xs text-[#64748B]"
+                    style={{ fontFamily: RB }}
+                  >
                     No patients in queue
                   </td>
                 </tr>
-              ) : ([] as Array<{token: string; name: string; doctor: string; dept: string; time: string; pos: string; status: string}>).map((q, i) => (
-                <tr key={i} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                    {q.token}
-                  </td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-2">
-                      <Av name={q.name} size="sm" />
-                      <span
-                        className="text-xs font-medium text-[#111827]"
-                        style={{ fontFamily: RB }}
-                      >
-                        {q.name}
-                      </span>
-                    </div>
-                  </td>
-                  <td
-                    className="px-5 py-3 text-xs text-[#64748B]"
-                    style={{ fontFamily: RB }}
+              ) : (
+                (
+                  [] as Array<{
+                    token: string;
+                    name: string;
+                    doctor: string;
+                    dept: string;
+                    time: string;
+                    pos: string;
+                    status: string;
+                  }>
+                ).map((q) => (
+                  <tr
+                    key={q.token || q.name}
+                    className="hover:bg-slate-50 transition-colors"
                   >
-                    {q.doctor}
-                  </td>
-                  <td
-                    className="px-5 py-3 text-xs text-[#64748B]"
-                    style={{ fontFamily: RB }}
-                  >
-                    {q.dept}
-                  </td>
-                  <td className="px-5 py-3 font-mono text-xs text-slate-600">
-                    {q.time}
-                  </td>
-                  <td className="px-5 py-3 font-mono text-xs font-bold text-[#009688]">
-                    {q.pos}
-                  </td>
-                  <td className="px-5 py-3">
-                    <Chip
-                      label={q.status}
-                      variant={REC_STATUS_CHIP[q.status] || "default"}
-                    />
-                  </td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-1.5">
-                      {q.status === "Scheduled" ? (
-                        <button
-                          onClick={() => onCheckInClick?.(q.token, "MRN-REG")}
-                          className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
-                          style={{ fontFamily: PP }}
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                      {q.token}
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2">
+                        <Av name={q.name} size="sm" />
+                        <span
+                          className="text-xs font-medium text-[#111827]"
+                          style={{ fontFamily: RB }}
                         >
-                          Check-In
-                        </button>
-                      ) : (
-                        <span className="text-xs text-slate-400 font-medium">
-                          Logged
+                          {q.name}
                         </span>
-                      )}
-                      <button
-                        onClick={() => onPatientSelect?.("MRN-892101")}
-                        className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => onEditPatient?.("MRN-892101")}
-                        className="px-2 py-1 rounded-lg border border-[#E5E7EB] text-slate-600 text-[11px] font-medium hover:bg-slate-50 transition-colors"
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                      </div>
+                    </td>
+                    <td
+                      className="px-5 py-3 text-xs text-[#64748B]"
+                      style={{ fontFamily: RB }}
+                    >
+                      {q.doctor}
+                    </td>
+                    <td
+                      className="px-5 py-3 text-xs text-[#64748B]"
+                      style={{ fontFamily: RB }}
+                    >
+                      {q.dept}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs text-slate-600">
+                      {q.time}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#009688]">
+                      {q.pos}
+                    </td>
+                    <td className="px-5 py-3">
+                      <Chip
+                        label={q.status}
+                        variant={REC_STATUS_CHIP[q.status] || "default"}
+                      />
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-1.5">
+                        {q.status === "Scheduled" ? (
+                          <button
+                            onClick={() => onCheckInClick?.(q.token, "MRN-REG")}
+                            className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
+                            style={{ fontFamily: PP }}
+                          >
+                            Check-In
+                          </button>
+                        ) : (
+                          <span className="text-xs text-slate-400 font-medium">
+                            Logged
+                          </span>
+                        )}
+                        <button
+                          onClick={() => onPatientSelect?.("MRN-892101")}
+                          className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
+                        >
+                          View
+                        </button>
+                        <button
+                          onClick={() => onEditPatient?.("MRN-892101")}
+                          className="px-2 py-1 rounded-lg border border-[#E5E7EB] text-slate-600 text-[11px] font-medium hover:bg-slate-50 transition-colors"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -754,41 +919,60 @@ export function ReceptionDashboard({
             sub="Help Reception Assign Appointments Efficiently"
           />
           <div className="space-y-2.5 my-auto">
-            {([] as Array<{name: string; dept: string; status: string; color: string}>).length === 0 ? (
-              <div className="text-center text-xs text-[#64748B] py-4" style={{ fontFamily: RB }}>
+            {(
+              [] as Array<{
+                name: string;
+                dept: string;
+                status: string;
+                color: string;
+              }>
+            ).length === 0 ? (
+              <div
+                className="text-center text-xs text-[#64748B] py-4"
+                style={{ fontFamily: RB }}
+              >
                 No doctor availability data
               </div>
-            ) : ([] as Array<{name: string; dept: string; status: string; color: string}>).map((d) => (
-              <div
-                key={d.name}
-                className="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 bg-slate-50"
-              >
-                <div>
-                  <div
-                    className="text-xs font-semibold text-[#111827]"
-                    style={{ fontFamily: PP }}
-                  >
-                    {d.name}
+            ) : (
+              (
+                [] as Array<{
+                  name: string;
+                  dept: string;
+                  status: string;
+                  color: string;
+                }>
+              ).map((d) => (
+                <div
+                  key={d.name}
+                  className="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 bg-slate-50"
+                >
+                  <div>
+                    <div
+                      className="text-xs font-semibold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      {d.name}
+                    </div>
+                    <div
+                      className="text-[10px] text-[#64748B]"
+                      style={{ fontFamily: RB }}
+                    >
+                      {d.dept}
+                    </div>
                   </div>
-                  <div
-                    className="text-[10px] text-[#64748B]"
-                    style={{ fontFamily: RB }}
-                  >
-                    {d.dept}
-                  </div>
+                  <Chip
+                    label={d.status}
+                    variant={
+                      d.status === "Available"
+                        ? "success"
+                        : d.status === "In Consultation"
+                          ? "teal"
+                          : "error"
+                    }
+                  />
                 </div>
-                <Chip
-                  label={d.status}
-                  variant={
-                    d.status === "Available"
-                      ? "success"
-                      : d.status === "In Consultation"
-                        ? "teal"
-                        : "error"
-                  }
-                />
-              </div>
-            ))}
+              ))
+            )}
           </div>
           <div
             className="mt-3 pt-2 text-xs text-[#64748B] text-center"
@@ -806,7 +990,11 @@ export function ReceptionDashboard({
           />
           <ResponsiveContainer width="100%" height={180}>
             <BarChart
-              data={deptDistribution.length > 0 ? deptDistribution : [{ dept: "No Data", count: 0 }]}
+              data={
+                deptDistribution.length > 0
+                  ? deptDistribution
+                  : [{ dept: "No Data", count: 0 }]
+              }
               layout="vertical"
               margin={{ top: 0, right: 20, left: 15, bottom: 0 }}
             >
@@ -847,11 +1035,12 @@ export function ReceptionDashboard({
           >
             <span>
               {deptDistribution.length > 0
-                ? `Busiest: ${deptDistribution.reduce((max, d) => d.count > max.count ? d : max, deptDistribution[0]).dept} (${deptDistribution.reduce((max, d) => d.count > max.count ? d : max, deptDistribution[0]).count})`
+                ? `Busiest: ${deptDistribution.reduce((max, d) => (d.count > max.count ? d : max), deptDistribution[0]).dept} (${deptDistribution.reduce((max, d) => (d.count > max.count ? d : max), deptDistribution[0]).count})`
                 : "No department data"}
             </span>
             <span className="font-semibold text-[#0D47A1]">
-              {deptDistribution.reduce((sum, d) => sum + d.count, 0)} Total Patients
+              {deptDistribution.reduce((sum, d) => sum + d.count, 0)} Total
+              Patients
             </span>
           </div>
         </div>
@@ -864,7 +1053,11 @@ export function ReceptionDashboard({
           />
           <ResponsiveContainer width="100%" height={160}>
             <BarChart
-              data={regTypes.length > 0 ? regTypes : [{ category: "No Data", count: 0, color: "#64748B" }]}
+              data={
+                regTypes.length > 0
+                  ? regTypes
+                  : [{ category: "No Data", count: 0, color: "#64748B" }]
+              }
               margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
             >
               <XAxis
@@ -888,8 +1081,14 @@ export function ReceptionDashboard({
                 formatter={(v: unknown) => [`${v} Registrations`, "Count"]}
               />
               <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={22}>
-                {(regTypes.length > 0 ? regTypes : [{ category: "No Data", count: 0, color: "#64748B" }]).map((entry, idx) => (
-                  <Cell key={idx} fill={entry.color} />
+                {(regTypes.length > 0
+                  ? regTypes
+                  : [{ category: "No Data", count: 0, color: "#64748B" }]
+                ).map((entry) => (
+                  <Cell
+                    key={entry.category}
+                    fill={entry.color}
+                  />
                 ))}
               </Bar>
             </BarChart>
@@ -898,7 +1097,10 @@ export function ReceptionDashboard({
             className="grid grid-cols-2 gap-1.5 mt-2 pt-2 border-t border-gray-50 text-xs"
             style={{ fontFamily: RB }}
           >
-            {(regTypes.length > 0 ? regTypes : [{ category: "No Data", count: 0, color: "#64748B" }]).map((r) => (
+            {(regTypes.length > 0
+              ? regTypes
+              : [{ category: "No Data", count: 0, color: "#64748B" }]
+            ).map((r) => (
               <div
                 key={r.category}
                 className="flex items-center justify-between"
@@ -958,7 +1160,17 @@ export function ReceptionDashboard({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {(performanceMetrics.length > 0 ? performanceMetrics : [{ metric: "No Data", today: "0", yesterday: "0", status: "N/A" }]).map((m) => (
+            {(performanceMetrics.length > 0
+              ? performanceMetrics
+              : [
+                  {
+                    metric: "No Data",
+                    today: "0",
+                    yesterday: "0",
+                    status: "N/A",
+                  },
+                ]
+            ).map((m) => (
               <tr
                 key={m.metric}
                 className="hover:bg-slate-50 transition-colors"

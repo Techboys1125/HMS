@@ -620,9 +620,9 @@ export function SecuritySettingsWorkspace() {
                 sub: "Triggers Google reCAPTCHA after 3 consecutive errors",
                 key: "enableCaptchaFailedLogins",
               },
-            ].map((item, idx) => (
+            ].map((item) => (
               <div
-                key={idx}
+                key={item.key}
                 style={{
                   background: "#F8FAFC",
                   padding: "12px 14px",
@@ -707,9 +707,9 @@ export function SecuritySettingsWorkspace() {
               { label: "Require Lowercase (a-z)", key: "requireLowercase" },
               { label: "Require Number (0-9)", key: "requireNumber" },
               { label: "Require Symbol (!@#)", key: "requireSpecialChar" },
-            ].map((item, idx) => (
+            ].map((item) => (
               <div
-                key={idx}
+                key={item.key}
                 style={{
                   background: "#F8FAFC",
                   padding: "10px",
@@ -1216,9 +1216,9 @@ export function SecuritySettingsWorkspace() {
                 sub: "Allow Chief Medical Officer emergency bypass",
                 key: "emergencyOverride",
               },
-            ].map((item, idx) => (
+            ].map((item) => (
               <div
-                key={idx}
+                key={item.key}
                 style={{
                   background: "#F8FAFC",
                   padding: "10px 12px",
@@ -1548,8 +1548,8 @@ export function SecuritySettingsWorkspace() {
                     color: "#F59E0B",
                   },
                   { label: "IP Lockouts Enforced", count: 2, color: "#EF4444" },
-                ].map((item, idx) => (
-                  <div key={idx}>
+                ].map((item) => (
+                  <div key={item.label}>
                     <div
                       style={{
                         display: "flex",
@@ -1633,9 +1633,9 @@ export function SecuritySettingsWorkspace() {
               { step: "4. Role Validation", sub: "RBAC Policy" },
               { step: "5. Session Created", sub: "15m Auto Expire" },
               { step: "6. Dashboard Access", sub: "Secure EMR" },
-            ].map((st, i) => (
+            ].map((st) => (
               <div
-                key={i}
+                key={st.step}
                 style={{ textAlign: "center", flex: 1, minWidth: "100px" }}
               >
                 <div

@@ -621,9 +621,10 @@ export const patientsApi = {
         position?: number;
         token?: string;
       };
+      if (!mrn) return null;
       const response = await apiClient.get<
         PatientApiResponse<QueueData> | QueueData
-      >(mrn ? `/api/v1/patients/${mrn}/queue` : `/api/v1/patients/me/queue`);
+      >(`/api/v1/patients/${mrn}/queue`);
       return (
         (response.data as PatientApiResponse<QueueData>)?.data ||
         (response.data as QueueData) ||

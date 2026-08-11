@@ -105,8 +105,10 @@ function CircularProgress({
 
 function safeNumber(val: unknown, fallback = 0): number {
   if (typeof val === "number") return val;
-  if (val && typeof val === "object" && "rate" in val) return (val as any).rate ?? fallback;
-  if (val && typeof val === "object" && "percentage" in val) return (val as any).percentage ?? fallback;
+  if (val && typeof val === "object" && "rate" in val)
+    return (val as Record<string, number>).rate ?? fallback;
+  if (val && typeof val === "object" && "percentage" in val)
+    return (val as Record<string, number>).percentage ?? fallback;
   return fallback;
 }
 
@@ -195,21 +197,19 @@ export function AdminReportsDashboardScreen({
   const { data: categoryShare = [] } = useReportCategoryShare();
   const { data: collectionRateData } = useCollectionRate(reportFilters);
 
-  // Merge API doctors with mock fallback
-  const apiDoctors: DoctorSummaryPerformanceRecord[] = (
-    doctorPerformanceData?.content ?? []
-  ).map((d) => ({
-    id: d.doctorId,
-    doctorName: d.doctorName,
-    department: d.department,
-    appointments: d.appointments,
-    completed: d.completed,
-    cancelled: d.cancelled,
-    revenue: 0,
-    rating: d.rating ?? 0,
-    avatar: "",
-  }));
-  const doctorSource = apiDoctors;
+  const doctorSource = useMemo(() => {
+    return (doctorPerformanceData?.content ?? []).map((d) => ({
+      id: d.doctorId,
+      doctorName: d.doctorName,
+      department: d.department,
+      appointments: d.appointments,
+      completed: d.completed,
+      cancelled: d.cancelled,
+      revenue: 0,
+      rating: d.rating ?? 0,
+      avatar: "",
+    }));
+  }, [doctorPerformanceData?.content]);
 
   // Merge API operational trend with mock fallback
   const trendSource = operationalTrend;
@@ -217,15 +217,21 @@ export function AdminReportsDashboardScreen({
   // Merge API dept consultation volume with mock fallback
   const deptSource = (
     Array.isArray(deptConsultVolume) ? deptConsultVolume : []
-  ).map((d: any) => ({
-    ...d,
-    department: d.departmentName,
-    appointments: d.totalConsultations,
-    completionRate:
-      d.totalConsultations > 0
-        ? Math.round((d.completedConsultations / d.totalConsultations) * 100)
-        : 0,
-  }));
+  ).map(
+    (d: {
+      departmentName?: string;
+      totalConsultations?: number;
+      completedConsultations?: number;
+    }) => ({
+      ...d,
+      department: d.departmentName,
+      appointments: d.totalConsultations,
+      completionRate:
+        d.totalConsultations > 0
+          ? Math.round((d.completedConsultations / d.totalConsultations) * 100)
+          : 0,
+    }),
+  );
 
   // Merge API revenue vs collection with mock fallback
   const revenueSource = revenueVsCollection;
@@ -336,7 +342,7 @@ export function AdminReportsDashboardScreen({
       pending,
       collectionRate: 95.1,
     };
-  }, [filterMultiplier]);
+  }, [filterMultiplier, dashboardData]);
 
   const filteredDoctors = useMemo(() => {
     return doctorSource
@@ -384,7 +390,7 @@ export function AdminReportsDashboardScreen({
               : Math.max(0.4, filterMultiplier)),
         ),
       }));
-  }, [appliedFilters, searchQuery, filterMultiplier]);
+  }, [appliedFilters, searchQuery, filterMultiplier, doctorSource]);
 
   const sortedDoctors = useMemo(() => {
     return [...filteredDoctors].sort((a, b) => {
@@ -861,7 +867,12 @@ export function AdminReportsDashboardScreen({
                 </div>
               </div>
               <CircularProgress
-                percentage={typeof dashboardData?.collectionRate === 'object' ? (dashboardData.collectionRate as any)?.rate ?? 0 : dashboardData?.collectionRate ?? 0}
+                percentage={
+                  typeof dashboardData?.collectionRate === "object"
+                    ? ((dashboardData.collectionRate as Record<string, number>)
+                        ?.rate ?? 0)
+                    : (dashboardData?.collectionRate ?? 0)
+                }
                 size={64}
                 strokeWidth={7}
               />
@@ -1351,8 +1362,8 @@ export function AdminReportsDashboardScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {dynamicReportDistribution.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          {dynamicReportDistribution.map((entry) => (
+                            <Cell key={entry.category} fill={entry.color} />
                           ))}
                         </Pie>
                         <Tooltip

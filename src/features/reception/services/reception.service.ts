@@ -77,7 +77,7 @@ export const receptionService = {
       return {
         success: true,
         appointmentId,
-        tokenNumber: `TK-${Math.floor(100 + Math.random() * 900)}`,
+        tokenNumber: `TK-${100 + (window.crypto.getRandomValues(new Uint32Array(1))[0] % 900)}`,
         status: "Waiting for Vitals",
         checkInTime: new Date().toLocaleTimeString([], {
           hour: "2-digit",

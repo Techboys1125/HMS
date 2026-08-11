@@ -124,21 +124,20 @@ export function DoctorReportScreen({
   const { data: doctorPerformanceData } = useDoctorPerformance(reportFilters);
 
   // Map API doctor performance to table format
-  const apiTableData: DoctorReportRecord[] = (
-    doctorPerformanceData?.content ?? []
-  ).map((d) => ({
-    doctorId: d.doctorId,
-    doctorName: d.doctorName,
-    department: d.department,
-    appointments: d.appointments,
-    completed: d.completed,
-    pending: d.pending,
-    cancelled: d.cancelled,
-    followup: d.followUps,
-    avgTimeMinutes: d.averageDurationMinutes,
-    patientRating: d.rating ?? 0,
-  }));
-  const doctorTableSource = apiTableData;
+  const doctorTableSource = useMemo(() => {
+    return (doctorPerformanceData?.content ?? []).map((d) => ({
+      doctorId: d.doctorId,
+      doctorName: d.doctorName,
+      department: d.department,
+      appointments: d.appointments,
+      completed: d.completed,
+      pending: d.pending,
+      cancelled: d.cancelled,
+      followup: d.followUps,
+      avgTimeMinutes: d.averageDurationMinutes,
+      patientRating: d.rating ?? 0,
+    }));
+  }, [doctorPerformanceData?.content]);
 
   // Table sorting & pagination
   const [sortField, setSortField] =
@@ -174,7 +173,7 @@ export function DoctorReportScreen({
 
       return matchesSearch && matchesDept && matchesDoctor;
     });
-  }, [searchQuery, deptFilter, doctorFilter]);
+  }, [searchQuery, deptFilter, doctorFilter, doctorTableSource]);
 
   // Sorted records
   const sortedData = useMemo(() => {
@@ -958,8 +957,8 @@ export function DoctorReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {[].map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          {([] as Array<{ name?: string; color: string }>).map((entry) => (
+                            <Cell key={entry.name} fill={entry.color} />
                           ))}
                         </Pie>
                         <Tooltip

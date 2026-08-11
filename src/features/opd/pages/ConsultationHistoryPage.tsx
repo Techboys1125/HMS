@@ -344,8 +344,11 @@ export function ConsultationHistoryPage({
                         Prescribed Medicines
                       </strong>
                       <div className="space-y-1">
-                        {item.medicines.map((m, idx) => (
-                          <div key={idx} className="flex gap-2">
+                        {item.medicines.map((m) => (
+                          <div
+                            key={m.name}
+                            className="flex gap-2"
+                          >
                             <span className="font-bold text-slate-800">
                               • {m.name}
                             </span>
@@ -366,9 +369,9 @@ export function ConsultationHistoryPage({
                           Recommended Investigations
                         </strong>
                         <div className="flex flex-wrap gap-1.5">
-                          {item.investigations.map((inv, idx) => (
+                          {item.investigations.map((inv) => (
                             <span
-                              key={idx}
+                              key={inv}
                               className="px-2 py-0.5 bg-blue-50 text-[#0D47A1] rounded font-semibold border border-blue-100"
                             >
                               {inv}

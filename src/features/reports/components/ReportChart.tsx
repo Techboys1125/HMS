@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import {
   AreaChart,
   Area,
@@ -56,6 +56,8 @@ export function ReportChart({
   areaGradient = true,
   lineDot = false,
 }: ReportChartProps) {
+  const generatedId = useId();
+  const gradId = `report-chart-${generatedId.replace(/:/g, "")}`;
   const tooltipStyle = {
     background: "#fff",
     border: "1px solid #E5E7EB",
@@ -77,7 +79,7 @@ export function ReportChart({
             dataKey={dataKey}
           >
             {data.map((_, idx) => (
-              <Cell key={idx} fill={colors[idx % colors.length]} />
+              <Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} />
             ))}
           </Pie>
           {showTooltip && <Tooltip contentStyle={tooltipStyle} />}
@@ -103,7 +105,7 @@ export function ReportChart({
           {showTooltip && <Tooltip contentStyle={tooltipStyle} />}
           <Bar dataKey={dataKey} fill={colors[0]} radius={barRadius} barSize={barSize}>
             {data.map((_, idx) => (
-              <Cell key={idx} fill={colors[idx % colors.length]} />
+              <Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} />
             ))}
           </Bar>
         </BarChart>
@@ -121,7 +123,7 @@ export function ReportChart({
           {showTooltip && <Tooltip contentStyle={tooltipStyle} />}
           <Bar dataKey={dataKey} fill={colors[0]} radius={barRadius} barSize={barSize}>
             {data.map((_, idx) => (
-              <Cell key={idx} fill={colors[idx % colors.length]} />
+              <Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} />
             ))}
           </Bar>
         </BarChart>
@@ -144,7 +146,6 @@ export function ReportChart({
   }
 
   // Default: Area chart
-  const gradId = `grad-${Math.random().toString(36).slice(2, 8)}`;
   return (
     <ResponsiveContainer width="100%" height={height}>
       <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>

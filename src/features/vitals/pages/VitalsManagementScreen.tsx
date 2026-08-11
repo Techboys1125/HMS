@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Pagination } from "../../../common/components/Pagination";
 import type { AppointmentRecord } from "../../appointments";
+import { toDisplayStatus } from "../../appointments/services/appointment.service";
 import { vitalsService } from "../services/vitals.service";
 import { vitalsApi } from "../api/vitals.api";
 import type {
@@ -730,7 +731,7 @@ export function RecordPatientVitalsForm({
   activeApt: AppointmentRecord;
   onBack: () => void;
   onPatientSelect?: (id: number | string) => void;
-  onMarkReady: (aptId: string) => void;
+  onMarkReady: () => void | Promise<void>;
 }) {
   const { can } = usePermissions();
   const [chiefComplaint, setChiefComplaint] = useState(
@@ -775,11 +776,12 @@ export function RecordPatientVitalsForm({
         spo2: Number(spo2),
       };
 
-      await vitalsService.submitVitals(activeApt.id, payload);
+      const wasSaved = await vitalsService.submitVitals(activeApt.id, payload);
+      if (!wasSaved) throw new Error("Vitals submission was not accepted");
 
       triggerToast("Vitals recorded successfully!", "success");
 
-      onMarkReady(String(activeApt.id));
+      await onMarkReady();
     } catch {
       triggerToast("Unable to record vitals.", "error");
     }
@@ -1131,11 +1133,10 @@ export function RecordPatientVitalsScreen({
     initialViewMode,
   );
 
-  useEffect(() => {
-    vitalsApi
-      .getWaitingPatients()
-      .then((list) => {
-        if (Array.isArray(list) && list.length > 0) {
+  const loadWaitingAppointments = useCallback(async () => {
+    try {
+      const list = await vitalsApi.getWaitingPatients();
+      if (Array.isArray(list)) {
           const mapped: AppointmentRecord[] = list.map(
             (item: NurseWaitingPatient, idx: number) => ({
               id: item.appointmentId || item.id || `apt-${idx + 1}`,
@@ -1187,7 +1188,7 @@ export function RecordPatientVitalsScreen({
               appointmentDate: new Date().toISOString().split("T")[0],
               appointmentTime: item.checkInTime || "Now",
               timeSlot: item.checkInTime || "Now",
-              status: "Waiting for Vitals" as AppointmentRecord["status"],
+              status: toDisplayStatus(item.status),
               queueStatus: item.status || "WAITING_FOR_VITALS",
               visitType: "Regular",
               reason: "Pre-consultation Vitals Check",
@@ -1197,9 +1198,14 @@ export function RecordPatientVitalsScreen({
           );
           setAppointments(mapped);
         }
-      })
-      .catch((err) => console.warn("Waiting list fetch warning:", err));
+    } catch (err) {
+      console.warn("Waiting list fetch warning:", err);
+    }
   }, []);
+
+  useEffect(() => {
+    void Promise.resolve().then(loadWaitingAppointments);
+  }, [loadWaitingAppointments]);
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -1272,6 +1278,8 @@ export function RecordPatientVitalsScreen({
       apt.status === "Waiting for Vitals"
     )
       return "Waiting for Vitals";
+    if (apt.notes?.includes("vitals in progress"))
+      return "Recording In Progress";
     if (
       apt.status === "In Consultation" ||
       apt.status === "In Progress" ||
@@ -1282,8 +1290,6 @@ export function RecordPatientVitalsScreen({
     )
       return "Ready For Consultation";
     if (apt.status === "Completed") return "Vitals Recorded";
-    if (apt.notes?.includes("vitals in progress"))
-      return "Recording In Progress";
     return "Waiting for Vitals";
   };
 
@@ -1382,23 +1388,11 @@ export function RecordPatientVitalsScreen({
     triggerToast(`Loaded ${apt.patientName}`, "info");
   };
 
-  const handleMarkPatientReady = async (aptId: string) => {
+  const handleMarkPatientReady = async () => {
     // Nurse API (POST /nurse/appointments/{id}/vitals) already transitions
     // status to WAITING_FOR_DOCTOR_CALL on the backend.
-    // Only update local state here — no redundant PATCH call.
-    setAppointments((prev) =>
-      prev.map((a) =>
-        String(a.id) === String(aptId)
-          ? {
-              ...a,
-              status: "Waiting for Doctor",
-              queueStatus: "WAITING_FOR_DOCTOR_CALL",
-              vitalsRecorded: true,
-              waitingTimeMinutes: 0,
-            }
-          : a,
-      ),
-    );
+    // Reload the worklist so the UI uses that persisted status.
+    await loadWaitingAppointments();
     setSelectedAptId(null);
     setViewMode("center");
   };
@@ -1498,6 +1492,180 @@ export function RecordPatientVitalsScreen({
         </div>
       </div>
 
+      {/* SEARCH & FILTER BAR */}
+      <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="relative flex-1">
+            <Search
+              size={14}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by Patient Name, MRN, Appointment ID, or Token Number..."
+              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
+            />
+          </div>
+
+          <button
+            onClick={handleResetFilters}
+            className="px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-slate-600 hover:bg-slate-100 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+            title="Reset Filters"
+            style={{ fontFamily: PP }}
+          >
+            <RotateCcw size={14} /> Reset
+          </button>
+        </div>
+
+        {/* EXPANDABLE FILTER DROPDOWNS */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1 border-t border-slate-100 text-xs">
+          {/* Doctor */}
+          <div>
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              Doctor
+            </label>
+            <select
+              value={doctorFilter}
+              onChange={(e) => setDoctorFilter(e.target.value)}
+              className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
+            >
+              <option value="All">All Doctors</option>
+              {dynamicDoctors.map((doc) => (
+                <option key={doc} value={doc}>
+                  {doc}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Department */}
+          <div>
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              Department
+            </label>
+            <select
+              value={deptFilter}
+              onChange={(e) => setDeptFilter(e.target.value)}
+              className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
+            >
+              <option value="All">All Depts</option>
+              <option value="Cardiology">Cardiology</option>
+              <option value="General Medicine">General Medicine</option>
+              <option value="Neurology">Neurology</option>
+              <option value="Gynecology">Gynecology</option>
+            </select>
+          </div>
+
+          {/* Appointment Status */}
+          <div>
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              Apt Status
+            </label>
+            <select
+              value={aptStatusFilter}
+              onChange={(e) => setAptStatusFilter(e.target.value)}
+              className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
+            >
+              <option value="All">All Apt Status</option>
+              <option value="Waiting">Waiting</option>
+              <option value="Checked-In">Checked-In</option>
+              <option value="In Progress">In Progress</option>
+            </select>
+          </div>
+
+          {/* Vitals Status */}
+          <div>
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              Vitals Status
+            </label>
+            <select
+              value={vitalsStatusFilter}
+              onChange={(e) => setVitalsStatusFilter(e.target.value)}
+              className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
+            >
+              <option value="All">All Vitals</option>
+              <option value="Waiting for Vitals">Waiting for Vitals</option>
+              <option value="Recording In Progress">
+                Recording In Progress
+              </option>
+              <option value="Vitals Recorded">Vitals Recorded</option>
+              <option value="Ready For Consultation">
+                Ready For Consultation
+              </option>
+            </select>
+          </div>
+
+          {/* Visit Type */}
+          <div>
+            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              Visit Type
+            </label>
+            <select
+              value={visitTypeFilter}
+              onChange={(e) => setVisitTypeFilter(e.target.value)}
+              className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
+            >
+              <option value="All">All Visits</option>
+              <option value="First Visit">First Visit</option>
+              <option value="Follow-up">Follow-up</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* STATUS TABS */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+        {(
+          [
+            { id: "All", label: "All", count: kpiStats.total },
+            {
+              id: "Waiting for Vitals",
+              label: "Waiting for Vitals",
+              count: kpiStats.pending,
+            },
+            {
+              id: "Recording In Progress",
+              label: "Recording In Progress",
+              count: kpiStats.inProgress,
+            },
+            {
+              id: "Vitals Recorded",
+              label: "Vitals Recorded",
+              count: kpiStats.recorded,
+            },
+            {
+              id: "Ready For Consultation",
+              label: "Ready For Consultation",
+              count: kpiStats.ready,
+            },
+          ] as const
+        ).map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap flex items-center gap-2 border ${
+              activeTab === tab.id
+                ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
+                : "bg-white text-slate-600 border-[#E5E7EB] hover:bg-slate-50"
+            }`}
+            style={{ fontFamily: PP }}
+          >
+            <span>{tab.label}</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                activeTab === tab.id
+                  ? "bg-white/20 text-white"
+                  : "bg-slate-100 text-slate-600"
+              }`}
+            >
+              {tab.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
       {/* SUMMARY KPI CARDS (5 Cards) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {/* Card 01: Today's Patients */}
@@ -1565,7 +1733,7 @@ export function RecordPatientVitalsScreen({
             className="text-2xl font-bold text-[#009688]"
             style={{ fontFamily: PP }}
           >
-            {kpiStats.recorded + kpiStats.ready}
+            {kpiStats.recorded}
           </div>
           <div className="text-[10px] text-teal-600 font-medium">
             Recorded & verified
@@ -1625,180 +1793,6 @@ export function RecordPatientVitalsScreen({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT COLUMN: TABLE & FILTERS (8 COLS) */}
         <div className="lg:col-span-12 space-y-4">
-          {/* SEARCH & FILTER BAR */}
-          <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <div className="relative flex-1">
-                <Search
-                  size={14}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by Patient Name, MRN, Appointment ID, or Token Number..."
-                  className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                />
-              </div>
-
-              <button
-                onClick={handleResetFilters}
-                className="px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-slate-600 hover:bg-slate-100 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
-                title="Reset Filters"
-                style={{ fontFamily: PP }}
-              >
-                <RotateCcw size={14} /> Reset
-              </button>
-            </div>
-
-            {/* EXPANDABLE FILTER DROPDOWNS */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1 border-t border-slate-100 text-xs">
-              {/* Doctor */}
-              <div>
-                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                  Doctor
-                </label>
-                <select
-                  value={doctorFilter}
-                  onChange={(e) => setDoctorFilter(e.target.value)}
-                  className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
-                >
-                  <option value="All">All Doctors</option>
-                  {dynamicDoctors.map((doc) => (
-                    <option key={doc} value={doc}>
-                      {doc}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Department */}
-              <div>
-                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                  Department
-                </label>
-                <select
-                  value={deptFilter}
-                  onChange={(e) => setDeptFilter(e.target.value)}
-                  className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
-                >
-                  <option value="All">All Depts</option>
-                  <option value="Cardiology">Cardiology</option>
-                  <option value="General Medicine">General Medicine</option>
-                  <option value="Neurology">Neurology</option>
-                  <option value="Gynecology">Gynecology</option>
-                </select>
-              </div>
-
-              {/* Appointment Status */}
-              <div>
-                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                  Apt Status
-                </label>
-                <select
-                  value={aptStatusFilter}
-                  onChange={(e) => setAptStatusFilter(e.target.value)}
-                  className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
-                >
-                  <option value="All">All Apt Status</option>
-                  <option value="Waiting">Waiting</option>
-                  <option value="Checked-In">Checked-In</option>
-                  <option value="In Progress">In Progress</option>
-                </select>
-              </div>
-
-              {/* Vitals Status */}
-              <div>
-                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                  Vitals Status
-                </label>
-                <select
-                  value={vitalsStatusFilter}
-                  onChange={(e) => setVitalsStatusFilter(e.target.value)}
-                  className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
-                >
-                  <option value="All">All Vitals</option>
-                  <option value="Waiting for Vitals">Waiting for Vitals</option>
-                  <option value="Recording In Progress">
-                    Recording In Progress
-                  </option>
-                  <option value="Vitals Recorded">Vitals Recorded</option>
-                  <option value="Ready For Consultation">
-                    Ready For Consultation
-                  </option>
-                </select>
-              </div>
-
-              {/* Visit Type */}
-              <div>
-                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                  Visit Type
-                </label>
-                <select
-                  value={visitTypeFilter}
-                  onChange={(e) => setVisitTypeFilter(e.target.value)}
-                  className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
-                >
-                  <option value="All">All Visits</option>
-                  <option value="First Visit">First Visit</option>
-                  <option value="Follow-up">Follow-up</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* STATUS TABS */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-            {(
-              [
-                { id: "All", label: "All", count: kpiStats.total },
-                {
-                  id: "Waiting for Vitals",
-                  label: "Waiting for Vitals",
-                  count: kpiStats.pending,
-                },
-                {
-                  id: "Recording In Progress",
-                  label: "Recording In Progress",
-                  count: kpiStats.inProgress,
-                },
-                {
-                  id: "Vitals Recorded",
-                  label: "Vitals Recorded",
-                  count: kpiStats.recorded,
-                },
-                {
-                  id: "Ready For Consultation",
-                  label: "Ready For Consultation",
-                  count: kpiStats.ready,
-                },
-              ] as const
-            ).map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap flex items-center gap-2 border ${
-                  activeTab === tab.id
-                    ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
-                    : "bg-white text-slate-600 border-[#E5E7EB] hover:bg-slate-50"
-                }`}
-                style={{ fontFamily: PP }}
-              >
-                <span>{tab.label}</span>
-                <span
-                  className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                    activeTab === tab.id
-                      ? "bg-white/20 text-white"
-                      : "bg-slate-100 text-slate-600"
-                  }`}
-                >
-                  {tab.count}
-                </span>
-              </button>
-            ))}
-          </div>
-
           {/* ENTERPRISE DATA TABLE */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
             <div className="p-4 border-b border-[#E5E7EB] bg-slate-50/50 flex items-center justify-between">

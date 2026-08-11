@@ -613,7 +613,7 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                             <div className="space-y-2">
                               {draft.workingPeriods.map((period, pIdx) => (
                                 <div
-                                  key={pIdx}
+                                  key={period.startTime || pIdx}
                                   className="bg-white rounded-lg border border-[#E5E7EB] p-2.5 space-y-2"
                                 >
                                   <div className="flex items-center gap-1.5">
@@ -676,7 +676,7 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                                       {(period.breaks || []).map(
                                         (brk, bIdx) => (
                                           <div
-                                            key={bIdx}
+                                            key={brk.startTime || bIdx}
                                             className="flex items-center gap-1.5"
                                           >
                                             <select
@@ -776,9 +776,9 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                                 Working day, no periods.
                               </div>
                             ) : (
-                              periods.map((period, idx) => (
+                              periods.map((period) => (
                                 <div
-                                  key={idx}
+                                  key={period.id || period.startTime}
                                   className="bg-slate-50 rounded-lg border border-[#E5E7EB] px-2.5 py-1.5"
                                 >
                                   <div className="flex items-center justify-between">
@@ -805,9 +805,9 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                                     <span className="text-[9px] text-[#64748B]">
                                       {period.slotDurationMinutes || 15} min
                                     </span>
-                                    {(period.breaks || []).map((brk, bIdx) => (
+                                    {(period.breaks || []).map((brk) => (
                                       <span
-                                        key={bIdx}
+                                        key={brk.id || brk.startTime}
                                         className="text-[9px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-100 font-semibold"
                                       >
                                         {brk.breakType}{" "}

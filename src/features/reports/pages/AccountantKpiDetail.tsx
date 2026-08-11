@@ -38,6 +38,17 @@ import {
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
 
+export interface AccountantKpiMeta {
+  title?: string;
+  description?: string;
+  currentValue?: string;
+  unit?: string;
+  yesterdayComp?: string;
+  growthPercent?: string;
+  monthlyComp?: string;
+  isPositive?: boolean;
+}
+
 export type AccountantKpiType =
   | "Today's Revenue"
   | "Today's Invoices"
@@ -77,9 +88,10 @@ export function AccountantDashboardKpiDetailScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  const meta = ({} as any)[selectedKpi] ?? ({} as any);
-  const trendData: any[] = [];
-  const donutData: any[] = [];
+  const meta: AccountantKpiMeta =
+    ({} as Record<string, AccountantKpiMeta>)[selectedKpi] ?? {};
+  const trendData: Array<{ date: string; value: number }> = [];
+  const donutData: Array<{ name: string; value: number; color: string }> = [];
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -146,7 +158,12 @@ export function AccountantDashboardKpiDetailScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
+                  <strong className="text-[#111827]">
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
                 </span>
               </div>
 
@@ -693,8 +710,8 @@ export function AccountantDashboardKpiDetailScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {donutData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          {donutData.map((entry) => (
+                            <Cell key={entry.name} fill={entry.color} />
                           ))}
                         </Pie>
                         <Tooltip
@@ -806,8 +823,8 @@ export function AccountantDashboardKpiDetailScreen({
                       </span>
                     </div>
                     <p className="text-[#64748B]">
-                      Daily billing collections reached -- today compared
-                      to $13,500 yesterday, driven by card settlements.
+                      Daily billing collections reached -- today compared to
+                      $13,500 yesterday, driven by card settlements.
                     </p>
                     <div className="mt-2 font-semibold text-[#0D47A1]">
                       Recommendation: Maintain current settlement batch
@@ -846,7 +863,16 @@ export function AccountantDashboardKpiDetailScreen({
                   Recent Financial Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {[].map((act: any) => (
+                  {(
+                    [] as Array<{
+                      id: string;
+                      title: string;
+                      time: string;
+                      action?: string;
+                      date?: string;
+                      detail?: string;
+                    }>
+                  ).map((act) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -917,7 +943,10 @@ export function AccountantDashboardKpiDetailScreen({
                   <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
                     <span className="text-[#64748B]">Last Updated:</span>
                     <span className="font-semibold text-[#0D47A1]">
-                      {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date().toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </span>
                   </div>
                 </div>
@@ -1025,7 +1054,9 @@ export function AccountantDashboardKpiDetailScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
+            <strong className="text-[#111827]">
+              {new Date().toLocaleString()}
+            </strong>
           </div>
         </div>
       </div>

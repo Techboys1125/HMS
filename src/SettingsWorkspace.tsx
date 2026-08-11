@@ -3,7 +3,7 @@ import { HospitalInformationWorkspace } from "./HospitalInformationWorkspace";
 import { UserRolesPermissionsWorkspace } from "./UserRolesPermissionsWorkspace";
 import { AppointmentConfigurationWorkspace } from "./AppointmentConfigurationWorkspace";
 import { BillingConfigurationPage } from "./features/billing";
-import { NotificationCommunicationWorkspace } from "./NotificationCommunicationWorkspace";
+import { NotificationCommunicationPage } from "./features/notification";
 import { SecuritySettingsWorkspace } from "./SecuritySettingsWorkspace";
 import { BackupMaintenanceWorkspace } from "./BackupMaintenanceWorkspace";
 import {
@@ -1579,9 +1579,9 @@ export function SettingsWorkspace({ onNavigate }: SettingsWorkspaceProps) {
                             sub: "Shows informative hover tooltips across data tables",
                             key: "enableTooltips",
                           },
-                        ].map((pref, idx) => (
+                        ].map((pref) => (
                           <div
-                            key={idx}
+                            key={pref.key}
                             style={{
                               background: "#F8FAFC",
                               padding: "12px 14px",
@@ -1997,9 +1997,9 @@ export function SettingsWorkspace({ onNavigate }: SettingsWorkspaceProps) {
                       action: "Date Format Updated to DD/MM/YYYY",
                       status: "Updated",
                     },
-                  ].map((act, index) => (
+                  ].map((act) => (
                     <div
-                      key={index}
+                      key={act.action}
                       style={{
                         display: "flex",
                         alignItems: "center",
@@ -2235,7 +2235,7 @@ export function SettingsWorkspace({ onNavigate }: SettingsWorkspaceProps) {
           ) : activeMenu === "billing" ? (
             <BillingConfigurationPage />
           ) : activeMenu === "notifications" ? (
-            <NotificationCommunicationWorkspace />
+            <NotificationCommunicationPage />
           ) : activeMenu === "security" ? (
             <SecuritySettingsWorkspace />
           ) : activeMenu === "backup" ? (

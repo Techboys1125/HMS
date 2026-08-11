@@ -1,8 +1,4 @@
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Info,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle2, Info } from "lucide-react";
 import type { AuditSeverity, AuditStatus } from "../types/auditlog.types";
 
 export function SeverityBadge({ severity }: { severity: AuditSeverity }) {

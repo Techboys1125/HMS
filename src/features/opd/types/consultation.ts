@@ -11,6 +11,40 @@ export type ConsultationStatus =
   | "NO_SHOW"
   | "FOLLOW_UP_SCHEDULED";
 
+/**
+ * Only appointments that have completed the vitals stage may be handled in
+ * the doctor consultation queue. Completed appointments remain available for
+ * the consultation history/list, but are never part of the active queue.
+ */
+export const DOCTOR_CONSULTATION_WAITING_STATUSES = [
+  "WAITING",
+  "WAITING_FOR_DOCTOR",
+  "WAITING_FOR_DOCTOR_CALL",
+] as const satisfies readonly ConsultationStatus[];
+
+export const DOCTOR_CONSULTATION_ACTIVE_STATUSES = [
+  ...DOCTOR_CONSULTATION_WAITING_STATUSES,
+  "CALLED",
+  "IN_CONSULTATION",
+] as const satisfies readonly ConsultationStatus[];
+
+export const DOCTOR_CONSULTATION_LIST_STATUSES = [
+  ...DOCTOR_CONSULTATION_ACTIVE_STATUSES,
+  "COMPLETED",
+] as const satisfies readonly ConsultationStatus[];
+
+export function isDoctorConsultationStatus(
+  status: unknown,
+): status is (typeof DOCTOR_CONSULTATION_LIST_STATUSES)[number] {
+  const normalized = String(status || "")
+    .toUpperCase()
+    .replace(/[\s-]/g, "_");
+
+  return (DOCTOR_CONSULTATION_LIST_STATUSES as readonly string[]).includes(
+    normalized,
+  );
+}
+
 export const appointmentStatusMap: Record<ConsultationStatus, string> = {
   BOOKED: "Booked",
   WAITING: "Waiting for Doctor",
@@ -51,6 +85,7 @@ export interface ConsultationRecord {
   doctorExperience?: string;
   id: string;
   appointmentId?: string | number;
+  encounterId?: string | number;
   tokenNo: string;
   patientName: string;
   mrn: string;

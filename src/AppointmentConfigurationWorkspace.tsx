@@ -658,9 +658,9 @@ export function AppointmentConfigurationWorkspace() {
                 sub: "Patients can schedule appointments in advance",
                 key: "allowFutureBooking",
               },
-            ].map((item, idx) => (
+            ].map((item) => (
               <div
-                key={idx}
+                key={item.key}
                 style={{
                   background: "#F8FAFC",
                   padding: "12px 14px",
@@ -1176,9 +1176,9 @@ export function AppointmentConfigurationWorkspace() {
                 sub: "Stream to waiting room TVs",
                 key: "queueDisplayEnabled",
               },
-            ].map((item, idx) => (
+            ].map((item) => (
               <div
-                key={idx}
+                key={item.key}
                 style={{
                   background: "#F8FAFC",
                   padding: "12px",
@@ -1640,8 +1640,8 @@ export function AppointmentConfigurationWorkspace() {
                   { day: "Tuesday", count: 128, color: "#009688" },
                   { day: "Wednesday", count: 135, color: "#0D47A1" },
                   { day: "Thursday", count: 119, color: "#009688" },
-                ].map((item, idx) => (
-                  <div key={idx}>
+                ].map((item) => (
+                  <div key={item.day}>
                     <div
                       style={{
                         display: "flex",
@@ -1789,9 +1789,9 @@ export function AppointmentConfigurationWorkspace() {
               { step: "4. Check-In Vitals", sub: "Triage Room" },
               { step: "5. Consultation", sub: "15 Mins Slot" },
               { step: "6. Complete / Bill", sub: "Discharge" },
-            ].map((st, i) => (
+            ].map((st) => (
               <div
-                key={i}
+                key={st.step}
                 style={{ textAlign: "center", flex: 1, minWidth: "110px" }}
               >
                 <div
@@ -1903,7 +1903,7 @@ export function AppointmentConfigurationWorkspace() {
                 "11:45 AM",
               ].map((time, idx) => (
                 <div
-                  key={idx}
+                  key={time}
                   style={{
                     background: idx % 3 === 0 ? "#E3F2FD" : "#FFFFFF",
                     border: "1px solid #CBD5E1",

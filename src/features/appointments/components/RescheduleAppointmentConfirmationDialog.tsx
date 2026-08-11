@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useEffectEvent } from "react";
 import {
   Calendar as CalendarIcon,
   X,
@@ -57,17 +57,21 @@ export function RescheduleAppointmentConfirmationDialog({
     }
   }, [isOpen, apt]);
 
+  const onEscape = useEffectEvent(() => {
+    onClose();
+  });
+
   // ESC Key listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
       if (e.key === "Escape") {
-        onClose();
+        onEscape();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen || !apt) return null;
 
@@ -274,8 +278,8 @@ export function RescheduleAppointmentConfirmationDialog({
               </div>
 
               <div className="grid grid-cols-7 gap-1 text-center text-xs">
-                {Array.from({ length: firstDayIndex }).map((_, i) => (
-                  <span key={`empty-${i}`} />
+                {Array.from({ length: firstDayIndex }).map((_, idx) => (
+                  <span key={idx} />
                 ))}
                 {Array.from({ length: totalDays }).map((_, i) => {
                   const dayNum = i + 1;

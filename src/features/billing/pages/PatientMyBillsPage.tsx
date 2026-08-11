@@ -12,12 +12,16 @@ import {
 import { PP, RB } from "../constants/billing.constants";
 import { useBilling } from "../hooks/useBilling";
 import { useAuthStore } from "../../auth";
+import { usePatientPortal } from "../../patients/context/PatientPortalContext";
 import { BillingStatusBadge } from "../components/BillingStatusBadge";
 
 export function PatientMyBillsPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
-  const patientMrn = String(user?.patientId || user?.id || "");
+  const portal = usePatientPortal();
+  const patientMrn = String(
+    portal?.activeMrn || portal?.primaryMrn || user?.patientId || user?.id || "",
+  );
 
   const { invoices, loading: isLoading } = useBilling(patientMrn || undefined);
 
@@ -51,7 +55,6 @@ export function PatientMyBillsPage() {
   const handleResetFilters = () => {
     setSearchQuery("");
     setStatusFilter("All");
-    setDateRange("All");
   };
 
   return (
@@ -375,6 +378,3 @@ export function PatientMyBillsPage() {
 }
 
 export default PatientMyBillsPage;
-function setDateRange(_p0: string) {
-  throw new Error("Function not implemented.");
-}

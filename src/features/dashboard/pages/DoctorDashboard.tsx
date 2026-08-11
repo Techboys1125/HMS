@@ -215,16 +215,22 @@ function SH({
 const DOC_HOURLY_PROGRESS: { hour: string; completed: number; remaining: number }[] = [];
 
 // Section 02: Patient Consultation Status (Donut Chart)
-const DOC_PATIENT_STATUS_DIST: { name: string; value: number; color: string }[] = [];
+const DOC_PATIENT_STATUS_DIST: {
+  name: string; value: number; color: string 
+}[] = [];
 
 // Section 03: Appointment Timeline (Clinical details without billing)
-const DOC_APPT_TIMELINE: { time: string; name: string; age: number; gender: string; visitType: string; room: string; token: string; status: string }[] = [];
+const DOC_APPT_TIMELINE: {
+  time: string; name: string; age: number; gender: string; visitType: string; room: string; token: string; status: string 
+}[] = [];
 
 // Section 05: Consultation Types (Horizontal Bar Chart)
 const DOC_CONSULTATION_TYPES: { type: string; count: number }[] = [];
 
 // Section 06: Prescriptions Issued Today (Pie Chart)
-const DOC_PRESCRIPTION_SUMMARY: { category: string; count: number; color: string }[] = [];
+const DOC_PRESCRIPTION_SUMMARY: {
+  category: string; count: number; color: string 
+}[] = [];
 
 // Section 09: Today's Performance Summary (Statistics Table)
 const DOC_PERFORMANCE_METRICS: { metric: string; today: string; yesterday: string; status: string }[] = [];
@@ -527,8 +533,8 @@ export function DoctorDashboard() {
                 formatter={(v: unknown) => [`${v} Patients`, "Count"]}
               />
               <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={14}>
-                {DOC_PATIENT_STATUS_DIST.map((entry, idx) => (
-                  <Cell key={idx} fill={entry.color} />
+                {DOC_PATIENT_STATUS_DIST.map((entry) => (
+                  <Cell key={entry.name} fill={entry.color} />
                 ))}
               </Bar>
             </BarChart>
@@ -612,8 +618,8 @@ export function DoctorDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {DOC_APPT_TIMELINE.map((a, i) => (
-                  <tr key={i} className="hover:bg-slate-50 transition-colors">
+                {DOC_APPT_TIMELINE.map((a) => (
+                  <tr key={a.token} className="hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
                       {a.time}
                     </td>
@@ -873,8 +879,8 @@ export function DoctorDashboard() {
                 formatter={(v: unknown) => [`${v} Prescriptions`, "Count"]}
               />
               <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={22}>
-                {DOC_PRESCRIPTION_SUMMARY.map((entry, idx) => (
-                  <Cell key={idx} fill={entry.color} />
+                {DOC_PRESCRIPTION_SUMMARY.map((entry) => (
+                  <Cell key={entry.category} fill={entry.color} />
                 ))}
               </Bar>
             </BarChart>

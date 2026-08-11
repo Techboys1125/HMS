@@ -24,7 +24,6 @@ import {
   PatientMedicalRecordsScreen,
   PatientDoctorSearchScreen,
   PatientQueueStatusScreen,
-  PatientNotificationsScreen,
   PatientListPageRoute,
   PatientProfileRoute,
   DoctorAssignedPatientsRoute,
@@ -83,7 +82,7 @@ import { DailyBillingReportPage } from "../../features/reports/pages/DailyBillin
 import { ReportsDashboardScreen } from "../../ReportsManagement";
 import { SettingsWorkspace } from "../../SettingsWorkspace";
 import { AuditLogManagementPage } from "../../features/auditlog";
-import { NotificationCenterManagement } from "../../NotificationCenterManagement";
+import { NotificationCenterPage, PatientNotificationsPage } from "../../features/notification";
 
 // Main HMS Layout shell
 import { HMSAppShell } from "../../components/layout/HMSAppShell";
@@ -272,7 +271,7 @@ export function AppRoutes() {
             path={ROUTES.PATIENT_NOTIFICATIONS}
             element={
               <RouteGuard requiredPermission="NOTIFICATION_VIEW">
-                <PatientNotificationsScreen />
+                <PatientNotificationsPage />
               </RouteGuard>
             }
           />
@@ -345,7 +344,7 @@ export function AppRoutes() {
           path={ROUTES.PATIENT_NOTIFICATIONS}
           element={
             <RouteGuard requiredPermission="NOTIFICATION_VIEW">
-              <PatientNotificationsScreen />
+              <PatientNotificationsPage />
             </RouteGuard>
           }
         />
@@ -609,7 +608,11 @@ export function AppRoutes() {
         />
         <Route
           path={ROUTES.NOTIFICATIONS}
-          element={<NotificationCenterManagement />}
+          element={
+            <RouteGuard requiredPermission="NOTIFICATION_VIEW">
+              <NotificationCenterPage />
+            </RouteGuard>
+          }
         />
       </Route>
 

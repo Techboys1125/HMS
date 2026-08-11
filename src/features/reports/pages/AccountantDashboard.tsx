@@ -36,6 +36,7 @@ import {
   Legend,
 } from "recharts";
 import { useInvoiceSummary, useDailyRevenue } from "../hooks/useReports";
+import type { DailyRevenuePoint } from "../types/reports.types";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -182,11 +183,14 @@ export function AccountantReportsDashboardScreen({
   };
 
   const filteredTransactions = useMemo(() => {
-    return (dailyRevenue ?? []).filter((item: any) => {
+    return (dailyRevenue ?? []).filter((item: DailyRevenuePoint) => {
+      const patientName = String(item.patientName ?? "");
+      const mrn = String(item.mrn ?? "");
+      const invoiceId = String(item.invoiceId ?? "");
       const matchesSearch =
-        item.patientName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.mrn?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.invoiceId?.toLowerCase().includes(searchQuery.toLowerCase());
+        patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        invoiceId.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus =
         paymentStatusFilter === "All Payment Statuses" ||
         item.paymentStatus === paymentStatusFilter;
@@ -841,9 +845,11 @@ export function AccountantReportsDashboardScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {[].map((entry: any, index: any) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
+                          {([] as Array<{ name?: string; color: string }>).map(
+                            (entry) => (
+                              <Cell key={entry.name} fill={entry.color} />
+                            ),
+                          )}
                         </Pie>
                         <Tooltip
                           contentStyle={{
@@ -1055,13 +1061,13 @@ export function AccountantReportsDashboardScreen({
                               {item.invoiceDate}
                             </td>
                             <td className="py-3.5 px-4 text-right font-bold text-[#111827]">
-                              ${item.grandTotal.toFixed(2)}
+                              ${Number(item.grandTotal ?? 0).toFixed(2)}
                             </td>
                             <td className="py-3.5 px-4 text-right font-bold text-[#66BB6A]">
-                              ${item.amountPaid.toFixed(2)}
+                              ${Number(item.amountPaid ?? 0).toFixed(2)}
                             </td>
                             <td className="py-3.5 px-4 text-right font-bold text-[#EF4444]">
-                              ${item.balance.toFixed(2)}
+                              ${Number(item.balance ?? 0).toFixed(2)}
                             </td>
                             <td className="py-3.5 px-4 font-medium text-[#111827]">
                               {item.paymentMethod}
@@ -1153,7 +1159,16 @@ export function AccountantReportsDashboardScreen({
                   Recent Financial Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {[].map((act: any) => (
+                  {(
+                    [] as Array<{
+                      id: string;
+                      title: string;
+                      time: string;
+                      action?: string;
+                      date?: string;
+                      detail?: string;
+                    }>
+                  ).map((act) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"

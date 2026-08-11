@@ -31,9 +31,20 @@ export const authApi = {
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          { message?: string } | undefined;
+          | { message?: string; errors?: Array<{ message?: string }> }
+          | undefined;
         if (resData?.message) {
-          throw new Error(resData.message, { cause: error });
+          let errorMessage = resData.message;
+          if (resData.errors && resData.errors.length > 0) {
+            errorMessage +=
+              ": " +
+              resData.errors
+                .map(
+                  (e: { message?: string }) => e.message || JSON.stringify(e),
+                )
+                .join(", ");
+          }
+          throw new Error(errorMessage, { cause: error });
         }
       }
       const msg =

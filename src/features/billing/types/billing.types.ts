@@ -206,7 +206,7 @@ export interface BillDetailEncounter {
 }
 
 export interface BillDetailBill {
-  bill: any;
+  bill: Record<string, unknown>;
   summary: BillSummaryAmount;
   paymentHistory: BillPaymentRecord[];
   items: BillItem[];

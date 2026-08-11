@@ -99,18 +99,6 @@ export interface DoctorConsultationPerformanceRecord {
   consultationStatus: string;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 export function DoctorDoctorReportScreen({
   onBack,
   onOpenAppointmentReport,
@@ -216,7 +204,12 @@ export function DoctorDoctorReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
+                  <strong className="text-[#111827]">
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
                 </span>
               </div>
 
@@ -780,19 +773,19 @@ export function DoctorDoctorReportScreen({
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsPie>
                         <Pie
-                           data={[]}
-                           cx="50%"
-                           cy="50%"
-                           innerRadius={45}
-                           outerRadius={75}
-                           paddingAngle={3}
-                           dataKey="value"
-                         >
-                           {[].map(
-                             (entry: any, index: number) => (
-                               <Cell key={`cell-${index}`} fill={entry.color} />
-                             ),
-                           )}
+                          data={[]}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={45}
+                          outerRadius={75}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          {([] as Array<{ name?: string; color: string }>).map(
+                            (entry: { name?: string; color: string }) => (
+                              <Cell key={entry.name} fill={entry.color} />
+                            ),
+                          )}
                         </Pie>
                         <Tooltip
                           contentStyle={{
@@ -1085,7 +1078,16 @@ export function DoctorDoctorReportScreen({
                   Recent Professional Activities
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {[].map((act: any) => (
+                  {(
+                    [] as Array<{
+                      id: string;
+                      title: string;
+                      time: string;
+                      action?: string;
+                      date?: string;
+                      detail?: string;
+                    }>
+                  ).map((act) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1260,7 +1262,9 @@ export function DoctorDoctorReportScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
+            <strong className="text-[#111827]">
+              {new Date().toLocaleString()}
+            </strong>
           </div>
         </div>
       </div>

@@ -86,7 +86,6 @@ function CircularProgress({
   );
 }
 
-
 export function AccountantDailyRevenueReportScreen({
   onBack,
 }: {
@@ -128,7 +127,24 @@ export function AccountantDailyRevenueReportScreen({
   };
 
   const filteredRevenueRows = useMemo(() => {
-    return [].filter((item: any) => {
+    return (
+      [] as Array<{
+        patientName: string;
+        mrn: string;
+        invoiceId: string;
+        paymentStatus: string;
+        paymentMethod: string;
+        doctorName?: string;
+        department?: string;
+        date?: string;
+        invoiceDate?: string;
+        paymentTime?: string;
+        invoiceAmount?: number;
+        amountPaid?: number;
+        outstandingAmount?: number;
+        collectedBy?: string;
+      }>
+    ).filter((item) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -195,7 +211,12 @@ export function AccountantDailyRevenueReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
+                  <strong className="text-[#111827]">
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
                 </span>
               </div>
 
@@ -502,9 +523,7 @@ export function AccountantDailyRevenueReportScreen({
                     {"--"}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#009688] font-semibold">
-                      {"--"}
-                    </span>
+                    <span className="text-[#009688] font-semibold">{"--"}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
@@ -535,9 +554,7 @@ export function AccountantDailyRevenueReportScreen({
                     {"--"}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#F59E0B] font-semibold">
-                      {"--"}
-                    </span>
+                    <span className="text-[#F59E0B] font-semibold">{"--"}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
@@ -568,9 +585,7 @@ export function AccountantDailyRevenueReportScreen({
                     {"--"}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#66BB6A] font-semibold">
-                      {"--"}
-                    </span>
+                    <span className="text-[#66BB6A] font-semibold">{"--"}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
@@ -601,9 +616,7 @@ export function AccountantDailyRevenueReportScreen({
                     {"--"}
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#EF4444] font-semibold">
-                      {"--"}
-                    </span>
+                    <span className="text-[#EF4444] font-semibold">{"--"}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
@@ -629,9 +642,7 @@ export function AccountantDailyRevenueReportScreen({
                     >
                       {"--"}
                     </div>
-                    <p className="text-[11px] text-[#64748B] mt-1">
-                      {"--"}
-                    </p>
+                    <p className="text-[11px] text-[#64748B] mt-1">{"--"}</p>
                     <div className="mt-2 text-[11px] font-semibold text-[#64748B]">
                       {"--"}
                     </div>
@@ -779,9 +790,9 @@ export function AccountantDailyRevenueReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {[].map(
-                            (entry: any, index: any) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
+                          {([] as Array<{ name?: string; color: string }>).map(
+                            (entry: { name?: string; color: string }) => (
+                              <Cell key={entry.name} fill={entry.color} />
                             ),
                           )}
                         </Pie>
@@ -1098,7 +1109,16 @@ export function AccountantDailyRevenueReportScreen({
                   Recent Revenue Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {[].map((act: any) => (
+                  {(
+                    [] as Array<{
+                      id: string;
+                      title: string;
+                      time: string;
+                      action?: string;
+                      date?: string;
+                      detail?: string;
+                    }>
+                  ).map((act) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1138,7 +1158,9 @@ export function AccountantDailyRevenueReportScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
+            <strong className="text-[#111827]">
+              {new Date().toLocaleString()}
+            </strong>
           </div>
         </div>
       </div>
@@ -1160,7 +1182,3 @@ export interface AccountantBillingRecord {
   invoiceStatus: string;
   collectedBy: string;
 }
-
-
-
-

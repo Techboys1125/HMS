@@ -132,7 +132,21 @@ export function AccountantBillingReportScreen({
   };
 
   const filteredBillingRows = useMemo(() => {
-    return [].filter((item: any) => {
+    return (
+      [] as Array<{
+        patientName: string;
+        mrn: string;
+        invoiceId: string;
+        paymentStatus: string;
+        paymentMethod: string;
+        collectedBy: string;
+        invoiceStatus?: string;
+        invoiceDate?: string;
+        invoiceAmount?: number;
+        amountPaid?: number;
+        outstandingBalance?: number;
+      }>
+    ).filter((item) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -208,7 +222,12 @@ export function AccountantBillingReportScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
+                  <strong className="text-[#111827]">
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
                 </span>
               </div>
 
@@ -545,9 +564,7 @@ export function AccountantBillingReportScreen({
                     6
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#F59E0B] font-semibold">
-                      --
-                    </span>
+                    <span className="text-[#F59E0B] font-semibold">--</span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
@@ -578,9 +595,7 @@ export function AccountantBillingReportScreen({
                     2
                   </div>
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#0D47A1] font-semibold">
-                      --
-                    </span>
+                    <span className="text-[#0D47A1] font-semibold">--</span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
@@ -639,9 +654,7 @@ export function AccountantBillingReportScreen({
                     >
                       --
                     </div>
-                    <p className="text-[11px] text-[#64748B] mt-1">
-                      --
-                    </p>
+                    <p className="text-[11px] text-[#64748B] mt-1">--</p>
                     <div className="mt-2 text-[11px] font-semibold text-[#66BB6A]">
                       âœ“ Target Met
                     </div>
@@ -787,9 +800,11 @@ export function AccountantBillingReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {[].map((entry: any, index: any) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
+                          {([] as Array<{ name?: string; color: string }>).map(
+                            (entry) => (
+                              <Cell key={entry.name} fill={entry.color} />
+                            ),
+                          )}
                         </Pie>
                         <Tooltip
                           contentStyle={{
@@ -1125,7 +1140,16 @@ export function AccountantBillingReportScreen({
                   Recent Billing Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {[].map((act: any) => (
+                  {(
+                    [] as Array<{
+                      id: string;
+                      title: string;
+                      time: string;
+                      action?: string;
+                      date?: string;
+                      detail?: string;
+                    }>
+                  ).map((act) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"
@@ -1186,9 +1210,7 @@ export function AccountantBillingReportScreen({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Partially Paid:</span>
-                    <span className="font-bold text-[#0D47A1]">
-                      --
-                    </span>
+                    <span className="font-bold text-[#0D47A1]">--</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Refunded Bills:</span>
@@ -1198,9 +1220,7 @@ export function AccountantBillingReportScreen({
                     <span className="text-[#64748B]">
                       Average Invoice Value:
                     </span>
-                    <span className="font-semibold text-[#009688]">
-                      --
-                    </span>
+                    <span className="font-semibold text-[#009688]">--</span>
                   </div>
                 </div>
 
@@ -1303,7 +1323,9 @@ export function AccountantBillingReportScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
+            <strong className="text-[#111827]">
+              {new Date().toLocaleString()}
+            </strong>
           </div>
         </div>
       </div>

@@ -170,22 +170,44 @@ function SH({
     </div>
   );
 }
-const PAT_APPOINTMENT_TIMELINE: { date: string; time: string; doctor: string; dept: string; status: string }[] = [];
+const PAT_APPOINTMENT_TIMELINE: {
+  date: string;
+  time: string;
+  doctor: string;
+  dept: string;
+  status: string;
+}[] = [];
 
 // Section 02: Consultation History Trend (Line Chart)
 const PAT_CONSULTATION_TREND: { month: string; visits: number }[] = [];
 
 // Section 03: Prescription Summary (Pie / Bar Chart)
-const PAT_PRESCRIPTION_SUMMARY: { name: string; count: number; color: string }[] = [];
+const PAT_PRESCRIPTION_SUMMARY: {
+  name: string;
+  count: number;
+  color: string;
+}[] = [];
 
 // Section 04: Billing Summary (Donut / Bar Chart)
-const PAT_BILLING_SUMMARY: { name: string; amount: number; color: string }[] = [];
+const PAT_BILLING_SUMMARY: { name: string; amount: number; color: string }[] =
+  [];
 
 // Section 05: Recent Prescriptions Table
-const PAT_RECENT_PRESCRIPTIONS: { rxId: string; doctor: string; date: string; medsCount: number; status: string }[] = [];
+const PAT_RECENT_PRESCRIPTIONS: {
+  rxId: string;
+  doctor: string;
+  date: string;
+  medsCount: number;
+  status: string;
+}[] = [];
 
 // Section 06: Recent Bills Table
-const PAT_RECENT_BILLS: { invoice: string; date: string; amount: number; status: string }[] = [];
+const PAT_RECENT_BILLS: {
+  invoice: string;
+  date: string;
+  amount: number;
+  status: string;
+}[] = [];
 
 const PAT_STATUS_CHIP: Record<
   string,
@@ -484,9 +506,9 @@ export function PatientDashboard({
             }
           />
           <div className="space-y-3.5 my-auto">
-            {PAT_APPOINTMENT_TIMELINE.map((item, idx) => (
+            {PAT_APPOINTMENT_TIMELINE.map((item) => (
               <div
-                key={idx}
+                key={item.doctor || item.time}
                 className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-slate-50 hover:bg-white transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -525,10 +547,7 @@ export function PatientDashboard({
             className="mt-3 pt-2 border-t border-gray-50 text-xs text-[#64748B] text-center"
             style={{ fontFamily: RB }}
           >
-            Next Visit:{" "}
-            <span className="font-semibold text-[#0D47A1]">
-              --
-            </span>
+            Next Visit: <span className="font-semibold text-[#0D47A1]">--</span>
           </div>
         </div>
 
@@ -620,8 +639,8 @@ export function PatientDashboard({
                 formatter={(v: unknown) => [`${v} Prescriptions`, "Count"]}
               />
               <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={26}>
-                {PAT_PRESCRIPTION_SUMMARY.map((entry, idx) => (
-                  <Cell key={idx} fill={entry.color} />
+                {PAT_PRESCRIPTION_SUMMARY.map((entry) => (
+                  <Cell key={entry.name} fill={entry.color} />
                 ))}
               </Bar>
             </BarChart>
@@ -681,8 +700,8 @@ export function PatientDashboard({
                 ]}
               />
               <Bar dataKey="amount" radius={[0, 6, 6, 0]} barSize={16}>
-                {PAT_BILLING_SUMMARY.map((entry, idx) => (
-                  <Cell key={idx} fill={entry.color} />
+                {PAT_BILLING_SUMMARY.map((entry) => (
+                  <Cell key={entry.name} fill={entry.color} />
                 ))}
               </Bar>
             </BarChart>
@@ -694,9 +713,7 @@ export function PatientDashboard({
             <span className="text-[#64748B]">
               Total Billing History: ${totalBillsAmount.toFixed(2)}
             </span>
-            <span className="font-bold text-[#F59E0B]">
-              $0.00 Pending Due
-            </span>
+            <span className="font-bold text-[#F59E0B]">$0.00 Pending Due</span>
           </div>
         </div>
       </div>
@@ -748,8 +765,11 @@ export function PatientDashboard({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {PAT_RECENT_PRESCRIPTIONS.map((rx, i) => (
-                <tr key={i} className="hover:bg-slate-50 transition-colors">
+              {PAT_RECENT_PRESCRIPTIONS.map((rx) => (
+                <tr
+                  key={rx.rxId}
+                  className="hover:bg-slate-50 transition-colors"
+                >
                   <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
                     {rx.rxId}
                   </td>
@@ -833,8 +853,11 @@ export function PatientDashboard({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {PAT_RECENT_BILLS.map((b, i) => (
-                <tr key={i} className="hover:bg-slate-50 transition-colors">
+              {PAT_RECENT_BILLS.map((b) => (
+                <tr
+                  key={b.invoice}
+                  className="hover:bg-slate-50 transition-colors"
+                >
                   <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
                     {b.invoice}
                   </td>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
 import { X, Check, Lock, Loader2 } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
@@ -26,11 +26,15 @@ export function EditDoctorProfileModal({
   const isAdmin = role === "ADMIN";
   const isDoctor = role === "DOCTOR";
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+  const [prevDoctor, setPrevDoctor] = useState(doctor);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+  if (doctor !== prevDoctor || isOpen !== prevIsOpen) {
+    setPrevDoctor(doctor);
+    setPrevIsOpen(isOpen);
     setFormData(doctor);
     setErrorMsg(null);
-  }, [doctor, isOpen]);
+  }
 
   if (!isOpen) return null;
 

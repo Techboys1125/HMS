@@ -15,8 +15,12 @@ const ROLE_AUDITLOG_PERMISSIONS: Record<string, AuditLogPermission> = {
   PATIENT: { canView: false, canExport: false, canPrint: false },
 };
 
-export function getAuditLogPermission(role: string | undefined): AuditLogPermission {
-  const normalizedRole = String(role ?? "").toUpperCase().replace(/\s+/g, "_");
+export function getAuditLogPermission(
+  role: string | undefined,
+): AuditLogPermission {
+  const normalizedRole = String(role ?? "")
+    .toUpperCase()
+    .replace(/\s+/g, "_");
   return (
     ROLE_AUDITLOG_PERMISSIONS[normalizedRole] ?? {
       canView: false,

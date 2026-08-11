@@ -219,7 +219,7 @@ export const receptionApi = {
       return {
         id: data?.id || Date.now(),
         tokenNumber:
-          data?.tokenNumber || `WK-${Math.floor(100 + Math.random() * 900)}`,
+          data?.tokenNumber || `WK-${100 + (window.crypto.getRandomValues(new Uint32Array(1))[0] % 900)}`,
         patientId: data?.patientId || `P-${Date.now()}`,
         patientName: payload.fullName,
         mrn: data?.mrn || `MRN-${Date.now().toString().slice(-6)}`,

@@ -56,7 +56,9 @@ function DKpi({
     <div
       onClick={onClick}
       className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
-        onClick ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-all duration-200" : ""
+        onClick
+          ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-all duration-200"
+          : ""
       }`}
     >
       <div className="flex items-start justify-between">
@@ -224,16 +226,33 @@ const HA_STATUS_DIST: { name: string; value: number; color: string }[] = [];
 const HA_DEPT_WORKLOAD: { dept: string; appts: number }[] = [];
 
 // Section 04: Doctor Availability (Stacked Card)
-const HA_DOC_AVAILABILITY: { status: string; count: number; color: string }[] = [];
+const HA_DOC_AVAILABILITY: { status: string; count: number; color: string }[] =
+  [];
 
 // Section 05: Today's Appointment Timeline
-const HA_TIMELINE: { time: string; patient: string; doctor: string; dept: string; status: string; token: string; room: string; stage: string }[] = [];
+const HA_TIMELINE: {
+  time: string;
+  patient: string;
+  doctor: string;
+  dept: string;
+  status: string;
+  token: string;
+  room: string;
+  stage: string;
+}[] = [];
 
 // Section 06: Revenue Collection Summary (Donut Chart)
 const HA_REVENUE_DIST: { name: string; value: number; color: string }[] = [];
 
 // Section 09: Quick Department Summary Table
-const HA_DEPT_SUMMARY_TABLE: { dept: string; appts: number; completed: number; waiting: number; doctors: number; status: string }[] = [];
+const HA_DEPT_SUMMARY_TABLE: {
+  dept: string;
+  appts: number;
+  completed: number;
+  waiting: number;
+  doctors: number;
+  status: string;
+}[] = [];
 
 const HA_STATUS_COLOR: Record<string, string> = {
   Completed: "#66BB6A",
@@ -339,7 +358,9 @@ export function HospitalAdminDashboard({
           color="#0D47A1"
           gid="ha1"
           Icon={Users}
-          onClick={() => navigate(`${ROUTES.REPORTS}?report=patient-registrations`)}
+          onClick={() =>
+            navigate(`${ROUTES.REPORTS}?report=patient-registrations`)
+          }
         />
         <DKpi
           title="Today's Appointments"
@@ -351,7 +372,9 @@ export function HospitalAdminDashboard({
           color="#009688"
           gid="ha2"
           Icon={Calendar}
-          onClick={() => navigate(`${ROUTES.REPORTS}?report=daily-appointments`)}
+          onClick={() =>
+            navigate(`${ROUTES.REPORTS}?report=daily-appointments`)
+          }
         />
         <DKpi
           title="Today's Revenue"
@@ -375,7 +398,9 @@ export function HospitalAdminDashboard({
           color="#F59E0B"
           gid="ha4"
           Icon={UserPlus}
-          onClick={() => navigate(`${ROUTES.REPORTS}?report=patient-registrations`)}
+          onClick={() =>
+            navigate(`${ROUTES.REPORTS}?report=patient-registrations`)
+          }
         />
         <DKpi
           title="Doctors Available Today"
@@ -507,8 +532,8 @@ export function HospitalAdminDashboard({
                 formatter={(v: unknown) => [`${v} Patients`, "Count"]}
               />
               <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={14}>
-                {HA_STATUS_DIST.map((entry, idx) => (
-                  <Cell key={idx} fill={entry.color} />
+                {HA_STATUS_DIST.map((entry) => (
+                  <Cell key={entry.name} fill={entry.color} />
                 ))}
               </Bar>
             </BarChart>
@@ -592,18 +617,13 @@ export function HospitalAdminDashboard({
             style={{ fontFamily: RB }}
           >
             <span>No Data</span>
-            <span className="font-semibold text-[#0D47A1]">
-              0 Total Appts
-            </span>
+            <span className="font-semibold text-[#0D47A1]">0 Total Appts</span>
           </div>
         </div>
 
         {/* Section 04: Doctor Availability (Stacked Card) */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
-          <SH
-            title="Doctor Availability"
-            sub="Current Staffing Overview"
-          />
+          <SH title="Doctor Availability" sub="Current Staffing Overview" />
           <div className="space-y-3 my-auto">
             {HA_DOC_AVAILABILITY.map((d) => {
               const pct = Math.round((d.count / 24) * 100);
@@ -679,8 +699,8 @@ export function HospitalAdminDashboard({
                   formatter={(v: unknown) => [`$${v}`, "Amount"]}
                 />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={24}>
-                  {HA_REVENUE_DIST.map((entry, idx) => (
-                    <Cell key={idx} fill={entry.color} />
+                  {HA_REVENUE_DIST.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Bar>
               </BarChart>
@@ -772,8 +792,11 @@ export function HospitalAdminDashboard({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {HA_TIMELINE.map((a, i) => (
-                <tr key={i} className="hover:bg-slate-50 transition-colors">
+              {HA_TIMELINE.map((a) => (
+                <tr
+                  key={a.token || a.time}
+                  className="hover:bg-slate-50 transition-colors"
+                >
                   <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
                     {a.time}
                   </td>

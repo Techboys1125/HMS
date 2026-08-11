@@ -90,7 +90,7 @@ export const OTPPage: React.FC<OTPPageProps> = ({
         <div className="flex items-center justify-between gap-3">
           {otp.map((digit, idx) => (
             <input
-              key={idx}
+              key={digit?.id || digit?._id || digit?.key || digit?.value || digit?.code || digit?.name || digit?.title || digit?.label || (typeof digit === 'object' ? JSON.stringify(digit) : String(digit))}
               ref={(el) => {
                 refs.current[idx] = el;
               }}

@@ -151,6 +151,10 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "FAMILY_MEMBER_VIEW",
 
     "FAMILY_MEMBER_CREATE",
+
+    "NOTIFICATION_VIEW",
+
+    "NOTIFICATION_MANAGE",
   ],
 
   HOSPITAL_ADMIN: [
@@ -279,6 +283,10 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "FAMILY_MEMBER_VIEW",
 
     "FAMILY_MEMBER_CREATE",
+
+    "NOTIFICATION_VIEW",
+
+    "NOTIFICATION_MANAGE",
   ],
 
   ADMIN: [
@@ -411,6 +419,10 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "PATIENT_MEDICAL_RECORDS_VIEW",
 
     "PATIENT_REPORTS_VIEW",
+
+    "NOTIFICATION_VIEW",
+
+    "NOTIFICATION_MANAGE",
   ],
 
   RECEPTIONIST: [
@@ -471,6 +483,8 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "CHANGE_PASSWORD",
 
     "CONSULTATION_STATUS_VIEW",
+
+    "NOTIFICATION_VIEW",
   ],
 
   DOCTOR: [
@@ -552,6 +566,8 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "DIAGNOSIS_CREATE",
     "CONSULTATION_UPDATE",
     "CONSULTATION_PRINT",
+
+    "NOTIFICATION_VIEW",
   ],
 
   NURSE: [
@@ -594,6 +610,8 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "PATIENT_MEDICAL_RECORDS_VIEW",
 
     "CONSULTATION_READ",
+
+    "NOTIFICATION_VIEW",
   ],
 
   ACCOUNTANT: [
@@ -622,6 +640,8 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "REPORT_VIEW",
 
     "REPORT_EXPORT",
+
+    "NOTIFICATION_VIEW",
 
     "PROFILE_VIEW",
 
@@ -694,5 +714,7 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "MY_BILLS_VIEW",
 
     "CONSULTATION_HISTORY_VIEW",
+
+    "NOTIFICATION_VIEW",
   ],
 };

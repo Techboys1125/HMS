@@ -94,6 +94,7 @@ export function DockableQueueWorkspace({
       a.status === "In Consultation" ||
       a.status === "In Progress" ||
       a.status === "Called" ||
+      a.status === "Waiting for Doctor" ||
       a.status === "Checked-In",
   );
   const completedPatients = todayQueue.filter((a) => a.status === "Completed");
@@ -102,9 +103,27 @@ export function DockableQueueWorkspace({
   const completedCount = completedPatients.length;
 
   // Current Patient (In Progress or first Waiting/Checked-In)
+  // Doctors must NOT see patients who are still waiting for nurse vitals
   const currentPatient = useMemo(() => {
-    return readyPatients[0] || waitingPatients[0] || null;
-  }, [readyPatients, waitingPatients]);
+    const eligible = todayQueue.filter(
+      (a) => a.status !== "Waiting for Vitals" && a.status !== "Checked-In",
+    );
+    const ready = eligible.filter(
+      (a) =>
+        a.status === "In Consultation" ||
+        a.status === "In Progress" ||
+        a.status === "Called" ||
+        a.status === "Waiting for Doctor",
+    );
+    const waiting = eligible.filter(
+      (a) =>
+        a.status === "Waiting" ||
+        a.status === "Booked" ||
+        a.status === "Scheduled" ||
+        a.status === "Waiting for Doctor",
+    );
+    return ready[0] || waiting[0] || null;
+  }, [todayQueue]);
 
   // Next Patient Preview
   const nextPatient = useMemo(() => {
@@ -250,6 +269,70 @@ export function DockableQueueWorkspace({
               Close Queue Panel
             </button>
           )}
+        </div>
+      </div>
+
+      {/* SEARCH & FILTER BAR */}
+      <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Search Bar */}
+          <div className="relative flex-1">
+            <Search
+              size={14}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by Patient Name, MRN, or Token Number…"
+              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
+            />
+          </div>
+
+          {/* Filter Controls */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-2.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] text-slate-700 font-medium"
+            >
+              <option value="All">All Statuses</option>
+              <option value="Waiting">Waiting</option>
+              <option value="Checked-In">Checked-In</option>
+              <option value="In Progress">In Consultation</option>
+              <option value="Completed">Completed</option>
+            </select>
+
+            <select
+              value={visitTypeFilter}
+              onChange={(e) => setVisitTypeFilter(e.target.value)}
+              className="px-2.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] text-slate-700 font-medium"
+            >
+              <option value="All">All Visit Types</option>
+              <option value="First Visit">First Visit</option>
+              <option value="Follow-up">Follow-up</option>
+              <option value="Walk-In">Walk-In</option>
+            </select>
+
+            <select
+              value={timeFilter}
+              onChange={(e) => setTimeFilter(e.target.value)}
+              className="px-2.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] text-slate-700 font-medium"
+            >
+              <option value="All">All Slots</option>
+              <option value="Morning">Morning</option>
+              <option value="Afternoon">Afternoon</option>
+            </select>
+
+            <button
+              onClick={handleResetFilters}
+              className="p-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors"
+              title="Reset Filters"
+            >
+              <RotateCcw size={14} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -477,70 +560,6 @@ export function DockableQueueWorkspace({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* MAIN QUEUE COLUMN (8 Cols) */}
         <div className="lg:col-span-12 space-y-4">
-          {/* SEARCH & FILTER BAR */}
-          <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              {/* Search Bar */}
-              <div className="relative flex-1">
-                <Search
-                  size={14}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by Patient Name, MRN, or Token Number…"
-                  className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                />
-              </div>
-
-              {/* Filter Controls */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-2.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] text-slate-700 font-medium"
-                >
-                  <option value="All">All Statuses</option>
-                  <option value="Waiting">Waiting</option>
-                  <option value="Checked-In">Checked-In</option>
-                  <option value="In Progress">In Consultation</option>
-                  <option value="Completed">Completed</option>
-                </select>
-
-                <select
-                  value={visitTypeFilter}
-                  onChange={(e) => setVisitTypeFilter(e.target.value)}
-                  className="px-2.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] text-slate-700 font-medium"
-                >
-                  <option value="All">All Visit Types</option>
-                  <option value="First Visit">First Visit</option>
-                  <option value="Follow-up">Follow-up</option>
-                  <option value="Walk-In">Walk-In</option>
-                </select>
-
-                <select
-                  value={timeFilter}
-                  onChange={(e) => setTimeFilter(e.target.value)}
-                  className="px-2.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] text-slate-700 font-medium"
-                >
-                  <option value="All">All Slots</option>
-                  <option value="Morning">Morning</option>
-                  <option value="Afternoon">Afternoon</option>
-                </select>
-
-                <button
-                  onClick={handleResetFilters}
-                  className="p-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors"
-                  title="Reset Filters"
-                >
-                  <RotateCcw size={14} />
-                </button>
-              </div>
-            </div>
-          </div>
-
           {/* MAIN QUEUE TABLE */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
             <div className="p-4 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50/50">

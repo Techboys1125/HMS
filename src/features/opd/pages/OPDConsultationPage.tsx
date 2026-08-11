@@ -1,6 +1,15 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Clock, Download, Phone, Plus, FolderOpen } from "lucide-react";
+import {
+  Clock,
+  Download,
+  Phone,
+  Plus,
+  FolderOpen,
+  CheckCircle2,
+  X,
+  Printer,
+} from "lucide-react";
 import { usePermissions } from "../../../permissions";
 import { useConsultation } from "../hooks/useConsultation";
 import { useQueue } from "../hooks/useQueue";
@@ -8,7 +17,9 @@ import {
   type ConsultationRecord,
   type OauthRole,
   type ConsultationStatus,
+  type MedicineItem,
   appointmentStatusMap,
+  isDoctorConsultationStatus,
 } from "../types/consultation";
 import type { QueueItem } from "../types/queue.types";
 import type { AppointmentStatus } from "../../appointments/types/appointment.types";
@@ -45,6 +56,9 @@ function mapQueueItemToConsultation(item: QueueItem): ConsultationRecord {
     IN_CONSULTATION: "IN_CONSULTATION",
     COMPLETED: "COMPLETED",
   };
+  const normalizedStatus = String(item.status || "")
+    .toUpperCase()
+    .replace(/[\s-]/g, "_");
 
   return {
     id: String(item.appointmentId),
@@ -63,7 +77,8 @@ function mapQueueItemToConsultation(item: QueueItem): ConsultationRecord {
     department: item.doctor?.department || "",
     appointmentTime: item.checkInTime || "",
     visitType: "First Visit" as const,
-    status: statusMap[item.status] || (item.status as ConsultationStatus),
+    status:
+      statusMap[normalizedStatus] || (normalizedStatus as ConsultationStatus),
     chiefComplaint: "",
     opdRoom: "",
     date:
@@ -102,10 +117,7 @@ export function OPDConsultationPage({
     : can("CONSULTATION_START");
   const resolvedRole: OauthRole = isDoctor ? "doctor" : "admin";
 
-  const {
-    items: queueItems,
-    refetch,
-  } = useQueue({
+  const { items: queueItems, refetch } = useQueue({
     doctorId: isDoctor
       ? (user?.doctorId ?? user?.id)
         ? Number(user.doctorId || user.id)
@@ -113,22 +125,26 @@ export function OPDConsultationPage({
       : undefined,
   });
 
+  useEffect(() => {
+    void refetch();
+  }, [refetch]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(false);
-  const [statusOverrides, setStatusOverrides] = useState<Map<string, ConsultationStatus>>(new Map());
 
   const mappedConsultations = useMemo(() => {
     return queueItems.map(mapQueueItemToConsultation);
   }, [queueItems]);
 
+  // The queue endpoint can return appointments from earlier workflow stages.
+  // Keep the backend status as the source of truth and admit only consultations
+  // that have reached the doctor stage (plus completed history).
   const consultations = useMemo(() => {
-    if (statusOverrides.size === 0) return mappedConsultations;
-    return mappedConsultations.map((c) => {
-      const override = statusOverrides.get(c.id);
-      return override ? { ...c, status: override } : c;
-    });
-  }, [mappedConsultations, statusOverrides]);
+    return mappedConsultations.filter((item) =>
+      isDoctorConsultationStatus(item.status),
+    );
+  }, [mappedConsultations]);
 
   const [filterDate, setFilterDate] = useState(
     new Date().toISOString().split("T")[0],
@@ -138,26 +154,67 @@ export function OPDConsultationPage({
   const [filterStatus, setFilterStatus] = useState<string>("All");
   const [filterVisitType, setFilterVisitType] = useState("All");
   const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [selectedPrescriptionRecord, setSelectedPrescriptionRecord] =
+    useState<ConsultationRecord | null>(null);
+  const [isLoadingPrescription] = useState(false);
+
+  const handleViewPrescriptionDetails = (id: string) => {
+    const localRecord = consultations.find((c) => c.id === id);
+    if (localRecord) {
+      setSelectedPrescriptionRecord(localRecord);
+    }
+    if (onViewDetails) {
+      onViewDetails(id);
+    }
+  };
 
   const waitingStatuses: ConsultationStatus[] = useMemo(
-    () => ["WAITING", "WAITING_FOR_DOCTOR", "WAITING_FOR_DOCTOR_CALL", "CALLED"],
+    () => ["WAITING_FOR_DOCTOR_CALL", "WAITING_FOR_DOCTOR", "WAITING"],
     [],
   );
 
   const filteredConsultations = useMemo(() => {
     return consultations.filter((item) => {
-      const statusUpper = String(item.status || "").toUpperCase().replace(/[\s-]/g, "_");
-      if (statusUpper === "WAITING_FOR_VITALS" || statusUpper === "CHECKED_IN") {
-        return false;
-      }
-      if (activeTab === "Waiting") {
-        if (!waitingStatuses.includes(item.status as ConsultationStatus)) {
+      const itemStatusUpper = String(item.status || "")
+        .toUpperCase()
+        .replace(/[\s-]/g, "_");
+      if (activeTab === "Waiting" || activeTab === "WAITING") {
+        if (!waitingStatuses.includes(itemStatusUpper as ConsultationStatus)) {
           return false;
         }
-      } else if (activeTab !== "All" && item.status !== activeTab) {
-        return false;
+      } else if (activeTab !== "All") {
+        const activeTabUpper = String(activeTab)
+          .toUpperCase()
+          .replace(/[\s-]/g, "_");
+        if (
+          activeTabUpper === "WAITING" ||
+          activeTabUpper === "WAITING_FOR_DOCTOR_CALL" ||
+          activeTabUpper === "WAITING_FOR_DOCTOR"
+        ) {
+          if (
+            !waitingStatuses.includes(itemStatusUpper as ConsultationStatus)
+          ) {
+            return false;
+          }
+        } else if (itemStatusUpper !== activeTabUpper) {
+          return false;
+        }
       }
-      if (filterStatus !== "All" && item.status !== filterStatus) return false;
+      if (filterStatus !== "All") {
+        const filterStatusUpper = String(filterStatus)
+          .toUpperCase()
+          .replace(/[\s-]/g, "_");
+        if (
+          filterStatusUpper === "WAITING_FOR_DOCTOR_CALL" ||
+          filterStatusUpper === "WAITING_FOR_DOCTOR" ||
+          filterStatusUpper === "WAITING"
+        ) {
+          if (!waitingStatuses.includes(itemStatusUpper as ConsultationStatus))
+            return false;
+        } else if (itemStatusUpper !== filterStatusUpper) {
+          return false;
+        }
+      }
       if (filterVisitType !== "All" && item.visitType !== filterVisitType)
         return false;
       if (filterDepartment !== "All" && item.department !== filterDepartment)
@@ -205,76 +262,75 @@ export function OPDConsultationPage({
   }, [refetch]);
 
   const tabCounts = useMemo(() => {
-    const visibleConsultations = consultations.filter((c) => {
-      const statusUpper = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
-      return statusUpper !== "WAITING_FOR_VITALS" && statusUpper !== "CHECKED_IN";
-    });
-    const waitingCount = visibleConsultations.filter((c) => {
-      const statusUpper = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
-      return (
-        statusUpper === "WAITING" ||
-        statusUpper === "WAITING_FOR_DOCTOR" ||
-        statusUpper === "WAITING_FOR_DOCTOR_CALL"
-      );
+    const waitingCount = consultations.filter((c) => {
+      const statusUpper = String(c.status || "")
+        .toUpperCase()
+        .replace(/[\s-]/g, "_");
+      return waitingStatuses.includes(statusUpper as ConsultationStatus);
     }).length;
     const counts: Record<string, number> = {
-      All: visibleConsultations.length,
-      WAITING: visibleConsultations.filter((c) => {
-        const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
-        return s === "WAITING" || s === "WAITING_FOR_DOCTOR" || s === "WAITING_FOR_DOCTOR_CALL";
-      }).length,
-      CALLED: visibleConsultations.filter((c) => {
-        const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+      All: consultations.length,
+      WAITING: waitingCount,
+      WAITING_FOR_DOCTOR: waitingCount,
+      WAITING_FOR_DOCTOR_CALL: waitingCount,
+      CALLED: consultations.filter((c) => {
+        const s = String(c.status || "")
+          .toUpperCase()
+          .replace(/[\s-]/g, "_");
         return s === "CALLED";
       }).length,
-      IN_CONSULTATION: visibleConsultations.filter((c) => {
-        const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+      IN_CONSULTATION: consultations.filter((c) => {
+        const s = String(c.status || "")
+          .toUpperCase()
+          .replace(/[\s-]/g, "_");
         return s === "IN_CONSULTATION";
       }).length,
-      COMPLETED: visibleConsultations.filter((c) => {
-        const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+      COMPLETED: consultations.filter((c) => {
+        const s = String(c.status || "")
+          .toUpperCase()
+          .replace(/[\s-]/g, "_");
         return s === "COMPLETED";
       }).length,
-      Waiting: waitingCount + visibleConsultations.filter((c) => {
-        const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
-        return s === "CALLED";
-      }).length,
+      Waiting: waitingCount,
     };
     return counts;
-  }, [consultations]);
+  }, [consultations, waitingStatuses]);
 
   const currentPatient = consultations.find((c) => {
-    const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+    const s = String(c.status || "")
+      .toUpperCase()
+      .replace(/[\s-]/g, "_");
     return s === "IN_CONSULTATION";
   });
   const calledPatient = consultations.find((c) => {
-    const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+    const s = String(c.status || "")
+      .toUpperCase()
+      .replace(/[\s-]/g, "_");
     return s === "CALLED";
   });
   const nextPatient = consultations.find((c) => {
-    const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
-    return s === "WAITING" || s === "WAITING_FOR_DOCTOR" || s === "WAITING_FOR_DOCTOR_CALL";
+    const s = String(c.status || "")
+      .toUpperCase()
+      .replace(/[\s-]/g, "_");
+    return waitingStatuses.includes(s as ConsultationStatus);
   });
   const hasCalledPatient = consultations.some((c) => {
-    const s = String(c.status || "").toUpperCase().replace(/[\s-]/g, "_");
+    const s = String(c.status || "")
+      .toUpperCase()
+      .replace(/[\s-]/g, "_");
     return s === "CALLED";
   });
 
   const handleCallPatient = async (record: ConsultationRecord) => {
-    const statusUpper = String(record.status || "").toUpperCase().replace(/[\s-]/g, "_");
-    if (
-      statusUpper === "WAITING_FOR_VITALS" ||
-      statusUpper === "CHECKED_IN"
-    ) {
+    const statusUpper = String(record.status || "")
+      .toUpperCase()
+      .replace(/[\s-]/g, "_");
+    if (!waitingStatuses.includes(statusUpper as ConsultationStatus)) {
       return;
     }
     const aptId = record.appointmentId || record.id;
     await apiCallPatient(aptId);
-    setStatusOverrides((prev) => {
-      const next = new Map(prev);
-      next.set(record.id, "CALLED" as ConsultationStatus);
-      return next;
-    });
+    await refetch();
   };
 
   const handleStartConsultation = async (
@@ -284,6 +340,7 @@ export function OPDConsultationPage({
       if (calledPatient) await handleStartConsultation(calledPatient);
       return;
     }
+    if (record.status !== "CALLED") return;
     try {
       setIsLoading(true);
       await apiStartConsultation(
@@ -304,11 +361,7 @@ export function OPDConsultationPage({
         },
         record.chiefComplaint,
       );
-      setStatusOverrides((prev) => {
-        const next = new Map(prev);
-        next.set(record.id, "IN_CONSULTATION" as ConsultationStatus);
-        return next;
-      });
+      await refetch();
       if (onStartConsultation) {
         onStartConsultation(record.id);
       } else {
@@ -499,7 +552,7 @@ export function OPDConsultationPage({
             onCallPatient={
               resolvedRole === "doctor" ? handleCallPatient : undefined
             }
-            onViewDetails={onViewDetails}
+            onViewDetails={handleViewPrescriptionDetails}
             onViewHistory={onViewHistory}
             onPatientSelect={onPatientSelect}
             onPrint={(item) =>
@@ -518,6 +571,345 @@ export function OPDConsultationPage({
         consultations={consultations}
         tabCounts={tabCounts}
       />
+
+      {/* ── CONSULTATION FINALIZED / PRESCRIPTION SUMMARY MODAL ── */}
+      {selectedPrescriptionRecord && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-4xl w-full shadow-2xl p-8 border border-slate-100 animate-in fade-in duration-200 my-8">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4 no-print">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-50 rounded-2xl text-emerald-600">
+                  <CheckCircle2 size={28} />
+                </div>
+                <div>
+                  <h2
+                    className="text-xl font-bold text-slate-800"
+                    style={{ fontFamily: PP }}
+                  >
+                    Consultation Finalized
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    The encounter has been completed and saved successfully.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedPrescriptionRecord(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Printable Content Wrapper */}
+            <div className="space-y-6 flex-1 mt-6">
+              {isLoadingPrescription && (
+                <div className="py-2 text-center text-xs text-[#0D47A1] font-semibold flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-[#0D47A1] border-t-transparent rounded-full animate-spin"></div>
+                  Loading complete consultation record...
+                </div>
+              )}
+
+              {/* Patient & Encounter Details Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Patient Details */}
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                  <h3
+                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                    style={{ fontFamily: PP }}
+                  >
+                    Patient Information
+                  </h3>
+                  <div className="grid grid-cols-2 gap-y-2 text-xs">
+                    <span className="text-slate-500">Name:</span>
+                    <span className="font-bold text-slate-800">
+                      {selectedPrescriptionRecord.patientName}
+                    </span>
+                    <span className="text-slate-500">MRN:</span>
+                    <span className="font-mono font-bold text-slate-800">
+                      {selectedPrescriptionRecord.mrn}
+                    </span>
+                    <span className="text-slate-500">Age / Gender:</span>
+                    <span className="font-bold text-slate-800">
+                      {selectedPrescriptionRecord.age} Years /{" "}
+                      {selectedPrescriptionRecord.gender}
+                    </span>
+                    <span className="text-slate-500">Phone:</span>
+                    <span className="font-bold text-slate-800">
+                      {selectedPrescriptionRecord.phone}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Encounter Details */}
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                  <h3
+                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                    style={{ fontFamily: PP }}
+                  >
+                    Encounter Details
+                  </h3>
+                  <div className="grid grid-cols-2 gap-y-2 text-xs">
+                    <span className="text-slate-500">Encounter ID:</span>
+                    <span className="font-mono font-bold text-slate-800">
+                      ENC-
+                      {selectedPrescriptionRecord.encounterId ||
+                        selectedPrescriptionRecord.id}
+                    </span>
+                    <span className="text-slate-500">Doctor Name:</span>
+                    <span className="font-bold text-slate-800">
+                      {selectedPrescriptionRecord.doctorName ||
+                        selectedPrescriptionRecord.doctor}
+                    </span>
+                    <span className="text-slate-500">Department:</span>
+                    <span className="font-bold text-slate-800">
+                      {selectedPrescriptionRecord.department}
+                    </span>
+                    <span className="text-slate-500">Visit Type:</span>
+                    <span className="font-bold text-slate-800">
+                      {selectedPrescriptionRecord.visitType}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Vitals Summary Card */}
+              <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
+                <h3
+                  className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                  style={{ fontFamily: PP }}
+                >
+                  Patient Vitals
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                  <div className="p-3 bg-blue-50/50 rounded-xl">
+                    <div className="text-slate-400 text-[10px]">
+                      Height / Weight
+                    </div>
+                    <div className="font-bold text-slate-800">
+                      {selectedPrescriptionRecord.vitals?.height
+                        ? `${selectedPrescriptionRecord.vitals.height} cm`
+                        : "--"}{" "}
+                      /{" "}
+                      {selectedPrescriptionRecord.vitals?.weight
+                        ? `${selectedPrescriptionRecord.vitals.weight} kg`
+                        : "--"}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-blue-50/50 rounded-xl">
+                    <div className="text-slate-400 text-[10px]">
+                      Blood Pressure
+                    </div>
+                    <div className="font-bold text-slate-800">
+                      {selectedPrescriptionRecord.vitals?.bp || "--"}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-blue-50/50 rounded-xl">
+                    <div className="text-slate-400 text-[10px]">
+                      Pulse / Temp
+                    </div>
+                    <div className="font-bold text-slate-800">
+                      {selectedPrescriptionRecord.vitals?.pulse
+                        ? `${selectedPrescriptionRecord.vitals.pulse} bpm`
+                        : "--"}{" "}
+                      /{" "}
+                      {selectedPrescriptionRecord.vitals?.temp
+                        ? `${selectedPrescriptionRecord.vitals.temp} °C`
+                        : "--"}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-blue-50/50 rounded-xl">
+                    <div className="text-slate-400 text-[10px]">SpO2 / BMI</div>
+                    <div className="font-bold text-slate-800">
+                      {selectedPrescriptionRecord.vitals?.spo2
+                        ? `${selectedPrescriptionRecord.vitals.spo2} %`
+                        : "--"}{" "}
+                      / {selectedPrescriptionRecord.vitals?.bmi || "--"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Clinical Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
+                  <h3
+                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                    style={{ fontFamily: PP }}
+                  >
+                    Symptoms & SOAP Notes
+                  </h3>
+                  <div className="space-y-2 text-xs">
+                    <div>
+                      <span className="font-bold text-slate-700 block">
+                        Chief Complaint:
+                      </span>
+                      <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1">
+                        {selectedPrescriptionRecord.chiefComplaint || "None"}
+                      </span>
+                    </div>
+                    {selectedPrescriptionRecord.clinicalExamination && (
+                      <div>
+                        <span className="font-bold text-slate-700 block">
+                          Clinical Examination:
+                        </span>
+                        <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1">
+                          {selectedPrescriptionRecord.clinicalExamination}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
+                  <h3
+                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                    style={{ fontFamily: PP }}
+                  >
+                    Diagnosis
+                  </h3>
+                  <div className="space-y-2 text-xs">
+                    <div>
+                      <span className="font-bold text-slate-700 block">
+                        Final Diagnosis:
+                      </span>
+                      <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1 font-semibold">
+                        {selectedPrescriptionRecord.finalDiagnosis ||
+                          "Recorded"}
+                      </span>
+                    </div>
+                    {selectedPrescriptionRecord.icdCode && (
+                      <div>
+                        <span className="font-bold text-slate-700 block">
+                          ICD-10 Code:
+                        </span>
+                        <span className="font-mono text-[#0D47A1] block bg-blue-50 p-2 rounded-lg mt-1 font-semibold">
+                          {selectedPrescriptionRecord.icdCode}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Prescribed Medications */}
+              {selectedPrescriptionRecord.medicines &&
+                selectedPrescriptionRecord.medicines.length > 0 && (
+                  <div className="border border-slate-100 rounded-2xl p-5 space-y-3">
+                    <h3
+                      className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                      style={{ fontFamily: PP }}
+                    >
+                      Prescribed Medications (Rx)
+                    </h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-100 text-slate-400 font-medium">
+                            <th className="py-2 pr-4 font-bold text-slate-500">
+                              Medicine
+                            </th>
+                            <th className="py-2 px-4 font-bold text-slate-500">
+                              Dosage
+                            </th>
+                            <th className="py-2 px-4 font-bold text-slate-500">
+                              Frequency
+                            </th>
+                            <th className="py-2 px-4 font-bold text-slate-500">
+                              Duration
+                            </th>
+                            <th className="py-2 pl-4 font-bold text-slate-500">
+                              Instructions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                          {selectedPrescriptionRecord.medicines.map(
+                            (med: MedicineItem) => (
+                              <tr
+                                key={med.id || med.name}
+                                className="text-slate-700"
+                              >
+                                <td className="py-2.5 pr-4 font-bold text-slate-800">
+                                  {med.name}
+                                </td>
+                                <td className="py-2.5 px-4">{med.dosage}</td>
+                                <td className="py-2.5 px-4">{med.frequency}</td>
+                                <td className="py-2.5 px-4">{med.duration}</td>
+                                <td className="py-2.5 pl-4 text-slate-500 italic">
+                                  {med.instructions || "After food"}
+                                </td>
+                              </tr>
+                            ),
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+              {/* Advice & Follow-up */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
+                  <h3
+                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                    style={{ fontFamily: PP }}
+                  >
+                    General & Diet Advice
+                  </h3>
+                  <div className="space-y-2 text-xs">
+                    <div>
+                      <span className="font-bold text-slate-700 block">
+                        General Advice:
+                      </span>
+                      <span className="text-slate-600 block mt-1">
+                        {selectedPrescriptionRecord.chiefComplaint ||
+                          "Follow doctor advice"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
+                  <h3
+                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
+                    style={{ fontFamily: PP }}
+                  >
+                    Follow-up Instructions
+                  </h3>
+                  <div className="p-3 bg-amber-50/60 border border-amber-100 rounded-xl text-xs">
+                    <span className="font-bold text-amber-800 block">
+                      Next Recommended Visit:
+                    </span>
+                    <span className="font-mono text-amber-700 block font-bold mt-0.5">
+                      {selectedPrescriptionRecord.date}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="pt-6 mt-6 border-t border-slate-100 flex items-center justify-between no-print">
+              <button
+                onClick={() => setSelectedPrescriptionRecord(null)}
+                className="px-5 py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-all"
+                style={{ fontFamily: PP }}
+              >
+                Close & Exit
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="px-6 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2"
+                style={{ fontFamily: PP }}
+              >
+                <Printer size={16} /> Print Summary
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

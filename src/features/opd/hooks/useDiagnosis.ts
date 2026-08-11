@@ -10,7 +10,10 @@ export const useDiagnosis = (encounterId?: string | number) => {
   const addDiagnosis = useCallback(
     async (code: string, name: string, encId?: string | number) => {
       const targetId = encId || encounterId;
-      if (!targetId) throw new Error("No active encounter ID");
+      if (!targetId) {
+        console.warn("addDiagnosis: No active encounter ID available");
+        return null;
+      }
 
       setLoading(true);
       setError(null);

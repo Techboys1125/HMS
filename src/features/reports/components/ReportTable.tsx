@@ -170,8 +170,8 @@ export function ReportTable<T extends Record<string, unknown>>({
                 </td>
               </tr>
             ) : (
-              paged.map((row, idx) => (
-                <tr key={idx} className="hover:bg-slate-50 transition-colors">
+              paged.map((row) => (
+                <tr key={row?.id || row?._id || row?.key || row?.value || row?.code || row?.name || row?.title || row?.label || (typeof row === 'object' ? JSON.stringify(row) : String(row))} className="hover:bg-slate-50 transition-colors">
                   {columns.map((col) => {
                     const val = row[col.key];
                     const isStatus = typeof val === "string" && STATUS_COLORS[val];

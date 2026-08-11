@@ -411,8 +411,8 @@ function HospitalIllustration() {
           [252, 130],
           [28, 120],
         ] as [number, number][]
-      ).map(([cx, cy], i) => (
-        <g key={i} transform={`translate(${cx},${cy})`}>
+      ).map(([cx, cy]) => (
+        <g key={`${cx}-${cy}`} transform={`translate(${cx},${cy})`}>
           <line
             x1="-4"
             y1="0"

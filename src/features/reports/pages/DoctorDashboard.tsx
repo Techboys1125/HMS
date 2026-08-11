@@ -986,8 +986,8 @@ export function DoctorReportsDashboardScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {[].map((entry: any, index: number) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          {([] as Array<{ name?: string; color: string }>).map((entry) => (
+                            <Cell key={entry.name} fill={entry.color} />
                           ))}
                         </Pie>
                         <Tooltip

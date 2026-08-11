@@ -532,7 +532,7 @@ export function EditStaffUserDrawer({
                   <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                     {form.availability.map((item, index) => (
                       <div
-                        key={index}
+                        key={item?.id || item?._id || item?.key || item?.value || item?.code || item?.name || item?.title || item?.label || (typeof item === 'object' ? JSON.stringify(item) : String(item))}
                         className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 text-xs"
                       >
                         <span className="w-20 font-bold text-slate-700">

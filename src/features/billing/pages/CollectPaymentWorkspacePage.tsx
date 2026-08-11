@@ -13,7 +13,11 @@ import {
 import { PP, RB } from "../constants/billing.constants";
 import { useInvoice, usePayment } from "../hooks/useBilling";
 import { BillingStatusBadge } from "../components/BillingStatusBadge";
-import type { PaymentMethod, PaymentReceiveResponse, BillPaymentRecord } from "../types/billing.types";
+import type {
+  PaymentMethod,
+  PaymentReceiveResponse,
+  BillPaymentRecord,
+} from "../types/billing.types";
 
 const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: string }[] =
   [
@@ -35,12 +39,17 @@ export function CollectPaymentWorkspacePage() {
   const [referenceNumber, setReferenceNumber] = useState("");
   const [remarks, setRemarks] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
-  const [receiptData, setReceiptData] = useState<PaymentReceiveResponse | null>(null);
+  const [receiptData, setReceiptData] = useState<PaymentReceiveResponse | null>(
+    null,
+  );
 
   const patientName = bill?.patient?.name || "N/A";
   const patientMrn = bill?.patient?.mrn || "N/A";
   const doctorName = bill?.doctor?.name || "N/A";
-  const billData = bill?.bill;
+  const billData = (bill?.bill || {}) as Record<
+    string,
+    string | number | boolean | null | undefined
+  >;
   const summaryData = bill?.summary;
 
   const netAmount = summaryData?.netAmount ?? 0;
@@ -150,7 +159,7 @@ export function CollectPaymentWorkspacePage() {
             >
               Payment Collection Workspace
             </h1>
-            <BillingStatusBadge status={billData.paymentStatus} />
+            <BillingStatusBadge status={String(billData.paymentStatus || "")} />
           </div>
           <p
             className="text-xs md:text-sm text-[#64748B] mt-0.5"
@@ -572,9 +581,9 @@ export function CollectPaymentWorkspacePage() {
                 className="space-y-2 text-xs max-h-48 overflow-y-auto"
                 style={{ fontFamily: RB }}
               >
-                {bill.paymentHistory.map((p: BillPaymentRecord, i: number) => (
+                {bill.paymentHistory.map((p: BillPaymentRecord) => (
                   <div
-                    key={i}
+                    key={p.receiptNumber || p.paymentNumber || p.id}
                     className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex justify-between items-center"
                   >
                     <div>

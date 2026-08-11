@@ -89,7 +89,10 @@ export function InvoiceDetailsPage() {
   const patientMrn = bill?.patient?.mrn || "N/A";
   const patientPhone = bill?.patient?.phone || "";
   const doctorName = bill?.doctor?.name || "N/A";
-  const billData = bill?.bill;
+  const billData = (bill?.bill || {}) as Record<
+    string,
+    string | number | boolean | null | undefined
+  >;
   const summaryData = bill?.summary;
   const items = bill?.items || [];
   const paymentRecords = bill?.paymentHistory || paymentHistory?.payments || [];
@@ -187,7 +190,7 @@ export function InvoiceDetailsPage() {
             >
               Invoice — {billData.billNumber}
             </h1>
-            <BillingStatusBadge status={billData.paymentStatus} />
+            <BillingStatusBadge status={String(billData.paymentStatus || "")} />
           </div>
           <p
             className="text-xs md:text-sm text-[#64748B] mt-0.5"
@@ -477,8 +480,8 @@ export function InvoiceDetailsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {paymentRecords.map((p: BillPaymentRecord, i: number) => (
-                    <tr key={i}>
+                  {paymentRecords.map((p: BillPaymentRecord) => (
+                    <tr key={p.receiptNumber || p.paymentNumber || p.id}>
                       <td className="py-3 px-3 font-semibold">{p.method}</td>
                       <td className="py-3 px-3 text-right font-bold text-[#66BB6A]">
                         ₹{p.amount.toLocaleString()}

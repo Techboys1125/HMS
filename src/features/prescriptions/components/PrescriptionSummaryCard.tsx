@@ -1,5 +1,13 @@
 import React from "react";
-import { Pill, Activity, Calendar, Download, CheckCircle2, Clock, TrendingUp } from "lucide-react";
+import {
+  Pill,
+  Activity,
+  Calendar,
+  Download,
+  CheckCircle2,
+  Clock,
+  TrendingUp,
+} from "lucide-react";
 import type { UnifiedPrescription } from "../types/prescription.types";
 
 const PP = "'Poppins', system-ui, sans-serif";
@@ -10,15 +18,17 @@ interface PrescriptionSummaryCardProps {
   prescriptions: UnifiedPrescription[];
 }
 
-export const PrescriptionSummaryCard: React.FC<PrescriptionSummaryCardProps> = ({
-  role,
-  prescriptions,
-}) => {
+export const PrescriptionSummaryCard: React.FC<
+  PrescriptionSummaryCardProps
+> = ({ role, prescriptions }) => {
   if (role === "patient") {
     const totalPrescriptionsCount = prescriptions.length;
-    const recentPrescriptionsCount = prescriptions.filter((r) => r.status === "Issued").length;
+    const recentPrescriptionsCount = prescriptions.filter(
+      (r) => r.status === "Issued",
+    ).length;
     const upcomingFollowupsCount = prescriptions.filter(
-      (r) => r.followupDate && new Date(r.followupDate) >= new Date("2026-07-24")
+      (r) =>
+        r.followupDate && new Date(r.followupDate) >= new Date("2026-07-24"),
     ).length;
     const downloadedCount = 3; // Mock metric from original
 
@@ -27,13 +37,22 @@ export const PrescriptionSummaryCard: React.FC<PrescriptionSummaryCardProps> = (
         {/* Card 1 */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
           <div>
-            <div className="text-xs text-[#64748B] font-medium" style={{ fontFamily: RB }}>
+            <div
+              className="text-xs text-[#64748B] font-medium"
+              style={{ fontFamily: RB }}
+            >
               Total Prescriptions
             </div>
-            <div className="text-2xl font-bold text-[#111827] mt-0.5" style={{ fontFamily: PP }}>
+            <div
+              className="text-2xl font-bold text-[#111827] mt-0.5"
+              style={{ fontFamily: PP }}
+            >
               {totalPrescriptionsCount}
             </div>
-            <div className="text-[11px] text-[#0D47A1] font-medium mt-1" style={{ fontFamily: RB }}>
+            <div
+              className="text-[11px] text-[#0D47A1] font-medium mt-1"
+              style={{ fontFamily: RB }}
+            >
               Lifetime issued prescriptions
             </div>
           </div>
@@ -45,13 +64,22 @@ export const PrescriptionSummaryCard: React.FC<PrescriptionSummaryCardProps> = (
         {/* Card 2 */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
           <div>
-            <div className="text-xs text-[#64748B] font-medium" style={{ fontFamily: RB }}>
+            <div
+              className="text-xs text-[#64748B] font-medium"
+              style={{ fontFamily: RB }}
+            >
               Active Prescriptions
             </div>
-            <div className="text-2xl font-bold text-[#009688] mt-0.5" style={{ fontFamily: PP }}>
+            <div
+              className="text-2xl font-bold text-[#009688] mt-0.5"
+              style={{ fontFamily: PP }}
+            >
               {recentPrescriptionsCount}
             </div>
-            <div className="text-[11px] text-[#009688] font-medium mt-1" style={{ fontFamily: RB }}>
+            <div
+              className="text-[11px] text-[#009688] font-medium mt-1"
+              style={{ fontFamily: RB }}
+            >
               Currently active medications
             </div>
           </div>
@@ -63,13 +91,22 @@ export const PrescriptionSummaryCard: React.FC<PrescriptionSummaryCardProps> = (
         {/* Card 3 */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
           <div>
-            <div className="text-xs text-[#64748B] font-medium" style={{ fontFamily: RB }}>
+            <div
+              className="text-xs text-[#64748B] font-medium"
+              style={{ fontFamily: RB }}
+            >
               Upcoming Follow-ups
             </div>
-            <div className="text-2xl font-bold text-amber-600 mt-0.5" style={{ fontFamily: PP }}>
+            <div
+              className="text-2xl font-bold text-amber-600 mt-0.5"
+              style={{ fontFamily: PP }}
+            >
               {upcomingFollowupsCount}
             </div>
-            <div className="text-[11px] text-amber-600 font-medium mt-1" style={{ fontFamily: RB }}>
+            <div
+              className="text-[11px] text-amber-600 font-medium mt-1"
+              style={{ fontFamily: RB }}
+            >
               Scheduled doctor reviews
             </div>
           </div>
@@ -81,13 +118,22 @@ export const PrescriptionSummaryCard: React.FC<PrescriptionSummaryCardProps> = (
         {/* Card 4 */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between">
           <div>
-            <div className="text-xs text-[#64748B] font-medium" style={{ fontFamily: RB }}>
+            <div
+              className="text-xs text-[#64748B] font-medium"
+              style={{ fontFamily: RB }}
+            >
               Downloaded PDF Reports
             </div>
-            <div className="text-2xl font-bold text-slate-700 mt-0.5" style={{ fontFamily: PP }}>
+            <div
+              className="text-2xl font-bold text-slate-700 mt-0.5"
+              style={{ fontFamily: PP }}
+            >
               {downloadedCount}
             </div>
-            <div className="text-[11px] text-slate-500 font-medium mt-1" style={{ fontFamily: RB }}>
+            <div
+              className="text-[11px] text-slate-500 font-medium mt-1"
+              style={{ fontFamily: RB }}
+            >
               Exported document copies
             </div>
           </div>
@@ -133,16 +179,28 @@ export const PrescriptionSummaryCard: React.FC<PrescriptionSummaryCardProps> = (
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      {cards.map((kpi, idx) => (
-        <div key={idx} className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-sm flex items-center justify-between">
+      {cards.map((kpi) => (
+        <div
+          key={kpi.title}
+          className="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-sm flex items-center justify-between"
+        >
           <div>
-            <div className="text-xs font-semibold text-slate-500 mb-1" style={{ fontFamily: PP }}>
+            <div
+              className="text-xs font-semibold text-slate-500 mb-1"
+              style={{ fontFamily: PP }}
+            >
               {kpi.title}
             </div>
-            <div className="text-2xl font-bold text-[#111827]" style={{ fontFamily: PP }}>
+            <div
+              className="text-2xl font-bold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
               {kpi.count}
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-medium mt-1" style={{ fontFamily: RB }}>
+            <div
+              className="flex items-center gap-1 text-[11px] text-emerald-600 font-medium mt-1"
+              style={{ fontFamily: RB }}
+            >
               <TrendingUp size={12} /> {kpi.trend}
             </div>
           </div>

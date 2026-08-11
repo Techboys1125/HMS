@@ -155,24 +155,23 @@ export function DailyAppointmentReportScreen({
       : "--";
 
   // Map API detail records to table format
-  const apiTableData: AppointmentReportRecord[] = (
-    appointmentDetailsData?.content ?? []
-  ).map((d) => ({
-    id: d.appointmentNumber,
-    patientName: d.patientName,
-    mrn: `MRN-${d.patientId ?? ""}`,
-    doctorName: d.doctorName,
-    department: d.department,
-    appointmentDate: d.appointmentDate,
-    appointmentTime: "",
-    visitType:
-      (d.appointmentType as AppointmentReportRecord["visitType"]) ??
-      "New Visit",
-    status: (d.status
-      ? d.status.charAt(0) + d.status.slice(1).toLowerCase()
-      : "Scheduled") as AppointmentReportRecord["status"],
-  }));
-  const tableDataSource = apiTableData;
+  const tableDataSource = useMemo(() => {
+    return (appointmentDetailsData?.content ?? []).map((d) => ({
+      id: d.appointmentNumber,
+      patientName: d.patientName,
+      mrn: `MRN-${d.patientId ?? ""}`,
+      doctorName: d.doctorName,
+      department: d.department,
+      appointmentDate: d.appointmentDate,
+      appointmentTime: "",
+      visitType:
+        (d.appointmentType as AppointmentReportRecord["visitType"]) ??
+        "New Visit",
+      status: (d.status
+        ? d.status.charAt(0) + d.status.slice(1).toLowerCase()
+        : "Scheduled") as AppointmentReportRecord["status"],
+    }));
+  }, [appointmentDetailsData?.content]);
 
   // Map API summary to status distribution
   const statusDistFromApi =
@@ -246,7 +245,14 @@ export function DailyAppointmentReportScreen({
         matchesVisit
       );
     });
-  }, [searchQuery, deptFilter, doctorFilter, statusFilter, visitTypeFilter]);
+  }, [
+    searchQuery,
+    deptFilter,
+    doctorFilter,
+    statusFilter,
+    visitTypeFilter,
+    tableDataSource,
+  ]);
 
   const sortedData = useMemo(() => {
     return [...filteredData].sort((a, b) => {
@@ -818,8 +824,8 @@ export function DailyAppointmentReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {statusDistFromApi.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          {statusDistFromApi.map((entry) => (
+                            <Cell key={entry.name} fill={entry.color} />
                           ))}
                         </Pie>
                         <Tooltip

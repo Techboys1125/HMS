@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import {
   User,
@@ -14,8 +14,9 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { PP, RB } from "../constants/billing.constants";
-import { usePatientSearch } from "../../patients/hooks/usePatients";
+import { usePatientSearch, usePatient } from "../../patients/hooks/usePatients";
 import { useInvoice } from "../hooks/useBilling";
+import { useAppointment } from "../../appointments/hooks/useAppointment";
 import { BillingStatusBadge } from "../components/BillingStatusBadge";
 import type { PaymentMethod, PaymentStatus } from "../types/billing.types";
 import type { Patient } from "../../patients/types/patient.types";
@@ -130,22 +131,42 @@ export function CreateInvoiceWorkspacePage() {
   const { data: searchResults } = usePatientSearch(patientSearch);
   const { createBill, addBillItem, applyDiscount, isCreating } = useInvoice();
 
-  // Auto-select patient from URL params (when coming from consultation)
-  const { data: autoSearchResults } = usePatientSearch(urlPatientMrn || "");
-  const [autoSelected, setAutoSelected] = useState(false);
+  // Fetch details from backend
+  const { data: patientDetails } = usePatient(urlPatientMrn || "");
+  const { appointment } = useAppointment(urlAppointmentId || "");
+  const [autoLoaded, setAutoLoaded] = useState(false);
 
-  if (urlPatientMrn && autoSearchResults && !selectedPatient && !autoSelected) {
-    const patients = Array.isArray(autoSearchResults)
-      ? autoSearchResults
-      : autoSearchResults.items || [];
-    const match = patients.find((p: Patient) => p.mrn === urlPatientMrn);
-    if (match) {
-      setAutoSelected(true);
-      setSelectedPatient(match);
-      setPatientSearch(match.fullName || match.name || "");
-      setShowSearchDropdown(false);
+  useEffect(() => {
+    if (urlPatientMrn && patientDetails && !selectedPatient && !autoLoaded) {
+      queueMicrotask(() => {
+        setSelectedPatient(patientDetails);
+        setPatientSearch(patientDetails.fullName || patientDetails.name || "");
+      });
     }
-  }
+  }, [patientDetails, urlPatientMrn, selectedPatient, autoLoaded]);
+
+  useEffect(() => {
+    if (appointment && !autoLoaded) {
+      const fee = Number(
+        appointment.doctor?.consultationFee || appointment.feeAmount || 500,
+      );
+      queueMicrotask(() => {
+        setLineItems([
+          {
+            id: "ITEM-1",
+            serviceName: "OPD Consultation Fee",
+            category: "Consultation",
+            quantity: 1,
+            unitPrice: fee,
+            discount: 0,
+            tax: 0,
+            total: fee,
+          },
+        ]);
+        setAutoLoaded(true);
+      });
+    }
+  }, [appointment, autoLoaded]);
 
   // Autocomplete Patients
   const filteredPatients = useMemo(() => {

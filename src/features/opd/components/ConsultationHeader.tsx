@@ -39,8 +39,8 @@ export const ConsultationHeader: React.FC<ConsultationHeaderProps> = ({
             <span>{roleLabel}</span>
             <ChevronRight size={12} className="text-slate-400" />
             <span>{moduleLabel}</span>
-            {breadcrumbs.map((b, idx) => (
-              <React.Fragment key={idx}>
+            {breadcrumbs.map((b) => (
+              <React.Fragment key={b.label}>
                 <ChevronRight size={12} className="text-slate-400" />
                 <span
                   className={b.active ? "font-semibold text-[#0D47A1]" : ""}

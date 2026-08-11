@@ -9,6 +9,8 @@ export function usePatientQueue() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const activeMrn = portal?.activeMrn;
+
   useEffect(() => {
     let cancelled = false;
 
@@ -16,9 +18,11 @@ export function usePatientQueue() {
       try {
         setLoading(true);
         setError(null);
-        const data = await patientQueueService.getPatientQueue(
-          portal?.activeMrn || undefined,
-        );
+        if (!activeMrn) {
+          setQueue(null);
+          return;
+        }
+        const data = await patientQueueService.getPatientQueue(activeMrn);
         if (!cancelled) setQueue(data);
       } catch (err: unknown) {
         if (!cancelled)
@@ -35,24 +39,24 @@ export function usePatientQueue() {
     return () => {
       cancelled = true;
     };
-  }, [portal?.activeMrn]);
+  }, [activeMrn]);
 
   const refresh = async () => {
-    const cancelled = false;
     try {
       setLoading(true);
       setError(null);
-      const data = await patientQueueService.getPatientQueue(
-        portal?.activeMrn || undefined,
-      );
-      if (!cancelled) setQueue(data);
+      if (!activeMrn) {
+        setQueue(null);
+        return;
+      }
+      const data = await patientQueueService.getPatientQueue(activeMrn);
+      setQueue(data);
     } catch (err: unknown) {
-      if (!cancelled)
-        setError(
-          err instanceof Error ? err.message : "Failed to load patient queue",
-        );
+      setError(
+        err instanceof Error ? err.message : "Failed to load patient queue",
+      );
     } finally {
-      if (!cancelled) setLoading(false);
+      setLoading(false);
     }
   };
 

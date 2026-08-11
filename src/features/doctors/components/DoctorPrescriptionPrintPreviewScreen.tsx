@@ -194,7 +194,7 @@ export function DoctorPrescriptionPrintPreviewScreen({
                 </thead>
                 <tbody>
                   {rx.medicinesList.map((m, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50">
+                    <tr key={m?.id || m?._id || m?.key || m?.value || m?.code || m?.name || m?.title || m?.label || (typeof m === 'object' ? JSON.stringify(m) : String(m))} className="hover:bg-slate-50">
                       <td className="px-3 py-2 border border-slate-200 font-mono text-[#0D47A1]">
                         {idx + 1}
                       </td>

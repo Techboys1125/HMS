@@ -45,11 +45,11 @@ export const OperationalSummaryModal: React.FC<OperationalSummaryModalProps> = (
           <div className="grid grid-cols-2 gap-2 text-slate-700">
             <div className="p-2.5 bg-slate-50 rounded-lg">
               <div className="text-[10px] text-slate-400 font-bold uppercase">Completed</div>
-              <div className="font-bold text-base text-green-700">{tabCounts.Completed}</div>
+              <div className="font-bold text-base text-green-700">{tabCounts.COMPLETED || 0}</div>
             </div>
             <div className="p-2.5 bg-slate-50 rounded-lg">
               <div className="text-[10px] text-slate-400 font-bold uppercase">Waiting Patients</div>
-              <div className="font-bold text-base text-amber-700">{(tabCounts.WAITING_FOR_VITALS || 0) + (tabCounts.WAITING_FOR_DOCTOR_CALL || 0)}</div>
+              <div className="font-bold text-base text-amber-700">{tabCounts.WAITING_FOR_DOCTOR_CALL || 0}</div>
             </div>
           </div>
 

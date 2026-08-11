@@ -531,9 +531,9 @@ export interface DailyRevenuePoint {
   mrn: ReactNode;
   patientName: ReactNode;
   invoiceId: ReactNode;
-  grandTotal: any;
-  amountPaid: any;
-  balance: any;
+  grandTotal: number | string | ReactNode;
+  amountPaid: number | string | ReactNode;
+  balance: number | string | ReactNode;
   paymentMethod: ReactNode;
   paymentStatus: string;
   collectedBy: ReactNode;

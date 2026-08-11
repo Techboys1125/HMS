@@ -24,11 +24,11 @@ export const FilterDropdown: React.FC<FilterDropdownProps> = ({
         onChange={(e) => onChange(e.target.value)}
         className="bg-transparent font-bold text-[#111827] outline-none cursor-pointer"
       >
-        {options.map((opt, i) => {
+        {options.map((opt) => {
           const optVal = typeof opt === "string" ? opt : opt.value;
           const optLabel = typeof opt === "string" ? opt : opt.label;
           return (
-            <option key={i} value={optVal}>
+            <option key={optVal} value={optVal}>
               {optLabel}
             </option>
           );

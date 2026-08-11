@@ -12,6 +12,7 @@ import {
 import { useAuthStore } from "../../auth";
 import { doctorsApi } from "../api/doctors.api";
 import { appointmentService } from "../../appointments";
+import { billingService } from "../../billing/services/billing.service";
 import { PP, RB } from "../constants/doctors.constants";
 import { Pagination } from "../../../common/components/Pagination";
 import type {
@@ -87,7 +88,9 @@ const STATUS_META: Record<
 };
 
 const statusKey = (status: unknown): QueueItemStatus =>
-  String(status || "WAITING").toUpperCase().replace(/[\s-]/g, "_");
+  String(status || "WAITING")
+    .toUpperCase()
+    .replace(/[\s-]/g, "_");
 
 export function DoctorQueueScreen() {
   const { user } = useAuthStore();
@@ -193,11 +196,33 @@ export function DoctorQueueScreen() {
     }
   };
 
-  const handleCompleteConsultation = async (appointmentId: number | string) => {
+  const handleCompleteConsultation = async (
+    appointmentId: number | string,
+    queueItem: DoctorQueueItem,
+  ) => {
     if (!appointmentId || actionId) return;
     setActionId(appointmentId);
     try {
-      await appointmentService.doctorCompleteConsultation(appointmentId);
+      const result =
+        await appointmentService.doctorCompleteConsultation(appointmentId);
+      const encounterId =
+        (result.data as unknown as Record<string, unknown> | undefined)
+          ?.encounterId || Number(appointmentId);
+      const patientMrn =
+        queueItem.mrn || queueItem.patient?.mrn || queueItem.patientId || "";
+      const docId = queueItem.doctor?.doctorId || Number(doctorId) || 0;
+
+      try {
+        await billingService.createBill({
+          appointmentId: Number(appointmentId),
+          encounterId: Number(encounterId),
+          patientMrn: String(patientMrn),
+          doctorId: Number(docId),
+        });
+      } catch {
+        /* bill creation failed; consultation still completes */
+      }
+
       showToast("Consultation completed successfully.");
       fetchQueue();
     } catch {
@@ -212,10 +237,9 @@ export function DoctorQueueScreen() {
     return key !== "WAITING_FOR_VITALS" && key !== "CHECKED_IN";
   });
   const waitingCount = content.filter((p) =>
-    [
-      "WAITING",
-      "WAITING_FOR_DOCTOR_CALL",
-    ].includes(statusKey(p.status || p.queueStatus)),
+    ["WAITING", "WAITING_FOR_DOCTOR", "WAITING_FOR_DOCTOR_CALL"].includes(
+      statusKey(p.status || p.queueStatus),
+    ),
   ).length;
   const inProgressCount = content.filter(
     (p) =>
@@ -242,13 +266,17 @@ export function DoctorQueueScreen() {
       "WAITING_FOR_DOCTOR_CALL",
       "WAITING_FOR_VITALS",
       "CHECKED_IN",
-      "BOOKED"
+      "BOOKED",
     ].includes(statusKey(p.status || p.queueStatus)),
   );
   const isCallNextBlocked =
     firstWaitingPatient &&
-    (statusKey(firstWaitingPatient.status || firstWaitingPatient.queueStatus) === "WAITING_FOR_VITALS" ||
-     statusKey(firstWaitingPatient.status || firstWaitingPatient.queueStatus) === "CHECKED_IN");
+    (statusKey(
+      firstWaitingPatient.status || firstWaitingPatient.queueStatus,
+    ) === "WAITING_FOR_VITALS" ||
+      statusKey(
+        firstWaitingPatient.status || firstWaitingPatient.queueStatus,
+      ) === "CHECKED_IN");
 
   return (
     <div className="space-y-6">
@@ -270,10 +298,14 @@ export function DoctorQueueScreen() {
         </div>
         <button
           onClick={handleCallNext}
-          disabled={callingNext || waitingCount === 0 || !isDoctor || isCallNextBlocked}
+          disabled={
+            callingNext || waitingCount === 0 || !isDoctor || isCallNextBlocked
+          }
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm shadow-[#0D47A1]/20 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ fontFamily: PP }}
-          title={isCallNextBlocked ? "Next patient is waiting for vitals" : undefined}
+          title={
+            isCallNextBlocked ? "Next patient is waiting for vitals" : undefined
+          }
         >
           {callingNext ? (
             <RefreshCw size={16} className="animate-spin" />
@@ -389,7 +421,7 @@ export function DoctorQueueScreen() {
 
               return (
                 <div
-                  key={patient.queueId || patient.id || idx}
+                  key={patient?.id || patient?._id || patient?.key || patient?.value || patient?.code || patient?.name || patient?.title || patient?.label || (typeof patient === 'object' ? JSON.stringify(patient) : String(patient))}
                   className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 ${meta.row}`}
                 >
                   <div className="flex items-center gap-4">
@@ -442,7 +474,7 @@ export function DoctorQueueScreen() {
                     {key === "IN_CONSULTATION" && (
                       <button
                         onClick={() =>
-                          handleCompleteConsultation(appointmentId)
+                          handleCompleteConsultation(appointmentId, patient)
                         }
                         disabled={!appointmentId || isActionBusy}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-[11px] font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

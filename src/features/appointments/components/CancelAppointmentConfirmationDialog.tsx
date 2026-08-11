@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useEffectEvent } from "react";
 import { AlertTriangle, X, AlertCircle } from "lucide-react";
 import type { AppointmentRecord } from "../types/appointment.types";
 import { StatusBadge } from "./StatusBadge";
@@ -37,16 +37,20 @@ export function CancelAppointmentConfirmationDialog({
     }
   }, [isOpen]);
 
+  const onEscape = useEffectEvent(() => {
+    onClose();
+  });
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
       if (e.key === "Escape") {
-        onClose();
+        onEscape();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen || !apt) return null;
 
