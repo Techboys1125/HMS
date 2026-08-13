@@ -1,3 +1,4 @@
+import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { vitalsApi } from "../api/vitals.api";
 import type {
   NurseVitalsPayload,

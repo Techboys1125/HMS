@@ -1,5 +1,10 @@
 import { useSyncExternalStore } from "react";
 import type { User, AuthTokens, AuthState } from "../types/auth.types";
+import {
+  getToken,
+  setToken,
+  removeToken,
+} from "../../../lib/cookie-token-storage";
 
 const STORAGE_KEY = "hms-auth-storage";
 
@@ -23,8 +28,8 @@ function loadInitialState(): AuthState {
   }
 
   // Fallback to individual localStorage items if available
-  const accessToken = localStorage.getItem("accessToken");
-  const refreshToken = localStorage.getItem("refreshToken");
+  const accessToken = getToken("accessToken");
+  const refreshToken = getToken("refreshToken");
   const storedUserRaw = localStorage.getItem("hms-user");
 
   if (accessToken && refreshToken && storedUserRaw) {
@@ -71,13 +76,13 @@ function saveState(state: AuthState) {
         JSON.stringify({ user: state.user, tokens: state.tokens }),
       );
       localStorage.setItem("hms-user", JSON.stringify(state.user));
-      localStorage.setItem("accessToken", state.tokens.accessToken);
-      localStorage.setItem("refreshToken", state.tokens.refreshToken);
+      setToken("accessToken", state.tokens.accessToken);
+      setToken("refreshToken", state.tokens.refreshToken);
     } else {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem("hms-user");
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
+      removeToken("accessToken");
+      removeToken("refreshToken");
     }
   } catch (e) {
     console.error("Failed to save auth state to localStorage:", e);

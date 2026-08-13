@@ -93,11 +93,13 @@ export function Av({
   name,
   size = "sm",
 }: {
-  name: string;
+  name?: string;
   size?: "sm" | "md" | "lg";
 }) {
-  const initials = name
+  const safeName = (name || "??").trim() || "??";
+  const initials = safeName
     .split(" ")
+    .filter(Boolean)
     .map((n) => n[0])
     .join("")
     .slice(0, 2)
@@ -109,7 +111,7 @@ export function Av({
     "bg-rose-500",
     "bg-amber-600",
   ];
-  const bg = palette[name.charCodeAt(0) % palette.length];
+  const bg = palette[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % palette.length];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",

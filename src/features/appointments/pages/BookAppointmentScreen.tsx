@@ -17,6 +17,10 @@ import { patientsApi } from "../../patients/api/patient.api";
 import { departmentsApi } from "../../users/api/departments.api";
 import { doctorsApi } from "../../doctors/api/doctors.api";
 import type { DoctorDailySlot } from "../../doctors/types/doctors.types";
+import {
+  useCurrentUserId,
+  useTriggerInternalNotification,
+} from "../../notification/hooks/useNotifications";
 
 export function BookAppointmentScreen({
   role = "receptionist",
@@ -529,6 +533,16 @@ export function BookAppointmentScreen({
 
   const [isBooking, setIsBooking] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const currentUserId = useCurrentUserId();
+  const triggerInternalNotification = useTriggerInternalNotification();
+
+  const resolveNumericUserId = (...values: Array<string | number | null | undefined>) => {
+    for (const value of values) {
+      const candidate = Number(value);
+      if (Number.isFinite(candidate) && candidate > 0) return candidate;
+    }
+    return null;
+  };
 
   const handleConfirm = async () => {
     if (!selectedPatient || !currentDoctor) return;
@@ -567,6 +581,29 @@ export function BookAppointmentScreen({
       const createdRecord = await appointmentService.bookAppointment(payload);
       setConfirmedAptId(String(createdRecord.id));
       setShowSuccessModal(true);
+
+      const notificationUserId = resolveNumericUserId(
+        selectedPatient.id,
+        currentUserId,
+      );
+
+      if (notificationUserId !== null) {
+        await triggerInternalNotification.mutateAsync({
+          eventId: `EVT-APPT-${String(createdRecord.id)}`,
+          userId: notificationUserId,
+          title: "Appointment Booked",
+          message: `Your appointment has been booked with Dr. ${currentDoctor.name} on ${selectedDate}.`,
+          type: "SYSTEM",
+          priority: "HIGH",
+          referenceType: "PATIENT",
+          referenceId: String(selectedPatient.mrn || selectedPatient.id || ""),
+          sourceModule: "APPOINTMENT",
+          eventType: "APPOINTMENT_BOOKED",
+          receiverRole: "PATIENT",
+          actionLabel: "View Appointment",
+          actionUrl: `/appointments/${String(createdRecord.id)}`,
+        });
+      }
 
       if (onBookSuccess) onBookSuccess(createdRecord);
       if (onConfirmSuccess) onConfirmSuccess(String(createdRecord.id));

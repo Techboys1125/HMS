@@ -46,6 +46,8 @@ import {
   useDepartmentPatientVisits,
   useGenderBreakdown,
   usePatientRegistrationSummary,
+  usePatientMasterRegister,
+  extractList,
 } from "../hooks/useReports";
 
 function CircularProgress({
@@ -115,11 +117,26 @@ export function PatientReportScreen({
   });
 
   // ─── API Data Hooks ──────────────────────────────────────────────────────
-  const reportFilters = { fromDate: "2026-08-01", toDate: "2026-08-08" };
+  const today = new Date().toISOString().slice(0, 10);
+  const getDateRange = (range: string) => {
+    const now = new Date();
+    if (range === "Today") return { fromDate: today, toDate: today };
+    if (range === "7 Days") {
+      const from = new Date(now); from.setDate(now.getDate() - 7);
+      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+    }
+    if (range === "30 Days") {
+      const from = new Date(now); from.setDate(now.getDate() - 30);
+      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+    }
+    return { fromDate: "2025-01-01", toDate: today };
+  };
+  const reportFilters = getDateRange(dateRange);
   const { data: ageDemographics } = usePatientAgeDemographics(reportFilters);
   const { data: deptVisits = [] } = useDepartmentPatientVisits(reportFilters);
   const { data: genderData } = useGenderBreakdown(reportFilters);
   const { data: regSummary } = usePatientRegistrationSummary(reportFilters);
+  const { data: patientMasterData } = usePatientMasterRegister(reportFilters);
 
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | "csv">(
@@ -206,24 +223,50 @@ export function PatientReportScreen({
     }, 300);
   };
 
+  const patientMasterList = useMemo(() => extractList<any>(patientMasterData), [patientMasterData]);
+
   // Computed KPI Card Values from API hooks
   const computedPatientStats = useMemo(() => {
-    const totalReg = regSummary?.totalRegistrations ?? 0;
-    const newCount = regSummary?.newPatients ?? 0;
-    const returningCount = regSummary?.returningPatients ?? 0;
+    const totalReg = regSummary?.totalRegistrations || patientMasterList.length;
+    const newCount = regSummary?.newPatients || patientMasterList.filter((p) => p.visitType === "New Visit" || !p.visitType).length;
+    const returningCount = regSummary?.returningPatients || (totalReg - newCount > 0 ? totalReg - newCount : 0);
     return {
       totalReg,
       newCount,
       returningCount,
-      walkIns: 0,
-      scheduled: 0,
-      activeCount: ageDemographics?.totalPatients ?? 0,
+      walkIns: patientMasterList.filter((p) => p.visitType === "Walk-In").length,
+      scheduled: patientMasterList.filter((p) => p.visitType === "Scheduled").length,
+      activeCount: ageDemographics?.totalPatients || patientMasterList.filter((p) => p.status === "Active" || !p.status).length || totalReg,
     };
-  }, [regSummary, ageDemographics]);
+  }, [regSummary, ageDemographics, patientMasterList]);
+
+  const registrationTrendData = useMemo(() => {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    return [
+      {
+        date: todayStr,
+        New: computedPatientStats.newCount,
+        Returning: computedPatientStats.returningCount,
+      },
+    ];
+  }, [computedPatientStats]);
 
   // Filtered records
   const filteredData = useMemo(() => {
-    return [].filter((item) => {
+    const source = patientMasterList.map((d: any) => ({
+      patientId: d.patientId || d.id || "",
+      patientName: d.patientName || d.fullName || d.name || "N/A",
+      mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+      mobile: d.mobile || d.phone || d.phoneNumber || "",
+      gender: d.gender || "Other",
+      age: d.age || 0,
+      department: d.department || "General Medicine",
+      doctorName: d.doctorName || "Unassigned",
+      visitType: d.visitType || "New Visit",
+      status: d.status || "Active",
+      registrationDate: d.registrationDate || d.createdDate || today,
+    }));
+    return source.filter((item) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -258,6 +301,7 @@ export function PatientReportScreen({
     doctorFilter,
     visitTypeFilter,
     regStatusFilter,
+    patientMasterData?.content,
   ]);
 
   // Sorted records
@@ -293,7 +337,7 @@ export function PatientReportScreen({
     >
       {/* Top Header Section */}
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
@@ -373,7 +417,7 @@ export function PatientReportScreen({
       </div>
 
       {/* Main Container */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         {/* Global Search Bar */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
@@ -767,17 +811,19 @@ export function PatientReportScreen({
                     <span>1,240 monthly total</span>
                   </div>
                   <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={[]}>
-                        <Line
-                          type="monotone"
-                          dataKey="Total"
-                          stroke="#0D47A1"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    {registrationTrendData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={registrationTrendData}>
+                          <Line
+                            type="monotone"
+                            dataKey="Total"
+                            stroke="#0D47A1"
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
 
@@ -802,19 +848,21 @@ export function PatientReportScreen({
                       +18.2% vs last week
                     </span>
                   </div>
-                  <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={[]}>
-                        <Area
-                          type="monotone"
-                          dataKey="New"
-                          stroke="#009688"
-                          fill="#009688"
-                          fillOpacity={0.2}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {registrationTrendData.length > 0 && (
+                    <div className="h-8">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={registrationTrendData}>
+                          <Area
+                            type="monotone"
+                            dataKey="New"
+                            stroke="#009688"
+                            fill="#009688"
+                            fillOpacity={0.2}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
                 </div>
 
                 {/* Card 3: Returning Patients */}

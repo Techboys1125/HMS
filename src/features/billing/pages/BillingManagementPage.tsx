@@ -15,9 +15,7 @@ import { BillingFilters } from "../components/BillingFilters";
 import { BillingTable } from "../components/BillingTable";
 import { BillingPagination } from "../components/BillingPagination";
 import { mapApiBillToInvoiceRecord as mapBillToInvoice } from "../utils/billing.utils";
-import { useAppointments } from "../../appointments/hooks/useAppointments";
 import { PP, RB } from "../constants/billing.constants";
-import { FileText } from "lucide-react";
 
 export function BillingManagementPage() {
   const navigate = useNavigate();
@@ -29,22 +27,66 @@ export function BillingManagementPage() {
   // Fetch bills list from API
   const [pageSize] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [methodFilter, setMethodFilter] = useState("All");
+  const [deptFilter, setDeptFilter] = useState("All");
 
-  const { data: billsData } = useBillingList(
-    isPatient ? undefined : { page: currentPage - 1, size: pageSize },
+  const [activeTab, setActiveTab] = useState<
+    | "all"
+    | "ready_for_billing"
+    | "pending_payment"
+    | "partially_paid"
+    | "paid"
+    | "refunded"
+  >("all");
+
+  const queryParams = useMemo(() => {
+    if (isPatient) return undefined;
+    const params: Record<string, string | number | boolean | undefined> = {
+      page: currentPage - 1,
+      size: pageSize,
+      sortBy: "createdAt",
+      direction: "desc",
+      search: searchQuery || undefined,
+    };
+
+    if (activeTab === "ready_for_billing") {
+      params.status = "READY_FOR_BILLING";
+      params.paymentStatus = "UNPAID";
+    } else if (activeTab === "pending_payment") {
+      params.status = "FINALIZED";
+      params.paymentStatus = "UNPAID";
+    } else if (activeTab === "partially_paid") {
+      params.paymentStatus = "PARTIALLY_PAID";
+    } else if (activeTab === "paid") {
+      params.paymentStatus = "PAID";
+    } else if (activeTab === "refunded") {
+      params.paymentStatus = "REFUNDED";
+    }
+
+    if (statusFilter !== "All" && activeTab === "all") {
+      params.paymentStatus = statusFilter.toUpperCase().replace(" ", "_");
+    }
+    if (methodFilter !== "All") {
+      params.paymentMethod = methodFilter.toUpperCase().replace(" ", "_");
+    }
+    return params;
+  }, [
+    isPatient,
+    currentPage,
+    pageSize,
+    searchQuery,
+    activeTab,
+    statusFilter,
+    methodFilter,
+  ]);
+
+  const { data: billsData, isLoading: listLoading } = useBillingList(
+    isPatient ? undefined : queryParams,
   );
   const { data: dashboardData, isLoading: dashboardLoading } =
     useBillingDashboard();
-
-  // Fetch pending billing appointments
-  const pendingParams = useMemo(() => ({ status: "BILLING_PENDING" }), []);
-  const { appointments: pendingAppointments } = useAppointments(
-    "Receptionist",
-    undefined,
-    pendingParams,
-  );
-
-  const [activeTab, setActiveTab] = useState<"pending" | "register">("pending");
 
   // Cancel mutation
   const cancelMutation = useMutation({
@@ -61,39 +103,17 @@ export function BillingManagementPage() {
     return billsData.bills.map(mapBillToInvoice);
   }, [billsData]);
 
-  // Filters & pagination
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [methodFilter, setMethodFilter] = useState("All");
-  const [deptFilter, setDeptFilter] = useState("All");
+  const totalCount = billsData?.totalElements || 0;
 
-  const filteredInvoices = useMemo(() => {
-    return allInvoices.filter((inv) => {
-      const q = searchQuery.toLowerCase().trim();
-      const matchesSearch =
-        !q ||
-        inv.id.toLowerCase().includes(q) ||
-        inv.patientName.toLowerCase().includes(q) ||
-        inv.mrn.toLowerCase().includes(q) ||
-        inv.mobile.toLowerCase().includes(q);
-      const matchesStatus =
-        statusFilter === "All" || inv.paymentStatus === statusFilter;
-      const matchesMethod =
-        methodFilter === "All" || inv.paymentMethod === methodFilter;
-      const matchesDept = deptFilter === "All" || inv.department === deptFilter;
-      return matchesSearch && matchesStatus && matchesMethod && matchesDept;
-    });
-  }, [allInvoices, searchQuery, statusFilter, methodFilter, deptFilter]);
-
-  const paginatedInvoices = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filteredInvoices.slice(start, start + pageSize);
-  }, [filteredInvoices, currentPage, pageSize]);
-
+  const normalizedRole = String(role).toUpperCase();
   const isAdminReadOnly =
-    String(role).toUpperCase() === "DOCTOR" ||
-    String(role).toUpperCase() === "NURSE" ||
+    normalizedRole === "DOCTOR" ||
+    normalizedRole === "NURSE" ||
+    normalizedRole === "ACCOUNTANT" ||
     isPatient;
+  const canCancelInvoice = ["SUPER_ADMIN", "HOSPITAL_ADMIN", "ADMIN"].includes(
+    normalizedRole,
+  );
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -135,18 +155,18 @@ export function BillingManagementPage() {
         </div>
 
         <BillingTable
-          invoices={filteredInvoices}
+          invoices={allInvoices}
           isAdminReadOnly={true}
           onViewInvoiceDetailsClick={(inv) =>
             navigate(`/billing/invoice/${inv.id}`)
           }
-          onCancelInvoice={handleCancelInvoice}
+          onCancelInvoice={canCancelInvoice ? handleCancelInvoice : undefined}
         />
 
         <BillingPagination
           currentPage={currentPage}
           pageSize={pageSize}
-          totalCount={filteredInvoices.length}
+          totalCount={totalCount}
           onPageChange={(p) => setCurrentPage(p)}
         />
       </div>
@@ -183,160 +203,97 @@ export function BillingManagementPage() {
 
       <BillingKPICards
         dashboardData={dashboardData}
-        invoices={filteredInvoices}
+        invoices={allInvoices}
         isLoading={dashboardLoading}
       />
 
-      <div className="flex border-b border-gray-200">
-        <button
-          onClick={() => setActiveTab("pending")}
-          className={`px-5 py-2.5 text-xs font-semibold border-b-2 transition-all ${
-            activeTab === "pending"
-              ? "border-[#0D47A1] text-[#0D47A1]"
-              : "border-transparent text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          Pending Billing ({pendingAppointments.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("register")}
-          className={`px-5 py-2.5 text-xs font-semibold border-b-2 transition-all ${
-            activeTab === "register"
-              ? "border-[#0D47A1] text-[#0D47A1]"
-              : "border-transparent text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          OPD Billing Register ({filteredInvoices.length})
-        </button>
+      {/* Unified status tabs */}
+      <div className="flex border-b border-gray-200 overflow-x-auto whitespace-nowrap">
+        {(
+          [
+            { id: "all", label: "All" },
+            { id: "ready_for_billing", label: "Pending" },
+            { id: "pending_payment", label: "Unpaid Invoices" },
+            { id: "partially_paid", label: "Partially Paid" },
+            { id: "paid", label: "Paid" },
+            { id: "refunded", label: "Refunded" },
+          ] as const
+        ).map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => {
+              setActiveTab(tab.id);
+              setCurrentPage(1);
+            }}
+            className={`px-5 py-2.5 text-xs font-semibold border-b-2 transition-all ${
+              activeTab === tab.id
+                ? "border-[#0D47A1] text-[#0D47A1]"
+                : "border-transparent text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {activeTab === "pending" ? (
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-          <h3 className="text-sm font-bold text-[#111827]">
-            Pending Invoices ({pendingAppointments.length})
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+          <h3
+            className="text-sm font-bold text-[#111827]"
+            style={{ fontFamily: PP }}
+          >
+            {activeTab === "all"
+              ? "All Billing Records"
+              : activeTab === "ready_for_billing"
+                ? "Pending (Completed, Billable Patients)"
+                : activeTab === "pending_payment"
+                  ? "Unpaid Invoices"
+                  : activeTab === "partially_paid"
+                    ? "Partially Paid Invoices"
+                    : activeTab === "paid"
+                      ? "Fully Paid Invoices"
+                      : "Refunded Invoices"}
           </h3>
-          <div className="overflow-x-auto">
-            <table
-              className="w-full text-left border-collapse"
-              style={{ fontFamily: RB }}
-            >
-              <thead>
-                <tr className="bg-slate-50 border-b border-gray-100 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
-                  <th className="py-3 px-4">Appointment ID</th>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4">Patient / MRN</th>
-                  <th className="py-3 px-4">Doctor & Dept</th>
-                  <th className="py-3 px-4 text-center">Status</th>
-                  <th className="py-3 px-4 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 text-xs">
-                {pendingAppointments.length > 0 ? (
-                  pendingAppointments.map((apt) => (
-                    <tr
-                      key={apt.id}
-                      className="hover:bg-slate-50/80 transition-colors"
-                    >
-                      <td
-                        className="py-3 px-4 font-bold text-[#0D47A1]"
-                        style={{ fontFamily: PP }}
-                      >
-                        {apt.appointmentNumber || apt.id}
-                      </td>
-                      <td className="py-3 px-4 text-slate-500 whitespace-nowrap">
-                        {apt.appointmentDate}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="font-semibold text-[#111827]">
-                          {apt.patientName}
-                        </div>
-                        <div className="text-[11px] text-slate-400 font-mono">
-                          {apt.patientMrn || apt.mrn}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="font-medium text-[#111827]">
-                          {apt.doctorName}
-                        </div>
-                        <div className="text-[11px] text-[#009688] font-medium">
-                          {apt.departmentName || "General Medicine"}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-100">
-                          Billing Pending
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <button
-                          onClick={() =>
-                            navigate(
-                              `/billing/create?appointmentId=${apt.id}&patientMrn=${apt.patientMrn || apt.mrn}&doctorId=${apt.doctorId}`,
-                            )
-                          }
-                          className="px-3 py-1.5 rounded-lg bg-[#0D47A1] text-white text-[11px] font-semibold hover:bg-blue-900 transition-colors shadow-sm"
-                        >
-                          Generate Invoice
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="py-12 text-center bg-slate-50/50"
-                    >
-                      <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-3">
-                        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                          <FileText size={24} />
-                        </div>
-                        <h3
-                          className="text-sm font-bold text-[#111827]"
-                          style={{ fontFamily: PP }}
-                        >
-                          No pending bills
-                        </h3>
-                        <p
-                          className="text-xs text-slate-500"
-                          style={{ fontFamily: RB }}
-                        >
-                          There are currently no patients waiting for invoices
-                          to be generated.
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
         </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-            <h3 className="text-sm font-bold text-[#111827]">
-              OPD Billing register ({filteredInvoices.length})
-            </h3>
+
+        {listLoading ? (
+          <div className="py-12 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D47A1] mx-auto mb-3" />
+            <p className="text-xs text-slate-500" style={{ fontFamily: RB }}>
+              Loading bills...
+            </p>
           </div>
+        ) : (
+          <>
+            <BillingTable
+              invoices={allInvoices}
+              isAdminReadOnly={isAdminReadOnly}
+              onViewInvoiceDetailsClick={(inv) =>
+                navigate(`/billing/invoice/${inv.id}`)
+              }
+              onCollectPaymentClick={(inv) =>
+                navigate(`/billing/collect-payment/${inv.id}`)
+              }
+              onGenerateInvoiceClick={(inv) => {
+                const billIdParam = inv.id && inv.id !== "undefined" ? `billId=${encodeURIComponent(inv.id)}&` : "";
+                navigate(
+                  `/billing/create?${billIdParam}appointmentId=${encodeURIComponent(String(inv.appointmentId ?? ""))}&encounterId=${encodeURIComponent(String(inv.encounterId ?? ""))}&patientId=${encodeURIComponent(String(inv.patientId ?? ""))}&patientMrn=${encodeURIComponent(inv.mrn)}&doctorId=${encodeURIComponent(String(inv.doctorId ?? ""))}`,
+                );
+              }}
+              onCancelInvoice={
+                canCancelInvoice ? handleCancelInvoice : undefined
+              }
+            />
 
-          <BillingTable
-            invoices={paginatedInvoices}
-            isAdminReadOnly={isAdminReadOnly}
-            onViewInvoiceDetailsClick={(inv) =>
-              navigate(`/billing/invoice/${inv.id}`)
-            }
-            onCancelInvoice={handleCancelInvoice}
-          />
-
-          <BillingPagination
-            currentPage={currentPage}
-            pageSize={pageSize}
-            totalCount={filteredInvoices.length}
-            onPageChange={(p) => setCurrentPage(p)}
-          />
-        </div>
-      )}
+            <BillingPagination
+              currentPage={currentPage}
+              pageSize={pageSize}
+              totalCount={totalCount}
+              onPageChange={(p) => setCurrentPage(p)}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 }

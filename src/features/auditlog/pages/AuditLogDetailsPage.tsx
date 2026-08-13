@@ -31,6 +31,7 @@ const RB = "Roboto, sans-serif";
 
 interface AuditLogDetailsPageProps {
   recordId: string;
+  sourceCategory?: AuditCategory;
   onBack: () => void;
   onNavigateCategory?: (category: AuditCategory) => void;
 }
@@ -41,11 +42,12 @@ function safeArray<T>(data: T[] | undefined | null): T[] {
 
 export function AuditLogDetailsPage({
   recordId,
+  sourceCategory = "All Logs",
   onBack,
   onNavigateCategory,
 }: AuditLogDetailsPageProps) {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const { data: record, isLoading, isError } = useAuditLogDetail(recordId);
+  const { data: record, isLoading, isError } = useAuditLogDetail(recordId, sourceCategory);
   const { data: relatedData } = useMainAuditLogs({ page: 0, size: 10 });
 
   const showToast = (msg: string) => {
@@ -248,7 +250,7 @@ export function AuditLogDetailsPage({
                   Event ID
                 </span>
                 <span className="font-mono font-bold text-blue-900 text-xs mt-0.5 block">
-                  EVT-{record.id.replace("LOG-", "")}
+                  {record.id}
                 </span>
               </div>
               <div>
@@ -361,21 +363,20 @@ export function AuditLogDetailsPage({
                   </span>
                   <span className="flex items-center gap-1">
                     <Mail className="w-3.5 h-3.5 text-gray-400" />
-                    {(record.user || "user").toLowerCase().replace(/\s+/g, ".")}
-                    @citygeneral.org
+                    {record.userId || "—"}
                   </span>
                   <span className="flex items-center gap-1">
                     <Phone className="w-3.5 h-3.5 text-gray-400" />
-                    +1 (555) 019-2831
+                    —
                   </span>
                 </div>
               </div>
               <div className="text-right text-xs">
                 <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold rounded-full text-[11px] block">
-                  Status: Active
+                  Status: {record.status}
                 </span>
                 <span className="text-[11px] text-gray-400 mt-1 block">
-                  Last Login: Today 09:12 AM
+                  Last Login: {record.loginTime || "—"}
                 </span>
               </div>
             </div>
@@ -446,7 +447,7 @@ export function AuditLogDetailsPage({
                   Auth Method
                 </span>
                 <span className="font-semibold text-emerald-700 text-xs mt-0.5 block">
-                  OAuth 2.0 + MFA
+                  {record.authenticationMethod || "—"}
                 </span>
               </div>
               <div>
@@ -454,7 +455,7 @@ export function AuditLogDetailsPage({
                   Session ID
                 </span>
                 <span className="font-mono text-gray-600 text-[11px] mt-0.5 block truncate">
-                  SES-90218-AF892
+                  {record.sessionId || "—"}
                 </span>
               </div>
               <div>
@@ -462,7 +463,7 @@ export function AuditLogDetailsPage({
                   Network
                 </span>
                 <span className="font-medium text-gray-700 text-xs mt-0.5 block">
-                  Hospital Internal VLAN-10
+                  {record.metadata?.network ? String(record.metadata.network) : "—"}
                 </span>
               </div>
             </div>
@@ -482,47 +483,15 @@ export function AuditLogDetailsPage({
             <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200">
               {[
                 {
-                  title: "Event Generated",
-                  time: record.timestamp,
-                  desc: `Audit trigger initialized for action: ${record.action}`,
-                  status: "Completed",
-                },
-                {
-                  title: "User Authenticated",
-                  time: record.timestamp,
-                  desc: `Token validated for ${record.user} (${record.userRole})`,
-                  status: "Completed",
-                },
-                {
-                  title: "Screen Opened",
-                  time: record.timestamp,
-                  desc: `User navigated to ${record.module} Workspace`,
-                  status: "Completed",
-                },
-                {
-                  title: "Action Executed",
+                  title: record.action,
                   time: record.timestamp,
                   desc: record.description,
-                  status: "Completed",
                 },
-                {
-                  title: "Database Updated",
+                ...(record.changes || []).map((change) => ({
+                  title: `Changed ${change.field}`,
                   time: record.timestamp,
-                  desc: `Database transaction committed for record ${record.recordId || record.id}`,
-                  status: "Completed",
-                },
-                {
-                  title: "Audit Recorded",
-                  time: record.timestamp,
-                  desc: `Immutable audit record ${record.id} written to vault log stream`,
-                  status: "Completed",
-                },
-                {
-                  title: "Notification Triggered",
-                  time: record.timestamp,
-                  desc: "Real-time websocket audit notification dispatched to Admin dashboard",
-                  status: "Completed",
-                },
+                  desc: `${change.before} → ${change.after}`,
+                })),
               ].map((step) => (
                 <div
                   key={step.title}
@@ -644,7 +613,7 @@ export function AuditLogDetailsPage({
                   Operating System
                 </span>
                 <span className="font-medium text-gray-800 text-xs mt-0.5 block">
-                  Windows 11 Enterprise
+                  {record.metadata?.operatingSystem ? String(record.metadata.operatingSystem) : "—"}
                 </span>
               </div>
               <div>
@@ -660,7 +629,7 @@ export function AuditLogDetailsPage({
                   MAC Address
                 </span>
                 <span className="font-mono text-gray-600 text-xs mt-0.5 block">
-                  00:1A:2B:3C:4D:XX (Masked)
+                  {record.metadata?.macAddress ? String(record.metadata.macAddress) : "—"}
                 </span>
               </div>
               <div>
@@ -668,7 +637,7 @@ export function AuditLogDetailsPage({
                   Hospital Branch
                 </span>
                 <span className="font-semibold text-blue-900 text-xs mt-0.5 block">
-                  Main Campus (Building A)
+                  {record.metadata?.branch ? String(record.metadata.branch) : "—"}
                 </span>
               </div>
               <div>
@@ -676,7 +645,7 @@ export function AuditLogDetailsPage({
                   Session Duration
                 </span>
                 <span className="font-mono text-gray-700 text-xs mt-0.5 block">
-                  {record.sessionDuration || "Active"}
+                  {record.sessionDuration || "—"}
                 </span>
               </div>
               <div>
@@ -684,7 +653,7 @@ export function AuditLogDetailsPage({
                   Login Method
                 </span>
                 <span className="font-semibold text-emerald-700 text-xs mt-0.5 block">
-                  SAML 2.0 Single Sign-On
+                  {record.authenticationMethod || "—"}
                 </span>
               </div>
               <div>
@@ -692,7 +661,7 @@ export function AuditLogDetailsPage({
                   Timezone
                 </span>
                 <span className="font-mono text-gray-600 text-xs mt-0.5 block">
-                  UTC-05:00 (EST)
+                  {record.metadata?.timezone ? String(record.metadata.timezone) : "—"}
                 </span>
               </div>
             </div>
@@ -799,10 +768,10 @@ export function AuditLogDetailsPage({
                 </div>
                 <div className="text-gray-600">Type: {record.action}</div>
                 <div className="text-gray-600">
-                  Affected: {record.recordId || "Module State"}
+                  Affected: {record.recordId || "—"}
                 </div>
-                <div className="text-emerald-700 font-semibold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Verified Valid
+                <div className="text-gray-600 font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Status: {record.status}
                 </div>
               </div>
             </div>
@@ -855,27 +824,27 @@ export function AuditLogDetailsPage({
               style={{ fontFamily: PP }}
             >
               <span>Audit Integrity</span>
-              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">
-                Verified
+              <span className="px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-full">
+                API data
               </span>
             </h4>
             <div className="space-y-2 text-xs">
               <div className="flex justify-between">
                 <span className="text-gray-500">Hash Validation</span>
                 <span className="font-mono text-emerald-700 font-bold">
-                  SHA-256 Valid
+                  {record.raw?.hash ? String(record.raw.hash) : "—"}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Vault Signature</span>
+                <span className="text-gray-500">Signature</span>
                 <span className="font-mono text-gray-700 text-[11px]">
-                  SIG-89012-OK
+                  {record.raw?.signature ? String(record.raw.signature) : "—"}
                 </span>
               </div>
-              <div className="p-2.5 bg-emerald-50 text-emerald-900 rounded-xl border border-emerald-200 text-[11px] font-medium flex items-start gap-2">
-                <Shield className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+              <div className="p-2.5 bg-slate-50 text-slate-700 rounded-xl border border-slate-200 text-[11px] font-medium flex items-start gap-2">
+                <Shield className="w-4 h-4 text-slate-500 mt-0.5 shrink-0" />
                 <span>
-                  Record cryptographically sealed and verified tamper-evident.
+                  Hash and signature values are displayed only when supplied by the API.
                 </span>
               </div>
             </div>

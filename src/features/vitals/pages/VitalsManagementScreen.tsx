@@ -24,7 +24,6 @@ import { Pagination } from "../../../common/components/Pagination";
 import type { AppointmentRecord } from "../../appointments";
 import { toDisplayStatus } from "../../appointments/services/appointment.service";
 import { vitalsService } from "../services/vitals.service";
-import { vitalsApi } from "../api/vitals.api";
 import type {
   RecordedVitalsData,
   NurseWaitingPatient,
@@ -1135,7 +1134,7 @@ export function RecordPatientVitalsScreen({
 
   const loadWaitingAppointments = useCallback(async () => {
     try {
-      const list = await vitalsApi.getWaitingPatients();
+      const list = await vitalsService.getWaitingPatients();
       if (Array.isArray(list)) {
           const mapped: AppointmentRecord[] = list.map(
             (item: NurseWaitingPatient, idx: number) => ({

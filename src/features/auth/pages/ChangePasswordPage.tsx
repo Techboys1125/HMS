@@ -10,6 +10,7 @@ import {
 import { TextField } from "../components/TextField";
 import { authService } from "../services/auth.service";
 import logoImage from "../../../assets/safehandshospital_logo.webp";
+import { useHospitalBranding } from "../../settings/hooks/useHospitalBranding";
 
 interface ChangePasswordPageProps {
   onSuccess?: () => void;
@@ -18,6 +19,7 @@ interface ChangePasswordPageProps {
 export const ChangePasswordPage: React.FC<ChangePasswordPageProps> = ({
   onSuccess = () => {},
 }) => {
+  const { logoUrl } = useHospitalBranding();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -59,21 +61,13 @@ export const ChangePasswordPage: React.FC<ChangePasswordPageProps> = ({
   return (
     <div className="w-full space-y-6">
       {/* Header Logo */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center">
         <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 shadow-sm flex items-center justify-center">
           <img
-            src={logoImage}
-            alt="Safe Hands Logo"
+            src={logoUrl || logoImage}
+            alt="Hospital Logo"
             className="h-9 w-auto object-contain"
           />
-        </div>
-        <div>
-          <h3 className="font-heading font-bold text-base text-[#1E293B] leading-none">
-            Safe Hands Hospital
-          </h3>
-          <p className="text-xs text-text-muted font-body mt-0.5">
-            Staff Account Activation
-          </p>
         </div>
       </div>
 
@@ -111,7 +105,7 @@ export const ChangePasswordPage: React.FC<ChangePasswordPageProps> = ({
           type={showPassword ? "text" : "password"}
           value={currentPassword}
           onChange={setCurrentPassword}
-          placeholder="Admin@123"
+          placeholder="Enter your current password"
           Icon={Lock}
           autoFocus
         />
@@ -121,7 +115,7 @@ export const ChangePasswordPage: React.FC<ChangePasswordPageProps> = ({
           type={showPassword ? "text" : "password"}
           value={newPassword}
           onChange={setNewPassword}
-          placeholder="DoctorNewPassword@123"
+          placeholder="Enter a new password"
           Icon={Lock}
           rightElement={
             <button

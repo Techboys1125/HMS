@@ -37,7 +37,11 @@ import {
 } from "recharts";
 import { PP, RB } from "../constants/reports.constants";
 import type { BillingReportRecord } from "../types/reports.types";
-import { useInvoiceRegister, useInvoiceSummary } from "../hooks/useReports";
+import {
+  useInvoiceRegister,
+  useInvoiceSummary,
+  extractList,
+} from "../hooks/useReports";
 
 function CircularProgress({
   percentage,
@@ -101,16 +105,78 @@ export function BillingReportScreen({
   );
 
   // ─── API Data Hooks ──────────────────────────────────────────────────────
-  const reportFilters = { fromDate: "2026-08-01", toDate: "2026-08-08" };
-  const { data: invoiceRegisterData } = useInvoiceRegister(reportFilters);
+  const today = new Date().toISOString().slice(0, 10);
+  const getDateRange = (range: string) => {
+    const now = new Date();
+    if (range === "Today") return { fromDate: today, toDate: today };
+    if (range === "7 Days") {
+      const from = new Date(now);
+      from.setDate(now.getDate() - 7);
+      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+    }
+    if (range === "30 Days") {
+      const from = new Date(now);
+      from.setDate(now.getDate() - 30);
+      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+    }
+    return { fromDate: "2025-01-01", toDate: today };
+  };
+  const reportFilters = getDateRange(dateRange);
+  const { data: rawInvoiceRegister } = useInvoiceRegister(reportFilters);
   const { data: invoiceSummaryData } = useInvoiceSummary(reportFilters);
 
-  const totalBilled = invoiceSummaryData?.totalBilledAmount ?? 0;
-  const totalPaid = invoiceSummaryData?.totalPaidAmount ?? 0;
-  const totalOutstanding = invoiceSummaryData?.totalOutstandingAmount ?? 0;
-  const totalInvoices = invoiceSummaryData?.totalInvoices ?? 0;
-  const paidInvoices = invoiceSummaryData?.paidInvoices ?? 0;
-  const unpaidInvoices = invoiceSummaryData?.unpaidInvoices ?? 0;
+  const invoiceList = useMemo(() => extractList<any>(rawInvoiceRegister), [rawInvoiceRegister]);
+
+  // Map API invoice register to table format
+  const billingTableSource = useMemo(() => {
+    return invoiceList.map((d: any) => ({
+      invoiceId: d.invoiceNumber || d.invoiceId || d.receiptNumber || `INV-${d.id || ""}`,
+      patientName: d.patientName || "N/A",
+      mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+      doctorName: d.doctorName || "N/A",
+      department: d.department || "General Medicine",
+      invoiceDate: d.invoiceDate || d.paidAt || d.createdDate || today,
+      invoiceAmount: Number(d.billedAmount || d.amount || d.totalAmount || 0),
+      collectedAmount: Number(d.paidAmount || d.amount || d.collectedAmount || 0),
+      outstandingAmount: Number(d.outstandingAmount || 0),
+      paymentMethod:
+        (d.paymentMethod as BillingReportRecord["paymentMethod"]) ?? "Card",
+      paymentStatus: (d.paymentStatus
+        ? d.paymentStatus.charAt(0) + d.paymentStatus.slice(1).toLowerCase()
+        : "Pending") as BillingReportRecord["paymentStatus"],
+    }));
+  }, [invoiceList, today]);
+
+  const totalBilled = useMemo(() => {
+    if (invoiceSummaryData?.totalBilledAmount) return invoiceSummaryData.totalBilledAmount;
+    return billingTableSource.reduce((sum, d) => sum + d.invoiceAmount, 0);
+  }, [invoiceSummaryData, billingTableSource]);
+
+  const totalPaid = useMemo(() => {
+    if (invoiceSummaryData?.totalPaidAmount) return invoiceSummaryData.totalPaidAmount;
+    return billingTableSource.reduce((sum, d) => sum + d.collectedAmount, 0);
+  }, [invoiceSummaryData, billingTableSource]);
+
+  const totalOutstanding = useMemo(() => {
+    if (invoiceSummaryData?.totalOutstandingAmount != null) return invoiceSummaryData.totalOutstandingAmount;
+    return billingTableSource.reduce((sum, d) => sum + d.outstandingAmount, 0);
+  }, [invoiceSummaryData, billingTableSource]);
+
+  const totalInvoices = useMemo(() => {
+    if (invoiceSummaryData?.totalInvoices) return invoiceSummaryData.totalInvoices;
+    return billingTableSource.length;
+  }, [invoiceSummaryData, billingTableSource]);
+
+  const paidInvoices = useMemo(() => {
+    if (invoiceSummaryData?.paidInvoices != null) return invoiceSummaryData.paidInvoices;
+    return billingTableSource.filter((d) => d.paymentStatus === "Paid" || d.paymentStatus === "Cleared").length;
+  }, [invoiceSummaryData, billingTableSource]);
+
+  const unpaidInvoices = useMemo(() => {
+    if (invoiceSummaryData?.unpaidInvoices != null) return invoiceSummaryData.unpaidInvoices;
+    return totalInvoices - paidInvoices;
+  }, [invoiceSummaryData, totalInvoices, paidInvoices]);
+
   const collectionRate =
     totalBilled > 0 ? ((totalPaid / totalBilled) * 100).toFixed(1) : "--";
   const outstandingRate =
@@ -124,24 +190,72 @@ export function BillingReportScreen({
   const avgInvoiceValue =
     totalInvoices > 0 ? Math.round(totalBilled / totalInvoices) : 0;
 
-  // Map API invoice register to table format
-  const billingTableSource = useMemo(() => {
-    return (invoiceRegisterData?.content ?? []).map((d) => ({
-      invoiceId: d.invoiceNumber,
-      patientName: d.patientName,
-      mrn: "",
-      doctorName: "",
-      department: "",
-      invoiceDate: d.invoiceDate,
-      invoiceAmount: d.billedAmount,
-      collectedAmount: d.paidAmount,
-      outstandingAmount: d.outstandingAmount,
-      paymentMethod: "Card" as const,
-      paymentStatus:
-        (d.paymentStatus?.toLowerCase() as BillingReportRecord["paymentStatus"]) ??
-        "Pending",
+  const revenueTrendData = useMemo(() => {
+    const map: Record<
+      string,
+      { date: string; Revenue: number; Collections: number }
+    > = {};
+    billingTableSource.forEach((d) => {
+      if (!map[d.invoiceDate])
+        map[d.invoiceDate] = {
+          date: d.invoiceDate,
+          Revenue: 0,
+          Collections: 0,
+        };
+      map[d.invoiceDate].Revenue += d.invoiceAmount;
+      map[d.invoiceDate].Collections += d.collectedAmount;
+    });
+    return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
+  }, [billingTableSource]);
+
+  const paymentStatusData = useMemo(() => {
+    const map: Record<string, number> = {};
+    billingTableSource.forEach((d) => {
+      map[d.paymentStatus] = (map[d.paymentStatus] || 0) + 1;
+    });
+    const colors: Record<string, string> = {
+      Paid: "#009688",
+      Pending: "#F59E0B",
+      "Partially Paid": "#0D47A1",
+      Cancelled: "#EF4444",
+    };
+    return Object.entries(map).map(([name, value]) => ({
+      name,
+      value,
+      color: colors[name] || "#64748B",
     }));
-  }, [invoiceRegisterData?.content]);
+  }, [billingTableSource]);
+
+  const paymentMethodData = useMemo(() => {
+    const map: Record<string, number> = {};
+    billingTableSource.forEach((d) => {
+      map[d.paymentMethod] = (map[d.paymentMethod] || 0) + d.collectedAmount;
+    });
+    return Object.entries(map).map(([method, amount]) => ({
+      method,
+      amount,
+    }));
+  }, [billingTableSource]);
+
+  const deptPerformanceData = useMemo(() => {
+    const map: Record<string, { department: string; revenue: number }> = {};
+    billingTableSource.forEach((d) => {
+      if (!map[d.department])
+        map[d.department] = { department: d.department, revenue: 0 };
+      map[d.department].revenue += d.invoiceAmount;
+    });
+    return Object.values(map);
+  }, [billingTableSource]);
+
+  const doctorRevenueData = useMemo(() => {
+    const map: Record<string, { doctor: string; revenue: number }> = {};
+    billingTableSource.forEach((d) => {
+      if (!map[d.doctorName])
+        map[d.doctorName] = { doctor: d.doctorName, revenue: 0 };
+      map[d.doctorName].revenue += d.invoiceAmount;
+    });
+    return Object.values(map);
+  }, [billingTableSource]);
 
   // Table sorting & pagination
   const [sortField, setSortField] =
@@ -191,7 +305,14 @@ export function BillingReportScreen({
         matchesMethod
       );
     });
-  }, [searchQuery, deptFilter, doctorFilter, payStatusFilter, payMethodFilter, billingTableSource]);
+  }, [
+    searchQuery,
+    deptFilter,
+    doctorFilter,
+    payStatusFilter,
+    payMethodFilter,
+    billingTableSource,
+  ]);
 
   // Sorted records
   const sortedData = useMemo(() => {
@@ -226,7 +347,7 @@ export function BillingReportScreen({
     >
       {/* Top Header Section */}
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
@@ -319,7 +440,7 @@ export function BillingReportScreen({
       </div>
 
       {/* Main Container */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         {/* Global Search Bar */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
@@ -791,86 +912,88 @@ export function BillingReportScreen({
                 </div>
 
                 <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={[]}
-                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                    >
-                      <defs>
-                        <linearGradient
-                          id="colorRevGradB"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="#0D47A1"
-                            stopOpacity={0.4}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="#0D47A1"
-                            stopOpacity={0}
-                          />
-                        </linearGradient>
-                        <linearGradient
-                          id="colorColGradB"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="#009688"
-                            stopOpacity={0.4}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="#009688"
-                            stopOpacity={0}
-                          />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                      <XAxis
-                        dataKey="date"
-                        tick={{ fontSize: 11, fill: "#64748B" }}
-                      />
-                      <YAxis tick={{ fontSize: 11, fill: "#64748B" }} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "#FFFFFF",
-                          borderRadius: "12px",
-                          borderColor: "#E5E7EB",
-                          fontSize: "11px",
-                        }}
-                      />
-                      <Legend
-                        verticalAlign="top"
-                        height={36}
-                        wrapperStyle={{ fontSize: "11px" }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="Revenue"
-                        name="Billed Revenue (â‚¹)"
-                        stroke="#0D47A1"
-                        fillOpacity={1}
-                        fill="url(#colorRevGradB)"
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="Collections"
-                        name="Collected Cash (â‚¹)"
-                        stroke="#009688"
-                        fillOpacity={1}
-                        fill="url(#colorColGradB)"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  {revenueTrendData.length > 0 && (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={revenueTrendData}
+                        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="colorRevGradB"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#0D47A1"
+                              stopOpacity={0.4}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#0D47A1"
+                              stopOpacity={0}
+                            />
+                          </linearGradient>
+                          <linearGradient
+                            id="colorColGradB"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009688"
+                              stopOpacity={0.4}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009688"
+                              stopOpacity={0}
+                            />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                        <XAxis
+                          dataKey="date"
+                          tick={{ fontSize: 11, fill: "#64748B" }}
+                        />
+                        <YAxis tick={{ fontSize: 11, fill: "#64748B" }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#FFFFFF",
+                            borderRadius: "12px",
+                            borderColor: "#E5E7EB",
+                            fontSize: "11px",
+                          }}
+                        />
+                        <Legend
+                          verticalAlign="top"
+                          height={36}
+                          wrapperStyle={{ fontSize: "11px" }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="Revenue"
+                          name="Billed Revenue (â‚¹)"
+                          stroke="#0D47A1"
+                          fillOpacity={1}
+                          fill="url(#colorRevGradB)"
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="Collections"
+                          name="Collected Cash (â‚¹)"
+                          stroke="#009688"
+                          fillOpacity={1}
+                          fill="url(#colorColGradB)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               </div>
 
@@ -893,40 +1016,42 @@ export function BillingReportScreen({
                     <PieChart className="w-4 h-4 text-[#009688]" />
                   </div>
                   <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPie>
-                        <Pie
-                          data={[]}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={45}
-                          outerRadius={75}
-                          paddingAngle={3}
-                          dataKey="value"
-                        >
-                          {([] as Array<{ name?: string; color: string }>).map((entry) => (
-                            <Cell key={entry.name} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Legend
-                          layout="horizontal"
-                          verticalAlign="bottom"
-                          align="center"
-                          wrapperStyle={{
-                            fontSize: "10px",
-                            paddingTop: "10px",
-                          }}
-                        />
-                      </RechartsPie>
-                    </ResponsiveContainer>
+                    {paymentStatusData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RechartsPie>
+                          <Pie
+                            data={paymentStatusData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={45}
+                            outerRadius={75}
+                            paddingAngle={3}
+                            dataKey="value"
+                          >
+                            {paymentStatusData.map((entry) => (
+                              <Cell key={entry.name} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#FFFFFF",
+                              borderRadius: "12px",
+                              borderColor: "#E5E7EB",
+                              fontSize: "11px",
+                            }}
+                          />
+                          <Legend
+                            layout="horizontal"
+                            verticalAlign="bottom"
+                            align="center"
+                            wrapperStyle={{
+                              fontSize: "10px",
+                              paddingTop: "10px",
+                            }}
+                          />
+                        </RechartsPie>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
 
@@ -947,33 +1072,38 @@ export function BillingReportScreen({
                     <DollarSign className="w-4 h-4 text-[#0D47A1]" />
                   </div>
                   <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={[]}
-                        margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          dataKey="method"
-                          tick={{ fontSize: 10, fill: "#64748B" }}
-                        />
-                        <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Bar
-                          dataKey="amount"
-                          name="Amount Collected (â‚¹)"
-                          fill="#0D47A1"
-                          radius={[4, 4, 0, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    {paymentMethodData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={paymentMethodData}
+                          margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#F1F5F9"
+                          />
+                          <XAxis
+                            dataKey="method"
+                            tick={{ fontSize: 10, fill: "#64748B" }}
+                          />
+                          <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#FFFFFF",
+                              borderRadius: "12px",
+                              borderColor: "#E5E7EB",
+                              fontSize: "11px",
+                            }}
+                          />
+                          <Bar
+                            dataKey="amount"
+                            name="Amount Collected (â‚¹)"
+                            fill="#0D47A1"
+                            radius={[4, 4, 0, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
               </div>
@@ -997,39 +1127,44 @@ export function BillingReportScreen({
                     <Building2 className="w-4 h-4 text-[#009688]" />
                   </div>
                   <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        layout="vertical"
-                        data={[]}
-                        margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          type="number"
-                          tick={{ fontSize: 10, fill: "#64748B" }}
-                        />
-                        <YAxis
-                          type="category"
-                          dataKey="department"
-                          tick={{ fontSize: 10, fill: "#111827" }}
-                          width={80}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Bar
-                          dataKey="revenue"
-                          name="Revenue (â‚¹)"
-                          fill="#009688"
-                          radius={[0, 4, 4, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    {deptPerformanceData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          layout="vertical"
+                          data={deptPerformanceData}
+                          margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#F1F5F9"
+                          />
+                          <XAxis
+                            type="number"
+                            tick={{ fontSize: 10, fill: "#64748B" }}
+                          />
+                          <YAxis
+                            type="category"
+                            dataKey="department"
+                            tick={{ fontSize: 10, fill: "#111827" }}
+                            width={80}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#FFFFFF",
+                              borderRadius: "12px",
+                              borderColor: "#E5E7EB",
+                              fontSize: "11px",
+                            }}
+                          />
+                          <Bar
+                            dataKey="revenue"
+                            name="Revenue (â‚¹)"
+                            fill="#009688"
+                            radius={[0, 4, 4, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
 
@@ -1050,33 +1185,38 @@ export function BillingReportScreen({
                     <UserCheck className="w-4 h-4 text-[#0D47A1]" />
                   </div>
                   <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={[]}
-                        margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          dataKey="doctor"
-                          tick={{ fontSize: 9, fill: "#64748B" }}
-                        />
-                        <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Bar
-                          dataKey="revenue"
-                          name="Revenue (â‚¹)"
-                          fill="#0D47A1"
-                          radius={[4, 4, 0, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    {doctorRevenueData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={doctorRevenueData}
+                          margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#F1F5F9"
+                          />
+                          <XAxis
+                            dataKey="doctor"
+                            tick={{ fontSize: 9, fill: "#64748B" }}
+                          />
+                          <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#FFFFFF",
+                              borderRadius: "12px",
+                              borderColor: "#E5E7EB",
+                              fontSize: "11px",
+                            }}
+                          />
+                          <Bar
+                            dataKey="revenue"
+                            name="Revenue (â‚¹)"
+                            fill="#0D47A1"
+                            radius={[4, 4, 0, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
               </div>

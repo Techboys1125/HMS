@@ -9,6 +9,7 @@ import {
 import { TextField } from "../components/TextField";
 import { useForgotPassword } from "../hooks/useForgotPassword";
 import logoImage from "../../../assets/safehandshospital_logo.webp";
+import { useHospitalBranding } from "../../settings/hooks/useHospitalBranding";
 
 interface ForgotPasswordPageProps {
   onBackToLogin?: () => void;
@@ -19,6 +20,7 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({
   onBackToLogin = () => {},
   onSendOTP = () => {},
 }) => {
+  const { logoUrl } = useHospitalBranding();
   const [email, setEmail] = useState("");
   const { sendResetLink, loading, error } = useForgotPassword(onSendOTP);
 
@@ -38,8 +40,8 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({
           <ArrowLeft className="w-4 h-4" /> Back to Sign In
         </button>
         <img
-          src={logoImage}
-          alt="Safe Hands Logo"
+          src={logoUrl || logoImage}
+          alt="Hospital Logo"
           className="h-8 w-auto object-contain"
         />
       </div>

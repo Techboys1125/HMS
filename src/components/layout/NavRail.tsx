@@ -25,7 +25,6 @@ const navItemPermissions: Record<string, string> = {
   "audit-logs": "USER_VIEW",
   "family-members": "FAMILY_MEMBER_VIEW",
   "queue-status": "QUEUE_VIEW",
-  notifications: "NOTIFICATION_VIEW",
   settings: "DASHBOARD_VIEW",
   profile: "PROFILE_VIEW",
   "medical-history": "MEDICAL_HISTORY_VIEW",

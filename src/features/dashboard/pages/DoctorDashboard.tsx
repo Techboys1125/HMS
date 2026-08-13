@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router";
+import { useMemo } from "react";
 import { ROUTES } from "../../../app/routes/routes";
 import {
   Calendar,
@@ -23,6 +24,15 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import {
+  useDoctorStatistics,
+  useDoctorCurrentPatient,
+  useDoctorNextPatient,
+  useDoctorTodayAppointments,
+  useDoctorConsultationQueue,
+  useDoctorCallToken,
+  useDoctorCompleteAppointment,
+} from "../hooks/useDoctorDashboard";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -54,7 +64,9 @@ function DKpi({
     <div
       onClick={onClick}
       className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
-        onClick ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-all duration-200" : ""
+        onClick
+          ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-all duration-200"
+          : ""
       }`}
     >
       <div className="flex items-start justify-between">
@@ -121,11 +133,13 @@ function Av({
   name,
   size = "sm",
 }: {
-  name: string;
+  name?: string;
   size?: "sm" | "md" | "lg";
 }) {
-  const initials = name
+  const safeName = (name || "??").trim() || "??";
+  const initials = safeName
     .split(" ")
+    .filter(Boolean)
     .map((n) => n[0])
     .join("")
     .slice(0, 2)
@@ -137,7 +151,8 @@ function Av({
     "bg-rose-500",
     "bg-amber-600",
   ];
-  const bg = palette[name.charCodeAt(0) % palette.length];
+  const bg =
+    palette[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % palette.length];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -211,40 +226,40 @@ function SH({
     </div>
   );
 }
-// Section 01: Consultation Progress Throughout the Day (Line Chart)
-const DOC_HOURLY_PROGRESS: { hour: string; completed: number; remaining: number }[] = [];
+// ─── API status → UI mapping helpers ────────────────────────────────────────
+const DOC_STATUS_LABEL: Record<string, string> = {
+  SCHEDULED: "Scheduled",
+  BOOKED: "Scheduled",
+  CHECKED_IN: "Checked In",
+  WAITING_FOR_VITALS: "Waiting",
+  WAITING_FOR_DOCTOR_CALL: "Waiting",
+  IN_CONSULTATION: "In Consultation",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
+  NO_SHOW: "No Show",
+};
 
-// Section 02: Patient Consultation Status (Donut Chart)
-const DOC_PATIENT_STATUS_DIST: {
-  name: string; value: number; color: string 
-}[] = [];
-
-// Section 03: Appointment Timeline (Clinical details without billing)
-const DOC_APPT_TIMELINE: {
-  time: string; name: string; age: number; gender: string; visitType: string; room: string; token: string; status: string 
-}[] = [];
-
-// Section 05: Consultation Types (Horizontal Bar Chart)
-const DOC_CONSULTATION_TYPES: { type: string; count: number }[] = [];
-
-// Section 06: Prescriptions Issued Today (Pie Chart)
-const DOC_PRESCRIPTION_SUMMARY: {
-  category: string; count: number; color: string 
-}[] = [];
-
-// Section 09: Today's Performance Summary (Statistics Table)
-const DOC_PERFORMANCE_METRICS: { metric: string; today: string; yesterday: string; status: string }[] = [];
+const DOC_STATUS_COLOR: Record<string, string> = {
+  Scheduled: "#0D47A1",
+  "Checked In": "#009688",
+  Waiting: "#F59E0B",
+  "In Consultation": "#009688",
+  Completed: "#66BB6A",
+  Cancelled: "#EF4444",
+  "No Show": "#64748B",
+};
 
 const DOC_STATUS_CHIP: Record<
   string,
   "success" | "teal" | "warning" | "error" | "info" | "default"
 > = {
-  Completed: "success",
-  "In Consultation": "teal",
+  Scheduled: "info",
+  "Checked In": "teal",
   Waiting: "warning",
-  Ready: "info",
-  Scheduled: "default",
+  "In Consultation": "teal",
+  Completed: "success",
   Cancelled: "error",
+  "No Show": "error",
 };
 
 const DOC_QUICK_ACTIONS = [
@@ -254,9 +269,132 @@ const DOC_QUICK_ACTIONS = [
   { label: "Add Clinical Note", Icon: ClipboardList, color: "#009688" },
 ];
 
+const hourKey = (time: string) => {
+  const match = time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+  if (!match) return "";
+  let hour = parseInt(match[1], 10) % 12;
+  if (match[3] && /pm/i.test(match[3])) hour += 12;
+  if (!match[3] && parseInt(match[1], 10) >= 12 && !match[1].startsWith("0")) {
+    hour = parseInt(match[1], 10) % 24;
+  }
+  return `${String(hour).padStart(2, "0")}:00`;
+};
+
 export function DoctorDashboard() {
   const navigate = useNavigate();
-  
+
+  const statsQuery = useDoctorStatistics();
+  const currentPatientQuery = useDoctorCurrentPatient();
+  const nextPatientQuery = useDoctorNextPatient();
+  const todayAppointmentsQuery = useDoctorTodayAppointments();
+  const consultationQueueQuery = useDoctorConsultationQueue();
+  const callTokenMutation = useDoctorCallToken();
+  const completeMutation = useDoctorCompleteAppointment();
+
+  const stats = statsQuery.data;
+  const currentPatient = currentPatientQuery.data;
+  const nextPatient = nextPatientQuery.data;
+  const rawTimeline = todayAppointmentsQuery.data?.timeline;
+  const timelineItems = useMemo(() => rawTimeline || [], [rawTimeline]);
+  const consultationQueue = consultationQueueQuery.data;
+
+  const parseMinutes = (val?: string) => {
+    if (!val) return 0;
+    const n = parseInt(val.replace(/[^\d]/g, ""), 10);
+    return Number.isNaN(n) ? 0 : n;
+  };
+
+  const hourlyProgress = useMemo(() => {
+    const hours = Array.from(
+      { length: 10 },
+      (_, i) => `${String(i + 8).padStart(2, "0")}:00`,
+    );
+    let running = 0;
+    return hours.map((hour) => {
+      const completedAtHour = timelineItems.filter(
+        (a) => a.status === "COMPLETED" && hourKey(a.time) === hour,
+      ).length;
+      running += completedAtHour;
+      return { hour, completed: running, remaining: 0 };
+    });
+  }, [timelineItems]);
+
+  const totalAppointmentsToday = stats?.todayAppointments ?? 0;
+  const completedNow =
+    stats?.completed ??
+    hourlyProgress[hourlyProgress.length - 1]?.completed ??
+    0;
+  const remainingQueue = consultationQueue?.summary?.waiting ?? 0;
+
+  const statusDist = useMemo(() => {
+    const counts = new Map<string, number>();
+    timelineItems.forEach((a) => {
+      const label = DOC_STATUS_LABEL[a.status] || a.status || "Unknown";
+      counts.set(label, (counts.get(label) || 0) + 1);
+    });
+    return Array.from(counts.entries()).map(([name, value]) => ({
+      name,
+      value,
+      color: DOC_STATUS_COLOR[name] || "#64748B",
+    }));
+  }, [timelineItems]);
+
+  const performanceMetrics = useMemo(() => {
+    const completionPct =
+      totalAppointmentsToday > 0
+        ? Math.round(((stats?.completed ?? 0) / totalAppointmentsToday) * 100)
+        : 0;
+    const avgMins = parseMinutes(stats?.averageConsultationTime);
+    return [
+      {
+        metric: "Appointments Today",
+        value: String(totalAppointmentsToday),
+        status: totalAppointmentsToday > 0 ? "ACTIVE" : "--",
+      },
+      {
+        metric: "Completed Consultations",
+        value: String(stats?.completed ?? 0),
+        status:
+          completionPct >= 60
+            ? "AHEAD"
+            : completionPct > 0
+              ? "ON TRACK"
+              : "PENDING",
+      },
+      {
+        metric: "Pending Consultations",
+        value: String(stats?.pending ?? 0),
+        status: (stats?.pending ?? 0) > 0 ? "PENDING" : "CLEARED",
+      },
+      {
+        metric: "Average Consultation Time",
+        value: `${avgMins} min`,
+        status:
+          avgMins > 0 && avgMins <= 15
+            ? "EFFICIENT"
+            : avgMins > 15
+              ? "REVIEW"
+              : "--",
+      },
+      {
+        metric: "Queue Waiting",
+        value: String(remainingQueue),
+        status: remainingQueue > 0 ? "PENDING" : "CLEARED",
+      },
+    ];
+  }, [stats, totalAppointmentsToday, remainingQueue]);
+
+  const callNext = () => {
+    if (!nextPatient) return;
+    callTokenMutation.mutate(nextPatient.token);
+  };
+
+  const completeVisit = () => {
+    if (!currentPatient) return;
+    completeMutation.mutate(currentPatient.appointmentId);
+  };
+
+  const isLoading = statsQuery.isLoading;
 
   return (
     <div
@@ -287,63 +425,116 @@ export function DoctorDashboard() {
       <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
         <DKpi
           title="Today's Appointments"
-          value="0"
-          sub="--"
-          trend="--"
-          up={true}
-          data={[{ v: 0 }]}
+          value={String(totalAppointmentsToday)}
+          sub={isLoading ? "Loading..." : "Scheduled today"}
+          trend={totalAppointmentsToday > 0 ? "+100%" : "--"}
+          up={totalAppointmentsToday > 0}
+          data={
+            hourlyProgress.length > 0
+              ? hourlyProgress.map((h) => ({ v: h.completed }))
+              : [{ v: 0 }]
+          }
           color="#0D47A1"
           gid="doc1"
           Icon={Calendar}
-          onClick={() => navigate(`${ROUTES.REPORTS}?report=daily-appointments`)}
+          onClick={() =>
+            navigate(`${ROUTES.REPORTS}?report=daily-appointments`)
+          }
         />
         <DKpi
           title="Patients Consulted"
-          value="0"
-          sub="--"
-          trend="--"
+          value={String(stats?.completedConsultations ?? stats?.completed ?? 0)}
+          sub={isLoading ? "Loading..." : "Completed today"}
+          trend={
+            (stats?.completedConsultations ?? stats?.completed ?? 0) > 0
+              ? "+100%"
+              : "--"
+          }
           up={true}
-          data={[{ v: 0 }]}
+          data={
+            hourlyProgress.length > 0
+              ? hourlyProgress.map((h) => ({ v: h.completed }))
+              : [{ v: 0 }]
+          }
           color="#66BB6A"
           gid="doc2"
           Icon={CheckSquare}
-          onClick={() => navigate(`${ROUTES.REPORTS}?report=patient-registrations`)}
+          onClick={() =>
+            navigate(`${ROUTES.REPORTS}?report=patient-registrations`)
+          }
         />
         <DKpi
           title="Pending Consultations"
-          value="0"
-          sub="--"
-          trend="--"
-          up={false}
-          data={[{ v: 0 }]}
+          value={String(stats?.pendingConsultations ?? stats?.pending ?? 0)}
+          sub={isLoading ? "Loading..." : "Awaiting consultation"}
+          trend={
+            (stats?.pendingConsultations ?? stats?.pending ?? 0) > 0
+              ? "Action Required"
+              : "All Clear"
+          }
+          up={
+            stats
+              ? (stats.pendingConsultations ?? stats.pending ?? 0) === 0
+              : false
+          }
+          data={
+            hourlyProgress.length > 0
+              ? hourlyProgress.map((h) => ({ v: h.completed }))
+              : [{ v: 0 }]
+          }
           color="#F59E0B"
           gid="doc3"
           Icon={Clock}
-          onClick={() => navigate(`${ROUTES.REPORTS}?report=daily-appointments`)}
+          onClick={() =>
+            navigate(`${ROUTES.REPORTS}?report=daily-appointments`)
+          }
         />
         <DKpi
-          title="Prescriptions Issued"
-          value="0"
-          sub="--"
-          trend="--"
-          up={true}
-          data={[{ v: 0 }]}
+          title="Avg Consultation Time"
+          value={
+            stats
+              ? `${stats.averageConsultationTimeMinutes ?? (parseInt(stats.averageConsultationTime || "12") || 12)} min`
+              : "--"
+          }
+          sub={isLoading ? "Loading..." : "Per patient"}
+          trend={
+            stats &&
+            (stats.averageConsultationTimeMinutes ??
+              (parseInt(stats.averageConsultationTime || "12") || 12)) <= 15
+              ? "Efficient"
+              : "Review"
+          }
+          up={
+            stats
+              ? (stats.averageConsultationTimeMinutes ??
+                  (parseInt(stats.averageConsultationTime || "12") || 12)) <= 15
+              : false
+          }
+          data={[
+            {
+              v:
+                stats?.averageConsultationTimeMinutes ??
+                (stats?.averageConsultationTime
+                  ? parseInt(stats.averageConsultationTime)
+                  : 12) ??
+                0,
+            },
+          ]}
           color="#009688"
           gid="doc4"
           Icon={Pill}
-          onClick={() => navigate(`${ROUTES.REPORTS}?report=doctor-performance`)}
         />
         <DKpi
-          title="Consultation Revenue"
-          value="0"
-          sub="--"
-          trend="--"
+          title="Queue Waiting"
+          value={String(remainingQueue)}
+          sub={isLoading ? "Loading..." : "Patients in queue"}
+          trend={remainingQueue > 0 ? `${remainingQueue} waiting` : "No queue"}
           up={true}
-          data={[{ v: 0 }]}
+          data={[{ v: remainingQueue }]}
           color="#0D47A1"
           gid="doc5"
           Icon={DollarSign}
-          onClick={() => navigate(`${ROUTES.REPORTS}?kpi=Consultation Revenue`)}
+          onClick={() => navigate(`${ROUTES.APPOINTMENTS}`)}
         />
       </div>
 
@@ -366,28 +557,57 @@ export function DoctorDashboard() {
             className="ml-auto font-mono text-xs font-semibold text-[#64748B]"
             style={{ fontFamily: RB }}
           >
-            --
+            {currentPatient
+              ? currentPatient.token
+              : currentPatientQuery.isLoading
+                ? "Loading..."
+                : "No active token"}
           </span>
         </div>
         <div className="flex items-center gap-4 flex-wrap xl:flex-nowrap">
-          <Av name="No Active Patient" size="lg" />
+          <Av
+            name={currentPatient?.patientName || "No Active Patient"}
+            size="lg"
+          />
           <div className="flex-1 min-w-50">
             <div className="flex items-center gap-2">
               <span
                 className="text-lg font-bold text-[#111827]"
                 style={{ fontFamily: PP }}
               >
-                No Active Patient
+                {currentPatient?.patientName || "No Active Patient"}
               </span>
+              {currentPatient && (
+                <span className="font-mono text-xs text-[#64748B]">
+                  {currentPatient.appointmentId} · {currentPatient.patientId}
+                </span>
+              )}
             </div>
             <div
               className="text-xs text-[#64748B] mt-0.5"
               style={{ fontFamily: RB }}
             >
-              No active consultation
+              {currentPatient
+                ? `${currentPatient.age} Yrs / ${currentPatient.gender} · BP ${currentPatient.vitals?.bp || "--"} · Pulse ${currentPatient.vitals?.pulse || "--"} · Temp ${currentPatient.vitals?.temperature || "--"}`
+                : currentPatientQuery.isLoading
+                  ? "Loading active consultation..."
+                  : "No active consultation"}
             </div>
             <div className="flex items-center gap-2 mt-2">
-              <Chip label="In Consultation" variant="teal" />
+              <Chip
+                label={
+                  DOC_STATUS_LABEL[
+                    currentPatient?.consultationStatus || "SCHEDULED"
+                  ] || "In Consultation"
+                }
+                variant={
+                  DOC_STATUS_CHIP[
+                    DOC_STATUS_LABEL[
+                      currentPatient?.consultationStatus || "SCHEDULED"
+                    ] || "In Consultation"
+                  ] || "teal"
+                }
+              />
             </div>
           </div>
           <div className="flex gap-2 shrink-0">
@@ -404,10 +624,13 @@ export function DoctorDashboard() {
               <Pill size={13} /> Prescribe
             </button>
             <button
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#0D47A1] text-[#0D47A1] text-xs font-semibold hover:bg-blue-50 transition-colors"
+              onClick={completeVisit}
+              disabled={!currentPatient || completeMutation.isPending}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#0D47A1] text-[#0D47A1] text-xs font-semibold hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: PP }}
             >
-              <CheckSquare size={13} /> Complete Visit
+              <CheckSquare size={13} />
+              {completeMutation.isPending ? "Completing..." : "Complete Visit"}
             </button>
           </div>
         </div>
@@ -436,12 +659,18 @@ export function DoctorDashboard() {
               className="text-[10px] font-semibold text-[#009688] bg-teal-50 px-2 py-0.5 rounded-full"
               style={{ fontFamily: RB }}
             >
-              Pace: 0 Patients/Hour
+              Pace:{" "}
+              {stats?.averageConsultationTimeMinutes ??
+                (stats?.averageConsultationTime
+                  ? parseInt(stats.averageConsultationTime)
+                  : 12) ??
+                0}{" "}
+              min/consultation
             </span>
           </div>
           <ResponsiveContainer width="100%" height={210}>
             <AreaChart
-              data={DOC_HOURLY_PROGRESS}
+              data={hourlyProgress}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
             >
               <defs>
@@ -497,12 +726,12 @@ export function DoctorDashboard() {
           >
             <span>Target completion by 05:00 PM</span>
             <span className="font-semibold text-[#111827]">
-              0 Completed · 0 Remaining Queue
+              {completedNow} Completed · {remainingQueue} Remaining Queue
             </span>
           </div>
         </div>
 
-        {/* Section 02: Today's Patient Status (Donut Chart) */}
+        {/* Section 02: Today's Patient Status (Bar Chart) */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
           <SH
             title="Patient Consultation Status"
@@ -510,7 +739,7 @@ export function DoctorDashboard() {
           />
           <ResponsiveContainer width="100%" height={170}>
             <BarChart
-              data={DOC_PATIENT_STATUS_DIST}
+              data={statusDist}
               layout="vertical"
               margin={{ top: 0, right: 15, left: 10, bottom: 0 }}
             >
@@ -533,7 +762,7 @@ export function DoctorDashboard() {
                 formatter={(v: unknown) => [`${v} Patients`, "Count"]}
               />
               <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={14}>
-                {DOC_PATIENT_STATUS_DIST.map((entry) => (
+                {statusDist.map((entry) => (
                   <Cell key={entry.name} fill={entry.color} />
                 ))}
               </Bar>
@@ -543,7 +772,7 @@ export function DoctorDashboard() {
             className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-gray-50 text-xs"
             style={{ fontFamily: RB }}
           >
-            {DOC_PATIENT_STATUS_DIST.map((s) => (
+            {statusDist.map((s) => (
               <div
                 key={s.name}
                 className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50"
@@ -563,7 +792,7 @@ export function DoctorDashboard() {
             className="mt-2 text-[11px] text-center text-[#64748B]"
             style={{ fontFamily: RB }}
           >
-            0 Total Appointments Today
+            {totalAppointmentsToday} Total Appointments Today
           </div>
         </div>
       </div>
@@ -598,15 +827,7 @@ export function DoctorDashboard() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-50 bg-slate-50/50">
-                  {[
-                    "Time",
-                    "Token",
-                    "Patient Name",
-                    "Age / Gender",
-                    "Visit Type",
-                    "Room",
-                    "Status",
-                  ].map((h) => (
+                  {["Time", "Token", "Patient Name", "Status"].map((h) => (
                     <th
                       key={h}
                       className="px-5 py-3 text-left text-xs font-semibold text-[#64748B]"
@@ -618,8 +839,11 @@ export function DoctorDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {DOC_APPT_TIMELINE.map((a) => (
-                  <tr key={a.token} className="hover:bg-slate-50 transition-colors">
+                {timelineItems.map((a) => (
+                  <tr
+                    key={a.appointmentId || a.token}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
                     <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
                       {a.time}
                     </td>
@@ -628,36 +852,23 @@ export function DoctorDashboard() {
                     </td>
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-2">
-                        <Av name={a.name} size="sm" />
+                        <Av name={a.patientName} size="sm" />
                         <span
                           className="text-xs font-medium text-[#111827]"
                           style={{ fontFamily: RB }}
                         >
-                          {a.name}
+                          {a.patientName}
                         </span>
                       </div>
                     </td>
-                    <td
-                      className="px-5 py-3 text-xs text-[#64748B]"
-                      style={{ fontFamily: RB }}
-                    >
-                      {a.age} Yrs / {a.gender}
-                    </td>
-                    <td
-                      className="px-5 py-3 text-xs text-[#111827]"
-                      style={{ fontFamily: RB }}
-                    >
-                      {a.visitType}
-                    </td>
-                    <td className="px-5 py-3">
-                      <span className="font-mono text-[10px] font-semibold text-[#009688] bg-teal-50 px-1.5 py-0.5 rounded">
-                        {a.room}
-                      </span>
-                    </td>
                     <td className="px-5 py-3">
                       <Chip
-                        label={a.status}
-                        variant={DOC_STATUS_CHIP[a.status] || "default"}
+                        label={DOC_STATUS_LABEL[a.status] || a.status}
+                        variant={
+                          DOC_STATUS_CHIP[
+                            DOC_STATUS_LABEL[a.status] || a.status
+                          ] || "default"
+                        }
                       />
                     </td>
                   </tr>
@@ -669,7 +880,13 @@ export function DoctorDashboard() {
             className="px-5 py-3 border-t border-gray-50 flex items-center justify-between text-xs text-[#64748B]"
             style={{ fontFamily: RB }}
           >
-            <span>No appointments scheduled</span>
+            <span>
+              {timelineItems.length > 0
+                ? `${timelineItems.length} appointments today`
+                : todayAppointmentsQuery.isLoading
+                  ? "Loading appointments..."
+                  : "No appointments scheduled"}
+            </span>
             <button className="text-[#0D47A1] font-semibold hover:underline">
               View Full Schedule →
             </button>
@@ -695,16 +912,23 @@ export function DoctorDashboard() {
                     className="text-sm font-bold text-[#111827]"
                     style={{ fontFamily: PP }}
                   >
-                    --
+                    {currentPatient?.patientName || "No Active Patient"}
                   </div>
                   <div
                     className="text-xs text-[#64748B]"
                     style={{ fontFamily: RB }}
                   >
-                    --
+                    {currentPatient
+                      ? `${currentPatient.token} · ${currentPatient.appointmentId}`
+                      : currentPatientQuery.isLoading
+                        ? "Loading..."
+                        : "No active consultation"}
                   </div>
                 </div>
-                <Chip label="In Progress" variant="teal" />
+                <Chip
+                  label={currentPatient ? "In Progress" : "Idle"}
+                  variant={currentPatient ? "teal" : "default"}
+                />
               </div>
             </div>
 
@@ -722,16 +946,23 @@ export function DoctorDashboard() {
                     className="text-sm font-bold text-[#111827]"
                     style={{ fontFamily: PP }}
                   >
-                    --
+                    {nextPatient?.patientName || "No Next Patient"}
                   </div>
                   <div
                     className="text-xs text-[#64748B]"
                     style={{ fontFamily: RB }}
                   >
-                    --
+                    {nextPatient
+                      ? `${nextPatient.token} · At ${nextPatient.appointmentTime}`
+                      : nextPatientQuery.isLoading
+                        ? "Loading..."
+                        : "Queue is empty"}
                   </div>
                 </div>
-                <Chip label="Waiting" variant="warning" />
+                <Chip
+                  label={nextPatient ? "Waiting" : "Empty"}
+                  variant={nextPatient ? "warning" : "default"}
+                />
               </div>
             </div>
 
@@ -748,7 +979,7 @@ export function DoctorDashboard() {
                   className="text-base font-bold text-[#111827] mt-0.5"
                   style={{ fontFamily: PP }}
                 >
-                  0
+                  {remainingQueue}
                 </div>
               </div>
               <div className="p-2 rounded-xl bg-slate-50 border border-[#E5E7EB]">
@@ -756,13 +987,13 @@ export function DoctorDashboard() {
                   className="text-[10px] text-[#64748B]"
                   style={{ fontFamily: RB }}
                 >
-                  Avg Wait Time
+                  Next Token
                 </div>
                 <div
                   className="text-base font-bold text-[#F59E0B] mt-0.5"
                   style={{ fontFamily: PP }}
                 >
-                  --
+                  {nextPatient?.token || "--"}
                 </div>
               </div>
               <div className="p-2 rounded-xl bg-slate-50 border border-[#E5E7EB]">
@@ -770,143 +1001,84 @@ export function DoctorDashboard() {
                   className="text-[10px] text-[#64748B]"
                   style={{ fontFamily: RB }}
                 >
-                  Est. Completion
+                  Next At
                 </div>
                 <div
                   className="text-base font-bold text-[#009688] mt-0.5"
                   style={{ fontFamily: PP }}
                 >
-                  --
+                  {nextPatient?.appointmentTime || "--"}
                 </div>
               </div>
             </div>
           </div>
 
           <button
-            className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-sm"
+            onClick={callNext}
+            disabled={!nextPatient || callTokenMutation.isPending}
+            className="w-full mt-3 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ fontFamily: PP }}
           >
-            <Stethoscope size={13} /> No Patients in Queue
+            <Stethoscope size={13} />
+            {callTokenMutation.isPending
+              ? "Calling..."
+              : nextPatient
+                ? `Call Next Patient (${nextPatient.token})`
+                : "No Patients in Queue"}
           </button>
         </div>
       </div>
 
-      {/* ── Section 05 & 06: Consultation Categories & Prescription Summary ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-        {/* Section 05: Today's Consultation Categories (Horizontal Bar Chart) */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
-          <SH
-            title="Consultation Types"
-            sub="Today's Workload Distribution by Category"
-          />
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart
-              data={DOC_CONSULTATION_TYPES}
-              layout="vertical"
-              margin={{ top: 0, right: 20, left: 20, bottom: 0 }}
-            >
-              <XAxis
-                type="number"
-                tick={{ fontSize: 10, fill: "#94A3B8" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                dataKey="type"
-                type="category"
-                tick={{ fontSize: 11, fill: "#111827", fontFamily: RB }}
-                axisLine={false}
-                tickLine={false}
-                width={130}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: "#fff",
-                  border: "1px solid #E5E7EB",
-                  borderRadius: 12,
-                  fontSize: 12,
-                }}
-                formatter={(v: unknown) => [`${v} Patients`, "Volume"]}
-              />
-              <Bar
-                dataKey="count"
-                fill="#0D47A1"
-                radius={[0, 4, 4, 0]}
-                barSize={14}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-          <div
-            className="mt-2 pt-3 border-t border-gray-50 text-xs text-[#64748B] flex items-center justify-between"
-            style={{ fontFamily: RB }}
-          >
-            <span>No Data</span>
-            <span className="font-semibold text-[#0D47A1]">
-              0 Total Consultations
-            </span>
-          </div>
-        </div>
-
-        {/* Section 06: Prescription Summary (Pie Chart) */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
-          <SH
-            title="Prescriptions Issued Today"
-            sub="Summary of Today's Prescription Activity"
-          />
-          <ResponsiveContainer width="100%" height={160}>
-            <BarChart
-              data={DOC_PRESCRIPTION_SUMMARY}
-              margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
-            >
-              <XAxis
-                dataKey="category"
-                tick={{ fontSize: 10, fill: "#64748B", fontFamily: RB }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 10, fill: "#94A3B8" }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: "#fff",
-                  border: "1px solid #E5E7EB",
-                  borderRadius: 12,
-                  fontSize: 12,
-                }}
-                formatter={(v: unknown) => [`${v} Prescriptions`, "Count"]}
-              />
-              <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={22}>
-                {DOC_PRESCRIPTION_SUMMARY.map((entry) => (
-                  <Cell key={entry.category} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-          <div
-            className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-gray-50 text-xs"
-            style={{ fontFamily: RB }}
-          >
-            {DOC_PRESCRIPTION_SUMMARY.map((p) => (
+      {/* ── Section 05: Consultation Queue (Live Tokens) ── */}
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+        <SH
+          title="Consultation Queue"
+          sub="Live waiting tokens for this doctor"
+        />
+        <div className="space-y-2">
+          {(consultationQueue?.queue || []).length > 0 ? (
+            consultationQueue.queue.map((qItem, idx) => (
               <div
-                key={p.category}
-                className="flex items-center justify-between"
+                key={qItem.token || qItem.patientId || `q-${idx}`}
+                className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-[#E5E7EB]"
               >
-                <span className="text-[#64748B] text-[11px]">
-                  {p.category}:
-                </span>
-                <span className="font-bold text-[#111827]">{p.count}</span>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-sm font-bold text-[#0D47A1]">
+                    {qItem.token}
+                  </span>
+                  <span className="text-xs text-[#64748B]">
+                    {qItem.patientName} · {qItem.departmentName}
+                  </span>
+                </div>
+                <button
+                  onClick={() => callTokenMutation.mutate(qItem.token)}
+                  disabled={callTokenMutation.isPending}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors disabled:opacity-50"
+                  style={{ fontFamily: PP }}
+                >
+                  <Stethoscope size={12} /> Call Now
+                </button>
               </div>
-            ))}
-          </div>
-          <div
-            className="mt-2 text-xs font-semibold text-center text-[#009688]"
-            style={{ fontFamily: PP }}
-          >
-            Total Prescriptions Issued: 0
-          </div>
+            ))
+          ) : (
+            <div
+              className="p-6 text-center text-xs text-[#64748B] border border-dashed border-[#E5E7EB] rounded-xl"
+              style={{ fontFamily: RB }}
+            >
+              {consultationQueueQuery.isLoading
+                ? "Loading queue..."
+                : "No patients waiting in queue"}
+            </div>
+          )}
+        </div>
+        <div
+          className="mt-3 pt-3 border-t border-gray-50 text-xs text-[#64748B] flex items-center justify-between"
+          style={{ fontFamily: RB }}
+        >
+          <span>Queue length</span>
+          <span className="font-semibold text-[#0D47A1]">
+            {remainingQueue} Waiting
+          </span>
         </div>
       </div>
 
@@ -937,7 +1109,7 @@ export function DoctorDashboard() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-50 bg-slate-50/50">
-              {["Metric", "Today", "Yesterday", "Status"].map((h) => (
+              {["Metric", "Value", "Status"].map((h) => (
                 <th
                   key={h}
                   className="px-5 py-3 text-left text-xs font-semibold text-[#64748B]"
@@ -949,7 +1121,7 @@ export function DoctorDashboard() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {DOC_PERFORMANCE_METRICS.map((m) => (
+            {performanceMetrics.map((m) => (
               <tr
                 key={m.metric}
                 className="hover:bg-slate-50 transition-colors"
@@ -961,21 +1133,21 @@ export function DoctorDashboard() {
                   {m.metric}
                 </td>
                 <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                  {m.today}
-                </td>
-                <td className="px-5 py-3 font-mono text-xs font-semibold text-[#64748B]">
-                  {m.yesterday}
+                  {m.value}
                 </td>
                 <td className="px-5 py-3">
                   <Chip
                     label={m.status}
                     variant={
-                      m.status.includes("Ahead") ||
-                      m.status.includes("Efficient")
+                      m.status === "AHEAD" ||
+                      m.status === "EFFICIENT" ||
+                      m.status === "CLEARED"
                         ? "success"
-                        : m.status.includes("Low")
+                        : m.status === "ON TRACK" || m.status === "ACTIVE"
                           ? "info"
-                          : "default"
+                          : m.status === "PENDING" || m.status === "REVIEW"
+                            ? "warning"
+                            : "default"
                     }
                   />
                 </td>

@@ -1,350 +1,414 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  fetchAuditLogs,
-  fetchAuditLogById,
-  fetchAuditLogSummary,
-  fetchCriticalEvents,
-  fetchAuditDashboard,
-  fetchAuditFilterOptions,
-  fetchMainAuditLogs,
-  fetchAuditEventDetail,
-  fetchAuditMetrics,
-  fetchAuditWorkspaces,
-  fetchLoginHistoryDashboard,
-  fetchLoginHistoryLogs,
-  fetchLoginEventDetail,
   fetchActiveSessions,
+  fetchAuditDashboard,
+  fetchAuditEventDetail,
+  fetchAuditFilterOptions,
+  fetchAuditMetrics,
+  fetchAuditRecordDetail,
+  fetchAuditWorkspaces,
+  fetchCriticalEvents,
+  fetchDataChangeDetail,
+  fetchDataChangeLogs,
+  fetchDataChangesDashboard,
+  fetchDeletedRecordDetail,
+  fetchDeletedRecordLogs,
+  fetchDeletedRecordsDashboard,
   fetchFailedLoginAttempts,
   fetchLockedAccounts,
-  fetchUserActivitiesDashboard,
-  fetchUserActivityLogs,
-  fetchUserActivityDetail,
-  fetchDataChangesDashboard,
-  fetchDataChangeLogs,
-  fetchDataChangeDetail,
-  fetchDeletedRecordsDashboard,
-  fetchDeletedRecordLogs,
-  fetchDeletedRecordDetail,
-  fetchSystemLogsDashboard,
-  fetchSystemLogLogs,
+  fetchLoginEventDetail,
+  fetchLoginHistoryDashboard,
+  fetchLoginHistoryFilterOptions,
+  fetchLoginHistoryLogs,
+  fetchMainAuditLogs,
   fetchSystemLogDetail,
+  fetchSystemLogLogs,
+  fetchSystemLogsDashboard,
+  fetchUserActivitiesDashboard,
+  fetchUserActivityDetail,
+  fetchUserActivityLogs,
 } from "../services/auditlog.service";
-import type { AuditLogListParams } from "../types/auditlog.types";
+import type { AuditCategory, AuditLogListParams } from "../types/auditlog.types";
 
-// ─── Query Key Factories ────────────────────────────────────────────────────
+const STALE_TIME = 5 * 60 * 1000;
 
 const auditLogKeys = {
   all: ["audit-logs"] as const,
-
-  // Tag 19
-  list: (p?: AuditLogListParams) => [...auditLogKeys.all, "list", p] as const,
-  summary: () => [...auditLogKeys.all, "summary"] as const,
-  detail: (id: string) => [...auditLogKeys.all, "detail", id] as const,
-
-  // Workspaces
-  criticalEvents: (p?: AuditLogListParams) =>
-    [...auditLogKeys.all, "critical-events", p] as const,
-  dashboard: (from?: string, to?: string) =>
-    [...auditLogKeys.all, "dashboard", from, to] as const,
+  criticalEvents: (params?: AuditLogListParams) =>
+    [...auditLogKeys.all, "critical-events", params] as const,
+  dashboard: (fromDate?: string, toDate?: string) =>
+    [...auditLogKeys.all, "dashboard", fromDate, toDate] as const,
   filterOptions: () => [...auditLogKeys.all, "filter-options"] as const,
-  mainLogs: (p?: AuditLogListParams) =>
-    [...auditLogKeys.all, "main-logs", p] as const,
-  eventDetail: (id: string) =>
-    [...auditLogKeys.all, "event-detail", id] as const,
-  metrics: () => [...auditLogKeys.all, "metrics"] as const,
+  mainLogs: (params?: AuditLogListParams) =>
+    [...auditLogKeys.all, "main-logs", params] as const,
+  detail: (id: string, category: AuditCategory) =>
+    [...auditLogKeys.all, "detail", category, id] as const,
+  metrics: (fromDate?: string, toDate?: string) =>
+    [...auditLogKeys.all, "metrics", fromDate, toDate] as const,
   workspaces: () => [...auditLogKeys.all, "workspaces"] as const,
-
-  // Login History
-  loginDashboard: () => [...auditLogKeys.all, "login-dashboard"] as const,
-  loginLogs: (p?: AuditLogListParams) =>
-    [...auditLogKeys.all, "login-logs", p] as const,
-  loginDetail: (id: string) =>
-    [...auditLogKeys.all, "login-detail", id] as const,
-  activeSessions: (p?: AuditLogListParams) =>
-    [...auditLogKeys.all, "active-sessions", p] as const,
-  failedAttempts: (p?: AuditLogListParams) =>
-    [...auditLogKeys.all, "failed-attempts", p] as const,
-  lockedAccounts: (p?: AuditLogListParams) =>
-    [...auditLogKeys.all, "locked-accounts", p] as const,
-
-  // User Activities
-  userActivitiesDashboard: () =>
-    [...auditLogKeys.all, "user-activities-dashboard"] as const,
-  userActivityLogs: (p?: AuditLogListParams) =>
-    [...auditLogKeys.all, "user-activity-logs", p] as const,
+  loginDashboard: (fromDate?: string, toDate?: string) =>
+    [...auditLogKeys.all, "login-dashboard", fromDate, toDate] as const,
+  loginFilterOptions: () =>
+    [...auditLogKeys.all, "login-filter-options"] as const,
+  loginLogs: (params?: AuditLogListParams) =>
+    [...auditLogKeys.all, "login-logs", params] as const,
+  loginDetail: (id: string) => [...auditLogKeys.all, "login-detail", id] as const,
+  activeSessions: (params?: AuditLogListParams) =>
+    [...auditLogKeys.all, "active-sessions", params] as const,
+  failedAttempts: (params?: AuditLogListParams) =>
+    [...auditLogKeys.all, "failed-attempts", params] as const,
+  lockedAccounts: (params?: AuditLogListParams) =>
+    [...auditLogKeys.all, "locked-accounts", params] as const,
+  userActivitiesDashboard: (fromDate?: string, toDate?: string) =>
+    [...auditLogKeys.all, "user-activities-dashboard", fromDate, toDate] as const,
+  userActivityLogs: (params?: AuditLogListParams) =>
+    [...auditLogKeys.all, "user-activity-logs", params] as const,
   userActivityDetail: (id: string) =>
     [...auditLogKeys.all, "user-activity-detail", id] as const,
-
-  // Data Changes
-  dataChangesDashboard: () =>
-    [...auditLogKeys.all, "data-changes-dashboard"] as const,
-  dataChangeLogs: (p?: AuditLogListParams) =>
-    [...auditLogKeys.all, "data-change-logs", p] as const,
+  dataChangesDashboard: (fromDate?: string, toDate?: string) =>
+    [...auditLogKeys.all, "data-changes-dashboard", fromDate, toDate] as const,
+  dataChangeLogs: (params?: AuditLogListParams) =>
+    [...auditLogKeys.all, "data-change-logs", params] as const,
   dataChangeDetail: (id: string) =>
     [...auditLogKeys.all, "data-change-detail", id] as const,
-
-  // Deleted Records
-  deletedRecordsDashboard: () =>
-    [...auditLogKeys.all, "deleted-records-dashboard"] as const,
-  deletedRecordLogs: (p?: AuditLogListParams) =>
-    [...auditLogKeys.all, "deleted-record-logs", p] as const,
+  deletedRecordsDashboard: (fromDate?: string, toDate?: string) =>
+    [...auditLogKeys.all, "deleted-records-dashboard", fromDate, toDate] as const,
+  deletedRecordLogs: (params?: AuditLogListParams) =>
+    [...auditLogKeys.all, "deleted-record-logs", params] as const,
   deletedRecordDetail: (id: string) =>
     [...auditLogKeys.all, "deleted-record-detail", id] as const,
-
-  // System Logs
-  systemLogsDashboard: () =>
-    [...auditLogKeys.all, "system-logs-dashboard"] as const,
-  systemLogLogs: (p?: AuditLogListParams) =>
-    [...auditLogKeys.all, "system-log-logs", p] as const,
+  systemLogsDashboard: (fromDate?: string, toDate?: string) =>
+    [...auditLogKeys.all, "system-logs-dashboard", fromDate, toDate] as const,
+  systemLogLogs: (params?: AuditLogListParams) =>
+    [...auditLogKeys.all, "system-log-logs", params] as const,
   systemLogDetail: (id: string) =>
     [...auditLogKeys.all, "system-log-detail", id] as const,
 };
 
-// ─── Hooks ───────────────────────────────────────────────────────────────────
-
-// Tag 19: Audit Logs
-export function useAuditLogs(params?: AuditLogListParams) {
-  return useQuery({
-    queryKey: auditLogKeys.list(params),
-    queryFn: () => fetchAuditLogs(params),
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-export function useAuditLogSummary() {
-  return useQuery({
-    queryKey: auditLogKeys.summary(),
-    queryFn: fetchAuditLogSummary,
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-export function useAuditLogDetail(id: string | null) {
-  return useQuery({
-    queryKey: auditLogKeys.detail(id ?? ""),
-    queryFn: () => fetchAuditLogById(id!),
-    enabled: !!id,
-    staleTime: 5 * 60 * 1000,
-    retry: false,
-  });
-}
-
-// Workspaces
-export function useCriticalEvents(params?: AuditLogListParams) {
+export function useCriticalEvents(
+  params?: AuditLogListParams,
+  enabled = true,
+) {
   return useQuery({
     queryKey: auditLogKeys.criticalEvents(params),
     queryFn: () => fetchCriticalEvents(params),
-    staleTime: 5 * 60 * 1000,
+    enabled,
+    staleTime: STALE_TIME,
   });
 }
 
-export function useAuditDashboard(fromDate?: string, toDate?: string) {
+export function useAuditDashboard(
+  fromDate?: string,
+  toDate?: string,
+  enabled = true,
+) {
   return useQuery({
     queryKey: auditLogKeys.dashboard(fromDate, toDate),
     queryFn: () => fetchAuditDashboard(fromDate, toDate),
-    staleTime: 5 * 60 * 1000,
+    enabled,
+    staleTime: STALE_TIME,
   });
 }
 
-export function useAuditFilterOptions() {
+export function useAuditFilterOptions(enabled = true) {
   return useQuery({
     queryKey: auditLogKeys.filterOptions(),
     queryFn: fetchAuditFilterOptions,
+    enabled,
     staleTime: 10 * 60 * 1000,
   });
 }
 
-export function useMainAuditLogs(params?: AuditLogListParams) {
+export function useMainAuditLogs(
+  params?: AuditLogListParams,
+  enabled = true,
+) {
   return useQuery({
     queryKey: auditLogKeys.mainLogs(params),
     queryFn: () => fetchMainAuditLogs(params),
-    staleTime: 5 * 60 * 1000,
+    enabled,
+    staleTime: STALE_TIME,
   });
 }
 
-export function useAuditEventDetail(eventId: string | null) {
+export function useAuditLogDetail(
+  id: string | null,
+  category: AuditCategory = "All Logs",
+) {
   return useQuery({
-    queryKey: auditLogKeys.eventDetail(eventId ?? ""),
-    queryFn: () => fetchAuditEventDetail(eventId!),
-    enabled: !!eventId,
-    staleTime: 5 * 60 * 1000,
+    queryKey: auditLogKeys.detail(id ?? "", category),
+    queryFn: () => fetchAuditRecordDetail(id!, category),
+    enabled: Boolean(id),
+    staleTime: STALE_TIME,
     retry: false,
   });
 }
 
-export function useAuditMetrics() {
+export function useAuditEventDetail(id: string | null) {
   return useQuery({
-    queryKey: auditLogKeys.metrics(),
-    queryFn: fetchAuditMetrics,
-    staleTime: 5 * 60 * 1000,
+    queryKey: [...auditLogKeys.all, "main-event-detail", id ?? ""] as const,
+    queryFn: () => fetchAuditEventDetail(id!),
+    enabled: Boolean(id),
+    staleTime: STALE_TIME,
+    retry: false,
   });
 }
 
-export function useAuditWorkspaces() {
+export function useAuditMetrics(
+  fromDate?: string,
+  toDate?: string,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: auditLogKeys.metrics(fromDate, toDate),
+    queryFn: () => fetchAuditMetrics(fromDate, toDate),
+    enabled,
+    staleTime: STALE_TIME,
+  });
+}
+
+export function useAuditWorkspaces(enabled = true) {
   return useQuery({
     queryKey: auditLogKeys.workspaces(),
     queryFn: fetchAuditWorkspaces,
-    staleTime: 5 * 60 * 1000,
+    enabled,
+    staleTime: STALE_TIME,
   });
 }
 
-// Login History
-export function useLoginHistoryDashboard() {
+export function useLoginHistoryDashboard(
+  fromDate?: string,
+  toDate?: string,
+  enabled = true,
+) {
   return useQuery({
-    queryKey: auditLogKeys.loginDashboard(),
-    queryFn: fetchLoginHistoryDashboard,
-    staleTime: 5 * 60 * 1000,
+    queryKey: auditLogKeys.loginDashboard(fromDate, toDate),
+    queryFn: () => fetchLoginHistoryDashboard(fromDate, toDate),
+    enabled,
+    staleTime: STALE_TIME,
   });
 }
 
-export function useLoginHistoryLogs(params?: AuditLogListParams) {
+export function useLoginHistoryFilterOptions(enabled = true) {
+  return useQuery({
+    queryKey: auditLogKeys.loginFilterOptions(),
+    queryFn: fetchLoginHistoryFilterOptions,
+    enabled,
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+export function useLoginHistoryLogs(
+  params?: AuditLogListParams,
+  enabled = true,
+) {
   return useQuery({
     queryKey: auditLogKeys.loginLogs(params),
     queryFn: () => fetchLoginHistoryLogs(params),
-    staleTime: 5 * 60 * 1000,
+    enabled,
+    refetchOnMount: "always",
+    staleTime: STALE_TIME,
   });
 }
 
-export function useLoginEventDetail(eventId: string | null) {
+export function useLoginEventDetail(id: string | null) {
   return useQuery({
-    queryKey: auditLogKeys.loginDetail(eventId ?? ""),
-    queryFn: () => fetchLoginEventDetail(eventId!),
-    enabled: !!eventId,
-    staleTime: 5 * 60 * 1000,
+    queryKey: auditLogKeys.loginDetail(id ?? ""),
+    queryFn: () => fetchLoginEventDetail(id!),
+    enabled: Boolean(id),
+    staleTime: STALE_TIME,
     retry: false,
   });
 }
 
-export function useActiveSessions(params?: AuditLogListParams) {
+export function useActiveSessions(
+  params?: AuditLogListParams,
+  enabled = true,
+) {
   return useQuery({
     queryKey: auditLogKeys.activeSessions(params),
     queryFn: () => fetchActiveSessions(params),
-    staleTime: 5 * 60 * 1000,
+    enabled,
+    staleTime: STALE_TIME,
   });
 }
 
-export function useFailedLoginAttempts(params?: AuditLogListParams) {
+export function useFailedLoginAttempts(
+  params?: AuditLogListParams,
+  enabled = true,
+) {
   return useQuery({
     queryKey: auditLogKeys.failedAttempts(params),
     queryFn: () => fetchFailedLoginAttempts(params),
-    staleTime: 5 * 60 * 1000,
+    enabled,
+    staleTime: STALE_TIME,
   });
 }
 
-export function useLockedAccounts(params?: AuditLogListParams) {
+export function useLockedAccounts(
+  params?: AuditLogListParams,
+  enabled = true,
+) {
   return useQuery({
     queryKey: auditLogKeys.lockedAccounts(params),
     queryFn: () => fetchLockedAccounts(params),
-    staleTime: 5 * 60 * 1000,
+    enabled,
+    staleTime: STALE_TIME,
   });
 }
 
-// User Activities
-export function useUserActivitiesDashboard() {
+export function useUserActivitiesDashboard(
+  fromDate?: string,
+  toDate?: string,
+  enabled = true,
+) {
   return useQuery({
-    queryKey: auditLogKeys.userActivitiesDashboard(),
-    queryFn: fetchUserActivitiesDashboard,
-    staleTime: 5 * 60 * 1000,
+    queryKey: auditLogKeys.userActivitiesDashboard(fromDate, toDate),
+    queryFn: () => fetchUserActivitiesDashboard(fromDate, toDate),
+    enabled,
+    staleTime: STALE_TIME,
   });
 }
 
-export function useUserActivityLogs(params?: AuditLogListParams) {
+export function useUserActivityLogs(
+  params?: AuditLogListParams,
+  enabled = true,
+) {
   return useQuery({
     queryKey: auditLogKeys.userActivityLogs(params),
     queryFn: () => fetchUserActivityLogs(params),
-    staleTime: 5 * 60 * 1000,
+    enabled,
+    refetchOnMount: "always",
+    staleTime: STALE_TIME,
   });
 }
 
-export function useUserActivityDetail(eventId: string | null) {
+export function useUserActivityDetail(id: string | null) {
   return useQuery({
-    queryKey: auditLogKeys.userActivityDetail(eventId ?? ""),
-    queryFn: () => fetchUserActivityDetail(eventId!),
-    enabled: !!eventId,
-    staleTime: 5 * 60 * 1000,
+    queryKey: auditLogKeys.userActivityDetail(id ?? ""),
+    queryFn: () => fetchUserActivityDetail(id!),
+    enabled: Boolean(id),
+    staleTime: STALE_TIME,
     retry: false,
   });
 }
 
-// Data Changes
-export function useDataChangesDashboard() {
+export function useDataChangesDashboard(
+  fromDate?: string,
+  toDate?: string,
+  enabled = true,
+) {
   return useQuery({
-    queryKey: auditLogKeys.dataChangesDashboard(),
-    queryFn: fetchDataChangesDashboard,
-    staleTime: 5 * 60 * 1000,
+    queryKey: auditLogKeys.dataChangesDashboard(fromDate, toDate),
+    queryFn: () => fetchDataChangesDashboard(fromDate, toDate),
+    enabled,
+    staleTime: STALE_TIME,
   });
 }
 
-export function useDataChangeLogs(params?: AuditLogListParams) {
+export function useDataChangeLogs(
+  params?: AuditLogListParams,
+  enabled = true,
+) {
   return useQuery({
     queryKey: auditLogKeys.dataChangeLogs(params),
     queryFn: () => fetchDataChangeLogs(params),
-    staleTime: 5 * 60 * 1000,
+    enabled,
+    refetchOnMount: "always",
+    staleTime: STALE_TIME,
   });
 }
 
-export function useDataChangeDetail(eventId: string | null) {
+export function useDataChangeDetail(id: string | null) {
   return useQuery({
-    queryKey: auditLogKeys.dataChangeDetail(eventId ?? ""),
-    queryFn: () => fetchDataChangeDetail(eventId!),
-    enabled: !!eventId,
-    staleTime: 5 * 60 * 1000,
+    queryKey: auditLogKeys.dataChangeDetail(id ?? ""),
+    queryFn: () => fetchDataChangeDetail(id!),
+    enabled: Boolean(id),
+    staleTime: STALE_TIME,
     retry: false,
   });
 }
 
-// Deleted Records
-export function useDeletedRecordsDashboard() {
+export function useDeletedRecordsDashboard(
+  fromDate?: string,
+  toDate?: string,
+  enabled = true,
+) {
   return useQuery({
-    queryKey: auditLogKeys.deletedRecordsDashboard(),
-    queryFn: fetchDeletedRecordsDashboard,
-    staleTime: 5 * 60 * 1000,
+    queryKey: auditLogKeys.deletedRecordsDashboard(fromDate, toDate),
+    queryFn: () => fetchDeletedRecordsDashboard(fromDate, toDate),
+    enabled,
+    staleTime: STALE_TIME,
   });
 }
 
-export function useDeletedRecordLogs(params?: AuditLogListParams) {
+export function useDeletedRecordLogs(
+  params?: AuditLogListParams,
+  enabled = true,
+) {
   return useQuery({
     queryKey: auditLogKeys.deletedRecordLogs(params),
     queryFn: () => fetchDeletedRecordLogs(params),
-    staleTime: 5 * 60 * 1000,
+    enabled,
+    refetchOnMount: "always",
+    staleTime: STALE_TIME,
   });
 }
 
-export function useDeletedRecordDetail(eventId: string | null) {
+export function useDeletedRecordDetail(id: string | null) {
   return useQuery({
-    queryKey: auditLogKeys.deletedRecordDetail(eventId ?? ""),
-    queryFn: () => fetchDeletedRecordDetail(eventId!),
-    enabled: !!eventId,
-    staleTime: 5 * 60 * 1000,
+    queryKey: auditLogKeys.deletedRecordDetail(id ?? ""),
+    queryFn: () => fetchDeletedRecordDetail(id!),
+    enabled: Boolean(id),
+    staleTime: STALE_TIME,
     retry: false,
   });
 }
 
-// System Logs
-export function useSystemLogsDashboard() {
+export function useSystemLogsDashboard(
+  fromDate?: string,
+  toDate?: string,
+  enabled = true,
+) {
   return useQuery({
-    queryKey: auditLogKeys.systemLogsDashboard(),
-    queryFn: fetchSystemLogsDashboard,
-    staleTime: 5 * 60 * 1000,
+    queryKey: auditLogKeys.systemLogsDashboard(fromDate, toDate),
+    queryFn: () => fetchSystemLogsDashboard(fromDate, toDate),
+    enabled,
+    staleTime: STALE_TIME,
   });
 }
 
-export function useSystemLogLogs(params?: AuditLogListParams) {
+export function useSystemLogLogs(
+  params?: AuditLogListParams,
+  enabled = true,
+) {
   return useQuery({
     queryKey: auditLogKeys.systemLogLogs(params),
     queryFn: () => fetchSystemLogLogs(params),
-    staleTime: 5 * 60 * 1000,
+    enabled,
+    refetchOnMount: "always",
+    staleTime: STALE_TIME,
   });
 }
 
-export function useSystemLogDetail(eventId: string | null) {
+export function useSystemLogDetail(id: string | null) {
   return useQuery({
-    queryKey: auditLogKeys.systemLogDetail(eventId ?? ""),
-    queryFn: () => fetchSystemLogDetail(eventId!),
-    enabled: !!eventId,
-    staleTime: 5 * 60 * 1000,
+    queryKey: auditLogKeys.systemLogDetail(id ?? ""),
+    queryFn: () => fetchSystemLogDetail(id!),
+    enabled: Boolean(id),
+    staleTime: STALE_TIME,
     retry: false,
   });
 }
 
 export { auditLogKeys };
+
+// Aliases for backward-compat consumers that import these names
+export { useMainAuditLogs as useAuditLogs };
+export function useAuditLogSummary(
+  fromDate?: string,
+  toDate?: string,
+  enabled = true,
+) {
+  return useAuditDashboard(fromDate, toDate, enabled);
+}

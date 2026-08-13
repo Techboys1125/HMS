@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { getToken, removeToken } from "../../../lib/cookie-token-storage";
 import { useNavigate } from "react-router";
 import { useAuthStore } from "../store/auth.store";
 import { ROUTES } from "../../../app/routes/routes";
@@ -21,8 +22,8 @@ import type {
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [currentScreen, setCurrentScreen] = useState<AuthScreen>(() => {
-    if (localStorage.getItem("force_change_password") === "true") {
-      localStorage.removeItem("force_change_password");
+    if (getToken("force_change_password") === "true") {
+      removeToken("force_change_password");
       return "change-password";
     }
     return "login";

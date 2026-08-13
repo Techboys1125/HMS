@@ -1,8 +1,10 @@
 import { Bell, X } from "lucide-react";
 import { PP } from "../constants/notifications.constants";
+import type { TemplateRow } from "./TemplatesSection";
 
 export interface PreviewNotificationModalProps {
   open: boolean;
+  template?: TemplateRow | null;
   onClose: () => void;
   onSendTest: () => void;
   sending?: boolean;
@@ -11,12 +13,18 @@ export interface PreviewNotificationModalProps {
 
 export function PreviewNotificationModal({
   open,
+  template,
   onClose,
   onSendTest,
   sending,
   canSendTest,
 }: PreviewNotificationModalProps) {
   if (!open) return null;
+
+  const title = template?.name || "Notification";
+  const body =
+    template?.body ||
+    "This template has no message body defined yet.";
 
   return (
     <div
@@ -60,7 +68,7 @@ export function PreviewNotificationModal({
               color: "#111827",
             }}
           >
-            Sample Notification Dispatch Preview
+            Notification Dispatch Preview
           </h3>
           <button
             onClick={onClose}
@@ -114,11 +122,13 @@ export function PreviewNotificationModal({
                   color: "#111827",
                 }}
               >
-                St. Jude HMS - Appointment Reminder
+                Safe Hands Hospital - {title}
               </div>
-              <div style={{ fontSize: "10px", color: "#64748B" }}>
-                To: patient.mitchell@example.com
-              </div>
+              {template?.category && (
+                <div style={{ fontSize: "10px", color: "#64748B" }}>
+                  Event: {template.category}
+                </div>
+              )}
             </div>
           </div>
 
@@ -131,20 +141,11 @@ export function PreviewNotificationModal({
               padding: "12px",
               borderRadius: "8px",
               border: "1px solid #E5E7EB",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
             }}
           >
-            <p style={{ margin: "0 0 8px 0", fontWeight: 600 }}>
-              Dear Sarah Mitchell,
-            </p>
-            <p style={{ margin: "0 0 8px 0" }}>
-              This is an automated reminder that your OPD Cardiology appointment
-              with <strong>Dr. Arjun Mehta</strong> is scheduled for{" "}
-              <strong>Tomorrow at 09:30 AM</strong>.
-            </p>
-            <p style={{ margin: 0, fontSize: "11px", color: "#64748B" }}>
-              Token Number: <strong>OPD-102</strong> | Consultation Room:{" "}
-              <strong>Suite 104</strong>
-            </p>
+            {body}
           </div>
         </div>
 

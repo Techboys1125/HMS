@@ -23,6 +23,11 @@ const ROLE_REPORT_PERMISSIONS: Record<UserRole, Record<string, ReportPermission>
   [ROLES.RECEPTIONIST]: {
     "daily-appointments": { canView: true, canExport: true, canPrint: true },
     "patient-registrations": { canView: true, canExport: true, canPrint: true },
+    "daily-revenue": { canView: true, canExport: true, canPrint: true },
+    "invoices-summary": { canView: true, canExport: true, canPrint: true },
+    "doctor-performance": { canView: true, canExport: true, canPrint: true },
+    "collection-rate": { canView: true, canExport: true, canPrint: true },
+    "billing-report": { canView: true, canExport: true, canPrint: true },
   },
   [ROLES.ACCOUNTANT]: {
     "daily-revenue": { canView: true, canExport: true, canPrint: true },

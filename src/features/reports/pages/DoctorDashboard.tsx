@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router";
+import { ROUTES } from "../../../app/routes/routes";
 import {
   Calendar,
   Download,
@@ -100,6 +102,7 @@ export function DoctorReportsDashboardScreen({
   onOpenReport?: (reportId: string) => void;
   onOpenKpiDetail?: (kpiName?: string) => void;
 }) {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRangeFilter, setDateRangeFilter] = useState("Today");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
@@ -141,7 +144,7 @@ export function DoctorReportsDashboardScreen({
     >
       {/* Top Header Section */}
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
@@ -213,7 +216,7 @@ export function DoctorReportsDashboardScreen({
       </div>
 
       {/* Main Container */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         {/* Global Search Bar */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
@@ -393,7 +396,7 @@ export function DoctorReportsDashboardScreen({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Card 1: Today's Appointments */}
                 <div
-                  onClick={() => onOpenKpiDetail?.("Total OPD Appointments")}
+                  onClick={() => navigate(ROUTES.DOCTOR_APPOINTMENTS)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -436,7 +439,7 @@ export function DoctorReportsDashboardScreen({
 
                 {/* Card 2: My Patients */}
                 <div
-                  onClick={() => onOpenKpiDetail?.("Patient Registrations")}
+                  onClick={() => navigate(ROUTES.DOCTOR_PATIENTS)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -479,9 +482,7 @@ export function DoctorReportsDashboardScreen({
 
                 {/* Card 3: Completed Consultations */}
                 <div
-                  onClick={() =>
-                    onOpenKpiDetail?.("Doctor Workload Performance")
-                  }
+                  onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -518,7 +519,7 @@ export function DoctorReportsDashboardScreen({
 
                 {/* Card 4: Follow-up Patients */}
                 <div
-                  onClick={() => onOpenKpiDetail?.("Total OPD Appointments")}
+                  onClick={() => navigate(ROUTES.DOCTOR_APPOINTMENTS)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -555,9 +556,7 @@ export function DoctorReportsDashboardScreen({
 
                 {/* Card 5: Average Consultation Time */}
                 <div
-                  onClick={() =>
-                    onOpenKpiDetail?.("Doctor Workload Performance")
-                  }
+                  onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -594,9 +593,7 @@ export function DoctorReportsDashboardScreen({
 
                 {/* Card 6: Patient Satisfaction */}
                 <div
-                  onClick={() =>
-                    onOpenKpiDetail?.("Doctor Workload Performance")
-                  }
+                  onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between cursor-pointer group"
                 >
                   <div>

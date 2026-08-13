@@ -34,6 +34,11 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import {
+  useDoctorSelfPatientAnalytics,
+  useDoctorSelfPatientDashboard,
+  useDoctorSelfPatientRegister,
+} from "../hooks/useReports";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -122,8 +127,15 @@ export function DoctorPatientReportScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
+  // React Query Hooks for Doctor Personal Patient Reports
+  const { data: patientAnalytics } = useDoctorSelfPatientAnalytics();
+  const { data: patientDashboard, refetch: refetchDash } = useDoctorSelfPatientDashboard();
+  const { data: registerData, refetch: refetchRegister } = useDoctorSelfPatientRegister({ size: 20 });
+
   const handleRefresh = () => {
     setIsRefreshing(true);
+    refetchDash();
+    refetchRegister();
     setTimeout(() => setIsRefreshing(false), 600);
   };
 
@@ -136,20 +148,34 @@ export function DoctorPatientReportScreen({
   };
 
   const filteredPatients = useMemo(() => {
-    return ([] as DoctorPatientRecord[]).filter((item) => {
-      const matchesSearch =
-        item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.mobileNumber.includes(searchQuery);
-      const matchesVisit =
-        visitTypeFilter === "All Visit Types" ||
-        item.visitType === visitTypeFilter;
-      const matchesStatus =
-        consultStatusFilter === "All Statuses" ||
-        item.status === consultStatusFilter;
-      return matchesSearch && matchesVisit && matchesStatus;
-    });
-  }, [searchQuery, visitTypeFilter, consultStatusFilter]);
+    const rawList = registerData?.content || [];
+    return rawList
+      .map((item) => ({
+        mrn: item.mrn,
+        patientName: item.patientName,
+        age: 30,
+        gender: "N/A",
+        mobileNumber: "N/A",
+        lastConsultationDate: item.lastConsultationDate,
+        visitType: item.lastVisitType,
+        diagnosis: "Routine OPD",
+        followUpDate: item.nextFollowUpDate,
+        status: item.followUpStatus,
+      }))
+      .filter((item) => {
+        const matchesSearch =
+          (item.patientName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.mrn || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.mobileNumber || "").includes(searchQuery);
+        const matchesVisit =
+          visitTypeFilter === "All Visit Types" ||
+          item.visitType === visitTypeFilter;
+        const matchesStatus =
+          consultStatusFilter === "All Statuses" ||
+          item.status === consultStatusFilter;
+        return matchesSearch && matchesVisit && matchesStatus;
+      });
+  }, [registerData, searchQuery, visitTypeFilter, consultStatusFilter]);
 
   return (
     <div
@@ -158,7 +184,7 @@ export function DoctorPatientReportScreen({
     >
       {/* Top Header Section */}
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
@@ -244,7 +270,7 @@ export function DoctorPatientReportScreen({
       </div>
 
       {/* Main Container */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         {/* Global Search Bar */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">

@@ -1,14 +1,3 @@
-import type {
-  DoctorRecord,
-  DoctorAppointment,
-  DoctorPatient,
-  WeeklySchedule,
-  DoctorTimeline,
-  PrescriptionRecord,
-  VitalSign,
-  Medication,
-} from "../types/doctors.types";
-
 export const PP = "Poppins, sans-serif";
 export const RB = "Roboto, sans-serif";
 
@@ -50,20 +39,7 @@ export const COMMON_MEDICINES = [
   "Ibuprofen",
 ];
 
-export const INITIAL_DOCTORS: DoctorRecord[] = [];
-export const MOCK_DOCTOR_APPOINTMENTS: DoctorAppointment[] = [];
-export const MOCK_DOCTOR_PATIENTS: DoctorPatient[] = [];
-export const MOCK_WEEKLY_SCHEDULE: WeeklySchedule[] = [];
-export const MOCK_DOCTOR_TIMELINE: DoctorTimeline[] = [];
-export const DEPARTMENTS: string[] = [];
-export const SPECIALTIES: string[] = [];
 export interface WeeklyConsultation {
   day: string;
   count: number;
 }
-
-export const VITALS_DATA: VitalSign[] = [];
-export const MEDICATIONS: Medication[] = [];
-export const WEEKLY_CONSULTATIONS: WeeklyConsultation[] = [];
-export const TIMELINE: DoctorTimeline[] = [];
-export const MY_PRESCRIPTIONS_DATA: PrescriptionRecord[] = [];

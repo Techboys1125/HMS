@@ -45,11 +45,22 @@ export function mapApiStatusToPaymentStatus(status: string): InvoiceRecord["paym
 
 export function mapApiBillToInvoiceRecord(bill: BillListItem): InvoiceRecord {
   const paymentStatus = mapApiStatusToPaymentStatus(bill.paymentStatus);
-  const netAmount = bill.summary?.netAmount ?? 0;
-  const paidAmount = bill.summary?.paidAmount ?? 0;
-  const balanceAmount = bill.summary?.balanceAmount ?? netAmount;
+  
+  // Mappings to support flat properties (from simpler BillListItem) or nested summary (from detailed BillWorkspace)
+  const netAmount = (bill as any).netAmount ?? bill.summary?.netAmount ?? 0;
+  const paidAmount = 
+    (bill as any).paidAmount ?? 
+    bill.summary?.paidAmount ?? 
+    (paymentStatus === "Paid" ? netAmount : paymentStatus === "Partially Paid" ? netAmount / 2 : 0);
+  const balanceAmount = 
+    (bill as any).balanceAmount ?? 
+    bill.summary?.balanceAmount ?? 
+    (netAmount - paidAmount);
+
   return {
-    id: bill.billNumber || String(bill.id),
+    // Routes use the database bill id; billNumber is display-only.
+    id: String(bill.billId ?? bill.id ?? bill.billNumber),
+    billNumber: bill.billNumber,
     invoiceDate: bill.createdAt
       ? new Date(bill.createdAt).toLocaleDateString()
       : new Date().toLocaleDateString(),
@@ -64,5 +75,10 @@ export function mapApiBillToInvoiceRecord(bill: BillListItem): InvoiceRecord {
     paymentMethod: "UPI",
     paymentStatus,
     collectedBy: "System",
+    status: bill.status,
+    appointmentId: bill.appointmentId,
+    encounterId: bill.encounterId,
+    patientId: bill.patientId,
+    doctorId: bill.doctorId,
   };
 }

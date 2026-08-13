@@ -14,6 +14,9 @@ export { billingApi } from "./api/billing.api";
 export {
   useBilling,
   useBillingList,
+  usePendingBilling,
+  useBillingPatientSearch,
+  useReadyForBillingSearch,
   useInvoice,
   usePayment,
   useReceipt,

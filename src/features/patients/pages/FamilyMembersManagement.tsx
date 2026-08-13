@@ -21,8 +21,6 @@ import {
   ExternalLink,
   User,
 } from "lucide-react";
-import { INITIAL_FAMILY_MEMBERS } from "../../../mocks/familyMembers.mock";
-
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
 
@@ -70,43 +68,7 @@ export type LinkActivity = {
   status: "Completed" | "Pending" | "Updated";
 };
 
-const MOCK_ACTIVITIES: LinkActivity[] = [
-  {
-    id: "ACT-1",
-    date: "26 Jul 2026",
-    time: "04:15 PM",
-    activity: "Profile Switched to Sunita Kumar (Mother)",
-    status: "Completed",
-  },
-  {
-    id: "ACT-2",
-    date: "25 Jul 2026",
-    time: "11:20 AM",
-    activity: "Verification Requested for Aarav Kumar (Son)",
-    status: "Pending",
-  },
-  {
-    id: "ACT-3",
-    date: "18 Jul 2026",
-    time: "09:00 AM",
-    activity: "Verification Completed for Sunita Kumar (Mother)",
-    status: "Completed",
-  },
-  {
-    id: "ACT-4",
-    date: "10 Jul 2026",
-    time: "03:45 PM",
-    activity: "Relationship Updated for Ramesh Kumar (Father)",
-    status: "Updated",
-  },
-  {
-    id: "ACT-5",
-    date: "01 Jul 2026",
-    time: "10:00 AM",
-    activity: "Family Member Linked: Ananya Kumar (Daughter)",
-    status: "Completed",
-  },
-];
+const MOCK_ACTIVITIES: LinkActivity[] = [];
 
 interface FamilyMembersManagementProps {
   familyMembers?: FamilyMember[];
@@ -121,8 +83,8 @@ interface FamilyMembersManagementProps {
 }
 
 export function FamilyMembersManagement({
-  familyMembers = INITIAL_FAMILY_MEMBERS,
-  activeFamilyMember = INITIAL_FAMILY_MEMBERS[0],
+  familyMembers = [],
+  activeFamilyMember = familyMembers[0],
   onSwitchProfile,
   onAddFamilyMember,
   onRemoveFamilyMember,

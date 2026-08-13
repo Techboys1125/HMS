@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router";
 import type {
   ReceptionQueueItem,
   ReceptionPermissions,
@@ -25,6 +26,7 @@ export const ReceptionWorklistTable: React.FC<ReceptionWorklistTableProps> = ({
   onUpdateStatus,
   onViewPatientDetails,
 }) => {
+  const navigate = useNavigate();
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col flex-1">
       <div className="overflow-x-auto">
@@ -122,6 +124,20 @@ export const ReceptionWorklistTable: React.FC<ReceptionWorklistTableProps> = ({
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex items-center justify-end gap-1.5">
+                      {item.billingStatus?.toUpperCase() === "PENDING" && (
+                        <button
+                          onClick={() => {
+                            navigate(
+                              `/billing/create?appointmentId=${item.appointmentId || ""}&patientMrn=${item.mrn}&doctorId=${item.doctorId || ""}`
+                            );
+                          }}
+                          className="px-3 py-1.5 bg-[#0D47A1] hover:bg-blue-900 text-white text-[11px] font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer shadow-xs whitespace-nowrap"
+                          title="Generate Invoice"
+                        >
+                          Generate Invoice
+                        </button>
+                      )}
+
                       {permissions.canCheckInPatient &&
                         item.queueStatus === "WAITING" &&
                         !item.arrivalTime && (

@@ -10,8 +10,9 @@ import {
   FileText,
 } from "lucide-react";
 import type { PrescriptionRecord } from "../types/doctors.types";
-import { MY_PRESCRIPTIONS_DATA } from "../constants/doctors.constants";
 import { PP, RB } from "../constants/doctors.constants";
+
+const MY_PRESCRIPTIONS_DATA: PrescriptionRecord[] = [];
 
 const PRESCRIPTION_HEADER = {
   hospitalName: "Safe Hands Multi-Specialty Hospital",

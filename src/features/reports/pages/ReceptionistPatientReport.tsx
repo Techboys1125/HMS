@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Users,
   UserCheck,
-  UserPlus,
   Activity,
   TrendingUp,
   CheckCircle2,
@@ -137,19 +136,21 @@ export function ReceptionistPatientReportScreen({
   };
 
   const filteredPatients = useMemo(() => {
-    return ([] as Array<{
-      id?: string | number;
-      patientName: string;
-      mrn: string;
-      mobileNumber: string;
-      appointmentStatus: string;
-      visitType: string;
-      age?: number | string;
-      gender?: string;
-      registrationDate?: string;
-      checkInStatus?: string;
-      registrationStatus?: string;
-    }>).filter((item) => {
+    return (
+      [] as Array<{
+        id?: string | number;
+        patientName: string;
+        mrn: string;
+        mobileNumber: string;
+        appointmentStatus: string;
+        visitType: string;
+        age?: number | string;
+        gender?: string;
+        registrationDate?: string;
+        checkInStatus?: string;
+        registrationStatus?: string;
+      }>
+    ).filter((item) => {
       const matchesSearch =
         item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -171,7 +172,7 @@ export function ReceptionistPatientReportScreen({
     >
       {/* Top Header Section */}
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
@@ -256,7 +257,7 @@ export function ReceptionistPatientReportScreen({
       </div>
 
       {/* Main Container */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         {/* Global Search Bar */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
@@ -795,8 +796,22 @@ export function ReceptionistPatientReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {([] as Array<{ color?: string; [key: string]: unknown }>).map((entry) => (
-                            <Cell key={entry?.id ? String(entry.id) : String(entry?.name || entry?.color || "cell")} fill={entry.color || "#0D47A1"} />
+                          {(
+                            [] as Array<{
+                              color?: string;
+                              [key: string]: unknown;
+                            }>
+                          ).map((entry) => (
+                            <Cell
+                              key={
+                                entry?.id
+                                  ? String(entry.id)
+                                  : String(
+                                      entry?.name || entry?.color || "cell",
+                                    )
+                              }
+                              fill={entry.color || "#0D47A1"}
+                            />
                           ))}
                         </Pie>
                         <Tooltip
@@ -1088,7 +1103,16 @@ export function ReceptionistPatientReportScreen({
                   Reception Patient Activity Timeline
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {([] as Array<{ id: string | number; action?: string; date?: string; time?: string; detail?: string; details?: string }>).map((act) => (
+                  {(
+                    [] as Array<{
+                      id: string | number;
+                      action?: string;
+                      date?: string;
+                      time?: string;
+                      detail?: string;
+                      details?: string;
+                    }>
+                  ).map((act) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"

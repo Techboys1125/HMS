@@ -8,6 +8,7 @@ export interface TemplateDetailsDrawerProps {
   readOnly?: boolean;
   onToggleEdit: () => void;
   onClose: () => void;
+  onTemplateChange?: (patch: Partial<TemplateRow>) => void;
   onSaveChanges: () => void;
   savePending?: boolean;
 }
@@ -18,10 +19,13 @@ export function TemplateDetailsDrawer({
   readOnly,
   onToggleEdit,
   onClose,
+  onTemplateChange,
   onSaveChanges,
   savePending,
 }: TemplateDetailsDrawerProps) {
   if (!template) return null;
+
+  const serverConnected = onTemplateChange !== undefined;
 
   return (
     <div
@@ -182,10 +186,13 @@ export function TemplateDetailsDrawer({
                 >
                   Template Name
                 </label>
-                {isEditMode ? (
+                {isEditMode && serverConnected ? (
                   <input
                     type="text"
-                    defaultValue={template.name}
+                    value={template.name}
+                    onChange={(e) =>
+                      onTemplateChange({ name: e.target.value })
+                    }
                     style={{
                       width: "100%",
                       padding: "6px 8px",
@@ -209,12 +216,15 @@ export function TemplateDetailsDrawer({
                     marginBottom: "2px",
                   }}
                 >
-                  Category
+                  Event Type
                 </label>
-                {isEditMode ? (
+                {isEditMode && serverConnected ? (
                   <input
                     type="text"
-                    defaultValue={template.category}
+                    value={template.category}
+                    onChange={(e) =>
+                      onTemplateChange({ category: e.target.value })
+                    }
                     style={{
                       width: "100%",
                       padding: "6px 8px",
@@ -262,10 +272,11 @@ export function TemplateDetailsDrawer({
               >
                 Delivery Channel Scope
               </label>
-              {isEditMode ? (
+              {isEditMode && serverConnected ? (
                 <input
                   type="text"
-                  defaultValue={template.channel}
+                  value={template.channel}
+                  onChange={(e) => onTemplateChange({ channel: e.target.value })}
                   style={{
                     width: "100%",
                     padding: "6px 8px",
@@ -289,12 +300,13 @@ export function TemplateDetailsDrawer({
                   marginBottom: "2px",
                 }}
               >
-                Message Body Preview
+                Message Body
               </label>
-              {isEditMode ? (
+              {isEditMode && serverConnected ? (
                 <textarea
                   rows={4}
-                  defaultValue={`Dear {{patient_name}}, your appointment with {{doctor_name}} is confirmed for {{time}} at Room {{room}}.`}
+                  value={template.body || ""}
+                  onChange={(e) => onTemplateChange({ body: e.target.value })}
                   style={{
                     width: "100%",
                     padding: "8px",
@@ -302,6 +314,7 @@ export function TemplateDetailsDrawer({
                     border: "1px solid #CBD5E1",
                     fontSize: "12px",
                     boxSizing: "border-box",
+                    fontFamily: PP,
                   }}
                 />
               ) : (
@@ -314,12 +327,11 @@ export function TemplateDetailsDrawer({
                     borderRadius: "8px",
                     border: "1px solid #E2E8F0",
                     lineHeight: "1.5",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
                   }}
                 >
-                  Dear <strong>Sarah Mitchell</strong>, your OPD appointment
-                  with <strong>Dr. Arjun Mehta</strong> is scheduled for{" "}
-                  <strong>Tomorrow at 09:30 AM</strong>. Room:{" "}
-                  <strong>Suite 104</strong>.
+                  {template.body || "No message body defined in this template."}
                 </div>
               )}
             </div>
@@ -342,7 +354,7 @@ export function TemplateDetailsDrawer({
                 margin: "0 0 12px 0",
               }}
             >
-              Related Statistics
+              Template Details
             </h4>
             <div
               style={{
@@ -360,7 +372,7 @@ export function TemplateDetailsDrawer({
                     fontSize: "11px",
                   }}
                 >
-                  Last Updated
+                  Version
                 </span>
                 <span style={{ color: "#475569" }}>
                   {template.lastUpdated}
@@ -374,10 +386,10 @@ export function TemplateDetailsDrawer({
                     fontSize: "11px",
                   }}
                 >
-                  Dispatch Success
+                  Priority
                 </span>
                 <span style={{ fontWeight: 700, color: "#2E7D32" }}>
-                  99.8% Rate
+                  {template.priority || "N/A"}
                 </span>
               </div>
             </div>

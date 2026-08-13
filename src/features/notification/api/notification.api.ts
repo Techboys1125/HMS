@@ -12,6 +12,8 @@ import type {
   TestNotificationResponse,
   NotificationFailureRecord,
   MarkReadResponse,
+  TestNotificationPayload,
+  InternalNotificationPayload,
 } from "../types/notifications.types";
 
 interface ApiEnvelope<T> {
@@ -46,7 +48,9 @@ export async function updateNotificationRule(
   return unwrap<NotificationRule>(res);
 }
 
-export async function fetchNotificationTemplates(): Promise<NotificationTemplate[]> {
+export async function fetchNotificationTemplates(): Promise<
+  NotificationTemplate[]
+> {
   const res = await apiClient.get<ApiEnvelope<NotificationTemplate[]>>(
     "/api/v1/admin/notifications/templates",
   );
@@ -67,15 +71,18 @@ export async function updateNotificationTemplate(
 export async function sendTestNotification(
   userId: string,
   eventType: string,
+  payload: TestNotificationPayload = {},
 ): Promise<TestNotificationResponse> {
   const res = await apiClient.post<ApiEnvelope<TestNotificationResponse>>(
     `/api/v1/admin/notifications/test?userId=${encodeURIComponent(userId)}&eventType=${encodeURIComponent(eventType)}`,
-    {},
+    payload,
   );
   return unwrap<TestNotificationResponse>(res);
 }
 
-export async function fetchNotificationFailures(): Promise<NotificationFailureRecord[]> {
+export async function fetchNotificationFailures(): Promise<
+  NotificationFailureRecord[]
+> {
   const res = await apiClient.get<ApiEnvelope<NotificationFailureRecord[]>>(
     "/api/v1/admin/notifications/failures",
   );
@@ -106,9 +113,14 @@ export async function updateNotificationPreferences(
 export async function fetchNotifications(
   page = 0,
   size = 20,
+  type?: string,
+  isRead?: boolean,
 ): Promise<NotificationPageResponse> {
+  const query = new URLSearchParams({ page: String(page), size: String(size) });
+  if (type) query.set("type", type);
+  if (isRead !== undefined) query.set("isRead", String(isRead));
   const res = await apiClient.get<ApiEnvelope<NotificationPageResponse>>(
-    `/api/v1/notifications?page=${page}&size=${size}`,
+    `/api/v1/notifications?${query.toString()}`,
   );
   return unwrap<NotificationPageResponse>(res);
 }
@@ -129,7 +141,9 @@ export async function fetchUnreadCount(): Promise<UnreadCountResponse> {
   return unwrap<UnreadCountResponse>(res);
 }
 
-export async function markNotificationAsRead(id: string): Promise<MarkReadResponse> {
+export async function markNotificationAsRead(
+  id: string,
+): Promise<MarkReadResponse> {
   const res = await apiClient.patch<ApiEnvelope<MarkReadResponse>>(
     `/api/v1/notifications/${encodeURIComponent(id)}/read`,
     {},
@@ -137,7 +151,9 @@ export async function markNotificationAsRead(id: string): Promise<MarkReadRespon
   return unwrap<MarkReadResponse>(res);
 }
 
-export async function markNotificationAsUnread(id: string): Promise<MarkReadResponse> {
+export async function markNotificationAsUnread(
+  id: string,
+): Promise<MarkReadResponse> {
   const res = await apiClient.patch<ApiEnvelope<MarkReadResponse>>(
     `/api/v1/notifications/${encodeURIComponent(id)}/unread`,
     {},
@@ -155,4 +171,14 @@ export async function markAllNotificationsAsRead(): Promise<{ count: number }> {
 
 export async function deleteNotification(id: string): Promise<void> {
   await apiClient.delete(`/api/v1/notifications/${encodeURIComponent(id)}`);
+}
+
+export async function triggerInternalNotification(
+  payload: InternalNotificationPayload,
+): Promise<NotificationDetailResponse> {
+  const res = await apiClient.post<ApiEnvelope<NotificationDetailResponse>>(
+    "/api/v1/notifications/internal",
+    payload,
+  );
+  return unwrap<NotificationDetailResponse>(res);
 }

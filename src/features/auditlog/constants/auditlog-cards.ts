@@ -5,10 +5,11 @@ import {
   Database,
   Trash2,
   Server,
+  AlertTriangle,
 } from "lucide-react";
 import type { AuditCategory } from "../types/auditlog.types";
 
-interface QuickActionCard {
+export interface QuickActionCard {
   id: AuditCategory;
   title: string;
   description: string;
@@ -16,7 +17,7 @@ interface QuickActionCard {
   color: string;
   bg: string;
   border: string;
-  badge: string;
+  workspaceCode?: string;
 }
 
 export const QUICK_ACTION_CARDS: QuickActionCard[] = [
@@ -28,7 +29,6 @@ export const QUICK_ACTION_CARDS: QuickActionCard[] = [
     color: "text-blue-700",
     bg: "bg-blue-50",
     border: "border-blue-200",
-    badge: "All Records",
   },
   {
     id: "Login History",
@@ -39,7 +39,7 @@ export const QUICK_ACTION_CARDS: QuickActionCard[] = [
     color: "text-emerald-700",
     bg: "bg-emerald-50",
     border: "border-emerald-200",
-    badge: "Auth Events",
+    workspaceCode: "LOGIN_HISTORY",
   },
   {
     id: "User Activities",
@@ -49,7 +49,7 @@ export const QUICK_ACTION_CARDS: QuickActionCard[] = [
     color: "text-purple-700",
     bg: "bg-purple-50",
     border: "border-purple-200",
-    badge: "User Actions",
+    workspaceCode: "USER_ACTIVITIES",
   },
   {
     id: "Data Changes",
@@ -59,7 +59,7 @@ export const QUICK_ACTION_CARDS: QuickActionCard[] = [
     color: "text-teal-700",
     bg: "bg-teal-50",
     border: "border-teal-200",
-    badge: "Modifications",
+    workspaceCode: "DATA_CHANGES",
   },
   {
     id: "Deleted Records",
@@ -69,7 +69,7 @@ export const QUICK_ACTION_CARDS: QuickActionCard[] = [
     color: "text-amber-700",
     bg: "bg-amber-50",
     border: "border-amber-200",
-    badge: "Deletions",
+    workspaceCode: "DELETED_RECORDS",
   },
   {
     id: "System Logs",
@@ -79,6 +79,16 @@ export const QUICK_ACTION_CARDS: QuickActionCard[] = [
     color: "text-indigo-700",
     bg: "bg-indigo-50",
     border: "border-indigo-200",
-    badge: "System Events",
+    workspaceCode: "SYSTEM_LOGS",
+  },
+  {
+    id: "Critical Events",
+    title: "Critical Events",
+    description: "Security and operational events requiring immediate review.",
+    icon: AlertTriangle,
+    color: "text-red-700",
+    bg: "bg-red-50",
+    border: "border-red-200",
+    workspaceCode: "CRITICAL_EVENTS",
   },
 ];

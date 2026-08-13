@@ -3,8 +3,8 @@ import type {
   NotificationListItem,
   NotificationStatus,
   NotificationPriority,
-  UserRole,
 } from "../types/notifications.types";
+import { ALL_ROLES } from "../constants/notifications.constants";
 import { normalizeRole } from "./role.mapper";
 
 const API_STATUS_TO_UI: Record<string, NotificationStatus> = {
@@ -22,25 +22,29 @@ const API_PRIORITY_TO_UI: Record<string, NotificationPriority> = {
   CRITICAL: "Critical",
 };
 
-function toCategory(eventType: string): string {
-  if (!eventType) return "System";
-  const et = eventType.toUpperCase();
+function toCategory(eventType: string, module?: string, type?: string): string {
+  const et = `${eventType || ""} ${module || ""} ${type || ""}`.toUpperCase();
+  if (!et.trim()) return "System";
   if (et.includes("APPOINTMENT")) return "Appointments";
-  if (et.includes("PATIENT")) return "Patients";
-  if (et.includes("DOCTOR")) return "Doctors";
   if (et.includes("PRESCRIPTION") || et.includes("MEDICINE"))
     return "Prescriptions";
-  if (
-    et.includes("BILL") ||
-    et.includes("INVOICE") ||
-    et.includes("PAYMENT") ||
-    et.includes("REFUND")
-  )
+  if (et.includes("CONSULT")) return "Consultations";
+  if (et.includes("SCHEDULE") || et.includes("AVAILABILITY")) return "Schedule";
+  if (et.includes("PATIENT")) return "Patients";
+  if (et.includes("DOCTOR")) return "Doctors";
+  if (et.includes("INVOICE")) return "Invoices";
+  if (et.includes("PAYMENT") || et.includes("REFUND")) return "Payments";
+  if (et.includes("BILL") || et.includes("BILLING") || et.includes("CHARGE"))
     return "Billing";
+  if (et.includes("REVENUE") || et.includes("EARNING")) return "Revenue";
   if (et.includes("VITAL")) return "Vitals";
+  if (et.includes("CLINICAL") && et.includes("ALERT")) return "Clinical Alerts";
+  if (et.includes("CLINICAL")) return "Clinical Alerts";
+  if (et.includes("REGISTRATION") || et.includes("REGISTER"))
+    return "Registration";
   if (et.includes("REPORT")) return "Reports";
-  if (et.includes("SECURITY") || et.includes("AUDIT") || et.includes("LOGIN"))
-    return "Security";
+  if (et.includes("AUDIT")) return "Audit";
+  if (et.includes("SECURITY") || et.includes("LOGIN")) return "Security";
   if (et.includes("CONSULT")) return "Consultations";
   if (et.includes("QUEUE") || et.includes("CHECK")) return "Queue";
   if (et.includes("MAINTENANCE") || et.includes("SYSTEM")) return "System";
@@ -69,7 +73,6 @@ function toDisplayTimestamp(createdAt: string): string {
 
 export function mapApiNotificationToRecord(
   item: NotificationListItem,
-  currentRole: UserRole,
 ): NotificationRecord {
   const uiStatus =
     API_STATUS_TO_UI[String(item.status ?? "").toUpperCase()] ?? "Unread";
@@ -80,23 +83,21 @@ export function mapApiNotificationToRecord(
     title: item.title || "Notification",
     description: item.message || "",
     module: item.type || "Notifications",
-    category: toCategory(item.eventType),
+    category: toCategory(item.eventType, item.module, item.type),
     priority: uiPriority,
     status: uiStatus,
     timestamp: toDisplayTimestamp(item.createdAt),
     targetModule: item.type || "Notifications",
-    actionLabel: "Open",
-    roleVisibility: [currentRole],
+    actionLabel: item.actionLabel || "Open",
+    actionUrl: item.actionUrl,
+    roleVisibility: ALL_ROLES,
   };
 }
 
 export function mapApiNotificationsToRecords(
   items: NotificationListItem[] | undefined,
-  currentRole: UserRole,
 ): NotificationRecord[] {
-  return (items ?? []).map((item) =>
-    mapApiNotificationToRecord(item, currentRole),
-  );
+  return (items ?? []).map((item) => mapApiNotificationToRecord(item));
 }
 
 export { normalizeRole };

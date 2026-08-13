@@ -16,3 +16,7 @@ export * from "./components/PatientCheckInModal";
 export * from "./components/VisitSlipModal";
 export * from "./components/WalkInRegistrationModal";
 export * from "./components/CheckInConfirmationModal";
+export * from "./types/receptionReports.types";
+export * from "./api/receptionReports.api";
+export * from "./hooks/useReceptionReports";
+

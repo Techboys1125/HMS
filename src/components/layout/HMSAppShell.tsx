@@ -115,6 +115,8 @@ const navIdToPath = (role: Role, navId: NavId): string => {
         return ROUTES.REPORTS;
       case "settings":
         return ROUTES.SETTINGS;
+      case "notifications":
+        return ROUTES.NOTIFICATIONS;
       case "profile":
         return ROUTES.DOCTOR_ME_PROFILE;
       default:

@@ -24,6 +24,16 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import {
+  useHospitalAdminSummary,
+  useHospitalAdminAppointmentFlow,
+  useHospitalAdminStatusDistribution,
+  useHospitalAdminDepartmentWorkload,
+  useHospitalAdminDoctorAvailability,
+  useHospitalAdminTodayTimeline,
+  useHospitalAdminRevenueDistribution,
+  useHospitalAdminDepartmentSummary,
+} from "../hooks/useHospitalAdminDashboard";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -125,11 +135,13 @@ function Av({
   name,
   size = "sm",
 }: {
-  name: string;
+  name?: string;
   size?: "sm" | "md" | "lg";
 }) {
-  const initials = name
+  const safeName = (name || "??").trim() || "??";
+  const initials = safeName
     .split(" ")
+    .filter(Boolean)
     .map((n) => n[0])
     .join("")
     .slice(0, 2)
@@ -141,7 +153,7 @@ function Av({
     "bg-rose-500",
     "bg-amber-600",
   ];
-  const bg = palette[name.charCodeAt(0) % palette.length];
+  const bg = palette[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % palette.length];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -216,44 +228,6 @@ function SH({
   );
 }
 
-// Section 01: Appointment Flow Today (Line Chart)
-const HA_APPT_FLOW: { hour: string; completed: number }[] = [];
-
-// Section 02: Patient Status Distribution (Pie Chart)
-const HA_STATUS_DIST: { name: string; value: number; color: string }[] = [];
-
-// Section 03: Department Workload (Horizontal Bar Chart)
-const HA_DEPT_WORKLOAD: { dept: string; appts: number }[] = [];
-
-// Section 04: Doctor Availability (Stacked Card)
-const HA_DOC_AVAILABILITY: { status: string; count: number; color: string }[] =
-  [];
-
-// Section 05: Today's Appointment Timeline
-const HA_TIMELINE: {
-  time: string;
-  patient: string;
-  doctor: string;
-  dept: string;
-  status: string;
-  token: string;
-  room: string;
-  stage: string;
-}[] = [];
-
-// Section 06: Revenue Collection Summary (Donut Chart)
-const HA_REVENUE_DIST: { name: string; value: number; color: string }[] = [];
-
-// Section 09: Quick Department Summary Table
-const HA_DEPT_SUMMARY_TABLE: {
-  dept: string;
-  appts: number;
-  completed: number;
-  waiting: number;
-  doctors: number;
-  status: string;
-}[] = [];
-
 const HA_STATUS_COLOR: Record<string, string> = {
   Completed: "#66BB6A",
   "In Consultation": "#009688",
@@ -289,10 +263,45 @@ export function HospitalAdminDashboard({
   onNavigateNav,
 }: HospitalAdminDashboardProps = {}) {
   const navigate = useNavigate();
-  const totalRevenue = HA_REVENUE_DIST.reduce(
-    (acc, curr) => acc + curr.value,
-    0,
-  );
+
+  const summaryQuery = useHospitalAdminSummary();
+  const flowQuery = useHospitalAdminAppointmentFlow();
+  const statusQuery = useHospitalAdminStatusDistribution();
+  const workloadQuery = useHospitalAdminDepartmentWorkload();
+  const availabilityQuery = useHospitalAdminDoctorAvailability();
+  const timelineQuery = useHospitalAdminTodayTimeline();
+  const revenueQuery = useHospitalAdminRevenueDistribution();
+  const deptSummaryQuery = useHospitalAdminDepartmentSummary();
+
+  const summary = summaryQuery.data;
+  const apptFlow = flowQuery.data?.flow || [];
+  const statusDist = statusQuery.data || [];
+  const deptWorkload = workloadQuery.data || [];
+  const docAvailability = availabilityQuery.data || [];
+  const timeline = timelineQuery.data || [];
+  const revenueDist = revenueQuery.data || [];
+  const deptSummary = deptSummaryQuery.data || [];
+
+  const totalRevenue = revenueDist.reduce((acc, curr) => acc + (Number(curr.value) || 0), 0);
+  const totalDoctors = docAvailability.reduce((acc, curr) => acc + (Number(curr.count) || 0), 0);
+  const pendingAppointments = deptSummary.reduce((acc, d) => acc + (Number(d.waiting) || 0), 0);
+
+  const safeNum = (val: unknown, fallback = 0): number => {
+    const num = Number(val);
+    return isNaN(num) ? fallback : num;
+  };
+
+  const safeVal = (val: unknown, fallback = 0): string => {
+    const num = Number(val);
+    return isNaN(num) ? String(fallback) : String(num);
+  };
+
+  const formatCurrency = (val: unknown) => {
+    const num = safeNum(val);
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(num);
+  };
+
+  const todayStr = summary?.date || new Date().toISOString().split("T")[0];
 
   return (
     <div
@@ -347,14 +356,14 @@ export function HospitalAdminDashboard({
       </div>
 
       {/* ── KPI Row — 5 Phase 1 Operational Cards ── */}
-      <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         <DKpi
           title="Today's OPD Patients"
-          value="0"
-          sub="--"
-          trend="--"
+          value={safeVal(summary?.todayOpdPatients ?? summary?.opdPatients?.today)}
+          sub={summaryQuery.isLoading ? "Loading..." : `Updated ${todayStr}`}
+          trend={safeNum(summary?.todayOpdPatients ?? summary?.opdPatients?.today) > 0 ? "+100%" : "--"}
           up={true}
-          data={[{ v: 0 }]}
+          data={apptFlow.length > 0 ? apptFlow.map((h) => ({ v: h.completed })) : [{ v: 0 }]}
           color="#0D47A1"
           gid="ha1"
           Icon={Users}
@@ -364,11 +373,11 @@ export function HospitalAdminDashboard({
         />
         <DKpi
           title="Today's Appointments"
-          value="0"
-          sub="--"
-          trend="--"
+          value={safeVal(summary?.todayAppointments ?? summary?.appointments?.today)}
+          sub={summaryQuery.isLoading ? "Loading..." : "All departments"}
+          trend={safeNum(summary?.todayAppointments ?? summary?.appointments?.today) > 0 ? "+100%" : "--"}
           up={true}
-          data={[{ v: 0 }]}
+          data={apptFlow.length > 0 ? apptFlow.map((h) => ({ v: h.completed })) : [{ v: 0 }]}
           color="#009688"
           gid="ha2"
           Icon={Calendar}
@@ -378,37 +387,35 @@ export function HospitalAdminDashboard({
         />
         <DKpi
           title="Today's Revenue"
-          value="0"
-          sub="--"
-          trend="--"
+          value={formatCurrency(summary?.todayRevenue ?? summary?.revenue?.today)}
+          sub={summaryQuery.isLoading ? "Loading..." : "Gross collections"}
+          trend={safeNum(summary?.todayRevenue ?? summary?.revenue?.today) > 0 ? "+100%" : "--"}
           up={true}
-          data={[{ v: 0 }]}
+          data={revenueDist.length > 0 ? revenueDist.map((r) => ({ v: r.value })) : [{ v: 0 }]}
           color="#66BB6A"
           gid="ha3"
           Icon={DollarSign}
           onClick={() => navigate(`${ROUTES.REPORTS}?report=daily-revenue`)}
         />
         <DKpi
-          title="New Patient Registrations"
-          value="0"
-          sub="--"
-          trend="--"
-          up={true}
-          data={[{ v: 0 }]}
+          title="Pending Appointments"
+          value={String(pendingAppointments)}
+          sub={summaryQuery.isLoading ? "Loading..." : "Awaiting consultation"}
+          trend={pendingAppointments > 0 ? "Action Required" : "All Clear"}
+          up={pendingAppointments === 0}
+          data={apptFlow.length > 0 ? apptFlow.map((h) => ({ v: h.completed })) : [{ v: 0 }]}
           color="#F59E0B"
           gid="ha4"
-          Icon={UserPlus}
-          onClick={() =>
-            navigate(`${ROUTES.REPORTS}?report=patient-registrations`)
-          }
+          Icon={Bell}
+          onClick={() => navigate(`${ROUTES.APPOINTMENTS}`)}
         />
         <DKpi
           title="Doctors Available Today"
-          value="0"
-          sub="--"
-          trend="--"
+          value={String(summary?.doctorsAvailable ?? summary?.doctors?.available ?? 0)}
+          sub={summaryQuery.isLoading ? "Loading..." : "On duty"}
+          trend={(summary?.doctorsAvailable ?? summary?.doctors?.available ?? 0) > 0 ? "Active" : "--"}
           up={true}
-          data={[{ v: 0 }]}
+          data={docAvailability.length > 0 ? docAvailability.map((d) => ({ v: d.count })) : [{ v: 0 }]}
           color="#0D47A1"
           gid="ha5"
           Icon={Stethoscope}
@@ -445,7 +452,7 @@ export function HospitalAdminDashboard({
           </div>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart
-              data={HA_APPT_FLOW}
+              data={apptFlow}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
             >
               <defs>
@@ -493,10 +500,10 @@ export function HospitalAdminDashboard({
           >
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#0D47A1]" /> Peak
-              Patient Flow: No Data
+              Patient Flow: {flowQuery.data ? `${flowQuery.data.peakAppointments} at ${flowQuery.data.peakHour}` : "No Data"}
             </span>
             <span className="font-semibold text-[#111827]">
-              Total Cumulative: 0 Completed
+              Total: {flowQuery.data?.totalCompleted ?? 0} Completed
             </span>
           </div>
         </div>
@@ -509,7 +516,7 @@ export function HospitalAdminDashboard({
           />
           <ResponsiveContainer width="100%" height={170}>
             <BarChart
-              data={HA_STATUS_DIST}
+              data={statusDist}
               layout="vertical"
               margin={{ top: 0, right: 20, left: 10, bottom: 0 }}
             >
@@ -532,7 +539,7 @@ export function HospitalAdminDashboard({
                 formatter={(v: unknown) => [`${v} Patients`, "Count"]}
               />
               <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={14}>
-                {HA_STATUS_DIST.map((entry) => (
+                {statusDist.map((entry) => (
                   <Cell key={entry.name} fill={entry.color} />
                 ))}
               </Bar>
@@ -542,7 +549,7 @@ export function HospitalAdminDashboard({
             className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-gray-50 text-xs"
             style={{ fontFamily: RB }}
           >
-            {HA_STATUS_DIST.map((s) => (
+            {statusDist.map((s) => (
               <div
                 key={s.name}
                 className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50"
@@ -562,7 +569,7 @@ export function HospitalAdminDashboard({
             className="mt-2 text-[11px] text-center text-[#64748B]"
             style={{ fontFamily: RB }}
           >
-            Period: Today · 0 Total Recorded Visits
+            Period: Today · {statusDist.reduce((acc, s) => acc + safeNum(s.value), 0)} Total Recorded Visits
           </div>
         </div>
       </div>
@@ -577,7 +584,7 @@ export function HospitalAdminDashboard({
           />
           <ResponsiveContainer width="100%" height={200}>
             <BarChart
-              data={HA_DEPT_WORKLOAD}
+              data={deptWorkload}
               layout="vertical"
               margin={{ top: 0, right: 20, left: 10, bottom: 0 }}
             >
@@ -616,8 +623,8 @@ export function HospitalAdminDashboard({
             className="mt-3 pt-3 border-t border-gray-50 text-xs text-[#64748B] flex items-center justify-between"
             style={{ fontFamily: RB }}
           >
-            <span>No Data</span>
-            <span className="font-semibold text-[#0D47A1]">0 Total Appts</span>
+            <span>{deptWorkload.length > 0 ? "Live data" : "No Data"}</span>
+            <span className="font-semibold text-[#0D47A1]">{deptWorkload.reduce((acc, d) => acc + d.appts, 0)} Total Patients</span>
           </div>
         </div>
 
@@ -625,8 +632,8 @@ export function HospitalAdminDashboard({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex flex-col justify-between">
           <SH title="Doctor Availability" sub="Current Staffing Overview" />
           <div className="space-y-3 my-auto">
-            {HA_DOC_AVAILABILITY.map((d) => {
-              const pct = Math.round((d.count / 24) * 100);
+            {docAvailability.map((d) => {
+              const pct = totalDoctors > 0 ? Math.round((d.count / totalDoctors) * 100) : 0;
               return (
                 <div key={d.status}>
                   <div
@@ -660,8 +667,8 @@ export function HospitalAdminDashboard({
             className="mt-4 pt-3 border-t border-gray-50 text-xs text-[#64748B] flex items-center justify-between"
             style={{ fontFamily: RB }}
           >
-            <span>Available + In Consult: 0 Active</span>
-            <span className="font-semibold text-[#66BB6A]">0% On Duty</span>
+            <span>Available + In Consult: {totalDoctors} Active</span>
+            <span className="font-semibold text-[#66BB6A]">{totalDoctors > 0 ? "100" : "0"}% On Duty</span>
           </div>
         </div>
 
@@ -674,7 +681,7 @@ export function HospitalAdminDashboard({
           <div className="flex items-center justify-center relative py-2">
             <ResponsiveContainer width="100%" height={150}>
               <BarChart
-                data={HA_REVENUE_DIST}
+                data={revenueDist}
                 margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
               >
                 <XAxis
@@ -687,7 +694,7 @@ export function HospitalAdminDashboard({
                   tick={{ fontSize: 10, fill: "#94A3B8" }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v) => `$${v}`}
+                  tickFormatter={(v) => `₹${v}`}
                 />
                 <Tooltip
                   contentStyle={{
@@ -696,10 +703,10 @@ export function HospitalAdminDashboard({
                     borderRadius: 12,
                     fontSize: 12,
                   }}
-                  formatter={(v: unknown) => [`$${v}`, "Amount"]}
+                  formatter={(v: unknown) => [`₹${v}`, "Amount"]}
                 />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={24}>
-                  {HA_REVENUE_DIST.map((entry) => (
+                  {revenueDist.map((entry) => (
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Bar>
@@ -710,11 +717,11 @@ export function HospitalAdminDashboard({
             className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-gray-50 text-xs"
             style={{ fontFamily: RB }}
           >
-            {HA_REVENUE_DIST.map((r) => (
+            {revenueDist.map((r) => (
               <div key={r.name} className="flex items-center justify-between">
                 <span className="text-[#64748B]">{r.name}:</span>
                 <span className="font-bold text-[#111827]">
-                  ${r.value.toLocaleString()}
+                  ₹{(r.value ?? 0).toLocaleString()}
                 </span>
               </div>
             ))}
@@ -723,7 +730,7 @@ export function HospitalAdminDashboard({
             className="mt-2 text-xs font-semibold text-center text-[#0D47A1]"
             style={{ fontFamily: PP }}
           >
-            Total Gross Collections: ${totalRevenue.toLocaleString()}
+            Total Gross Collections: {formatCurrency(totalRevenue)}
           </div>
         </div>
       </div>
@@ -742,7 +749,7 @@ export function HospitalAdminDashboard({
               className="text-xs text-[#64748B] mt-0.5"
               style={{ fontFamily: RB }}
             >
-              Real-time patient flow tracker · {HA_TIMELINE.length} tracked
+              Real-time patient flow tracker · {timeline.length} tracked
               records
             </div>
           </div>
@@ -792,7 +799,7 @@ export function HospitalAdminDashboard({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {HA_TIMELINE.map((a) => (
+              {timeline.map((a) => (
                 <tr
                   key={a.token || a.time}
                   className="hover:bg-slate-50 transition-colors"
@@ -904,18 +911,18 @@ export function HospitalAdminDashboard({
                 </th>
               ))}
             </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {HA_DEPT_SUMMARY_TABLE.map((d) => (
-              <tr key={d.dept} className="hover:bg-slate-50 transition-colors">
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {deptSummary.map((d) => (
+                <tr key={d.departmentId} className="hover:bg-slate-50 transition-colors">
                 <td
                   className="px-5 py-3 text-xs font-medium text-[#111827]"
                   style={{ fontFamily: PP }}
                 >
-                  {d.dept}
+                  {d.departmentName}
                 </td>
                 <td className="px-5 py-3 font-mono text-xs font-semibold text-[#111827]">
-                  {d.appts}
+                  {d.appointments}
                 </td>
                 <td className="px-5 py-3 font-mono text-xs font-semibold text-[#66BB6A]">
                   {d.completed}
@@ -924,17 +931,21 @@ export function HospitalAdminDashboard({
                   {d.waiting}
                 </td>
                 <td className="px-5 py-3 font-mono text-xs font-semibold text-[#0D47A1]">
-                  {d.doctors}
+                  {d.doctorsAvailable}
                 </td>
                 <td className="px-5 py-3">
                   <Chip
                     label={d.status}
                     variant={
-                      d.status === "Normal"
+                      d.status === "LOW"
                         ? "success"
-                        : d.status === "Busy"
-                          ? "warning"
-                          : "error"
+                        : d.status === "MODERATE"
+                          ? "info"
+                          : d.status === "HIGH"
+                            ? "warning"
+                            : d.status === "CRITICAL"
+                              ? "error"
+                            : "default"
                     }
                   />
                 </td>

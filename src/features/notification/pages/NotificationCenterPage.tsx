@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { RB } from "../constants/notifications.constants";
 import {
   NotificationPageHeader,
@@ -13,12 +14,14 @@ import {
   useMarkAllNotificationsAsRead,
   useMarkNotificationAsRead,
   useMarkNotificationAsUnread,
+  useDeleteNotification,
   useCurrentRole,
   useNotificationSettingsState,
 } from "../hooks/useNotifications";
 import { getNotificationPermission } from "../permissions";
 import { mapApiNotificationsToRecords } from "../services/notification.mapper";
 import { ROLE_QUICK_FILTERS } from "../constants/notifications.constants";
+import { ROUTES } from "../../../app/routes/routes";
 import type {
   NotificationRecord,
   UserRole,
@@ -29,12 +32,64 @@ export interface NotificationCenterPageProps {
   onNavigateToModule?: (module: string, targetId?: string) => void;
 }
 
-const PAGE_SIZE = 20;
+// Category tabs are filtered client-side. Load the complete inbox page so a
+// notification on a later API page is not hidden from its category tab.
+const PAGE_SIZE = 100;
+
+function resolveModuleRoute(record: NotificationRecord): string {
+  const moduleKey = String(
+    record.targetModule || record.module || "",
+  ).toUpperCase();
+  const actionUrl = String(record.actionUrl || "").trim();
+  if (actionUrl.startsWith("/")) return actionUrl;
+
+  switch (moduleKey) {
+    case "APPOINTMENT":
+    case "APPOINTMENTS":
+      return ROUTES.APPOINTMENTS;
+    case "PATIENT":
+    case "PATIENTS":
+      return ROUTES.PATIENTS;
+    case "DOCTOR":
+    case "DOCTORS":
+      return ROUTES.DOCTORS;
+    case "QUEUE":
+      return ROUTES.QUEUE;
+    case "VITALS":
+      return ROUTES.VITALS;
+    case "CONSULTATION":
+      return ROUTES.CONSULTATION;
+    case "PRESCRIPTION":
+    case "PRESCRIPTIONS":
+      return ROUTES.PRESCRIPTIONS;
+    case "BILLING":
+    case "INVOICE":
+    case "INVOICES":
+    case "PAYMENT":
+    case "PAYMENTS":
+      return ROUTES.BILLING;
+    case "REPORT":
+    case "REPORTS":
+      return ROUTES.REPORTS;
+    case "NOTIFICATION":
+    case "NOTIFICATIONS":
+      return ROUTES.NOTIFICATIONS;
+    case "SETTING":
+    case "SETTINGS":
+      return ROUTES.SETTINGS;
+    case "FAMILY":
+    case "FAMILY_MEMBERS":
+      return ROUTES.FAMILY_MEMBERS;
+    default:
+      return ROUTES.DASHBOARD;
+  }
+}
 
 export function NotificationCenterPage({
   currentRole: externalRole,
   onNavigateToModule,
 }: NotificationCenterPageProps) {
+  const navigate = useNavigate();
   const role = useCurrentRole();
   const currentRole = externalRole || role;
   const permissions = getNotificationPermission(String(role));
@@ -50,17 +105,22 @@ export function NotificationCenterPage({
   const { settings, updateSetting, saveSettings } =
     useNotificationSettingsState();
 
+  // NotificationType is a backend enum and does not match all UI categories
+  // (for example, `Patients` is not a valid API type). Fetch the authorized
+  // page without a category query and apply the role-specific filter locally.
   const {
     data: pageData,
     isLoading,
+    error,
     refetch,
   } = useNotifications(currentPage - 1, PAGE_SIZE);
   const markAllReadMutation = useMarkAllNotificationsAsRead();
   const markReadMutation = useMarkNotificationAsRead();
   const markUnreadMutation = useMarkNotificationAsUnread();
+  const deleteMutation = useDeleteNotification();
 
   const roleNotifications = useMemo(() => {
-    return mapApiNotificationsToRecords(pageData?.notifications, currentRole);
+    return mapApiNotificationsToRecords(pageData?.notifications);
   }, [pageData, currentRole]);
 
   const activeQuickFilters = useMemo(() => {
@@ -163,9 +223,24 @@ export function NotificationCenterPage({
     if (n.status === "Unread") {
       await markReadMutation.mutateAsync(n.id);
     }
-    if (onNavigateToModule) {
-      onNavigateToModule(n.targetModule, n.targetId);
-    }
+    const route = resolveModuleRoute(n);
+    if (onNavigateToModule) onNavigateToModule(route, n.targetId);
+    else navigate(route);
+  };
+
+  const handleOpenModule = async (n: NotificationRecord) => {
+    const route = resolveModuleRoute(n);
+    if (onNavigateToModule) onNavigateToModule(route, n.targetId);
+    else navigate(route);
+  };
+
+  const handleDeleteNotification = async (id: string) => {
+    await deleteMutation.mutateAsync(id);
+  };
+
+  const handleSelectCategory = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(1);
   };
 
   const handleExport = () => {
@@ -239,7 +314,7 @@ export function NotificationCenterPage({
         filters={activeQuickFilters}
         counts={quickFilterCounts}
         selected={selectedCategory}
-        onSelect={setSelectedCategory}
+        onSelect={handleSelectCategory}
       />
 
       <NotificationFilterBar
@@ -256,8 +331,11 @@ export function NotificationCenterPage({
         items={filteredNotifications}
         currentRole={currentRole}
         isLoading={isLoading}
-        onOpen={handleOpenAction}
+        error={error instanceof Error ? error.message : undefined}
+        onOpenAction={handleOpenAction}
+        onOpenModule={handleOpenModule}
         onToggleRead={handleToggleReadStatus}
+        onDelete={handleDeleteNotification}
         onPreviousPage={() => setCurrentPage((p) => Math.max(1, p - 1))}
         onNextPage={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
         canGoPrevious={currentPage > 1}

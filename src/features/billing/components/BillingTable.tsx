@@ -17,6 +17,7 @@ interface BillingTableProps {
   isAdminReadOnly?: boolean;
   onViewInvoiceDetailsClick?: (invoice: InvoiceRecord) => void;
   onCollectPaymentClick?: (invoice: InvoiceRecord) => void;
+  onGenerateInvoiceClick?: (invoice: InvoiceRecord) => void;
   onCancelInvoice?: (invoiceId: string) => void;
   onViewPaymentHistory?: (invoice: InvoiceRecord) => void;
 }
@@ -28,6 +29,7 @@ export function InvoiceRow({
   setActiveMenuId,
   onViewInvoiceDetailsClick,
   onCollectPaymentClick,
+  onGenerateInvoiceClick,
   onCancelInvoice,
   onViewPaymentHistory,
 }: {
@@ -37,6 +39,7 @@ export function InvoiceRow({
   setActiveMenuId: (id: string | null) => void;
   onViewInvoiceDetailsClick?: (invoice: InvoiceRecord) => void;
   onCollectPaymentClick?: (invoice: InvoiceRecord) => void;
+  onGenerateInvoiceClick?: (invoice: InvoiceRecord) => void;
   onCancelInvoice?: (invoiceId: string) => void;
   onViewPaymentHistory?: (invoice: InvoiceRecord) => void;
 }) {
@@ -47,7 +50,7 @@ export function InvoiceRow({
         className="py-3 px-4 font-bold text-[#0D47A1]"
         style={{ fontFamily: PP }}
       >
-        {invoice.id}
+        {invoice.billNumber || invoice.id}
       </td>
       {/* Date */}
       <td className="py-3 px-4 text-slate-500 whitespace-nowrap">
@@ -95,6 +98,27 @@ export function InvoiceRow({
           </button>
 
           {!isAdminReadOnly &&
+            (invoice.status?.toUpperCase() === "READY_FOR_BILLING" ||
+              invoice.status?.toUpperCase() === "PENDING_BILLING" ||
+              invoice.status?.toUpperCase() === "PENDING" ||
+              (invoice.paymentStatus === "Pending" &&
+                invoice.invoiceAmount === 0)) && (
+              <button
+                onClick={() => onGenerateInvoiceClick?.(invoice)}
+                className="px-2 py-0.5 rounded bg-[#0D47A1] text-white text-[10px] font-semibold hover:bg-blue-900 transition-colors shadow-sm whitespace-nowrap"
+                title="Generate Invoice"
+              >
+                Generate Invoice
+              </button>
+            )}
+
+          {!isAdminReadOnly &&
+            invoice.status?.toUpperCase() !== "READY_FOR_BILLING" &&
+            invoice.status?.toUpperCase() !== "PENDING_BILLING" &&
+            invoice.status?.toUpperCase() !== "PENDING" &&
+            !(
+              invoice.paymentStatus === "Pending" && invoice.invoiceAmount === 0
+            ) &&
             invoice.balance > 0 &&
             invoice.paymentStatus !== "Cancelled" && (
               <button
@@ -165,6 +189,7 @@ export function BillingTable({
   isAdminReadOnly = false,
   onViewInvoiceDetailsClick,
   onCollectPaymentClick,
+  onGenerateInvoiceClick,
   onCancelInvoice,
   onViewPaymentHistory,
 }: BillingTableProps) {
@@ -200,6 +225,7 @@ export function BillingTable({
                 setActiveMenuId={setActiveMenuId}
                 onViewInvoiceDetailsClick={onViewInvoiceDetailsClick}
                 onCollectPaymentClick={onCollectPaymentClick}
+                onGenerateInvoiceClick={onGenerateInvoiceClick}
                 onCancelInvoice={onCancelInvoice}
                 onViewPaymentHistory={onViewPaymentHistory}
               />

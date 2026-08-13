@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   User,
   Search,
@@ -14,11 +15,16 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { PP, RB } from "../constants/billing.constants";
-import { usePatientSearch, usePatient } from "../../patients/hooks/usePatients";
-import { useInvoice } from "../hooks/useBilling";
+import { useBillingPatientSearch, useInvoice, usePayment, billingKeys } from "../hooks/useBilling";
+import { billingService } from "../services/billing.service";
+import { usePatient } from "../../patients/hooks/usePatients";
 import { useAppointment } from "../../appointments/hooks/useAppointment";
 import { BillingStatusBadge } from "../components/BillingStatusBadge";
-import type { PaymentMethod, PaymentStatus } from "../types/billing.types";
+import type {
+  PaymentMethod,
+  PaymentStatus,
+  BillListItem,
+} from "../types/billing.types";
 import type { Patient } from "../../patients/types/patient.types";
 
 interface BillingLineItem {
@@ -69,8 +75,6 @@ const SERVICE_CATALOG = [
   },
 ];
 
-const INVOICE_COUNTER = Date.now().toString().slice(-4);
-
 export function CreateInvoiceWorkspacePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -80,14 +84,40 @@ export function CreateInvoiceWorkspacePage() {
   const urlEncounterId = searchParams.get("encounterId");
   const urlPatientMrn = searchParams.get("patientMrn");
   const urlDoctorId = searchParams.get("doctorId");
+  const urlPatientId = searchParams.get("patientId");
+  const rawUrlBillId = searchParams.get("billId");
+  const urlBillId = rawUrlBillId && rawUrlBillId !== "undefined" && rawUrlBillId !== "null" ? rawUrlBillId : null;
 
   // Patient Search
   const [patientSearch, setPatientSearch] = useState("");
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [selectedBillingRecord, setSelectedBillingRecord] =
+    useState<any | null>(null);
+
+  // Load existing bill workspace if urlBillId is present
+  const { data: billWorkspace, isLoading: isBillLoading } = useQuery({
+    queryKey: billingKeys.detail(urlBillId || ""),
+    queryFn: () => billingService.getBill(urlBillId!),
+    enabled: !!urlBillId,
+  });
+
+  const isAlreadyPaidOrFinalized = useMemo(() => {
+    const status = billWorkspace?.bill?.status?.toUpperCase();
+    const payStatus = billWorkspace?.bill?.paymentStatus?.toUpperCase();
+    return payStatus === "PAID" || status === "FINALIZED";
+  }, [billWorkspace]);
+
+  // Resolved clinical context (from selected record, URL params, or loaded billWorkspace)
+  const resolvedAppointmentId =
+    selectedBillingRecord?.appointmentId || urlAppointmentId || billWorkspace?.appointment?.id;
+  const resolvedEncounterId =
+    selectedBillingRecord?.encounterId || urlEncounterId || billWorkspace?.encounter?.id;
+  const resolvedDoctorId = selectedBillingRecord?.doctorId || urlDoctorId || billWorkspace?.doctor?.id;
+  const resolvedPatientMrn = selectedBillingRecord?.patientMrn || selectedBillingRecord?.mrn || urlPatientMrn || billWorkspace?.patient?.mrn;
+  const resolvedPatientId = selectedBillingRecord?.patientId || urlPatientId || billWorkspace?.patient?.id;
 
   // Invoice Meta
-  const [invoiceNumber] = useState(`INV-${INVOICE_COUNTER}`);
   const [patientCategory, setPatientCategory] = useState<
     "General" | "Insurance" | "Corporate" | "VIP"
   >("General");
@@ -126,29 +156,84 @@ export function CreateInvoiceWorkspacePage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdBillId, setCreatedBillId] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // API hooks
-  const { data: searchResults } = usePatientSearch(patientSearch);
-  const { createBill, addBillItem, applyDiscount, isCreating } = useInvoice();
+  // API hooks — search completed consultations from /api/v1/billing/pending-billing/search
+  const { data: billingSearchData } = useBillingPatientSearch(patientSearch);
+  const { createBill, addBillItem, updateBillItem, deleteBillItem, applyDiscount, finalizeBill, isCreating } = useInvoice(urlBillId || undefined);
+  const { receivePayment } = usePayment(urlBillId || undefined);
 
-  // Fetch details from backend
-  const { data: patientDetails } = usePatient(urlPatientMrn || "");
-  const { appointment } = useAppointment(urlAppointmentId || "");
+  // Fetch details from backend (for URL-param-based pre-population)
+  const { data: patientDetails } = usePatient(resolvedPatientMrn || "");
+  const { appointment } = useAppointment(String(resolvedAppointmentId || ""));
   const [autoLoaded, setAutoLoaded] = useState(false);
+  const [workspaceInitialized, setWorkspaceInitialized] = useState(false);
 
+  // Auto-load from URL params when navigating from Pending Billing tab
   useEffect(() => {
-    if (urlPatientMrn && patientDetails && !selectedPatient && !autoLoaded) {
+    if (
+      resolvedPatientMrn &&
+      patientDetails &&
+      !selectedPatient &&
+      !autoLoaded
+    ) {
       queueMicrotask(() => {
         setSelectedPatient(patientDetails);
         setPatientSearch(patientDetails.fullName || patientDetails.name || "");
       });
     }
-  }, [patientDetails, urlPatientMrn, selectedPatient, autoLoaded]);
+  }, [patientDetails, resolvedPatientMrn, selectedPatient, autoLoaded]);
 
+  // Pre-populate fields once when billWorkspace is loaded
   useEffect(() => {
-    if (appointment && !autoLoaded) {
+    if (billWorkspace && !workspaceInitialized) {
+      // Pre-populate items
+      if (billWorkspace.items && billWorkspace.items.length > 0) {
+        const mappedItems = billWorkspace.items.map((item) => ({
+          id: String(item.id),
+          serviceName: item.serviceName,
+          category: "Consultation",
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          discount: item.discountAmount || 0,
+          tax: item.taxRate || 0,
+          total: item.totalAmount,
+        }));
+        setLineItems(mappedItems);
+      }
+
+      // Pre-populate discount and remarks
+      if (billWorkspace.bill) {
+        const type = billWorkspace.bill.discountType === "PERCENTAGE" ? "Percentage" : "Fixed";
+        setDiscountType(type);
+        setDiscountValue(Number(billWorkspace.bill.discountValue || 0));
+        setBillingRemarks(String(billWorkspace.bill.discountReason || ""));
+      }
+
+      // Pre-populate amountReceived and status
+      if (billWorkspace.summary) {
+        setAmountReceived(Number(billWorkspace.summary.paidAmount || 0));
+        if (billWorkspace.summary.paidAmount > 0) {
+          setPaymentStatus("Paid");
+        } else {
+          setPaymentStatus("Pending");
+        }
+      }
+      setWorkspaceInitialized(true);
+    }
+  }, [billWorkspace, workspaceInitialized]);
+
+  // Auto-set line item fee from appointment (URL param) or billing record
+  useEffect(() => {
+    if (autoLoaded || urlBillId) return;
+    if (appointment || selectedBillingRecord) {
       const fee = Number(
-        appointment.doctor?.consultationFee || appointment.feeAmount || 500,
+        appointment?.doctor?.consultationFee ||
+          appointment?.feeAmount ||
+          selectedBillingRecord?.consultationFee ||
+          selectedBillingRecord?.summary?.grossAmount ||
+          selectedBillingRecord?.summary?.netAmount ||
+          0,
       );
       queueMicrotask(() => {
         setLineItems([
@@ -166,16 +251,13 @@ export function CreateInvoiceWorkspacePage() {
         setAutoLoaded(true);
       });
     }
-  }, [appointment, autoLoaded]);
+  }, [appointment, autoLoaded, selectedBillingRecord, urlBillId]);
 
-  // Autocomplete Patients
-  const filteredPatients = useMemo(() => {
-    if (!searchResults) return [];
-    const patients = Array.isArray(searchResults)
-      ? searchResults
-      : searchResults.items || [];
-    return patients.slice(0, 8);
-  }, [searchResults]);
+  // Billing-eligible patient search results (from /api/v1/billing/pending-billing)
+  const filteredBills: any[] = useMemo(() => {
+    if (!billingSearchData) return [];
+    return billingSearchData.slice(0, 8);
+  }, [billingSearchData]);
 
   // Calculations
   const rawSubtotal = useMemo(
@@ -190,7 +272,12 @@ export function CreateInvoiceWorkspacePage() {
   }, [rawSubtotal, discountType, discountValue]);
 
   const taxableAmount = Math.max(0, rawSubtotal - calculatedDiscount);
-  const calculatedTax = (taxableAmount * taxPercentage) / 100;
+  const calculatedTax = useMemo(() => {
+    if (billWorkspace?.summary != null) {
+      return billWorkspace.summary.taxAmount;
+    }
+    return (taxableAmount * taxPercentage) / 100;
+  }, [billWorkspace, taxableAmount, taxPercentage]);
   const grandTotal = Math.round(
     taxableAmount + calculatedTax + Number(additionalCharges),
   );
@@ -243,45 +330,103 @@ export function CreateInvoiceWorkspacePage() {
   };
 
   const handleGenerateInvoice = useCallback(async () => {
-    if (!selectedPatient) return;
-    if (!urlAppointmentId) {
+    if (!selectedPatient || !resolvedPatientMrn) return;
+    if (!resolvedPatientId || !resolvedAppointmentId || !resolvedEncounterId) {
       setValidationError(
-        "This page requires an Appointment ID. Please navigate from the consultation workflow or select a patient with an active appointment.",
+        "This billable visit is missing a patient ID, appointment ID, or encounter ID. Select the patient from the completed-consultation results.",
       );
       return;
     }
+    setIsSubmitting(true);
     try {
-      // Create the bill with real values from URL params (if available)
-      const result = await createBill({
-        appointmentId: Number(urlAppointmentId),
-        encounterId: urlEncounterId ? Number(urlEncounterId) : 0,
-        patientMrn: selectedPatient.mrn,
-        doctorId: urlDoctorId ? Number(urlDoctorId) : 0,
+      let billId = Number(urlBillId);
+
+      if (!billId) {
+        // Create the bill with real values from the clinical context
+        const result = await createBill({
+          appointmentId: Number(resolvedAppointmentId),
+          encounterId: Number(resolvedEncounterId),
+          patientMrn: resolvedPatientMrn || selectedPatient.mrn,
+          doctorId: Number(resolvedDoctorId),
+          patientId: Number(resolvedPatientId),
+        });
+        billId = result.billId;
+
+        // Add line items
+        for (const item of lineItems) {
+          await addBillItem({
+            billId,
+            payload: { serviceId: item.serviceName, quantity: item.quantity },
+          });
+        }
+      } else {
+        // Sync items for existing bill
+        const existingItems = billWorkspace?.items || [];
+        
+        // 1. Delete items that are no longer in lineItems
+        for (const extItem of existingItems) {
+          const stillExists = lineItems.some(
+            (item) => item.serviceName === extItem.serviceName
+          );
+          if (!stillExists) {
+            await deleteBillItem({ billId, itemId: extItem.id });
+          }
+        }
+
+        // 2. Add or update items
+        for (const item of lineItems) {
+          const extItem = existingItems.find(
+            (ext) => ext.serviceName === item.serviceName
+          );
+          if (extItem) {
+            if (extItem.quantity !== item.quantity) {
+              await updateBillItem({
+                billId,
+                itemId: extItem.id,
+                quantity: item.quantity,
+              });
+            }
+          } else {
+            await addBillItem({
+              billId,
+              payload: { serviceId: item.serviceName, quantity: item.quantity },
+            });
+          }
+        }
+      }
+
+      // Apply discount
+      await applyDiscount({
+        billId,
+        discountType: discountType === "Percentage" ? "PERCENTAGE" : "FIXED",
+        value: discountValue,
+        reason: billingRemarks || "Invoice discount",
       });
-      const billId = result.billId;
 
-      // Add line items
-      for (const item of lineItems) {
-        await addBillItem({
+      // Receive payment if amountReceived > 0
+      if (amountReceived > 0) {
+        await receivePayment({
           billId,
-          payload: { serviceId: item.serviceName, quantity: item.quantity },
+          payments: [
+            {
+              method: paymentMode,
+              amount: amountReceived,
+              referenceNumber: referenceNo || undefined,
+            },
+          ],
+          remarks: txnNotes || undefined,
         });
       }
 
-      // Apply discount if any
-      if (calculatedDiscount > 0) {
-        await applyDiscount({
-          billId,
-          discountType: discountType === "Percentage" ? "PERCENTAGE" : "FIXED",
-          value: discountValue,
-          reason: billingRemarks || "Invoice discount",
-        });
-      }
+      // Finalize the bill
+      await finalizeBill(billId);
 
       setCreatedBillId(String(billId));
       setShowSuccessModal(true);
     } catch (err) {
-      console.error("Failed to create invoice:", err);
+      console.error("Failed to create/finalize invoice:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   }, [
     selectedPatient,
@@ -292,10 +437,22 @@ export function CreateInvoiceWorkspacePage() {
     billingRemarks,
     createBill,
     addBillItem,
+    updateBillItem,
+    deleteBillItem,
     applyDiscount,
-    urlAppointmentId,
-    urlEncounterId,
-    urlDoctorId,
+    finalizeBill,
+    receivePayment,
+    resolvedAppointmentId,
+    resolvedEncounterId,
+    resolvedDoctorId,
+    resolvedPatientMrn,
+    resolvedPatientId,
+    urlBillId,
+    billWorkspace,
+    amountReceived,
+    paymentMode,
+    referenceNo,
+    txnNotes,
   ]);
 
   return (
@@ -347,15 +504,43 @@ export function CreateInvoiceWorkspacePage() {
           </button>
           <button
             onClick={handleGenerateInvoice}
-            disabled={isCreating || !selectedPatient}
+            disabled={isSubmitting || isBillLoading || !selectedPatient || isAlreadyPaidOrFinalized}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95 disabled:opacity-50"
             style={{ fontFamily: PP }}
           >
             <CheckCircle2 size={15} />
-            {isCreating ? "Generating..." : "Generate Invoice"}
+            {isSubmitting ? "Generating..." : "Generate Invoice"}
           </button>
         </div>
       </div>
+
+      {/* Duplicate Prevention / Already Finalized Warning Banner */}
+      {isAlreadyPaidOrFinalized && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+          <AlertCircle size={18} className="text-amber-500 shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p
+              className="text-xs font-semibold text-amber-700"
+              style={{ fontFamily: PP }}
+            >
+              This consultation has already been invoiced or finalized.
+            </p>
+            <p
+              className="text-[11px] text-amber-600 mt-1"
+              style={{ fontFamily: RB }}
+            >
+              Invoice number: <strong>{billWorkspace?.bill?.billNumber}</strong> (Status: {billWorkspace?.bill?.paymentStatus || billWorkspace?.bill?.status}). You cannot modify or regenerate this invoice.
+            </p>
+          </div>
+          <button
+            onClick={() => navigate(`/billing/invoice/${urlBillId}`)}
+            className="px-3.5 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 transition-colors shadow-sm whitespace-nowrap"
+            style={{ fontFamily: PP }}
+          >
+            View Invoice Details
+          </button>
+        </div>
+      )}
 
       {/* Validation Error Banner */}
       {validationError && (
@@ -443,32 +628,49 @@ export function CreateInvoiceWorkspacePage() {
                   style={{ fontFamily: RB }}
                 />
               </div>
-              {showSearchDropdown && filteredPatients.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-[#E5E7EB] shadow-xl z-30 max-h-56 overflow-y-auto divide-y divide-slate-100">
-                  {filteredPatients.map((p: Patient) => (
+              {showSearchDropdown && filteredBills.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-[#E5E7EB] shadow-xl z-30 max-h-64 overflow-y-auto divide-y divide-slate-100">
+                  {filteredBills.map((bill: BillListItem) => (
                     <div
-                      key={p.mrn}
+                      key={`${bill.billId ?? bill.id ?? bill.billNumber}-${bill.appointmentId}`}
                       onClick={() => {
-                        setSelectedPatient(p);
-                        setPatientSearch(p.fullName || p.name || "");
+                        setSelectedBillingRecord(bill);
+                        setSelectedPatient(null);
+                        setAutoLoaded(false);
+                        setPatientSearch(bill.patientName || "");
                         setShowSearchDropdown(false);
                       }}
-                      className="p-3 hover:bg-blue-50 cursor-pointer flex items-center justify-between transition-colors"
+                      className="p-3 hover:bg-blue-50 cursor-pointer transition-colors"
                     >
-                      <div>
-                        <div
-                          className="text-xs font-bold text-[#111827]"
-                          style={{ fontFamily: PP }}
-                        >
-                          {p.fullName || p.name || "N/A"}
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div
+                            className="text-xs font-bold text-[#111827]"
+                            style={{ fontFamily: PP }}
+                          >
+                            {bill.patientName}
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-mono">
+                            {bill.patientMrn}
+                          </div>
+                          <div className="text-[10px] text-slate-500 mt-0.5">
+                            Dr. {bill.doctorName || "N/A"}
+                          </div>
                         </div>
-                        <div className="text-[11px] text-slate-500">
-                          {p.mrn} {p.phone ? `• ${p.phone}` : ""}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-[10px] text-slate-400">
-                          {p.gender || ""} {p.age ? `/ ${p.age} yrs` : ""}
+                        <div className="text-right text-[10px] text-slate-500">
+                          <div>Bill: {bill.billNumber}</div>
+                          <div>APT #{bill.appointmentId || "—"}</div>
+                          <div>ENC #{bill.encounterId || "—"}</div>
+                          <div className="mt-1">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-amber-50 text-amber-700">
+                              Ready for Billing
+                            </span>
+                          </div>
+                          {bill.summary && (
+                            <div className="font-semibold text-[#111827] mt-0.5">
+                              ₹{(bill.summary.netAmount ?? 0).toLocaleString()}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -540,6 +742,90 @@ export function CreateInvoiceWorkspacePage() {
               </div>
             )}
           </div>
+
+          {/* Clinical Context (from billing record or URL params) */}
+          {(selectedBillingRecord || resolvedAppointmentId) && (
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
+              <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                  <FileText size={16} />
+                </div>
+                <h2
+                  className="text-sm font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  SECTION 01B: CLINICAL CONTEXT
+                </h2>
+              </div>
+              <div
+                className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs"
+                style={{ fontFamily: RB }}
+              >
+                <div>
+                  <span className="text-slate-400 block text-[11px]">
+                    Attending Doctor
+                  </span>
+                  <span className="font-medium text-[#111827]">
+                    {selectedBillingRecord?.doctorName ||
+                      appointment?.doctorName ||
+                      "N/A"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">
+                    Department
+                  </span>
+                  <span className="font-medium text-[#111827]">
+                    {appointment?.departmentName || "General Medicine"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">
+                    Appointment ID
+                  </span>
+                  <span className="font-mono font-bold text-[#0D47A1]">
+                    {resolvedAppointmentId
+                      ? `#${resolvedAppointmentId}`
+                      : "N/A"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">
+                    Consultation ID
+                  </span>
+                  <span className="font-mono font-bold text-[#0D47A1]">
+                    {selectedBillingRecord?.consultationId || "—"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">
+                    Encounter ID
+                  </span>
+                  <span className="font-mono font-bold text-[#0D47A1]">
+                    {resolvedEncounterId ? `ENC-${resolvedEncounterId}` : "N/A"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">
+                    Consultation Date
+                  </span>
+                  <span className="font-medium text-[#111827]">
+                    {appointment?.appointmentDate ||
+                      selectedBillingRecord?.createdAt ||
+                      "N/A"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[11px]">
+                    Invoice No.
+                  </span>
+                  <span className="font-medium text-slate-500">
+                    Assigned by the billing service when generated
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* SECTION 02: BILLING ITEMS */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
@@ -964,7 +1250,7 @@ export function CreateInvoiceWorkspacePage() {
               <div className="flex justify-between">
                 <span className="text-slate-500">Invoice No:</span>
                 <span className="font-bold text-[#0D47A1]">
-                  {invoiceNumber}
+                  Assigned on generation
                 </span>
               </div>
               <div className="flex justify-between">
@@ -1031,11 +1317,11 @@ export function CreateInvoiceWorkspacePage() {
             <div className="space-y-2 pt-2">
               <button
                 onClick={handleGenerateInvoice}
-                disabled={isCreating || !selectedPatient}
+                disabled={isSubmitting || isBillLoading || !selectedPatient || isAlreadyPaidOrFinalized}
                 className="w-full py-3 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm disabled:opacity-50"
                 style={{ fontFamily: PP }}
               >
-                {isCreating
+                {isSubmitting
                   ? "Generating..."
                   : `Generate & Collect (₹${grandTotal.toLocaleString()})`}
               </button>
@@ -1060,12 +1346,12 @@ export function CreateInvoiceWorkspacePage() {
         </button>
         <button
           onClick={handleGenerateInvoice}
-          disabled={isCreating || !selectedPatient}
+          disabled={isSubmitting || isBillLoading || !selectedPatient || isAlreadyPaidOrFinalized}
           className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-all shadow-sm disabled:opacity-50"
           style={{ fontFamily: PP }}
         >
           <CheckCircle2 size={15} />
-          {isCreating ? "Generating..." : "Generate Invoice"}
+          {isSubmitting ? "Generating..." : "Generate Invoice"}
         </button>
       </div>
 
@@ -1089,7 +1375,7 @@ export function CreateInvoiceWorkspacePage() {
               >
                 Invoice{" "}
                 <span className="font-bold text-[#0D47A1]">
-                  {createdBillId || invoiceNumber}
+                  {createdBillId || "the billing service"}
                 </span>{" "}
                 has been issued.
               </p>

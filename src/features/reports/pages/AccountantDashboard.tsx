@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router";
+import { ROUTES } from "../../../app/routes/routes";
 import {
   Download,
   RefreshCw,
@@ -35,7 +37,13 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { useInvoiceSummary, useDailyRevenue } from "../hooks/useReports";
+import {
+  useInvoiceSummary,
+  useDailyRevenue,
+  useAccountantMainReport,
+  useAccountantPaymentCollection,
+  useAccountantTransactionReport,
+} from "../hooks/useReports";
 import type { DailyRevenuePoint } from "../types/reports.types";
 
 const PP = "Poppins, system-ui, sans-serif";
@@ -108,6 +116,7 @@ export function AccountantReportsDashboardScreen({
   onOpenBillingReport?: () => void;
   onOpenKpiDetail?: () => void;
 }) {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState("Today");
   const [paymentStatusFilter, setPaymentStatusFilter] = useState(
@@ -164,6 +173,9 @@ export function AccountantReportsDashboardScreen({
     isLoading: revLoading,
     error: revError,
   } = useDailyRevenue(dateFilters);
+  useAccountantMainReport(dateFilters);
+  useAccountantPaymentCollection(dateFilters);
+  useAccountantTransactionReport({ ...dateFilters, size: 20 });
 
   const isLoading = invLoading || revLoading;
   const hasError = !!(invError || revError);
@@ -208,7 +220,7 @@ export function AccountantReportsDashboardScreen({
     >
       {/* Top Header Section */}
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
@@ -291,7 +303,7 @@ export function AccountantReportsDashboardScreen({
       </div>
 
       {/* Main Container */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         {/* Global Search Bar */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
@@ -474,9 +486,12 @@ export function AccountantReportsDashboardScreen({
               {/* TOP 6 ACCOUNTANT KPI CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Card 1: Today's Revenue */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div
+                  onClick={() => navigate(ROUTES.BILLING)}
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
+                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
                       Today's Revenue
                     </span>
                     <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
@@ -491,11 +506,13 @@ export function AccountantReportsDashboardScreen({
                       ? `$${invoiceSummary.totalBilledAmount.toLocaleString()}`
                       : "--"}
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#64748B] font-semibold flex items-center gap-0.5">
                       <TrendingUp className="w-3 h-3" /> Revenue
                     </span>
-                    <span>Revenue Summary</span>
+                    <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
+                      View Detail <ChevronRight className="w-3 h-3" />
+                    </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
@@ -518,9 +535,12 @@ export function AccountantReportsDashboardScreen({
                 </div>
 
                 {/* Card 2: Today's Invoices */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div
+                  onClick={() => navigate(ROUTES.BILLING)}
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
+                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
                       Today's Invoices
                     </span>
                     <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
@@ -533,9 +553,12 @@ export function AccountantReportsDashboardScreen({
                   >
                     {invoiceSummary?.totalInvoices ?? "--"}
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#009688] font-semibold">
                       {invoiceSummary?.paidInvoices ?? "--"} Paid Today
+                    </span>
+                    <span className="text-[#009688] font-semibold flex items-center gap-0.5 group-hover:underline">
+                      View Detail <ChevronRight className="w-3 h-3" />
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
@@ -555,9 +578,12 @@ export function AccountantReportsDashboardScreen({
                 </div>
 
                 {/* Card 3: Paid Bills */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div
+                  onClick={() => navigate(ROUTES.BILLING_HISTORY)}
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
+                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition">
                       Paid Bills
                     </span>
                     <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
@@ -570,11 +596,14 @@ export function AccountantReportsDashboardScreen({
                   >
                     {invoiceSummary?.paidInvoices ?? "--"}
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#66BB6A] font-semibold">
                       {invoiceSummary?.totalInvoices
                         ? `${Math.round((invoiceSummary.paidInvoices / invoiceSummary.totalInvoices) * 100)}% Collection Rate`
                         : "--"}
+                    </span>
+                    <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5 group-hover:underline">
+                      View Detail <ChevronRight className="w-3 h-3" />
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">

@@ -12,7 +12,6 @@ import {
 import { useAuthStore } from "../../auth";
 import { doctorsApi } from "../api/doctors.api";
 import { appointmentService } from "../../appointments";
-import { billingService } from "../../billing/services/billing.service";
 import { PP, RB } from "../constants/doctors.constants";
 import { Pagination } from "../../../common/components/Pagination";
 import type {
@@ -198,31 +197,11 @@ export function DoctorQueueScreen() {
 
   const handleCompleteConsultation = async (
     appointmentId: number | string,
-    queueItem: DoctorQueueItem,
   ) => {
     if (!appointmentId || actionId) return;
     setActionId(appointmentId);
     try {
-      const result =
-        await appointmentService.doctorCompleteConsultation(appointmentId);
-      const encounterId =
-        (result.data as unknown as Record<string, unknown> | undefined)
-          ?.encounterId || Number(appointmentId);
-      const patientMrn =
-        queueItem.mrn || queueItem.patient?.mrn || queueItem.patientId || "";
-      const docId = queueItem.doctor?.doctorId || Number(doctorId) || 0;
-
-      try {
-        await billingService.createBill({
-          appointmentId: Number(appointmentId),
-          encounterId: Number(encounterId),
-          patientMrn: String(patientMrn),
-          doctorId: Number(docId),
-        });
-      } catch {
-        /* bill creation failed; consultation still completes */
-      }
-
+      await appointmentService.doctorCompleteConsultation(appointmentId);
       showToast("Consultation completed successfully.");
       fetchQueue();
     } catch {
@@ -474,7 +453,7 @@ export function DoctorQueueScreen() {
                     {key === "IN_CONSULTATION" && (
                       <button
                         onClick={() =>
-                          handleCompleteConsultation(appointmentId, patient)
+                          handleCompleteConsultation(appointmentId)
                         }
                         disabled={!appointmentId || isActionBusy}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-[11px] font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

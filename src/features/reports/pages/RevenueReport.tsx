@@ -42,6 +42,7 @@ import {
   useDailyRevenue,
   useDailyRevenueDetails,
   useCollectionRate,
+  extractList,
 } from "../hooks/useReports";
 function CircularProgress({
   percentage,
@@ -107,26 +108,52 @@ export function DailyRevenueReportScreen({
   const [reportPeriodFilter, setReportPeriodFilter] = useState("Daily");
 
   // ─── API Data Hooks ──────────────────────────────────────────────────────
-  const reportFilters = { fromDate: "2026-08-01", toDate: "2026-08-08" };
-  const { data: dailyRevenueData = [] } = useDailyRevenue(reportFilters);
-  const { data: revenueDetailsData } = useDailyRevenueDetails(reportFilters);
+  const today = new Date().toISOString().slice(0, 10);
+  const getDateRange = (range: string) => {
+    const now = new Date();
+    if (range === "Today") return { fromDate: today, toDate: today };
+    if (range === "7 Days") {
+      const from = new Date(now);
+      from.setDate(now.getDate() - 7);
+      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+    }
+    if (range === "30 Days") {
+      const from = new Date(now);
+      from.setDate(now.getDate() - 30);
+      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+    }
+    if (range === "90 Days") {
+      const from = new Date(now);
+      from.setDate(now.getDate() - 90);
+      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+    }
+    return { fromDate: today, toDate: today };
+  };
+  const reportFilters = getDateRange(dateRange);
+  const { data: rawDailyRevenue } = useDailyRevenue(reportFilters);
+  const { data: rawDetails } = useDailyRevenueDetails(reportFilters);
   const { data: collectionRateData } = useCollectionRate(reportFilters);
 
+  const dailyRevenueData = useMemo(() => extractList<any>(rawDailyRevenue), [rawDailyRevenue]);
+  const revenueDetailsList = useMemo(() => extractList<any>(rawDetails), [rawDetails]);
+
   const revenueTableSource = useMemo(() => {
-    return (revenueDetailsData?.content ?? []).map((d) => ({
-      id: d.paymentId,
-      patientName: d.receiptNumber,
-      mrn: "",
-      doctorName: "",
-      department: "",
-      invoiceDate: d.paidAt,
-      invoiceAmount: d.amount,
-      collectedAmount: d.amount,
-      outstandingAmount: 0,
-      paymentMethod: d.paymentMethod as RevenueReportRecord["paymentMethod"],
-      paymentStatus: "Paid" as const,
+    return revenueDetailsList.map((d: any) => ({
+      id: d.paymentId || d.receiptNumber || d.invoiceNumber || `INV-${d.id || ""}`,
+      patientName: d.patientName ?? d.receiptNumber ?? "N/A",
+      mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+      doctorName: d.doctorName ?? "N/A",
+      department: d.department ?? "General Medicine",
+      invoiceDate: d.paidAt || d.invoiceDate || d.createdDate || today,
+      invoiceAmount: Number(d.amount || d.billedAmount || d.totalAmount || 0),
+      collectedAmount: Number(d.paidAmount || d.amount || d.collectedAmount || 0),
+      outstandingAmount: Number(d.outstandingAmount || 0),
+      paymentMethod: (d.paymentMethod as RevenueReportRecord["paymentMethod"]) ?? "Cash",
+      paymentStatus: (d.paymentStatus
+        ? d.paymentStatus.charAt(0) + d.paymentStatus.slice(1).toLowerCase()
+        : "Paid") as RevenueReportRecord["paymentStatus"],
     }));
-  }, [revenueDetailsData?.content]);
+  }, [revenueDetailsList, today]);
 
   // Map API daily revenue to trend chart format
   const trendSource = dailyRevenueData.map((d) => ({
@@ -136,6 +163,44 @@ export function DailyRevenueReportScreen({
     Collections: Math.round(d.amount * 0.93),
     Outstanding: Math.round(d.amount * 0.07),
   }));
+
+  const paymentMethodShareData = useMemo(() => {
+    const map: Record<string, number> = {};
+    revenueTableSource.forEach((d) => {
+      map[d.paymentMethod] = (map[d.paymentMethod] || 0) + d.collectedAmount;
+    });
+    const colors: Record<string, string> = {
+      Cash: "#009688",
+      Card: "#0D47A1",
+      UPI: "#66BB6A",
+      "Bank Transfer": "#F59E0B",
+    };
+    return Object.entries(map).map(([name, value]) => ({
+      name,
+      value,
+      color: colors[name] || "#64748B",
+    }));
+  }, [revenueTableSource]);
+
+  const deptRevenueData = useMemo(() => {
+    const map: Record<string, { department: string; revenue: number }> = {};
+    revenueTableSource.forEach((d) => {
+      if (!map[d.department])
+        map[d.department] = { department: d.department, revenue: 0 };
+      map[d.department].revenue += d.invoiceAmount;
+    });
+    return Object.values(map);
+  }, [revenueTableSource]);
+
+  const doctorRevenueData = useMemo(() => {
+    const map: Record<string, { doctor: string; revenue: number }> = {};
+    revenueTableSource.forEach((d) => {
+      if (!map[d.doctorName])
+        map[d.doctorName] = { doctor: d.doctorName, revenue: 0 };
+      map[d.doctorName].revenue += d.invoiceAmount;
+    });
+    return Object.values(map);
+  }, [revenueTableSource]);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated] = useState(() => {
@@ -233,7 +298,7 @@ export function DailyRevenueReportScreen({
     const totalRev = collectionRateData?.totalBilled ?? 0;
     const collectedRev = collectionRateData?.totalCollected ?? 0;
     const outstanding = collectionRateData?.outstandingAmount ?? 0;
-    const invoicesCount = revenueDetailsData?.content?.length ?? 0;
+    const invoicesCount = revenueDetailsList.length ?? 0;
     return {
       totalRev,
       collectedRev,
@@ -244,7 +309,7 @@ export function DailyRevenueReportScreen({
       voidInvoices: 0,
       avgValue: invoicesCount > 0 ? Math.round(totalRev / invoicesCount) : 0,
     };
-  }, [collectionRateData, revenueDetailsData]);
+  }, [collectionRateData, revenueDetailsList]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -318,12 +383,17 @@ export function DailyRevenueReportScreen({
   };
 
   // Status Chip helper
-  const renderStatusChip = (status: RevenueReportRecord["paymentStatus"]) => {
+  const renderStatusChip = (status?: string) => {
     const map: Record<
-      RevenueReportRecord["paymentStatus"],
+      string,
       { bg: string; text: string; dot: string }
     > = {
       Paid: {
+        bg: "bg-green-50 border-green-200",
+        text: "text-[#66BB6A]",
+        dot: "bg-[#66BB6A]",
+      },
+      PAID: {
         bg: "bg-green-50 border-green-200",
         text: "text-[#66BB6A]",
         dot: "bg-[#66BB6A]",
@@ -333,7 +403,17 @@ export function DailyRevenueReportScreen({
         text: "text-[#0D47A1]",
         dot: "bg-[#0D47A1]",
       },
+      PARTIALLY_PAID: {
+        bg: "bg-blue-50 border-blue-200",
+        text: "text-[#0D47A1]",
+        dot: "bg-[#0D47A1]",
+      },
       Pending: {
+        bg: "bg-amber-50 border-amber-200",
+        text: "text-[#F59E0B]",
+        dot: "bg-[#F59E0B]",
+      },
+      PENDING: {
         bg: "bg-amber-50 border-amber-200",
         text: "text-[#F59E0B]",
         dot: "bg-[#F59E0B]",
@@ -343,14 +423,24 @@ export function DailyRevenueReportScreen({
         text: "text-[#EF4444]",
         dot: "bg-[#EF4444]",
       },
+      CANCELLED: {
+        bg: "bg-red-50 border-red-200",
+        text: "text-[#EF4444]",
+        dot: "bg-[#EF4444]",
+      },
     };
-    const style = map[status];
+    const defaultStyle = {
+      bg: "bg-slate-50 border-slate-200",
+      text: "text-slate-600",
+      dot: "bg-slate-400",
+    };
+    const style = (status && map[status]) || defaultStyle;
     return (
       <span
         className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.bg} ${style.text}`}
       >
         <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-        {status}
+        {status || "Unknown"}
       </span>
     );
   };
@@ -362,7 +452,7 @@ export function DailyRevenueReportScreen({
     >
       {/* Top Header Section */}
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
@@ -443,7 +533,7 @@ export function DailyRevenueReportScreen({
       </div>
 
       {/* Main Container */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         {/* Global Search Bar */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
@@ -1201,21 +1291,22 @@ export function DailyRevenueReportScreen({
                     <CreditCard className="w-4 h-4 text-[#0D47A1]" />
                   </div>
                   <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPie>
-                        <Pie
-                          data={[]}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={45}
-                          outerRadius={75}
-                          paddingAngle={3}
-                          dataKey="value"
-                        >
-                          {[].map((entry) => (
-                            <Cell key={entry?.id || entry?._id || entry?.key || entry?.value || entry?.code || entry?.name || entry?.title || entry?.label || (typeof entry === 'object' ? JSON.stringify(entry) : String(entry))} fill={entry.color} />
-                          ))}
-                        </Pie>
+                    {paymentMethodShareData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RechartsPie>
+                          <Pie
+                            data={paymentMethodShareData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={45}
+                            outerRadius={75}
+                            paddingAngle={3}
+                            dataKey="value"
+                          >
+                            {paymentMethodShareData.map((entry) => (
+                              <Cell key={entry.name} fill={entry.color} />
+                            ))}
+                          </Pie>
                         <Tooltip
                           contentStyle={{
                             backgroundColor: "#FFFFFF",
@@ -1233,11 +1324,12 @@ export function DailyRevenueReportScreen({
                             paddingTop: "10px",
                           }}
                         />
-                      </RechartsPie>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
+                       </RechartsPie>
+                     </ResponsiveContainer>
+                     )}
+                   </div>
+                 </div>
+               </div>
 
               {/* DEPARTMENT REVENUE & DOCTOR REVENUE CONTRIBUTION */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1258,12 +1350,13 @@ export function DailyRevenueReportScreen({
                     <Building2 className="w-4 h-4 text-[#009688]" />
                   </div>
                   <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        layout="vertical"
-                        data={[]}
-                        margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
-                      >
+                    {deptRevenueData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          layout="vertical"
+                          data={deptRevenueData}
+                          margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
+                        >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                         <XAxis
                           type="number"
@@ -1288,10 +1381,11 @@ export function DailyRevenueReportScreen({
                           fill="#009688"
                           radius={[0, 4, 4, 0]}
                         />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
+                       </BarChart>
+                     </ResponsiveContainer>
+                     )}
+                   </div>
+                 </div>
 
                 {/* Doctor Revenue Contribution Vertical Bar */}
                 <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
@@ -1310,11 +1404,12 @@ export function DailyRevenueReportScreen({
                     <UserCheck className="w-4 h-4 text-[#0D47A1]" />
                   </div>
                   <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={[]}
-                        margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                      >
+                    {doctorRevenueData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={doctorRevenueData}
+                          margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                        >
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                         <XAxis
                           dataKey="doctor"
@@ -1334,11 +1429,12 @@ export function DailyRevenueReportScreen({
                           fill="#0D47A1"
                           radius={[4, 4, 0, 0]}
                         />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
+                       </BarChart>
+                     </ResponsiveContainer>
+                     )}
+                   </div>
+                 </div>
+               </div>
 
               {/* REVENUE REPORT TABLE */}
               <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">

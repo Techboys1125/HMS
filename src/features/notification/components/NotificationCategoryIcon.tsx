@@ -47,6 +47,7 @@ export function NotificationCategoryIcon({ category }: { category: string }) {
       return <Settings className="w-5 h-5 text-slate-600" />;
     case "Registration":
       return <UserCheck className="w-5 h-5 text-blue-600" />;
+    case "Schedule":
     case "Queue":
       return <Clock className="w-5 h-5 text-amber-600" />;
     case "Announcements":

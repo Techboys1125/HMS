@@ -8,6 +8,9 @@ export interface TemplateRow {
   channel: string;
   status: string;
   lastUpdated: string;
+  body?: string;
+  priority?: string;
+  active?: boolean;
 }
 
 export interface TemplatesSectionProps {

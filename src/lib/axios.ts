@@ -1,6 +1,11 @@
+import { getToken, setToken, removeToken } from "./cookie-token-storage";
+
+// Same-origin requests (relative paths) so calls flow through the Vite dev
+// proxy (see vite.config.ts), which removes cross-origin CORS failures on any
+// port/host. Set VITE_API_BASE_URL to a full URL (e.g. http://host:8081) for
+// deployments that do not proxy /api.
 export const API_BASE_URL =
-  (import.meta.env && import.meta.env.VITE_API_BASE_URL) ||
-  "http://192.168.1.44:8081";
+  (import.meta.env && import.meta.env.VITE_API_BASE_URL) || "";
 
 export interface ApiResponseData<T = unknown> {
   data: T;
@@ -49,10 +54,12 @@ async function customFetch<T = unknown>(
   options: RequestInit = {},
 ): Promise<ApiResponseData<T>> {
   const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
-  const token = localStorage.getItem("accessToken");
+  const token = getToken("accessToken");
 
+  const isFormData =
+    typeof FormData !== "undefined" && options.body instanceof FormData;
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...(options.headers as Record<string, string>),
   };
 
@@ -110,7 +117,7 @@ async function customFetch<T = unknown>(
 
       isRefreshing = true;
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
+        const refreshToken = getToken("refreshToken");
         if (!refreshToken) {
           throw new Error("No refresh token available");
         }
@@ -126,7 +133,7 @@ async function customFetch<T = unknown>(
           refreshData?.data?.accessToken || refreshData?.accessToken;
 
         if (newAccessToken) {
-          localStorage.setItem("accessToken", newAccessToken);
+          setToken("accessToken", newAccessToken);
           processQueue(null, newAccessToken);
           return customFetch<T>(url, {
             ...options,
@@ -140,8 +147,8 @@ async function customFetch<T = unknown>(
         }
       } catch (refreshErr) {
         processQueue(refreshErr, null);
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+        removeToken("accessToken");
+        removeToken("refreshToken");
         console.error("[Auth] Session expired. Please log in again.");
         throw new ApiError(
           "Session expired. Please log in again.",
@@ -163,7 +170,7 @@ async function customFetch<T = unknown>(
           "Password change required",
         )
       ) {
-        localStorage.setItem("force_change_password", "true");
+        setToken("force_change_password", "true");
       }
     }
 
@@ -173,7 +180,9 @@ async function customFetch<T = unknown>(
         "message" in responseData &&
         typeof (responseData as { message: unknown }).message === "string" &&
         (responseData as { message: string }).message) ||
-      response.statusText ||
+      (response.status === 502
+        ? "Backend server is unavailable. Check that the HMS API is running."
+        : response.statusText) ||
       `Request failed with status ${response.status}`;
 
     console.error(`[API Error ${response.status}] ${url}:`, responseData);
@@ -201,21 +210,24 @@ export const apiClient = {
     customFetch<T>(url, {
       ...config,
       method: "POST",
-      body: body ? JSON.stringify(body) : undefined,
+      body:
+        body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     }),
 
   put: <T = unknown>(url: string, body?: unknown, config: RequestInit = {}) =>
     customFetch<T>(url, {
       ...config,
       method: "PUT",
-      body: body ? JSON.stringify(body) : undefined,
+      body:
+        body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     }),
 
   patch: <T = unknown>(url: string, body?: unknown, config: RequestInit = {}) =>
     customFetch<T>(url, {
       ...config,
       method: "PATCH",
-      body: body ? JSON.stringify(body) : undefined,
+      body:
+        body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     }),
 
   delete: <T = unknown>(url: string, config: RequestInit = {}) =>

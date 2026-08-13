@@ -9,7 +9,7 @@ import {
   Tooltip,
   Cell,
 } from "recharts";
-import { WEEKLY_CONSULTATIONS } from "../constants/doctors.constants";
+const WEEKLY_CONSULTATIONS: { id: number; day: string; count: number }[] = [];
 import { PP, RB } from "../constants/doctors.constants";
 import { Card } from "./Card";
 import { SectionHeader } from "./SectionHeader";

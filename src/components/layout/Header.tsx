@@ -12,10 +12,12 @@ import {
 } from "lucide-react";
 import safeHandsLogo from "../../assets/safehandshospital_logo.webp";
 import { useAuthStore } from "../../features/auth";
+import { useUnreadCount } from "../../features/notification/hooks/useNotifications";
 import type { FamilyMember } from "../../features/patients";
 import type { NavId, Role } from "../../types/app.types";
 import { ROLE_LABEL, PP, RB } from "../../constants/navigation";
 import { Avatar } from "../../common/components/Avatar";
+import { useHospitalBranding } from "../../features/settings/hooks/useHospitalBranding";
 
 export function Header({
   role,
@@ -34,6 +36,7 @@ export function Header({
   onSwitchActivePatient?: (member: FamilyMember) => void;
 }) {
   const user = useAuthStore((s) => s.user);
+  const { logoUrl } = useHospitalBranding();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showPatientSelector, setShowPatientSelector] = useState(false);
   const currentActive =
@@ -74,31 +77,20 @@ export function Header({
     }, 400);
   };
 
+  const { data: unreadData } = useUnreadCount();
+  const unreadCount = unreadData?.count ?? 0;
+
   return (
     <header className="h-16 bg-white border-b border-gray-100 flex items-center px-5 gap-5 shrink-0 z-30 relative">
       <button
         onClick={() => onNavigateNav("dashboard")}
-        className="flex items-center gap-3 text-left outline-none shrink-0 group focus:outline-none"
+        className="flex items-center text-left outline-none shrink-0 group focus:outline-none"
       >
         <img
-          src={safeHandsLogo}
-          alt="Safe Hands Hospital Logo"
-          className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
+          src={logoUrl || safeHandsLogo}
+          alt="Hospital Logo"
+          className="h-10 w-auto object-contain transition-transform group-hover:scale-105"
         />
-        <div className="flex flex-col">
-          <span
-            className="text-sm font-bold text-[#111827] leading-tight"
-            style={{ fontFamily: PP }}
-          >
-            Safe Hands
-          </span>
-          <span
-            className="text-[10px] text-[#64748B] hidden sm:inline"
-            style={{ fontFamily: RB }}
-          >
-            Hospital Management
-          </span>
-        </div>
       </button>
 
       <div className="flex-1 max-w-96">
@@ -253,7 +245,11 @@ export function Header({
           title="Notification Center"
         >
           <Bell size={17} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#EF4444] rounded-full ring-2 ring-white" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 flex items-center justify-center bg-[#EF4444] text-white text-[9px] font-bold rounded-full ring-2 ring-white">
+              {unreadCount}
+            </span>
+          )}
         </button>
 
         <div className="relative pl-3 border-l border-gray-100">

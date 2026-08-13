@@ -1,4 +1,6 @@
 import { apiClient, axios, ApiError } from "../../../lib/axios";
+import { useAuthStore } from "../../auth";
+import { triggerNotificationMatrix } from "../../notification/services/notificationTrigger";
 import type {
   ApiPatientAppointment,
   ApiPatientFamilyMember,
@@ -481,6 +483,21 @@ export const patientsApi = {
       );
       const data = response.data?.data || (response.data as unknown as Patient);
       if (!data) throw new Error("Failed to register patient");
+
+      // Trigger notification
+      const currentUser = useAuthStore.getState().user;
+      triggerNotificationMatrix({
+        eventId: `EVT-PAT-REG-${data.mrn || data.id || Date.now()}`,
+        title: "New Patient Registered",
+        message: `New patient ${data.fullName || data.name || "Patient"} has been registered by ${currentUser?.fullName || "Staff"}.`,
+        module: "PATIENT",
+        eventType: "PATIENT_REGISTERED",
+        priority: "MEDIUM",
+        actionLabel: "View Patient",
+        actionUrl: `/patients`,
+        receivers: [{ role: "Hospital Admin", titleOverride: "New Patient Registered", messageOverride: `New patient ${data.fullName || data.name || "Patient"} has been registered.`, actionUrl: `/patients` }]
+      });
+
       return data;
     } catch (error) {
       console.error("[patientApi] Patient registration failed:", error);
@@ -499,6 +516,35 @@ export const patientsApi = {
       );
       const data = response.data?.data || (response.data as unknown as Patient);
       if (!data) throw new Error("Failed to update patient");
+
+      // Trigger notification
+      triggerNotificationMatrix({
+        eventId: `EVT-PAT-UPD-${mrn}-${Date.now()}`,
+        title: "Patient Profile Updated",
+        message: `Patient ${data.fullName || data.name || "Patient"} profile was updated.`,
+        eventType: "PATIENT_UPDATED_ADMIN",
+        priority: "LOW",
+        actionLabel: "View Patient",
+        actionUrl: `/patients`,
+        receivers: [
+          {
+            role: "Patient Portal",
+            userId: data.userId || data.id,
+            titleOverride: "Profile Updated",
+            messageOverride: "Your profile information has been updated successfully.",
+            eventTypeOverride: "PATIENT_UPDATED_PATIENT",
+            actionUrl: `/patients/my-profile`
+          },
+          {
+            role: "Hospital Admin",
+            titleOverride: "Patient Updated",
+            messageOverride: `Patient ${data.fullName || data.name || "Patient"} profile was updated.`,
+            eventTypeOverride: "PATIENT_UPDATED_ADMIN",
+            actionUrl: `/patients`
+          }
+        ],
+      });
+
       return data;
     } catch (error) {
       console.error(`[patientApi] Failed to update patient ${mrn}:`, error);
@@ -659,6 +705,38 @@ export const patientsApi = {
       await apiClient.patch(
         `/api/v1/reception/appointments/${appointmentId}/check-in`,
       );
+
+      // Trigger notifications for patient checked in
+      let patientName = "Patient";
+      let doctorId: string | number = "";
+      try {
+        const aptRes = await apiClient.get<any>(`/api/v1/appointments/${appointmentId}`);
+        const apt = aptRes.data?.data || aptRes.data;
+        if (apt) {
+          patientName = apt.patientName || apt.patient?.fullName || "Patient";
+          doctorId = apt.doctorId || apt.doctor?.id || "";
+        }
+      } catch (e) {
+        console.warn("Failed to fetch appointment details for check-in notification", e);
+      }
+
+      triggerNotificationMatrix({
+        eventId: `EVT-RECEPT-CHECKIN-${appointmentId}`,
+        title: "Patient Checked In",
+        message: `Patient ${patientName} checked in successfully.`,
+        module: "RECEPTION",
+        eventType: "PATIENT_CHECKED_IN",
+        priority: "MEDIUM",
+        actionLabel: "View Queue",
+        actionUrl: `/queue`,
+        receivers: [
+          { role: "Doctor", userId: doctorId, titleOverride: "Patient Checked In", messageOverride: `Patient ${patientName} has checked in and is waiting.`, actionUrl: `/doctor/queue` },
+          { role: "Nurse", titleOverride: "Patient for Triage", messageOverride: `Patient ${patientName} is ready for vitals.`, actionUrl: `/nurse/vitals` },
+          { role: "Receptionist", titleOverride: "Patient Checked In", messageOverride: `Patient ${patientName} has been checked in at reception.`, actionUrl: `/queue` },
+          { role: "Hospital Admin", titleOverride: "Patient Checked In", messageOverride: `Patient ${patientName} checked in successfully.`, actionUrl: `/queue` }
+        ]
+      });
+
       return true;
     } catch {
       return false;
@@ -672,7 +750,36 @@ export const patientsApi = {
       const response = await apiClient.get<
         PatientApiResponse<{ token: string }>
       >(`/api/v1/reception/appointments/${appointmentId}/token`);
-      return response.data?.data || null;
+      const resData = response.data?.data || (response.data as any);
+      
+      if (resData) {
+        const tokenNo = resData.tokenNumber || resData.token || "TK-001";
+        let patientId = "";
+        try {
+          const aptRes = await apiClient.get<any>(`/api/v1/appointments/${appointmentId}`);
+          const apt = aptRes.data?.data || aptRes.data;
+          if (apt) {
+            patientId = apt.patientId || apt.patient?.id || "";
+          }
+        } catch (e) {
+          console.warn("Failed to fetch patientId for token notification", e);
+        }
+
+        if (patientId) {
+          triggerNotificationMatrix({
+            eventId: `EVT-QUEUE-TOKEN-${appointmentId}`,
+            title: "Queue Token Generated",
+            message: `Your queue token is ${tokenNo}. Please wait for your turn.`,
+            module: "QUEUE",
+            eventType: "QUEUE_TOKEN_GENERATED",
+            priority: "LOW",
+            actionLabel: "View Queue",
+            actionUrl: `/my-queue`,
+            receivers: [{ role: "Patient Portal", userId: patientId, titleOverride: "Queue Token Generated", messageOverride: `Your queue token is ${tokenNo}. Please wait for your turn.`, actionUrl: `/my-queue` }]
+          });
+        }
+      }
+      return resData || null;
     } catch {
       return null;
     }
@@ -711,6 +818,40 @@ export const patientsApi = {
         `/api/v1/nurse/appointments/${appointmentId}/vitals`,
         payload,
       );
+
+      // Trigger notifications for vitals completed/updated
+      let patientName = "Patient";
+      let doctorId: string | number = "";
+      let isUpdate = false;
+      try {
+        const aptRes = await apiClient.get<any>(`/api/v1/appointments/${appointmentId}`);
+        const apt = aptRes.data?.data || aptRes.data;
+        if (apt) {
+          patientName = apt.patientName || apt.patient?.fullName || "Patient";
+          doctorId = apt.doctorId || apt.doctor?.id || "";
+          isUpdate = apt.vitalsRecorded === true;
+        }
+      } catch (e) {
+        console.warn("Failed to fetch appointment details for vitals notification", e);
+      }
+
+      triggerNotificationMatrix({
+        eventId: `EVT-VITALS-${appointmentId}-${Date.now()}`,
+        title: isUpdate ? "Vitals Updated" : "Vitals Completed",
+        message: isUpdate
+          ? `Patient ${patientName} vitals have been updated.`
+          : `Vitals for ${patientName} have been completed. Patient is ready for consultation.`,
+        module: "NURSE",
+        eventType: isUpdate ? "VITALS_UPDATED" : "VITALS_COMPLETED",
+        priority: "MEDIUM",
+        actionLabel: "View Patient",
+        actionUrl: `/consultation`,
+        receivers: [
+          { role: "Doctor", userId: doctorId, titleOverride: isUpdate ? "Vitals Updated" : "Vitals Completed", messageOverride: `Vitals for ${patientName} have been ${isUpdate ? "updated" : "completed"}. Patient is ready for consultation.`, actionUrl: `/consultation` },
+          { role: "Hospital Admin", titleOverride: isUpdate ? "Vitals Updated" : "Vitals Completed", messageOverride: `Vitals for ${patientName} have been ${isUpdate ? "updated" : "completed"}.`, actionUrl: `/consultation` }
+        ]
+      });
+
       return true;
     } catch {
       return false;

@@ -2,6 +2,7 @@ import { apiClient, axios } from "../../../lib/axios";
 import type {
   BillPaymentRecord,
   BillWorkspace,
+  PendingBillingRecord,
 } from "../types/billing.types";
 
 // ─── Shared Response Wrapper ────────────────────────────────────────────────
@@ -14,7 +15,8 @@ interface ApiResponse<T = unknown> {
 
 // ─── Bill Types ─────────────────────────────────────────────────────────────
 export interface BillListItem {
-  id: number;
+  billId?: number;
+  id?: number;
   billNumber: string;
   patientName: string;
   mrn: string;
@@ -29,6 +31,7 @@ export interface BillCreatePayload {
   encounterId: number;
   patientMrn: string;
   doctorId: number;
+  patientId?: number;
 }
 
 export interface BillCreateResponse {
@@ -249,16 +252,106 @@ export const billingApi = {
     page?: number;
     size?: number;
     sort?: string;
+    sortBy?: string;
+    direction?: string;
+    status?: string;
+    billStatus?: string;
+    paymentStatus?: string;
+    paymentMethod?: string;
+    patientId?: string | number;
+    mrn?: string;
+    doctorId?: string | number;
+    search?: string;
+    fromDate?: string;
+    toDate?: string;
   }): Promise<ApiResponse<PaginatedData<BillListItem>>> {
     try {
       const query = new URLSearchParams();
       if (params?.page != null) query.set("page", String(params.page));
       if (params?.size != null) query.set("size", String(params.size));
       if (params?.sort) query.set("sort", params.sort);
+      if (params?.sortBy) query.set("sortBy", params.sortBy);
+      if (params?.direction) query.set("direction", params.direction);
+      if (params?.status) query.set("status", params.status);
+      if (params?.billStatus) query.set("billStatus", params.billStatus);
+      if (params?.paymentStatus) query.set("paymentStatus", params.paymentStatus);
+      if (params?.paymentMethod) query.set("paymentMethod", params.paymentMethod);
+      if (params?.patientId != null) query.set("patientId", String(params.patientId));
+      if (params?.mrn) query.set("mrn", params.mrn);
+      if (params?.doctorId != null) query.set("doctorId", String(params.doctorId));
+      if (params?.search) query.set("search", params.search);
+      if (params?.fromDate) query.set("fromDate", params.fromDate);
+      if (params?.toDate) query.set("toDate", params.toDate);
       const qs = query.toString();
       const response = await apiClient.get<
         ApiResponse<PaginatedData<BillListItem>>
       >(`/api/v1/billing${qs ? `?${qs}` : ""}`);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) throw new Error(data.message, { cause: error });
+      }
+      throw error;
+    }
+  },
+
+  // ── Pending Billing (Completed Consultation + Unpaid/Invoiceless) ──────────
+  async getPendingBilling(params?: {
+    page?: number;
+    size?: number;
+    sort?: string;
+    search?: string;
+    date?: string;
+    fromDate?: string;
+    toDate?: string;
+    billingStatus?: string;
+  }): Promise<
+    ApiResponse<{
+      content: PendingBillingRecord[];
+      totalElements: number;
+      totalPages: number;
+    }>
+  > {
+    try {
+      const query = new URLSearchParams();
+      if (params?.page != null) query.set("page", String(params.page));
+      if (params?.size != null) query.set("size", String(params.size));
+      if (params?.sort) query.set("sort", params.sort);
+      if (params?.search) query.set("search", params.search);
+      if (params?.date) query.set("date", params.date);
+      if (params?.fromDate) query.set("fromDate", params.fromDate);
+      if (params?.toDate) query.set("toDate", params.toDate);
+      if (params?.billingStatus)
+        query.set("billingStatus", params.billingStatus);
+      const qs = query.toString();
+      const response = await apiClient.get<
+        ApiResponse<{
+          content: PendingBillingRecord[];
+          totalElements: number;
+          totalPages: number;
+        }>
+      >(`/api/v1/billing/pending-billing${qs ? `?${qs}` : ""}`);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) throw new Error(data.message, { cause: error });
+      }
+      throw error;
+    }
+  },
+
+  // ── Patient Search for Billing (same source of truth as above) ─────────────
+  async searchBillingPatients(
+    query: string,
+  ): Promise<ApiResponse<PendingBillingRecord[]>> {
+    try {
+      const response = await apiClient.get<
+        ApiResponse<PendingBillingRecord[]>
+      >(
+        `/api/v1/billing/pending-billing/search?query=${encodeURIComponent(query)}`,
+      );
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {

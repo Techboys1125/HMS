@@ -141,20 +141,6 @@ export const receptionService = {
     );
   },
 
-  async transitionToBillingPending(appointmentId: string | number) {
-    await appointmentsApi.updateAppointmentStatus(
-      appointmentId,
-      "BILLING_PENDING",
-    );
-  },
-
-  async transitionToPaymentCompleted(appointmentId: string | number) {
-    await appointmentsApi.updateAppointmentStatus(
-      appointmentId,
-      "PAYMENT_COMPLETED",
-    );
-  },
-
   async transitionToCompleted(appointmentId: string | number) {
     await appointmentsApi.updateAppointmentStatus(appointmentId, "COMPLETED");
   },

@@ -1,301 +1,237 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
+import { RB } from "../constants/notifications.constants";
 import {
-  Bell,
-  Calendar,
-  Clock,
-  Pill,
-  CreditCard,
-  CheckCircle2,
-  Info,
-  X,
-  RefreshCw,
-  Filter,
-  ChevronRight,
-} from "lucide-react";
-import { PP, RB } from "../constants/notifications.constants";
+  NotificationPageHeader,
+  NotificationKpiCards,
+  NotificationQuickFilters,
+  NotificationFilterBar,
+  NotificationList,
+  NotificationSettingsDrawer,
+} from "../components";
 import {
-  useNotifications,
   useMarkAllNotificationsAsRead,
   useMarkNotificationAsRead,
+  useMarkNotificationAsUnread,
   useDeleteNotification,
+  useNotifications,
+  useNotificationSettingsState,
 } from "../hooks/useNotifications";
 import { mapApiNotificationsToRecords } from "../services/notification.mapper";
-import type { NotificationRecord } from "../types/notifications.types";
+import { ROLE_QUICK_FILTERS } from "../constants/notifications.constants";
+import { ROUTES } from "../../../app/routes/routes";
+import type {
+  NotificationRecord,
+} from "../types/notifications.types";
 
-export type PatientNotificationItem = {
-  id: string;
-  title: string;
-  message: string;
-  time: string;
-  type: "appointment" | "queue" | "prescription" | "billing" | "general";
-  read: boolean;
-};
+const PAGE_SIZE = 100;
 
-const CATEGORY_TO_TYPE: Record<string, PatientNotificationItem["type"]> = {
-  Appointments: "appointment",
-  Queue: "queue",
-  Prescriptions: "prescription",
-  Billing: "billing",
-  Invoices: "billing",
-  Payments: "billing",
-};
-
-const TYPE_CONFIG: Record<
-  string,
-  { icon: React.ElementType; color: string; bg: string }
-> = {
-  appointment: {
-    icon: Calendar,
-    color: "text-[#0D47A1]",
-    bg: "bg-blue-50 border-blue-200",
-  },
-  queue: {
-    icon: Clock,
-    color: "text-[#009688]",
-    bg: "bg-teal-50 border-teal-200",
-  },
-  prescription: {
-    icon: Pill,
-    color: "text-purple-700",
-    bg: "bg-purple-50 border-purple-200",
-  },
-  billing: {
-    icon: CreditCard,
-    color: "text-amber-700",
-    bg: "bg-amber-50 border-amber-200",
-  },
-  general: {
-    icon: Info,
-    color: "text-slate-700",
-    bg: "bg-slate-50 border-slate-200",
-  },
-};
+function resolvePatientRoute(record: NotificationRecord): string {
+  const category = String(record.category || "").toUpperCase();
+  switch (category) {
+    case "APPOINTMENTS":
+      return ROUTES.PATIENT_APPOINTMENTS;
+    case "PRESCRIPTIONS":
+      return ROUTES.PATIENT_PRESCRIPTIONS;
+    case "INVOICES":
+    case "BILLING":
+    case "PAYMENTS":
+      return ROUTES.PATIENT_BILLING;
+    case "ANNOUNCEMENTS":
+      return ROUTES.PATIENT_NOTIFICATIONS;
+    default:
+      return ROUTES.PATIENT_NOTIFICATIONS;
+  }
+}
 
 export function PatientNotificationsPage() {
-  const [filter, setFilter] = useState<string>("All");
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const currentRole = "Patient Portal";
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState<string>("All");
+  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  const { data: pageData, isLoading, refetch } = useNotifications(0, 50);
-  const markReadMutation = useMarkNotificationAsRead();
+  const { settings, updateSetting, saveSettings } =
+    useNotificationSettingsState();
+  const {
+    data: pageData,
+    isLoading,
+    error,
+    refetch,
+  } = useNotifications(currentPage - 1, PAGE_SIZE);
   const markAllReadMutation = useMarkAllNotificationsAsRead();
+  const markReadMutation = useMarkNotificationAsRead();
+  const markUnreadMutation = useMarkNotificationAsUnread();
   const deleteMutation = useDeleteNotification();
 
-  const triggerToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3000);
-  };
-
-  const notifications = useMemo<PatientNotificationItem[]>(() => {
-    const records: NotificationRecord[] = mapApiNotificationsToRecords(
-      pageData?.notifications,
-      "Patient Portal",
-    );
-    return records.map((r) => ({
-      id: r.id,
-      title: r.title,
-      message: r.description,
-      time: r.timestamp,
-      type: CATEGORY_TO_TYPE[r.category] ?? "general",
-      read: r.status !== "Unread",
-    }));
+  const roleNotifications = useMemo(() => {
+    return mapApiNotificationsToRecords(pageData?.notifications);
   }, [pageData]);
 
-  const markAsRead = (id: string) => {
-    if (!notifications.find((n) => n.id === id)?.read) {
-      markReadMutation.mutate(id);
+  const activeQuickFilters = ROLE_QUICK_FILTERS[currentRole];
+
+  const quickFilterCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    activeQuickFilters.forEach((filter) => {
+      if (filter.id === "All") {
+        counts.All = roleNotifications.length;
+      } else if (filter.id === "Unread") {
+        counts.Unread = roleNotifications.filter((n) => n.status === "Unread").length;
+      } else {
+        counts[filter.id] = roleNotifications.filter((n) => n.category === filter.id).length;
+      }
+    });
+    return counts;
+  }, [activeQuickFilters, roleNotifications]);
+
+  const filteredNotifications = useMemo(() => {
+    return roleNotifications.filter((n) => {
+      if (selectedCategory === "Unread" && n.status !== "Unread") return false;
+      if (
+        selectedCategory !== "All" &&
+        selectedCategory !== "Unread" &&
+        n.category !== selectedCategory
+      )
+        return false;
+
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchTitle = n.title.toLowerCase().includes(query);
+        const matchDesc = n.description.toLowerCase().includes(query);
+        const matchModule = n.module.toLowerCase().includes(query);
+        if (!matchTitle && !matchDesc && !matchModule) return false;
+      }
+
+      if (priorityFilter !== "All" && n.priority !== priorityFilter)
+        return false;
+      if (statusFilter !== "All" && n.status !== statusFilter) return false;
+
+      return true;
+    });
+  }, [roleNotifications, selectedCategory, searchQuery, priorityFilter, statusFilter]);
+
+  const kpiMetrics = useMemo(() => {
+    const unread = roleNotifications.filter((n) => n.status === "Unread").length;
+    const today = roleNotifications.filter(
+      (n) =>
+        n.timestamp.includes("minute") ||
+        n.timestamp.includes("hour") ||
+        n.timestamp === "Just now",
+    ).length;
+    const critical = roleNotifications.filter(
+      (n) => n.priority === "Critical" || n.priority === "High",
+    ).length;
+    const completed = roleNotifications.filter(
+      (n) => n.status === "Completed",
+    ).length;
+
+    return { unread, today, critical, completed };
+  }, [roleNotifications]);
+
+  const totalElements = pageData?.totalCount ?? roleNotifications.length;
+  const totalPages = Math.max(1, Math.ceil(totalElements / PAGE_SIZE));
+
+  const handleMarkAllAsRead = async () => {
+    await markAllReadMutation.mutateAsync();
+  };
+
+  const handleToggleReadStatus = async (id: string) => {
+    const item = roleNotifications.find((n) => n.id === id);
+    if (!item) return;
+    if (item.status === "Unread") {
+      await markReadMutation.mutateAsync(id);
+    } else {
+      await markUnreadMutation.mutateAsync(id);
     }
   };
 
-  const markAllAsRead = async () => {
-    await markAllReadMutation.mutateAsync();
-    triggerToast("All notifications marked as read");
+  const handleOpenAction = async (n: NotificationRecord) => {
+    if (n.status === "Unread") {
+      await markReadMutation.mutateAsync(n.id);
+    }
+    navigate(resolvePatientRoute(n));
   };
 
-  const deleteNotification = (id: string) => {
-    deleteMutation.mutate(id);
-    triggerToast("Notification deleted");
+  const handleOpenModule = async (n: NotificationRecord) => {
+    navigate(resolvePatientRoute(n));
   };
 
-  const filtered = notifications.filter((n) => {
-    if (filter === "All") return true;
-    if (filter === "Unread") return !n.read;
-    return n.type === filter;
-  });
+  const handleDeleteNotification = async (id: string) => {
+    await deleteMutation.mutateAsync(id);
+  };
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const handleResetFilters = () => {
+    setSelectedCategory("All");
+    setSearchQuery("");
+    setPriorityFilter("All");
+    setStatusFilter("All");
+  };
+
+  const handleSaveSettings = async () => {
+    await saveSettings();
+    setIsSettingsOpen(false);
+  };
 
   return (
     <div
-      className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9]"
       style={{ fontFamily: RB }}
+      className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9] text-[#111827]"
     >
-      {toastMsg && (
-        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200">
-          <CheckCircle2 size={16} className="text-[#66BB6A]" />
-          <span>{toastMsg}</span>
-        </div>
-      )}
+      <NotificationPageHeader
+        currentRole={currentRole}
+        onMarkAllAsRead={handleMarkAllAsRead}
+        markAllPending={markAllReadMutation.isPending}
+        onRefresh={() => refetch()}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        canExport={false}
+        onExport={() => void 0}
+      />
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1
-              className="text-xl font-bold text-[#111827]"
-              style={{ fontFamily: PP }}
-            >
-              Notifications
-            </h1>
-            {unreadCount > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-[#EF4444] border border-red-100">
-                {unreadCount} unread
-              </span>
-            )}
-          </div>
-          <p
-            className="text-xs text-[#64748B] mt-0.5"
-            style={{ fontFamily: RB }}
-          >
-            Stay updated with your appointments, queue, prescriptions, and
-            bills.
-          </p>
-          <div
-            className="flex items-center gap-1.5 text-xs text-[#64748B] mt-1"
-            style={{ fontFamily: RB }}
-          >
-            <span>Patient Portal</span>
-            <ChevronRight size={13} className="text-slate-300" />
-            <span className="font-medium text-[#111827]">Notifications</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <button
-              onClick={markAllAsRead}
-              disabled={markAllReadMutation.isPending}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-semibold text-[#111827] hover:bg-slate-50 transition-colors shadow-sm"
-            >
-              <CheckCircle2 size={14} /> Mark all read
-            </button>
-          )}
-          <button
-            onClick={() => {
-              refetch();
-              triggerToast("Notifications refreshed");
-            }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-semibold text-[#111827] hover:bg-slate-50 transition-colors shadow-sm"
-          >
-            <RefreshCw size={14} /> Refresh
-          </button>
-        </div>
-      </div>
+      <NotificationKpiCards metrics={kpiMetrics} />
 
-      <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Filter size={14} className="text-[#64748B]" />
-          <span className="text-xs font-semibold text-[#64748B]">Filter:</span>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {[
-            "All",
-            "Unread",
-            "appointment",
-            "queue",
-            "prescription",
-            "billing",
-          ].map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
-                filter === f
-                  ? "bg-[#0D47A1] text-white"
-                  : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-              }`}
-            >
-              {f === "All"
-                ? "All"
-                : f === "Unread"
-                  ? "Unread"
-                  : f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
-        </div>
-      </div>
+      <NotificationQuickFilters
+        filters={activeQuickFilters}
+        counts={quickFilterCounts}
+        selected={selectedCategory}
+        onSelect={setSelectedCategory}
+      />
 
-      <div className="space-y-3">
-        {isLoading ? (
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-12 text-center shadow-sm">
-            <Bell
-              size={32}
-              className="mx-auto text-slate-300 mb-3 animate-pulse"
-            />
-            <h3 className="text-sm font-bold text-[#111827]">
-              Loading notifications
-            </h3>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-12 text-center shadow-sm">
-            <Bell size={32} className="mx-auto text-slate-300 mb-3" />
-            <h3 className="text-sm font-bold text-[#111827]">
-              No notifications
-            </h3>
-            <p className="text-xs text-[#64748B] mt-1">
-              You're all caught up! Check back later for updates.
-            </p>
-          </div>
-        ) : (
-          filtered.map((notif) => {
-            const config = TYPE_CONFIG[notif.type] || TYPE_CONFIG.general;
-            const Icon = config.icon;
-            return (
-              <div
-                key={notif.id}
-                className={`bg-white p-4 rounded-2xl border shadow-sm flex items-start gap-4 transition-colors ${
-                  notif.read
-                    ? "border-[#E5E7EB]"
-                    : "border-[#0D47A1]/30 bg-blue-50/30"
-                }`}
-              >
-                <div
-                  className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${config.bg} ${config.color}`}
-                >
-                  <Icon size={18} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <h4
-                      className="text-sm font-bold text-[#111827]"
-                      style={{ fontFamily: PP }}
-                    >
-                      {notif.title}
-                    </h4>
-                    <span className="text-[10px] text-slate-400 whitespace-nowrap">
-                      {notif.time}
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#64748B] mt-1">{notif.message}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    {!notif.read && (
-                      <button
-                        onClick={() => markAsRead(notif.id)}
-                        className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[10px] font-bold hover:bg-blue-100 transition-colors"
-                      >
-                        Mark as read
-                      </button>
-                    )}
-                    <button
-                      onClick={() => deleteNotification(notif.id)}
-                      className="p-1 rounded-lg text-slate-400 hover:text-[#EF4444] hover:bg-red-50 transition-colors"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+      <NotificationFilterBar
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        priorityFilter={priorityFilter}
+        onPriorityFilterChange={setPriorityFilter}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        onResetFilters={handleResetFilters}
+      />
+
+      <NotificationList
+        items={filteredNotifications}
+        currentRole={currentRole}
+        isLoading={isLoading}
+        error={error instanceof Error ? error.message : undefined}
+        onOpenAction={handleOpenAction}
+        onOpenModule={handleOpenModule}
+        onToggleRead={handleToggleReadStatus}
+        onDelete={handleDeleteNotification}
+        onPreviousPage={() => setCurrentPage((p) => Math.max(1, p - 1))}
+        onNextPage={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+        canGoPrevious={currentPage > 1}
+        canGoNext={currentPage < totalPages}
+      />
+
+      <NotificationSettingsDrawer
+        open={isSettingsOpen}
+        currentRole={currentRole}
+        settings={settings}
+        updateSetting={updateSetting}
+        onClose={() => setIsSettingsOpen(false)}
+        onSave={handleSaveSettings}
+      />
     </div>
   );
 }

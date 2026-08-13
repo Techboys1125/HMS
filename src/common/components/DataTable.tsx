@@ -53,11 +53,11 @@ export function DataTable<T>({
       <table className="w-full border-collapse text-left text-xs bg-white">
         <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10 text-[#64748B] font-bold">
           <tr>
-            {columns.map((col, idx) => {
+            {columns.map((col) => {
               const isSortable = col.sortable && onSort && col.sortKey;
               return (
                 <th
-                  key={col.header || idx}
+                  key={col.header}
                   onClick={() => isSortable && onSort(col.sortKey)}
                   className={`px-4 py-3.5 ${
                     isSortable

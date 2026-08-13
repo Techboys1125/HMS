@@ -28,6 +28,25 @@ import {
   fetchGenderBreakdown,
   fetchPatientMasterRegister,
   fetchPatientRegistrationTrend,
+  fetchAdminReportsDashboard,
+  fetchAdminAppointmentsReport,
+  fetchAdminPatientsReport,
+  fetchCollectionRateSummary,
+  fetchDoctorDetailPerformance,
+  fetchDoctorActivities,
+  fetchDoctorWorkload,
+  fetchDoctorSelfDailyAppointmentsAnalytics,
+  fetchDoctorSelfDailyAppointmentsDashboard,
+  fetchDoctorSelfDailyAppointmentRegister,
+  fetchDoctorSelfPatientAnalytics,
+  fetchDoctorSelfPatientDashboard,
+  fetchDoctorSelfPatientRegister,
+  fetchAccountantMainReport,
+  fetchAccountantBillingAnalysis,
+  fetchAccountantPaymentCollection,
+  fetchAccountantRefundLog,
+  fetchAccountantRevenueReport,
+  fetchAccountantTransactionReport,
 } from "../services/reports.service";
 
 // ─── Query Key Factories ────────────────────────────────────────────────────
@@ -85,7 +104,23 @@ const reportKeys = {
     [...reportKeys.all, "patient-registration-trend", period] as const,
 };
 
-// ─── Navigation Hook (preserved) ───────────────────────────────────────────
+export { extractList } from "../services/reports.service";
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function getDefaultFilters(filters?: ReportFilters): ReportFilters {
+  const today = new Date().toISOString().slice(0, 10);
+  const defaultStart = "2025-01-01";
+  return {
+    fromDate: filters?.fromDate || defaultStart,
+    toDate: filters?.toDate || today,
+    page: filters?.page ?? 0,
+    size: filters?.size ?? 50,
+    period: filters?.period,
+  };
+}
+
+// ─── Navigation Hook (preserved) ────────────────────────────────────────────
 
 export function useReports() {
   const role = useAuthStore((s) => s.user?.role);
@@ -138,150 +173,165 @@ export function useReports() {
 
 // 1. Doctor Performance Summary
 export function useDoctorPerformance(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.doctorPerformance(filters),
-    queryFn: () => fetchDoctorPerformance(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.doctorPerformance(f),
+    queryFn: () => fetchDoctorPerformance(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 2. Daily Appointments Report
 export function useDailyAppointments(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.dailyAppointments(filters),
-    queryFn: () => fetchDailyAppointments(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.dailyAppointments(f),
+    queryFn: () => fetchDailyAppointments(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 3. Daily Appointments Detail
 export function useDailyAppointmentDetails(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.dailyAppointmentDetails(filters),
-    queryFn: () => fetchDailyAppointmentDetails(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.dailyAppointmentDetails(f),
+    queryFn: () => fetchDailyAppointmentDetails(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 4. Collection Rate
 export function useCollectionRate(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.collectionRate(filters),
-    queryFn: () => fetchCollectionRate(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.collectionRate(f),
+    queryFn: () => fetchCollectionRate(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 5. Hospital Dashboard
 export function useHospitalDashboard(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.hospitalDashboard(filters),
-    queryFn: () => fetchHospitalDashboard(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.hospitalDashboard(f),
+    queryFn: () => fetchHospitalDashboard(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 6. Department Consultation Volume
 export function useDepartmentConsultationVolume(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.departmentConsultationVolume(filters),
-    queryFn: () => fetchDepartmentConsultationVolume(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.departmentConsultationVolume(f),
+    queryFn: () => fetchDepartmentConsultationVolume(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 7. Doctor Performance (Hospital alias)
 export function useHospitalDoctorPerformance(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.hospitalDoctorPerformance(filters),
-    queryFn: () => fetchHospitalDoctorPerformance(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.hospitalDoctorPerformance(f),
+    queryFn: () => fetchHospitalDoctorPerformance(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 8. Invoice Register Detail
 export function useInvoiceRegister(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.invoiceRegister(filters),
-    queryFn: () => fetchInvoiceRegister(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.invoiceRegister(f),
+    queryFn: () => fetchInvoiceRegister(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 9. Invoice Summary
 export function useInvoiceSummary(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.invoiceSummary(filters),
-    queryFn: () => fetchInvoiceSummary(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.invoiceSummary(f),
+    queryFn: () => fetchInvoiceSummary(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 10. Hospital Operational Trend
 export function useOperationalTrend(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.operationalTrend(filters),
-    queryFn: () => fetchOperationalTrend(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.operationalTrend(f),
+    queryFn: () => fetchOperationalTrend(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 11. Patient Registration Summary
 export function usePatientRegistrationSummary(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.patientRegistrationSummary(filters),
-    queryFn: () => fetchPatientRegistrationSummary(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.patientRegistrationSummary(f),
+    queryFn: () => fetchPatientRegistrationSummary(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 12. Patient Registration Detail
 export function usePatientRegistrationDetails(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.patientRegistrationDetails(filters),
-    queryFn: () => fetchPatientRegistrationDetails(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.patientRegistrationDetails(f),
+    queryFn: () => fetchPatientRegistrationDetails(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 13. Revenue vs Collection
 export function useRevenueVsCollection(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.revenueVsCollection(filters),
-    queryFn: () => fetchRevenueVsCollection(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.revenueVsCollection(f),
+    queryFn: () => fetchRevenueVsCollection(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 14. Daily Revenue
 export function useDailyRevenue(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.dailyRevenue(filters),
-    queryFn: () => fetchDailyRevenue(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.dailyRevenue(f),
+    queryFn: () => fetchDailyRevenue(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 15. Daily Revenue Detail
 export function useDailyRevenueDetails(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.dailyRevenueDetails(filters),
-    queryFn: () => fetchDailyRevenueDetails(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.dailyRevenueDetails(f),
+    queryFn: () => fetchDailyRevenueDetails(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
@@ -306,60 +356,66 @@ export function useMostViewedReports() {
 
 // 18. Patient Age Demographics
 export function usePatientAgeDemographics(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.patientAgeDemographics(filters),
-    queryFn: () => fetchPatientAgeDemographics(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.patientAgeDemographics(f),
+    queryFn: () => fetchPatientAgeDemographics(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 19. Patient Dashboard
 export function usePatientDashboard(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.patientDashboard(filters),
-    queryFn: () => fetchPatientDashboard(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.patientDashboard(f),
+    queryFn: () => fetchPatientDashboard(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 20. Department Patient Visits
 export function useDepartmentPatientVisits(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.departmentPatientVisits(filters),
-    queryFn: () => fetchDepartmentPatientVisits(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.departmentPatientVisits(f),
+    queryFn: () => fetchDepartmentPatientVisits(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 21. Doctor Patient Workload
 export function useDoctorPatientWorkload(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.doctorPatientWorkload(filters),
-    queryFn: () => fetchDoctorPatientWorkload(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.doctorPatientWorkload(f),
+    queryFn: () => fetchDoctorPatientWorkload(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 22. Gender Breakdown
 export function useGenderBreakdown(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.genderBreakdown(filters),
-    queryFn: () => fetchGenderBreakdown(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.genderBreakdown(f),
+    queryFn: () => fetchGenderBreakdown(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
 
 // 23. Patient Master Register
 export function usePatientMasterRegister(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
   return useQuery({
-    queryKey: reportKeys.patientMasterRegister(filters),
-    queryFn: () => fetchPatientMasterRegister(filters),
-    enabled: !!filters?.fromDate && !!filters?.toDate,
+    queryKey: reportKeys.patientMasterRegister(f),
+    queryFn: () => fetchPatientMasterRegister(f),
+    enabled: true,
     staleTime: 60_000,
   });
 }
@@ -369,6 +425,183 @@ export function usePatientRegistrationTrend(period?: string) {
   return useQuery({
     queryKey: reportKeys.patientRegistrationTrend(period),
     queryFn: () => fetchPatientRegistrationTrend(period),
+    staleTime: 60_000,
+  });
+}
+
+// 25. Admin Reports Dashboard
+export function useAdminReportsDashboard(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
+  return useQuery({
+    queryKey: [...reportKeys.all, "admin-reports-dashboard", f] as const,
+    queryFn: () => fetchAdminReportsDashboard(f),
+    enabled: true,
+    staleTime: 60_000,
+  });
+}
+
+// 26. Admin Appointments Report
+export function useAdminAppointmentsReport(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
+  return useQuery({
+    queryKey: [...reportKeys.all, "admin-appointments-report", f] as const,
+    queryFn: () => fetchAdminAppointmentsReport(f),
+    enabled: true,
+    staleTime: 60_000,
+  });
+}
+
+// 27. Admin Patients Report
+export function useAdminPatientsReport(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
+  return useQuery({
+    queryKey: [...reportKeys.all, "admin-patients-report", f] as const,
+    queryFn: () => fetchAdminPatientsReport(f),
+    enabled: true,
+    staleTime: 60_000,
+  });
+}
+
+// 28. Collection Rate Summary
+export function useCollectionRateSummary(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
+  return useQuery({
+    queryKey: [...reportKeys.all, "collection-rate-summary", f] as const,
+    queryFn: () => fetchCollectionRateSummary(f),
+    enabled: true,
+    staleTime: 60_000,
+  });
+}
+
+// 29. Doctor Detail Performance
+export function useDoctorDetailPerformance(doctorId: string | number, filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
+  return useQuery({
+    queryKey: [...reportKeys.all, "doctor-detail-performance", doctorId, f] as const,
+    queryFn: () => fetchDoctorDetailPerformance(doctorId, f),
+    enabled: !!doctorId,
+    staleTime: 60_000,
+  });
+}
+
+// 30. Doctor Activities
+export function useDoctorActivities(doctorId: string | number, filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
+  return useQuery({
+    queryKey: [...reportKeys.all, "doctor-activities", doctorId, f] as const,
+    queryFn: () => fetchDoctorActivities(doctorId, f),
+    enabled: !!doctorId,
+    staleTime: 60_000,
+  });
+}
+
+// 31. Doctor Workload
+export function useDoctorWorkload(filters?: ReportFilters) {
+  const f = getDefaultFilters(filters);
+  return useQuery({
+    queryKey: [...reportKeys.all, "doctor-workload", f] as const,
+    queryFn: () => fetchDoctorWorkload(f),
+    enabled: true,
+    staleTime: 60_000,
+  });
+}
+
+// ─── Doctor Personal Practice Reports Hooks (/api/v1/doctors/me/reports/**) ──
+
+export function useDoctorSelfDailyAppointmentsAnalytics(params?: { date?: string; period?: string }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "doctor-self-appointments-analytics", params] as const,
+    queryFn: () => fetchDoctorSelfDailyAppointmentsAnalytics(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useDoctorSelfDailyAppointmentsDashboard(date?: string) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "doctor-self-appointments-dashboard", date] as const,
+    queryFn: () => fetchDoctorSelfDailyAppointmentsDashboard(date),
+    staleTime: 60_000,
+  });
+}
+
+export function useDoctorSelfDailyAppointmentRegister(params?: { date?: string; page?: number; size?: number }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "doctor-self-appointments-register", params] as const,
+    queryFn: () => fetchDoctorSelfDailyAppointmentRegister(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useDoctorSelfPatientAnalytics(params?: { fromDate?: string; toDate?: string; period?: string }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "doctor-self-patient-analytics", params] as const,
+    queryFn: () => fetchDoctorSelfPatientAnalytics(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useDoctorSelfPatientDashboard(params?: { fromDate?: string; toDate?: string }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "doctor-self-patient-dashboard", params] as const,
+    queryFn: () => fetchDoctorSelfPatientDashboard(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useDoctorSelfPatientRegister(params?: { fromDate?: string; toDate?: string; page?: number; size?: number }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "doctor-self-patient-register", params] as const,
+    queryFn: () => fetchDoctorSelfPatientRegister(params),
+    staleTime: 60_000,
+  });
+}
+
+// ─── Accountant Financial Reports Hooks (/api/v1/accountant/reports/**) ──────
+
+export function useAccountantMainReport(params?: { fromDate?: string; toDate?: string; type?: string }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "accountant-main-report", params] as const,
+    queryFn: () => fetchAccountantMainReport(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useAccountantBillingAnalysis(params?: { fromDate?: string; toDate?: string; billType?: string }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "accountant-billing-analysis", params] as const,
+    queryFn: () => fetchAccountantBillingAnalysis(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useAccountantPaymentCollection(params?: { fromDate?: string; toDate?: string; paymentMethod?: string }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "accountant-payment-collection", params] as const,
+    queryFn: () => fetchAccountantPaymentCollection(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useAccountantRefundLog(params?: { fromDate?: string; toDate?: string }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "accountant-refund-log", params] as const,
+    queryFn: () => fetchAccountantRefundLog(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useAccountantRevenueReport(params?: { fromDate?: string; toDate?: string; groupBy?: string }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "accountant-revenue-report", params] as const,
+    queryFn: () => fetchAccountantRevenueReport(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useAccountantTransactionReport(params?: { fromDate?: string; toDate?: string; page?: number; size?: number }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "accountant-transaction-report", params] as const,
+    queryFn: () => fetchAccountantTransactionReport(params),
     staleTime: 60_000,
   });
 }

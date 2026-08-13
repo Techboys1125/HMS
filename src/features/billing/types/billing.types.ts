@@ -3,8 +3,18 @@ export type PaymentStatus =
 
 export type PaymentMethod = "Cash" | "Card" | "UPI" | "Bank Transfer";
 
+export type BillingStatus =
+  | "PENDING_BILLING"
+  | "PENDING_PAYMENT"
+  | "PAID"
+  | "PARTIALLY_PAID"
+  | "CANCELLED"
+  | "REFUNDED";
+
 export interface InvoiceRecord {
   id: string;
+  /** Human-readable number returned by the billing service. */
+  billNumber?: string;
   invoiceDate: string;
   patientName: string;
   mrn: string;
@@ -18,6 +28,12 @@ export interface InvoiceRecord {
   paymentStatus: PaymentStatus;
   collectedBy: string;
   notes?: string;
+  status?: string;
+  appointmentId?: number;
+  encounterId?: number;
+  consultationId?: number | string;
+  patientId?: number;
+  doctorId?: number;
 }
 
 export interface ActivityRecord {
@@ -132,11 +148,14 @@ export interface BillSummaryAmount {
 }
 
 export interface BillListItem {
-  id: number;
+  /** The API currently returns billId; id is kept for backward compatibility. */
+  billId?: number;
+  id?: number;
   billNumber: string;
   billType?: string;
   appointmentId?: number;
   encounterId?: number;
+  consultationId?: number | string;
   patientId?: number;
   patientMrn: string;
   patientName: string;
@@ -150,9 +169,31 @@ export interface BillListItem {
   updatedAt?: string;
 }
 
+export interface PendingBillingRecord {
+  patientId?: string | number;
+  patientName: string;
+  mrn: string;
+  patientAge?: number;
+  patientGender?: string;
+  patientPhone?: string;
+  appointmentId: number;
+  appointmentNumber: string;
+  appointmentDate: string;
+  consultationId?: string;
+  encounterId: number;
+  encounterNumber?: string;
+  doctorId: number;
+  doctorName: string;
+  departmentName: string;
+  consultationFee: number;
+  billingStatus: BillingStatus;
+  paymentStatus: PaymentStatus;
+}
+
 export interface BillCreatePayload {
   appointmentId: number;
   encounterId: number;
+  consultationId?: string | number;
   patientMrn: string;
   doctorId: number;
 }

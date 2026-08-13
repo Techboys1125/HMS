@@ -8,7 +8,7 @@ import {
   Users,
   Stethoscope,
   Search,
-  AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import {
   AreaChart,
@@ -25,6 +25,16 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import {
+  useNurseDashboardSummary,
+  useNurseVitalsTrend,
+  useNursePreparationStatus,
+  useNurseQueue,
+  useNurseDoctorAssistance,
+  useNurseDepartments,
+  useNurseVitalsStatus,
+  useNursePerformance,
+} from "../hooks/useNurseDashboard";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -116,11 +126,13 @@ function Av({
   name,
   size = "sm",
 }: {
-  name: string;
+  name?: string;
   size?: "sm" | "md" | "lg";
 }) {
-  const initials = name
+  const safeName = (name || "??").trim() || "??";
+  const initials = safeName
     .split(" ")
+    .filter(Boolean)
     .map((n) => n[0])
     .join("")
     .slice(0, 2)
@@ -132,7 +144,7 @@ function Av({
     "bg-rose-500",
     "bg-amber-600",
   ];
-  const bg = palette[name.charCodeAt(0) % palette.length];
+  const bg = palette[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % palette.length];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -206,44 +218,6 @@ function SH({
     </div>
   );
 }
-// Section 02: Current Patient Pipeline (Doughnut Chart)
-const NURSE_PATIENT_PIPELINE: { name: string; value: number; color: string }[] =
-  [];
-
-// Section 04: Patient Visit Type Distribution (Doughnut Chart)
-const NURSE_VISIT_TYPE_DIST: {
-  name: string;
-  value: number;
-  percentage: string;
-  color: string;
-}[] = [];
-
-// Section 03: Current Nursing Queue Table
-const NURSE_QUEUES: {
-  token: string;
-  patient: string;
-  doctor: string;
-  dept: string;
-  apptTime: string;
-  vitalsStatus: string;
-  consultStatus: string;
-  priority: string;
-}[] = [];
-
-// Section 05: Patient Distribution by Department (Horizontal Bar Chart)
-const NURSE_DEPT_DIST: { department: string; assisted: number }[] = [];
-
-const NURSE_STATUS_CHIP: Record<
-  string,
-  "success" | "warning" | "info" | "error" | "teal" | "default"
-> = {
-  Completed: "success",
-  Ready: "teal",
-  "Vitals Completed": "info",
-  Waiting: "warning",
-  High: "error",
-  Normal: "default",
-};
 
 const NURSE_QUICK_ACTIONS = [
   {
@@ -288,6 +262,61 @@ export function NurseDashboard({
   onViewQueueClick?: () => void;
   onNavigateNav?: (nav: string) => void;
 }) {
+  const summaryQuery = useNurseDashboardSummary();
+  const vitalsTrendQuery = useNurseVitalsTrend();
+  const prepStatusQuery = useNursePreparationStatus();
+  const queueQuery = useNurseQueue(0, 10);
+  const doctorAssistQuery = useNurseDoctorAssistance();
+  const deptQuery = useNurseDepartments();
+  const vitalsStatusQuery = useNurseVitalsStatus();
+  const performanceQuery = useNursePerformance();
+
+  const summary = summaryQuery.data?.summary;
+  const vitalsTrend = vitalsTrendQuery.data;
+  const prepStatus = prepStatusQuery.data;
+  const queueData = queueQuery.data;
+  const doctorAssist = doctorAssistQuery.data;
+  const deptData = deptQuery.data;
+  const vitalsStatus = vitalsStatusQuery.data;
+  const performance = performanceQuery.data;
+
+  const pipelineData = [
+    { name: "Waiting Vitals", value: prepStatus?.waitingForVitals ?? 0, color: "#F59E0B" },
+    { name: "Vitals Done", value: prepStatus?.vitalsCompleted ?? 0, color: "#009688" },
+    { name: "Ready for Dr", value: prepStatus?.readyForConsultation ?? 0, color: "#0D47A1" },
+    { name: "Completed", value: prepStatus?.consultationCompleted ?? 0, color: "#66BB6A" },
+  ].filter((d) => d.value > 0);
+
+  const visitTypeData = [
+    { name: "New Patients", value: performance?.today.patientsAssisted ?? 0, percentage: "N/A", color: "#0D47A1" },
+    { name: "Follow-up", value: performance?.yesterday.patientsAssisted ?? 0, percentage: "N/A", color: "#009688" },
+    { name: "Walk-in", value: Math.max(0, (performance?.today.patientsAssisted ?? 0) - (performance?.yesterday.patientsAssisted ?? 0)), percentage: "N/A", color: "#F59E0B" },
+  ].filter((d) => d.value > 0);
+
+  const deptDist = (deptData?.departments || []).map((d) => ({
+    department: d.department,
+    assisted: d.patients,
+  }));
+
+  const queueItems = queueData?.content || queueData?.patients || [];
+  const totalAssisted = deptData?.totalAssisted ?? 0;
+
+  if (summaryQuery.isLoading) {
+    return (
+      <div
+        className="flex-1 overflow-y-auto p-6 flex items-center justify-center"
+        style={{ background: "#F1F5F9" }}
+      >
+        <div className="flex items-center gap-3 text-[#64748B]">
+          <Loader2 size={20} className="animate-spin" />
+          <span className="text-sm font-medium" style={{ fontFamily: RB }}>
+            Loading nurse dashboard...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="flex-1 overflow-y-auto p-6 space-y-6"
@@ -335,58 +364,58 @@ export function NurseDashboard({
       <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
         <DKpi
           title="Patients Assigned Today"
-          value="0"
-          sub="--"
+          value={String(summary?.patientsAssignedToday ?? 0)}
+          sub={summaryQuery.isLoading ? "Loading..." : "Total assigned today"}
           trend="--"
           up={true}
-          data={[{ v: 0 }]}
+          data={vitalsTrend?.hours?.slice(-6).map((h) => ({ v: h.count })) || [{ v: 0 }]}
           color="#0D47A1"
           gid="nr1"
           Icon={Users}
         />
         <DKpi
           title="Vitals Recorded"
-          value="0"
-          sub="--"
-          trend="--"
+          value={String(summary?.vitalsRecorded ?? 0)}
+          sub={summaryQuery.isLoading ? "Loading..." : "Completed today"}
+          trend={vitalsStatus && vitalsStatus.completed > 0 ? "Active" : "--"}
           up={true}
-          data={[{ v: 0 }]}
+          data={vitalsTrend?.hours?.slice(-6).map((h) => ({ v: h.count })) || [{ v: 0 }]}
           color="#009688"
           gid="nr2"
           Icon={Activity}
         />
         <DKpi
           title="Waiting for Vitals"
-          value="0"
-          sub="--"
-          trend="--"
-          up={false}
-          data={[{ v: 0 }]}
+          value={String(summary?.waitingForVitals ?? 0)}
+          sub={summaryQuery.isLoading ? "Loading..." : "Pending recording"}
+          trend={summary && summary.waitingForVitals > 0 ? "Action Required" : "All Clear"}
+          up={summary ? summary.waitingForVitals === 0 : true}
+          data={[{ v: summary?.waitingForVitals ?? 0 }]}
           color="#F59E0B"
           gid="nr3"
           Icon={Clock}
         />
         <DKpi
-          title="Waiting for Doctor"
-          value="0"
-          sub="--"
-          trend="--"
-          up={false}
-          data={[{ v: 0 }]}
+          title="Doctor Assistances"
+          value={String(doctorAssist?.doctorsAssistedToday ?? 0)}
+          sub={summaryQuery.isLoading ? "Loading..." : "Today"}
+          trend={doctorAssist && doctorAssist.doctorAssistances > 0 ? "Active" : "--"}
+          up={true}
+          data={[{ v: doctorAssist?.doctorsAssistedToday ?? 0 }]}
           color="#009688"
           gid="nr4"
           Icon={Stethoscope}
         />
         <DKpi
-          title="Critical Patients"
-          value="0"
-          sub="--"
+          title="Completed Tasks"
+          value={String(summary?.completedTasks ?? 0)}
+          sub={summaryQuery.isLoading ? "Loading..." : "Finished today"}
           trend="--"
-          up={false}
-          data={[{ v: 0 }]}
-          color="#EF4444"
+          up={true}
+          data={[{ v: summary?.completedTasks ?? 0 }]}
+          color="#66BB6A"
           gid="nr5"
-          Icon={AlertTriangle}
+          Icon={ClipboardList}
         />
       </div>
 
@@ -414,12 +443,12 @@ export function NurseDashboard({
               className="text-[10px] font-semibold text-[#0D47A1] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100"
               style={{ fontFamily: RB }}
             >
-              0 Patients Total Today
+              {summary?.patientsAssignedToday ?? 0} Patients Total Today
             </span>
           </div>
           <ResponsiveContainer width="100%" height={210}>
             <LineChart
-              data={[]}
+              data={vitalsTrend?.hours || []}
               margin={{ top: 10, right: 15, left: -15, bottom: 0 }}
             >
               <XAxis
@@ -444,7 +473,7 @@ export function NurseDashboard({
               />
               <Line
                 type="monotone"
-                dataKey="assisted"
+                dataKey="count"
                 stroke="#0D47A1"
                 strokeWidth={2.5}
                 dot={{ r: 4, fill: "#0D47A1" }}
@@ -458,44 +487,47 @@ export function NurseDashboard({
           >
             <div className="bg-slate-50 p-2 rounded-xl text-center">
               <span className="text-[#64748B] text-[10px] block">
-                Peak Workload Time
+                Total Vitals Recorded
               </span>
               <strong
                 className="text-[#0D47A1] font-bold text-xs"
                 style={{ fontFamily: PP }}
               >
-                --
+                {vitalsTrend?.completed ?? 0}
               </strong>
               <span className="text-[10px] text-[#64748B] block">
-                0 Patients
+                Today
               </span>
             </div>
             <div className="bg-slate-50 p-2 rounded-xl text-center">
               <span className="text-[#64748B] text-[10px] block">
-                Average Patients
+                Average Vitals/Hour
               </span>
               <strong
                 className="text-[#009688] font-bold text-xs"
                 style={{ fontFamily: PP }}
               >
-                0 / Hour
+                {vitalsTrend?.hours && vitalsTrend.hours.length > 0
+                  ? (vitalsTrend.completed / vitalsTrend.hours.length).toFixed(1)
+                  : "0"}
+                / Hour
               </strong>
               <span className="text-[10px] text-[#64748B] block">
-                Steady OPD Pace
+                Active Session
               </span>
             </div>
             <div className="bg-slate-50 p-2 rounded-xl text-center">
               <span className="text-[#64748B] text-[10px] block">
-                Current Hour Progress
+                Pending Vitals
               </span>
               <strong
                 className="text-[#111827] font-bold text-xs"
                 style={{ fontFamily: PP }}
               >
-                0 This Hour
+                {vitalsStatus?.pending ?? 0}
               </strong>
               <span className="text-[10px] text-[#66BB6A] block">
-                Active Session
+                Awaiting
               </span>
             </div>
           </div>
@@ -511,7 +543,7 @@ export function NurseDashboard({
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={NURSE_PATIENT_PIPELINE}
+                  data={pipelineData}
                   cx="50%"
                   cy="50%"
                   innerRadius={50}
@@ -519,7 +551,7 @@ export function NurseDashboard({
                   paddingAngle={3}
                   dataKey="value"
                 >
-                  {NURSE_PATIENT_PIPELINE.map((entry) => (
+                  {pipelineData.map((entry) => (
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
@@ -539,7 +571,7 @@ export function NurseDashboard({
                 className="text-xl font-bold text-[#111827]"
                 style={{ fontFamily: PP }}
               >
-                0
+                {prepStatus?.totalPatients ?? 0}
               </span>
               <span className="text-[10px] text-[#64748B]">Total Flow</span>
             </div>
@@ -553,25 +585,25 @@ export function NurseDashboard({
               <span className="text-[#64748B] text-[10px]">
                 Waiting For Vitals:
               </span>
-              <span className="font-bold text-[#F59E0B]">0</span>
+              <span className="font-bold text-[#F59E0B]">{prepStatus?.waitingForVitals ?? 0}</span>
             </div>
             <div className="flex items-center justify-between p-1.5 rounded-lg bg-teal-50/60 border border-teal-100">
               <span className="text-[#64748B] text-[10px]">
                 Patients Recorded:
               </span>
-              <span className="font-bold text-[#4DB6AC]">0</span>
+              <span className="font-bold text-[#4DB6AC]">{prepStatus?.vitalsCompleted ?? 0}</span>
             </div>
             <div className="flex items-center justify-between p-1.5 rounded-lg bg-blue-50/60 border border-blue-100">
               <span className="text-[#64748B] text-[10px]">
                 Ready for Doctor:
               </span>
-              <span className="font-bold text-[#0D47A1]">0</span>
+              <span className="font-bold text-[#0D47A1]">{prepStatus?.readyForConsultation ?? 0}</span>
             </div>
             <div className="flex items-center justify-between p-1.5 rounded-lg bg-green-50/60 border border-green-100">
               <span className="text-[#64748B] text-[10px]">
                 Completed Today:
               </span>
-              <span className="font-bold text-[#66BB6A]">0</span>
+              <span className="font-bold text-[#66BB6A]">{prepStatus?.consultationCompleted ?? 0}</span>
             </div>
           </div>
 
@@ -579,7 +611,7 @@ export function NurseDashboard({
             className="mt-2 text-[11px] text-center font-medium text-[#0D47A1]"
             style={{ fontFamily: PP }}
           >
-            Total Patients in Queue: 0 (Active OPD)
+            Total Patients in Queue: {prepStatus?.totalPatients ?? 0} (Active OPD)
           </div>
         </div>
       </div>
@@ -606,7 +638,7 @@ export function NurseDashboard({
             className="text-xs font-semibold text-[#009688] bg-teal-50 px-2.5 py-1 rounded-lg"
             style={{ fontFamily: RB }}
           >
-            0 Waiting for Vitals
+            {prepStatus?.waitingForVitals ?? 0} Waiting for Vitals
           </span>
         </div>
         <div className="overflow-x-auto">
@@ -634,60 +666,74 @@ export function NurseDashboard({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {NURSE_QUEUES.map((q) => (
-                <tr
-                  key={q.token || q.patient}
-                  className="hover:bg-slate-50 transition-colors"
-                >
-                  <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                    {q.token}
-                  </td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-2">
-                      <Av name={q.patient} size="sm" />
-                      <span
-                        className="text-xs font-medium text-[#111827]"
-                        style={{ fontFamily: RB }}
-                      >
-                        {q.patient}
-                      </span>
-                    </div>
-                  </td>
+              {queueItems.length > 0 ? (
+                queueItems.map((q) => (
+                  <tr
+                    key={q.token || q.patientId}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                      {q.token}
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-2">
+                        <Av name={q.patientName} size="sm" />
+                        <span
+                          className="text-xs font-medium text-[#111827]"
+                          style={{ fontFamily: RB }}
+                        >
+                          {q.patientName}
+                        </span>
+                      </div>
+                    </td>
+                    <td
+                      className="px-5 py-3 text-xs text-[#111827]"
+                      style={{ fontFamily: RB }}
+                    >
+                      {q.doctorName}
+                    </td>
+                    <td
+                      className="px-5 py-3 text-xs text-[#64748B]"
+                      style={{ fontFamily: RB }}
+                    >
+                      {q.departmentName}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs text-slate-500">
+                      {q.appointmentTime}
+                    </td>
+                    <td className="px-5 py-3">
+                      <Chip
+                        label={q.vitalsRecorded ? "Completed" : "Pending"}
+                        variant={q.vitalsRecorded ? "success" : "warning"}
+                      />
+                    </td>
+                    <td className="px-5 py-3">
+                      <Chip
+                        label={q.status || q.queueStatus || "Waiting"}
+                        variant={q.status === "COMPLETED" ? "success" : q.status === "IN_CONSULTATION" ? "teal" : "warning"}
+                      />
+                    </td>
+                    <td className="px-5 py-3">
+                      <Chip
+                        label={q.priority || "NORMAL"}
+                        variant={q.priority === "URGENT" || q.priority === "HIGH" ? "error" : "default"}
+                      />
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
                   <td
-                    className="px-5 py-3 text-xs text-[#111827]"
+                    colSpan={8}
+                    className="px-5 py-8 text-center text-xs text-[#64748B]"
                     style={{ fontFamily: RB }}
                   >
-                    {q.doctor}
-                  </td>
-                  <td
-                    className="px-5 py-3 text-xs text-[#64748B]"
-                    style={{ fontFamily: RB }}
-                  >
-                    {q.dept}
-                  </td>
-                  <td className="px-5 py-3 font-mono text-xs text-slate-500">
-                    {q.apptTime}
-                  </td>
-                  <td className="px-5 py-3">
-                    <Chip
-                      label={q.vitalsStatus}
-                      variant={NURSE_STATUS_CHIP[q.vitalsStatus] || "default"}
-                    />
-                  </td>
-                  <td className="px-5 py-3">
-                    <Chip
-                      label={q.consultStatus}
-                      variant={NURSE_STATUS_CHIP[q.consultStatus] || "default"}
-                    />
-                  </td>
-                  <td className="px-5 py-3">
-                    <Chip
-                      label={q.priority}
-                      variant={NURSE_STATUS_CHIP[q.priority] || "default"}
-                    />
+                    {queueQuery.isLoading
+                      ? "Loading queue..."
+                      : "No patients in queue"}
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -707,7 +753,7 @@ export function NurseDashboard({
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={NURSE_VISIT_TYPE_DIST}
+                    data={visitTypeData}
                     cx="50%"
                     cy="50%"
                     innerRadius={40}
@@ -715,7 +761,7 @@ export function NurseDashboard({
                     paddingAngle={3}
                     dataKey="value"
                   >
-                    {NURSE_VISIT_TYPE_DIST.map((entry) => (
+                    {visitTypeData.map((entry) => (
                       <Cell key={entry.name} fill={entry.color} />
                     ))}
                   </Pie>
@@ -735,7 +781,7 @@ export function NurseDashboard({
                   className="text-lg font-bold text-[#111827]"
                   style={{ fontFamily: PP }}
                 >
-                  0
+                  {visitTypeData.reduce((acc, d) => acc + d.value, 0)}
                 </span>
                 <span className="text-[9px] text-[#64748B]">Total</span>
               </div>
@@ -746,7 +792,7 @@ export function NurseDashboard({
               className="flex-1 space-y-1.5 text-xs"
               style={{ fontFamily: RB }}
             >
-              {NURSE_VISIT_TYPE_DIST.map((item) => (
+              {visitTypeData.map((item) => (
                 <div
                   key={item.name}
                   className="flex items-center justify-between p-1.5 rounded-lg bg-slate-50 border border-slate-100"
@@ -786,10 +832,10 @@ export function NurseDashboard({
                 className="text-[#009688] font-bold text-xs block"
                 style={{ fontFamily: PP }}
               >
-                --
+                {visitTypeData.length > 0 ? visitTypeData[0].name : "--"}
               </strong>
               <span className="text-[9px] text-[#009688] font-semibold">
-                0%
+                {visitTypeData.length > 0 ? `${visitTypeData[0].value}` : "0"}
               </span>
             </div>
             <div className="bg-slate-50 p-2 rounded-xl text-center border border-slate-100">
@@ -800,7 +846,7 @@ export function NurseDashboard({
                 className="text-[#0D47A1] font-bold text-xs block"
                 style={{ fontFamily: PP }}
               >
-                0
+                {performance?.today.patientsAssisted ?? 0}
               </strong>
               <span className="text-[9px] text-[#64748B]">First Visits</span>
             </div>
@@ -812,7 +858,7 @@ export function NurseDashboard({
                 className="text-[#111827] font-bold text-xs block"
                 style={{ fontFamily: PP }}
               >
-                0
+                {performance?.yesterday.patientsAssisted ?? 0}
               </strong>
               <span className="text-[9px] text-[#64748B]">
                 Follow-up & Consult
@@ -829,7 +875,7 @@ export function NurseDashboard({
           />
           <ResponsiveContainer width="100%" height={180}>
             <BarChart
-              data={NURSE_DEPT_DIST}
+              data={deptDist}
               layout="vertical"
               margin={{ top: 0, right: 20, left: 15, bottom: 0 }}
             >
@@ -868,9 +914,9 @@ export function NurseDashboard({
             className="mt-2 pt-2 border-t border-gray-50 text-xs text-[#64748B] flex items-center justify-between"
             style={{ fontFamily: RB }}
           >
-            <span>No Data</span>
+            <span>{deptDist.length > 0 ? "Live data" : "No Data"}</span>
             <span className="font-semibold text-[#0D47A1]">
-              0 Total Assisted
+              {totalAssisted} Total Assisted
             </span>
           </div>
         </div>

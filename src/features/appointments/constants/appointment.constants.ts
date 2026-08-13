@@ -1,29 +1,8 @@
-import type {
-  PatientSummary,
-  DoctorSummary,
-  AppointmentRecord,
-  AppointmentStatusEnum,
-} from "../types/appointment.types";
-
 export const PP = "Poppins, sans-serif";
 export const RB = "Roboto, sans-serif";
 
 export type ChipVariant =
   "success" | "warning" | "error" | "info" | "teal" | "default";
-
-export const PATIENT_DATABASE: PatientSummary[] = [];
-export const DOCTOR_DATABASE: Record<string, DoctorSummary> = {};
-export const DOCTOR_AVAILABILITY_DATA: Record<
-  string,
-  {
-    specialty: string;
-    department: string;
-    opdRoom: string;
-    slotDuration: string;
-    slots: { time: string; available: boolean }[];
-  }
-> = {};
-export const INITIAL_APPOINTMENTS: AppointmentRecord[] = [];
 
 export type AppointmentStatus =
   | "Booked"

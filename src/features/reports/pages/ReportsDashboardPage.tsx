@@ -155,7 +155,7 @@ export function ReportsDashboardPage() {
       />
     );
   }
-  if (activeKpi || activeView === "KPI" || activeView === "collection-rate") {
+  if (activeKpi || activeView === "KPI" || activeView === "collection-rate" || activeView === "REP-006") {
     return (
       <DashboardKpiDetailScreen
         onBack={handleBack}

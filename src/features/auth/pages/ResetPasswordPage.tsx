@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Lock, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 import { TextField } from "../components/TextField";
 import logoImage from "../../../assets/safehandshospital_logo.webp";
+import { useHospitalBranding } from "../../settings/hooks/useHospitalBranding";
 
 interface ResetPasswordPageProps {
   onSuccess?: () => void;
@@ -10,6 +11,7 @@ interface ResetPasswordPageProps {
 export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({
   onSuccess = () => {},
 }) => {
+  const { logoUrl } = useHospitalBranding();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -37,21 +39,13 @@ export const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({
   return (
     <div className="w-full space-y-6">
       {/* Header Logo */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center">
         <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 shadow-sm flex items-center justify-center">
           <img
-            src={logoImage}
-            alt="Safe Hands Logo"
+            src={logoUrl || logoImage}
+            alt="Hospital Logo"
             className="h-9 w-auto object-contain"
           />
-        </div>
-        <div>
-          <h3 className="font-heading font-bold text-base text-[#1E293B] leading-none">
-            Safe Hands Hospital
-          </h3>
-          <p className="text-xs text-text-muted font-body mt-0.5">
-            Password Recovery
-          </p>
         </div>
       </div>
 

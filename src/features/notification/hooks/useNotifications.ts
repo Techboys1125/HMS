@@ -18,6 +18,7 @@ import {
   markNotificationAsUnread,
   markAllNotificationsAsRead,
   deleteNotification,
+  triggerInternalNotification,
 } from "../services/notifications.service";
 import { normalizeRole } from "../services/role.mapper";
 import type { UserRole } from "../types/notifications.types";
@@ -28,8 +29,8 @@ export const notificationKeys = {
   templates: () => [...notificationKeys.all, "templates"] as const,
   failures: () => [...notificationKeys.all, "failures"] as const,
   preferences: () => [...notificationKeys.all, "preferences"] as const,
-  list: (page = 0, size = 20) =>
-    [...notificationKeys.all, "list", page, size] as const,
+  list: (page = 0, size = 20, type?: string, isRead?: boolean) =>
+    [...notificationKeys.all, "list", page, size, type, isRead] as const,
   detail: (id: string) => [...notificationKeys.all, "detail", id] as const,
   unreadCount: () => [...notificationKeys.all, "unread-count"] as const,
 };
@@ -87,10 +88,22 @@ export function useSendTestNotification() {
     mutationFn: ({
       userId,
       eventType,
+      payload,
     }: {
       userId: string;
       eventType: string;
-    }) => sendTestNotification(userId, eventType),
+      payload?: Parameters<typeof sendTestNotification>[2];
+    }) => sendTestNotification(userId, eventType, payload),
+  });
+}
+
+export function useTriggerInternalNotification() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: triggerInternalNotification,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.all });
+    },
   });
 }
 
@@ -124,10 +137,17 @@ export function useUpdateNotificationPreferences() {
 
 // ─── Inbox Hooks ──────────────────────────────────────────────────────────────
 
-export function useNotifications(page = 0, size = 20) {
+export function useNotifications(
+  page = 0,
+  size = 20,
+  type?: string,
+  isRead?: boolean,
+) {
   return useQuery({
-    queryKey: notificationKeys.list(page, size),
-    queryFn: () => fetchNotifications(page, size),
+    queryKey: notificationKeys.list(page, size, type, isRead),
+    queryFn: () => fetchNotifications(page, size, type, isRead),
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }
 

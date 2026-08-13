@@ -15,7 +15,5 @@ export { ReminderConfigSection } from "./ReminderConfigSection";
 export { TemplatesSection } from "./TemplatesSection";
 export type { TemplateRow } from "./TemplatesSection";
 export { TriggersSection } from "./TriggersSection";
-export { AnalyticsSection } from "./AnalyticsSection";
-export { LifecycleSection } from "./LifecycleSection";
 export { TemplateDetailsDrawer } from "./TemplateDetailsDrawer";
 export { PreviewNotificationModal } from "./PreviewNotificationModal";

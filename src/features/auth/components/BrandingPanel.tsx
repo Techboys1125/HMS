@@ -1,7 +1,9 @@
 import { Check, ShieldCheck } from "lucide-react";
 import logoImage from "../../../assets/safehandshospital_logo.webp";
+import { useHospitalBranding } from "../../settings/hooks/useHospitalBranding";
 
 export function BrandingPanel() {
+  const { logoUrl } = useHospitalBranding();
   return (
     <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-linear-to-br from-[#083A84] via-[#0D47A1] to-[#082F6B] px-10 xl:px-14 py-12 text-white overflow-hidden relative select-none min-h-screen">
       {/* Decorative Soft Ambient Glow Orbs */}
@@ -10,20 +12,12 @@ export function BrandingPanel() {
 
       {/* Brand Top Header */}
       <div className="relative z-10 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center">
           <img
-            src={logoImage}
-            alt="Safe Hands Logo"
+            src={logoUrl || logoImage}
+            alt="Hospital Logo"
             className="h-16 w-auto object-contain filter drop-shadow-md"
           />
-          <div>
-            <h2 className="font-heading font-extrabold text-2xl tracking-tight leading-none text-white">
-              Safe Hands
-            </h2>
-            <p className="text-xs text-white/70 font-body mt-1 tracking-wider uppercase">
-              Hospital &amp; Research Center
-            </p>
-          </div>
         </div>
 
         {/* Enterprise Compliance Badge */}
@@ -41,16 +35,12 @@ export function BrandingPanel() {
 
           {/* Extra Large Centered Logo Image */}
           <img
-            src={logoImage}
-            alt="Safe Hands Hospital Centered Logo"
+            src={logoUrl || logoImage}
+            alt="Hospital Logo"
             className="h-64 sm:h-72 md:h-80 lg:h-96 w-auto object-contain filter drop-shadow-2xl hover:scale-105 transition-transform duration-300 relative z-20"
           />
 
-          <div className="mt-8">
-            <span className="px-5 py-2 rounded-full bg-white/15 text-sm sm:text-base font-heading font-extrabold text-white tracking-widest uppercase backdrop-blur-md border border-white/20 shadow-xl">
-              Safe Hands Healthcare
-            </span>
-          </div>
+          <div className="mt-8" />
         </div>
       </div>
 

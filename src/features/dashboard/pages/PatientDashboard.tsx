@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
-import { appointmentsApi } from "../../appointments/api/appointments.api";
-import { PatientQueueCard } from "../../patients/components/PatientQueueCard";
+import { useMemo } from "react";
 import {
   Calendar,
   Clock,
@@ -12,6 +10,7 @@ import {
   Bell,
   Stethoscope,
   User,
+  Loader2,
 } from "lucide-react";
 import {
   AreaChart,
@@ -24,6 +23,14 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import { PatientQueueCard } from "../../patients/components/PatientQueueCard";
+import {
+  usePatientDashboard,
+  usePatientAppointments,
+  usePatientPrescriptionSummary,
+  usePatientConsultationHistory,
+  usePatientUnreadNotificationsCount,
+} from "../hooks/usePatientDashboard";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -170,45 +177,6 @@ function SH({
     </div>
   );
 }
-const PAT_APPOINTMENT_TIMELINE: {
-  date: string;
-  time: string;
-  doctor: string;
-  dept: string;
-  status: string;
-}[] = [];
-
-// Section 02: Consultation History Trend (Line Chart)
-const PAT_CONSULTATION_TREND: { month: string; visits: number }[] = [];
-
-// Section 03: Prescription Summary (Pie / Bar Chart)
-const PAT_PRESCRIPTION_SUMMARY: {
-  name: string;
-  count: number;
-  color: string;
-}[] = [];
-
-// Section 04: Billing Summary (Donut / Bar Chart)
-const PAT_BILLING_SUMMARY: { name: string; amount: number; color: string }[] =
-  [];
-
-// Section 05: Recent Prescriptions Table
-const PAT_RECENT_PRESCRIPTIONS: {
-  rxId: string;
-  doctor: string;
-  date: string;
-  medsCount: number;
-  status: string;
-}[] = [];
-
-// Section 06: Recent Bills Table
-const PAT_RECENT_BILLS: {
-  invoice: string;
-  date: string;
-  amount: number;
-  status: string;
-}[] = [];
-
 const PAT_STATUS_CHIP: Record<
   string,
   "success" | "warning" | "info" | "error" | "teal" | "default"
@@ -293,52 +261,67 @@ export function PatientDashboard({
   }) => void;
   onAddFamilyMember?: () => void;
 }) {
-  interface DashboardAppointment {
-    status?: string;
-    appointmentDate?: string;
-    date?: string;
-    startTime?: string;
-    time?: string;
-  }
-  const [appointmentsList, setAppointmentsList] = useState<
-    DashboardAppointment[]
-  >([]);
+  const dashboardQuery = usePatientDashboard();
+  const appointmentsQuery = usePatientAppointments();
+  const prescriptionQuery = usePatientPrescriptionSummary();
+  const consultationQuery = usePatientConsultationHistory();
+  const unreadQuery = usePatientUnreadNotificationsCount();
 
-  useEffect(() => {
-    appointmentsApi
-      .getAppointments(
-        activePatient?.id || activePatient?.mrn
-          ? { patientId: activePatient.id || activePatient.mrn }
-          : undefined,
-      )
-      .then((res: unknown) => {
-        const resObj = res as Record<string, unknown> | null | undefined;
-        const data = resObj?.data || resObj;
-        const list = Array.isArray(data)
-          ? (data as DashboardAppointment[])
-          : Array.isArray((data as Record<string, unknown>)?.content)
-            ? ((data as Record<string, unknown>)
-                .content as DashboardAppointment[])
-            : [];
-        setAppointmentsList(list);
-      })
-      .catch(() => {
-        setAppointmentsList([]);
-      });
-  }, [activePatient]);
+  const dashboard = dashboardQuery.data;
+  const appointments = appointmentsQuery.data?.items || [];
+  const prescriptions = prescriptionQuery.data;
+  const consultations = consultationQuery.data;
+  const unreadCount = unreadQuery.data?.count ?? 0;
 
-  const upcomingApt = appointmentsList.find(
-    (a) => a.status === "SCHEDULED" || a.status === "Confirmed",
+  const upcomingApt = appointments.find(
+    (a) => a.status === "SCHEDULED" || a.status === "Confirmed" || a.status === "BOOKED",
   );
 
   const upcomingStr = upcomingApt
-    ? `${upcomingApt.appointmentDate || upcomingApt.date} ${upcomingApt.startTime || upcomingApt.time || ""}`
+    ? `${upcomingApt.date} ${upcomingApt.time || ""}`
     : "No Upcoming Visit";
 
-  const totalBillsAmount = PAT_BILLING_SUMMARY.reduce(
-    (acc, curr) => acc + curr.amount,
-    0,
-  );
+  const prescriptionSummaryData = useMemo(() => {
+    if (!prescriptions) return [];
+    return [
+      { name: "Active", count: prescriptions.active, color: "#66BB6A" },
+      { name: "Completed", count: prescriptions.completed, color: "#0D47A1" },
+      { name: "Expired", count: prescriptions.expired, color: "#EF4444" },
+    ].filter((d) => d.count > 0);
+  }, [prescriptions]);
+
+  const consultationTrendData = useMemo(() => {
+    if (!consultations?.monthlyVisits) return [];
+    return consultations.monthlyVisits.map((m) => ({
+      month: m.month,
+      visits: m.count,
+    }));
+  }, [consultations]);
+
+  const billingSummaryData = useMemo(() => {
+    if (!dashboard?.billingSummary) return [];
+    const bs = dashboard.billingSummary;
+    const items: { name: string; amount: number; color: string }[] = [];
+    if (bs.pendingAmount > 0) items.push({ name: "Pending", amount: bs.pendingAmount, color: "#F59E0B" });
+    if (bs.paidAmount > 0) items.push({ name: "Paid", amount: bs.paidAmount, color: "#66BB6A" });
+    return items;
+  }, [dashboard]);
+
+  if (dashboardQuery.isLoading) {
+    return (
+      <div
+        className="flex-1 overflow-y-auto p-6 flex items-center justify-center"
+        style={{ background: "#F1F5F9" }}
+      >
+        <div className="flex items-center gap-3 text-[#64748B]">
+          <Loader2 size={20} className="animate-spin" />
+          <span className="text-sm font-medium" style={{ fontFamily: RB }}>
+            Loading patient dashboard...
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -437,51 +420,55 @@ export function PatientDashboard({
           sub="--"
           trend="--"
           up={true}
-          data={[{ v: 0 }]}
+          data={[{ v: upcomingApt ? 1 : 0 }]}
           color="#0D47A1"
           gid="pt1"
           Icon={Calendar}
         />
         <DKpi
           title="Active Prescriptions"
-          value="0"
-          sub="--"
+          value={String(prescriptions?.active ?? 0)}
+          sub={prescriptionQuery.isLoading ? "Loading..." : "Active medications"}
           trend="--"
           up={true}
-          data={[{ v: 0 }]}
+          data={prescriptionSummaryData.slice(0, 3).map((p) => ({ v: p.count }))}
           color="#009688"
           gid="pt2"
           Icon={Pill}
         />
         <DKpi
           title="Outstanding Bills"
-          value="$0.00"
-          sub="--"
-          trend="--"
-          up={false}
-          data={[{ v: 0 }]}
+          value={
+            dashboard?.billingSummary
+              ? `₹${(dashboard.billingSummary.pendingAmount ?? 0).toLocaleString()}`
+              : "₹0"
+          }
+          sub={dashboardQuery.isLoading ? "Loading..." : `${dashboard?.billingSummary?.pendingInvoiceCount ?? 0} pending`}
+          trend={dashboard && dashboard.billingSummary?.pendingAmount > 0 ? "Action Required" : "All Clear"}
+          up={dashboard ? (dashboard.billingSummary?.pendingAmount ?? 0) === 0 : true}
+          data={[{ v: dashboard?.billingSummary?.pendingAmount ?? 0 }]}
           color="#F59E0B"
           gid="pt3"
           Icon={Receipt}
         />
         <DKpi
           title="Completed Consultations"
-          value="0"
-          sub="--"
+          value={String(consultations?.totalVisits ?? 0)}
+          sub={consultationQuery.isLoading ? "Loading..." : "Total OPD visits"}
           trend="--"
           up={true}
-          data={[{ v: 0 }]}
+          data={consultationTrendData.slice(-6).map((c) => ({ v: c.visits }))}
           color="#66BB6A"
           gid="pt4"
           Icon={Stethoscope}
         />
         <DKpi
           title="Health Notifications"
-          value="0"
-          sub="--"
-          trend="--"
-          up={false}
-          data={[{ v: 0 }]}
+          value={String(unreadCount)}
+          sub={unreadQuery.isLoading ? "Loading..." : "Unread alerts"}
+          trend={unreadCount > 0 ? `${unreadCount} new` : "All read"}
+          up={unreadCount === 0}
+          data={[{ v: unreadCount }]}
           color="#EF4444"
           gid="pt5"
           Icon={Bell}
@@ -506,48 +493,54 @@ export function PatientDashboard({
             }
           />
           <div className="space-y-3.5 my-auto">
-            {PAT_APPOINTMENT_TIMELINE.map((item) => (
-              <div
-                key={item.doctor || item.time}
-                className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-slate-50 hover:bg-white transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-50 text-[#0D47A1] font-bold text-xs">
-                    <Calendar size={16} />
-                  </div>
-                  <div>
-                    <div
-                      className="text-xs font-bold text-[#111827]"
-                      style={{ fontFamily: PP }}
-                    >
-                      {item.doctor} ·{" "}
-                      <span className="text-[#64748B] font-normal">
-                        {item.dept}
-                      </span>
+            {appointments.length > 0 ? (
+              appointments.map((item, idx) => (
+                <div
+                  key={item.appointmentId || item.appointmentNumber || idx}
+                  className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-slate-50 hover:bg-white transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-50 text-[#0D47A1] font-bold text-xs">
+                      <Calendar size={16} />
                     </div>
-                    <div
-                      className="text-[11px] text-[#64748B] mt-0.5"
-                      style={{ fontFamily: RB }}
-                    >
-                      {item.date} at{" "}
-                      <span className="font-mono font-semibold text-[#0D47A1]">
-                        {item.time}
-                      </span>
+                    <div>
+                      <div
+                        className="text-xs font-bold text-[#111827]"
+                        style={{ fontFamily: PP }}
+                      >
+                        {item.doctorName} ·{" "}
+                        <span className="text-[#64748B] font-normal">
+                          {item.department}
+                        </span>
+                      </div>
+                      <div
+                        className="text-[11px] text-[#64748B] mt-0.5"
+                        style={{ fontFamily: RB }}
+                      >
+                        {item.date} at{" "}
+                        <span className="font-mono font-semibold text-[#0D47A1]">
+                          {item.time}
+                        </span>
+                      </div>
                     </div>
                   </div>
+                  <Chip
+                    label={item.status}
+                    variant={PAT_STATUS_CHIP[item.status] || "default"}
+                  />
                 </div>
-                <Chip
-                  label={item.status}
-                  variant={PAT_STATUS_CHIP[item.status] || "default"}
-                />
+              ))
+            ) : (
+              <div className="text-center text-xs text-[#64748B] py-4">
+                {appointmentsQuery.isLoading ? "Loading appointments..." : "No appointments found"}
               </div>
-            ))}
+            )}
           </div>
           <div
             className="mt-3 pt-2 border-t border-gray-50 text-xs text-[#64748B] text-center"
             style={{ fontFamily: RB }}
           >
-            Next Visit: <span className="font-semibold text-[#0D47A1]">--</span>
+            Next Visit: <span className="font-semibold text-[#0D47A1]">{upcomingStr}</span>
           </div>
         </div>
 
@@ -556,7 +549,7 @@ export function PatientDashboard({
           <SH title="Consultation History" sub="Monthly OPD Visit Frequency" />
           <ResponsiveContainer width="100%" height={180}>
             <AreaChart
-              data={PAT_CONSULTATION_TREND}
+              data={consultationTrendData}
               margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
             >
               <defs>
@@ -583,7 +576,7 @@ export function PatientDashboard({
                   borderRadius: 12,
                   fontSize: 12,
                 }}
-                formatter={(v: unknown) => [`${v} Visits`, "Consultations"]}
+                formatter={(val: unknown) => [`${val} Visits`, "Consultations"]}
               />
               <Area
                 type="monotone"
@@ -599,8 +592,15 @@ export function PatientDashboard({
             className="mt-2 pt-2 border-t border-gray-50 text-xs text-[#64748B] flex items-center justify-between"
             style={{ fontFamily: RB }}
           >
-            <span>Total OPD Visits: 0 Visits</span>
-            <span className="font-semibold text-[#0D47A1]">Avg 0/Month</span>
+            <span>
+              Total OPD Visits:{" "}
+              <span className="font-semibold text-[#111827]">
+                {consultations?.totalVisits ?? 0} Visits
+              </span>
+            </span>
+            <span className="font-semibold text-[#0D47A1]">
+              Avg {(consultations?.averageVisitsPerMonth ?? 0).toFixed(1)}/Month
+            </span>
           </div>
         </div>
       </div>
@@ -615,7 +615,7 @@ export function PatientDashboard({
           />
           <ResponsiveContainer width="100%" height={160}>
             <BarChart
-              data={PAT_PRESCRIPTION_SUMMARY}
+              data={prescriptionSummaryData}
               margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
             >
               <XAxis
@@ -636,10 +636,10 @@ export function PatientDashboard({
                   borderRadius: 12,
                   fontSize: 12,
                 }}
-                formatter={(v: unknown) => [`${v} Prescriptions`, "Count"]}
+                formatter={(val: unknown) => [`${val} Prescriptions`, "Count"]}
               />
               <Bar dataKey="count" radius={[4, 4, 0, 0]} barSize={26}>
-                {PAT_PRESCRIPTION_SUMMARY.map((entry) => (
+                {prescriptionSummaryData.map((entry) => (
                   <Cell key={entry.name} fill={entry.color} />
                 ))}
               </Bar>
@@ -649,7 +649,7 @@ export function PatientDashboard({
             className="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-gray-50 text-xs"
             style={{ fontFamily: RB }}
           >
-            {PAT_PRESCRIPTION_SUMMARY.map((p) => (
+            {prescriptionSummaryData.map((p) => (
               <div
                 key={p.name}
                 className="text-center p-1.5 rounded-lg bg-slate-50"
@@ -668,7 +668,7 @@ export function PatientDashboard({
           <SH title="Billing Overview" sub="Display Personal Payment Status" />
           <ResponsiveContainer width="100%" height={160}>
             <BarChart
-              data={PAT_BILLING_SUMMARY}
+              data={billingSummaryData}
               layout="vertical"
               margin={{ top: 0, right: 20, left: 10, bottom: 0 }}
             >
@@ -677,7 +677,7 @@ export function PatientDashboard({
                 tick={{ fontSize: 10, fill: "#94A3B8" }}
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(v: unknown) => `$${v}`}
+                tickFormatter={(v: unknown) => `₹${Number(v).toLocaleString()}`}
               />
               <YAxis
                 dataKey="name"
@@ -694,26 +694,25 @@ export function PatientDashboard({
                   borderRadius: 12,
                   fontSize: 12,
                 }}
-                formatter={(v: unknown) => [
-                  `$${Number(v).toFixed(2)}`,
+                formatter={(val: unknown) => [
+                  `₹${Number(val).toLocaleString()}`,
                   "Amount",
                 ]}
               />
               <Bar dataKey="amount" radius={[0, 6, 6, 0]} barSize={16}>
-                {PAT_BILLING_SUMMARY.map((entry) => (
+                {billingSummaryData.map((entry) => (
                   <Cell key={entry.name} fill={entry.color} />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
           <div
-            className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50 text-xs"
+            className="mt-2 pt-2 border-t border-gray-50 text-xs text-[#64748B] text-center"
             style={{ fontFamily: RB }}
           >
-            <span className="text-[#64748B]">
-              Total Billing History: ${totalBillsAmount.toFixed(2)}
-            </span>
-            <span className="font-bold text-[#F59E0B]">$0.00 Pending Due</span>
+            {dashboard?.billingSummary?.currency === "INR" ? "₹" : "$"}
+            {(dashboard?.billingSummary?.pendingAmount ?? 0).toLocaleString()} Pending ·{" "}
+            {(dashboard?.billingSummary?.paidAmount ?? 0).toLocaleString()} Paid
           </div>
         </div>
       </div>
@@ -739,7 +738,7 @@ export function PatientDashboard({
             className="text-xs font-semibold text-[#009688] bg-teal-50 px-2.5 py-1 rounded-lg"
             style={{ fontFamily: RB }}
           >
-            0 Active Meds
+            {prescriptions?.active ?? 0} Active Meds
           </span>
         </div>
         <div className="overflow-x-auto">
@@ -765,42 +764,54 @@ export function PatientDashboard({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {PAT_RECENT_PRESCRIPTIONS.map((rx) => (
-                <tr
-                  key={rx.rxId}
-                  className="hover:bg-slate-50 transition-colors"
-                >
-                  <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                    {rx.rxId}
-                  </td>
+              {(dashboard?.recentPrescriptions?.length ?? 0) > 0 ? (
+                (dashboard.recentPrescriptions as Record<string, unknown>[]).map((rx, idx) => (
+                  <tr
+                    key={rx.prescriptionId || rx.id || idx}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                      {String(rx.prescriptionId || rx.prescriptionNumber || rx.id || `RX-${idx + 1}`)}
+                    </td>
+                    <td
+                      className="px-5 py-3 text-xs font-medium text-[#111827]"
+                      style={{ fontFamily: RB }}
+                    >
+                      {String(rx.doctorName || rx.doctor || "N/A")}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs text-slate-500">
+                      {String(rx.issuedAt || rx.createdAt || rx.date || "--")}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
+                      {Number(rx.medicinesCount ?? rx.medsCount ?? rx.items?.length ?? 0)} Medicines
+                    </td>
+                    <td className="px-5 py-3">
+                      <Chip
+                        label={String(rx.status || "Active")}
+                        variant={PAT_STATUS_CHIP[String(rx.status || "Active")] || "success"}
+                      />
+                    </td>
+                    <td className="px-5 py-3">
+                      <button
+                        className="px-3 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-100 transition-colors"
+                        style={{ fontFamily: PP }}
+                      >
+                        View Prescription
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
                   <td
-                    className="px-5 py-3 text-xs font-medium text-[#111827]"
+                    colSpan={6}
+                    className="px-5 py-8 text-center text-xs text-[#64748B]"
                     style={{ fontFamily: RB }}
                   >
-                    {rx.doctor}
-                  </td>
-                  <td className="px-5 py-3 font-mono text-xs text-slate-500">
-                    {rx.date}
-                  </td>
-                  <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
-                    {rx.medsCount} Medicines
-                  </td>
-                  <td className="px-5 py-3">
-                    <Chip
-                      label={rx.status}
-                      variant={PAT_STATUS_CHIP[rx.status] || "default"}
-                    />
-                  </td>
-                  <td className="px-5 py-3">
-                    <button
-                      className="px-3 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-100 transition-colors"
-                      style={{ fontFamily: PP }}
-                    >
-                      View Prescription
-                    </button>
+                    No prescriptions found
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -853,36 +864,54 @@ export function PatientDashboard({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {PAT_RECENT_BILLS.map((b) => (
-                <tr
-                  key={b.invoice}
-                  className="hover:bg-slate-50 transition-colors"
-                >
-                  <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                    {b.invoice}
-                  </td>
-                  <td className="px-5 py-3 font-mono text-xs text-slate-500">
-                    {b.date}
-                  </td>
-                  <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
-                    ${b.amount.toFixed(2)}
-                  </td>
-                  <td className="px-5 py-3">
-                    <Chip
-                      label={b.status}
-                      variant={PAT_STATUS_CHIP[b.status] || "default"}
-                    />
-                  </td>
-                  <td className="px-5 py-3">
-                    <button
-                      className="px-3 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
-                      style={{ fontFamily: PP }}
-                    >
-                      View Invoice
-                    </button>
+              {(dashboard?.recentBills?.length ?? 0) > 0 ? (
+                (dashboard.recentBills as Record<string, unknown>[]).map((b, idx) => (
+                  <tr
+                    key={b.billId || b.billNumber || b.invoiceId || idx}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                      {String(b.billNumber || b.invoiceId || b.invoice || `BILL-${idx + 1}`)}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs text-slate-500">
+                      {String(b.billDate || b.generatedAt || b.date || "--")}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
+                      ₹{(Number(b.netAmount ?? b.amount ?? 0)).toLocaleString()}
+                    </td>
+                    <td className="px-5 py-3">
+                      <Chip
+                        label={String(b.paymentStatus || b.status || "Pending")}
+                        variant={
+                          String(b.paymentStatus || b.status || "") === "PAID"
+                            ? "success"
+                            : String(b.paymentStatus || b.status || "") === "PARTIALLY_PAID"
+                              ? "info"
+                              : "warning"
+                        }
+                      />
+                    </td>
+                    <td className="px-5 py-3">
+                      <button
+                        className="px-3 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
+                        style={{ fontFamily: PP }}
+                      >
+                        View Invoice
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-5 py-8 text-center text-xs text-[#64748B]"
+                    style={{ fontFamily: RB }}
+                  >
+                    No billing history found
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

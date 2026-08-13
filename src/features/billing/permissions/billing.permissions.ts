@@ -27,14 +27,24 @@ export function checkBillingPermission(
       return true;
 
     case "ACCOUNTANT":
-      // Accountant can do everything related to billing
-      return true;
+      // Financial review and reconciliation only; operational collection is
+      // performed by Reception or an administrator.
+      return [
+        "view_dashboard",
+        "view_bills",
+        "view_reports",
+        "export_reports",
+        "view_history",
+        "view_daily_report",
+      ].includes(action);
 
     case "RECEPTIONIST": {
-      // Receptionist: only Create Invoice + Collect Payment
+      // Receptionist owns the operational invoice and collection workflow.
       const receptionistAllowed: BillingAction[] = [
+        "view_bills",
         "generate_invoice",
         "collect_payment",
+        "view_history",
       ];
       return receptionistAllowed.includes(action);
     }

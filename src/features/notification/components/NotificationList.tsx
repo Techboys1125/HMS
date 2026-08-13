@@ -7,8 +7,11 @@ export interface NotificationListProps {
   items: NotificationRecord[];
   currentRole: string;
   isLoading?: boolean;
-  onOpen: (item: NotificationRecord) => void;
+  error?: string;
+  onOpenAction: (item: NotificationRecord) => void;
+  onOpenModule: (item: NotificationRecord) => void;
   onToggleRead: (id: string) => void;
+  onDelete: (id: string) => void;
   onPreviousPage: () => void;
   onNextPage: () => void;
   canGoPrevious: boolean;
@@ -19,8 +22,11 @@ export function NotificationList({
   items,
   currentRole,
   isLoading,
-  onOpen,
+  error,
+  onOpenAction,
+  onOpenModule,
   onToggleRead,
+  onDelete,
   onPreviousPage,
   onNextPage,
   canGoPrevious,
@@ -40,6 +46,16 @@ export function NotificationList({
             <p className="mt-1 text-xs text-[#64748B] max-w-sm">
               Fetching the latest alerts for your role ({currentRole}).
             </p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-red-200 bg-red-50 p-12 text-center shadow-sm">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-700 mb-4">
+              <Bell className="w-8 h-8" />
+            </div>
+            <h3 style={{ fontFamily: PP }} className="text-lg font-bold text-red-800">
+              Unable to load notifications
+            </h3>
+            <p className="mt-1 text-xs text-red-700 max-w-sm">{error}</p>
           </div>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-[#E5E7EB] bg-white p-12 text-center shadow-sm">
@@ -110,16 +126,28 @@ export function NotificationList({
 
                   <div className="flex flex-col items-end gap-2 shrink-0">
                     <button
-                      onClick={() => onOpen(item)}
-                      className="flex items-center gap-1 text-xs font-bold text-[#0D47A1] hover:underline"
+                      onClick={() => onOpenAction(item)}
+                      className="rounded-lg border border-[#0D47A1]/20 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-[#0D47A1] hover:bg-blue-100"
                     >
-                      {item.actionLabel || `Open ${item.targetModule}`}
+                      {item.actionLabel || "Open Action"}
+                    </button>
+                    <button
+                      onClick={() => onOpenModule(item)}
+                      className="rounded-lg border border-[#E5E7EB] bg-white px-2.5 py-1 text-[11px] font-bold text-[#111827] hover:bg-slate-50"
+                    >
+                      Open Module
                     </button>
                     <button
                       onClick={() => onToggleRead(item.id)}
-                      className="text-[11px] text-[#64748B] hover:text-[#111827]"
+                      className="rounded-lg border border-[#E5E7EB] bg-white px-2.5 py-1 text-[11px] font-bold text-[#64748B] hover:bg-slate-50 hover:text-[#111827]"
                     >
                       {isUnread ? "Mark as Read" : "Mark Unread"}
+                    </button>
+                    <button
+                      onClick={() => onDelete(item.id)}
+                      className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-[11px] font-bold text-[#B91C1C] hover:bg-red-100"
+                    >
+                      Delete
                     </button>
                   </div>
                 </div>

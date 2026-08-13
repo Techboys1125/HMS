@@ -17,6 +17,16 @@ export function BillingStatusBadge({ status }: { status: string }) {
       text: "text-[#F59E0B]",
       dot: "bg-[#F59E0B]",
     },
+    "Pending Payment": {
+      bg: "bg-amber-50 border-amber-200",
+      text: "text-[#F59E0B]",
+      dot: "bg-[#F59E0B]",
+    },
+    "Billing Pending": {
+      bg: "bg-amber-50 border-amber-200",
+      text: "text-[#F59E0B]",
+      dot: "bg-[#F59E0B]",
+    },
     Cancelled: {
       bg: "bg-slate-100 border-slate-200",
       text: "text-[#64748B]",

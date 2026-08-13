@@ -35,6 +35,10 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import {
+  useAccountantRevenueReport,
+  useAccountantRefundLog,
+} from "../hooks/useReports";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -112,8 +116,15 @@ export function AccountantDailyRevenueReportScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
+  const { refetch: refetchRevenue } = useAccountantRevenueReport({
+    groupBy: "DAILY",
+  });
+  const { refetch: refetchRefunds } = useAccountantRefundLog();
+
   const handleRefresh = () => {
     setIsRefreshing(true);
+    refetchRevenue();
+    refetchRefunds();
     setTimeout(() => setIsRefreshing(false), 600);
   };
 

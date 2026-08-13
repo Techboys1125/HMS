@@ -12,6 +12,7 @@ import { TextField } from "./TextField";
 import { useLogin } from "../hooks/useLogin";
 import type { LoginResponse } from "../types/auth.types";
 import logoImage from "../../../assets/safehandshospital_logo.webp";
+import { useHospitalBranding } from "../../settings/hooks/useHospitalBranding";
 
 interface LoginFormProps {
   onSuccess: (response: LoginResponse) => void;
@@ -30,6 +31,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const [showPassword, setShowPassword] = useState(false);
 
   const { login, loading, errors } = useLogin(onSuccess);
+  const { logoUrl } = useHospitalBranding();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,20 +42,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     <div className="w-full flex flex-col justify-between space-y-6">
       {/* Top Header Logo */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3.5">
+        <div className="flex items-center">
           <img
-            src={logoImage}
-            alt="Safe Hands Logo"
-            className="h-11 w-auto object-contain filter drop-shadow-xs"
+            src={logoUrl || logoImage}
+            alt="Hospital Logo"
+            className="h-12 w-auto object-contain filter drop-shadow-xs"
           />
-          <div>
-            <h3 className="font-heading font-bold text-lg text-[#1E293B] leading-none">
-              Safe Hands Hospital
-            </h3>
-            <p className="text-xs sm:text-sm text-text-muted font-body mt-1">
-              Healthcare Management System
-            </p>
-          </div>
         </div>
       </div>
 

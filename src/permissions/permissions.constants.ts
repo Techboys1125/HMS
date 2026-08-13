@@ -485,6 +485,12 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "CONSULTATION_STATUS_VIEW",
 
     "NOTIFICATION_VIEW",
+
+    "REPORTS_VIEW",
+
+    "REPORT_VIEW",
+
+    "REPORT_EXPORT",
   ],
 
   DOCTOR: [

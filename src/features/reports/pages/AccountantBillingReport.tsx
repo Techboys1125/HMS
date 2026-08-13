@@ -35,6 +35,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { useAccountantBillingAnalysis } from "../hooks/useReports";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -117,8 +118,11 @@ export function AccountantBillingReportScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
+  const { refetch: refetchBilling } = useAccountantBillingAnalysis();
+
   const handleRefresh = () => {
     setIsRefreshing(true);
+    refetchBilling();
     setTimeout(() => setIsRefreshing(false), 600);
   };
 

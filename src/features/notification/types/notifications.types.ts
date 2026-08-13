@@ -29,6 +29,7 @@ export type NotificationCategory =
   | "Audit"
   | "System"
   | "Registration"
+  | "Schedule"
   | "Queue"
   | "Announcements";
 
@@ -43,6 +44,7 @@ export interface NotificationRecord {
   status: NotificationStatus;
   targetModule: string;
   actionLabel?: string;
+  actionUrl?: string;
   targetId?: string;
   roleVisibility: UserRole[];
 }
@@ -114,6 +116,14 @@ export interface NotificationListItem {
   status: string;
   isRead: boolean;
   createdAt: string;
+  module?: string;
+  receiverId?: string;
+  receiverRole?: string;
+  actionLabel?: string;
+  actionUrl?: string;
+  referenceType?: string;
+  referenceId?: string;
+  readAt?: string | null;
 }
 
 export interface NotificationPageResponse {
@@ -139,6 +149,11 @@ export interface NotificationDetailResponse {
   status: string;
   isRead: boolean;
   createdAt: string;
+  actionLabel?: string;
+  actionUrl?: string;
+  referenceType?: string;
+  referenceId?: string;
+  readAt?: string | null;
 }
 
 export interface TestNotificationResponse {
@@ -153,16 +168,42 @@ export interface TestNotificationResponse {
   status: string;
   isRead: boolean;
   createdAt: string;
+  actionLabel?: string;
+  actionUrl?: string;
+  referenceType?: string;
+  referenceId?: string;
+  readAt?: string | null;
 }
 
 export interface NotificationFailureRecord {
-  id: string;
-  notificationId?: string;
-  channel?: string;
-  recipient?: string;
-  error?: string;
-  status?: string;
-  createdAt?: string;
+  id: number;
+  eventId: string;
+  errorMessage: string;
+  lastError: string;
+  retryCount: number;
+  lastRetryAt: string;
+  createdAt: string;
+}
+
+export interface TestNotificationPayload {
+  doctorName?: string;
+  [key: string]: unknown;
+}
+
+export interface InternalNotificationPayload {
+  eventId: string;
+  userId: number | string;
+  title: string;
+  message: string;
+  type: string;
+  priority: NotificationPriorityLevel;
+  referenceType?: string;
+  referenceId?: string;
+  sourceModule: string;
+  eventType: string;
+  receiverRole: string;
+  actionLabel?: string;
+  actionUrl?: string;
 }
 
 export interface MarkReadResponse {

@@ -1,13 +1,15 @@
-import { Eye, RotateCcw, Save } from "lucide-react";
+import { Eye, RefreshCw } from "lucide-react";
 import { PP } from "../constants/notifications.constants";
 
 export interface CommunicationHeaderProps {
   onPreview: () => void;
-  onReset: () => void;
-  onSave: () => void;
+  onRefresh: () => void;
 }
 
-export function CommunicationHeader({ onPreview, onReset, onSave }: CommunicationHeaderProps) {
+export function CommunicationHeader({
+  onPreview,
+  onRefresh,
+}: CommunicationHeaderProps) {
   return (
     <div
       style={{
@@ -42,11 +44,12 @@ export function CommunicationHeader({ onPreview, onReset, onSave }: Communicatio
             margin: "2px 0 0 0",
           }}
         >
-          Configure system-wide notification delivery channels, communication
-          preferences, reminder templates, and alert rules.
+          API-backed notification rules, templates, and delivery failures only.
         </p>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+      <div
+        style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}
+      >
         <button
           onClick={onPreview}
           style={{
@@ -66,7 +69,7 @@ export function CommunicationHeader({ onPreview, onReset, onSave }: Communicatio
           <Eye size={14} /> Preview Notification
         </button>
         <button
-          onClick={onReset}
+          onClick={onRefresh}
           style={{
             display: "flex",
             alignItems: "center",
@@ -81,26 +84,7 @@ export function CommunicationHeader({ onPreview, onReset, onSave }: Communicatio
             cursor: "pointer",
           }}
         >
-          <RotateCcw size={14} /> Reset
-        </button>
-        <button
-          onClick={onSave}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "8px 18px",
-            borderRadius: "8px",
-            border: "none",
-            background: "#0D47A1",
-            color: "#FFFFFF",
-            fontSize: "13px",
-            fontWeight: 600,
-            cursor: "pointer",
-            boxShadow: "0 2px 4px rgba(13,71,161,0.2)",
-          }}
-        >
-          <Save size={14} /> Save Configuration
+          <RefreshCw size={14} /> Refresh Data
         </button>
       </div>
     </div>

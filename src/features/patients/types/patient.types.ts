@@ -48,6 +48,7 @@ export interface Address {
  * Patient record returned from GET /api/v1/patients
  */
 export interface Patient {
+  userId: number;
   insuranceDetails: {
     provider?: string;
     policyNumber?: string;

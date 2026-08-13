@@ -1,7 +1,6 @@
 /** Auth Feature Exports */
 // Pages
 export * from "./pages/LoginPage";
-export { default as AuthApp } from "./pages/AuthApp";
 export * from "./pages/PatientRegisterPage";
 export * from "./pages/ChangePasswordPage";
 export * from "./pages/ForgotPasswordPage";

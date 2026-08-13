@@ -11,6 +11,8 @@ import type {
   TestNotificationResponse,
   NotificationFailureRecord,
   MarkReadResponse,
+  TestNotificationPayload,
+  InternalNotificationPayload,
 } from "../types/notifications.types";
 
 export {
@@ -29,6 +31,7 @@ export {
   markNotificationAsUnread,
   markAllNotificationsAsRead,
   deleteNotification,
+  triggerInternalNotification,
 } from "../api/notification.api";
 
 export {
@@ -51,4 +54,6 @@ export type {
   TestNotificationResponse,
   NotificationFailureRecord,
   MarkReadResponse,
+  TestNotificationPayload,
+  InternalNotificationPayload,
 };

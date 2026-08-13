@@ -70,51 +70,46 @@ export function SeverityBadgeLarge({ severity }: { severity: AuditSeverity }) {
 }
 
 export function StatusBadge({ status }: { status: AuditStatus }) {
-  switch (status) {
-    case "Failed":
-    case "Blocked":
-      return (
-        <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-600 border border-red-200">
-          {status}
-        </span>
-      );
-    case "Warning":
-      return (
-        <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-          {status}
-        </span>
-      );
-    case "Success":
-    default:
-      return (
-        <span className="px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-          {status}
-        </span>
-      );
-  }
+  const tone = getStatusTone(status);
+  return (
+    <span className={`px-2 py-0.5 rounded text-xs font-medium border ${tone}`}>
+      {status}
+    </span>
+  );
 }
 
 export function StatusBadgeLarge({ status }: { status: AuditStatus }) {
-  switch (status) {
-    case "Failed":
-    case "Blocked":
-      return (
-        <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-red-50 text-red-600 border border-red-200">
-          {status}
-        </span>
-      );
-    case "Warning":
-      return (
-        <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
-          {status}
-        </span>
-      );
-    case "Success":
-    default:
-      return (
-        <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-          {status}
-        </span>
-      );
+  const tone = getStatusTone(status);
+  return (
+    <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${tone}`}>
+      {status}
+    </span>
+  );
+}
+
+function getStatusTone(status: AuditStatus): string {
+  const normalized = status.toUpperCase();
+  if (
+    normalized.includes("FAIL") ||
+    normalized.includes("BLOCK") ||
+    normalized.includes("LOCK")
+  ) {
+    return "bg-red-50 text-red-600 border-red-200";
   }
+  if (
+    normalized.includes("WARN") ||
+    normalized.includes("PENDING") ||
+    normalized.includes("OPEN") ||
+    normalized.includes("ARCHIVED")
+  ) {
+    return "bg-amber-50 text-amber-700 border-amber-200";
+  }
+  if (
+    normalized.includes("SUCCESS") ||
+    normalized.includes("HEALTHY") ||
+    normalized.includes("ACTIVE")
+  ) {
+    return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  }
+  return "bg-slate-50 text-slate-700 border-slate-200";
 }

@@ -17,13 +17,26 @@ import {
   RB,
 } from "../components/DashboardShared";
 
-const HOSPITALS: { name: string; city: string; units: number; staff: number; status: string; plan: string }[] = [];
+const HOSPITALS: {
+  name: string;
+  city: string;
+  units: number;
+  staff: number;
+  status: string;
+  plan: string;
+}[] = [];
 
-const SA_AUDIT: { user: string; action: string; time: string; type: string }[] = [];
+const SA_AUDIT: { user: string; action: string; time: string; type: string }[] =
+  [];
 
 const ROLE_DIST: { label: string; count: number; color: string }[] = [];
 
-const SYS_METRICS: { label: string; value: number; color: string; icon: React.ElementType }[] = [];
+const SYS_METRICS: {
+  label: string;
+  value: number;
+  color: string;
+  icon: React.ElementType;
+}[] = [];
 
 export function SuperAdminDashboard() {
   const totalUsers = ROLE_DIST.reduce((s, r) => s + r.count, 0);
@@ -232,7 +245,12 @@ export function SuperAdminDashboard() {
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
             <SH title="Security Alerts" sub="Requires attention" />
             <div className="space-y-2">
-              <div className="text-xs text-[#64748B] text-center py-4" style={{ fontFamily: RB }}>No alerts</div>
+              <div
+                className="text-xs text-[#64748B] text-center py-4"
+                style={{ fontFamily: RB }}
+              >
+                No alerts
+              </div>
             </div>
           </div>
 
@@ -328,9 +346,9 @@ export function SuperAdminDashboard() {
             }
           />
           <div>
-            {SA_AUDIT.map((a, i) => (
+            {SA_AUDIT.map((a) => (
               <div
-                key={`${a.user}-${i}`}
+                key={`${a.action}-${a.time}`}
                 className="flex items-start gap-3 py-2.5 border-b border-[#E5E7EB] last:border-0"
               >
                 <div

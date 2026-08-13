@@ -32,7 +32,6 @@ import { PP, RB } from "../constants/doctors.constants";
 import { Card } from "./Card";
 import { Avatar } from "./Avatar";
 import { appointmentService } from "../../appointments";
-import { billingService } from "../../billing/services/billing.service";
 
 type ConsultTab = "overview" | "vitals" | "soap" | "prescription" | "history";
 
@@ -66,104 +65,27 @@ const CONSULT_TABS: {
   { id: "history", label: "History", Icon: FileText },
 ];
 
-const VITALS_DATA = [
-  {
-    label: "Blood Pressure",
-    value: "145/92",
-    unit: "mmHg",
-    Icon: Activity,
-    color: "#EF4444",
-    status: "high",
-    normal: "120/80",
-  },
-  {
-    label: "Heart Rate",
-    value: "88",
-    unit: "bpm",
-    Icon: Activity,
-    color: "#3B82F6",
-    status: "normal",
-    normal: "60-100",
-  },
-  {
-    label: "Temperature",
-    value: "37.2",
-    unit: "°C",
-    Icon: Activity,
-    color: "#F59E0B",
-    status: "normal",
-    normal: "36.5-37.5",
-  },
-  {
-    label: "SpO₂",
-    value: "97",
-    unit: "%",
-    Icon: Activity,
-    color: "#10B981",
-    status: "normal",
-    normal: "95-100",
-  },
-  {
-    label: "Resp. Rate",
-    value: "18",
-    unit: "/min",
-    Icon: Activity,
-    color: "#6366F1",
-    status: "normal",
-    normal: "12-20",
-  },
-  {
-    label: "Blood Sugar",
-    value: "110",
-    unit: "mg/dL",
-    Icon: Activity,
-    color: "#8B5CF6",
-    status: "normal",
-    normal: "70-140",
-  },
-];
+const VITALS_DATA: {
+  label: string;
+  value: string;
+  unit: string;
+  Icon: React.ElementType;
+  color: string;
+  status: string;
+  normal: string;
+}[] = [];
 
-const MEDICATIONS = [
-  {
-    id: "1",
-    name: "Amlodipine",
-    dose: "5mg",
-    freq: "Once Daily",
-    route: "Oral",
-    status: "active",
-    refill: "15 days",
-  },
-  {
-    id: "2",
-    name: "Metformin",
-    dose: "500mg",
-    freq: "Twice Daily",
-    route: "Oral",
-    status: "active",
-    refill: "20 days",
-  },
-  {
-    id: "3",
-    name: "Aspirin",
-    dose: "75mg",
-    freq: "Once Daily",
-    route: "Oral",
-    status: "prn",
-    refill: "30 days",
-  },
-];
+const MEDICATIONS: {
+  id: string;
+  name: string;
+  dose: string;
+  freq: string;
+  route: string;
+  status: string;
+  refill: string;
+}[] = [];
 
-const TIMELINE = [
-  { time: "09:15 AM", event: "Appointment booked", note: "Online booking" },
-  { time: "09:42 AM", event: "Checked in at reception", note: "Token A-012" },
-  {
-    time: "09:50 AM",
-    event: "Vitals recorded by nurse",
-    note: "BP 120/80, Temp 98.6\u00B0F",
-  },
-  { time: "10:05 AM", event: "Called by doctor", note: "Consultation room 3" },
-  { time: "10:06 AM", event: "Consultation started", note: "" },
-];
+const TIMELINE: { time: string; event: string; note: string }[] = [];
 
 export function DoctorConsultationScreen({
   onBack,
@@ -258,29 +180,10 @@ export function DoctorConsultationScreen({
     setIsCompleting(true);
     setCompleteMsg(null);
     try {
-      const result =
-        await appointmentService.doctorCompleteConsultation(appointmentId);
-      const encounterId =
-        (result.data as unknown as Record<string, unknown> | undefined)
-          ?.encounterId || Number(appointmentId);
-
-      let billNumber = "";
-      try {
-        const bill = await billingService.createBill({
-          appointmentId: Number(appointmentId),
-          encounterId: Number(encounterId),
-          patientMrn: patientData?.patientMrn || "",
-          doctorId: Number(patientData?.doctorId || 0),
-        });
-        billNumber = bill.billNumber || "";
-      } catch {
-        /* bill creation failed; consultation still completes */
-      }
+      await appointmentService.doctorCompleteConsultation(appointmentId);
 
       setCompleteMsg(
-        billNumber
-          ? `Consultation completed. Invoice ${billNumber} generated.`
-          : "Consultation completed. Encounter finalized.",
+        "Consultation completed. Encounter and appointment finalized. Patient is now available for billing.",
       );
       setCompleted(true);
       onComplete?.();

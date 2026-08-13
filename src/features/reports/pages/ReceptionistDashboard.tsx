@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router";
+import { ROUTES } from "../../../app/routes/routes";
 import {
   Calendar,
   Download,
@@ -34,6 +36,16 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import {
+  useReceptionDashboardSummary,
+  useReceptionSummaryWidget,
+  useReceptionRegister,
+  useReceptionActivityLog,
+  useReceptionAppointmentStatus,
+  useReceptionCheckinAnalytics,
+  useReceptionRegistrationTrend,
+  useReceptionQueuePerformance,
+} from "../../reception";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -102,6 +114,7 @@ export function ReceptionistReportsDashboardScreen({
   onOpenDailyAppointments?: () => void;
   onOpenPatientReport?: () => void;
 }) {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState("Today");
   const [apptStatusFilter, setApptStatusFilter] = useState("All Statuses");
@@ -119,17 +132,59 @@ export function ReceptionistReportsDashboardScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  const [kpi] = useState({
-    todayRegistrations: 0,
-    todayAppointments: 0,
-    checkedInPatients: 0,
-    receptionQueue: 0,
-    completedCheckIns: 0,
-    avgWaitingTime: "--",
-  });
+  // React Query Hooks for Backend Reception Report APIs
+  const { data: summaryWidget, refetch: refetchSummary } =
+    useReceptionSummaryWidget();
+  const { data: dashboardSummary, refetch: refetchDashboard } =
+    useReceptionDashboardSummary();
+  useReceptionAppointmentStatus();
+  useReceptionCheckinAnalytics();
+  const { data: queuePerformance } = useReceptionQueuePerformance();
+  const { data: registerData, refetch: refetchRegister } = useReceptionRegister(
+    { size: 20 },
+  );
+  const { refetch: refetchLogs } = useReceptionActivityLog({ size: 20 });
+  useReceptionRegistrationTrend();
+
+  const kpi = useMemo(
+    () => ({
+      todayRegistrations:
+        summaryWidget?.registrations ??
+        dashboardSummary?.registrations.total ??
+        0,
+      todayAppointments:
+        summaryWidget?.appointments ??
+        dashboardSummary?.appointments.booked ??
+        0,
+      checkedInPatients:
+        summaryWidget?.checkedIn ?? dashboardSummary?.checkIn.checkedIn ?? 0,
+      receptionQueue:
+        summaryWidget?.waiting ??
+        dashboardSummary?.queue.waiting ??
+        queuePerformance?.waitingPatients ??
+        0,
+      completedCheckIns:
+        summaryWidget?.completedCheckIns ??
+        dashboardSummary?.appointments.completed ??
+        queuePerformance?.completedQueue ??
+        0,
+      avgWaitingTime: summaryWidget
+        ? `${summaryWidget.averageWaitingMinutes} min`
+        : dashboardSummary
+          ? `${dashboardSummary.waitingTime.averageMinutes} min`
+          : queuePerformance
+            ? `${queuePerformance.averageWaitingMinutes} min`
+            : "--",
+    }),
+    [summaryWidget, dashboardSummary, queuePerformance],
+  );
 
   const handleRefresh = () => {
     setIsRefreshing(true);
+    refetchSummary();
+    refetchDashboard();
+    refetchRegister();
+    refetchLogs();
     setTimeout(() => setIsRefreshing(false), 600);
   };
 
@@ -143,21 +198,16 @@ export function ReceptionistReportsDashboardScreen({
   };
 
   const filteredActivities = useMemo(() => {
-    return ([] as Array<{
-      id?: string | number;
-      patientName: string;
-      mrn: string;
-      appointmentId: string;
-      appointmentStatus: string;
-      visitType: string;
-      registrationTime?: string;
-      checkInTime?: string;
-      queueStatus?: string;
-    }>).filter((item) => {
+    const rawList = registerData?.content || [];
+    return rawList.filter((item) => {
       const matchesSearch =
-        item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.appointmentId.toLowerCase().includes(searchQuery.toLowerCase());
+        (item.patientName || "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        (item.mrn || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.appointmentId || "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
       const matchesAppt =
         apptStatusFilter === "All Statuses" ||
         item.appointmentStatus === apptStatusFilter;
@@ -166,7 +216,7 @@ export function ReceptionistReportsDashboardScreen({
         item.visitType === visitTypeFilter;
       return matchesSearch && matchesAppt && matchesVisit;
     });
-  }, [searchQuery, apptStatusFilter, visitTypeFilter]);
+  }, [registerData, searchQuery, apptStatusFilter, visitTypeFilter]);
 
   return (
     <div
@@ -175,7 +225,7 @@ export function ReceptionistReportsDashboardScreen({
     >
       {/* Top Header Section */}
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
@@ -250,7 +300,7 @@ export function ReceptionistReportsDashboardScreen({
       </div>
 
       {/* Main Container */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         {/* Global Search Bar */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
@@ -463,9 +513,12 @@ export function ReceptionistReportsDashboardScreen({
               {/* TOP 6 RECEPTIONIST KPI CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Card 1: Today's Registrations */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div
+                  onClick={() => navigate(ROUTES.PATIENTS)}
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
+                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
                       Today's Registrations
                     </span>
                     <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
@@ -478,11 +531,13 @@ export function ReceptionistReportsDashboardScreen({
                   >
                     {kpi.todayRegistrations}
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
                       <TrendingUp className="w-3 h-3" /> --
                     </span>
-                    <span>vs yesterday</span>
+                    <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
+                      View Detail <ChevronRight className="w-3 h-3" />
+                    </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
                     <div>
@@ -497,9 +552,12 @@ export function ReceptionistReportsDashboardScreen({
                 </div>
 
                 {/* Card 2: Today's Appointments */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div
+                  onClick={() => navigate(ROUTES.APPOINTMENTS)}
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
+                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
                       Today's Appointments
                     </span>
                     <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
@@ -512,9 +570,12 @@ export function ReceptionistReportsDashboardScreen({
                   >
                     {kpi.todayAppointments}
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#009688] font-semibold">
                       0 Completed Today
+                    </span>
+                    <span className="text-[#009688] font-semibold flex items-center gap-0.5 group-hover:underline">
+                      View Detail <ChevronRight className="w-3 h-3" />
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
@@ -530,9 +591,12 @@ export function ReceptionistReportsDashboardScreen({
                 </div>
 
                 {/* Card 3: Checked-In Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div
+                  onClick={() => navigate(ROUTES.QUEUE)}
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
+                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition">
                       Checked-In Patients
                     </span>
                     <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
@@ -545,9 +609,12 @@ export function ReceptionistReportsDashboardScreen({
                   >
                     {kpi.checkedInPatients}
                   </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
                     <span className="text-[#66BB6A] font-semibold">
                       -- Check-in Rate
+                    </span>
+                    <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5 group-hover:underline">
+                      View Detail <ChevronRight className="w-3 h-3" />
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
@@ -788,8 +855,22 @@ export function ReceptionistReportsDashboardScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {([] as Array<{ color?: string; [key: string]: unknown }>).map((entry) => (
-                            <Cell key={entry?.id ? String(entry.id) : String(entry?.name || entry?.color || "cell")} fill={entry.color || "#0D47A1"} />
+                          {(
+                            [] as Array<{
+                              color?: string;
+                              [key: string]: unknown;
+                            }>
+                          ).map((entry) => (
+                            <Cell
+                              key={
+                                entry?.id
+                                  ? String(entry.id)
+                                  : String(
+                                      entry?.name || entry?.color || "cell",
+                                    )
+                              }
+                              fill={entry.color || "#0D47A1"}
+                            />
                           ))}
                         </Pie>
                         <Tooltip
@@ -1078,7 +1159,16 @@ export function ReceptionistReportsDashboardScreen({
                   Recent Reception Activity Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {([] as Array<{ id: string | number; action?: string; date?: string; time?: string; detail?: string; details?: string }>).map((act) => (
+                  {(
+                    [] as Array<{
+                      id: string | number;
+                      action?: string;
+                      date?: string;
+                      time?: string;
+                      detail?: string;
+                      details?: string;
+                    }>
+                  ).map((act) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"

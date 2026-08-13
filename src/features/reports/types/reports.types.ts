@@ -426,6 +426,7 @@ export interface DailyAppointmentSummary {
 
 // 3. Daily Appointments Detail
 export interface DailyAppointmentDetail {
+  appointmentTime: string;
   patientId: string;
   appointmentId: number;
   appointmentNumber: string;
@@ -471,6 +472,10 @@ export interface DepartmentConsultationVolume {
 
 // 8. Invoice Register Detail
 export interface InvoiceRegisterRecord {
+  paymentMethod: "Cash" | "Card" | "UPI" | "Bank Transfer";
+  department: string;
+  doctorName: string;
+  mrn: string;
   invoiceNumber: string;
   patientName: string;
   billedAmount: number;
@@ -623,6 +628,12 @@ export interface GenderBreakdownData {
 
 // 23. Patient Master Register
 export interface PatientMasterRecord {
+  registrationDate: string;
+  visitType: string;
+  doctorName: string;
+  department: string;
+  mobile: string;
+  patientName: any;
   patientId: number;
   mrn: string;
   fullName: string;
@@ -655,4 +666,242 @@ export interface RegistrationTrendPoint {
 export interface RegistrationTrendData {
   period: string;
   points: RegistrationTrendPoint[];
+}
+
+// ─── Doctor Personal Practice Reports Interfaces ─────────────────────────────
+
+export interface DoctorDailyAppointmentsAnalyticsData {
+  statusBreakdown: {
+    completed: number;
+    scheduled: number;
+    cancelled: number;
+    waiting: number;
+  };
+  appointmentTrend: Array<{
+    date: string;
+    appointments: number;
+    completed: number;
+  }>;
+  dailyWorkload: Array<{
+    shift: string;
+    appointments: number;
+    completed: number;
+  }>;
+  visitTypeDistribution: Array<{
+    visitType: string;
+    count: number;
+  }>;
+}
+
+export interface DoctorPracticeSummary {
+  myPatients: number;
+  newPatients: number;
+  returningPatients: number;
+  completedConsultations: number;
+  scheduledFollowUps: number;
+  averagePatientsPerDay: number;
+  todayConsultations: number;
+  monthlyConsultations: number;
+}
+
+export interface DoctorDailyAppointmentsDashboardData {
+  doctor: {
+    doctorId: string;
+    doctorName: string;
+    department: string;
+  };
+  reportDate: string;
+  lastUpdated: string;
+  summary: DoctorPracticeSummary;
+}
+
+export interface DoctorDailyAppointmentRegisterItem {
+  appointmentId: string;
+  patientId: string;
+  patientName: string;
+  mrn: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  visitType: string;
+  appointmentStatus: string;
+  consultationStatus: string;
+}
+
+export interface DoctorDailyAppointmentRegisterResponse {
+  content: DoctorDailyAppointmentRegisterItem[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface DoctorPatientAnalyticsData {
+  consultationTrend: Array<{
+    date: string;
+    patients: number;
+    completedConsultations: number;
+  }>;
+  followUpCompliance: {
+    completed: number;
+    scheduled: number;
+    pending: number;
+    missed: number;
+  };
+}
+
+export interface DoctorPatientReportDashboardData {
+  doctor: {
+    doctorId: string;
+    doctorName: string;
+    department: string;
+  };
+  reportPeriod: {
+    fromDate: string;
+    toDate: string;
+  };
+  lastUpdated: string;
+  summary: DoctorPracticeSummary;
+}
+
+export interface DoctorPatientRegisterItem {
+  patientId: string;
+  patientName: string;
+  mrn: string;
+  lastConsultationDate: string;
+  totalConsultations: number;
+  lastVisitType: string;
+  nextFollowUpDate: string;
+  followUpStatus: string;
+}
+
+export interface DoctorPatientRegisterResponse {
+  content: DoctorPatientRegisterItem[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+// ─── Accountant Financial Reports Interfaces ─────────────────────────────────
+
+export interface AccountantMainReportData {
+  revenueTrends: Array<{
+    date: string;
+    amount: number;
+  }>;
+  collectionTrends: Array<{
+    date: string;
+    amount: number;
+  }>;
+  paymentStatusDistribution: {
+    paid: number;
+    pending: number;
+    partial: number;
+    cancelled: number;
+  };
+  monthlyPerformance: {
+    totalRevenue: number;
+    totalInvoices: number;
+    averageDailyRevenue: number;
+  };
+  billingAnalysis: Array<{
+    billingType: string;
+    amount: number;
+    count: number;
+  }>;
+  financialSummary: {
+    totalBilled: number;
+    totalCollected: number;
+    totalPending: number;
+    totalRefunded: number;
+  };
+  reportTable: Array<{
+    date: string;
+    invoiceId: string;
+    patientName: string;
+    billType: string;
+    billedAmount: number;
+    paidAmount: number;
+    paymentMethod: string;
+    status: string;
+  }>;
+}
+
+export interface AccountantBillingAnalysisData {
+  fromDate: string;
+  toDate: string;
+  totalBilledAmount: number;
+  totalBills: number;
+  breakdown: Array<{
+    billingType: string;
+    grossAmount: number;
+    discountAmount: number;
+    netAmount: number;
+    count: number;
+  }>;
+}
+
+export interface AccountantPaymentMethodItem {
+  paymentMethod: string;
+  totalAmount: number;
+  transactionCount: number;
+  percentage: number;
+}
+
+export interface AccountantPaymentCollectionData {
+  fromDate: string;
+  toDate: string;
+  totalCollectedAmount: number;
+  totalTransactions: number;
+  methodBreakdown: AccountantPaymentMethodItem[];
+}
+
+export interface AccountantRefundItem {
+  refundId?: string;
+  invoiceId?: string;
+  patientName?: string;
+  amount?: number;
+  reason?: string;
+  refundedAt?: string;
+}
+
+export interface AccountantRefundLogData {
+  fromDate: string;
+  toDate: string;
+  totalRefundedAmount: number;
+  totalRefundedBills: number;
+  refunds: AccountantRefundItem[];
+}
+
+export interface AccountantRevenueDataPoint {
+  label: string;
+  amount: number;
+  invoiceCount: number;
+}
+
+export interface AccountantRevenueReportData {
+  fromDate: string;
+  toDate: string;
+  groupBy: string;
+  totalRevenue: number;
+  dataPoints: AccountantRevenueDataPoint[];
+}
+
+export interface AccountantTransactionItem {
+  paymentNumber: string;
+  invoiceId: string;
+  patientName: string;
+  amount: number;
+  paymentMethod: string;
+  status: string;
+  referenceNumber: string;
+  transactionDate: string;
+}
+
+export interface AccountantTransactionRegisterResponse {
+  content: AccountantTransactionItem[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
 }

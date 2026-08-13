@@ -9,8 +9,8 @@ import type {
 
 export const billingKeys = {
   all: ["billing"] as const,
-  list: (page?: number, size?: number) =>
-    [...billingKeys.all, "list", page, size] as const,
+  list: (params?: Record<string, unknown>) =>
+    [...billingKeys.all, "list", params] as const,
   detail: (billId: number | string) =>
     [...billingKeys.all, "detail", billId] as const,
   summary: (billId: number | string) =>
@@ -25,6 +25,14 @@ export const billingKeys = {
   outstanding: () => [...billingKeys.all, "outstanding"] as const,
   audit: (billId: number | string) =>
     [...billingKeys.all, "audit", billId] as const,
+  pendingBilling: (params?: {
+    page?: number;
+    size?: number;
+    search?: string;
+    billingStatus?: string;
+  }) => [...billingKeys.all, "pending-billing", params] as const,
+  billingSearch: (query: string) =>
+    [...billingKeys.all, "billing-search", query] as const,
 };
 
 // ── useBilling ──────────────────────────────────────────────────────────────
@@ -51,10 +59,69 @@ export function useBillingList(params?: {
   page?: number;
   size?: number;
   sort?: string;
+  sortBy?: string;
+  direction?: string;
+  status?: string;
+  billStatus?: string;
+  paymentStatus?: string;
+  paymentMethod?: string;
+  patientId?: string | number;
+  mrn?: string;
+  doctorId?: string | number;
+  search?: string;
+  fromDate?: string;
+  toDate?: string;
 }) {
   return useQuery({
-    queryKey: billingKeys.list(params?.page, params?.size),
+    queryKey: billingKeys.list(params as Record<string, unknown> | undefined),
     queryFn: () => billingService.searchBills(params),
+  });
+}
+
+// ── usePendingBilling ────────────────────────────────────────────────────────
+
+export function usePendingBilling(params?: {
+  page?: number;
+  size?: number;
+  search?: string;
+  billingStatus?: string;
+  date?: string;
+  fromDate?: string;
+  toDate?: string;
+}) {
+  return useQuery({
+    queryKey: billingKeys.pendingBilling(params),
+    queryFn: () => billingService.searchPendingBilling(params),
+    staleTime: 60_000,
+  });
+}
+
+// ── useBillingPatientSearch ─────────────────────────────────────────────────
+
+export function useBillingPatientSearch(query: string) {
+  return useQuery({
+    queryKey: billingKeys.billingSearch(query),
+    queryFn: () => billingService.searchBillingPatients(query),
+    enabled: query.trim().length >= 2,
+    staleTime: 30_000,
+  });
+}
+
+// ── useReadyForBillingSearch ────────────────────────────────────────────────
+// Searches /api/v1/billing with status=READY_FOR_BILLING for the invoice workspace
+
+export function useReadyForBillingSearch(search: string) {
+  return useQuery({
+    queryKey: [...billingKeys.all, "ready-for-billing-search", search] as const,
+    queryFn: () =>
+      billingService.searchBills({
+        status: "READY_FOR_BILLING",
+        paymentStatus: "UNPAID",
+        search: search || undefined,
+        size: 10,
+      }),
+    enabled: search.trim().length >= 2,
+    staleTime: 30_000,
   });
 }
 
@@ -123,6 +190,26 @@ export function useInvoice(billId?: number | string) {
       billId: number | string;
       itemId: number | string;
     }) => billingService.deleteBillItem(billId, itemId),
+    onSuccess: () => {
+      if (billId) {
+        queryClient.invalidateQueries({ queryKey: billingKeys.detail(billId) });
+        queryClient.invalidateQueries({
+          queryKey: billingKeys.summary(billId),
+        });
+      }
+    },
+  });
+
+  const updateBillItemMutation = useMutation({
+    mutationFn: ({
+      billId,
+      itemId,
+      quantity,
+    }: {
+      billId: number | string;
+      itemId: number | string;
+      quantity: number;
+    }) => billingService.updateBillItem(billId, itemId, quantity),
     onSuccess: () => {
       if (billId) {
         queryClient.invalidateQueries({ queryKey: billingKeys.detail(billId) });
@@ -210,6 +297,9 @@ export function useInvoice(billId?: number | string) {
 
     addBillItem: addBillItemMutation.mutateAsync,
     isAddingItem: addBillItemMutation.isPending,
+
+    updateBillItem: updateBillItemMutation.mutateAsync,
+    isUpdatingItem: updateBillItemMutation.isPending,
 
     deleteBillItem: deleteBillItemMutation.mutateAsync,
     isDeletingItem: deleteBillItemMutation.isPending,

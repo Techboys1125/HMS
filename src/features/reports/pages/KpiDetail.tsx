@@ -1,4 +1,4 @@
-﻿import { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Download,
   RefreshCw,
@@ -38,6 +38,13 @@ import type {
   KpiConsultationRecord,
   KpiPendingPaymentRecord,
 } from "../types/reports.types";
+import {
+  useDailyRevenueDetails,
+  useDailyAppointmentDetails,
+  usePatientMasterRegister,
+  useInvoiceRegister,
+  extractList,
+} from "../hooks/useReports";
 
 
 export function DashboardKpiDetailScreen({
@@ -71,10 +78,36 @@ export function DashboardKpiDetailScreen({
     aptStatus: "All Appointment Statuses",
   });
 
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  // API Data Hooks
+  const today = new Date().toISOString().slice(0, 10);
+  const getDateRange = (range: string) => {
+    const now = new Date();
+    if (range === "Today") return { fromDate: today, toDate: today };
+    if (range === "7 Days") {
+      const from = new Date(now); from.setDate(now.getDate() - 7);
+      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+    }
+    if (range === "30 Days") {
+      const from = new Date(now); from.setDate(now.getDate() - 30);
+      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+    }
+    return { fromDate: "2025-01-01", toDate: today };
+  };
+  const reportFilters = getDateRange(appliedFilters.dateRange);
+
+  const { data: rawRevenueDetails } = useDailyRevenueDetails(reportFilters);
+  const { data: rawApptDetails } = useDailyAppointmentDetails(reportFilters);
+  const { data: rawPatientRegister } = usePatientMasterRegister(reportFilters);
+  const { data: rawInvoiceRegister } = useInvoiceRegister(reportFilters);
+
+  const revenueList = useMemo(() => extractList<any>(rawRevenueDetails), [rawRevenueDetails]);
+  const apptList = useMemo(() => extractList<any>(rawApptDetails), [rawApptDetails]);
+  const patientList = useMemo(() => extractList<any>(rawPatientRegister), [rawPatientRegister]);
+  const invoiceList = useMemo(() => extractList<any>(rawInvoiceRegister), [rawInvoiceRegister]);
 
   // Enterprise Export & Print Modal States
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | "csv">(
     "pdf",
@@ -155,7 +188,22 @@ export function DashboardKpiDetailScreen({
     const q = searchQuery.toLowerCase();
 
     if (isRevenueKpi) {
-      return [].filter((item) => {
+      const source = revenueList.length > 0 ? revenueList : invoiceList;
+      const mapped = source.map((d: any) => ({
+        invoiceId: d.paymentId || d.invoiceNumber || d.receiptNumber || `INV-${d.id || ""}`,
+        patientName: d.patientName || "N/A",
+        mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+        doctorName: d.doctorName || "N/A",
+        department: d.department || "General Medicine",
+        invoiceDate: d.paidAt || d.invoiceDate || d.createdDate || today,
+        totalAmount: Number(d.amount || d.billedAmount || 0),
+        collectedAmount: Number(d.paidAmount || d.amount || d.collectedAmount || 0),
+        outstandingAmount: Number(d.outstandingAmount || 0),
+        paymentMethod: d.paymentMethod || "Cash",
+        invoiceStatus: d.paymentStatus || "Paid",
+        cashierName: d.collectedBy || d.cashierName || "System",
+      }));
+      return mapped.filter((item) => {
         const matchesSearch =
           item.invoiceId.toLowerCase().includes(q) ||
           item.patientName.toLowerCase().includes(q) ||
@@ -176,7 +224,19 @@ export function DashboardKpiDetailScreen({
     }
 
     if (isAppointmentKpi) {
-      return [].filter((item) => {
+      const mapped = apptList.map((d: any) => ({
+        appointmentId: d.appointmentNumber || d.id || `APT-${d.appointmentId || ""}`,
+        patientName: d.patientName || "N/A",
+        mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+        doctorName: d.doctorName || "N/A",
+        department: d.department || "General Medicine",
+        appointmentDate: d.appointmentDate || d.date || today,
+        appointmentTime: d.appointmentTime || "09:00 AM",
+        visitType: d.visitType || d.appointmentType || "New Visit",
+        appointmentStatus: d.status || "Scheduled",
+        queueNumber: d.queueNumber || "Q-1",
+      }));
+      return mapped.filter((item) => {
         const matchesSearch =
           item.appointmentId.toLowerCase().includes(q) ||
           item.patientName.toLowerCase().includes(q) ||
@@ -206,24 +266,57 @@ export function DashboardKpiDetailScreen({
     }
 
     if (isPatientKpi) {
-      return [].filter((item) => {
+      const mapped = patientList.map((d: any) => ({
+        patientId: d.patientId || d.id || "",
+        patientName: d.patientName || d.fullName || "N/A",
+        mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+        mobile: d.mobile || d.phone || "",
+        gender: d.gender || "Other",
+        age: d.age || 0,
+        department: d.department || "General Medicine",
+        assignedDoctor: d.doctorName || "Unassigned",
+        registrationDate: d.registrationDate || d.createdDate || today,
+        visitType: d.visitType || "New Visit",
+        patientStatus: d.status || "Active",
+      }));
+      return mapped.filter((item) => {
         const matchesSearch =
-          item.patientId.toLowerCase().includes(q) ||
           item.patientName.toLowerCase().includes(q) ||
           item.mrn.toLowerCase().includes(q) ||
-          item.registeredBy.toLowerCase().includes(q);
+          item.mobile.includes(q) ||
+          item.assignedDoctor.toLowerCase().includes(q) ||
+          item.department.toLowerCase().includes(q);
+        const matchesDept =
+          appliedFilters.dept === "All Departments" ||
+          item.department === appliedFilters.dept;
+        const matchesDoctor =
+          appliedFilters.doctor === "All Doctors" ||
+          item.assignedDoctor === appliedFilters.doctor;
         const matchesVisit =
           appliedFilters.visitType === "All Visit Types" ||
           item.visitType === appliedFilters.visitType;
-        return matchesSearch && matchesVisit;
+        return matchesSearch && matchesDept && matchesDoctor && matchesVisit;
       });
     }
 
     if (isConsultationKpi) {
-      return [].filter((item) => {
+      const mapped = apptList.map((d: any) => ({
+        consultationId: d.consultationId || d.appointmentNumber || `CNS-${d.id || ""}`,
+        patientName: d.patientName || "N/A",
+        mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+        doctorName: d.doctorName || "N/A",
+        department: d.department || "General Medicine",
+        consultationDate: d.appointmentDate || today,
+        consultationTime: d.appointmentTime || "10:00 AM",
+        diagnosis: d.diagnosis || "General OPD Checkup",
+        consultationStatus: d.status === "Completed" || d.status === "COMPLETED" ? "Completed" : "In Consultation",
+        prescriptionIssued: d.prescriptionIssued ?? true,
+      }));
+      return mapped.filter((item) => {
         const matchesSearch =
           item.consultationId.toLowerCase().includes(q) ||
           item.patientName.toLowerCase().includes(q) ||
+          item.mrn.toLowerCase().includes(q) ||
           item.doctorName.toLowerCase().includes(q) ||
           item.department.toLowerCase().includes(q);
         const matchesDept =
@@ -236,32 +329,56 @@ export function DashboardKpiDetailScreen({
       });
     }
 
-    // Default to Pending Payment KPI
-    return [].filter((item) => {
-      const matchesSearch =
-        item.invoiceId.toLowerCase().includes(q) ||
-        item.patientName.toLowerCase().includes(q) ||
-        item.doctorName.toLowerCase().includes(q) ||
-        item.department.toLowerCase().includes(q);
-      const matchesDept =
-        appliedFilters.dept === "All Departments" ||
-        item.department === appliedFilters.dept;
-      const matchesDoctor =
-        appliedFilters.doctor === "All Doctors" ||
-        item.doctorName === appliedFilters.doctor;
-      const matchesStatus =
-        appliedFilters.payStatus === "All Payment Statuses" ||
-        item.status === appliedFilters.payStatus;
-      return matchesSearch && matchesDept && matchesDoctor && matchesStatus;
-    });
+    if (isPendingKpi) {
+      const pendingInvoices = invoiceList.filter((d: any) => Number(d.outstandingAmount || 0) > 0 || d.paymentStatus === "Pending" || d.paymentStatus === "UNPAID");
+      const source = pendingInvoices.length > 0 ? pendingInvoices : invoiceList;
+      const mapped = source.map((d: any) => ({
+        billId: d.invoiceNumber || d.billId || `BILL-${d.id || ""}`,
+        patientName: d.patientName || "N/A",
+        mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+        doctorName: d.doctorName || "N/A",
+        department: d.department || "General Medicine",
+        billDate: d.invoiceDate || today,
+        totalBillAmount: Number(d.billedAmount || d.amount || 0),
+        paidAmount: Number(d.paidAmount || 0),
+        pendingBalance: Number(d.outstandingAmount || d.billedAmount || 0),
+        dueDate: d.dueDate || today,
+        overdueDays: d.overdueDays || 0,
+      }));
+      return mapped.filter((item) => {
+        const matchesSearch =
+          item.billId.toLowerCase().includes(q) ||
+          item.patientName.toLowerCase().includes(q) ||
+          item.mrn.toLowerCase().includes(q) ||
+          item.doctorName.toLowerCase().includes(q) ||
+          item.department.toLowerCase().includes(q);
+        const matchesDept =
+          appliedFilters.dept === "All Departments" ||
+          item.department === appliedFilters.dept;
+        const matchesDoctor =
+          appliedFilters.doctor === "All Doctors" ||
+          item.doctorName === appliedFilters.doctor;
+        return matchesSearch && matchesDept && matchesDoctor;
+      });
+    }
+
+    return [];
   }, [
-    searchQuery,
-    appliedFilters,
     isRevenueKpi,
     isAppointmentKpi,
     isPatientKpi,
     isConsultationKpi,
+    isPendingKpi,
+    searchQuery,
+    appliedFilters,
+    revenueList,
+    apptList,
+    patientList,
+    invoiceList,
+    today,
   ]);
+
+
 
   // Computed Report Summary Card Calculations
   const summaryMetrics = useMemo(() => {

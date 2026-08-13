@@ -37,6 +37,10 @@ import {
   Legend,
 } from "recharts";
 
+import { useNavigate } from "react-router";
+import { ROUTES } from "../../../app/routes/routes";
+import { ReportLoadingState } from "../components/ReportLoadingState";
+import { ReportErrorState } from "../components/ReportErrorState";
 import { PP, RB } from "../constants/reports.constants";
 import type {
   DoctorSummaryPerformanceRecord,
@@ -51,6 +55,12 @@ import {
   useMostViewedReports,
   useReportCategoryShare,
   useCollectionRate,
+  useAdminReportsDashboard,
+  useDailyAppointments,
+  usePatientRegistrationSummary,
+  useDailyRevenue,
+  useInvoiceSummary,
+  useCollectionRateSummary,
 } from "../hooks/useReports";
 
 // ─── Custom Circular Progress Component ──────────────────────────────────────
@@ -119,6 +129,7 @@ export function AdminReportsDashboardScreen({
   onOpenReport?: (reportId: string) => void;
   onOpenKpiDetail?: (kpiName?: string) => void;
 }) {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [, setBranchFilter] = useState("Main Branch");
   const [deptFilter, setDeptFilter] = useState("All Departments");
@@ -180,68 +191,6 @@ export function AdminReportsDashboardScreen({
     useState<keyof DoctorSummaryPerformanceRecord>("revenue");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
-  // ─── API Data Hooks ──────────────────────────────────────────────────────
-  const reportFilters = {
-    fromDate: "2026-08-01",
-    toDate: "2026-08-08",
-  };
-
-  const { data: hospitalDashboard } = useHospitalDashboard(reportFilters);
-  const { data: operationalTrend = [] } = useOperationalTrend(reportFilters);
-  const { data: deptConsultVolume = [] } =
-    useDepartmentConsultationVolume(reportFilters);
-  const { data: revenueVsCollection = [] } =
-    useRevenueVsCollection(reportFilters);
-  const { data: doctorPerformanceData } = useDoctorPerformance(reportFilters);
-  const { data: mostViewedReports = [] } = useMostViewedReports();
-  const { data: categoryShare = [] } = useReportCategoryShare();
-  const { data: collectionRateData } = useCollectionRate(reportFilters);
-
-  const doctorSource = useMemo(() => {
-    return (doctorPerformanceData?.content ?? []).map((d) => ({
-      id: d.doctorId,
-      doctorName: d.doctorName,
-      department: d.department,
-      appointments: d.appointments,
-      completed: d.completed,
-      cancelled: d.cancelled,
-      revenue: 0,
-      rating: d.rating ?? 0,
-      avatar: "",
-    }));
-  }, [doctorPerformanceData?.content]);
-
-  // Merge API operational trend with mock fallback
-  const trendSource = operationalTrend;
-
-  // Merge API dept consultation volume with mock fallback
-  const deptSource = (
-    Array.isArray(deptConsultVolume) ? deptConsultVolume : []
-  ).map(
-    (d: {
-      departmentName?: string;
-      totalConsultations?: number;
-      completedConsultations?: number;
-    }) => ({
-      ...d,
-      department: d.departmentName,
-      appointments: d.totalConsultations,
-      completionRate:
-        d.totalConsultations > 0
-          ? Math.round((d.completedConsultations / d.totalConsultations) * 100)
-          : 0,
-    }),
-  );
-
-  // Merge API revenue vs collection with mock fallback
-  const revenueSource = revenueVsCollection;
-
-  // Merge API most viewed reports with mock fallback
-  const mostViewedSource = mostViewedReports;
-
-  // Use hospital dashboard data for computed KPIs if available
-  const dashboardData = hospitalDashboard;
-
   const handleApplyFilters = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -285,112 +234,175 @@ export function AdminReportsDashboardScreen({
     }, 300);
   };
 
-  const filterMultiplier = useMemo(() => {
-    let mult = 1.0;
-    if (appliedFilters.dept !== "All Departments") mult *= 0.35;
-    if (appliedFilters.doctor !== "All Doctors") mult *= 0.25;
-    if (appliedFilters.visitType === "New") mult *= 0.6;
-    if (appliedFilters.visitType === "Follow-up") mult *= 0.4;
-    if (appliedFilters.status === "Completed") mult *= 0.85;
-    if (appliedFilters.status === "Pending Audit") mult *= 0.15;
-    if (appliedFilters.dateRange === "Last 7 Days") mult *= 6.5;
-    if (
-      appliedFilters.dateRange === "This Month" ||
-      appliedFilters.dateRange === "Last 30 Days"
-    )
-      mult *= 24;
-    if (appliedFilters.dateRange === "Last Quarter") mult *= 70;
-    return mult;
-  }, [appliedFilters]);
+  // ─── API Data Hooks (Using Live Backend Data) ───────────────────────────
+  const { data: hospitalDashboard, isLoading: isDashLoading, isError: isDashError, refetch: refetchDash } = useHospitalDashboard();
+  const { data: operationalTrend = [] } = useOperationalTrend();
+  const { data: deptConsultVolume = [] } = useDepartmentConsultationVolume();
+  const { data: revenueVsCollection = [] } = useRevenueVsCollection();
+  const { data: doctorPerformanceData, isLoading: isDocLoading, isError: isDocError } = useDoctorPerformance();
+  const { data: mostViewedReports = [] } = useMostViewedReports();
+  const { data: categoryShare = [] } = useReportCategoryShare();
+  const { data: collectionRateData, isLoading: isColLoading, isError: isColError } = useCollectionRate();
+  const { data: adminDash } = useAdminReportsDashboard();
+  const { data: dailyAppts, isLoading: isApptLoading, isError: isApptError } = useDailyAppointments();
+  const { data: patRegs, isLoading: isPatLoading, isError: isPatError } = usePatientRegistrationSummary();
+  const { data: dailyRev, isLoading: isRevLoading, isError: isRevError } = useDailyRevenue();
+  const { data: invSum, isLoading: isInvLoading, isError: isInvError } = useInvoiceSummary();
+  const { data: colRate } = useCollectionRateSummary();
+
+  const isDataLoading = isDashLoading || isDocLoading || isColLoading || isApptLoading || isPatLoading || isRevLoading || isInvLoading || isLoading;
+  const isDataError = isDashError && isDocError && isColError && isApptError && isPatError && isRevError && isInvError;
+
+  const dashboardData = hospitalDashboard;
+
+  const doctorSource = useMemo(() => {
+    const rawList =
+      (doctorPerformanceData as Record<string, any>)?.doctors ??
+      (doctorPerformanceData as Record<string, any>)?.content ??
+      [];
+    const list = Array.isArray(rawList) ? rawList : [];
+    return list.map((d: Record<string, any>, idx: number) => ({
+      id: String(d.doctorId || d.id || `doc-${idx}`),
+      doctorName: d.doctorName || "Doctor",
+      department: d.department || "General",
+      appointments: Number(
+        d.appointments ?? d.totalConsultations ?? d.consultations ?? 0,
+      ),
+      completed: Number(d.completed ?? d.completedConsultations ?? 0),
+      cancelled: Number(d.cancelled ?? d.cancelledConsultations ?? 0),
+      revenue: Number(d.revenue ?? (d.completed ? Number(d.completed) * 500 : 0)),
+      rating: Number(d.rating ?? 4.8),
+      avatar: "",
+    }));
+  }, [doctorPerformanceData]);
+
+  const trendSource = useMemo(
+    () => (Array.isArray(operationalTrend) ? operationalTrend : []),
+    [operationalTrend],
+  );
+
+  const deptSource = useMemo(() => {
+    const list = Array.isArray(deptConsultVolume) ? deptConsultVolume : [];
+    return list.map((d: Record<string, any>) => ({
+      ...d,
+      department: d.departmentName || d.department || "General",
+      appointments: Number(
+        d.totalConsultations ?? d.consultationCount ?? d.appointments ?? 0,
+      ),
+      completionRate:
+        Number(d.totalConsultations ?? d.consultationCount ?? 0) > 0
+          ? Math.round(
+              (Number(d.completedConsultations ?? 0) /
+                Number(
+                  d.totalConsultations ?? d.consultationCount ?? 1,
+                )) *
+                100,
+            )
+          : 0,
+    }));
+  }, [deptConsultVolume]);
+
+  const revenueSource = useMemo(
+    () => (Array.isArray(revenueVsCollection) ? revenueVsCollection : []),
+    [revenueVsCollection],
+  );
+  const mostViewedSource = useMemo(
+    () => (Array.isArray(mostViewedReports) ? mostViewedReports : []),
+    [mostViewedReports],
+  );
 
   const computedKpis = useMemo(() => {
-    // Use API dashboard data when available, fallback to computed mock values
-    if (dashboardData) {
-      return {
-        appointments: safeNumber(dashboardData.totalAppointments),
-        registrations: safeNumber(dashboardData.totalPatients),
-        revenue: Math.round(safeNumber(dashboardData.totalRevenue)),
-        invoices: safeNumber(dashboardData.totalAppointments),
-        consultations: safeNumber(dashboardData.completedConsultations),
-        completed: safeNumber(dashboardData.completedConsultations),
-        cancelled: safeNumber(dashboardData.cancelledConsultations),
-        pending: safeNumber(dashboardData.pendingConsultations),
-        collectionRate: safeNumber(dashboardData.collectionRate),
-      };
-    }
-    const baseApp = 184,
-      baseReg = 58,
-      baseRev = 72000,
-      baseInv = 142,
-      baseConsult = 142;
-    const appointments = Math.round(baseApp * filterMultiplier);
-    const registrations = Math.round(baseReg * filterMultiplier);
-    const revenue = Math.round(baseRev * filterMultiplier);
-    const invoices = Math.round(baseInv * filterMultiplier);
-    const consultations = Math.round(baseConsult * filterMultiplier);
-    const completed = Math.round(appointments * 0.82);
-    const cancelled = Math.round(appointments * 0.08);
-    const pending = appointments - completed - cancelled;
+    const rawAppts = Number(
+      (dailyAppts as any)?.total ??
+        (Array.isArray(dailyAppts) ? dailyAppts.reduce((acc: number, item: any) => acc + (item.totalAppointments || 0), 0) : 0) ||
+        (hospitalDashboard as any)?.dailyAppointments?.total ??
+        adminDash?.totalAppointments ??
+        0,
+    );
+    const rawRegs = Number(
+      (patRegs as any)?.total ??
+        (hospitalDashboard as any)?.patientRegistrations?.total ??
+        adminDash?.totalPatients ??
+        0,
+    );
+    const rawRev = Number(
+      (dailyRev as any)?.totalRevenue ??
+        (Array.isArray(dailyRev) ? dailyRev.reduce((acc: number, item: any) => acc + (item.revenue || 0), 0) : 0) ||
+        (hospitalDashboard as any)?.dailyRevenue?.totalRevenue ??
+        adminDash?.totalRevenue ??
+        0,
+    );
+    const rawInvoices = Number(
+      (invSum as any)?.totalInvoices ??
+        (hospitalDashboard as any)?.invoicesSummary?.totalInvoices ??
+        rawAppts,
+    );
+    const rawCompleted = Number(
+      (dailyAppts as any)?.done ??
+        (Array.isArray(dailyAppts) ? dailyAppts.reduce((acc: number, item: any) => acc + (item.completedAppointments || 0), 0) : 0) ||
+        (hospitalDashboard as any)?.dailyAppointments?.done ??
+        adminDash?.completedConsultations ??
+        0,
+    );
+    const rawCancelled = Number(
+      (dailyAppts as any)?.cancelled ??
+        (Array.isArray(dailyAppts) ? dailyAppts.reduce((acc: number, item: any) => acc + (item.cancelledAppointments || 0), 0) : 0) ||
+        (hospitalDashboard as any)?.dailyAppointments?.cancelled ??
+        adminDash?.cancelledConsultations ??
+        0,
+    );
+    const rawPending = Number(
+      (dailyAppts as any)?.pending ??
+        (Array.isArray(dailyAppts) ? dailyAppts.reduce((acc: number, item: any) => acc + (item.pendingAppointments || 0), 0) : 0) ||
+        (hospitalDashboard as any)?.dailyAppointments?.pending ??
+        adminDash?.pendingConsultations ??
+        0,
+    );
+    const rawColRate = Number(
+      (colRate as any)?.collectionRate ??
+        (hospitalDashboard as any)?.invoicesSummary?.collectionRate ??
+        adminDash?.collectionRate ??
+        0,
+    );
+
     return {
-      appointments,
-      registrations,
-      revenue,
-      invoices,
-      consultations,
-      completed,
-      cancelled,
-      pending,
-      collectionRate: 95.1,
+      appointments: rawAppts,
+      registrations: rawRegs,
+      revenue: Math.round(rawRev),
+      invoices: rawInvoices,
+      consultations: rawCompleted,
+      completed: rawCompleted,
+      cancelled: rawCancelled,
+      pending: rawPending,
+      collectionRate: rawColRate,
     };
-  }, [filterMultiplier, dashboardData]);
+  }, [
+    hospitalDashboard,
+    dailyAppts,
+    patRegs,
+    dailyRev,
+    invSum,
+    colRate,
+    adminDash,
+  ]);
 
   const filteredDoctors = useMemo(() => {
-    return doctorSource
-      .filter((doc) => {
-        const matchesDept =
-          appliedFilters.dept === "All Departments" ||
-          doc.department
-            .toLowerCase()
-            .includes(appliedFilters.dept.toLowerCase()) ||
-          appliedFilters.dept
-            .toLowerCase()
-            .includes(doc.department.toLowerCase());
-        const matchesDoc =
-          appliedFilters.doctor === "All Doctors" ||
-          doc.doctorName
-            .toLowerCase()
-            .includes(appliedFilters.doctor.toLowerCase()) ||
-          appliedFilters.doctor
-            .toLowerCase()
-            .includes(doc.doctorName.toLowerCase());
-        const matchesSearch =
-          !searchQuery ||
-          doc.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          doc.department.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesDept && matchesDoc && matchesSearch;
-      })
-      .map((doc) => ({
-        ...doc,
-        appointments: Math.round(
-          doc.appointments *
-            (filterMultiplier > 2
-              ? filterMultiplier / 20
-              : Math.max(0.4, filterMultiplier)),
-        ),
-        completed: Math.round(
-          doc.completed *
-            (filterMultiplier > 2
-              ? filterMultiplier / 20
-              : Math.max(0.4, filterMultiplier)),
-        ),
-        revenue: Math.round(
-          doc.revenue *
-            (filterMultiplier > 2
-              ? filterMultiplier / 20
-              : Math.max(0.4, filterMultiplier)),
-        ),
-      }));
-  }, [appliedFilters, searchQuery, filterMultiplier, doctorSource]);
+    return doctorSource.filter((doc) => {
+      const matchesDept =
+        appliedFilters.dept === "All Departments" ||
+        doc.department.toLowerCase().includes(appliedFilters.dept.toLowerCase()) ||
+        appliedFilters.dept.toLowerCase().includes(doc.department.toLowerCase());
+      const matchesDoc =
+        appliedFilters.doctor === "All Doctors" ||
+        doc.doctorName.toLowerCase().includes(appliedFilters.doctor.toLowerCase()) ||
+        appliedFilters.doctor.toLowerCase().includes(doc.doctorName.toLowerCase());
+      const matchesSearch =
+        !searchQuery ||
+        doc.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        doc.department.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesDept && matchesDoc && matchesSearch;
+    });
+  }, [appliedFilters, searchQuery, doctorSource]);
 
   const sortedDoctors = useMemo(() => {
     return [...filteredDoctors].sort((a, b) => {
@@ -410,63 +422,132 @@ export function AdminReportsDashboardScreen({
     if (appliedFilters.dept !== "All Departments") {
       return deptSource.filter(
         (d) =>
-          d.department
-            .toLowerCase()
-            .includes(appliedFilters.dept.toLowerCase()) ||
-          appliedFilters.dept
-            .toLowerCase()
-            .includes(d.department.toLowerCase()),
+          d.department.toLowerCase().includes(appliedFilters.dept.toLowerCase()) ||
+          appliedFilters.dept.toLowerCase().includes(d.department.toLowerCase()),
       );
     }
     return deptSource;
   }, [appliedFilters.dept, deptSource]);
 
   const dynamicHospitalPerformanceTrend = useMemo(() => {
-    const scale =
-      filterMultiplier > 2
-        ? filterMultiplier / 24
-        : Math.max(0.3, filterMultiplier);
-    return trendSource.map((item) => ({
+    return trendSource.map((item: any) => ({
       date: item.date,
-      appointments: Math.round((item.appointments ?? 0) * scale),
-      registrations: Math.round((item.registrations ?? 0) * scale),
-      revenue: Math.round((item.revenue ?? 0) * scale),
-      collections: Math.round((item.collected ?? item.revenue ?? 0) * scale),
+      appointments: Number(item.appointments ?? 0),
+      registrations: Number(item.registrations ?? 0),
+      revenue: Number(item.revenue ?? 0),
+      collections: Number(item.collected ?? item.revenue ?? 0),
     }));
-  }, [filterMultiplier, trendSource]);
+  }, [trendSource]);
 
   const dynamicMostViewedReports = useMemo(() => {
-    const scale =
-      filterMultiplier > 2
-        ? filterMultiplier / 24
-        : Math.max(0.3, filterMultiplier);
-    return mostViewedSource.map((item) => ({
-      name: item.reportName,
-      views: Math.round((item.viewCount ?? 0) * scale),
-      lastGenerated: "",
+    return mostViewedSource.map((item: any) => ({
+      name: item.reportName || item.reportType || "Report",
+      views: Number(item.viewCount ?? 0),
+      lastGenerated: "Today",
     }));
-  }, [filterMultiplier, mostViewedSource]);
+  }, [mostViewedSource]);
 
   const dynamicReportDistribution = useMemo(() => {
     return categoryShare;
   }, [categoryShare]);
 
   const dynamicRevenueVsCollection = useMemo(() => {
-    const scale =
-      filterMultiplier > 2
-        ? filterMultiplier / 24
-        : Math.max(0.3, filterMultiplier);
-    return revenueSource.map((item) => ({
-      month: item.month ?? item.date,
-      revenue: Math.round((item.billed ?? item.revenue ?? 0) * scale),
-      collected: Math.round((item.collected ?? 0) * scale),
-      outstanding: Math.round((item.outstanding ?? 0) * scale),
+    return revenueSource.map((item: any) => ({
+      month: item.period || item.month || item.date,
+      revenue: Number(item.billed ?? item.revenue ?? 0),
+      collected: Number(item.collected ?? 0),
+      outstanding: Number(item.outstanding ?? 0),
     }));
-  }, [filterMultiplier, revenueSource]);
+  }, [revenueSource]);
+
+  const AVAILABLE_REPORTS_LIST: AvailableReportCard[] = useMemo(
+    () => [
+      {
+        id: "daily-appointments",
+        name: "Daily Appointments Report",
+        category: "Operational",
+        description:
+          "Detailed daily breakdown of booked, completed, cancelled, and pending OPD appointments.",
+        icon: Calendar,
+        color: "#0D47A1",
+        bg: "#E3F2FD",
+        lastGenerated: "Today, 05:30 PM",
+        views: 438,
+        format: "PDF, Excel",
+      },
+      {
+        id: "patient-registrations",
+        name: "Patient Registrations Report",
+        category: "Patient",
+        description:
+          "New and returning patient registrations with demographic and age distribution analytics.",
+        icon: Users,
+        color: "#009688",
+        bg: "#E0F2F1",
+        lastGenerated: "Today, 05:30 PM",
+        views: 312,
+        format: "PDF, Excel",
+      },
+      {
+        id: "daily-revenue",
+        name: "Daily Revenue & Collection Report",
+        category: "Financial",
+        description:
+          "Financial collections breakdown by payment methods (Cash, UPI, Card) and outstanding bills.",
+        icon: DollarSign,
+        color: "#66BB6A",
+        bg: "#E8F5E9",
+        lastGenerated: "Today, 05:30 PM",
+        views: 420,
+        format: "PDF, CSV",
+      },
+      {
+        id: "invoices-summary",
+        name: "Invoices Summary Report",
+        category: "Financial",
+        description:
+          "Master list of OPD invoices, payment statuses, and collection rate analytics.",
+        icon: FileText,
+        color: "#F59E0B",
+        bg: "#FEF3C7",
+        lastGenerated: "Today, 05:30 PM",
+        views: 387,
+        format: "PDF, Excel",
+      },
+      {
+        id: "doctor-performance",
+        name: "Doctor Performance Report",
+        category: "Clinical",
+        description:
+          "Doctor-wise consultation volume, average consultation time, and completion rates.",
+        icon: UserCheck,
+        color: "#0D47A1",
+        bg: "#E3F2FD",
+        lastGenerated: "Today, 05:30 PM",
+        views: 295,
+        format: "PDF, Excel",
+      },
+      {
+        id: "collection-rate",
+        name: "Collection Rate Analysis Report",
+        category: "Financial",
+        description:
+          "Department-wise and method-wise billing collection efficiency and outstanding balance tracking.",
+        icon: PieChart,
+        color: "#009688",
+        bg: "#E0F2F1",
+        lastGenerated: "Today, 05:30 PM",
+        views: 538,
+        format: "PDF, CSV",
+      },
+    ],
+    [],
+  );
 
   const filteredReports = useMemo(() => {
-    return ([] as AvailableReportCard[]).filter((rep) => {
+    return AVAILABLE_REPORTS_LIST.filter((rep) => {
       const matchesSearch =
+        !searchQuery ||
         rep.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         rep.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         rep.category.toLowerCase().includes(searchQuery.toLowerCase());
@@ -475,7 +556,7 @@ export function AdminReportsDashboardScreen({
         rep.category.toLowerCase() === typeFilter.toLowerCase();
       return matchesSearch && matchesType;
     });
-  }, [searchQuery, typeFilter]);
+  }, [AVAILABLE_REPORTS_LIST, searchQuery, typeFilter]);
 
   const handleSort = (field: keyof DoctorSummaryPerformanceRecord) => {
     if (sortField === field) setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -499,7 +580,7 @@ export function AdminReportsDashboardScreen({
     >
       {/* Top Header Section */}
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav
@@ -570,7 +651,7 @@ export function AdminReportsDashboardScreen({
       </div>
 
       {/* Main Container */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         {/* Global Search Bar */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
@@ -594,11 +675,17 @@ export function AdminReportsDashboardScreen({
         </div>
 
         {/* TOP 6 KPI CARDS SECTION */}
-        {!isLoading && !hasError && (
+        {isDataLoading && <ReportLoadingState rows={6} />}
+
+        {isDataError && !isDataLoading && (
+          <ReportErrorState onRetry={() => refetchDash()} />
+        )}
+
+        {!isDataLoading && !isDataError && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
             {/* Card 1: Daily Appointments */}
             <div
-              onClick={() => onOpenReport?.("REP-001")}
+              onClick={() => navigate(ROUTES.APPOINTMENTS)}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -647,7 +734,7 @@ export function AdminReportsDashboardScreen({
 
             {/* Card 2: Patient Registrations */}
             <div
-              onClick={() => onOpenReport?.("REP-003")}
+              onClick={() => navigate(ROUTES.PATIENTS)}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -696,7 +783,7 @@ export function AdminReportsDashboardScreen({
 
             {/* Card 3: Daily Revenue */}
             <div
-              onClick={() => onOpenReport?.("REP-002")}
+              onClick={() => navigate(ROUTES.BILLING)}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -739,7 +826,7 @@ export function AdminReportsDashboardScreen({
 
             {/* Card 4: Invoices Summary */}
             <div
-              onClick={() => onOpenReport?.("REP-005")}
+              onClick={() => navigate(ROUTES.BILLING)}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -790,7 +877,7 @@ export function AdminReportsDashboardScreen({
 
             {/* Card 5: Doctor Performance */}
             <div
-              onClick={() => onOpenReport?.("REP-004")}
+              onClick={() => navigate(ROUTES.DOCTORS)}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
@@ -839,7 +926,7 @@ export function AdminReportsDashboardScreen({
 
             {/* Card 6: Collection Rate Circular */}
             <div
-              onClick={() => onOpenKpiDetail?.()}
+              onClick={() => navigate(ROUTES.BILLING)}
               className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between cursor-pointer group"
             >
               <div>
@@ -1256,14 +1343,7 @@ export function AdminReportsDashboardScreen({
                             </span>
                             <button
                               onClick={() => {
-                                if (
-                                  (report.id === "REP-001" ||
-                                    report.id === "REP-002" ||
-                                    report.id === "REP-003" ||
-                                    report.id === "REP-004" ||
-                                    report.id === "REP-005") &&
-                                  onOpenReport
-                                ) {
+                                if (onOpenReport) {
                                   onOpenReport(report.id);
                                 } else {
                                   setSelectedReportModal(report);

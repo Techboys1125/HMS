@@ -41,6 +41,7 @@ import type { AppointmentReportRecord } from "../types/reports.types";
 import {
   useDailyAppointments,
   useDailyAppointmentDetails,
+  extractList,
 } from "../hooks/useReports";
 
 function CircularProgress({
@@ -118,29 +119,67 @@ export function DailyAppointmentReportScreen({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   // ─── API Data Hooks ──────────────────────────────────────────────────────
-  const reportFilters = { fromDate: "2026-08-01", toDate: "2026-08-08" };
-  const { data: appointmentSummary = [] } = useDailyAppointments(reportFilters);
-  const { data: appointmentDetailsData } =
-    useDailyAppointmentDetails(reportFilters);
+  const today = new Date().toISOString().slice(0, 10);
+  const getDateRange = (range: string) => {
+    const now = new Date();
+    if (range === "Today") return { fromDate: today, toDate: today };
+    if (range === "7 Days") {
+      const from = new Date(now);
+      from.setDate(now.getDate() - 7);
+      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+    }
+    if (range === "30 Days") {
+      const from = new Date(now);
+      from.setDate(now.getDate() - 30);
+      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+    }
+    return { fromDate: "2025-01-01", toDate: today };
+  };
+  const reportFilters = getDateRange(dateRange);
+  const { data: rawSummary } = useDailyAppointments(reportFilters);
+  const { data: rawDetails } = useDailyAppointmentDetails(reportFilters);
 
-  const totalAppointments = useMemo(
-    () => appointmentSummary.reduce((sum, d) => sum + d.totalAppointments, 0),
-    [appointmentSummary],
-  );
-  const completedAppointments = useMemo(
-    () =>
-      appointmentSummary.reduce((sum, d) => sum + d.completedAppointments, 0),
-    [appointmentSummary],
-  );
-  const cancelledAppointments = useMemo(
-    () =>
-      appointmentSummary.reduce((sum, d) => sum + d.cancelledAppointments, 0),
-    [appointmentSummary],
-  );
-  const pendingAppointments = useMemo(
-    () => appointmentSummary.reduce((sum, d) => sum + d.pendingAppointments, 0),
-    [appointmentSummary],
-  );
+  const detailList = useMemo(() => extractList<any>(rawDetails), [rawDetails]);
+  const summaryList = useMemo(() => extractList<any>(rawSummary), [rawSummary]);
+
+  const totalAppointments = useMemo(() => {
+    if (summaryList.length > 0) {
+      return summaryList.reduce((sum, d) => sum + (d.totalAppointments || 0), 0);
+    }
+    return detailList.length;
+  }, [summaryList, detailList]);
+
+  const completedAppointments = useMemo(() => {
+    if (summaryList.length > 0) {
+      return summaryList.reduce((sum, d) => sum + (d.completedAppointments || 0), 0);
+    }
+    return detailList.filter(
+      (d) => d.status === "Completed" || d.status === "COMPLETED",
+    ).length;
+  }, [summaryList, detailList]);
+
+  const cancelledAppointments = useMemo(() => {
+    if (summaryList.length > 0) {
+      return summaryList.reduce((sum, d) => sum + (d.cancelledAppointments || 0), 0);
+    }
+    return detailList.filter(
+      (d) => d.status === "Cancelled" || d.status === "CANCELLED",
+    ).length;
+  }, [summaryList, detailList]);
+
+  const pendingAppointments = useMemo(() => {
+    if (summaryList.length > 0) {
+      return summaryList.reduce((sum, d) => sum + (d.pendingAppointments || 0), 0);
+    }
+    return detailList.filter(
+      (d) =>
+        d.status !== "Completed" &&
+        d.status !== "COMPLETED" &&
+        d.status !== "Cancelled" &&
+        d.status !== "CANCELLED",
+    ).length;
+  }, [summaryList, detailList]);
+
   const completionRate =
     totalAppointments > 0
       ? ((completedAppointments / totalAppointments) * 100).toFixed(1)
@@ -156,55 +195,129 @@ export function DailyAppointmentReportScreen({
 
   // Map API detail records to table format
   const tableDataSource = useMemo(() => {
-    return (appointmentDetailsData?.content ?? []).map((d) => ({
-      id: d.appointmentNumber,
-      patientName: d.patientName,
-      mrn: `MRN-${d.patientId ?? ""}`,
-      doctorName: d.doctorName,
-      department: d.department,
-      appointmentDate: d.appointmentDate,
-      appointmentTime: "",
-      visitType:
-        (d.appointmentType as AppointmentReportRecord["visitType"]) ??
-        "New Visit",
+    return detailList.map((d: any) => ({
+      id: d.appointmentNumber || d.id || `APT-${d.appointmentId || ""}`,
+      patientName: d.patientName || "N/A",
+      mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+      doctorName: d.doctorName || "N/A",
+      department: d.department || "General Medicine",
+      appointmentDate: d.appointmentDate || d.date || today,
+      appointmentTime: d.appointmentTime || "09:00 AM",
+      visitType: (d.appointmentType || d.visitType || "New Visit") as AppointmentReportRecord["visitType"],
       status: (d.status
         ? d.status.charAt(0) + d.status.slice(1).toLowerCase()
         : "Scheduled") as AppointmentReportRecord["status"],
     }));
-  }, [appointmentDetailsData?.content]);
+  }, [detailList, today]);
 
-  // Map API summary to status distribution
-  const statusDistFromApi =
-    appointmentSummary.length > 0
-      ? [
-          {
-            name: "Completed",
-            value: appointmentSummary.reduce(
-              (s, d) => s + d.completedAppointments,
-              0,
-            ),
-            color: "#66BB6A",
-          },
-          {
-            name: "Scheduled",
-            value: appointmentSummary.reduce(
-              (s, d) => s + d.pendingAppointments,
-              0,
-            ),
-            color: "#0D47A1",
-          },
-          { name: "Waiting", value: 0, color: "#4DB6AC" },
-          {
-            name: "Cancelled",
-            value: appointmentSummary.reduce(
-              (s, d) => s + d.cancelledAppointments,
-              0,
-            ),
-            color: "#EF4444",
-          },
-          { name: "No Show", value: 0, color: "#F59E0B" },
-        ]
-      : [];
+  // Status distribution for pie chart
+  const statusDistFromApi = useMemo(() => {
+    if (summaryList.length > 0) {
+      return [
+        { name: "Completed", value: summaryList.reduce((s: number, d: any) => s + (d.completedAppointments || 0), 0), color: "#66BB6A" },
+        { name: "Scheduled", value: summaryList.reduce((s: number, d: any) => s + (d.pendingAppointments || 0), 0), color: "#0D47A1" },
+        { name: "Waiting", value: 0, color: "#4DB6AC" },
+        { name: "Cancelled", value: summaryList.reduce((s: number, d: any) => s + (d.cancelledAppointments || 0), 0), color: "#EF4444" },
+        { name: "No Show", value: 0, color: "#F59E0B" },
+      ];
+    }
+    return [
+      { name: "Completed", value: completedAppointments, color: "#66BB6A" },
+      { name: "Scheduled", value: pendingAppointments, color: "#0D47A1" },
+      { name: "Waiting", value: 0, color: "#4DB6AC" },
+      { name: "Cancelled", value: cancelledAppointments, color: "#EF4444" },
+      { name: "No Show", value: 0, color: "#F59E0B" },
+    ];
+  }, [summaryList, completedAppointments, pendingAppointments, cancelledAppointments]);
+
+  const appointmentTrendData = useMemo(() => {
+    if (summaryList.length > 0) {
+      return summaryList.map((d: any) => ({
+        date: d.date,
+        Booked: d.totalAppointments || 0,
+        Completed: d.completedAppointments || 0,
+        Cancelled: d.cancelledAppointments || 0,
+      }));
+    }
+    // Derive trend from detail list grouped by date
+    const map: Record<string, { date: string; Booked: number; Completed: number; Cancelled: number }> = {};
+    detailList.forEach((d: any) => {
+      const date = (d.appointmentDate || d.date || today).slice(0, 10);
+      if (!map[date]) map[date] = { date, Booked: 0, Completed: 0, Cancelled: 0 };
+      map[date].Booked += 1;
+      if (d.status === "Completed" || d.status === "COMPLETED") map[date].Completed += 1;
+      if (d.status === "Cancelled" || d.status === "CANCELLED") map[date].Cancelled += 1;
+    });
+    return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
+  }, [summaryList, detailList, today]);
+
+  const walkInTrendData = useMemo(() => {
+    if (summaryList.length > 0) {
+      return summaryList.map((d: any) => ({
+        date: d.date,
+        Waiting: d.pendingAppointments || 0,
+      }));
+    }
+    const map: Record<string, { date: string; Waiting: number }> = {};
+    detailList.forEach((d: any) => {
+      const date = (d.appointmentDate || d.date || today).slice(0, 10);
+      if (!map[date]) map[date] = { date, Waiting: 0 };
+      if (d.status !== "Completed" && d.status !== "COMPLETED" && d.status !== "Cancelled" && d.status !== "CANCELLED") map[date].Waiting += 1;
+    });
+    return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
+  }, [summaryList, detailList, today]);
+
+  const hourlyTrendData = useMemo(() => {
+    const hourMap: Record<
+      number,
+      { hour: string; Booked: number; Completed: number; Cancelled: number }
+    > = {};
+    detailList.forEach((d: any) => {
+      const dateStr = d.appointmentTime || d.appointmentDate || d.createdDate;
+      const h = dateStr ? new Date(dateStr).getHours() : 9;
+      const validHour = isNaN(h) ? 9 : h;
+      if (!hourMap[validHour])
+        hourMap[validHour] = { hour: `${validHour}:00`, Booked: 0, Completed: 0, Cancelled: 0 };
+      hourMap[validHour].Booked += 1;
+      if (d.status === "Completed" || d.status === "COMPLETED") hourMap[validHour].Completed += 1;
+      if (d.status === "Cancelled" || d.status === "CANCELLED") hourMap[validHour].Cancelled += 1;
+    });
+    return Object.values(hourMap).sort((a, b) => a.hour.localeCompare(b.hour));
+  }, [detailList]);
+
+  const doctorWorkloadData = useMemo(() => {
+    const map: Record<
+      string,
+      { doctor: string; assigned: number; completed: number }
+    > = {};
+    detailList.forEach((d: any) => {
+      const doc = d.doctorName || "Unassigned";
+      if (!map[doc])
+        map[doc] = { doctor: doc, assigned: 0, completed: 0 };
+      map[doc].assigned += 1;
+      if (d.status === "Completed" || d.status === "COMPLETED") map[doc].completed += 1;
+    });
+    return Object.values(map);
+  }, [detailList]);
+
+  const deptVolumeData = useMemo(() => {
+    const map: Record<
+      string,
+      { department: string; appointments: number; completed: number }
+    > = {};
+    detailList.forEach((d: any) => {
+      const dept = d.department || "General Medicine";
+      if (!map[dept])
+        map[dept] = {
+          department: dept,
+          appointments: 0,
+          completed: 0,
+        };
+      map[dept].appointments += 1;
+      if (d.status === "Completed" || d.status === "COMPLETED") map[dept].completed += 1;
+    });
+    return Object.values(map);
+  }, [detailList]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -272,12 +385,14 @@ export function DailyAppointmentReportScreen({
     }
   };
 
-  const renderStatusChip = (status: AppointmentReportRecord["status"]) => {
-    const map: Record<
-      AppointmentReportRecord["status"],
-      { bg: string; text: string; dot: string }
-    > = {
+  const renderStatusChip = (status?: string) => {
+    const map: Record<string, { bg: string; text: string; dot: string }> = {
       Completed: {
+        bg: "bg-green-50 border-green-200",
+        text: "text-[#66BB6A]",
+        dot: "bg-[#66BB6A]",
+      },
+      COMPLETED: {
         bg: "bg-green-50 border-green-200",
         text: "text-[#66BB6A]",
         dot: "bg-[#66BB6A]",
@@ -287,12 +402,47 @@ export function DailyAppointmentReportScreen({
         text: "text-[#0D47A1]",
         dot: "bg-[#0D47A1]",
       },
+      SCHEDULED: {
+        bg: "bg-blue-50 border-blue-200",
+        text: "text-[#0D47A1]",
+        dot: "bg-[#0D47A1]",
+      },
+      BOOKED: {
+        bg: "bg-blue-50 border-blue-200",
+        text: "text-[#0D47A1]",
+        dot: "bg-[#0D47A1]",
+      },
+      CONFIRMED: {
+        bg: "bg-blue-50 border-blue-200",
+        text: "text-[#0D47A1]",
+        dot: "bg-[#0D47A1]",
+      },
       Waiting: {
         bg: "bg-teal-50 border-teal-200",
         text: "text-[#009688]",
         dot: "bg-[#009688]",
       },
+      WAITING: {
+        bg: "bg-teal-50 border-teal-200",
+        text: "text-[#009688]",
+        dot: "bg-[#009688]",
+      },
+      CHECKED_IN: {
+        bg: "bg-teal-50 border-teal-200",
+        text: "text-[#009688]",
+        dot: "bg-[#009688]",
+      },
+      IN_CONSULTATION: {
+        bg: "bg-amber-50 border-amber-200",
+        text: "text-[#F59E0B]",
+        dot: "bg-[#F59E0B]",
+      },
       Cancelled: {
+        bg: "bg-red-50 border-red-200",
+        text: "text-[#EF4444]",
+        dot: "bg-[#EF4444]",
+      },
+      CANCELLED: {
         bg: "bg-red-50 border-red-200",
         text: "text-[#EF4444]",
         dot: "bg-[#EF4444]",
@@ -302,14 +452,24 @@ export function DailyAppointmentReportScreen({
         text: "text-[#F59E0B]",
         dot: "bg-[#F59E0B]",
       },
+      NO_SHOW: {
+        bg: "bg-amber-50 border-amber-200",
+        text: "text-[#F59E0B]",
+        dot: "bg-[#F59E0B]",
+      },
     };
-    const style = map[status];
+    const defaultStyle = {
+      bg: "bg-slate-50 border-slate-200",
+      text: "text-slate-600",
+      dot: "bg-slate-400",
+    };
+    const style = (status && map[status]) || defaultStyle;
     return (
       <span
         className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.bg} ${style.text}`}
       >
         <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-        {status}
+        {status || "Unknown"}
       </span>
     );
   };
@@ -320,7 +480,7 @@ export function DailyAppointmentReportScreen({
       style={{ fontFamily: RB }}
     >
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
@@ -399,7 +559,8 @@ export function DailyAppointmentReportScreen({
         </div>
       </div>
 
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      {/* Main Container */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
@@ -636,19 +797,21 @@ export function DailyAppointmentReportScreen({
                   <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
                     <span className="text-[#64748B] font-semibold">--</span>
                   </div>
-                  <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={[]}>
-                        <Line
-                          type="monotone"
-                          dataKey="Booked"
-                          stroke="#0D47A1"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {appointmentTrendData.length > 0 && (
+                    <div className="h-8">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={appointmentTrendData}>
+                          <Line
+                            type="monotone"
+                            dataKey="Booked"
+                            stroke="#0D47A1"
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
                 </div>
                 <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
                   <div className="flex items-center justify-between mb-2">
@@ -670,19 +833,21 @@ export function DailyAppointmentReportScreen({
                       {completionRate}% Completion Rate
                     </span>
                   </div>
-                  <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={[]}>
-                        <Area
-                          type="monotone"
-                          dataKey="Completed"
-                          stroke="#66BB6A"
-                          fill="#66BB6A"
-                          fillOpacity={0.2}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {appointmentTrendData.length > 0 && (
+                    <div className="h-8">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={appointmentTrendData}>
+                          <Area
+                            type="monotone"
+                            dataKey="Completed"
+                            stroke="#66BB6A"
+                            fill="#66BB6A"
+                            fillOpacity={0.2}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
                 </div>
                 <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
                   <div className="flex items-center justify-between mb-2">
@@ -704,19 +869,21 @@ export function DailyAppointmentReportScreen({
                       {cancellationRate}% Cancellation Rate
                     </span>
                   </div>
-                  <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={[]}>
-                        <Line
-                          type="monotone"
-                          dataKey="Cancelled"
-                          stroke="#EF4444"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {appointmentTrendData.length > 0 && (
+                    <div className="h-8">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={appointmentTrendData}>
+                          <Line
+                            type="monotone"
+                            dataKey="Cancelled"
+                            stroke="#EF4444"
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
                 </div>
                 <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
                   <div className="flex items-center justify-between mb-2">
@@ -761,17 +928,19 @@ export function DailyAppointmentReportScreen({
                     <span className="text-[#64748B] font-semibold">--</span>
                   </div>
                   <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={[]}>
-                        <Line
-                          type="monotone"
-                          dataKey="Waiting"
-                          stroke="#009688"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    {walkInTrendData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={walkInTrendData}>
+                          <Line
+                            type="monotone"
+                            dataKey="Waiting"
+                            stroke="#009688"
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
                 <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
@@ -878,51 +1047,56 @@ export function DailyAppointmentReportScreen({
                     </div>
                   </div>
                   <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={[]}
-                        margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          dataKey="hour"
-                          tick={{ fontSize: 10, fill: "#64748B" }}
-                        />
-                        <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Legend
-                          verticalAlign="top"
-                          height={26}
-                          wrapperStyle={{ fontSize: "10px" }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Booked"
-                          stroke="#0D47A1"
-                          strokeWidth={2}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Completed"
-                          stroke="#66BB6A"
-                          strokeWidth={2}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="Cancelled"
-                          stroke="#EF4444"
-                          strokeWidth={1.5}
-                          strokeDasharray="3 3"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    {hourlyTrendData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={hourlyTrendData}
+                          margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#F1F5F9"
+                          />
+                          <XAxis
+                            dataKey="hour"
+                            tick={{ fontSize: 10, fill: "#64748B" }}
+                          />
+                          <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#FFFFFF",
+                              borderRadius: "12px",
+                              borderColor: "#E5E7EB",
+                              fontSize: "11px",
+                            }}
+                          />
+                          <Legend
+                            verticalAlign="top"
+                            height={26}
+                            wrapperStyle={{ fontSize: "10px" }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="Booked"
+                            stroke="#0D47A1"
+                            strokeWidth={2}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="Completed"
+                            stroke="#66BB6A"
+                            strokeWidth={2}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="Cancelled"
+                            stroke="#EF4444"
+                            strokeWidth={1.5}
+                            strokeDasharray="3 3"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
               </div>
@@ -944,45 +1118,50 @@ export function DailyAppointmentReportScreen({
                     <UserCheck className="w-4 h-4 text-[#009688]" />
                   </div>
                   <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        layout="vertical"
-                        data={[]}
-                        margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          type="number"
-                          tick={{ fontSize: 10, fill: "#64748B" }}
-                        />
-                        <YAxis
-                          type="category"
-                          dataKey="doctor"
-                          tick={{ fontSize: 10, fill: "#111827" }}
-                          width={80}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Bar
-                          dataKey="completed"
-                          name="Completed"
-                          fill="#009688"
-                          radius={[0, 4, 4, 0]}
-                        />
-                        <Bar
-                          dataKey="assigned"
-                          name="Assigned"
-                          fill="#0D47A1"
-                          radius={[0, 4, 4, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    {doctorWorkloadData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          layout="vertical"
+                          data={doctorWorkloadData}
+                          margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#F1F5F9"
+                          />
+                          <XAxis
+                            type="number"
+                            tick={{ fontSize: 10, fill: "#64748B" }}
+                          />
+                          <YAxis
+                            type="category"
+                            dataKey="doctor"
+                            tick={{ fontSize: 10, fill: "#111827" }}
+                            width={80}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#FFFFFF",
+                              borderRadius: "12px",
+                              borderColor: "#E5E7EB",
+                              fontSize: "11px",
+                            }}
+                          />
+                          <Bar
+                            dataKey="completed"
+                            name="Completed"
+                            fill="#009688"
+                            radius={[0, 4, 4, 0]}
+                          />
+                          <Bar
+                            dataKey="assigned"
+                            name="Assigned"
+                            fill="#0D47A1"
+                            radius={[0, 4, 4, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
                 <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
@@ -1001,44 +1180,49 @@ export function DailyAppointmentReportScreen({
                     <Building2 className="w-4 h-4 text-[#0D47A1]" />
                   </div>
                   <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={[]}
-                        margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          dataKey="department"
-                          tick={{ fontSize: 9, fill: "#64748B" }}
-                        />
-                        <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Legend
-                          verticalAlign="top"
-                          height={26}
-                          wrapperStyle={{ fontSize: "10px" }}
-                        />
-                        <Bar
-                          dataKey="appointments"
-                          name="Appointments"
-                          fill="#0D47A1"
-                          radius={[4, 4, 0, 0]}
-                        />
-                        <Bar
-                          dataKey="completed"
-                          name="Completed"
-                          fill="#66BB6A"
-                          radius={[4, 4, 0, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    {deptVolumeData.length > 0 && (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={deptVolumeData}
+                          margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#F1F5F9"
+                          />
+                          <XAxis
+                            dataKey="department"
+                            tick={{ fontSize: 9, fill: "#64748B" }}
+                          />
+                          <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#FFFFFF",
+                              borderRadius: "12px",
+                              borderColor: "#E5E7EB",
+                              fontSize: "11px",
+                            }}
+                          />
+                          <Legend
+                            verticalAlign="top"
+                            height={26}
+                            wrapperStyle={{ fontSize: "10px" }}
+                          />
+                          <Bar
+                            dataKey="appointments"
+                            name="Appointments"
+                            fill="#0D47A1"
+                            radius={[4, 4, 0, 0]}
+                          />
+                          <Bar
+                            dataKey="completed"
+                            name="Completed"
+                            fill="#66BB6A"
+                            radius={[4, 4, 0, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
               </div>

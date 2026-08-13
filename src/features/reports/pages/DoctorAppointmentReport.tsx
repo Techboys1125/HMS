@@ -36,6 +36,11 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import {
+  useDoctorSelfDailyAppointmentsAnalytics,
+  useDoctorSelfDailyAppointmentsDashboard,
+  useDoctorSelfDailyAppointmentRegister,
+} from "../hooks/useReports";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -120,8 +125,16 @@ export function DoctorDailyAppointmentReportScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
+  // React Query Hooks for Doctor Personal Practice Reports
+  useDoctorSelfDailyAppointmentsAnalytics();
+  const { refetch: refetchDash } = useDoctorSelfDailyAppointmentsDashboard();
+  const { data: registerData, refetch: refetchRegister } =
+    useDoctorSelfDailyAppointmentRegister({ size: 20 });
+
   const handleRefresh = () => {
     setIsRefreshing(true);
+    refetchDash();
+    refetchRegister();
     setTimeout(() => setIsRefreshing(false), 600);
   };
 
@@ -134,19 +147,33 @@ export function DoctorDailyAppointmentReportScreen({
   };
 
   const filteredAppointments = useMemo(() => {
-    return ([] as DoctorDailyAppointmentRecord[]).filter((item) => {
-      const matchesSearch =
-        item.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.mrn.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.id.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus =
-        statusFilter === "All Statuses" || item.status === statusFilter;
-      const matchesVisit =
-        visitTypeFilter === "All Visit Types" ||
-        item.visitType === visitTypeFilter;
-      return matchesSearch && matchesStatus && matchesVisit;
-    });
-  }, [searchQuery, statusFilter, visitTypeFilter]);
+    const rawList = registerData?.content || [];
+    return rawList
+      .map((item) => ({
+        id: item.appointmentId,
+        patientName: item.patientName,
+        mrn: item.mrn,
+        appointmentDate: item.appointmentDate,
+        appointmentTime: item.appointmentTime,
+        visitType: item.visitType,
+        status: item.appointmentStatus,
+        consultationStatus: item.consultationStatus,
+      }))
+      .filter((item) => {
+        const matchesSearch =
+          (item.patientName || "")
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          (item.mrn || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.id || "").toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus =
+          statusFilter === "All Statuses" || item.status === statusFilter;
+        const matchesVisit =
+          visitTypeFilter === "All Visit Types" ||
+          item.visitType === visitTypeFilter;
+        return matchesSearch && matchesStatus && matchesVisit;
+      });
+  }, [registerData, searchQuery, statusFilter, visitTypeFilter]);
 
   return (
     <div

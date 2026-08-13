@@ -18,6 +18,7 @@ import type {
   PaymentModeReport,
   BillAuditResponse,
   InvoiceRecord,
+  PendingBillingRecord,
 } from "../types/billing.types";
 import { mapApiBillToInvoiceRecord } from "../utils/billing.utils";
 
@@ -28,6 +29,18 @@ export const billingService = {
     page?: number;
     size?: number;
     sort?: string;
+    sortBy?: string;
+    direction?: string;
+    status?: string;
+    billStatus?: string;
+    paymentStatus?: string;
+    paymentMethod?: string;
+    patientId?: string | number;
+    mrn?: string;
+    doctorId?: string | number;
+    search?: string;
+    fromDate?: string;
+    toDate?: string;
   }): Promise<{
     bills: BillListItem[];
     totalElements: number;
@@ -36,15 +49,43 @@ export const billingService = {
     const response = await billingApi.searchBills(params);
     const data = response.data;
     return {
-      bills: data.content,
-      totalElements: data.totalElements,
-      totalPages: data.totalPages,
+      bills: data.content || [],
+      totalElements: data.totalElements || 0,
+      totalPages: data.totalPages || 0,
     };
   },
 
   async getBill(billId: number | string): Promise<BillWorkspace> {
     const response = await billingApi.getBill(billId);
     return response.data;
+  },
+
+  async searchPendingBilling(params?: {
+    page?: number;
+    size?: number;
+    sort?: string;
+    search?: string;
+    date?: string;
+    fromDate?: string;
+    toDate?: string;
+    billingStatus?: string;
+  }): Promise<{
+    records: PendingBillingRecord[];
+    totalElements: number;
+    totalPages: number;
+  }> {
+    const response = await billingApi.getPendingBilling(params);
+    const data = response.data;
+    return {
+      records: data.content || [],
+      totalElements: data.totalElements || 0,
+      totalPages: data.totalPages || 0,
+    };
+  },
+
+  async searchBillingPatients(query: string): Promise<PendingBillingRecord[]> {
+    const response = await billingApi.searchBillingPatients(query);
+    return response.data || [];
   },
 
   async createBill(payload: BillCreatePayload): Promise<BillCreateResponse> {
@@ -161,7 +202,7 @@ export const billingService = {
     const data = response.data;
     return data.bills.map((bill) =>
       mapApiBillToInvoiceRecord({
-        id: bill.billId,
+        billId: bill.billId,
         billNumber: bill.billNumber,
         patientName: data.patientName,
         patientMrn: data.mrn,

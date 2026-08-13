@@ -79,10 +79,11 @@ import {
   PatientMyBillsPage,
 } from "../../features/billing";
 import { DailyBillingReportPage } from "../../features/reports/pages/DailyBillingReport";
-import { ReportsDashboardScreen } from "../../ReportsManagement";
-import { SettingsWorkspace } from "../../SettingsWorkspace";
+import { ReportsDashboardPage as ReportsDashboardScreen } from "../../features/reports/pages/ReportsDashboardPage";
+import { SettingsPage } from "../../features/settings";
 import { AuditLogManagementPage } from "../../features/auditlog";
-import { NotificationCenterPage, PatientNotificationsPage } from "../../features/notification";
+import { NotificationCenterPage } from "../../features/notification/pages/NotificationCenterPage";
+import { PatientNotificationsPage } from "../../features/notification/pages/PatientNotificationsPage";
 
 // Main HMS Layout shell
 import { HMSAppShell } from "../../components/layout/HMSAppShell";
@@ -573,7 +574,14 @@ export function AppRoutes() {
             </RouteGuard>
           }
         />
-        <Route path={ROUTES.SETTINGS} element={<SettingsWorkspace />} />
+        <Route
+          path={ROUTES.SETTINGS}
+          element={
+            <RouteGuard requiredPermission="USER_VIEW">
+              <SettingsPage />
+            </RouteGuard>
+          }
+        />
         <Route
           path={ROUTES.DOCTOR_ME_PROFILE}
           element={

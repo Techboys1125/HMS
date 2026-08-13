@@ -37,7 +37,14 @@ interface ReportChartProps {
   lineDot?: boolean;
 }
 
-const DEFAULT_COLORS = ["#0D47A1", "#009688", "#4DB6AC", "#66BB6A", "#F59E0B", "#EF4444"];
+const DEFAULT_COLORS = [
+  "#0D47A1",
+  "#009688",
+  "#4DB6AC",
+  "#66BB6A",
+  "#F59E0B",
+  "#EF4444",
+];
 
 export function ReportChart({
   type,
@@ -78,9 +85,14 @@ export function ReportChart({
             paddingAngle={3}
             dataKey={dataKey}
           >
-            {data.map((_, idx) => (
-              <Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} />
-            ))}
+            {data.map((item, idx) => {
+              const cellKey = xKey && item[xKey] !== undefined
+                ? String(item[xKey])
+                : (item.id !== undefined ? String(item.id) : JSON.stringify(item));
+              return (
+                <Cell key={cellKey} fill={colors[idx % colors.length]} />
+              );
+            })}
           </Pie>
           {showTooltip && <Tooltip contentStyle={tooltipStyle} />}
           {showLegend && <Legend />}
@@ -92,8 +104,17 @@ export function ReportChart({
   if (type === "bar" && layout === "vertical") {
     return (
       <ResponsiveContainer width="100%" height={height}>
-        <BarChart data={data} layout="vertical" margin={{ top: 0, right: 20, left: 10, bottom: 0 }}>
-          <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
+        <BarChart
+          data={data}
+          layout="vertical"
+          margin={{ top: 0, right: 20, left: 10, bottom: 0 }}
+        >
+          <XAxis
+            type="number"
+            tick={{ fontSize: 10, fill: "#94A3B8" }}
+            axisLine={false}
+            tickLine={false}
+          />
           <YAxis
             dataKey={xKey}
             type="category"
@@ -103,10 +124,20 @@ export function ReportChart({
             width={yAxisWidth}
           />
           {showTooltip && <Tooltip contentStyle={tooltipStyle} />}
-          <Bar dataKey={dataKey} fill={colors[0]} radius={barRadius} barSize={barSize}>
-            {data.map((_, idx) => (
-              <Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} />
-            ))}
+          <Bar
+            dataKey={dataKey}
+            fill={colors[0]}
+            radius={barRadius}
+            barSize={barSize}
+          >
+            {data.map((item, idx) => {
+              const cellKey = xKey && item[xKey] !== undefined
+                ? String(item[xKey])
+                : (item.id !== undefined ? String(item.id) : JSON.stringify(item));
+              return (
+                <Cell key={cellKey} fill={colors[idx % colors.length]} />
+              );
+            })}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
@@ -116,15 +147,37 @@ export function ReportChart({
   if (type === "bar") {
     return (
       <ResponsiveContainer width="100%" height={height}>
-        <BarChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-          <XAxis dataKey={xKey} tick={{ fontSize: 11, fill: "#64748B" }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
+        <BarChart
+          data={data}
+          margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
+        >
+          <XAxis
+            dataKey={xKey}
+            tick={{ fontSize: 11, fill: "#64748B" }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            tick={{ fontSize: 10, fill: "#94A3B8" }}
+            axisLine={false}
+            tickLine={false}
+          />
           {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />}
           {showTooltip && <Tooltip contentStyle={tooltipStyle} />}
-          <Bar dataKey={dataKey} fill={colors[0]} radius={barRadius} barSize={barSize}>
-            {data.map((_, idx) => (
-              <Cell key={`cell-${idx}`} fill={colors[idx % colors.length]} />
-            ))}
+          <Bar
+            dataKey={dataKey}
+            fill={colors[0]}
+            radius={barRadius}
+            barSize={barSize}
+          >
+            {data.map((item, idx) => {
+              const cellKey = xKey && item[xKey] !== undefined
+                ? String(item[xKey])
+                : (item.id !== undefined ? String(item.id) : JSON.stringify(item));
+              return (
+                <Cell key={cellKey} fill={colors[idx % colors.length]} />
+              );
+            })}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
@@ -134,12 +187,30 @@ export function ReportChart({
   if (type === "line") {
     return (
       <ResponsiveContainer width="100%" height={height}>
-        <LineChart data={data} margin={{ top: 10, right: 15, left: -15, bottom: 0 }}>
-          <XAxis dataKey={xKey} tick={{ fontSize: 11, fill: "#64748B" }} axisLine={false} tickLine={false} />
-          <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
+        <LineChart
+          data={data}
+          margin={{ top: 10, right: 15, left: -15, bottom: 0 }}
+        >
+          <XAxis
+            dataKey={xKey}
+            tick={{ fontSize: 11, fill: "#64748B" }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            tick={{ fontSize: 10, fill: "#94A3B8" }}
+            axisLine={false}
+            tickLine={false}
+          />
           {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />}
           {showTooltip && <Tooltip contentStyle={tooltipStyle} />}
-          <Line type="monotone" dataKey={dataKey} stroke={colors[0]} strokeWidth={2.5} dot={lineDot ? { r: 3, fill: colors[0] } : false} />
+          <Line
+            type="monotone"
+            dataKey={dataKey}
+            stroke={colors[0]}
+            strokeWidth={2.5}
+            dot={lineDot ? { r: 3, fill: colors[0] } : false}
+          />
         </LineChart>
       </ResponsiveContainer>
     );
@@ -148,7 +219,10 @@ export function ReportChart({
   // Default: Area chart
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+      <AreaChart
+        data={data}
+        margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+      >
         {areaGradient && (
           <defs>
             <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
@@ -157,11 +231,27 @@ export function ReportChart({
             </linearGradient>
           </defs>
         )}
-        <XAxis dataKey={xKey} tick={{ fontSize: 11, fill: "#64748B" }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
+        <XAxis
+          dataKey={xKey}
+          tick={{ fontSize: 11, fill: "#64748B" }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <YAxis
+          tick={{ fontSize: 10, fill: "#94A3B8" }}
+          axisLine={false}
+          tickLine={false}
+        />
         {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />}
         {showTooltip && <Tooltip contentStyle={tooltipStyle} />}
-        <Area type="monotone" dataKey={dataKey} stroke={colors[0]} strokeWidth={2.5} fill={areaGradient ? `url(#${gradId})` : colors[0]} dot={false} />
+        <Area
+          type="monotone"
+          dataKey={dataKey}
+          stroke={colors[0]}
+          strokeWidth={2.5}
+          fill={areaGradient ? `url(#${gradId})` : colors[0]}
+          dot={false}
+        />
       </AreaChart>
     </ResponsiveContainer>
   );

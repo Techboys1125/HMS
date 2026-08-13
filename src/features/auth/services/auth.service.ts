@@ -1,4 +1,5 @@
 import { authApi } from "../api/auth.api";
+import { getToken, setToken } from "../../../lib/cookie-token-storage";
 import type {
   PatientRegistrationData,
   PatientLinkData,
@@ -46,9 +47,9 @@ export const authService = {
       // but we DO NOT call useAuthStore.login() here.
       // Calling it here would instantly unmount the LoginPage and bypass the Success/Change Password screens.
       // LoginPage will call useAuthStore.login() when the user clicks "Continue".
-      localStorage.setItem("accessToken", accessToken);
+      setToken("accessToken", accessToken);
       if (refreshToken) {
-        localStorage.setItem("refreshToken", refreshToken);
+        setToken("refreshToken", refreshToken);
       }
     }
 
@@ -57,7 +58,7 @@ export const authService = {
 
   // Token Refresh (Endpoint 4)
   async refreshToken() {
-    const storedRefreshToken = localStorage.getItem("refreshToken");
+    const storedRefreshToken = getToken("refreshToken");
     if (!storedRefreshToken) throw new Error("No refresh token found");
 
     const response = await authApi.refreshToken(storedRefreshToken);

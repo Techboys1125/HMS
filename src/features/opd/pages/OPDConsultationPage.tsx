@@ -114,10 +114,15 @@ export function OPDConsultationPage({
 
   const isDoctor = overrideRole
     ? overrideRole === "doctor"
-    : can("CONSULTATION_START");
+    : String(user?.role || "").toUpperCase() === "DOCTOR" ||
+      can("CONSULTATION_START");
   const resolvedRole: OauthRole = isDoctor ? "doctor" : "admin";
 
-  const { items: queueItems, refetch } = useQueue({
+  const {
+    items: queueItems,
+    refetch,
+    error: queueError,
+  } = useQueue({
     doctorId: isDoctor
       ? (user?.doctorId ?? user?.id)
         ? Number(user.doctorId || user.id)
@@ -491,6 +496,13 @@ export function OPDConsultationPage({
       />
 
       <div className="p-6 space-y-6 flex-1">
+        {queueError && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Unable to load consultation queue: {queueError instanceof Error
+              ? queueError.message
+              : "Please refresh and try again."}
+          </div>
+        )}
         {/* ── SUMMARY KPI CARDS ── */}
         <ConsultationKPICards
           role={resolvedRole}

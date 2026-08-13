@@ -1,31 +1,34 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Activity, ChevronRight } from "lucide-react";
 import { PP, RB } from "../../doctors/constants/doctors.constants";
-import { patientsApi } from "../api/patient.api";
+import { vitalsService } from "../../vitals/services/vitals.service";
 import { RecordPatientVitalsForm } from "../../vitals/pages/VitalsManagementScreen";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
+import type { NurseWaitingPatient } from "../../vitals/types/vitals.types";
 
-interface VitalsWaitingItem {
-  mrn: string;
-  fullName: string;
-  age: number;
-  gender: string;
-  doctor: string;
-  department: string;
-  appointmentId: string;
-}
+type VitalsWaitingItem = NurseWaitingPatient;
+
+const getPatientName = (item: VitalsWaitingItem) =>
+  item.patientName || item.patient?.fullName || item.patient?.name || "Patient";
+
+const getDepartmentName = (item: VitalsWaitingItem) =>
+  item.departmentName ||
+  (typeof item.department === "string" ? item.department : "") ||
+  item.doctor?.departmentName ||
+  item.doctor?.department ||
+  "-";
 
 const toAppointmentRecord = (item: VitalsWaitingItem): AppointmentRecord => ({
   id: item.appointmentId,
-  patientId: item.mrn,
-  patientName: item.fullName,
+  patientId: item.patientId || item.mrn,
+  patientName: getPatientName(item),
   patientMrn: item.mrn,
   mrn: item.mrn,
-  doctorId: "",
-  doctorName: item.doctor,
-  appointmentDate: "",
-  status: "WAITING_FOR_VITALS",
-  department: item.department,
+  doctorId: item.doctorId || "",
+  doctorName: item.doctorName || item.doctor?.name || "",
+  appointmentDate: item.checkInTime || "",
+  status: item.status || "WAITING_FOR_VITALS",
+  department: getDepartmentName(item),
   patientAge: item.age,
   patientGender: item.gender,
 });
@@ -40,8 +43,8 @@ export function NurseVitalsWorklistPage() {
 
   const fetchWorklist = () => {
     setLoading(true);
-    patientsApi
-      .getNurseVitalsWaiting()
+    vitalsService
+      .getWaitingPatients()
       .then((data) => setWaitingPatients(data))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -49,8 +52,8 @@ export function NurseVitalsWorklistPage() {
 
   useEffect(() => {
     let cancelled = false;
-    patientsApi
-      .getNurseVitalsWaiting()
+    vitalsService
+      .getWaitingPatients()
       .then((data) => {
         if (!cancelled) setWaitingPatients(data);
       })
@@ -100,21 +103,21 @@ export function NurseVitalsWorklistPage() {
           <div className="space-y-2">
             {waitingPatients.map((patient) => (
               <div
-                key={patient.appointmentId}
+                key={String(patient.appointmentId)}
                 onClick={() => setSelectedPatient(patient)}
                 className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/50 cursor-pointer transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">
-                    {patient.fullName?.charAt(0) || "P"}
+                    {getPatientName(patient).charAt(0)}
                   </div>
                   <div>
                     <div className="text-sm font-bold text-[#111827]">
-                      {patient.fullName}
+                      {getPatientName(patient)}
                     </div>
                     <div className="text-[11px] text-[#64748B]">
                       MRN: {patient.mrn} · {patient.gender} · {patient.age} yrs
-                      · {patient.department || "—"}
+                      · {getDepartmentName(patient)}
                     </div>
                   </div>
                 </div>

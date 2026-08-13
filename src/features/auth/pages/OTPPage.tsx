@@ -2,6 +2,7 @@ import React from "react";
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import { useOTP } from "../hooks/useOTP";
 import logoImage from "../../../assets/safehandshospital_logo.webp";
+import { useHospitalBranding } from "../../settings/hooks/useHospitalBranding";
 
 interface OTPPageProps {
   email: string;
@@ -14,6 +15,7 @@ export const OTPPage: React.FC<OTPPageProps> = ({
   onBack,
   onVerified,
 }) => {
+  const { logoUrl } = useHospitalBranding();
   const { otp, setOtp, timer, loading, error, refs, verify } = useOTP(
     email,
     onVerified,
@@ -58,8 +60,8 @@ export const OTPPage: React.FC<OTPPageProps> = ({
         </button>
         <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-200 shadow-xs flex items-center justify-center">
           <img
-            src={logoImage}
-            alt="Safe Hands Logo"
+            src={logoUrl || logoImage}
+            alt="Hospital Logo"
             className="h-7 w-auto object-contain"
           />
         </div>
@@ -88,16 +90,16 @@ export const OTPPage: React.FC<OTPPageProps> = ({
       {/* OTP Input Grid */}
       <form onSubmit={handleVerify} className="space-y-6">
         <div className="flex items-center justify-between gap-3">
-          {otp.map((digit, idx) => (
+          {["otp-slot-0", "otp-slot-1", "otp-slot-2", "otp-slot-3", "otp-slot-4", "otp-slot-5"].map((slotKey, idx) => (
             <input
-              key={digit?.id || digit?._id || digit?.key || digit?.value || digit?.code || digit?.name || digit?.title || digit?.label || (typeof digit === 'object' ? JSON.stringify(digit) : String(digit))}
+              key={slotKey}
               ref={(el) => {
                 refs.current[idx] = el;
               }}
               type="text"
               inputMode="numeric"
               maxLength={1}
-              value={digit}
+              value={otp[idx] || ""}
               onChange={(e) => handleChange(idx, e.target.value)}
               onKeyDown={(e) => handleKeyDown(idx, e)}
               className="flex-1 h-14 text-center text-xl font-heading font-bold rounded-xl border border-slate-200 bg-white text-[#1E293B] focus:border-[#0D47A1] focus:ring-2 focus:ring-[#0D47A1]/10 outline-none transition-all"
