@@ -110,9 +110,17 @@ export const encountersApi = {
     payload: FinalizeEncounterRequest,
   ): Promise<Encounter> => {
     try {
+      const idempotencyKey = typeof crypto !== "undefined" && crypto.randomUUID 
+        ? crypto.randomUUID() 
+        : `idemp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       const response = await apiClient.post<ApiEnvelope<Encounter> | Encounter>(
         `/api/v1/encounters/${encounterId}/finalize`,
         payload,
+        {
+          headers: {
+            "Idempotency-Key": idempotencyKey,
+          },
+        }
       );
       return unwrap<Encounter>(response.data);
     } catch (error: unknown) {
@@ -187,7 +195,7 @@ export const encountersApi = {
         `/api/v1/prescriptions/${prescriptionId}/advice`,
         payload,
       );
-      return response.data?.data || response.data;
+      return response.data?.data || null;
     } catch (error: unknown) {
       return handleApiError(error);
     }

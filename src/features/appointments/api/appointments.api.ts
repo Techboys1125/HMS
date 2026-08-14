@@ -380,11 +380,12 @@ export const appointmentsApi = {
   updateAppointmentStatus: async (
     appointmentId: string | number,
     status: string,
+    reason?: string,
   ): Promise<ApiResponse<AppointmentRecord>> => {
     try {
       const response = await apiClient.patch<ApiResponse<AppointmentRecord>>(
         `/api/v1/appointments/${appointmentId}/status`,
-        { status },
+        { status, reason },
       );
       return response.data;
     } catch (error: unknown) {

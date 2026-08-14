@@ -103,9 +103,9 @@ export const billingService = {
   async updateBillItem(
     billId: number | string,
     itemId: number | string,
-    quantity: number,
+    payload: BillItemPayload,
   ): Promise<void> {
-    await billingApi.updateBillItem(billId, itemId, { quantity });
+    await billingApi.updateBillItem(billId, itemId, payload);
   },
 
   async deleteBillItem(

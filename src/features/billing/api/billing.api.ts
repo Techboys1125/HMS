@@ -421,7 +421,7 @@ export const billingApi = {
   async updateBillItem(
     billId: number | string,
     itemId: number | string,
-    payload: { quantity: number },
+    payload: BillItemPayload,
   ): Promise<ApiResponse<unknown>> {
     try {
       const response = await apiClient.put<ApiResponse<unknown>>(

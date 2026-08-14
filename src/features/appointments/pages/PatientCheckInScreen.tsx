@@ -98,8 +98,8 @@ export function PatientCheckInScreen({
     try {
       const res = await receptionService.checkInPatient(selectedApt.id);
       setGeneratedToken(res.tokenNumber);
-      setQueuePosition(Math.floor(Math.random() * 20) + 1);
-      setEstWaitTime(`${Math.floor(Math.random() * 30) + 10} mins`);
+      setQueuePosition(res.queueNumber ?? 1);
+      setEstWaitTime(`${(res.queueNumber ?? 1) * 5} mins`);
       setShowSuccessModal(true);
     } catch {
       setShowSuccessModal(false);

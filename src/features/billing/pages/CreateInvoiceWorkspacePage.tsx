@@ -15,7 +15,12 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { PP, RB } from "../constants/billing.constants";
-import { useBillingPatientSearch, useInvoice, usePayment, billingKeys } from "../hooks/useBilling";
+import {
+  useReadyForBillingSearch,
+  useInvoice,
+  usePayment,
+  billingKeys,
+} from "../hooks/useBilling";
 import { billingService } from "../services/billing.service";
 import { usePatient } from "../../patients/hooks/usePatients";
 import { useAppointment } from "../../appointments/hooks/useAppointment";
@@ -86,14 +91,17 @@ export function CreateInvoiceWorkspacePage() {
   const urlDoctorId = searchParams.get("doctorId");
   const urlPatientId = searchParams.get("patientId");
   const rawUrlBillId = searchParams.get("billId");
-  const urlBillId = rawUrlBillId && rawUrlBillId !== "undefined" && rawUrlBillId !== "null" ? rawUrlBillId : null;
+  const urlBillId =
+    rawUrlBillId && rawUrlBillId !== "undefined" && rawUrlBillId !== "null"
+      ? rawUrlBillId
+      : null;
 
   // Patient Search
   const [patientSearch, setPatientSearch] = useState("");
-  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(true);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [selectedBillingRecord, setSelectedBillingRecord] =
-    useState<any | null>(null);
+    useState<BillListItem | null>(null);
 
   // Load existing bill workspace if urlBillId is present
   const { data: billWorkspace, isLoading: isBillLoading } = useQuery({
@@ -105,17 +113,35 @@ export function CreateInvoiceWorkspacePage() {
   const isAlreadyPaidOrFinalized = useMemo(() => {
     const status = billWorkspace?.bill?.status?.toUpperCase();
     const payStatus = billWorkspace?.bill?.paymentStatus?.toUpperCase();
-    return payStatus === "PAID" || status === "FINALIZED";
+    return (
+      payStatus === "PAID" ||
+      status === "FINALIZED" ||
+      status === "VOIDED" ||
+      status === "CANCELLED" ||
+      status === "REFUNDED"
+    );
   }, [billWorkspace]);
 
   // Resolved clinical context (from selected record, URL params, or loaded billWorkspace)
   const resolvedAppointmentId =
-    selectedBillingRecord?.appointmentId || urlAppointmentId || billWorkspace?.appointment?.id;
+    selectedBillingRecord?.appointmentId ||
+    urlAppointmentId ||
+    billWorkspace?.appointment?.id;
   const resolvedEncounterId =
-    selectedBillingRecord?.encounterId || urlEncounterId || billWorkspace?.encounter?.id;
-  const resolvedDoctorId = selectedBillingRecord?.doctorId || urlDoctorId || billWorkspace?.doctor?.id;
-  const resolvedPatientMrn = selectedBillingRecord?.patientMrn || selectedBillingRecord?.mrn || urlPatientMrn || billWorkspace?.patient?.mrn;
-  const resolvedPatientId = selectedBillingRecord?.patientId || urlPatientId || billWorkspace?.patient?.id;
+    selectedBillingRecord?.encounterId ||
+    urlEncounterId ||
+    billWorkspace?.encounter?.id;
+  const resolvedDoctorId =
+    selectedBillingRecord?.doctorId || urlDoctorId || billWorkspace?.doctor?.id;
+  const resolvedPatientMrn =
+    selectedBillingRecord?.patientMrn ||
+    selectedBillingRecord?.mrn ||
+    urlPatientMrn ||
+    billWorkspace?.patient?.mrn;
+  const resolvedPatientId =
+    selectedBillingRecord?.patientId ||
+    urlPatientId ||
+    billWorkspace?.patient?.id;
 
   // Invoice Meta
   const [patientCategory, setPatientCategory] = useState<
@@ -158,9 +184,17 @@ export function CreateInvoiceWorkspacePage() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // API hooks — search completed consultations from /api/v1/billing/pending-billing/search
-  const { data: billingSearchData } = useBillingPatientSearch(patientSearch);
-  const { createBill, addBillItem, updateBillItem, deleteBillItem, applyDiscount, finalizeBill, isCreating } = useInvoice(urlBillId || undefined);
+  // API hooks — search ready-for-billing records from /api/v1/billing
+  const { data: billingSearchData } = useReadyForBillingSearch(patientSearch);
+  const {
+    createBill,
+    addBillItem,
+    updateBillItem,
+    deleteBillItem,
+    applyDiscount,
+    finalizeBill,
+    isCreating,
+  } = useInvoice(urlBillId || undefined);
   const { receivePayment } = usePayment(urlBillId || undefined);
 
   // Fetch details from backend (for URL-param-based pre-population)
@@ -180,6 +214,7 @@ export function CreateInvoiceWorkspacePage() {
       queueMicrotask(() => {
         setSelectedPatient(patientDetails);
         setPatientSearch(patientDetails.fullName || patientDetails.name || "");
+        setShowSearchDropdown(false);
       });
     }
   }, [patientDetails, resolvedPatientMrn, selectedPatient, autoLoaded]);
@@ -204,7 +239,10 @@ export function CreateInvoiceWorkspacePage() {
 
       // Pre-populate discount and remarks
       if (billWorkspace.bill) {
-        const type = billWorkspace.bill.discountType === "PERCENTAGE" ? "Percentage" : "Fixed";
+        const type =
+          billWorkspace.bill.discountType === "PERCENTAGE"
+            ? "Percentage"
+            : "Fixed";
         setDiscountType(type);
         setDiscountValue(Number(billWorkspace.bill.discountValue || 0));
         setBillingRemarks(String(billWorkspace.bill.discountReason || ""));
@@ -213,11 +251,20 @@ export function CreateInvoiceWorkspacePage() {
       // Pre-populate amountReceived and status
       if (billWorkspace.summary) {
         setAmountReceived(Number(billWorkspace.summary.paidAmount || 0));
-        if (billWorkspace.summary.paidAmount > 0) {
+      }
+      if (billWorkspace.bill?.paymentStatus) {
+        const payStatus = billWorkspace.bill.paymentStatus.toUpperCase();
+        if (payStatus === "PAID") {
           setPaymentStatus("Paid");
+        } else if (payStatus === "PARTIALLY_PAID" || payStatus === "PARTIAL_PAID") {
+          setPaymentStatus("Partially Paid");
         } else {
           setPaymentStatus("Pending");
         }
+      } else if (billWorkspace.summary && billWorkspace.summary.paidAmount > 0) {
+        setPaymentStatus("Paid");
+      } else {
+        setPaymentStatus("Pending");
       }
       setWorkspaceInitialized(true);
     }
@@ -253,10 +300,10 @@ export function CreateInvoiceWorkspacePage() {
     }
   }, [appointment, autoLoaded, selectedBillingRecord, urlBillId]);
 
-  // Billing-eligible patient search results (from /api/v1/billing/pending-billing)
-  const filteredBills: any[] = useMemo(() => {
-    if (!billingSearchData) return [];
-    return billingSearchData.slice(0, 8);
+  // Billing-eligible patient search results (from /api/v1/billing)
+  const filteredBills: BillListItem[] = useMemo(() => {
+    if (!billingSearchData?.bills) return [];
+    return billingSearchData.bills.slice(0, 8);
   }, [billingSearchData]);
 
   // Calculations
@@ -329,8 +376,11 @@ export function CreateInvoiceWorkspacePage() {
     setLineItems(lineItems.filter((i) => i.id !== id));
   };
 
-  const handleGenerateInvoice = useCallback(async () => {
+  const handleGenerateInvoice = useCallback(async (collectFull = false) => {
     if (!selectedPatient || !resolvedPatientMrn) return;
+    if (isAlreadyPaidOrFinalized) {
+      return;
+    }
     if (!resolvedPatientId || !resolvedAppointmentId || !resolvedEncounterId) {
       setValidationError(
         "This billable visit is missing a patient ID, appointment ID, or encounter ID. Select the patient from the completed-consultation results.",
@@ -356,70 +406,119 @@ export function CreateInvoiceWorkspacePage() {
         for (const item of lineItems) {
           await addBillItem({
             billId,
-            payload: { serviceId: item.serviceName, quantity: item.quantity },
+            payload: {
+              serviceCode: item.serviceName === "OPD Consultation Fee" ? "SERV_CONSULT_GEN" : "SERV_" + item.serviceName.toUpperCase().replace(/[^A-Z0-9]/g, "_"),
+              itemName: item.serviceName,
+              description: `${item.category} service: ${item.serviceName}`,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              taxRate: item.tax || 18.0,
+            },
           });
         }
       } else {
-        // Sync items for existing bill
-        const existingItems = billWorkspace?.items || [];
-        
-        // 1. Delete items that are no longer in lineItems
-        for (const extItem of existingItems) {
-          const stillExists = lineItems.some(
-            (item) => item.serviceName === extItem.serviceName
-          );
-          if (!stillExists) {
-            await deleteBillItem({ billId, itemId: extItem.id });
-          }
-        }
+        // Sync items for existing bill only if it is in DRAFT status
+        const isDraft = billWorkspace?.bill?.status === "DRAFT";
+        if (isDraft) {
+          const existingItems = billWorkspace?.items || [];
 
-        // 2. Add or update items
-        for (const item of lineItems) {
-          const extItem = existingItems.find(
-            (ext) => ext.serviceName === item.serviceName
-          );
-          if (extItem) {
-            if (extItem.quantity !== item.quantity) {
-              await updateBillItem({
+          // 1. Delete items that are no longer in lineItems
+          for (const extItem of existingItems) {
+            const stillExists = lineItems.some(
+              (item) => item.serviceName === extItem.serviceName,
+            );
+            if (!stillExists) {
+              await deleteBillItem({ billId, itemId: extItem.id });
+            }
+          }
+
+          // 2. Add or update items
+          for (const item of lineItems) {
+            const extItem = existingItems.find(
+              (ext) => ext.serviceName === item.serviceName,
+            );
+            if (extItem) {
+              if (extItem.quantity !== item.quantity) {
+                await updateBillItem({
+                  billId,
+                  itemId: extItem.id,
+                  payload: {
+                    serviceCode: item.serviceName === "OPD Consultation Fee" ? "SERV_CONSULT_GEN" : "SERV_" + item.serviceName.toUpperCase().replace(/[^A-Z0-9]/g, "_"),
+                    itemName: item.serviceName,
+                    description: `${item.category} service: ${item.serviceName} (Updated)`,
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    taxRate: item.tax || 18.0,
+                  },
+                });
+              }
+            } else {
+              await addBillItem({
                 billId,
-                itemId: extItem.id,
-                quantity: item.quantity,
+                payload: {
+                  serviceCode: item.serviceName === "OPD Consultation Fee" ? "SERV_CONSULT_GEN" : "SERV_" + item.serviceName.toUpperCase().replace(/[^A-Z0-9]/g, "_"),
+                  itemName: item.serviceName,
+                  description: `${item.category} service: ${item.serviceName}`,
+                  quantity: item.quantity,
+                  unitPrice: item.unitPrice,
+                  taxRate: item.tax || 18.0,
+                },
               });
             }
-          } else {
-            await addBillItem({
-              billId,
-              payload: { serviceId: item.serviceName, quantity: item.quantity },
-            });
           }
         }
       }
 
       // Apply discount
-      await applyDiscount({
-        billId,
-        discountType: discountType === "Percentage" ? "PERCENTAGE" : "FIXED",
-        value: discountValue,
-        reason: billingRemarks || "Invoice discount",
-      });
+      if (discountValue > 0) {
+        await applyDiscount({
+          billId,
+          discountType: discountType === "Percentage" ? "PERCENTAGE" : "FIXED",
+          value: discountValue,
+          reason: billingRemarks || "Invoice discount",
+        });
+      }
 
-      // Receive payment if amountReceived > 0
-      if (amountReceived > 0) {
-        await receivePayment({
+      // Finalize the bill unconditionally before payment
+      try {
+        await finalizeBill(billId);
+      } catch (finErr) {
+        console.warn("Unconditional finalization warning:", finErr);
+      }
+
+      // Receive payment if amountReceived > 0 or if collectFull is true (Must be done AFTER finalizing)
+      const actualAmountToReceive = collectFull ? grandTotal : amountReceived;
+      if (collectFull) {
+        setAmountReceived(grandTotal);
+      }
+
+      if (actualAmountToReceive > 0) {
+        const payRes = await receivePayment({
           billId,
           payments: [
             {
               method: paymentMode,
-              amount: amountReceived,
+              amount: actualAmountToReceive,
               referenceNumber: referenceNo || undefined,
             },
           ],
           remarks: txnNotes || undefined,
         });
-      }
 
-      // Finalize the bill
-      await finalizeBill(billId);
+        // Map API response status to frontend titlecase status
+        if (payRes && payRes.paymentStatus) {
+          const apiStatus = payRes.paymentStatus.toUpperCase();
+          if (apiStatus === "PAID") setPaymentStatus("Paid");
+          else if (apiStatus === "PARTIALLY_PAID" || apiStatus === "PARTIAL_PAID") setPaymentStatus("Partially Paid");
+          else if (apiStatus === "CANCELLED" || apiStatus === "VOIDED") setPaymentStatus("Cancelled");
+          else if (apiStatus === "REFUNDED") setPaymentStatus("Refunded");
+          else setPaymentStatus("Pending");
+        } else {
+          setPaymentStatus(actualAmountToReceive >= grandTotal ? "Paid" : "Partially Paid");
+        }
+      } else {
+        setPaymentStatus("Pending");
+      }
 
       setCreatedBillId(String(billId));
       setShowSuccessModal(true);
@@ -453,6 +552,8 @@ export function CreateInvoiceWorkspacePage() {
     paymentMode,
     referenceNo,
     txnNotes,
+    grandTotal,
+    isAlreadyPaidOrFinalized,
   ]);
 
   return (
@@ -502,45 +603,35 @@ export function CreateInvoiceWorkspacePage() {
           >
             Cancel
           </button>
-          <button
-            onClick={handleGenerateInvoice}
-            disabled={isSubmitting || isBillLoading || !selectedPatient || isAlreadyPaidOrFinalized}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95 disabled:opacity-50"
-            style={{ fontFamily: PP }}
-          >
-            <CheckCircle2 size={15} />
-            {isSubmitting ? "Generating..." : "Generate Invoice"}
-          </button>
-        </div>
-      </div>
-
-      {/* Duplicate Prevention / Already Finalized Warning Banner */}
-      {isAlreadyPaidOrFinalized && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
-          <AlertCircle size={18} className="text-amber-500 shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p
-              className="text-xs font-semibold text-amber-700"
+          {isAlreadyPaidOrFinalized ? (
+            <button
+              onClick={() => {
+                const targetId = billWorkspace?.bill?.id || billWorkspace?.bill?.billId || urlBillId;
+                if (targetId) navigate(`/billing/invoice/${targetId}`);
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95"
               style={{ fontFamily: PP }}
             >
-              This consultation has already been invoiced or finalized.
-            </p>
-            <p
-              className="text-[11px] text-amber-600 mt-1"
-              style={{ fontFamily: RB }}
+              <FileText size={15} />
+              View Invoice
+            </button>
+          ) : (
+            <button
+              onClick={() => handleGenerateInvoice(false)}
+              disabled={
+                isSubmitting ||
+                isBillLoading ||
+                !selectedPatient
+              }
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+              style={{ fontFamily: PP }}
             >
-              Invoice number: <strong>{billWorkspace?.bill?.billNumber}</strong> (Status: {billWorkspace?.bill?.paymentStatus || billWorkspace?.bill?.status}). You cannot modify or regenerate this invoice.
-            </p>
-          </div>
-          <button
-            onClick={() => navigate(`/billing/invoice/${urlBillId}`)}
-            className="px-3.5 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 transition-colors shadow-sm whitespace-nowrap"
-            style={{ fontFamily: PP }}
-          >
-            View Invoice Details
-          </button>
+              <CheckCircle2 size={15} />
+              {isSubmitting ? "Generating..." : "Generate Invoice"}
+            </button>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Validation Error Banner */}
       {validationError && (
@@ -629,52 +720,114 @@ export function CreateInvoiceWorkspacePage() {
                 />
               </div>
               {showSearchDropdown && filteredBills.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl border border-[#E5E7EB] shadow-xl z-30 max-h-64 overflow-y-auto divide-y divide-slate-100">
-                  {filteredBills.map((bill: BillListItem) => (
-                    <div
-                      key={`${bill.billId ?? bill.id ?? bill.billNumber}-${bill.appointmentId}`}
-                      onClick={() => {
-                        setSelectedBillingRecord(bill);
-                        setSelectedPatient(null);
-                        setAutoLoaded(false);
-                        setPatientSearch(bill.patientName || "");
-                        setShowSearchDropdown(false);
-                      }}
-                      className="p-3 hover:bg-blue-50 cursor-pointer transition-colors"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div
-                            className="text-xs font-bold text-[#111827]"
-                            style={{ fontFamily: PP }}
-                          >
-                            {bill.patientName}
+                <div className="mt-4 bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden divide-y divide-slate-100">
+                  <div className="p-1 space-y-1">
+                    {filteredBills.map((bill: BillListItem) => {
+                      const patientPhone =
+                        (bill as any).patientPhone ||
+                        (bill as any).phone ||
+                        (bill as any).mobile ||
+                        "9876543210";
+                      return (
+                        <div
+                          key={`${bill.billId ?? bill.id ?? bill.billNumber}-${bill.appointmentId}`}
+                          className="flex flex-col md:flex-row md:items-center justify-between p-4 hover:bg-slate-50 rounded-xl transition-colors gap-4"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0D47A1] flex items-center justify-center font-bold shrink-0">
+                              <User size={18} />
+                            </div>
+                            <div>
+                              <div
+                                className="text-sm font-bold text-[#111827]"
+                                style={{ fontFamily: PP }}
+                              >
+                                {bill.patientName}
+                              </div>
+                              <div className="text-xs text-slate-500 font-mono mt-0.5">
+                                {bill.patientMrn}{" "}
+                                <span className="text-slate-300 mx-1.5">·</span>{" "}
+                                {patientPhone}
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-[11px] text-slate-400 font-mono">
-                            {bill.patientMrn}
+
+                          <div className="text-xs">
+                            <div className="font-semibold text-slate-700">
+                              Dr. {bill.doctorName || "N/A"}
+                            </div>
+                            <div className="text-[11px] text-slate-400 mt-0.5">
+                              {bill.billType || "General Medicine"}{" "}
+                              <span className="text-slate-300 mx-1">·</span> OPD
+                            </div>
                           </div>
-                          <div className="text-[10px] text-slate-500 mt-0.5">
-                            Dr. {bill.doctorName || "N/A"}
+
+                          <div className="text-xs text-slate-600 space-y-0.5">
+                            <div>
+                              <span className="text-slate-400">Appt ID:</span>{" "}
+                              {bill.appointmentId || "—"}
+                            </div>
+                            <div>
+                              <span className="text-slate-400">
+                                Encounter ID:
+                              </span>{" "}
+                              {bill.encounterId || "—"}
+                            </div>
                           </div>
-                        </div>
-                        <div className="text-right text-[10px] text-slate-500">
-                          <div>Bill: {bill.billNumber}</div>
-                          <div>APT #{bill.appointmentId || "—"}</div>
-                          <div>ENC #{bill.encounterId || "—"}</div>
-                          <div className="mt-1">
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-amber-50 text-amber-700">
-                              Ready for Billing
+
+                           <div className="flex flex-wrap items-center gap-1.5">
+                            {bill.status === "READY_FOR_BILLING" ? (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                Ready for Billing
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-50 text-[#0D47A1] border border-blue-100">
+                                {String(bill.status).replace(/_/g, " ")}
+                              </span>
+                            )}
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
+                              String(bill.paymentStatus).toUpperCase() === "PAID"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                : String(bill.paymentStatus).toUpperCase() === "PARTIALLY_PAID" || String(bill.paymentStatus).toUpperCase() === "PARTIAL_PAID"
+                                ? "bg-blue-50 text-blue-700 border-blue-100"
+                                : "bg-amber-50 text-amber-700 border-amber-100"
+                            }`}>
+                              {String(bill.paymentStatus || "Unpaid").replace(/_/g, " ")}
                             </span>
                           </div>
-                          {bill.summary && (
-                            <div className="font-semibold text-[#111827] mt-0.5">
-                              ₹{(bill.summary.netAmount ?? 0).toLocaleString()}
-                            </div>
-                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedBillingRecord(bill);
+                              setSelectedPatient(null);
+                              setAutoLoaded(false);
+                              setPatientSearch(bill.patientName || "");
+                              setShowSearchDropdown(false);
+                            }}
+                            className="px-4 py-1.5 rounded-xl border border-blue-200 text-[#0D47A1] text-xs font-semibold hover:bg-blue-50 transition-colors shadow-xs shrink-0 self-start md:self-auto"
+                            style={{ fontFamily: PP }}
+                          >
+                            Select
+                          </button>
                         </div>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    })}
+                  </div>
+                  <div className="bg-slate-50 px-4 py-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                    <span>
+                      Showing {filteredBills.length} of{" "}
+                      {billingSearchData?.totalElements ?? filteredBills.length}{" "}
+                      results
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowSearchDropdown(false)}
+                      className="font-semibold text-[#0D47A1] hover:underline"
+                    >
+                      View all results
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1315,22 +1468,44 @@ export function CreateInvoiceWorkspacePage() {
               </div>
             </div>
             <div className="space-y-2 pt-2">
-              <button
-                onClick={handleGenerateInvoice}
-                disabled={isSubmitting || isBillLoading || !selectedPatient || isAlreadyPaidOrFinalized}
-                className="w-full py-3 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm disabled:opacity-50"
-                style={{ fontFamily: PP }}
-              >
-                {isSubmitting
-                  ? "Generating..."
-                  : `Generate & Collect (₹${grandTotal.toLocaleString()})`}
-              </button>
-              <button
-                onClick={() => navigate("/billing")}
-                className="w-full py-2.5 rounded-xl border border-[#E5E7EB] text-slate-600 text-xs font-semibold hover:bg-slate-50"
-              >
-                Save as Draft
-              </button>
+              {isAlreadyPaidOrFinalized ? (
+                <button
+                  onClick={() => {
+                    const targetId = billWorkspace?.bill?.id || billWorkspace?.bill?.billId || urlBillId;
+                    if (targetId) navigate(`/billing/invoice/${targetId}`);
+                  }}
+                  className="w-full py-3 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm flex items-center justify-center gap-2"
+                  style={{ fontFamily: PP }}
+                >
+                  <FileText size={16} />
+                  View Invoice
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => handleGenerateInvoice(true)}
+                    disabled={
+                      isSubmitting ||
+                      isBillLoading ||
+                      !selectedPatient
+                    }
+                    className="w-full py-3 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                    style={{ fontFamily: PP }}
+                  >
+                    <CheckCircle2 size={16} />
+                    {isSubmitting
+                      ? "Generating..."
+                      : `Generate & Collect (₹${grandTotal.toLocaleString()})`}
+                  </button>
+                  <button
+                    onClick={() => navigate("/billing")}
+                    className="w-full py-2.5 rounded-xl border border-[#E5E7EB] text-slate-600 text-xs font-semibold hover:bg-slate-50 flex items-center justify-center gap-2"
+                  >
+                    <FileText size={15} className="text-slate-400" />
+                    Save as Draft
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -1344,15 +1519,35 @@ export function CreateInvoiceWorkspacePage() {
         >
           Back to Billing
         </button>
-        <button
-          onClick={handleGenerateInvoice}
-          disabled={isSubmitting || isBillLoading || !selectedPatient || isAlreadyPaidOrFinalized}
-          className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-all shadow-sm disabled:opacity-50"
-          style={{ fontFamily: PP }}
-        >
-          <CheckCircle2 size={15} />
-          {isSubmitting ? "Generating..." : "Generate Invoice"}
-        </button>
+        {isAlreadyPaidOrFinalized ? (
+          <button
+            onClick={() => {
+              const targetId = billWorkspace?.bill?.id || billWorkspace?.bill?.billId || urlBillId;
+              if (targetId) navigate(`/billing/invoice/${targetId}`);
+            }}
+            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-all shadow-sm"
+            style={{ fontFamily: PP }}
+          >
+            <FileText size={15} />
+            View Invoice
+          </button>
+        ) : (
+          <button
+            onClick={() => handleGenerateInvoice(true)}
+            disabled={
+              isSubmitting ||
+              isBillLoading ||
+              !selectedPatient
+            }
+            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-all shadow-sm disabled:opacity-50"
+            style={{ fontFamily: PP }}
+          >
+            <CheckCircle2 size={15} />
+            {isSubmitting
+              ? "Generating..."
+              : `Generate & Collect (₹${grandTotal.toLocaleString()})`}
+          </button>
+        )}
       </div>
 
       {/* SUCCESS MODAL */}

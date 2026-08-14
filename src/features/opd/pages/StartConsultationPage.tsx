@@ -11,6 +11,7 @@ import { useConsultation } from "../hooks/useConsultation";
 import { useEncounter } from "../hooks/useEncounter";
 import { useVitals } from "../hooks/useVitals";
 import { useDiagnosis } from "../hooks/useDiagnosis";
+import { useInvoice } from "../../billing/hooks/useBilling";
 import type { ConsultationFormData, MedicineItem } from "../types/consultation";
 import { encountersApi } from "../../encounters";
 import { consultationApi } from "../api/consultationApi";
@@ -87,6 +88,8 @@ export function StartConsultationPage({
   const { selectedAppointment, selectedConsultation } = useConsultation();
   const { selectedEncounter, selectedPrescription, finalizeConsultation } =
     useEncounter();
+
+  const { createBill } = useInvoice();
 
   const activeEncounterId =
     selectedEncounter?.encounterId || selectedConsultation?.encounterId;
@@ -194,6 +197,7 @@ export function StartConsultationPage({
   const [isDraftSaved, setIsDraftSaved] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [createdBillId, setCreatedBillId] = useState<string | null>(null);
   const [finalizedData, setFinalizedData] = useState<{
     date: string;
     patientName: string;
@@ -352,11 +356,11 @@ export function StartConsultationPage({
     setShowToast(true);
 
     try {
-      if (can("DIAGNOSIS_CREATE") && formData.icdCode && activeEncounterId) {
+      if (can("DIAGNOSIS_CREATE") && activeEncounterId) {
         try {
           await addDiagnosis(
-            formData.icdCode,
-            formData.finalDiagnosis,
+            formData.icdCode || "R69",
+            formData.finalDiagnosis || "Documented clinical conclusion/assessment",
             activeEncounterId,
           );
         } catch (diagErr) {
@@ -394,6 +398,23 @@ export function StartConsultationPage({
           dietAdvice: formData.lifestyleRecommendations || "",
           precautions: formData.followupNotes || "",
         });
+
+        const patientMrn =
+          selectedAppointment?.mrn || selectedConsultation?.mrn || "";
+        const doctorId = selectedAppointment?.doctorId || selectedConsultation?.doctorId;
+        if (encId && aptId && patientMrn && doctorId) {
+          try {
+            const bill = await createBill({
+              appointmentId: Number(aptId),
+              encounterId: Number(encId),
+              patientMrn,
+              doctorId: Number(doctorId),
+            });
+            setCreatedBillId(String(bill.billId));
+          } catch (billErr) {
+            console.warn("Auto bill creation warning:", billErr);
+          }
+        }
       }
 
       setFinalizedData({
@@ -798,7 +819,24 @@ export function StartConsultationPage({
                   setShowCompleteModal(false);
                   if (onCompleteSuccess) onCompleteSuccess();
                   else if (onBack) onBack();
-                  else navigate("/billing", { replace: true });
+                  else {
+                    const aptId = activeAppointmentId || selectedConsultation?.id || "";
+                    const encId = activeEncounterId || selectedConsultation?.encounterId || "";
+                    const patientId = selectedAppointment?.patientId || selectedConsultation?.patientId || "";
+                    const patientMrn = selectedAppointment?.mrn || selectedConsultation?.mrn || "";
+                    const doctorId = selectedAppointment?.doctorId || selectedConsultation?.doctorId || "";
+                    const query = new URLSearchParams();
+                    if (createdBillId) {
+                      navigate(`/billing/create?billId=${createdBillId}`, { replace: true });
+                    } else {
+                      if (aptId) query.set("appointmentId", String(aptId));
+                      if (encId) query.set("encounterId", String(encId));
+                      if (patientId) query.set("patientId", String(patientId));
+                      if (patientMrn) query.set("patientMrn", String(patientMrn));
+                      if (doctorId) query.set("doctorId", String(doctorId));
+                      navigate(`/billing/create?${query.toString()}`, { replace: true });
+                    }
+                  }
                 }}
                 className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
               >
@@ -1147,7 +1185,24 @@ export function StartConsultationPage({
                   setShowCompleteModal(false);
                   if (onCompleteSuccess) onCompleteSuccess();
                   else if (onBack) onBack();
-                  else navigate("/billing", { replace: true });
+                  else {
+                    if (createdBillId) {
+                      navigate(`/billing/create?billId=${createdBillId}`, { replace: true });
+                    } else {
+                      const aptId = activeAppointmentId || selectedConsultation?.id || "";
+                      const encId = activeEncounterId || selectedConsultation?.encounterId || "";
+                      const patientId = selectedAppointment?.patientId || selectedConsultation?.patientId || "";
+                      const patientMrn = selectedAppointment?.mrn || selectedConsultation?.mrn || "";
+                      const doctorId = selectedAppointment?.doctorId || selectedConsultation?.doctorId || "";
+                      const query = new URLSearchParams();
+                      if (aptId) query.set("appointmentId", String(aptId));
+                      if (encId) query.set("encounterId", String(encId));
+                      if (patientId) query.set("patientId", String(patientId));
+                      if (patientMrn) query.set("patientMrn", String(patientMrn));
+                      if (doctorId) query.set("doctorId", String(doctorId));
+                      navigate(`/billing/create?${query.toString()}`, { replace: true });
+                    }
+                  }
                 }}
                 className="px-6 py-2.5 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-all"
                 style={{ fontFamily: PP }}

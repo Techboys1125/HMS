@@ -7,6 +7,7 @@ import {
   History,
   Ban,
   FileText,
+  Zap,
 } from "lucide-react";
 import { PP, RB } from "../constants/billing.constants";
 import type { InvoiceRecord } from "../types/billing.types";
@@ -88,55 +89,29 @@ export function InvoiceRow({
       </td>
       {/* Actions */}
       <td className="py-3 px-4 text-center relative">
-        <div className="flex items-center justify-center gap-1">
-          <button
-            onClick={() => onViewInvoiceDetailsClick?.(invoice)}
-            className="p-1.5 rounded-lg text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
-            title="View Invoice"
-          >
-            <Eye size={14} />
-          </button>
-
-          {!isAdminReadOnly &&
-            (invoice.status?.toUpperCase() === "READY_FOR_BILLING" ||
-              invoice.status?.toUpperCase() === "PENDING_BILLING" ||
-              invoice.status?.toUpperCase() === "PENDING" ||
-              (invoice.paymentStatus === "Pending" &&
-                invoice.invoiceAmount === 0)) && (
-              <button
-                onClick={() => onGenerateInvoiceClick?.(invoice)}
-                className="px-2 py-0.5 rounded bg-[#0D47A1] text-white text-[10px] font-semibold hover:bg-blue-900 transition-colors shadow-sm whitespace-nowrap"
-                title="Generate Invoice"
-              >
-                Generate Invoice
-              </button>
-            )}
-
-          {!isAdminReadOnly &&
-            invoice.status?.toUpperCase() !== "READY_FOR_BILLING" &&
-            invoice.status?.toUpperCase() !== "PENDING_BILLING" &&
-            invoice.status?.toUpperCase() !== "PENDING" &&
-            !(
-              invoice.paymentStatus === "Pending" && invoice.invoiceAmount === 0
-            ) &&
-            invoice.balance > 0 &&
-            invoice.paymentStatus !== "Cancelled" && (
-              <button
-                onClick={() => onCollectPaymentClick?.(invoice)}
-                className="p-1.5 rounded-lg text-[#009688] hover:bg-teal-50 transition-colors"
-                title="Collect Payment"
-              >
-                <DollarSign size={14} />
-              </button>
-            )}
-
-          <button
-            onClick={() => onViewInvoiceDetailsClick?.(invoice)}
-            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-            title="Print Invoice"
-          >
-            <Printer size={14} />
-          </button>
+        <div className="flex items-center justify-center gap-2">
+          {/* Contextual Principal Button */}
+          {(invoice.status?.toUpperCase() === "READY_FOR_BILLING" ||
+            invoice.status?.toUpperCase() === "DRAFT" ||
+            invoice.status?.toUpperCase() === "PENDING_BILLING") ? (
+            <button
+              onClick={() => onGenerateInvoiceClick?.(invoice)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white text-[11px] font-semibold hover:bg-blue-900 transition-all shadow-xs whitespace-nowrap cursor-pointer"
+              title="Generate Invoice"
+            >
+              <Zap size={12} />
+              Generate Invoice
+            </button>
+          ) : (
+            <button
+              onClick={() => onViewInvoiceDetailsClick?.(invoice)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-[11px] font-semibold hover:bg-slate-50 transition-all shadow-xs whitespace-nowrap cursor-pointer"
+              title="View Invoice"
+            >
+              <FileText size={12} className="text-slate-400" />
+              View Invoice
+            </button>
+          )}
 
           {/* More Actions Dropdown */}
           <div className="relative">
@@ -160,6 +135,33 @@ export function InvoiceRow({
                 >
                   <History size={13} className="text-slate-400" />
                   View Payment History
+                </button>
+                {!isAdminReadOnly &&
+                  invoice.status?.toUpperCase() !== "READY_FOR_BILLING" &&
+                  invoice.status?.toUpperCase() !== "PENDING_BILLING" &&
+                  invoice.status?.toUpperCase() !== "PENDING" &&
+                  invoice.balance > 0 &&
+                  invoice.paymentStatus !== "Cancelled" && (
+                    <button
+                      onClick={() => {
+                        onCollectPaymentClick?.(invoice);
+                        setActiveMenuId(null);
+                      }}
+                      className="w-full px-3 py-2 text-xs text-[#009688] hover:bg-teal-50 flex items-center gap-2"
+                    >
+                      <DollarSign size={13} className="text-[#009688]" />
+                      Collect Payment
+                    </button>
+                  )}
+                <button
+                  onClick={() => {
+                    onViewInvoiceDetailsClick?.(invoice);
+                    setActiveMenuId(null);
+                  }}
+                  className="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                >
+                  <Printer size={13} className="text-slate-400" />
+                  Print Invoice
                 </button>
                 {!isAdminReadOnly &&
                   invoice.paymentStatus !== "Cancelled" &&

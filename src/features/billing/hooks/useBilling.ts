@@ -118,9 +118,12 @@ export function useReadyForBillingSearch(search: string) {
         status: "READY_FOR_BILLING",
         paymentStatus: "UNPAID",
         search: search || undefined,
-        size: 10,
+        page: 0,
+        size: 20,
+        sortBy: "createdAt",
+        direction: "desc",
       }),
-    enabled: search.trim().length >= 2,
+    enabled: true,
     staleTime: 30_000,
   });
 }
@@ -170,7 +173,7 @@ export function useInvoice(billId?: number | string) {
       payload,
     }: {
       billId: number | string;
-      payload: { serviceId: string; quantity: number };
+      payload: BillItemPayload;
     }) => billingService.addBillItem(billId, payload),
     onSuccess: () => {
       if (billId) {
@@ -204,12 +207,12 @@ export function useInvoice(billId?: number | string) {
     mutationFn: ({
       billId,
       itemId,
-      quantity,
+      payload,
     }: {
       billId: number | string;
       itemId: number | string;
-      quantity: number;
-    }) => billingService.updateBillItem(billId, itemId, quantity),
+      payload: BillItemPayload;
+    }) => billingService.updateBillItem(billId, itemId, payload),
     onSuccess: () => {
       if (billId) {
         queryClient.invalidateQueries({ queryKey: billingKeys.detail(billId) });

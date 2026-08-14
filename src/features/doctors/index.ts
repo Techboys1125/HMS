@@ -24,21 +24,6 @@ export {
   COMMON_MEDICINES,
 } from "./constants/doctors.constants";
 
-export {
-  INITIAL_DOCTORS,
-  MOCK_DOCTOR_APPOINTMENTS,
-  MOCK_DOCTOR_PATIENTS,
-  MOCK_WEEKLY_SCHEDULE,
-  MOCK_DOCTOR_TIMELINE,
-  DEPARTMENTS,
-  SPECIALTIES,
-  VITALS_DATA,
-  MEDICATIONS,
-  WEEKLY_CONSULTATIONS,
-  TIMELINE,
-  MY_PRESCRIPTIONS_DATA,
-} from "./constants/doctors.constants";
-
 export { useDoctors, useDoctorFilters, useToast } from "./hooks";
 export { Avatar, Card, SectionHeader, StatusBadge } from "./components";
 export {

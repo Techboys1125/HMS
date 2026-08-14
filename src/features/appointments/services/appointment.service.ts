@@ -470,13 +470,11 @@ export const appointmentService = {
 
   async getAppointmentToken(appointmentId: string | number) {
     const res = await appointmentsApi.getAppointmentToken(appointmentId);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const resAny = res as any;
+    const data = res?.data ?? res;
     return (
-      res?.data?.tokenNumber ||
-      resAny?.tokenNumber ||
-      resAny?.token ||
-      `TK-${Math.floor(100 + Math.random() * 900)}`
+      data?.tokenNumber ||
+      data?.token ||
+      `TK-${String(appointmentId).slice(-4)}`
     );
   },
 

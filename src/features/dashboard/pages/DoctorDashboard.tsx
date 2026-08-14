@@ -1039,7 +1039,7 @@ export function DoctorDashboard() {
           {(consultationQueue?.queue || []).length > 0 ? (
             consultationQueue.queue.map((qItem, idx) => (
               <div
-                key={qItem.token || qItem.patientId || `q-${idx}`}
+                key={`${qItem.token || "token"}-${qItem.patientId || "pat"}-${idx}`}
                 className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-[#E5E7EB]"
               >
                 <div className="flex items-center gap-3">

@@ -49,7 +49,7 @@ export const receptionService = {
         tokenRes?.tokenNumber ||
         tokenRes?.token ||
         patchRes?.tokenNumber ||
-        `TK-${Math.floor(100 + Math.random() * 900)}`;
+        `TK-${String(appointmentId).slice(-4)}`;
 
       // 3. Update status to WAITING_FOR_VITALS via appointment status API
       await appointmentsApi.updateAppointmentStatus(
@@ -57,10 +57,25 @@ export const receptionService = {
         "WAITING_FOR_VITALS",
       );
 
+      // 4. Fetch queue position from backend worklist
+      let queueNumber: number | undefined;
+      try {
+        const worklist = await receptionApi.getWorklist();
+        const idx = worklist.findIndex(
+          (item) => item.appointmentId === appointmentId || item.id === appointmentId,
+        );
+        if (idx >= 0) {
+          queueNumber = idx + 1;
+        }
+      } catch {
+        // queue position is optional
+      }
+
       return {
         success: true,
         appointmentId,
         tokenNumber,
+        queueNumber,
         status: "Waiting for Vitals",
         checkInTime: new Date().toLocaleTimeString([], {
           hour: "2-digit",
@@ -96,11 +111,7 @@ export const receptionService = {
 
   async getAppointmentToken(appointmentId: string | number): Promise<string> {
     const res = await receptionApi.getAppointmentToken(appointmentId);
-    return (
-      res?.tokenNumber ||
-      res?.token ||
-      `TK-${Math.floor(100 + Math.random() * 900)}`
-    );
+    return res?.tokenNumber || res?.token || `TK-${String(appointmentId).slice(-4)}`;
   },
 
   async registerWalkIn(

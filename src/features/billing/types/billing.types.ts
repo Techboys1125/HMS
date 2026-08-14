@@ -148,6 +148,8 @@ export interface BillSummaryAmount {
 }
 
 export interface BillListItem {
+  consultationFee: string | number;
+  mrn: string;
   /** The API currently returns billId; id is kept for backward compatibility. */
   billId?: number;
   id?: number;
@@ -196,6 +198,7 @@ export interface BillCreatePayload {
   consultationId?: string | number;
   patientMrn: string;
   doctorId: number;
+  patientId?: number;
 }
 
 export interface BillCreateResponse {
@@ -247,6 +250,7 @@ export interface BillDetailEncounter {
 }
 
 export interface BillDetailBill {
+  billId: number;
   bill: Record<string, unknown>;
   summary: BillSummaryAmount;
   paymentHistory: BillPaymentRecord[];
@@ -280,8 +284,12 @@ export interface BillWorkspace {
 }
 
 export interface BillItemPayload {
-  serviceId: string;
+  serviceCode: string;
+  itemName: string;
+  description: string;
   quantity: number;
+  unitPrice: number;
+  taxRate: number;
 }
 
 export interface BillDiscountPayload {

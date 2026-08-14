@@ -165,7 +165,7 @@ export const consultationApi = {
   loadEncounterVitals: async (
     encounterId: string | number,
   ): Promise<PatientVitals | null> => {
-    if (!encounterId || String(encounterId).startsWith("ENC-") || String(encounterId) === "ENC-1001") {
+    if (!encounterId) {
       return null;
     }
     try {

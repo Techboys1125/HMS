@@ -493,9 +493,7 @@ export const patientsApi = {
         module: "PATIENT",
         eventType: "PATIENT_REGISTERED",
         priority: "MEDIUM",
-        actionLabel: "View Patient",
-        actionUrl: `/patients`,
-        receivers: [{ role: "Hospital Admin", titleOverride: "New Patient Registered", messageOverride: `New patient ${data.fullName || data.name || "Patient"} has been registered.`, actionUrl: `/patients` }]
+        receivers: [{ role: "Hospital Admin" }],
       });
 
       return data;
@@ -524,23 +522,16 @@ export const patientsApi = {
         message: `Patient ${data.fullName || data.name || "Patient"} profile was updated.`,
         eventType: "PATIENT_UPDATED_ADMIN",
         priority: "LOW",
-        actionLabel: "View Patient",
-        actionUrl: `/patients`,
         receivers: [
           {
             role: "Patient Portal",
             userId: data.userId || data.id,
-            titleOverride: "Profile Updated",
             messageOverride: "Your profile information has been updated successfully.",
-            eventTypeOverride: "PATIENT_UPDATED_PATIENT",
-            actionUrl: `/patients/my-profile`
+            eventTypeOverride: "PATIENT_UPDATED_PATIENT"
           },
           {
             role: "Hospital Admin",
-            titleOverride: "Patient Updated",
-            messageOverride: `Patient ${data.fullName || data.name || "Patient"} profile was updated.`,
-            eventTypeOverride: "PATIENT_UPDATED_ADMIN",
-            actionUrl: `/patients`
+            eventTypeOverride: "PATIENT_UPDATED_ADMIN"
           }
         ],
       });
@@ -727,13 +718,11 @@ export const patientsApi = {
         module: "RECEPTION",
         eventType: "PATIENT_CHECKED_IN",
         priority: "MEDIUM",
-        actionLabel: "View Queue",
-        actionUrl: `/queue`,
         receivers: [
-          { role: "Doctor", userId: doctorId, titleOverride: "Patient Checked In", messageOverride: `Patient ${patientName} has checked in and is waiting.`, actionUrl: `/doctor/queue` },
-          { role: "Nurse", titleOverride: "Patient for Triage", messageOverride: `Patient ${patientName} is ready for vitals.`, actionUrl: `/nurse/vitals` },
-          { role: "Receptionist", titleOverride: "Patient Checked In", messageOverride: `Patient ${patientName} has been checked in at reception.`, actionUrl: `/queue` },
-          { role: "Hospital Admin", titleOverride: "Patient Checked In", messageOverride: `Patient ${patientName} checked in successfully.`, actionUrl: `/queue` }
+          { role: "Doctor", userId: doctorId, messageOverride: `Patient ${patientName} has checked in and is waiting.` },
+          { role: "Nurse", messageOverride: `Patient ${patientName} is ready for vitals.` },
+          { role: "Receptionist", messageOverride: `Patient ${patientName} has been checked in at reception.` },
+          { role: "Hospital Admin" }
         ]
       });
 
@@ -773,9 +762,7 @@ export const patientsApi = {
             module: "QUEUE",
             eventType: "QUEUE_TOKEN_GENERATED",
             priority: "LOW",
-            actionLabel: "View Queue",
-            actionUrl: `/my-queue`,
-            receivers: [{ role: "Patient Portal", userId: patientId, titleOverride: "Queue Token Generated", messageOverride: `Your queue token is ${tokenNo}. Please wait for your turn.`, actionUrl: `/my-queue` }]
+            receivers: [{ role: "Patient Portal", userId: patientId }]
           });
         }
       }
@@ -844,11 +831,9 @@ export const patientsApi = {
         module: "NURSE",
         eventType: isUpdate ? "VITALS_UPDATED" : "VITALS_COMPLETED",
         priority: "MEDIUM",
-        actionLabel: "View Patient",
-        actionUrl: `/consultation`,
         receivers: [
-          { role: "Doctor", userId: doctorId, titleOverride: isUpdate ? "Vitals Updated" : "Vitals Completed", messageOverride: `Vitals for ${patientName} have been ${isUpdate ? "updated" : "completed"}. Patient is ready for consultation.`, actionUrl: `/consultation` },
-          { role: "Hospital Admin", titleOverride: isUpdate ? "Vitals Updated" : "Vitals Completed", messageOverride: `Vitals for ${patientName} have been ${isUpdate ? "updated" : "completed"}.`, actionUrl: `/consultation` }
+          { role: "Doctor", userId: doctorId },
+          { role: "Hospital Admin", messageOverride: `Vitals for ${patientName} have been ${isUpdate ? "updated" : "completed"}.` }
         ]
       });
 
@@ -1059,6 +1044,7 @@ export const patientsApi = {
         nextAppointmentDate: p.nextAppointmentDate,
         lastVisit: p.lastVisit,
         totalVisits: p.totalVisits,
+        userId: 0,
       }));
 
       return {

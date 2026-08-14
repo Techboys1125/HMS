@@ -229,7 +229,7 @@ export const consultationService = {
   ) => {
     consultationStoreActions.setLoading(true);
     try {
-      const { selectedPrescription } = consultationStoreActions.getState();
+      const { selectedPrescription, selectedEncounter, selectedAppointment } = consultationStoreActions.getState();
       // Use numeric id for API calls (not the string prescriptionId like RX-20260806-2292)
       const rxId = selectedPrescription?.id;
       const hasValidRxId = rxId !== undefined && rxId !== null && !String(rxId).startsWith("RX-");
@@ -281,7 +281,12 @@ export const consultationService = {
 
         // Step 20: Finalize encounter (non-blocking if encounter missing in backend)
         try {
-          await encountersApi.finalizeEncounter(encounterId, { confirmation: true });
+          let version = selectedEncounter?.version;
+          const latestEncounter = await consultationApi.getEncounter(encounterId);
+          if (latestEncounter && latestEncounter.version !== undefined) {
+            version = latestEncounter.version;
+          }
+          await encountersApi.finalizeEncounter(encounterId, { confirmation: true, version });
         } catch (encErr) {
           console.warn("Finalize encounter warning:", encErr);
         }
@@ -290,21 +295,32 @@ export const consultationService = {
       // Complete appointment using dedicated doctor endpoint & update status to COMPLETED
       if (appointmentId) {
         try {
-          await appointmentsApi.updateAppointmentStatus(appointmentId, "IN_CONSULTATION");
-        } catch {
-          // May already be in consultation or completed
-        }
-        try {
-          await consultationApi.completeAppointment(appointmentId);
-        } catch (compErr: unknown) {
-          const msg = compErr instanceof Error ? compErr.message : String(compErr || "");
-          if (!msg.includes("COMPLETED")) {
+          const latestAppointment = await appointmentsApi.getAppointmentById(appointmentId);
+          const currentStatus = latestAppointment?.data?.status || (latestAppointment?.data as any)?.appointmentStatus;
+          
+          if (currentStatus !== "COMPLETED") {
+            if (currentStatus !== "IN_CONSULTATION") {
+              try {
+                await appointmentsApi.updateAppointmentStatus(appointmentId, "IN_CONSULTATION");
+              } catch {
+                // May already be in consultation
+              }
+            }
             try {
-              await appointmentsApi.updateAppointmentStatus(appointmentId, "COMPLETED");
-            } catch {
-              // Ignore if already completed in backend
+              await consultationApi.completeAppointment(appointmentId);
+            } catch (compErr: unknown) {
+              const msg = compErr instanceof Error ? compErr.message : String(compErr || "");
+              if (!msg.includes("COMPLETED")) {
+                try {
+                  await appointmentsApi.updateAppointmentStatus(appointmentId, "COMPLETED", "OPD consultation completed");
+                } catch {
+                  // Ignore if already completed in backend
+                }
+              }
             }
           }
+        } catch (aptErr) {
+          console.warn("Non-blocking appointment status completion warning:", aptErr);
         }
       }
 
