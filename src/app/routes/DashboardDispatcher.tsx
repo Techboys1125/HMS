@@ -8,7 +8,7 @@ import {
   AccountantDashboard,
   PatientDashboard,
 } from "../../features/dashboard";
-import { usePatientPortal } from "../../features/patients/context/PatientPortalContext";
+import { usePatientPortal } from "../../features/patients/context/usePatientPortal";
 
 export function DashboardDispatcher() {
   const user = useAuthStore((s) => s.user);
@@ -46,10 +46,7 @@ export function DashboardDispatcher() {
         <PatientDashboard
           activePatient={portal?.activePatient || undefined}
           familyMembers={portal?.familyMembers || []}
-          onSwitchPatient={
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (member) => portal?.switchToPatient(member as any)
-          }
+          onSwitchPatient={(member) => portal?.switchToPatient(member)}
         />
       );
 

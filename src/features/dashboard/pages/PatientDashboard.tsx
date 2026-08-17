@@ -31,6 +31,7 @@ import {
   usePatientConsultationHistory,
   usePatientUnreadNotificationsCount,
 } from "../hooks/usePatientDashboard";
+import { formatTime } from "../../../lib/time-utils";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -519,7 +520,7 @@ export function PatientDashboard({
                       >
                         {item.date} at{" "}
                         <span className="font-mono font-semibold text-[#0D47A1]">
-                          {item.time}
+                          {formatTime(item.time)}
                         </span>
                       </div>
                     </div>

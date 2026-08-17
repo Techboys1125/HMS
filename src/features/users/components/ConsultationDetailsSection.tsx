@@ -261,27 +261,6 @@ export const ConsultationDetailsSection: React.FC<
           )}
         </div>
 
-        {/* Follow-up Fee */}
-        <div className="space-y-1">
-          <label className="block text-xs font-heading font-bold text-text-body">
-            Follow-up Fee (₹){" "}
-            <span className="text-slate-400 font-normal">(Optional)</span>
-          </label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">
-              ₹
-            </span>
-            <input
-              type="number"
-              min={0}
-              value={form.followUpFee}
-              onChange={(e) => setFieldValue("followUpFee", e.target.value)}
-              placeholder="300"
-              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-9 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body"
-            />
-          </div>
-        </div>
-
         {/* Qualification */}
         <div className="space-y-1">
           <label className="block text-xs font-heading font-bold text-text-body">

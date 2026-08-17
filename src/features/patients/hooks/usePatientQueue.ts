@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { patientQueueService } from "../services/patientQueue.service";
-import { usePatientPortal } from "../context/PatientPortalContext";
+import { usePatientPortal } from "../context/usePatientPortal";
 import type { PatientQueueData } from "../types/patient.types";
 
 export function usePatientQueue() {

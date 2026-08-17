@@ -2,7 +2,11 @@ import type { AppointmentRecord } from "../../appointments/types/appointment.typ
 import { consultationApi } from "../api/consultationApi";
 import { consultationStoreActions } from "../store/consultationStore";
 import type { PatientVitals } from "../types/vitals";
-import type { ConsultationRecord, VisitType, ConsultationStatus } from "../types/consultation";
+import type {
+  ConsultationRecord,
+  VisitType,
+  ConsultationStatus,
+} from "../types/consultation";
 import { encountersApi } from "../../encounters";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
 
@@ -49,7 +53,9 @@ export const consultationService = {
       // 2. Load patient vitals for the encounter (may fail for new encounters — non-critical)
       let vitals: PatientVitals | null = null;
       try {
-        vitals = await consultationApi.loadEncounterVitals(encounter.encounterId);
+        vitals = await consultationApi.loadEncounterVitals(
+          encounter.encounterId,
+        );
         if (vitals) {
           consultationStoreActions.setVitals(vitals);
         }
@@ -66,9 +72,12 @@ export const consultationService = {
       // 4. Create Draft Prescription linked to encounter
       let prescription = null;
       try {
-        prescription = await encountersApi.createPrescription(encounter.encounterId, {
-          outcome: "NO_MEDICATION_REQUIRED",
-        });
+        prescription = await encountersApi.createPrescription(
+          encounter.encounterId,
+          {
+            outcome: "NO_MEDICATION_REQUIRED",
+          },
+        );
       } catch {
         prescription = null;
       }
@@ -78,33 +87,50 @@ export const consultationService = {
       const record: ConsultationRecord = {
         id: String(consultation.id),
         appointmentId,
-        tokenNo: String(appointment.tokenNo || appointment.tokenNumber || appointment.queueToken || ""),
+        tokenNo: String(
+          appointment.tokenNo ||
+            appointment.tokenNumber ||
+            appointment.queueToken ||
+            "",
+        ),
         patientName: appointment.patientName,
         mrn: appointment.mrn || appointment.patientMrn || "",
         age: Number(appointment.patientAge || appointment.age || 30),
-        gender: (appointment.patientGender || appointment.gender || "Other") as "Male" | "Female" | "Other",
+        gender: (appointment.patientGender || appointment.gender || "Other") as
+          "Male" | "Female" | "Other",
         phone: String(appointment.patientPhone || appointment.mobile || ""),
         doctor: appointment.doctorName,
-        department: appointment.departmentName ||
+        department:
+          appointment.departmentName ||
           (typeof appointment.department === "string"
             ? appointment.department
             : appointment.department?.name ||
-            appointment.department?.departmentName) ||
+              appointment.department?.departmentName) ||
           "Cardiology",
         appointmentTime: appointment.appointmentTime || "",
-        visitType: (appointment.appointmentType || appointment.visitType || "New Consultation") as VisitType,
+        visitType: (appointment.appointmentType ||
+          appointment.visitType ||
+          "New Consultation") as VisitType,
         status: "IN_CONSULTATION" as ConsultationStatus,
-        chiefComplaint: consultation.chiefComplaint || chiefComplaint || appointment.chiefComplaint || "",
+        chiefComplaint:
+          consultation.chiefComplaint ||
+          chiefComplaint ||
+          appointment.chiefComplaint ||
+          "",
         opdRoom: String(appointment.opdRoom || ""),
-        date: appointment.appointmentDate || new Date().toISOString().split("T")[0],
+        date:
+          appointment.appointmentDate || new Date().toISOString().split("T")[0],
         vitals: vitals || undefined,
-        clinicalExamination: consultation.generalExamination || consultation.physicalExamination || undefined,
+        clinicalExamination:
+          consultation.generalExamination ||
+          consultation.physicalExamination ||
+          undefined,
         advice: consultation.advice,
         doctorName: "",
         completionTime: "",
         allergies: [],
         bloodGroup: "",
-        durationOfSymptoms: ""
+        durationOfSymptoms: "",
       };
 
       consultationStoreActions.setConsultation(record);
@@ -169,7 +195,10 @@ export const consultationService = {
     vitals: Record<string, unknown>,
   ): Promise<{ success: boolean; data: unknown }> => {
     try {
-      return await consultationApi.updateAppointmentVitals(appointmentId, vitals);
+      return await consultationApi.updateAppointmentVitals(
+        appointmentId,
+        vitals,
+      );
     } catch (err) {
       console.error("updateAppointmentVitals failed:", err);
       throw err;
@@ -185,7 +214,10 @@ export const consultationService = {
     clinicalNotes: Record<string, unknown>,
   ): Promise<{ success: boolean; data: unknown }> => {
     try {
-      return await consultationApi.saveClinicalNotes(consultationId, clinicalNotes);
+      return await consultationApi.saveClinicalNotes(
+        consultationId,
+        clinicalNotes,
+      );
     } catch (err) {
       console.error("saveClinicalNotes failed:", err);
       throw err;
@@ -229,10 +261,12 @@ export const consultationService = {
   ) => {
     consultationStoreActions.setLoading(true);
     try {
-      const { selectedPrescription, selectedEncounter, selectedAppointment } = consultationStoreActions.getState();
+      const { selectedPrescription, selectedEncounter } =
+        consultationStoreActions.getState();
       // Use numeric id for API calls (not the string prescriptionId like RX-20260806-2292)
       const rxId = selectedPrescription?.id;
-      const hasValidRxId = rxId !== undefined && rxId !== null && !String(rxId).startsWith("RX-");
+      const hasValidRxId =
+        rxId !== undefined && rxId !== null && !String(rxId).startsWith("RX-");
 
       // Step 16: Save prescription advice (if exists and payload provided)
       if (hasValidRxId && rxId && advicePayload) {
@@ -255,18 +289,24 @@ export const consultationService = {
       // Step 18: Finalize prescription (if exists) — non-critical
       if (hasValidRxId && rxId) {
         try {
-          await encountersApi.finalizePrescription(rxId, { confirmation: true });
+          await encountersApi.finalizePrescription(rxId, {
+            confirmation: true,
+          });
         } catch {
           // Prescription finalize failure is non-blocking
         }
       }
 
       // Step 14: Set prescription resolution (PRESCRIPTION_CREATED if meds exist, else NO_PRESCRIPTION_REQUIRED)
-      const hasMeds = selectedPrescription?.medications && selectedPrescription.medications.length > 0;
+      const hasMeds =
+        selectedPrescription?.medications &&
+        selectedPrescription.medications.length > 0;
       if (encounterId && String(encounterId) !== "ENC-TEMP") {
         try {
           await consultationApi.setPrescriptionResolution(encounterId, {
-            outcome: hasMeds ? "PRESCRIPTION_CREATED" : "NO_PRESCRIPTION_REQUIRED",
+            outcome: hasMeds
+              ? "PRESCRIPTION_CREATED"
+              : "NO_PRESCRIPTION_REQUIRED",
           });
         } catch (resErr) {
           console.warn("Prescription resolution warning:", resErr);
@@ -282,11 +322,15 @@ export const consultationService = {
         // Step 20: Finalize encounter (non-blocking if encounter missing in backend)
         try {
           let version = selectedEncounter?.version;
-          const latestEncounter = await consultationApi.getEncounter(encounterId);
+          const latestEncounter =
+            await consultationApi.getEncounter(encounterId);
           if (latestEncounter && latestEncounter.version !== undefined) {
             version = latestEncounter.version;
           }
-          await encountersApi.finalizeEncounter(encounterId, { confirmation: true, version });
+          await encountersApi.finalizeEncounter(encounterId, {
+            confirmation: true,
+            version,
+          });
         } catch (encErr) {
           console.warn("Finalize encounter warning:", encErr);
         }
@@ -295,13 +339,18 @@ export const consultationService = {
       // Complete appointment using dedicated doctor endpoint & update status to COMPLETED
       if (appointmentId) {
         try {
-          const latestAppointment = await appointmentsApi.getAppointmentById(appointmentId);
-          const currentStatus = latestAppointment?.data?.status || (latestAppointment?.data as any)?.appointmentStatus;
-          
+          const latestAppointment =
+            await appointmentsApi.getAppointmentById(appointmentId);
+          const currentStatus =
+            latestAppointment?.data?.status;
+
           if (currentStatus !== "COMPLETED") {
             if (currentStatus !== "IN_CONSULTATION") {
               try {
-                await appointmentsApi.updateAppointmentStatus(appointmentId, "IN_CONSULTATION");
+                await appointmentsApi.updateAppointmentStatus(
+                  appointmentId,
+                  "IN_CONSULTATION",
+                );
               } catch {
                 // May already be in consultation
               }
@@ -309,10 +358,17 @@ export const consultationService = {
             try {
               await consultationApi.completeAppointment(appointmentId);
             } catch (compErr: unknown) {
-              const msg = compErr instanceof Error ? compErr.message : String(compErr || "");
+              const msg =
+                compErr instanceof Error
+                  ? compErr.message
+                  : String(compErr || "");
               if (!msg.includes("COMPLETED")) {
                 try {
-                  await appointmentsApi.updateAppointmentStatus(appointmentId, "COMPLETED", "OPD consultation completed");
+                  await appointmentsApi.updateAppointmentStatus(
+                    appointmentId,
+                    "COMPLETED",
+                    "OPD consultation completed",
+                  );
                 } catch {
                   // Ignore if already completed in backend
                 }
@@ -320,7 +376,10 @@ export const consultationService = {
             }
           }
         } catch (aptErr) {
-          console.warn("Non-blocking appointment status completion warning:", aptErr);
+          console.warn(
+            "Non-blocking appointment status completion warning:",
+            aptErr,
+          );
         }
       }
 
@@ -339,14 +398,15 @@ export const consultationService = {
   /**
    * Action: Load Full Consultation Details from APIs
    */
-   loadFullConsultationDetails: async (
+  loadFullConsultationDetails: async (
     consultationId: string | number,
   ): Promise<Record<string, unknown>> => {
     consultationStoreActions.setLoading(true);
     try {
       // 1. Fetch consultation details
-      const consultation = await consultationApi.getConsultationDetails(consultationId);
-      
+      const consultation =
+        await consultationApi.getConsultationDetails(consultationId);
+
       if (!consultation) {
         throw new Error("Consultation details not found");
       }
@@ -357,41 +417,55 @@ export const consultationService = {
 
       // 2. Fetch encounter
       const encounter = await consultationApi.getEncounter(encounterId);
-      
+
       // 3. Fetch vitals
       const vitals = await consultationApi.loadEncounterVitals(encounterId);
-      
+
       // 4. Fetch diagnoses
       const diagnoses = await consultationApi.getDiagnoses(encounterId);
-      
+
       // 5. Fetch prescription
       const prescription = await consultationApi.getPrescription(encounterId);
 
-      const normalizedVitals = vitals ? {
-        height: vitals.height || cnsRecord.vitals?.height || "",
-        weight: vitals.weight || cnsRecord.vitals?.weight || "",
-        bmi: vitals.bmi || cnsRecord.vitals?.bmi || "",
-        temp: vitals.temp || cnsRecord.vitals?.temp || "",
-        bp: vitals.bp || cnsRecord.vitals?.bp || "",
-        pulse: vitals.pulse || cnsRecord.vitals?.pulse || "",
-        respiratoryRate: vitals.respiratoryRate || cnsRecord.vitals?.respiratoryRate || "",
-        spo2: vitals.spo2 || cnsRecord.vitals?.spo2 || "",
-        bloodSugar: vitals.bloodSugar || cnsRecord.vitals?.bloodSugar || "",
-      } : cnsRecord.vitals;
+      const normalizedVitals = vitals
+        ? {
+            height: vitals.height || cnsRecord.vitals?.height || "",
+            weight: vitals.weight || cnsRecord.vitals?.weight || "",
+            bmi: vitals.bmi || cnsRecord.vitals?.bmi || "",
+            temp: vitals.temp || cnsRecord.vitals?.temp || "",
+            bp: vitals.bp || cnsRecord.vitals?.bp || "",
+            pulse: vitals.pulse || cnsRecord.vitals?.pulse || "",
+            respiratoryRate:
+              vitals.respiratoryRate || cnsRecord.vitals?.respiratoryRate || "",
+            spo2: vitals.spo2 || cnsRecord.vitals?.spo2 || "",
+            bloodSugar: vitals.bloodSugar || cnsRecord.vitals?.bloodSugar || "",
+          }
+        : cnsRecord.vitals;
 
       const fullRecord: ConsultationRecord = {
         ...cnsRecord,
         vitals: normalizedVitals,
-        finalDiagnosis: diagnoses.length > 0 ? diagnoses[0].diagnosisName : cnsRecord.finalDiagnosis,
-        icdCode: diagnoses.length > 0 ? `${diagnoses[0].diagnosisCode} — ${diagnoses[0].diagnosisName}` : cnsRecord.icdCode,
-        medicines: prescription && prescription.medications ? prescription.medications.map((med: Record<string, unknown>, idx: number) => ({
-          id: String(med.id || idx),
-          name: med.medicineName || med.name,
-          dosage: med.strength || med.dosage,
-          frequency: med.frequencyDisplay || med.frequency,
-          duration: `${med.durationValue || 7} Days`,
-          instructions: med.instructions || "",
-        })) : cnsRecord.medicines,
+        finalDiagnosis:
+          diagnoses.length > 0
+            ? diagnoses[0].diagnosisName
+            : cnsRecord.finalDiagnosis,
+        icdCode:
+          diagnoses.length > 0
+            ? `${diagnoses[0].diagnosisCode} — ${diagnoses[0].diagnosisName}`
+            : cnsRecord.icdCode,
+        medicines:
+          prescription && prescription.medications
+            ? prescription.medications.map(
+                (med: Record<string, unknown>, idx: number) => ({
+                  id: String(med.id || idx),
+                  name: med.medicineName || med.name,
+                  dosage: med.strength || med.dosage,
+                  frequency: med.frequencyDisplay || med.frequency,
+                  duration: `${med.durationValue || 7} Days`,
+                  instructions: med.instructions || "",
+                }),
+              )
+            : cnsRecord.medicines,
       };
 
       consultationStoreActions.setConsultation(fullRecord);
@@ -409,7 +483,9 @@ export const consultationService = {
       };
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to load consultation details";
+        err instanceof Error
+          ? err.message
+          : "Failed to load consultation details";
       consultationStoreActions.setError(errorMessage);
       throw new Error(errorMessage, { cause: err });
     } finally {

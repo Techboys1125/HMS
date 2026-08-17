@@ -27,6 +27,7 @@ import type {
 } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
 import { doctorsApi } from "../api/doctors.api";
+import { TimeSelect } from "../../../components/TimeSelect";
 
 const WEEK_DAYS: { api: DayOfWeek; short: string; label: string }[] = [
   { api: "MONDAY", short: "MON", label: "Monday" },
@@ -617,12 +618,11 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                                   className="bg-white rounded-lg border border-[#E5E7EB] p-2.5 space-y-2"
                                 >
                                   <div className="flex items-center gap-1.5">
-                                    <input
-                                      type="time"
+                                    <TimeSelect
                                       value={period.startTime}
-                                      onChange={(e) =>
+                                      onChange={(val) =>
                                         setDraftPeriod(pIdx, {
-                                          startTime: e.target.value,
+                                          startTime: val,
                                         })
                                       }
                                       className={inputClass}
@@ -630,12 +630,11 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                                     <span className="text-[10px] text-[#94A3B8]">
                                       to
                                     </span>
-                                    <input
-                                      type="time"
+                                    <TimeSelect
                                       value={period.endTime}
-                                      onChange={(e) =>
+                                      onChange={(val) =>
                                         setDraftPeriod(pIdx, {
-                                          endTime: e.target.value,
+                                          endTime: val,
                                         })
                                       }
                                       className={inputClass}
@@ -695,12 +694,11 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                                                 </option>
                                               ))}
                                             </select>
-                                            <input
-                                              type="time"
+                                            <TimeSelect
                                               value={brk.startTime}
-                                              onChange={(e) =>
+                                              onChange={(val) =>
                                                 setDraftBreak(pIdx, bIdx, {
-                                                  startTime: e.target.value,
+                                                  startTime: val,
                                                 })
                                               }
                                               className={inputClass}
@@ -708,12 +706,11 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                                             <span className="text-[10px] text-[#94A3B8]">
                                               to
                                             </span>
-                                            <input
-                                              type="time"
+                                            <TimeSelect
                                               value={brk.endTime}
-                                              onChange={(e) =>
+                                              onChange={(val) =>
                                                 setDraftBreak(pIdx, bIdx, {
-                                                  endTime: e.target.value,
+                                                  endTime: val,
                                                 })
                                               }
                                               className={inputClass}
@@ -1096,13 +1093,12 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                       <label className="block text-[10px] font-bold text-[#64748B] mb-1">
                         Start Time
                       </label>
-                      <input
-                        type="time"
+                      <TimeSelect
                         value={exceptionForm.startTime}
-                        onChange={(e) =>
+                        onChange={(val) =>
                           setExceptionForm((prev) => ({
                             ...prev,
-                            startTime: e.target.value,
+                            startTime: val,
                           }))
                         }
                         className={inputClass}
@@ -1112,13 +1108,12 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                       <label className="block text-[10px] font-bold text-[#64748B] mb-1">
                         End Time
                       </label>
-                      <input
-                        type="time"
+                      <TimeSelect
                         value={exceptionForm.endTime}
-                        onChange={(e) =>
+                        onChange={(val) =>
                           setExceptionForm((prev) => ({
                             ...prev,
-                            endTime: e.target.value,
+                            endTime: val,
                           }))
                         }
                         className={inputClass}

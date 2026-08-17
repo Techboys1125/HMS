@@ -5,7 +5,7 @@ import { Header } from "./Header";
 import { NavRail } from "./NavRail";
 import type { NavId, Role } from "../../types/app.types";
 import { ROUTES } from "../../app/routes/routes";
-import { usePatientPortal } from "../../features/patients/context/PatientPortalContext";
+import { usePatientPortal } from "../../features/patients/context/usePatientPortal";
 import type { FamilyMember } from "../../features/patients/pages/FamilyMembersManagement";
 import type { FamilyMember as HeaderFamilyMember } from "../../features/patients/types/family.types";
 

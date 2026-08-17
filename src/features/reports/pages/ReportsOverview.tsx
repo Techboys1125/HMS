@@ -45,6 +45,12 @@ import { PP, RB } from "../constants/reports.constants";
 import type {
   DoctorSummaryPerformanceRecord,
   AvailableReportCard,
+  DoctorPerformanceSummaryData,
+  DailyAppointmentSummary,
+  DailyRevenuePoint,
+  OperationalTrendPoint,
+  MostViewedReport,
+  RevenueVsCollectionPoint,
 } from "../types/reports.types";
 import {
   useHospitalDashboard,
@@ -124,10 +130,8 @@ function safeNumber(val: unknown, fallback = 0): number {
 
 export function AdminReportsDashboardScreen({
   onOpenReport,
-  onOpenKpiDetail,
 }: {
   onOpenReport?: (reportId: string) => void;
-  onOpenKpiDetail?: (kpiName?: string) => void;
 }) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
@@ -235,42 +239,83 @@ export function AdminReportsDashboardScreen({
   };
 
   // ─── API Data Hooks (Using Live Backend Data) ───────────────────────────
-  const { data: hospitalDashboard, isLoading: isDashLoading, isError: isDashError, refetch: refetchDash } = useHospitalDashboard();
+  const {
+    data: hospitalDashboard,
+    isLoading: isDashLoading,
+    isError: isDashError,
+    refetch: refetchDash,
+  } = useHospitalDashboard();
   const { data: operationalTrend = [] } = useOperationalTrend();
   const { data: deptConsultVolume = [] } = useDepartmentConsultationVolume();
   const { data: revenueVsCollection = [] } = useRevenueVsCollection();
-  const { data: doctorPerformanceData, isLoading: isDocLoading, isError: isDocError } = useDoctorPerformance();
+  const {
+    data: doctorPerformanceData,
+    isLoading: isDocLoading,
+    isError: isDocError,
+  } = useDoctorPerformance();
   const { data: mostViewedReports = [] } = useMostViewedReports();
   const { data: categoryShare = [] } = useReportCategoryShare();
-  const { data: collectionRateData, isLoading: isColLoading, isError: isColError } = useCollectionRate();
+  const {
+    data: collectionRateData,
+    isLoading: isColLoading,
+    isError: isColError,
+  } = useCollectionRate();
   const { data: adminDash } = useAdminReportsDashboard();
-  const { data: dailyAppts, isLoading: isApptLoading, isError: isApptError } = useDailyAppointments();
-  const { data: patRegs, isLoading: isPatLoading, isError: isPatError } = usePatientRegistrationSummary();
-  const { data: dailyRev, isLoading: isRevLoading, isError: isRevError } = useDailyRevenue();
-  const { data: invSum, isLoading: isInvLoading, isError: isInvError } = useInvoiceSummary();
+  const {
+    data: dailyAppts,
+    isLoading: isApptLoading,
+    isError: isApptError,
+  } = useDailyAppointments();
+  const {
+    data: patRegs,
+    isLoading: isPatLoading,
+    isError: isPatError,
+  } = usePatientRegistrationSummary();
+  const {
+    data: dailyRev,
+    isLoading: isRevLoading,
+    isError: isRevError,
+  } = useDailyRevenue();
+  const {
+    data: invSum,
+    isLoading: isInvLoading,
+    isError: isInvError,
+  } = useInvoiceSummary();
   const { data: colRate } = useCollectionRateSummary();
 
-  const isDataLoading = isDashLoading || isDocLoading || isColLoading || isApptLoading || isPatLoading || isRevLoading || isInvLoading || isLoading;
-  const isDataError = isDashError && isDocError && isColError && isApptError && isPatError && isRevError && isInvError;
+  const isDataLoading =
+    isDashLoading ||
+    isDocLoading ||
+    isColLoading ||
+    isApptLoading ||
+    isPatLoading ||
+    isRevLoading ||
+    isInvLoading ||
+    isLoading;
+  const isDataError =
+    isDashError &&
+    isDocError &&
+    isColError &&
+    isApptError &&
+    isPatError &&
+    isRevError &&
+    isInvError;
 
   const dashboardData = hospitalDashboard;
 
   const doctorSource = useMemo(() => {
     const rawList =
-      (doctorPerformanceData as Record<string, any>)?.doctors ??
-      (doctorPerformanceData as Record<string, any>)?.content ??
-      [];
+      (doctorPerformanceData as DoctorPerformanceSummaryData | undefined)
+        ?.content ?? [];
     const list = Array.isArray(rawList) ? rawList : [];
-    return list.map((d: Record<string, any>, idx: number) => ({
-      id: String(d.doctorId || d.id || `doc-${idx}`),
+    return list.map((d, idx) => ({
+      id: String(d.doctorId || `doc-${idx}`),
       doctorName: d.doctorName || "Doctor",
       department: d.department || "General",
-      appointments: Number(
-        d.appointments ?? d.totalConsultations ?? d.consultations ?? 0,
-      ),
-      completed: Number(d.completed ?? d.completedConsultations ?? 0),
-      cancelled: Number(d.cancelled ?? d.cancelledConsultations ?? 0),
-      revenue: Number(d.revenue ?? (d.completed ? Number(d.completed) * 500 : 0)),
+      appointments: Number(d.appointments ?? 0),
+      completed: Number(d.completed ?? 0),
+      cancelled: Number(d.cancelled ?? 0),
+      revenue: Number(d.completed ? d.completed * 500 : 0),
       rating: Number(d.rating ?? 4.8),
       avatar: "",
     }));
@@ -283,19 +328,15 @@ export function AdminReportsDashboardScreen({
 
   const deptSource = useMemo(() => {
     const list = Array.isArray(deptConsultVolume) ? deptConsultVolume : [];
-    return list.map((d: Record<string, any>) => ({
+    return list.map((d) => ({
       ...d,
-      department: d.departmentName || d.department || "General",
-      appointments: Number(
-        d.totalConsultations ?? d.consultationCount ?? d.appointments ?? 0,
-      ),
+      department: d.departmentName || "General",
+      appointments: Number(d.totalConsultations ?? 0),
       completionRate:
-        Number(d.totalConsultations ?? d.consultationCount ?? 0) > 0
+        Number(d.totalConsultations ?? 0) > 0
           ? Math.round(
               (Number(d.completedConsultations ?? 0) /
-                Number(
-                  d.totalConsultations ?? d.consultationCount ?? 1,
-                )) *
+                Number(d.totalConsultations ?? 1)) *
                 100,
             )
           : 0,
@@ -313,54 +354,79 @@ export function AdminReportsDashboardScreen({
 
   const computedKpis = useMemo(() => {
     const rawAppts = Number(
-      (dailyAppts as any)?.total ??
-        (Array.isArray(dailyAppts) ? dailyAppts.reduce((acc: number, item: any) => acc + (item.totalAppointments || 0), 0) : 0) ||
-        (hospitalDashboard as any)?.dailyAppointments?.total ??
+      (((Array.isArray(dailyAppts)
+          ? dailyAppts.reduce(
+              (acc: number, item: DailyAppointmentSummary) =>
+                acc + (item.totalAppointments || 0),
+              0,
+            )
+          : 0)) ||
+        hospitalDashboard?.totalAppointments) ??
         adminDash?.totalAppointments ??
         0,
     );
     const rawRegs = Number(
-      (patRegs as any)?.total ??
-        (hospitalDashboard as any)?.patientRegistrations?.total ??
+      patRegs?.totalRegistrations ??
+        hospitalDashboard?.totalPatients ??
         adminDash?.totalPatients ??
         0,
     );
     const rawRev = Number(
-      (dailyRev as any)?.totalRevenue ??
-        (Array.isArray(dailyRev) ? dailyRev.reduce((acc: number, item: any) => acc + (item.revenue || 0), 0) : 0) ||
-        (hospitalDashboard as any)?.dailyRevenue?.totalRevenue ??
+      (((Array.isArray(dailyRev)
+          ? dailyRev.reduce(
+              (acc: number, item: DailyRevenuePoint) =>
+                acc + (item.amount || 0),
+              0,
+            )
+          : 0)) ||
+        hospitalDashboard?.totalRevenue) ??
         adminDash?.totalRevenue ??
         0,
     );
     const rawInvoices = Number(
-      (invSum as any)?.totalInvoices ??
-        (hospitalDashboard as any)?.invoicesSummary?.totalInvoices ??
+      invSum?.totalInvoices ??
+        hospitalDashboard?.totalAppointments ??
         rawAppts,
     );
     const rawCompleted = Number(
-      (dailyAppts as any)?.done ??
-        (Array.isArray(dailyAppts) ? dailyAppts.reduce((acc: number, item: any) => acc + (item.completedAppointments || 0), 0) : 0) ||
-        (hospitalDashboard as any)?.dailyAppointments?.done ??
+      (((Array.isArray(dailyAppts)
+          ? dailyAppts.reduce(
+              (acc: number, item: DailyAppointmentSummary) =>
+                acc + (item.completedAppointments || 0),
+              0,
+            )
+          : 0)) ||
+        hospitalDashboard?.completedConsultations) ??
         adminDash?.completedConsultations ??
         0,
     );
     const rawCancelled = Number(
-      (dailyAppts as any)?.cancelled ??
-        (Array.isArray(dailyAppts) ? dailyAppts.reduce((acc: number, item: any) => acc + (item.cancelledAppointments || 0), 0) : 0) ||
-        (hospitalDashboard as any)?.dailyAppointments?.cancelled ??
+      (((Array.isArray(dailyAppts)
+          ? dailyAppts.reduce(
+              (acc: number, item: DailyAppointmentSummary) =>
+                acc + (item.cancelledAppointments || 0),
+              0,
+            )
+          : 0)) ||
+        hospitalDashboard?.cancelledConsultations) ??
         adminDash?.cancelledConsultations ??
         0,
     );
     const rawPending = Number(
-      (dailyAppts as any)?.pending ??
-        (Array.isArray(dailyAppts) ? dailyAppts.reduce((acc: number, item: any) => acc + (item.pendingAppointments || 0), 0) : 0) ||
-        (hospitalDashboard as any)?.dailyAppointments?.pending ??
+      (((Array.isArray(dailyAppts)
+          ? dailyAppts.reduce(
+              (acc: number, item: DailyAppointmentSummary) =>
+                acc + (item.pendingAppointments || 0),
+              0,
+            )
+          : 0)) ||
+        hospitalDashboard?.pendingConsultations) ??
         adminDash?.pendingConsultations ??
         0,
     );
     const rawColRate = Number(
-      (colRate as any)?.collectionRate ??
-        (hospitalDashboard as any)?.invoicesSummary?.collectionRate ??
+      colRate?.collectionRate ??
+        hospitalDashboard?.collectionRate ??
         adminDash?.collectionRate ??
         0,
     );
@@ -390,12 +456,20 @@ export function AdminReportsDashboardScreen({
     return doctorSource.filter((doc) => {
       const matchesDept =
         appliedFilters.dept === "All Departments" ||
-        doc.department.toLowerCase().includes(appliedFilters.dept.toLowerCase()) ||
-        appliedFilters.dept.toLowerCase().includes(doc.department.toLowerCase());
+        doc.department
+          .toLowerCase()
+          .includes(appliedFilters.dept.toLowerCase()) ||
+        appliedFilters.dept
+          .toLowerCase()
+          .includes(doc.department.toLowerCase());
       const matchesDoc =
         appliedFilters.doctor === "All Doctors" ||
-        doc.doctorName.toLowerCase().includes(appliedFilters.doctor.toLowerCase()) ||
-        appliedFilters.doctor.toLowerCase().includes(doc.doctorName.toLowerCase());
+        doc.doctorName
+          .toLowerCase()
+          .includes(appliedFilters.doctor.toLowerCase()) ||
+        appliedFilters.doctor
+          .toLowerCase()
+          .includes(doc.doctorName.toLowerCase());
       const matchesSearch =
         !searchQuery ||
         doc.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -422,15 +496,19 @@ export function AdminReportsDashboardScreen({
     if (appliedFilters.dept !== "All Departments") {
       return deptSource.filter(
         (d) =>
-          d.department.toLowerCase().includes(appliedFilters.dept.toLowerCase()) ||
-          appliedFilters.dept.toLowerCase().includes(d.department.toLowerCase()),
+          d.department
+            .toLowerCase()
+            .includes(appliedFilters.dept.toLowerCase()) ||
+          appliedFilters.dept
+            .toLowerCase()
+            .includes(d.department.toLowerCase()),
       );
     }
     return deptSource;
   }, [appliedFilters.dept, deptSource]);
 
   const dynamicHospitalPerformanceTrend = useMemo(() => {
-    return trendSource.map((item: any) => ({
+    return trendSource.map((item: OperationalTrendPoint) => ({
       date: item.date,
       appointments: Number(item.appointments ?? 0),
       registrations: Number(item.registrations ?? 0),
@@ -440,8 +518,8 @@ export function AdminReportsDashboardScreen({
   }, [trendSource]);
 
   const dynamicMostViewedReports = useMemo(() => {
-    return mostViewedSource.map((item: any) => ({
-      name: item.reportName || item.reportType || "Report",
+    return mostViewedSource.map((item: MostViewedReport) => ({
+      name: item.reportName || "Report",
       views: Number(item.viewCount ?? 0),
       lastGenerated: "Today",
     }));
@@ -452,8 +530,8 @@ export function AdminReportsDashboardScreen({
   }, [categoryShare]);
 
   const dynamicRevenueVsCollection = useMemo(() => {
-    return revenueSource.map((item: any) => ({
-      month: item.period || item.month || item.date,
+    return revenueSource.map((item: RevenueVsCollectionPoint) => ({
+      month: item.month || item.date,
       revenue: Number(item.billed ?? item.revenue ?? 0),
       collected: Number(item.collected ?? 0),
       outstanding: Number(item.outstanding ?? 0),

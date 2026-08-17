@@ -15,7 +15,7 @@ import {
   Save,
   Info,
 } from "lucide-react";
-import { PP, RB } from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.fonts";
 import { Avatar } from "./Avatar";
 import { type ScreenPatient } from "../types/patient.types";
 import { StatusBadge } from "./StatusBadges";

@@ -40,7 +40,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { PP, RB } from "../constants/reports.constants";
-import type { PatientReportRecord } from "../types/reports.types";
+import type { PatientReportRecord, PatientMasterRecord } from "../types/reports.types";
 import {
   usePatientAgeDemographics,
   useDepartmentPatientVisits,
@@ -223,7 +223,7 @@ export function PatientReportScreen({
     }, 300);
   };
 
-  const patientMasterList = useMemo(() => extractList<any>(patientMasterData), [patientMasterData]);
+  const patientMasterList = useMemo(() => extractList<PatientMasterRecord>(patientMasterData), [patientMasterData]);
 
   // Computed KPI Card Values from API hooks
   const computedPatientStats = useMemo(() => {
@@ -253,7 +253,7 @@ export function PatientReportScreen({
 
   // Filtered records
   const filteredData = useMemo(() => {
-    const source = patientMasterList.map((d: any) => ({
+    const source = patientMasterList.map((d: PatientMasterRecord) => ({
       patientId: d.patientId || d.id || "",
       patientName: d.patientName || d.fullName || d.name || "N/A",
       mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
@@ -301,7 +301,8 @@ export function PatientReportScreen({
     doctorFilter,
     visitTypeFilter,
     regStatusFilter,
-    patientMasterData?.content,
+    patientMasterList,
+    today,
   ]);
 
   // Sorted records

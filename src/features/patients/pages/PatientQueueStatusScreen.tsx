@@ -12,8 +12,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { patientsApi } from "../api/patient.api";
-import { PP, RB } from "../constants/patient.mock";
-import { usePatientPortal } from "../context/PatientPortalContext";
+import { PP, RB } from "../constants/patient.fonts";
+import { usePatientPortal } from "../context/usePatientPortal";
 
 type QueueStatus = {
   appointmentId: number;
@@ -38,41 +38,53 @@ export function PatientQueueStatusScreen() {
     setTimeout(() => setToastMsg(null), 3000);
   };
 
+  const loadQueueData = useCallback(async () => {
+    if (!activeMrn) return null;
+    const data = await patientsApi.getPatientQueue(activeMrn);
+    if (!data) return null;
+    const queue = data as Record<string, unknown>;
+    return {
+      appointmentId: Number(queue.appointmentId || 0),
+      token: String(queue.token || queue.tokenNumber || "—"),
+      position: Number(queue.position ?? 0),
+      patientsAhead: Number(queue.patientsAhead ?? 0),
+      estimatedWaitMinutes: Number(queue.estimatedWaitMinutes ?? 0),
+      status: String(queue.status || queue.queueStatus || "WAITING"),
+      doctorName: String(queue.doctorName || "—"),
+      departmentName: String(queue.departmentName || "—"),
+    };
+  }, [activeMrn]);
+
   const fetchQueue = useCallback(async () => {
     setIsLoading(true);
     try {
-      if (!activeMrn) {
-        setQueueStatus(null);
-        return;
-      }
-      const data = await patientsApi.getPatientQueue(activeMrn);
-      if (!data) {
-        setQueueStatus(null);
-        return;
-      }
-
-      const queue = data as Record<string, unknown>;
-      setQueueStatus({
-        appointmentId: Number(queue.appointmentId || 0),
-        token: String(queue.token || queue.tokenNumber || "—"),
-        position: Number(queue.position ?? 0),
-        patientsAhead: Number(queue.patientsAhead ?? 0),
-        estimatedWaitMinutes: Number(queue.estimatedWaitMinutes ?? 0),
-        status: String(queue.status || queue.queueStatus || "WAITING"),
-        doctorName: String(queue.doctorName || "—"),
-        departmentName: String(queue.departmentName || "—"),
-      });
+      const result = await loadQueueData();
+      setQueueStatus(result);
     } catch {
       setQueueStatus(null);
     } finally {
       setIsLoading(false);
     }
-  }, [activeMrn]);
+  }, [loadQueueData]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void fetchQueue();
-  }, [fetchQueue]);
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const result = await loadQueueData();
+        if (!cancelled) setQueueStatus(result);
+      } catch {
+        if (!cancelled) setQueueStatus(null);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loadQueueData]);
 
   const statusColor =
     queueStatus?.status === "WAITING"

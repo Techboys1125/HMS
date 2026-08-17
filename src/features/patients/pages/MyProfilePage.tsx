@@ -19,7 +19,7 @@ import { PatientProfileHeader } from "../components/PatientProfileHeader";
 import { SwitchAccountDialog } from "../components/SwitchAccountDialog";
 import { useSwitchAccount } from "../hooks/useSwitchAccount";
 import { useFamilyMembers } from "../hooks/useFamilyMembers";
-import { usePatientPortal } from "../context/PatientPortalContext";
+import { usePatientPortal } from "../context/usePatientPortal";
 import { ROUTES } from "../../../app/routes/routes";
 
 type MyProfileTabId =

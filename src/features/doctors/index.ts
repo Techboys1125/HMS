@@ -52,6 +52,6 @@ export {
   DoctorPatientsScreen,
   DoctorMedicalRecordsScreen,
 } from "./components";
-export { DoctorManagementCenterScreen } from "./pages/DoctorManagementCenterScreen";
+export { DoctorManagementPage } from "./pages/DoctorManagementPage";
 export { DoctorProfilePage } from "./pages/DoctorProfilePage";
 export { DoctorDirectoryPage } from "./pages/DoctorDirectoryPage";

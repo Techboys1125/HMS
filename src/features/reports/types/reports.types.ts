@@ -633,7 +633,7 @@ export interface PatientMasterRecord {
   doctorName: string;
   department: string;
   mobile: string;
-  patientName: any;
+  patientName: string;
   patientId: number;
   mrn: string;
   fullName: string;

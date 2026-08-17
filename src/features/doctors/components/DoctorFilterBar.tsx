@@ -30,6 +30,7 @@ export interface DoctorFilterBarProps {
   setExperienceFilter: (value: string) => void;
   onResetFilters: () => void;
   departments?: string[];
+  specialties?: string[];
 }
 
 export function DoctorFilterBar({
@@ -51,6 +52,7 @@ export function DoctorFilterBar({
   setExperienceFilter,
   onResetFilters,
   departments,
+  specialties,
 }: DoctorFilterBarProps) {
   return (
     <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
@@ -132,28 +134,13 @@ export function DoctorFilterBar({
             className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
           >
             <option value="All">All Departments</option>
-            {departments && departments.length > 0 ? (
-              departments.map((deptName) => (
-                <option key={deptName} value={deptName}>
-                  {deptName}
-                </option>
-              ))
-            ) : (
-              <>
-                <option value="Cardiology">Cardiology</option>
-                <option value="General Medicine">General Medicine</option>
-                <option value="Neurology">Neurology</option>
-                <option value="Orthopedics">Orthopedics</option>
-                <option value="Pediatrics">Pediatrics</option>
-                <option value="Obstetrics & Gynecology">
-                  Obstetrics & Gynecology
-                </option>
-                <option value="Dermatology">Dermatology</option>
-                <option value="ENT">ENT</option>
-                <option value="Ophthalmology">Ophthalmology</option>
-                <option value="Pulmonology">Pulmonology</option>
-              </>
-            )}
+            {departments && departments.length > 0
+              ? departments.map((deptName) => (
+                  <option key={deptName} value={deptName}>
+                    {deptName}
+                  </option>
+                ))
+              : null}
           </select>
         </div>
 
@@ -166,30 +153,13 @@ export function DoctorFilterBar({
             className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
           >
             <option value="All">All Specialties</option>
-            <option value="Interventional Cardiology">
-              Interventional Cardiology
-            </option>
-            <option value="Internal Medicine">Internal Medicine</option>
-            <option value="Clinical Neurology">Clinical Neurology</option>
-            <option value="Pediatric Care & Neonatology">
-              Pediatric Care & Neonatology
-            </option>
-            <option value="Orthopedic Surgery & Joint Replacement">
-              Orthopedic Surgery
-            </option>
-            <option value="Reproductive Health & Maternal Care">
-              Reproductive Health
-            </option>
-            <option value="Clinical & Aesthetic Dermatology">
-              Clinical Dermatology
-            </option>
-            <option value="Otolaryngology & Head-Neck Surgery">
-              Otolaryngology
-            </option>
-            <option value="Cornea & Refractive Surgery">
-              Refractive Surgery
-            </option>
-            <option value="Respiratory Medicine">Respiratory Medicine</option>
+            {specialties && specialties.length > 0
+              ? specialties.map((spec) => (
+                  <option key={spec} value={spec}>
+                    {spec}
+                  </option>
+                ))
+              : null}
           </select>
         </div>
 

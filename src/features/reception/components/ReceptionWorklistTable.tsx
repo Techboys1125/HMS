@@ -8,6 +8,7 @@ import type {
 import { QueueTokenBadge } from "./QueueTokenBadge";
 import { BillingStatusIndicator } from "./BillingStatusIndicator";
 import { UserCheck, Printer, XCircle, Clock } from "lucide-react";
+import { formatTime } from "../../../lib/time-utils";
 
 interface ReceptionWorklistTableProps {
   queue: ReceptionQueueItem[];
@@ -96,11 +97,11 @@ export const ReceptionWorklistTable: React.FC<ReceptionWorklistTableProps> = ({
                     <div className="flex flex-col">
                       <span className="font-semibold text-slate-800 flex items-center gap-1">
                         <Clock size={12} className="text-slate-400" />{" "}
-                        {item.appointmentTime}
+                        {formatTime(item.appointmentTime)}
                       </span>
                       {item.arrivalTime ? (
                         <span className="text-[11px] text-emerald-600 font-semibold mt-0.5">
-                          Arrived at {item.arrivalTime}
+                          Arrived at {formatTime(item.arrivalTime)}
                         </span>
                       ) : (
                         <span className="text-[11px] text-amber-600 font-medium mt-0.5">

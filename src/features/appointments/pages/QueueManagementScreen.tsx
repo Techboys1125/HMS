@@ -77,7 +77,9 @@ export function QueueManagementScreen({
     status?: string;
   } | null>(null);
 
-  const [tokenCounter] = useState(() => 100 + (window.crypto.getRandomValues(new Uint32Array(1))[0] % 900));
+  const [tokenCounter] = useState(
+    () => 100 + (window.crypto.getRandomValues(new Uint32Array(1))[0] % 900),
+  );
 
   const handleExecuteCheckIn = async (apt: AppointmentRecord) => {
     try {
@@ -125,23 +127,28 @@ export function QueueManagementScreen({
   };
 
   const [queueItems, setQueueItems] = useState<AppointmentRecord[]>([]);
-  const [, setIsLoading] = useState(false);
 
   const fetchQueue = async () => {
-    setIsLoading(true);
-    try {
-      const data = await appointmentService.getActiveAppointments();
-      setQueueItems(data);
-    } catch (err) {
-      console.warn("Failed to load queue:", err);
-    } finally {
-      setIsLoading(false);
-    }
+    return appointmentService.getActiveAppointments();
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchQueue();
+    let cancelled = false;
+
+    const loadQueue = async () => {
+      try {
+        const data = await fetchQueue();
+        if (!cancelled) setQueueItems(data);
+      } catch (err) {
+        console.warn("Failed to load queue:", err);
+      }
+    };
+
+    void loadQueue();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Filter Logic

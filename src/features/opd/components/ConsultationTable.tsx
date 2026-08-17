@@ -5,6 +5,7 @@ import { StatusChip } from "./StatusChip";
 import { Avatar } from "./Avatar";
 import { ConsultationActionMenu } from "./ConsultationActionMenu";
 import { Pagination } from "../../../common/components/Pagination";
+import { formatTime } from "../../../lib/time-utils";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -155,7 +156,7 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
 
                 <td className="py-3.5 px-4 font-medium text-slate-800">{item.doctor}</td>
                 <td className="py-3.5 px-4 text-slate-600">{item.department}</td>
-                <td className="py-3.5 px-4 font-medium text-slate-800">{item.appointmentTime}</td>
+                <td className="py-3.5 px-4 font-medium text-slate-800">{formatTime(item.appointmentTime)}</td>
 
                 {role === "doctor" && (
                   <td className="py-3.5 px-4">

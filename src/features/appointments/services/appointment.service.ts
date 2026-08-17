@@ -470,10 +470,8 @@ export const appointmentService = {
 
   async getAppointmentToken(appointmentId: string | number) {
     const res = await appointmentsApi.getAppointmentToken(appointmentId);
-    const data = res?.data ?? res;
     return (
-      data?.tokenNumber ||
-      data?.token ||
+      res?.data?.tokenNumber ||
       `TK-${String(appointmentId).slice(-4)}`
     );
   },
@@ -654,61 +652,55 @@ export const appointmentService = {
         return true;
       });
 
-      return activeDoctors.map(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (d: any): DoctorSummary => ({
-          id: String(
-            d.doctorId ?? d.doctorProfile?.doctorId ?? d.userId ?? d.id ?? "",
-          ),
-          doctorId: d.doctorId ?? d.doctorProfile?.doctorId ?? d.id ?? "",
-          name: String(d.doctorName ?? d.fullName ?? d.name ?? ""),
-          departmentName:
-            d.departmentName ??
-            d.department ??
-            d.primaryDepartment?.departmentName ??
-            "",
-          department:
-            d.departmentName ??
-            d.department ??
-            d.primaryDepartment?.departmentName ??
-            "",
-          departmentId:
-            d.departmentId ?? d.primaryDepartment?.departmentId ?? departmentId,
-          specialty:
-            d.specialty ??
-            d.primarySpecialty?.specialtyName ??
-            d.doctorProfile?.primarySpecialty?.specialtyName ??
-            "",
-          qualification:
-            d.qualification ?? d.doctorProfile?.qualification ?? "",
-          consultationFee:
-            d.fees?.standardConsultationFee ??
-            d.consultationFee ??
-            d.doctorProfile?.consultationFee ??
-            0,
-          opdRoom: d.opdRoom ?? "",
-          status:
-            d.status ??
-            d.doctorProfile?.status ??
-            d.doctor?.status ??
-            d.user?.status ??
-            "ACTIVE",
-          active:
-            d.active ??
-            d.isActive ??
-            d.enabled ??
-            d.doctorProfile?.active ??
-            d.doctorProfile?.isActive ??
-            d.doctor?.active ??
-            d.doctor?.isActive ??
-            d.user?.active ??
-            d.user?.isActive ??
-            d.user?.enabled ??
-            (d.status
-              ? String(d.status).toUpperCase() === "ACTIVE"
-              : undefined),
-        }),
-      );
+      return activeDoctors.map((d: DoctorInputShape): DoctorSummary => ({
+        id: String(
+          d.doctorId ?? d.doctorProfile?.doctorId ?? d.userId ?? d.id ?? "",
+        ),
+        doctorId: d.doctorId ?? d.doctorProfile?.doctorId ?? d.id ?? "",
+        name: String(d.doctorName ?? d.fullName ?? d.name ?? ""),
+        departmentName:
+          d.departmentName ??
+          d.department ??
+          d.primaryDepartment?.departmentName ??
+          "",
+        department:
+          d.departmentName ??
+          d.department ??
+          d.primaryDepartment?.departmentName ??
+          "",
+        departmentId:
+          d.departmentId ?? d.primaryDepartment?.departmentId ?? departmentId,
+        specialty:
+          d.specialty ??
+          d.primarySpecialty?.specialtyName ??
+          d.doctorProfile?.primarySpecialty?.specialtyName ??
+          "",
+        qualification: d.qualification ?? d.doctorProfile?.qualification ?? "",
+        consultationFee:
+          d.fees?.standardConsultationFee ??
+          d.consultationFee ??
+          d.doctorProfile?.consultationFee ??
+          0,
+        opdRoom: d.opdRoom ?? "",
+        status:
+          d.status ??
+          d.doctorProfile?.status ??
+          d.doctor?.status ??
+          d.user?.status ??
+          "ACTIVE",
+        active:
+          d.active ??
+          d.isActive ??
+          d.enabled ??
+          d.doctorProfile?.active ??
+          d.doctorProfile?.isActive ??
+          d.doctor?.active ??
+          d.doctor?.isActive ??
+          d.user?.active ??
+          d.user?.isActive ??
+          d.user?.enabled ??
+          (d.status ? String(d.status).toUpperCase() === "ACTIVE" : undefined),
+      }));
     } catch (error) {
       console.warn("[appointmentService] listDoctors failed:", error);
       return [];
@@ -767,8 +759,7 @@ export const appointmentService = {
         }
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      slots = slots.map((s: any) => {
+      slots = slots.map((s: { time?: string; startTime?: string; slot?: string; available?: boolean }) => {
         const slotTime = s.time || s.startTime || s.slot;
         if (slotTime && occupiedSlots.has(normalizeTimeFormat(slotTime))) {
           return { ...s, available: false };

@@ -96,13 +96,18 @@ export const mapDoctorSummaryToDoctorRecord = (u: unknown): DoctorRecord => {
     status = "On Leave";
   else if (rawStatus === "SUSPENDED") status = "Suspended";
 
-  const userId = userObj.userId ?? userObj.id;
-  const doctorId = profileObj.doctorId ?? userObj.doctorId ?? userId;
+  const rawDoctorId = profileObj.doctorId ?? userObj.doctorId ?? 0;
+  const hasExplicitDoctorId =
+    Number.isFinite(rawDoctorId) && Number(rawDoctorId) > 0;
+  const rawUserId = hasExplicitDoctorId
+    ? (userObj.userId ?? profileObj.userId ?? 0)
+    : (userObj.userId ?? userObj.id ?? profileObj.userId ?? profileObj.id ?? 0);
+  const finalDoctorId = hasExplicitDoctorId ? rawDoctorId : rawUserId;
 
   return {
-    id: `DOC-${userId ?? doctorId ?? ""}`,
-    userId: userId !== undefined ? Number(userId) : undefined,
-    doctorId: doctorId !== undefined ? Number(doctorId) : undefined,
+    id: `DOC-${finalDoctorId || rawUserId || ""}`,
+    userId: rawUserId !== undefined ? Number(rawUserId) : undefined,
+    doctorId: finalDoctorId !== undefined ? Number(finalDoctorId) : undefined,
     empId: String(
       userObj.employeeId ||
         profileObj?.employeeId ||
@@ -122,7 +127,7 @@ export const mapDoctorSummaryToDoctorRecord = (u: unknown): DoctorRecord => {
         userObj.doctorName ??
           userObj.fullName ??
           userObj.name ??
-          (userId || doctorId ? `Doctor ${userId ?? doctorId}` : "Doctor"),
+          (rawUserId || finalDoctorId ? `Doctor ${rawUserId ?? finalDoctorId}` : "Doctor"),
       );
       return rawName.startsWith("Dr.") ? rawName : `Dr. ${rawName}`;
     })(),
@@ -341,10 +346,9 @@ export const doctorsApi = {
 
     const fetchDoctorFacing = async (): Promise<DoctorRecord> => {
       try {
-        const response = await apiClient.get<
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          DoctorApiResponse<any> | any
-        >(`/api/v1/doctors/${numericUserId}`);
+        const response = await apiClient.get<DoctorApiResponse<ApiUserDoctorRecord> | ApiUserDoctorRecord>(
+          `/api/v1/doctors/${numericUserId}`,
+        );
         const data = response.data?.data || response.data;
         if (data && (data.userId || data.fullName || data.name || data.id)) {
           if (data.userId || data.fullName || data.name) {
@@ -560,8 +564,7 @@ export const doctorsApi = {
   ): Promise<ApiScheduleExceptionItem[]> => {
     try {
       const response = await apiClient.get<
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        DoctorApiResponse<ApiScheduleExceptionItem[]> | any
+        DoctorApiResponse<ApiScheduleExceptionItem[]>
       >(`/api/v1/doctors/${doctorId}/schedule-exceptions`);
       const rawData = response.data?.data || response.data;
       const list = Array.isArray(rawData)
@@ -569,8 +572,7 @@ export const doctorsApi = {
         : Array.isArray(rawData?.content)
           ? rawData.content
           : [];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return list.map((item: any) => ({
+      return list.map((item: ApiScheduleExceptionItem) => ({
         id: item.exceptionId || item.id,
         doctorId: Number(doctorId),
         exceptionDate: item.date || item.exceptionDate || item.startDate || "",

@@ -6,9 +6,7 @@
  * stay in sync with the Header profile switcher and the My Profile page.
  */
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
@@ -17,22 +15,14 @@ import {
 import { useAuthStore } from "../../auth";
 import { patientsApi } from "../api/patient.api";
 import type { FamilyMember } from "../pages/FamilyMembersManagement";
+import {
+  PatientPortalContext,
+  SWITCH_ACCOUNT_STORAGE_KEY,
+  type PatientPortalContextValue,
+} from "./PatientPortalContext";
 
-export const SWITCH_ACCOUNT_STORAGE_KEY = "hms-active-patient-mrn";
-
-interface PatientPortalContextValue {
-  familyMembers: FamilyMember[];
-  activePatient: FamilyMember | null;
-  activeMrn: string | null;
-  primaryMrn: string | null;
-  isLoading: boolean;
-  switchToPatient: (member: FamilyMember) => void;
-  refresh: () => void;
-}
-
-const PatientPortalContext = createContext<PatientPortalContextValue | null>(
-  null,
-);
+export type { PatientPortalContextValue };
+export { PatientPortalContext, SWITCH_ACCOUNT_STORAGE_KEY } from "./PatientPortalContext";
 
 interface PatientPortalPayload {
   id?: string | number;
@@ -83,7 +73,7 @@ export function PatientPortalProvider({ children }: { children: ReactNode }) {
   const isPatient = String(user?.role ?? "").toUpperCase() === "PATIENT";
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [activePatient, setActivePatient] = useState<FamilyMember | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const refresh = useCallback(() => {
     if (!isPatient) return;
@@ -127,9 +117,46 @@ export function PatientPortalProvider({ children }: { children: ReactNode }) {
   }, [isPatient, user?.patientId]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    refresh();
-  }, [refresh]);
+    let cancelled = false;
+
+    const loadPortal = async () => {
+      if (!isPatient) return;
+      try {
+        const data = await patientsApi.getMyPatients();
+        if (cancelled) return;
+        const mapped: FamilyMember[] = (Array.isArray(data) ? data : []).map(
+          (p) => mapApiToFamilyMember(p as PatientPortalPayload),
+        );
+        const self = mapped.find(
+          (member) => String(member.relationship).toUpperCase() === "SELF",
+        );
+        const primary =
+          self || mapped.find((member) => member.mrn === user?.patientId);
+
+        setFamilyMembers(mapped);
+        const storedMrn = localStorage.getItem(SWITCH_ACCOUNT_STORAGE_KEY);
+        setActivePatient((prev) => {
+          return (
+            mapped.find((m) => String(m.mrn) === storedMrn) ||
+            (prev && mapped.some((m) => String(m.mrn) === String(prev.mrn))
+              ? prev
+              : primary || mapped[0]) ||
+            null
+          );
+        });
+      } catch {
+        if (!cancelled) setFamilyMembers([]);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    void loadPortal();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isPatient, user?.patientId]);
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
@@ -175,9 +202,4 @@ export function PatientPortalProvider({ children }: { children: ReactNode }) {
       {children}
     </PatientPortalContext.Provider>
   );
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function usePatientPortal(): PatientPortalContextValue | null {
-  return useContext(PatientPortalContext);
 }

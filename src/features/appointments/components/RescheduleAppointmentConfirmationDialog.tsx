@@ -11,6 +11,7 @@ import {
 import type { AppointmentRecord } from "../types/appointment.types";
 import { StatusBadge } from "./StatusBadge";
 import { PP, RB, EMPTY_AVAILABILITY } from "../constants/appointment.constants";
+import { formatTime } from "../../../lib/time-utils";
 
 export function RescheduleAppointmentConfirmationDialog({
   apt,
@@ -213,7 +214,7 @@ export function RescheduleAppointmentConfirmationDialog({
                   Current Schedule
                 </span>
                 <span className="font-mono text-red-500 font-bold">
-                  {apt.appointmentDate} @ {apt.timeSlot}
+                  {apt.appointmentDate} @ {formatTime(apt.timeSlot)}
                 </span>
               </div>
             </div>

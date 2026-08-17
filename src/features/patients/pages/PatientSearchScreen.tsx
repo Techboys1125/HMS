@@ -27,7 +27,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { usePatients, useDoctorPatients } from "../hooks/usePatients";
-import { PP, RB } from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.fonts";
 import { PatientTable } from "../components/PatientTable";
 import { usePermissions } from "../../../permissions";
 import type { Patient, ScreenPatient } from "../types/patient.types";

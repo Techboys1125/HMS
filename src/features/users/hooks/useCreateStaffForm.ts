@@ -9,6 +9,7 @@ import {
 import type {
   AdminCreateStaffData,
   AdminCreateDoctorStaffData,
+  OpdWeeklySchedule,
 } from "../types/users.types";
 
 export interface FormValues {
@@ -29,7 +30,6 @@ export interface FormValues {
   primarySpecialty: string;
   secondarySpecialty: string;
   consultationFee: string;
-  followUpFee: string;
   slotDurationMinutes: string;
   residentialAddress: string;
   professionalBio: string;
@@ -62,13 +62,51 @@ export interface FormErrors {
 }
 
 const INITIAL_AVAILABILITY = {
-  Monday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-  Tuesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-  Wednesday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-  Thursday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-  Friday: { isAvailable: true, startTime: "09:00", endTime: "17:00" },
-  Saturday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
-  Sunday: { isAvailable: false, startTime: "09:00", endTime: "17:00" },
+  Monday: { isAvailable: false, startTime: "", endTime: "" },
+  Tuesday: { isAvailable: false, startTime: "", endTime: "" },
+  Wednesday: { isAvailable: false, startTime: "", endTime: "" },
+  Thursday: { isAvailable: false, startTime: "", endTime: "" },
+  Friday: { isAvailable: false, startTime: "", endTime: "" },
+  Saturday: { isAvailable: false, startTime: "", endTime: "" },
+  Sunday: { isAvailable: false, startTime: "", endTime: "" },
+};
+
+const DAY_UPPER_TO_TITLE: Record<string, string> = {
+  MONDAY: "Monday",
+  TUESDAY: "Tuesday",
+  WEDNESDAY: "Wednesday",
+  THURSDAY: "Thursday",
+  FRIDAY: "Friday",
+  SATURDAY: "Saturday",
+  SUNDAY: "Sunday",
+};
+
+const mapHospitalScheduleToFormAvailability = (
+  schedule: OpdWeeklySchedule,
+): typeof INITIAL_AVAILABILITY => {
+  const result = { ...INITIAL_AVAILABILITY };
+  if (!schedule?.weeklySchedule) return result;
+  for (const day of schedule.weeklySchedule) {
+    const titleCase = DAY_UPPER_TO_TITLE[day.dayOfWeek.toUpperCase()];
+    if (titleCase && result[titleCase] !== undefined) {
+      const interval = day.workingIntervals?.[0];
+      result[titleCase] = {
+        isAvailable: day.isOpen,
+        startTime: interval?.startTime || "",
+        endTime: interval?.endTime || "",
+      };
+    }
+  }
+  return result;
+};
+
+const isTimeWithinWindow = (
+  time: string,
+  windowStart: string,
+  windowEnd: string,
+): boolean => {
+  if (!time || !windowStart || !windowEnd) return true;
+  return time >= windowStart && time <= windowEnd;
 };
 
 const getRolePrefix = (role: string) => {
@@ -101,6 +139,8 @@ export const useCreateStaffForm = (
   const [departmentsList, setDepartmentsList] = useState<
     ApiDepartmentLookupItem[]
   >([]);
+  const [hospitalSchedule, setHospitalSchedule] =
+    useState<OpdWeeklySchedule | null>(null);
 
   useEffect(() => {
     departmentsApi
@@ -111,7 +151,7 @@ export const useCreateStaffForm = (
       .catch(() => {});
   }, []);
 
-  const [form, setForm] = useState<FormValues>({
+  const [form, setForm] = useState<FormValues>(() => ({
     fullName: "",
     email: "",
     phone: "",
@@ -128,14 +168,28 @@ export const useCreateStaffForm = (
     primarySpecialty: "",
     secondarySpecialty: "",
     consultationFee: "",
-    followUpFee: "",
     slotDurationMinutes: "15",
     residentialAddress: "",
     professionalBio: "",
     photoUrl: "",
     availability: { ...INITIAL_AVAILABILITY },
     sendCredentials: true,
-  });
+  }));
+
+  // Fetch hospital OPD weekly schedule for doctor availability defaults
+  useEffect(() => {
+    usersApi
+      .fetchOpdWeeklySchedule()
+      .then((schedule) => {
+        setHospitalSchedule(schedule);
+        // Update availability defaults from hospital schedule
+        setForm((prev) => ({
+          ...prev,
+          availability: mapHospitalScheduleToFormAvailability(schedule),
+        }));
+      })
+      .catch(() => {});
+  }, []);
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -249,6 +303,89 @@ export const useCreateStaffForm = (
       if (timeError) {
         tempErrors.availabilityDays = availabilityDaysErrors;
         isValid = false;
+      }
+
+      // Validate doctor availability against hospital schedule
+      if (hospitalSchedule?.weeklySchedule) {
+        for (const [day, sched] of Object.entries(form.availability)) {
+          if (sched.isAvailable) {
+            const hospitalDay = hospitalSchedule.weeklySchedule.find(
+              (d) =>
+                d.dayOfWeek.toUpperCase() === day.toUpperCase(),
+            );
+            // Rule 1: Hospital closed day — doctor cannot schedule
+            if (hospitalDay && !hospitalDay.isOpen) {
+              tempErrors.availabilityDays = {
+                ...tempErrors.availabilityDays,
+                [day]: {
+                  ...tempErrors.availabilityDays?.[day],
+                  startTime: `Hospital is closed on ${day}. Doctor cannot be available.`,
+                },
+              };
+              isValid = false;
+            } else if (hospitalDay && hospitalDay.isOpen) {
+              const interval = hospitalDay.workingIntervals?.[0];
+              if (interval) {
+                // Rule 2: Doctor start time must be >= hospital start
+                if (
+                  sched.startTime &&
+                  !isTimeWithinWindow(
+                    sched.startTime,
+                    interval.startTime,
+                    interval.endTime,
+                  )
+                ) {
+                  tempErrors.availabilityDays = {
+                    ...tempErrors.availabilityDays,
+                    [day]: {
+                      ...tempErrors.availabilityDays?.[day],
+                      startTime: `Start time is outside hospital schedule (${interval.startTime}–${interval.endTime}).`,
+                    },
+                  };
+                  isValid = false;
+                }
+                // Rule 3: Doctor end time must be <= hospital end
+                if (
+                  sched.endTime &&
+                  !isTimeWithinWindow(
+                    sched.endTime,
+                    interval.startTime,
+                    interval.endTime,
+                  )
+                ) {
+                  tempErrors.availabilityDays = {
+                    ...tempErrors.availabilityDays,
+                    [day]: {
+                      ...tempErrors.availabilityDays?.[day],
+                      endTime: `End time is outside hospital schedule (${interval.startTime}–${interval.endTime}).`,
+                    },
+                  };
+                  isValid = false;
+                }
+              }
+              // Rule 4: Doctor availability must not overlap hospital breaks
+              if (hospitalDay.breaks && hospitalDay.breaks.length > 0) {
+                for (const brk of hospitalDay.breaks) {
+                  if (
+                    sched.startTime &&
+                    sched.endTime &&
+                    sched.startTime < brk.endTime &&
+                    sched.endTime > brk.startTime
+                  ) {
+                    tempErrors.availabilityDays = {
+                      ...tempErrors.availabilityDays,
+                      [day]: {
+                        ...tempErrors.availabilityDays?.[day],
+                        endTime: `Availability cannot overlap hospital break "${brk.breakName || "Break"}" (${brk.startTime}–${brk.endTime}). Adjust your hours to avoid the break period.`,
+                      },
+                    };
+                    isValid = false;
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
 
@@ -466,6 +603,89 @@ export const useCreateStaffForm = (
         tempErrors.availabilityDays = availabilityDaysErrors;
         isValid = false;
       }
+
+      // Validate doctor availability against hospital schedule
+      if (hospitalSchedule?.weeklySchedule) {
+        for (const [day, sched] of Object.entries(form.availability)) {
+          if (sched.isAvailable) {
+            const hospitalDay = hospitalSchedule.weeklySchedule.find(
+              (d) =>
+                d.dayOfWeek.toUpperCase() === day.toUpperCase(),
+            );
+            // Rule 1: Hospital closed day — doctor cannot schedule
+            if (hospitalDay && !hospitalDay.isOpen) {
+              tempErrors.availabilityDays = {
+                ...tempErrors.availabilityDays,
+                [day]: {
+                  ...tempErrors.availabilityDays?.[day],
+                  startTime: `Hospital is closed on ${day}. Doctor cannot be available.`,
+                },
+              };
+              isValid = false;
+            } else if (hospitalDay && hospitalDay.isOpen) {
+              const interval = hospitalDay.workingIntervals?.[0];
+              if (interval) {
+                // Rule 2: Doctor start time must be >= hospital start
+                if (
+                  sched.startTime &&
+                  !isTimeWithinWindow(
+                    sched.startTime,
+                    interval.startTime,
+                    interval.endTime,
+                  )
+                ) {
+                  tempErrors.availabilityDays = {
+                    ...tempErrors.availabilityDays,
+                    [day]: {
+                      ...tempErrors.availabilityDays?.[day],
+                      startTime: `Start time is outside hospital schedule (${interval.startTime}–${interval.endTime}).`,
+                    },
+                  };
+                  isValid = false;
+                }
+                // Rule 3: Doctor end time must be <= hospital end
+                if (
+                  sched.endTime &&
+                  !isTimeWithinWindow(
+                    sched.endTime,
+                    interval.startTime,
+                    interval.endTime,
+                  )
+                ) {
+                  tempErrors.availabilityDays = {
+                    ...tempErrors.availabilityDays,
+                    [day]: {
+                      ...tempErrors.availabilityDays?.[day],
+                      endTime: `End time is outside hospital schedule (${interval.startTime}–${interval.endTime}).`,
+                    },
+                  };
+                  isValid = false;
+                }
+              }
+              // Rule 4: Doctor availability must not overlap hospital breaks
+              if (hospitalDay.breaks && hospitalDay.breaks.length > 0) {
+                for (const brk of hospitalDay.breaks) {
+                  if (
+                    sched.startTime &&
+                    sched.endTime &&
+                    sched.startTime < brk.endTime &&
+                    sched.endTime > brk.startTime
+                  ) {
+                    tempErrors.availabilityDays = {
+                      ...tempErrors.availabilityDays,
+                      [day]: {
+                        ...tempErrors.availabilityDays?.[day],
+                        endTime: `Availability cannot overlap hospital break "${brk.breakName || "Break"}" (${brk.startTime}–${brk.endTime}). Adjust your hours to avoid the break period.`,
+                      },
+                    };
+                    isValid = false;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     setErrors(tempErrors);
@@ -596,7 +816,6 @@ export const useCreateStaffForm = (
           primarySpecialtyId: primaryId,
           secondarySpecialtyIds: secondaryIds,
           consultationFee: Number(form.consultationFee) || 0,
-          followUpFee: form.followUpFee ? Number(form.followUpFee) : 0,
           slotDurationMinutes: Number(form.slotDurationMinutes) || 15,
           availability: backendAvailabilityList,
           sendCredentials: form.sendCredentials,
@@ -616,7 +835,6 @@ export const useCreateStaffForm = (
             primarySpecialtyId: primaryId,
             secondarySpecialtyIds: secondaryIds,
             consultationFee: Number(form.consultationFee) || 0,
-            followUpFee: form.followUpFee ? Number(form.followUpFee) : 0,
             slotDurationMinutes: Number(form.slotDurationMinutes) || 15,
             consultationTypes: ["IN_PERSON"],
             availability: legacyAvailabilityList,
@@ -698,6 +916,7 @@ export const useCreateStaffForm = (
     empIdPreview,
     currentStep,
     totalSteps,
+    hospitalSchedule,
     nextStep,
     prevStep,
     validateStep,

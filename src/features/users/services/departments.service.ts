@@ -3,15 +3,14 @@ import type {
   ApiDepartmentSpecialtiesItem,
   ApiDepartmentLookupItem,
   ApiSpecialty,
+  DepartmentSpecialtiesPageResponse,
+  DepartmentListParams,
 } from "../types/departments.types";
 
 export const departmentsService = {
-  async getDepartments(params?: {
-    search?: string;
-    activeOnly?: boolean;
-    page?: number;
-    size?: number;
-  }): Promise<ApiDepartmentSpecialtiesItem[]> {
+  async getDepartments(
+    params?: DepartmentListParams,
+  ): Promise<DepartmentSpecialtiesPageResponse> {
     return departmentsApi.getDepartments(params);
   },
 

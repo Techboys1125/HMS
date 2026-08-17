@@ -43,6 +43,29 @@ import {
   extractList,
 } from "../hooks/useReports";
 
+interface ApiInvoiceRegisterItem {
+  id?: string | number;
+  invoiceNumber?: string;
+  invoiceId?: string;
+  receiptNumber?: string;
+  patientName?: string;
+  mrn?: string;
+  patientId?: string | number;
+  doctorName?: string;
+  department?: string;
+  invoiceDate?: string;
+  paidAt?: string;
+  createdDate?: string;
+  billedAmount?: number | string;
+  amount?: number | string;
+  totalAmount?: number | string;
+  paidAmount?: number | string;
+  collectedAmount?: number | string;
+  outstandingAmount?: number | string;
+  paymentMethod?: string;
+  paymentStatus?: string;
+}
+
 function CircularProgress({
   percentage,
   size = 64,
@@ -125,19 +148,32 @@ export function BillingReportScreen({
   const { data: rawInvoiceRegister } = useInvoiceRegister(reportFilters);
   const { data: invoiceSummaryData } = useInvoiceSummary(reportFilters);
 
-  const invoiceList = useMemo(() => extractList<any>(rawInvoiceRegister), [rawInvoiceRegister]);
+  const invoiceList = useMemo(
+    () => extractList<ApiInvoiceRegisterItem>(rawInvoiceRegister),
+    [rawInvoiceRegister],
+  );
 
   // Map API invoice register to table format
   const billingTableSource = useMemo(() => {
-    return invoiceList.map((d: any) => ({
-      invoiceId: d.invoiceNumber || d.invoiceId || d.receiptNumber || `INV-${d.id || ""}`,
+    return invoiceList.map((d: ApiInvoiceRegisterItem) => ({
+      invoiceId:
+        d.invoiceNumber ||
+        d.invoiceId ||
+        d.receiptNumber ||
+        `INV-${d.id || ""}`,
       patientName: d.patientName || "N/A",
-      mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+      mrn: d.mrn
+        ? String(d.mrn).startsWith("MRN-")
+          ? String(d.mrn)
+          : `MRN-${d.mrn}`
+        : `MRN-${d.patientId || ""}`,
       doctorName: d.doctorName || "N/A",
       department: d.department || "General Medicine",
       invoiceDate: d.invoiceDate || d.paidAt || d.createdDate || today,
       invoiceAmount: Number(d.billedAmount || d.amount || d.totalAmount || 0),
-      collectedAmount: Number(d.paidAmount || d.amount || d.collectedAmount || 0),
+      collectedAmount: Number(
+        d.paidAmount || d.amount || d.collectedAmount || 0,
+      ),
       outstandingAmount: Number(d.outstandingAmount || 0),
       paymentMethod:
         (d.paymentMethod as BillingReportRecord["paymentMethod"]) ?? "Card",
@@ -148,32 +184,40 @@ export function BillingReportScreen({
   }, [invoiceList, today]);
 
   const totalBilled = useMemo(() => {
-    if (invoiceSummaryData?.totalBilledAmount) return invoiceSummaryData.totalBilledAmount;
+    if (invoiceSummaryData?.totalBilledAmount)
+      return invoiceSummaryData.totalBilledAmount;
     return billingTableSource.reduce((sum, d) => sum + d.invoiceAmount, 0);
   }, [invoiceSummaryData, billingTableSource]);
 
   const totalPaid = useMemo(() => {
-    if (invoiceSummaryData?.totalPaidAmount) return invoiceSummaryData.totalPaidAmount;
+    if (invoiceSummaryData?.totalPaidAmount)
+      return invoiceSummaryData.totalPaidAmount;
     return billingTableSource.reduce((sum, d) => sum + d.collectedAmount, 0);
   }, [invoiceSummaryData, billingTableSource]);
 
   const totalOutstanding = useMemo(() => {
-    if (invoiceSummaryData?.totalOutstandingAmount != null) return invoiceSummaryData.totalOutstandingAmount;
+    if (invoiceSummaryData?.totalOutstandingAmount != null)
+      return invoiceSummaryData.totalOutstandingAmount;
     return billingTableSource.reduce((sum, d) => sum + d.outstandingAmount, 0);
   }, [invoiceSummaryData, billingTableSource]);
 
   const totalInvoices = useMemo(() => {
-    if (invoiceSummaryData?.totalInvoices) return invoiceSummaryData.totalInvoices;
+    if (invoiceSummaryData?.totalInvoices)
+      return invoiceSummaryData.totalInvoices;
     return billingTableSource.length;
   }, [invoiceSummaryData, billingTableSource]);
 
   const paidInvoices = useMemo(() => {
-    if (invoiceSummaryData?.paidInvoices != null) return invoiceSummaryData.paidInvoices;
-    return billingTableSource.filter((d) => d.paymentStatus === "Paid" || d.paymentStatus === "Cleared").length;
+    if (invoiceSummaryData?.paidInvoices != null)
+      return invoiceSummaryData.paidInvoices;
+    return billingTableSource.filter(
+      (d) => d.paymentStatus === "Paid" || d.paymentStatus === "Cleared",
+    ).length;
   }, [invoiceSummaryData, billingTableSource]);
 
   const unpaidInvoices = useMemo(() => {
-    if (invoiceSummaryData?.unpaidInvoices != null) return invoiceSummaryData.unpaidInvoices;
+    if (invoiceSummaryData?.unpaidInvoices != null)
+      return invoiceSummaryData.unpaidInvoices;
     return totalInvoices - paidInvoices;
   }, [invoiceSummaryData, totalInvoices, paidInvoices]);
 

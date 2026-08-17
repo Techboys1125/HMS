@@ -12,7 +12,7 @@ import {
 import { PP, RB } from "../constants/billing.constants";
 import { useBilling } from "../hooks/useBilling";
 import { useAuthStore } from "../../auth";
-import { usePatientPortal } from "../../patients/context/PatientPortalContext";
+import { usePatientPortal } from "../../patients/context/usePatientPortal";
 import { BillingStatusBadge } from "../components/BillingStatusBadge";
 
 export function PatientMyBillsPage() {

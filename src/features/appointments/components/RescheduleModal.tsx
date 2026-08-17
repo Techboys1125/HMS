@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Calendar, AlertCircle, X, Check, Loader2 } from "lucide-react";
 import type { AppointmentRecord } from "../types/appointment.types";
+import { formatTime } from "../../../lib/time-utils";
 
 const PP = "Poppins, sans-serif";
 
@@ -79,7 +80,8 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({
               </span>
             </p>
             <p className="text-slate-500">
-              Current: {appointment.appointmentDate} at {appointment.startTime}
+              Current: {appointment.appointmentDate} at{" "}
+              {formatTime(appointment.startTime)}
             </p>
           </div>
 

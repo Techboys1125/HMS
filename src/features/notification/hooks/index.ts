@@ -5,7 +5,6 @@ export {
   useNotificationTemplates,
   useUpdateNotificationTemplate,
   useSendTestNotification,
-  useTriggerInternalNotification,
   useNotificationFailures,
   useNotificationPreferences,
   useUpdateNotificationPreferences,

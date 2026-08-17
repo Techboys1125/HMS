@@ -37,6 +37,10 @@ import type {
   KpiPatientRecord,
   KpiConsultationRecord,
   KpiPendingPaymentRecord,
+  DailyRevenueDetail,
+  DailyAppointmentDetail,
+  PatientMasterRecord,
+  InvoiceRegisterRecord,
 } from "../types/reports.types";
 import {
   useDailyRevenueDetails,
@@ -100,10 +104,10 @@ export function DashboardKpiDetailScreen({
   const { data: rawPatientRegister } = usePatientMasterRegister(reportFilters);
   const { data: rawInvoiceRegister } = useInvoiceRegister(reportFilters);
 
-  const revenueList = useMemo(() => extractList<any>(rawRevenueDetails), [rawRevenueDetails]);
-  const apptList = useMemo(() => extractList<any>(rawApptDetails), [rawApptDetails]);
-  const patientList = useMemo(() => extractList<any>(rawPatientRegister), [rawPatientRegister]);
-  const invoiceList = useMemo(() => extractList<any>(rawInvoiceRegister), [rawInvoiceRegister]);
+  const revenueList = useMemo(() => extractList<DailyRevenueDetail>(rawRevenueDetails), [rawRevenueDetails]);
+  const apptList = useMemo(() => extractList<DailyAppointmentDetail>(rawApptDetails), [rawApptDetails]);
+  const patientList = useMemo(() => extractList<PatientMasterRecord>(rawPatientRegister), [rawPatientRegister]);
+  const invoiceList = useMemo(() => extractList<InvoiceRegisterRecord>(rawInvoiceRegister), [rawInvoiceRegister]);
 
   // Enterprise Export & Print Modal States
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -189,8 +193,8 @@ export function DashboardKpiDetailScreen({
 
     if (isRevenueKpi) {
       const source = revenueList.length > 0 ? revenueList : invoiceList;
-      const mapped = source.map((d: any) => ({
-        invoiceId: d.paymentId || d.invoiceNumber || d.receiptNumber || `INV-${d.id || ""}`,
+      const mapped = source.map((d: DailyRevenueDetail | InvoiceRegisterRecord) => ({
+        invoiceId: d.paymentId || d.invoiceNumber || d.receiptNumber || `INV-${("id" in d ? d.id : "") || ""}`,
         patientName: d.patientName || "N/A",
         mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
         doctorName: d.doctorName || "N/A",
@@ -224,8 +228,8 @@ export function DashboardKpiDetailScreen({
     }
 
     if (isAppointmentKpi) {
-      const mapped = apptList.map((d: any) => ({
-        appointmentId: d.appointmentNumber || d.id || `APT-${d.appointmentId || ""}`,
+      const mapped = apptList.map((d: DailyAppointmentDetail) => ({
+        appointmentId: d.appointmentNumber || `APT-${d.appointmentId || ""}`,
         patientName: d.patientName || "N/A",
         mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
         doctorName: d.doctorName || "N/A",
@@ -266,8 +270,8 @@ export function DashboardKpiDetailScreen({
     }
 
     if (isPatientKpi) {
-      const mapped = patientList.map((d: any) => ({
-        patientId: d.patientId || d.id || "",
+      const mapped = patientList.map((d: PatientMasterRecord) => ({
+        patientId: String(d.patientId || ""),
         patientName: d.patientName || d.fullName || "N/A",
         mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
         mobile: d.mobile || d.phone || "",
@@ -300,8 +304,8 @@ export function DashboardKpiDetailScreen({
     }
 
     if (isConsultationKpi) {
-      const mapped = apptList.map((d: any) => ({
-        consultationId: d.consultationId || d.appointmentNumber || `CNS-${d.id || ""}`,
+      const mapped = apptList.map((d: DailyAppointmentDetail) => ({
+        consultationId: d.appointmentNumber || `CNS-${d.appointmentId || ""}`,
         patientName: d.patientName || "N/A",
         mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
         doctorName: d.doctorName || "N/A",
@@ -330,9 +334,9 @@ export function DashboardKpiDetailScreen({
     }
 
     if (isPendingKpi) {
-      const pendingInvoices = invoiceList.filter((d: any) => Number(d.outstandingAmount || 0) > 0 || d.paymentStatus === "Pending" || d.paymentStatus === "UNPAID");
+      const pendingInvoices = invoiceList.filter((d: InvoiceRegisterRecord) => Number(d.outstandingAmount || 0) > 0 || d.paymentStatus === "Pending" || d.paymentStatus === "UNPAID");
       const source = pendingInvoices.length > 0 ? pendingInvoices : invoiceList;
-      const mapped = source.map((d: any) => ({
+      const mapped = source.map((d: InvoiceRegisterRecord) => ({
         billId: d.invoiceNumber || d.billId || `BILL-${d.id || ""}`,
         patientName: d.patientName || "N/A",
         mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,

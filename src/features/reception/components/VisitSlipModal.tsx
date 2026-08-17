@@ -1,6 +1,7 @@
 import React from "react";
 import type { ReceptionQueueItem } from "../types/reception.types";
 import { Printer, X, Building2 } from "lucide-react";
+import { formatTime } from "../../../lib/time-utils";
 
 interface VisitSlipModalProps {
   item: ReceptionQueueItem | null;
@@ -92,7 +93,7 @@ export const VisitSlipModal: React.FC<VisitSlipModalProps> = ({
             <div className="flex justify-between">
               <span className="text-slate-500">Check-In Time:</span>
               <span className="font-medium text-slate-700">
-                {item.arrivalTime || item.appointmentTime}
+                {formatTime(item.arrivalTime || item.appointmentTime)}
               </span>
             </div>
           </div>

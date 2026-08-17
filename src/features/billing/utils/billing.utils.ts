@@ -1,4 +1,8 @@
-import type { ApiPatientInvoice, BillListItem, InvoiceRecord } from "../types/billing.types";
+import type {
+  ApiPatientInvoice,
+  BillListItem,
+  InvoiceRecord,
+} from "../types/billing.types";
 
 export function formatCurrency(value: number): string {
   return `₹${value.toLocaleString()}`;
@@ -7,7 +11,7 @@ export function formatCurrency(value: number): string {
 export function mapApiInvoiceToInvoiceRecord(
   apiInv: ApiPatientInvoice,
   patientName: string,
-  mrn: string
+  mrn: string,
 ): InvoiceRecord {
   const amount =
     typeof apiInv.amount === "number"
@@ -25,7 +29,8 @@ export function mapApiInvoiceToInvoiceRecord(
     doctorName: "N/A",
     department: "N/A",
     invoiceAmount: amount,
-    paidAmount: status === "Paid" ? amount : status === "Partially Paid" ? amount / 2 : 0,
+    paidAmount:
+      status === "Paid" ? amount : status === "Partially Paid" ? amount / 2 : 0,
     balance: status === "Paid" ? 0 : amount,
     paymentMethod: "UPI",
     paymentStatus: status,
@@ -33,7 +38,9 @@ export function mapApiInvoiceToInvoiceRecord(
   };
 }
 
-export function mapApiStatusToPaymentStatus(status: string): InvoiceRecord["paymentStatus"] {
+export function mapApiStatusToPaymentStatus(
+  status: string,
+): InvoiceRecord["paymentStatus"] {
   const s = status.toUpperCase();
   if (s === "PAID") return "Paid";
   if (s === "PENDING" || s === "UNPAID") return "Pending";
@@ -45,17 +52,22 @@ export function mapApiStatusToPaymentStatus(status: string): InvoiceRecord["paym
 
 export function mapApiBillToInvoiceRecord(bill: BillListItem): InvoiceRecord {
   const paymentStatus = mapApiStatusToPaymentStatus(bill.paymentStatus);
-  
-  // Mappings to support flat properties (from simpler BillListItem) or nested summary (from detailed BillWorkspace)
-  const netAmount = (bill as any).netAmount ?? bill.summary?.netAmount ?? 0;
-  const paidAmount = 
-    (bill as any).paidAmount ?? 
-    bill.summary?.paidAmount ?? 
-    (paymentStatus === "Paid" ? netAmount : paymentStatus === "Partially Paid" ? netAmount / 2 : 0);
-  const balanceAmount = 
-    (bill as any).balanceAmount ?? 
-    bill.summary?.balanceAmount ?? 
-    (netAmount - paidAmount);
+
+  // Support flat properties (from simpler BillListItem) or nested summary (from detailed BillWorkspace)
+  const b = bill as BillListItem & { netAmount?: number; paidAmount?: number; balanceAmount?: number };
+  const netAmount = b.netAmount ?? bill.summary?.netAmount ?? 0;
+  const paidAmount =
+    b.paidAmount ??
+    bill.summary?.paidAmount ??
+    (paymentStatus === "Paid"
+      ? netAmount
+      : paymentStatus === "Partially Paid"
+        ? netAmount / 2
+        : 0);
+  const balanceAmount =
+    b.balanceAmount ??
+    bill.summary?.balanceAmount ??
+    netAmount - paidAmount;
 
   return {
     // Routes use the database bill id; billNumber is display-only.

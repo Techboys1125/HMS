@@ -121,7 +121,7 @@ export function NotificationCenterPage({
 
   const roleNotifications = useMemo(() => {
     return mapApiNotificationsToRecords(pageData?.notifications);
-  }, [pageData, currentRole]);
+  }, [pageData]);
 
   const activeQuickFilters = useMemo(() => {
     return (

@@ -376,6 +376,7 @@ export interface UpdateDoctorPayload {
 }
 
 export interface DoctorDailySlot {
+  id: string;
   startTime: string;
   endTime: string;
   status: string;

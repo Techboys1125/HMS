@@ -37,7 +37,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { PP, RB } from "../constants/reports.constants";
-import type { AppointmentReportRecord } from "../types/reports.types";
+import type { AppointmentReportRecord, DailyAppointmentSummary, DailyAppointmentDetail } from "../types/reports.types";
 import {
   useDailyAppointments,
   useDailyAppointmentDetails,
@@ -139,19 +139,25 @@ export function DailyAppointmentReportScreen({
   const { data: rawSummary } = useDailyAppointments(reportFilters);
   const { data: rawDetails } = useDailyAppointmentDetails(reportFilters);
 
-  const detailList = useMemo(() => extractList<any>(rawDetails), [rawDetails]);
-  const summaryList = useMemo(() => extractList<any>(rawSummary), [rawSummary]);
+  const detailList = useMemo(() => extractList<DailyAppointmentDetail>(rawDetails), [rawDetails]);
+  const summaryList = useMemo(() => extractList<DailyAppointmentSummary>(rawSummary), [rawSummary]);
 
   const totalAppointments = useMemo(() => {
     if (summaryList.length > 0) {
-      return summaryList.reduce((sum, d) => sum + (d.totalAppointments || 0), 0);
+      return summaryList.reduce(
+        (sum, d) => sum + (d.totalAppointments || 0),
+        0,
+      );
     }
     return detailList.length;
   }, [summaryList, detailList]);
 
   const completedAppointments = useMemo(() => {
     if (summaryList.length > 0) {
-      return summaryList.reduce((sum, d) => sum + (d.completedAppointments || 0), 0);
+      return summaryList.reduce(
+        (sum, d) => sum + (d.completedAppointments || 0),
+        0,
+      );
     }
     return detailList.filter(
       (d) => d.status === "Completed" || d.status === "COMPLETED",
@@ -160,7 +166,10 @@ export function DailyAppointmentReportScreen({
 
   const cancelledAppointments = useMemo(() => {
     if (summaryList.length > 0) {
-      return summaryList.reduce((sum, d) => sum + (d.cancelledAppointments || 0), 0);
+      return summaryList.reduce(
+        (sum, d) => sum + (d.cancelledAppointments || 0),
+        0,
+      );
     }
     return detailList.filter(
       (d) => d.status === "Cancelled" || d.status === "CANCELLED",
@@ -169,7 +178,10 @@ export function DailyAppointmentReportScreen({
 
   const pendingAppointments = useMemo(() => {
     if (summaryList.length > 0) {
-      return summaryList.reduce((sum, d) => sum + (d.pendingAppointments || 0), 0);
+      return summaryList.reduce(
+        (sum, d) => sum + (d.pendingAppointments || 0),
+        0,
+      );
     }
     return detailList.filter(
       (d) =>
@@ -195,15 +207,21 @@ export function DailyAppointmentReportScreen({
 
   // Map API detail records to table format
   const tableDataSource = useMemo(() => {
-    return detailList.map((d: any) => ({
-      id: d.appointmentNumber || d.id || `APT-${d.appointmentId || ""}`,
+    return detailList.map((d: DailyAppointmentDetail) => ({
+      id: d.appointmentNumber || `APT-${d.appointmentId || ""}`,
       patientName: d.patientName || "N/A",
-      mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+      mrn: d.mrn
+        ? String(d.mrn).startsWith("MRN-")
+          ? String(d.mrn)
+          : `MRN-${d.mrn}`
+        : `MRN-${d.patientId || ""}`,
       doctorName: d.doctorName || "N/A",
       department: d.department || "General Medicine",
       appointmentDate: d.appointmentDate || d.date || today,
       appointmentTime: d.appointmentTime || "09:00 AM",
-      visitType: (d.appointmentType || d.visitType || "New Visit") as AppointmentReportRecord["visitType"],
+      visitType: (d.appointmentType ||
+        d.visitType ||
+        "New Visit") as AppointmentReportRecord["visitType"],
       status: (d.status
         ? d.status.charAt(0) + d.status.slice(1).toLowerCase()
         : "Scheduled") as AppointmentReportRecord["status"],
@@ -214,10 +232,31 @@ export function DailyAppointmentReportScreen({
   const statusDistFromApi = useMemo(() => {
     if (summaryList.length > 0) {
       return [
-        { name: "Completed", value: summaryList.reduce((s: number, d: any) => s + (d.completedAppointments || 0), 0), color: "#66BB6A" },
-        { name: "Scheduled", value: summaryList.reduce((s: number, d: any) => s + (d.pendingAppointments || 0), 0), color: "#0D47A1" },
+        {
+          name: "Completed",
+          value: summaryList.reduce(
+            (s: number, d: DailyAppointmentSummary) => s + (d.completedAppointments || 0),
+            0,
+          ),
+          color: "#66BB6A",
+        },
+        {
+          name: "Scheduled",
+          value: summaryList.reduce(
+            (s: number, d: DailyAppointmentSummary) => s + (d.pendingAppointments || 0),
+            0,
+          ),
+          color: "#0D47A1",
+        },
         { name: "Waiting", value: 0, color: "#4DB6AC" },
-        { name: "Cancelled", value: summaryList.reduce((s: number, d: any) => s + (d.cancelledAppointments || 0), 0), color: "#EF4444" },
+        {
+          name: "Cancelled",
+          value: summaryList.reduce(
+            (s: number, d: DailyAppointmentSummary) => s + (d.cancelledAppointments || 0),
+            0,
+          ),
+          color: "#EF4444",
+        },
         { name: "No Show", value: 0, color: "#F59E0B" },
       ];
     }
@@ -228,11 +267,16 @@ export function DailyAppointmentReportScreen({
       { name: "Cancelled", value: cancelledAppointments, color: "#EF4444" },
       { name: "No Show", value: 0, color: "#F59E0B" },
     ];
-  }, [summaryList, completedAppointments, pendingAppointments, cancelledAppointments]);
+  }, [
+    summaryList,
+    completedAppointments,
+    pendingAppointments,
+    cancelledAppointments,
+  ]);
 
   const appointmentTrendData = useMemo(() => {
     if (summaryList.length > 0) {
-      return summaryList.map((d: any) => ({
+      return summaryList.map((d: DailyAppointmentSummary) => ({
         date: d.date,
         Booked: d.totalAppointments || 0,
         Completed: d.completedAppointments || 0,
@@ -240,29 +284,41 @@ export function DailyAppointmentReportScreen({
       }));
     }
     // Derive trend from detail list grouped by date
-    const map: Record<string, { date: string; Booked: number; Completed: number; Cancelled: number }> = {};
-    detailList.forEach((d: any) => {
+    const map: Record<
+      string,
+      { date: string; Booked: number; Completed: number; Cancelled: number }
+    > = {};
+    detailList.forEach((d: DailyAppointmentDetail) => {
       const date = (d.appointmentDate || d.date || today).slice(0, 10);
-      if (!map[date]) map[date] = { date, Booked: 0, Completed: 0, Cancelled: 0 };
+      if (!map[date])
+        map[date] = { date, Booked: 0, Completed: 0, Cancelled: 0 };
       map[date].Booked += 1;
-      if (d.status === "Completed" || d.status === "COMPLETED") map[date].Completed += 1;
-      if (d.status === "Cancelled" || d.status === "CANCELLED") map[date].Cancelled += 1;
+      if (d.status === "Completed" || d.status === "COMPLETED")
+        map[date].Completed += 1;
+      if (d.status === "Cancelled" || d.status === "CANCELLED")
+        map[date].Cancelled += 1;
     });
     return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
   }, [summaryList, detailList, today]);
 
   const walkInTrendData = useMemo(() => {
     if (summaryList.length > 0) {
-      return summaryList.map((d: any) => ({
+      return summaryList.map((d: DailyAppointmentSummary) => ({
         date: d.date,
         Waiting: d.pendingAppointments || 0,
       }));
     }
     const map: Record<string, { date: string; Waiting: number }> = {};
-    detailList.forEach((d: any) => {
+    detailList.forEach((d: DailyAppointmentDetail) => {
       const date = (d.appointmentDate || d.date || today).slice(0, 10);
       if (!map[date]) map[date] = { date, Waiting: 0 };
-      if (d.status !== "Completed" && d.status !== "COMPLETED" && d.status !== "Cancelled" && d.status !== "CANCELLED") map[date].Waiting += 1;
+      if (
+        d.status !== "Completed" &&
+        d.status !== "COMPLETED" &&
+        d.status !== "Cancelled" &&
+        d.status !== "CANCELLED"
+      )
+        map[date].Waiting += 1;
     });
     return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
   }, [summaryList, detailList, today]);
@@ -272,15 +328,22 @@ export function DailyAppointmentReportScreen({
       number,
       { hour: string; Booked: number; Completed: number; Cancelled: number }
     > = {};
-    detailList.forEach((d: any) => {
-      const dateStr = d.appointmentTime || d.appointmentDate || d.createdDate;
+    detailList.forEach((d: DailyAppointmentDetail) => {
+      const dateStr = d.appointmentTime || d.appointmentDate;
       const h = dateStr ? new Date(dateStr).getHours() : 9;
       const validHour = isNaN(h) ? 9 : h;
       if (!hourMap[validHour])
-        hourMap[validHour] = { hour: `${validHour}:00`, Booked: 0, Completed: 0, Cancelled: 0 };
+        hourMap[validHour] = {
+          hour: `${validHour}:00`,
+          Booked: 0,
+          Completed: 0,
+          Cancelled: 0,
+        };
       hourMap[validHour].Booked += 1;
-      if (d.status === "Completed" || d.status === "COMPLETED") hourMap[validHour].Completed += 1;
-      if (d.status === "Cancelled" || d.status === "CANCELLED") hourMap[validHour].Cancelled += 1;
+      if (d.status === "Completed" || d.status === "COMPLETED")
+        hourMap[validHour].Completed += 1;
+      if (d.status === "Cancelled" || d.status === "CANCELLED")
+        hourMap[validHour].Cancelled += 1;
     });
     return Object.values(hourMap).sort((a, b) => a.hour.localeCompare(b.hour));
   }, [detailList]);
@@ -290,12 +353,12 @@ export function DailyAppointmentReportScreen({
       string,
       { doctor: string; assigned: number; completed: number }
     > = {};
-    detailList.forEach((d: any) => {
+    detailList.forEach((d: DailyAppointmentDetail) => {
       const doc = d.doctorName || "Unassigned";
-      if (!map[doc])
-        map[doc] = { doctor: doc, assigned: 0, completed: 0 };
+      if (!map[doc]) map[doc] = { doctor: doc, assigned: 0, completed: 0 };
       map[doc].assigned += 1;
-      if (d.status === "Completed" || d.status === "COMPLETED") map[doc].completed += 1;
+      if (d.status === "Completed" || d.status === "COMPLETED")
+        map[doc].completed += 1;
     });
     return Object.values(map);
   }, [detailList]);
@@ -305,7 +368,7 @@ export function DailyAppointmentReportScreen({
       string,
       { department: string; appointments: number; completed: number }
     > = {};
-    detailList.forEach((d: any) => {
+    detailList.forEach((d: DailyAppointmentDetail) => {
       const dept = d.department || "General Medicine";
       if (!map[dept])
         map[dept] = {
@@ -314,7 +377,8 @@ export function DailyAppointmentReportScreen({
           completed: 0,
         };
       map[dept].appointments += 1;
-      if (d.status === "Completed" || d.status === "COMPLETED") map[dept].completed += 1;
+      if (d.status === "Completed" || d.status === "COMPLETED")
+        map[dept].completed += 1;
     });
     return Object.values(map);
   }, [detailList]);

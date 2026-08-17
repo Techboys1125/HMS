@@ -17,9 +17,9 @@ import {
   Building2,
   TrendingUp,
 } from "lucide-react";
-import type { PatientAppointment } from "../types/patient.types";
-import { PP, RB } from "../constants/patient.mock";
-import { usePatientPortal } from "../context/PatientPortalContext";
+import type { PatientAppointment, ApiPatientAppointment } from "../types/patient.types";
+import { PP, RB } from "../constants/patient.fonts";
+import { usePatientPortal } from "../context/usePatientPortal";
 import type { FamilyMember } from "./FamilyMembersManagement";
 import {
   PatientCancelAppointmentDialog,
@@ -27,6 +27,7 @@ import {
 } from "../components/PatientDialogs";
 import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentScreen";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
+import type { ApiResponse } from "../../auth/types/auth.types";
 import { Pagination } from "../../../common/components/Pagination";
 
 export function PatientAppointmentsScreen({
@@ -58,8 +59,7 @@ export function PatientAppointmentsScreen({
     }
     appointmentsApi
       .getPatientAppointments(targetMrn)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .then((res: any) => {
+      .then((res: ApiResponse<unknown>) => {
         const data = res?.data || res;
         const list = Array.isArray(data)
           ? data
@@ -68,8 +68,7 @@ export function PatientAppointmentsScreen({
             : [];
         if (list && list.length > 0) {
           const mapped: PatientAppointment[] = list.map(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (a: any, idx: number) => {
+            (a: ApiPatientAppointment, idx: number) => {
               const dt = a.visitDateTime || a.appointmentDate || a.date || "";
               const datePart = dt.includes("T") ? dt.split("T")[0] : dt;
               const timePart = dt.includes("T")

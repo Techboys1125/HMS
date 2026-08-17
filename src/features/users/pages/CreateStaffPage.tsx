@@ -53,6 +53,7 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
     empIdPreview,
     currentStep,
     totalSteps,
+    hospitalSchedule,
     nextStep,
     prevStep,
     setFieldValue,
@@ -213,6 +214,7 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
                 setFieldValue={setFieldValue}
                 setNestedFieldValue={setNestedFieldValue}
                 copyMondayHoursToWeekdays={copyMondayHoursToWeekdays}
+                hospitalSchedule={hospitalSchedule}
               />
             </div>
           )}

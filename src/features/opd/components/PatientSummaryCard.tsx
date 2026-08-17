@@ -1,5 +1,6 @@
 import React from "react";
 import type { VisitType } from "../types/consultation";
+import { formatTime } from "../../../lib/time-utils";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -164,7 +165,7 @@ export const PatientSummaryCard: React.FC<PatientSummaryCardProps> = ({
           <span className="text-slate-700" style={{ fontFamily: RB }}>
             {opdRoom ? `OPD Room: ${opdRoom}` : ""}
             {visitType ? ` · Visit: ${visitType}` : ""}
-            {appointmentTime ? ` · Time: ${appointmentTime}` : ""}
+            {appointmentTime ? ` · Time: ${formatTime(appointmentTime)}` : ""}
           </span>
         </div>
       </div>

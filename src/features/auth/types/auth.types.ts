@@ -23,6 +23,8 @@ export interface User {
   mustChangePassword: boolean;
   permissions?: string[];
   status?: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+  lastLogin?: string | null;
+  lastSuccessfulLogin?: string | null;
 
   doctorId?: number;
 

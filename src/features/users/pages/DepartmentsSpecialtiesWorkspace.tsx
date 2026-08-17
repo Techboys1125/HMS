@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   Building,
   Plus,
@@ -14,12 +14,16 @@ import {
   X,
   Loader2,
   Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Shield,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
   departmentsApi,
   type ApiDepartment,
   type ApiSpecialtyItem,
+  type DepartmentSpecialtiesPageResponse,
 } from "../api/departments.api";
 
 const PP = "'Poppins', system-ui, sans-serif";
@@ -30,19 +34,19 @@ interface Department {
   code: string;
   name: string;
   specialty: string;
-  head: string;
+  specialtyCount: number;
   doctorsCount: number;
-  consultationRooms: number;
   status: "Active" | "Inactive";
   lastUpdated: string;
   description: string;
-  workingHours: string;
   createdDate: string;
   rawSpecialties?: ApiSpecialtyItem[];
+  active: boolean;
 }
 
 export function DepartmentsSpecialtiesWorkspace() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [selectedTypeFilter, setSelectedTypeFilter] = useState("All");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("All");
   const [selectedDept, setSelectedDept] = useState<Department | null>(null);
@@ -50,15 +54,25 @@ export function DepartmentsSpecialtiesWorkspace() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const pageSize = 10;
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   // Form State for Add
   const [newDeptName, setNewDeptName] = useState("");
   const [newDeptCode, setNewDeptCode] = useState("");
   const [newDeptDescription, setNewDeptDescription] = useState("");
-  const [newDeptHead, setNewDeptHead] = useState("");
   const [newDeptSpecialties, setNewDeptSpecialties] = useState<string[]>([]);
   const [newSpecialtyInput, setNewSpecialtyInput] = useState("");
   const [editSpecialtyInput, setEditSpecialtyInput] = useState("");
+
+  // Confirmation modal for doctor-assigned deletion
+  const [showDoctorAssignedModal, setShowDoctorAssignedModal] = useState(false);
+  const [doctorAssignedDeptName, setDoctorAssignedDeptName] = useState("");
 
   const [departments, setDepartments] = useState<Department[]>([]);
 
@@ -73,46 +87,74 @@ export function DepartmentsSpecialtiesWorkspace() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  const mapApiToDepartment = (
+    d: ApiDepartment,
+    index: number,
+  ): Department => {
+    const deptId = String(d.departmentId || d.id || index + 1);
+    const deptName = d.departmentName || d.name || "Department";
+    const deptCode =
+      d.departmentCode ||
+      d.code ||
+      `DEP-${deptName.substring(0, 4).toUpperCase()}-0${index + 1}`;
+    const specsList = d.specialties
+      ?.map((s) => s.name)
+      .filter(Boolean)
+      .join(", ");
+    const isActive =
+      d.active !== undefined
+        ? d.active
+        : d.status !== "INACTIVE" && d.status !== "Inactive";
+
+    return {
+      id: deptId,
+      code: deptCode,
+      name: deptName,
+      specialty: specsList || d.description || "General Specialty",
+      specialtyCount: d.specialties?.length || 0,
+      doctorsCount:
+        d.doctorCount ?? d.doctorsCount ?? 0,
+      status: isActive ? "Active" : "Inactive",
+      lastUpdated: d.updatedAt
+        ? new Date(d.updatedAt).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })
+        : "Recently updated",
+      description: d.description || `${deptName} clinical unit.`,
+      createdDate: d.createdDate || d.createdAt?.split("T")[0] || "2024",
+      rawSpecialties: d.specialties || [],
+      active: isActive,
+    };
+  };
+
   const loadDepartments = useCallback(async () => {
     try {
-      const apiList = await departmentsApi.getDepartments();
-      if (apiList && apiList.length > 0) {
-        const mapped: Department[] = apiList.map((d, index) => {
-          const deptId = String(d.departmentId || d.id || index + 1);
-          const deptName = d.departmentName || d.name || "Department";
-          const deptCode =
-            d.departmentCode ||
-            d.code ||
-            `DEP-${deptName.substring(0, 4).toUpperCase()}-0${index + 1}`;
-          const specsList = d.specialties
-            ?.map((s) => s.name)
-            .filter(Boolean)
-            .join(", ");
-          const isActive =
-            d.active !== undefined
-              ? d.active
-              : d.status !== "INACTIVE" && d.status !== "Inactive";
-
-          return {
-            id: deptId,
-            code: deptCode,
-            name: deptName,
-            specialty: specsList || d.description || "General Specialty",
-            head: d.headOfDepartment || d.head || "Dr. Unassigned",
-            doctorsCount:
-              d.doctorsCount || (d.specialties ? d.specialties.length * 3 : 10),
-            consultationRooms: d.consultationRooms || 4,
-            status: isActive ? "Active" : "Inactive",
-            lastUpdated: "Recently updated",
-            description: d.description || `${deptName} clinical unit.`,
-            workingHours: d.workingHours || "09:00 AM - 05:00 PM",
-            createdDate: d.createdDate || d.createdAt?.split("T")[0] || "2024",
-            rawSpecialties: d.specialties || [],
-          };
+      const activeOnly =
+        selectedStatusFilter === "Active"
+          ? true
+          : selectedStatusFilter === "Inactive"
+            ? false
+            : undefined;
+      const response: DepartmentSpecialtiesPageResponse =
+        await departmentsApi.getDepartments({
+          search: debouncedSearchTerm || undefined,
+          activeOnly,
+          page: currentPage,
+          size: pageSize,
         });
+      if (response.content && response.content.length > 0) {
+        const mapped: Department[] = response.content.map((d, index) =>
+          mapApiToDepartment(d, index),
+        );
         setDepartments(mapped);
+        setTotalElements(response.totalElements || 0);
+        setTotalPages(response.totalPages || 0);
       } else {
         setDepartments([]);
+        setTotalElements(0);
+        setTotalPages(0);
       }
     } catch (err) {
       console.warn("Failed to load departments from API:", err);
@@ -120,67 +162,62 @@ export function DepartmentsSpecialtiesWorkspace() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [debouncedSearchTerm, selectedStatusFilter, currentPage, pageSize]);
+
+  // Debounce search input
+  useEffect(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(0);
+    }, 400);
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, [searchTerm]);
 
   useEffect(() => {
     let cancelled = false;
-    departmentsApi
-      .getDepartments()
-      .then((apiList) => {
-        if (cancelled) return;
-        if (apiList && apiList.length > 0) {
-          const mapped: Department[] = apiList.map((d, index) => {
-            const deptId = String(d.departmentId || d.id || index + 1);
-            const deptName = d.departmentName || d.name || "Department";
-            const deptCode =
-              d.departmentCode ||
-              d.code ||
-              `DEP-${deptName.substring(0, 4).toUpperCase()}-0${index + 1}`;
-            const specsList = d.specialties
-              ?.map((s) => s.name)
-              .filter(Boolean)
-              .join(", ");
-            const isActive =
-              d.active !== undefined
-                ? d.active
-                : d.status !== "INACTIVE" && d.status !== "Inactive";
-
-            return {
-              id: deptId,
-              code: deptCode,
-              name: deptName,
-              specialty: specsList || d.description || "General Specialty",
-              head: d.headOfDepartment || d.head || "Dr. Unassigned",
-              doctorsCount:
-                d.doctorsCount ||
-                (d.specialties ? d.specialties.length * 3 : 10),
-              consultationRooms: d.consultationRooms || 4,
-              status: isActive ? "Active" : "Inactive",
-              lastUpdated: "Recently updated",
-              description: d.description || `${deptName} clinical unit.`,
-              workingHours: d.workingHours || "09:00 AM - 05:00 PM",
-              createdDate:
-                d.createdDate || d.createdAt?.split("T")[0] || "2024",
-              rawSpecialties: d.specialties || [],
-            };
+    const fetchData = async () => {
+      try {
+        const activeOnly =
+          selectedStatusFilter === "Active"
+            ? true
+            : selectedStatusFilter === "Inactive"
+              ? false
+              : undefined;
+        const response: DepartmentSpecialtiesPageResponse =
+          await departmentsApi.getDepartments({
+            search: debouncedSearchTerm || undefined,
+            activeOnly,
+            page: currentPage,
+            size: pageSize,
           });
+        if (cancelled) return;
+        if (response.content && response.content.length > 0) {
+          const mapped: Department[] = response.content.map((d, index) =>
+            mapApiToDepartment(d, index),
+          );
           setDepartments(mapped);
+          setTotalElements(response.totalElements || 0);
+          setTotalPages(response.totalPages || 0);
         } else {
           setDepartments([]);
+          setTotalElements(0);
+          setTotalPages(0);
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.warn("Failed to load departments from API:", err);
         if (!cancelled) setDepartments([]);
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setIsLoading(false);
-      });
-
+      }
+    };
+    fetchData();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [debouncedSearchTerm, selectedStatusFilter, currentPage, pageSize]);
 
   const handleCreateDepartment = async () => {
     if (!newDeptName.trim()) {
@@ -206,7 +243,6 @@ export function DepartmentsSpecialtiesWorkspace() {
           description: `${spec} Specialty`,
           active: true,
         })),
-        headOfDepartment: newDeptHead,
       };
       await departmentsApi.createDepartment(payload);
       triggerToast(
@@ -219,7 +255,6 @@ export function DepartmentsSpecialtiesWorkspace() {
       setNewDeptSpecialties([]);
       setNewSpecialtyInput("");
       setNewDeptDescription("");
-      setNewDeptHead("");
       setIsLoading(true);
       loadDepartments();
     } catch (err: unknown) {
@@ -240,7 +275,6 @@ export function DepartmentsSpecialtiesWorkspace() {
         departmentCode: selectedDept.code,
         description: selectedDept.description,
         active: selectedDept.status === "Active",
-        headOfDepartment: selectedDept.head,
         specialties: (selectedDept.rawSpecialties || []).map(
           (s: ApiSpecialtyItem, idx: number) => ({
             id: s.id,
@@ -268,18 +302,67 @@ export function DepartmentsSpecialtiesWorkspace() {
     }
   };
 
-  const handleDeleteDepartment = async (deptId: string, deptName: string) => {
+  const handleToggleActive = async (dept: Department) => {
+    const newActive = !dept.active;
+    const action = newActive ? "Activate" : "Deactivate";
     if (
       !window.confirm(
-        `Are you sure you want to delete department "${deptName}"?`,
+        `Are you sure you want to ${action} department "${dept.name}"?`,
       )
     )
       return;
     setIsSubmitting(true);
     try {
-      await departmentsApi.deleteDepartment(deptId);
-      triggerToast(`Department "${deptName}" deleted successfully!`, "success");
-      if (selectedDept?.id === deptId) setSelectedDept(null);
+      const payload: Partial<ApiDepartment> = {
+        departmentName: dept.name,
+        departmentCode: dept.code,
+        description: dept.description,
+        active: newActive,
+        specialties: (dept.rawSpecialties || []).map(
+          (s: ApiSpecialtyItem, idx: number) => ({
+            id: s.id,
+            name: s.name,
+            code: s.code || `${dept.code}_SPEC_${idx + 1}`,
+            description: s.description || `${s.name} Specialty`,
+            active: s.active !== undefined ? s.active : true,
+          }),
+        ),
+      };
+      await departmentsApi.updateDepartment(dept.id, payload);
+      triggerToast(
+        `Department "${dept.name}" ${action.toLowerCase()}d successfully!`,
+        "success",
+      );
+      setIsLoading(true);
+      loadDepartments();
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : `Failed to ${action.toLowerCase()} department`;
+      triggerToast(msg, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteDepartment = async (dept: Department) => {
+    if (dept.doctorsCount > 0) {
+      setDoctorAssignedDeptName(dept.name);
+      setShowDoctorAssignedModal(true);
+      return;
+    }
+    if (
+      !window.confirm(
+        `Are you sure you want to delete department "${dept.name}"?`,
+      )
+    )
+      return;
+    setIsSubmitting(true);
+    try {
+      await departmentsApi.deleteDepartment(dept.id);
+      triggerToast(`Department "${dept.name}" deleted successfully!`, "success");
+      if (selectedDept?.id === dept.id) setSelectedDept(null);
       setIsLoading(true);
       loadDepartments();
     } catch (err: unknown) {
@@ -360,29 +443,8 @@ export function DepartmentsSpecialtiesWorkspace() {
   const totalSpecialties = specialties.length;
 
   // Filter Logic
-  const filteredDepartments = departments.filter((dept) => {
-    const matchesSearch =
-      dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      dept.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      dept.head.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus =
-      selectedStatusFilter === "All" || dept.status === selectedStatusFilter;
-
-    const matchesSpecialty =
-      selectedTypeFilter === "All" ||
-      (dept.specialty &&
-        dept.specialty
-          .toLowerCase()
-          .includes(selectedTypeFilter.toLowerCase())) ||
-      (dept.rawSpecialties &&
-        dept.rawSpecialties.some(
-          (s: ApiSpecialtyItem) =>
-            (s.name || "").toLowerCase() === selectedTypeFilter.toLowerCase(),
-        ));
-
-    return matchesSearch && matchesStatus && matchesSpecialty;
-  });
+  // Server-side filtering is handled by the API - departments state is already filtered
+  const filteredDepartments = departments;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
@@ -804,7 +866,7 @@ export function DepartmentsSpecialtiesWorkspace() {
           />
           <input
             type="text"
-            placeholder="Search by department name, code, or HOD..."
+                placeholder="Search by department name or code..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
@@ -985,10 +1047,12 @@ export function DepartmentsSpecialtiesWorkspace() {
                       fontWeight: 600,
                     }}
                   >
-                    <th style={{ padding: "12px 16px" }}>Name</th>
+                    <th style={{ padding: "12px 16px" }}>Department Name</th>
+                    <th style={{ padding: "12px 16px" }}>Code</th>
                     <th style={{ padding: "12px 16px" }}>Description</th>
+                    <th style={{ padding: "12px 16px" }}>Specialties</th>
                     <th style={{ padding: "12px 16px" }}>Status</th>
-                    <th style={{ padding: "12px 16px" }}>Last Updated</th>
+                    <th style={{ padding: "12px 16px" }}>Updated At</th>
                     <th style={{ padding: "12px 16px", textAlign: "right" }}>
                       Actions
                     </th>
@@ -1011,21 +1075,22 @@ export function DepartmentsSpecialtiesWorkspace() {
                         }}
                       >
                         <div>{dept.name}</div>
-                        <div
-                          style={{
-                            fontSize: "11px",
-                            color: "#64748B",
-                            fontWeight: 500,
-                          }}
-                        >
-                          {dept.code} • {dept.head}
-                        </div>
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px 16px",
+                          fontFamily: "monospace",
+                          fontSize: "12px",
+                          color: "#475569",
+                        }}
+                      >
+                        {dept.code}
                       </td>
                       <td
                         style={{
                           padding: "12px 16px",
                           color: "#475569",
-                          maxWidth: "300px",
+                          maxWidth: "250px",
                         }}
                       >
                         <div
@@ -1037,6 +1102,21 @@ export function DepartmentsSpecialtiesWorkspace() {
                         >
                           {dept.description}
                         </div>
+                      </td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <span
+                          style={{
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            background: "#E0F2FE",
+                            color: "#0369A1",
+                          }}
+                        >
+                          {dept.specialtyCount}{" "}
+                          {dept.specialtyCount === 1 ? "specialty" : "specialties"}
+                        </span>
                       </td>
                       <td style={{ padding: "12px 16px" }}>
                         <span
@@ -1068,53 +1148,207 @@ export function DepartmentsSpecialtiesWorkspace() {
                           style={{
                             display: "flex",
                             justifyContent: "flex-end",
-                            gap: "8px",
+                            gap: "6px",
+                            flexWrap: "wrap",
                           }}
                         >
                           <button
                             onClick={() => setSelectedDept(dept)}
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: "4px",
-                              padding: "6px 12px",
-                              borderRadius: "6px",
-                              border: "1px solid #0D47A1",
-                              background: "#FFFFFF",
-                              color: "#0D47A1",
-                              fontSize: "12px",
-                              fontWeight: 600,
-                              cursor: "pointer",
-                            }}
-                          >
-                            <Eye size={14} /> View Details
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleDeleteDepartment(dept.id, dept.name)
-                            }
+                            title="View Details"
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
                               gap: "4px",
                               padding: "6px 10px",
                               borderRadius: "6px",
-                              border: "1px solid #EF4444",
-                              background: "#FEF2F2",
-                              color: "#EF4444",
-                              fontSize: "12px",
+                              border: "1px solid #0D47A1",
+                              background: "#FFFFFF",
+                              color: "#0D47A1",
+                              fontSize: "11px",
                               fontWeight: 600,
                               cursor: "pointer",
                             }}
                           >
-                            <Trash2 size={14} /> Delete
+                            <Eye size={13} /> View
                           </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          <button
+                            onClick={() => {
+                              setSelectedDept(dept);
+                              setIsEditMode(true);
+                            }}
+                            title="Edit Department"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              padding: "6px 10px",
+                              borderRadius: "6px",
+                              border: "1px solid #009688",
+                              background: "#FFFFFF",
+                              color: "#009688",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            <Edit2 size={13} /> Edit
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleToggleActive(dept)
+                            }
+                            title={dept.active ? "Deactivate" : "Activate"}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              padding: "6px 10px",
+                              borderRadius: "6px",
+                               border: `1px solid ${dept.active ? "#F59E0B" : "#66BB6A"}`,
+                               background: dept.active ? "#FEF3C7" : "#E8F5E9",
+                               color: dept.active ? "#B45309" : "#2E7D32",
+                               fontSize: "11px",
+                               fontWeight: 600,
+                               cursor: "pointer",
+                             }}
+                           >
+                             <Shield size={13} />{" "}
+                             {dept.active ? "Deactivate" : "Activate"}
+                           </button>
+                           <button
+                             onClick={() =>
+                                handleDeleteDepartment(dept)
+                             }
+                             title="Delete Department"
+                             style={{
+                               display: "inline-flex",
+                               alignItems: "center",
+                               gap: "4px",
+                               padding: "6px 10px",
+                               borderRadius: "6px",
+                               border: "1px solid #EF4444",
+                               background: "#FEF2F2",
+                               color: "#EF4444",
+                               fontSize: "11px",
+                               fontWeight: 600,
+                               cursor: "pointer",
+                             }}
+                           >
+                             <Trash2 size={13} /> Delete
+                           </button>
+                         </div>
+                       </td>
+                     </tr>
+                   ))}
+                 </tbody>
+               </table>
+
+              {/* Pagination Controls */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "16px",
+                  borderTop: "1px solid #F1F5F9",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "13px",
+                    color: "#64748B",
+                    fontFamily: PP,
+                  }}
+                >
+                  Showing{" "}
+                  {totalElements === 0
+                    ? 0
+                    : currentPage * pageSize + 1}
+                  {" – "}
+                  {Math.min((currentPage + 1) * pageSize, totalElements)} of{" "}
+                  {totalElements} departments
+                </span>
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: "6px" }}
+                >
+                  <button
+                    onClick={() =>
+                      setCurrentPage((p) => Math.max(0, p - 1))
+                    }
+                    disabled={currentPage === 0}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      padding: "6px 10px",
+                      borderRadius: "6px",
+                      border: "1px solid #E5E7EB",
+                      background: currentPage === 0 ? "#F9FAFB" : "#FFFFFF",
+                      color: currentPage === 0 ? "#94A3B8" : "#374151",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor: currentPage === 0 ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    <ChevronLeft size={14} /> Previous
+                  </button>
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    const startPage = Math.max(
+                      0,
+                      Math.min(currentPage - 2, totalPages - 5),
+                    );
+                    const pageNum = startPage + i;
+                    if (pageNum >= totalPages) return null;
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        style={{
+                          padding: "6px 10px",
+                          borderRadius: "6px",
+                          border: "1px solid",
+                          borderColor:
+                            pageNum === currentPage ? "#0D47A1" : "#E5E7EB",
+                          background:
+                            pageNum === currentPage ? "#0D47A1" : "#FFFFFF",
+                          color: pageNum === currentPage ? "#FFFFFF" : "#374151",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {pageNum + 1}
+                      </button>
+                    );
+                  })}
+                  <button
+                    onClick={() =>
+                      setCurrentPage((p) =>
+                        Math.min(totalPages - 1, p + 1),
+                      )
+                    }
+                    disabled={currentPage >= totalPages - 1}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      padding: "6px 10px",
+                      borderRadius: "6px",
+                      border: "1px solid #E5E7EB",
+                      background:
+                        currentPage >= totalPages - 1 ? "#F9FAFB" : "#FFFFFF",
+                      color:
+                        currentPage >= totalPages - 1 ? "#94A3B8" : "#374151",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      cursor:
+                        currentPage >= totalPages - 1
+                          ? "not-allowed"
+                          : "pointer",
+                    }}
+                  >
+                    Next <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -1495,81 +1729,6 @@ export function DepartmentsSpecialtiesWorkspace() {
                   })}
                 </div>
               </div>
-
-              <div
-                style={{
-                  background: "#F8FAFC",
-                  borderRadius: "12px",
-                  padding: "16px",
-                  border: "1px solid #E2E8F0",
-                }}
-              >
-                <h4
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 700,
-                    color: "#111827",
-                    margin: "0 0 12px 0",
-                  }}
-                >
-                  OPD Suites Allocated
-                </h4>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "8px",
-                  }}
-                >
-                  {departments.slice(0, 5).map((d, i) => {
-                    const colors = [
-                      "#009688",
-                      "#0D47A1",
-                      "#9C27B0",
-                      "#F59E0B",
-                      "#EF4444",
-                    ];
-                    const maxVal = Math.max(
-                      ...departments.map((x) => x.consultationRooms),
-                      1,
-                    );
-                    return (
-                      <div key={d.id}>
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            fontSize: "11px",
-                            marginBottom: "2px",
-                          }}
-                        >
-                          <span>{d.name}</span>
-                          <span style={{ fontWeight: 600 }}>
-                            {d.consultationRooms} OPD Suites
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            width: "100%",
-                            height: "8px",
-                            background: "#E2E8F0",
-                            borderRadius: "4px",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: `${(d.consultationRooms / maxVal) * 100}%`,
-                              height: "100%",
-                              background: colors[i % colors.length],
-                            }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -1676,8 +1835,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                     margin: "4px 0 0 0",
                   }}
                 >
-                  Code: <strong>{selectedDept.code}</strong> • HOD:{" "}
-                  {selectedDept.head}
+                  Code: <strong>{selectedDept.code}</strong>
                 </p>
               </div>
 
@@ -1999,76 +2157,6 @@ export function DepartmentsSpecialtiesWorkspace() {
                     marginBottom: "12px",
                   }}
                 >
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        color: "#64748B",
-                        fontSize: "11px",
-                        marginBottom: "2px",
-                      }}
-                    >
-                      Head of Department (HOD)
-                    </label>
-                    {isEditMode ? (
-                      <input
-                        type="text"
-                        value={selectedDept.head}
-                        onChange={(e) =>
-                          setSelectedDept({
-                            ...selectedDept,
-                            head: e.target.value,
-                          })
-                        }
-                        style={{
-                          width: "100%",
-                          padding: "6px 8px",
-                          borderRadius: "6px",
-                          border: "1px solid #CBD5E1",
-                          fontSize: "12px",
-                        }}
-                      />
-                    ) : (
-                      <span style={{ fontWeight: 600, color: "#111827" }}>
-                        {selectedDept.head}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        color: "#64748B",
-                        fontSize: "11px",
-                        marginBottom: "2px",
-                      }}
-                    >
-                      Working Hours
-                    </label>
-                    {isEditMode ? (
-                      <input
-                        type="text"
-                        value={selectedDept.workingHours}
-                        onChange={(e) =>
-                          setSelectedDept({
-                            ...selectedDept,
-                            workingHours: e.target.value,
-                          })
-                        }
-                        style={{
-                          width: "100%",
-                          padding: "6px 8px",
-                          borderRadius: "6px",
-                          border: "1px solid #CBD5E1",
-                          fontSize: "12px",
-                        }}
-                      />
-                    ) : (
-                      <span style={{ fontWeight: 500, color: "#475569" }}>
-                        {selectedDept.workingHours}
-                      </span>
-                    )}
-                  </div>
                 </div>
                 <div>
                   <label
@@ -2155,20 +2243,6 @@ export function DepartmentsSpecialtiesWorkspace() {
                     </span>
                     <span style={{ fontWeight: 700, color: "#111827" }}>
                       {selectedDept.doctorsCount} Doctors
-                    </span>
-                  </div>
-                  <div>
-                    <span
-                      style={{
-                        color: "#64748B",
-                        display: "block",
-                        fontSize: "11px",
-                      }}
-                    >
-                      Consultation OPD Suites
-                    </span>
-                    <span style={{ fontWeight: 700, color: "#111827" }}>
-                      {selectedDept.consultationRooms} Rooms
                     </span>
                   </div>
                 </div>
@@ -2458,34 +2532,6 @@ export function DepartmentsSpecialtiesWorkspace() {
                 )}
               </div>
 
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: "#374151",
-                    marginBottom: "4px",
-                  }}
-                >
-                  Head of Department
-                </label>
-                <input
-                  type="text"
-                  value={newDeptHead}
-                  onChange={(e) => setNewDeptHead(e.target.value)}
-                  placeholder="e.g. Dr. Rajesh Verma (MD)"
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    borderRadius: "8px",
-                    border: "1px solid #D1D5DB",
-                    fontSize: "13px",
-                    boxSizing: "border-box",
-                  }}
-                />
-              </div>
-
               <div
                 style={{
                   display: "flex",
@@ -2530,6 +2576,103 @@ export function DepartmentsSpecialtiesWorkspace() {
                   Create Department
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DOCTOR ASSIGNED CONFIRMATION MODAL */}
+      {showDoctorAssignedModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 100,
+            padding: "20px",
+          }}
+        >
+          <div
+            style={{
+              background: "#FFFFFF",
+              borderRadius: "16px",
+              maxWidth: "440px",
+              width: "100%",
+              padding: "24px",
+              boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                marginBottom: "16px",
+              }}
+            >
+              <div
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "10px",
+                  background: "#FEF3C7",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <AlertCircle size={22} color="#B45309" />
+              </div>
+              <h3
+                style={{
+                  fontFamily: PP,
+                  fontSize: "16px",
+                  fontWeight: 700,
+                  color: "#111827",
+                  margin: 0,
+                }}
+              >
+                Cannot Delete Department
+              </h3>
+            </div>
+            <p
+              style={{
+                fontFamily: PP,
+                fontSize: "13px",
+                color: "#475569",
+                margin: "0 0 20px 0",
+                lineHeight: 1.6,
+              }}
+            >
+              This department cannot be deleted because doctors are currently
+              assigned to it. Please reassign or remove the assigned doctors
+              before deleting <strong>"{doctorAssignedDeptName}"</strong>.
+            </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                onClick={() => setShowDoctorAssignedModal(false)}
+                style={{
+                  fontFamily: PP,
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                  border: "1px solid #E5E7EB",
+                  background: "#FFFFFF",
+                  color: "#374151",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Okay
+              </button>
             </div>
           </div>
         </div>

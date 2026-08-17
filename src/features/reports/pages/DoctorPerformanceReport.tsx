@@ -40,7 +40,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { PP, RB } from "../constants/reports.constants";
-import type { DoctorReportRecord } from "../types/reports.types";
+import type { DoctorReportRecord, DoctorPerformanceSummary } from "../types/reports.types";
 import { useDoctorPerformance, extractList } from "../hooks/useReports";
 
 function CircularProgress({
@@ -137,11 +137,11 @@ export function DoctorReportScreen({
   const reportFilters = getDateRange(dateRange);
   const { data: rawDoctorPerformance } = useDoctorPerformance(reportFilters);
 
-  const doctorList = useMemo(() => extractList<any>(rawDoctorPerformance), [rawDoctorPerformance]);
+  const doctorList = useMemo(() => extractList<DoctorPerformanceSummary>(rawDoctorPerformance), [rawDoctorPerformance]);
 
   // Map API doctor performance to table format
   const doctorTableSource = useMemo(() => {
-    return doctorList.map((d: any) => ({
+    return doctorList.map((d: DoctorPerformanceSummary) => ({
       doctorId: d.doctorId || d.id || `DOC-${d.code || ""}`,
       doctorName: d.doctorName || d.name || "Doctor",
       department: d.department || "General Medicine",
@@ -159,16 +159,16 @@ export function DoctorReportScreen({
   // so all existing JSX references (doctorPerformanceData?.summary.*) work correctly
   const doctorPerformanceData = useMemo(() => {
     const totalDoctors = doctorList.length;
-    const totalConsultations = doctorList.reduce((s: number, d: any) => s + Number(d.appointments || d.totalAppointments || 0), 0);
-    const completedConsultations = doctorList.reduce((s: number, d: any) => s + Number(d.completed || d.completedAppointments || 0), 0);
-    const pendingConsultations = doctorList.reduce((s: number, d: any) => s + Number(d.pending || d.pendingAppointments || 0), 0);
-    const cancelledConsultations = doctorList.reduce((s: number, d: any) => s + Number(d.cancelled || d.cancelledAppointments || 0), 0);
-    const followUpConsultations = doctorList.reduce((s: number, d: any) => s + Number(d.followUps || d.followup || 0), 0);
+    const totalConsultations = doctorList.reduce((s: number, d: DoctorPerformanceSummary) => s + Number(d.appointments || 0), 0);
+    const completedConsultations = doctorList.reduce((s: number, d: DoctorPerformanceSummary) => s + Number(d.completed || 0), 0);
+    const pendingConsultations = doctorList.reduce((s: number, d: DoctorPerformanceSummary) => s + Number(d.pending || 0), 0);
+    const cancelledConsultations = doctorList.reduce((s: number, d: DoctorPerformanceSummary) => s + Number(d.cancelled || 0), 0);
+    const followUpConsultations = doctorList.reduce((s: number, d: DoctorPerformanceSummary) => s + Number(d.followUps || 0), 0);
     const avgRating = totalDoctors > 0
-      ? doctorList.reduce((s: number, d: any) => s + Number(d.rating || d.patientRating || 4.8), 0) / totalDoctors
+      ? doctorList.reduce((s: number, d: DoctorPerformanceSummary) => s + Number(d.rating || 4.8), 0) / totalDoctors
       : 0;
     const topDoc = doctorList.length > 0
-      ? [...doctorList].sort((a: any, b: any) => Number(b.completed || b.completedAppointments || 0) - Number(a.completed || a.completedAppointments || 0))[0]
+      ? [...doctorList].sort((a: DoctorPerformanceSummary, b: DoctorPerformanceSummary) => Number(b.completed || 0) - Number(a.completed || 0))[0]
       : null;
     return {
       summary: {

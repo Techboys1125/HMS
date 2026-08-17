@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Eye,
   DollarSign,
   Printer,
   MoreVertical,
@@ -91,9 +90,9 @@ export function InvoiceRow({
       <td className="py-3 px-4 text-center relative">
         <div className="flex items-center justify-center gap-2">
           {/* Contextual Principal Button */}
-          {(invoice.status?.toUpperCase() === "READY_FOR_BILLING" ||
-            invoice.status?.toUpperCase() === "DRAFT" ||
-            invoice.status?.toUpperCase() === "PENDING_BILLING") ? (
+          {invoice.status?.toUpperCase() === "READY_FOR_BILLING" ||
+          invoice.status?.toUpperCase() === "DRAFT" ||
+          invoice.status?.toUpperCase() === "PENDING_BILLING" ? (
             <button
               onClick={() => onGenerateInvoiceClick?.(invoice)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white text-[11px] font-semibold hover:bg-blue-900 transition-all shadow-xs whitespace-nowrap cursor-pointer"

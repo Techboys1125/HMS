@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, startTransition } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -193,7 +193,6 @@ export function CreateInvoiceWorkspacePage() {
     deleteBillItem,
     applyDiscount,
     finalizeBill,
-    isCreating,
   } = useInvoice(urlBillId || undefined);
   const { receivePayment } = usePayment(urlBillId || undefined);
 
@@ -222,51 +221,59 @@ export function CreateInvoiceWorkspacePage() {
   // Pre-populate fields once when billWorkspace is loaded
   useEffect(() => {
     if (billWorkspace && !workspaceInitialized) {
-      // Pre-populate items
-      if (billWorkspace.items && billWorkspace.items.length > 0) {
-        const mappedItems = billWorkspace.items.map((item) => ({
-          id: String(item.id),
-          serviceName: item.serviceName,
-          category: "Consultation",
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          discount: item.discountAmount || 0,
-          tax: item.taxRate || 0,
-          total: item.totalAmount,
-        }));
-        setLineItems(mappedItems);
-      }
+      startTransition(() => {
+        // Pre-populate items
+        if (billWorkspace.items && billWorkspace.items.length > 0) {
+          const mappedItems = billWorkspace.items.map((item) => ({
+            id: String(item.id),
+            serviceName: item.serviceName,
+            category: "Consultation",
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            discount: item.discountAmount || 0,
+            tax: item.taxRate || 0,
+            total: item.totalAmount,
+          }));
+          setLineItems(mappedItems);
+        }
 
-      // Pre-populate discount and remarks
-      if (billWorkspace.bill) {
-        const type =
-          billWorkspace.bill.discountType === "PERCENTAGE"
-            ? "Percentage"
-            : "Fixed";
-        setDiscountType(type);
-        setDiscountValue(Number(billWorkspace.bill.discountValue || 0));
-        setBillingRemarks(String(billWorkspace.bill.discountReason || ""));
-      }
+        // Pre-populate discount and remarks
+        if (billWorkspace.bill) {
+          const type =
+            billWorkspace.bill.discountType === "PERCENTAGE"
+              ? "Percentage"
+              : "Fixed";
+          setDiscountType(type);
+          setDiscountValue(Number(billWorkspace.bill.discountValue || 0));
+          setBillingRemarks(String(billWorkspace.bill.discountReason || ""));
+        }
 
-      // Pre-populate amountReceived and status
-      if (billWorkspace.summary) {
-        setAmountReceived(Number(billWorkspace.summary.paidAmount || 0));
-      }
-      if (billWorkspace.bill?.paymentStatus) {
-        const payStatus = billWorkspace.bill.paymentStatus.toUpperCase();
-        if (payStatus === "PAID") {
+        // Pre-populate amountReceived and status
+        if (billWorkspace.summary) {
+          setAmountReceived(Number(billWorkspace.summary.paidAmount || 0));
+        }
+        if (billWorkspace.bill?.paymentStatus) {
+          const payStatus = billWorkspace.bill.paymentStatus.toUpperCase();
+          if (payStatus === "PAID") {
+            setPaymentStatus("Paid");
+          } else if (
+            payStatus === "PARTIALLY_PAID" ||
+            payStatus === "PARTIAL_PAID"
+          ) {
+            setPaymentStatus("Partially Paid");
+          } else {
+            setPaymentStatus("Pending");
+          }
+        } else if (
+          billWorkspace.summary &&
+          billWorkspace.summary.paidAmount > 0
+        ) {
           setPaymentStatus("Paid");
-        } else if (payStatus === "PARTIALLY_PAID" || payStatus === "PARTIAL_PAID") {
-          setPaymentStatus("Partially Paid");
         } else {
           setPaymentStatus("Pending");
         }
-      } else if (billWorkspace.summary && billWorkspace.summary.paidAmount > 0) {
-        setPaymentStatus("Paid");
-      } else {
-        setPaymentStatus("Pending");
-      }
-      setWorkspaceInitialized(true);
+        setWorkspaceInitialized(true);
+      });
     }
   }, [billWorkspace, workspaceInitialized]);
 
@@ -376,185 +383,215 @@ export function CreateInvoiceWorkspacePage() {
     setLineItems(lineItems.filter((i) => i.id !== id));
   };
 
-  const handleGenerateInvoice = useCallback(async (collectFull = false) => {
-    if (!selectedPatient || !resolvedPatientMrn) return;
-    if (isAlreadyPaidOrFinalized) {
-      return;
-    }
-    if (!resolvedPatientId || !resolvedAppointmentId || !resolvedEncounterId) {
-      setValidationError(
-        "This billable visit is missing a patient ID, appointment ID, or encounter ID. Select the patient from the completed-consultation results.",
-      );
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      let billId = Number(urlBillId);
+  const handleGenerateInvoice = useCallback(
+    async (collectFull = false) => {
+      if (!selectedPatient || !resolvedPatientMrn) return;
+      if (isAlreadyPaidOrFinalized) {
+        return;
+      }
+      if (
+        !resolvedPatientId ||
+        !resolvedAppointmentId ||
+        !resolvedEncounterId
+      ) {
+        setValidationError(
+          "This billable visit is missing a patient ID, appointment ID, or encounter ID. Select the patient from the completed-consultation results.",
+        );
+        return;
+      }
+      setIsSubmitting(true);
+      try {
+        let billId = Number(urlBillId);
 
-      if (!billId) {
-        // Create the bill with real values from the clinical context
-        const result = await createBill({
-          appointmentId: Number(resolvedAppointmentId),
-          encounterId: Number(resolvedEncounterId),
-          patientMrn: resolvedPatientMrn || selectedPatient.mrn,
-          doctorId: Number(resolvedDoctorId),
-          patientId: Number(resolvedPatientId),
-        });
-        billId = result.billId;
-
-        // Add line items
-        for (const item of lineItems) {
-          await addBillItem({
-            billId,
-            payload: {
-              serviceCode: item.serviceName === "OPD Consultation Fee" ? "SERV_CONSULT_GEN" : "SERV_" + item.serviceName.toUpperCase().replace(/[^A-Z0-9]/g, "_"),
-              itemName: item.serviceName,
-              description: `${item.category} service: ${item.serviceName}`,
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-              taxRate: item.tax || 18.0,
-            },
+        if (!billId) {
+          // Create the bill with real values from the clinical context
+          const result = await createBill({
+            appointmentId: Number(resolvedAppointmentId),
+            encounterId: Number(resolvedEncounterId),
+            patientMrn: resolvedPatientMrn || selectedPatient.mrn,
+            doctorId: Number(resolvedDoctorId),
+            patientId: Number(resolvedPatientId),
           });
-        }
-      } else {
-        // Sync items for existing bill only if it is in DRAFT status
-        const isDraft = billWorkspace?.bill?.status === "DRAFT";
-        if (isDraft) {
-          const existingItems = billWorkspace?.items || [];
+          billId = result.billId;
 
-          // 1. Delete items that are no longer in lineItems
-          for (const extItem of existingItems) {
-            const stillExists = lineItems.some(
-              (item) => item.serviceName === extItem.serviceName,
-            );
-            if (!stillExists) {
-              await deleteBillItem({ billId, itemId: extItem.id });
-            }
-          }
-
-          // 2. Add or update items
+          // Add line items
           for (const item of lineItems) {
-            const extItem = existingItems.find(
-              (ext) => ext.serviceName === item.serviceName,
-            );
-            if (extItem) {
-              if (extItem.quantity !== item.quantity) {
-                await updateBillItem({
+            await addBillItem({
+              billId,
+              payload: {
+                serviceCode:
+                  item.serviceName === "OPD Consultation Fee"
+                    ? "SERV_CONSULT_GEN"
+                    : "SERV_" +
+                      item.serviceName.toUpperCase().replace(/[^A-Z0-9]/g, "_"),
+                itemName: item.serviceName,
+                description: `${item.category} service: ${item.serviceName}`,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                taxRate: item.tax || 18.0,
+              },
+            });
+          }
+        } else {
+          // Sync items for existing bill only if it is in DRAFT status
+          const isDraft = billWorkspace?.bill?.status === "DRAFT";
+          if (isDraft) {
+            const existingItems = billWorkspace?.items || [];
+
+            // 1. Delete items that are no longer in lineItems
+            for (const extItem of existingItems) {
+              const stillExists = lineItems.some(
+                (item) => item.serviceName === extItem.serviceName,
+              );
+              if (!stillExists) {
+                await deleteBillItem({ billId, itemId: extItem.id });
+              }
+            }
+
+            // 2. Add or update items
+            for (const item of lineItems) {
+              const extItem = existingItems.find(
+                (ext) => ext.serviceName === item.serviceName,
+              );
+              if (extItem) {
+                if (extItem.quantity !== item.quantity) {
+                  await updateBillItem({
+                    billId,
+                    itemId: extItem.id,
+                    payload: {
+                      serviceCode:
+                        item.serviceName === "OPD Consultation Fee"
+                          ? "SERV_CONSULT_GEN"
+                          : "SERV_" +
+                            item.serviceName
+                              .toUpperCase()
+                              .replace(/[^A-Z0-9]/g, "_"),
+                      itemName: item.serviceName,
+                      description: `${item.category} service: ${item.serviceName} (Updated)`,
+                      quantity: item.quantity,
+                      unitPrice: item.unitPrice,
+                      taxRate: item.tax || 18.0,
+                    },
+                  });
+                }
+              } else {
+                await addBillItem({
                   billId,
-                  itemId: extItem.id,
                   payload: {
-                    serviceCode: item.serviceName === "OPD Consultation Fee" ? "SERV_CONSULT_GEN" : "SERV_" + item.serviceName.toUpperCase().replace(/[^A-Z0-9]/g, "_"),
+                    serviceCode:
+                      item.serviceName === "OPD Consultation Fee"
+                        ? "SERV_CONSULT_GEN"
+                        : "SERV_" +
+                          item.serviceName
+                            .toUpperCase()
+                            .replace(/[^A-Z0-9]/g, "_"),
                     itemName: item.serviceName,
-                    description: `${item.category} service: ${item.serviceName} (Updated)`,
+                    description: `${item.category} service: ${item.serviceName}`,
                     quantity: item.quantity,
                     unitPrice: item.unitPrice,
                     taxRate: item.tax || 18.0,
                   },
                 });
               }
-            } else {
-              await addBillItem({
-                billId,
-                payload: {
-                  serviceCode: item.serviceName === "OPD Consultation Fee" ? "SERV_CONSULT_GEN" : "SERV_" + item.serviceName.toUpperCase().replace(/[^A-Z0-9]/g, "_"),
-                  itemName: item.serviceName,
-                  description: `${item.category} service: ${item.serviceName}`,
-                  quantity: item.quantity,
-                  unitPrice: item.unitPrice,
-                  taxRate: item.tax || 18.0,
-                },
-              });
             }
           }
         }
-      }
 
-      // Apply discount
-      if (discountValue > 0) {
-        await applyDiscount({
-          billId,
-          discountType: discountType === "Percentage" ? "PERCENTAGE" : "FIXED",
-          value: discountValue,
-          reason: billingRemarks || "Invoice discount",
-        });
-      }
-
-      // Finalize the bill unconditionally before payment
-      try {
-        await finalizeBill(billId);
-      } catch (finErr) {
-        console.warn("Unconditional finalization warning:", finErr);
-      }
-
-      // Receive payment if amountReceived > 0 or if collectFull is true (Must be done AFTER finalizing)
-      const actualAmountToReceive = collectFull ? grandTotal : amountReceived;
-      if (collectFull) {
-        setAmountReceived(grandTotal);
-      }
-
-      if (actualAmountToReceive > 0) {
-        const payRes = await receivePayment({
-          billId,
-          payments: [
-            {
-              method: paymentMode,
-              amount: actualAmountToReceive,
-              referenceNumber: referenceNo || undefined,
-            },
-          ],
-          remarks: txnNotes || undefined,
-        });
-
-        // Map API response status to frontend titlecase status
-        if (payRes && payRes.paymentStatus) {
-          const apiStatus = payRes.paymentStatus.toUpperCase();
-          if (apiStatus === "PAID") setPaymentStatus("Paid");
-          else if (apiStatus === "PARTIALLY_PAID" || apiStatus === "PARTIAL_PAID") setPaymentStatus("Partially Paid");
-          else if (apiStatus === "CANCELLED" || apiStatus === "VOIDED") setPaymentStatus("Cancelled");
-          else if (apiStatus === "REFUNDED") setPaymentStatus("Refunded");
-          else setPaymentStatus("Pending");
-        } else {
-          setPaymentStatus(actualAmountToReceive >= grandTotal ? "Paid" : "Partially Paid");
+        // Apply discount
+        if (discountValue > 0) {
+          await applyDiscount({
+            billId,
+            discountType:
+              discountType === "Percentage" ? "PERCENTAGE" : "FIXED",
+            value: discountValue,
+            reason: billingRemarks || "Invoice discount",
+          });
         }
-      } else {
-        setPaymentStatus("Pending");
-      }
 
-      setCreatedBillId(String(billId));
-      setShowSuccessModal(true);
-    } catch (err) {
-      console.error("Failed to create/finalize invoice:", err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [
-    selectedPatient,
-    lineItems,
-    calculatedDiscount,
-    discountType,
-    discountValue,
-    billingRemarks,
-    createBill,
-    addBillItem,
-    updateBillItem,
-    deleteBillItem,
-    applyDiscount,
-    finalizeBill,
-    receivePayment,
-    resolvedAppointmentId,
-    resolvedEncounterId,
-    resolvedDoctorId,
-    resolvedPatientMrn,
-    resolvedPatientId,
-    urlBillId,
-    billWorkspace,
-    amountReceived,
-    paymentMode,
-    referenceNo,
-    txnNotes,
-    grandTotal,
-    isAlreadyPaidOrFinalized,
-  ]);
+        // Finalize the bill unconditionally before payment
+        try {
+          await finalizeBill(billId);
+        } catch (finErr) {
+          console.warn("Unconditional finalization warning:", finErr);
+        }
+
+        // Receive payment if amountReceived > 0 or if collectFull is true (Must be done AFTER finalizing)
+        const actualAmountToReceive = collectFull ? grandTotal : amountReceived;
+        if (collectFull) {
+          setAmountReceived(grandTotal);
+        }
+
+        if (actualAmountToReceive > 0) {
+          const payRes = await receivePayment({
+            billId,
+            payments: [
+              {
+                method: paymentMode,
+                amount: actualAmountToReceive,
+                referenceNumber: referenceNo || undefined,
+              },
+            ],
+            remarks: txnNotes || undefined,
+          });
+
+          // Map API response status to frontend titlecase status
+          if (payRes && payRes.paymentStatus) {
+            const apiStatus = payRes.paymentStatus.toUpperCase();
+            if (apiStatus === "PAID") setPaymentStatus("Paid");
+            else if (
+              apiStatus === "PARTIALLY_PAID" ||
+              apiStatus === "PARTIAL_PAID"
+            )
+              setPaymentStatus("Partially Paid");
+            else if (apiStatus === "CANCELLED" || apiStatus === "VOIDED")
+              setPaymentStatus("Cancelled");
+            else if (apiStatus === "REFUNDED") setPaymentStatus("Refunded");
+            else setPaymentStatus("Pending");
+          } else {
+            setPaymentStatus(
+              actualAmountToReceive >= grandTotal ? "Paid" : "Partially Paid",
+            );
+          }
+        } else {
+          setPaymentStatus("Pending");
+        }
+
+        setCreatedBillId(String(billId));
+        setShowSuccessModal(true);
+      } catch (err) {
+        console.error("Failed to create/finalize invoice:", err);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [
+      selectedPatient,
+      lineItems,
+      discountType,
+      discountValue,
+      billingRemarks,
+      createBill,
+      addBillItem,
+      updateBillItem,
+      deleteBillItem,
+      applyDiscount,
+      finalizeBill,
+      receivePayment,
+      resolvedAppointmentId,
+      resolvedEncounterId,
+      resolvedDoctorId,
+      resolvedPatientMrn,
+      resolvedPatientId,
+      urlBillId,
+      billWorkspace,
+      amountReceived,
+      paymentMode,
+      referenceNo,
+      txnNotes,
+      grandTotal,
+      isAlreadyPaidOrFinalized,
+    ],
+  );
 
   return (
     <div className="w-full bg-[#F1F5F9] min-h-screen p-4 md:p-6 pb-28 space-y-6">
@@ -606,7 +643,10 @@ export function CreateInvoiceWorkspacePage() {
           {isAlreadyPaidOrFinalized ? (
             <button
               onClick={() => {
-                const targetId = billWorkspace?.bill?.id || billWorkspace?.bill?.billId || urlBillId;
+                const targetId =
+                  billWorkspace?.bill?.id ||
+                  billWorkspace?.bill?.billId ||
+                  urlBillId;
                 if (targetId) navigate(`/billing/invoice/${targetId}`);
               }}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95"
@@ -618,11 +658,7 @@ export function CreateInvoiceWorkspacePage() {
           ) : (
             <button
               onClick={() => handleGenerateInvoice(false)}
-              disabled={
-                isSubmitting ||
-                isBillLoading ||
-                !selectedPatient
-              }
+              disabled={isSubmitting || isBillLoading || !selectedPatient}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95 disabled:opacity-50"
               style={{ fontFamily: PP }}
             >
@@ -723,10 +759,15 @@ export function CreateInvoiceWorkspacePage() {
                 <div className="mt-4 bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden divide-y divide-slate-100">
                   <div className="p-1 space-y-1">
                     {filteredBills.map((bill: BillListItem) => {
+                      const b = bill as BillListItem & {
+                        patientPhone?: string;
+                        phone?: string;
+                        mobile?: string;
+                      };
                       const patientPhone =
-                        (bill as any).patientPhone ||
-                        (bill as any).phone ||
-                        (bill as any).mobile ||
+                        b.patientPhone ||
+                        b.phone ||
+                        b.mobile ||
                         "9876543210";
                       return (
                         <div
@@ -775,7 +816,7 @@ export function CreateInvoiceWorkspacePage() {
                             </div>
                           </div>
 
-                           <div className="flex flex-wrap items-center gap-1.5">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             {bill.status === "READY_FOR_BILLING" ? (
                               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
                                 Ready for Billing
@@ -785,14 +826,24 @@ export function CreateInvoiceWorkspacePage() {
                                 {String(bill.status).replace(/_/g, " ")}
                               </span>
                             )}
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
-                              String(bill.paymentStatus).toUpperCase() === "PAID"
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                                : String(bill.paymentStatus).toUpperCase() === "PARTIALLY_PAID" || String(bill.paymentStatus).toUpperCase() === "PARTIAL_PAID"
-                                ? "bg-blue-50 text-blue-700 border-blue-100"
-                                : "bg-amber-50 text-amber-700 border-amber-100"
-                            }`}>
-                              {String(bill.paymentStatus || "Unpaid").replace(/_/g, " ")}
+                            <span
+                              className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold border ${
+                                String(bill.paymentStatus).toUpperCase() ===
+                                "PAID"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                  : String(bill.paymentStatus).toUpperCase() ===
+                                        "PARTIALLY_PAID" ||
+                                      String(
+                                        bill.paymentStatus,
+                                      ).toUpperCase() === "PARTIAL_PAID"
+                                    ? "bg-blue-50 text-blue-700 border-blue-100"
+                                    : "bg-amber-50 text-amber-700 border-amber-100"
+                              }`}
+                            >
+                              {String(bill.paymentStatus || "Unpaid").replace(
+                                /_/g,
+                                " ",
+                              )}
                             </span>
                           </div>
 
@@ -1471,7 +1522,10 @@ export function CreateInvoiceWorkspacePage() {
               {isAlreadyPaidOrFinalized ? (
                 <button
                   onClick={() => {
-                    const targetId = billWorkspace?.bill?.id || billWorkspace?.bill?.billId || urlBillId;
+                    const targetId =
+                      billWorkspace?.bill?.id ||
+                      billWorkspace?.bill?.billId ||
+                      urlBillId;
                     if (targetId) navigate(`/billing/invoice/${targetId}`);
                   }}
                   className="w-full py-3 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm flex items-center justify-center gap-2"
@@ -1484,11 +1538,7 @@ export function CreateInvoiceWorkspacePage() {
                 <>
                   <button
                     onClick={() => handleGenerateInvoice(true)}
-                    disabled={
-                      isSubmitting ||
-                      isBillLoading ||
-                      !selectedPatient
-                    }
+                    disabled={isSubmitting || isBillLoading || !selectedPatient}
                     className="w-full py-3 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                     style={{ fontFamily: PP }}
                   >
@@ -1522,7 +1572,10 @@ export function CreateInvoiceWorkspacePage() {
         {isAlreadyPaidOrFinalized ? (
           <button
             onClick={() => {
-              const targetId = billWorkspace?.bill?.id || billWorkspace?.bill?.billId || urlBillId;
+              const targetId =
+                billWorkspace?.bill?.id ||
+                billWorkspace?.bill?.billId ||
+                urlBillId;
               if (targetId) navigate(`/billing/invoice/${targetId}`);
             }}
             className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-all shadow-sm"
@@ -1534,11 +1587,7 @@ export function CreateInvoiceWorkspacePage() {
         ) : (
           <button
             onClick={() => handleGenerateInvoice(true)}
-            disabled={
-              isSubmitting ||
-              isBillLoading ||
-              !selectedPatient
-            }
+            disabled={isSubmitting || isBillLoading || !selectedPatient}
             className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-all shadow-sm disabled:opacity-50"
             style={{ fontFamily: PP }}
           >

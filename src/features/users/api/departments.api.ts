@@ -6,6 +6,7 @@ import type {
   ApiDepartmentLookupItem,
   ApiSpecialty,
   DepartmentSpecialtiesPageResponse,
+  DepartmentListParams,
 } from "../types/departments.types";
 
 export type {
@@ -15,6 +16,7 @@ export type {
   ApiDepartmentLookupItem,
   ApiSpecialty,
   DepartmentSpecialtiesPageResponse,
+  DepartmentListParams,
 };
 
 const unwrapList = <T>(resData: unknown): T[] => {
@@ -41,6 +43,64 @@ const unwrapList = <T>(resData: unknown): T[] => {
   return [];
 };
 
+const unwrapPaginated = <T>(
+  resData: unknown,
+): { items: T[]; pagination: Omit<DepartmentSpecialtiesPageResponse, "content"> } => {
+  const defaultPagination = {
+    totalElements: 0,
+    totalPages: 0,
+    size: 10,
+    number: 0,
+    first: true,
+    last: true,
+    empty: true,
+  };
+
+  if (!resData) return { items: [], pagination: defaultPagination };
+
+  // Check if it's a direct paginated response
+  const obj = resData as Record<string, unknown>;
+  if (obj.content && Array.isArray(obj.content)) {
+    return {
+      items: obj.content as T[],
+      pagination: {
+        totalElements: (obj.totalElements as number) || 0,
+        totalPages: (obj.totalPages as number) || 0,
+        size: (obj.size as number) || 10,
+        number: (obj.number as number) || 0,
+        first: (obj.first as boolean) ?? true,
+        last: (obj.last as boolean) ?? true,
+        empty: (obj.empty as boolean) ?? false,
+      },
+    };
+  }
+
+  // Check if wrapped in { data: { content: [] } }
+  if (obj.data && typeof obj.data === "object") {
+    const innerData = obj.data as Record<string, unknown>;
+    if (innerData.content && Array.isArray(innerData.content)) {
+      return {
+        items: innerData.content as T[],
+        pagination: {
+          totalElements: (innerData.totalElements as number) || 0,
+          totalPages: (innerData.totalPages as number) || 0,
+          size: (innerData.size as number) || 10,
+          number: (innerData.number as number) || 0,
+          first: (innerData.first as boolean) ?? true,
+          last: (innerData.last as boolean) ?? true,
+          empty: (innerData.empty as boolean) ?? false,
+        },
+      };
+    }
+  }
+
+  // Fallback: treat as array response
+  return {
+    items: unwrapList<T>(resData),
+    pagination: defaultPagination,
+  };
+};
+
 const sanitizeCode = (code?: string, fallbackPrefix = "CODE"): string => {
   if (!code || !code.trim()) {
     return `${fallbackPrefix}_${Date.now().toString(36).toUpperCase()}`;
@@ -51,14 +111,11 @@ const sanitizeCode = (code?: string, fallbackPrefix = "CODE"): string => {
 export const departmentsApi = {
   /**
    * GET /api/v1/admin/department-specialties
-   * List Departments and Specialties
+   * List Departments and Specialties (paginated)
    */
-  async getDepartments(params?: {
-    search?: string;
-    activeOnly?: boolean;
-    page?: number;
-    size?: number;
-  }): Promise<ApiDepartmentSpecialtiesItem[]> {
+  async getDepartments(
+    params?: DepartmentListParams,
+  ): Promise<DepartmentSpecialtiesPageResponse> {
     try {
       let res;
       const queryParams = new URLSearchParams();
@@ -95,8 +152,8 @@ export const departmentsApi = {
           throw err;
         }
       }
-      const rawList = unwrapList<ApiDepartmentSpecialtiesItem>(res.data);
-      return rawList.map((item: ApiDepartmentSpecialtiesItem) => ({
+      const { items, pagination } = unwrapPaginated<ApiDepartmentSpecialtiesItem>(res.data);
+      const normalizedItems = items.map((item: ApiDepartmentSpecialtiesItem) => ({
         ...item,
         id: item.id ?? item.departmentId,
         departmentId: item.departmentId ?? item.id,
@@ -109,12 +166,31 @@ export const departmentsApi = {
           id: s.id,
         })),
       }));
+      return {
+        content: normalizedItems,
+        totalElements: pagination.totalElements,
+        totalPages: pagination.totalPages,
+        size: pagination.size,
+        number: pagination.number,
+        first: pagination.first,
+        last: pagination.last,
+        empty: pagination.empty,
+      };
     } catch (error) {
       console.warn(
         "[departmentsApi] Failed to fetch department specialties:",
         error,
       );
-      return [];
+      return {
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        size: 10,
+        number: 0,
+        first: true,
+        last: true,
+        empty: true,
+      };
     }
   },
 

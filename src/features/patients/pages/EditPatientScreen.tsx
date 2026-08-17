@@ -10,7 +10,7 @@ import {
   CheckCircle2,
   AlertTriangle,
 } from "lucide-react";
-import { PP, RB } from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.fonts";
 import { usePatient, useUpdatePatient } from "../hooks/usePatients";
 import type { Patient } from "../types/patient.types";
 

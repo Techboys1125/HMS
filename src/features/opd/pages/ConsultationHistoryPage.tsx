@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { ChevronDown, Plus, Eye, ArrowLeft } from "lucide-react";
 import { usePermissions } from "../../../permissions";
 import type { TimelineConsultationItem } from "../types/consultation";
+import { formatTime } from "../../../lib/time-utils";
 
 // Reusable Components
 import { ConsultationHeader } from "../components/ConsultationHeader";
@@ -281,7 +282,7 @@ export function ConsultationHistoryPage({
                   <div>
                     <div className="flex items-center gap-2 text-xs text-[#0D47A1] font-bold">
                       <span>
-                        {item.date} · {item.time}
+                        {item.date} · {formatTime(item.time)}
                       </span>
                       <span className="font-mono bg-blue-50 px-1.5 py-0.5 rounded text-[10px]">
                         {item.id}

@@ -36,18 +36,19 @@ export function ScheduleExceptionsTab({
 
   useEffect(() => {
     let cancelled = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    const targetId = resolveDoctorId(doctor);
-    doctorsService
-      .getScheduleExceptions(targetId)
-      .then((data) => {
+    const loadExceptions = async () => {
+      setLoading(true);
+      try {
+        const targetId = resolveDoctorId(doctor);
+        const data = await doctorsService.getScheduleExceptions(targetId);
         if (!cancelled) setExceptions(data || []);
-      })
-      .catch(() => {})
-      .finally(() => {
+      } catch {
+        // Errors are intentionally swallowed; loading will still be cleared below.
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    };
+    void loadExceptions();
     return () => {
       cancelled = true;
     };

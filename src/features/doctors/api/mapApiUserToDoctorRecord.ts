@@ -9,11 +9,9 @@ import type {
 } from "../types/doctors.types";
 
 export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const anyU = u as any;
-  const profile = u.doctorProfile || anyU.profile || anyU.doctor || anyU;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const anyProfile = profile as any;
+  const anyU = u as ApiUserDoctorRecord & Record<string, unknown>;
+  const profile = u.doctorProfile || anyU.profile || anyU.doctor || u;
+  const anyProfile = profile as Record<string, unknown>;
 
   const primaryDept =
     profile?.primaryDepartment?.departmentName ||
@@ -101,8 +99,7 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     [];
   const workingDays = Array.from(
     new Set(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      rawAvail.map((a: any) =>
+      rawAvail.map((a: ApiAvailabilityItem) =>
         String(a.dayOfWeek || "")
           .substring(0, 3)
           .toUpperCase(),
@@ -124,15 +121,18 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     status = "On Leave";
   else if (rawStatus === "SUSPENDED") status = "Suspended";
 
-  const rawUserId =
-    u.userId ?? u.id ?? anyProfile?.userId ?? anyProfile?.id ?? 0;
   const rawDoctorId =
-    profile?.doctorId ?? anyProfile?.doctorId ?? anyU.doctorId ?? rawUserId;
+    profile?.doctorId ?? anyProfile?.doctorId ?? anyU.doctorId ?? 0;
+  const hasExplicitDoctorId = Number.isFinite(rawDoctorId) && rawDoctorId > 0;
+  const rawUserId = hasExplicitDoctorId
+    ? (u.userId ?? anyProfile?.userId ?? 0)
+    : (u.userId ?? u.id ?? anyProfile?.userId ?? anyProfile?.id ?? 0);
+  const finalDoctorId = hasExplicitDoctorId ? rawDoctorId : rawUserId;
 
   return {
-    id: `DOC-${rawDoctorId || rawUserId}`,
+    id: `DOC-${finalDoctorId || rawUserId}`,
     userId: Number(rawUserId),
-    doctorId: Number(rawDoctorId),
+    doctorId: Number(finalDoctorId),
     empId,
     regNumber,
     name: (u.fullName || u.name || anyProfile?.name || "").startsWith("Dr.")
@@ -190,7 +190,9 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
       profile?.scheduleExceptions || anyProfile?.scheduleExceptions || [],
     rawAvailability: rawAvail,
     secondarySpecialties:
-      profile?.secondarySpecialties?.map((s: ApiSpecialtyRef) => s.specialtyName) || [],
+      profile?.secondarySpecialties?.map(
+        (s: ApiSpecialtyRef) => s.specialtyName,
+      ) || [],
     effectiveFrom: anyProfile?.effectiveFrom,
     effectiveTo: anyProfile?.effectiveTo,
     availabilityTemplate: anyProfile?.availabilityTemplate,

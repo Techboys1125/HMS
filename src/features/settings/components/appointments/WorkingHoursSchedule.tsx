@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Calendar, Save } from "lucide-react";
+import { Calendar, Save, AlertTriangle } from "lucide-react";
+import { TimeSelect } from "../../../../components/TimeSelect";
 import type {
   OpdBreak,
   OpdWeeklySchedule,
@@ -24,6 +25,34 @@ function dayValue(
   return drafts[day.dayOfWeek] || schedule.find((item) => item.dayOfWeek === day.dayOfWeek) || day;
 }
 
+function validateSchedule(days: OpdWeeklyScheduleDay[]): string[] {
+  const errors: string[] = [];
+  for (const day of days) {
+    const current = day;
+    if (current.isOpen) {
+      const interval = current.workingIntervals[0];
+      if (!interval?.startTime) {
+        errors.push(`${day.dayOfWeek}: Opening time is required.`);
+      }
+      if (!interval?.endTime) {
+        errors.push(`${day.dayOfWeek}: Closing time is required.`);
+      }
+      if (interval?.startTime && interval?.endTime && interval.startTime >= interval.endTime) {
+        errors.push(`${day.dayOfWeek}: Closing time must be after opening time.`);
+      }
+      for (const brk of current.breaks) {
+        if (brk.startTime && brk.endTime && brk.startTime >= brk.endTime) {
+          errors.push(`${day.dayOfWeek}: Break "${brk.breakName || "Break"}" end time must be after start time.`);
+        }
+        if (interval?.startTime && brk.endTime && brk.endTime > interval.endTime) {
+          errors.push(`${day.dayOfWeek}: Break "${brk.breakName || "Break"}" ends after hospital closing time.`);
+        }
+      }
+    }
+  }
+  return errors;
+}
+
 export function WorkingHoursSchedule({
   schedule,
   loading,
@@ -32,6 +61,7 @@ export function WorkingHoursSchedule({
   onSaveBreaks,
 }: WorkingHoursScheduleProps) {
   const [drafts, setDrafts] = useState<Record<string, OpdWeeklyScheduleDay>>({});
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const days = schedule.weeklySchedule;
 
   const updateDay = (day: OpdWeeklyScheduleDay, patch: Partial<OpdWeeklyScheduleDay>) => {
@@ -54,9 +84,14 @@ export function WorkingHoursSchedule({
   };
 
   const saveAll = async () => {
-    await onSave({
-      weeklySchedule: days.map((day) => dayValue(days, drafts, day)),
-    });
+    const resolvedDays = days.map((day) => dayValue(days, drafts, day));
+    const errors = validateSchedule(resolvedDays);
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+    setValidationErrors([]);
+    await onSave({ weeklySchedule: resolvedDays });
     setDrafts({});
   };
 
@@ -70,6 +105,18 @@ export function WorkingHoursSchedule({
           <Save size={14} /> Save Schedule
         </button>
       </div>
+      {validationErrors.length > 0 && (
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3">
+          <div className="flex items-center gap-1.5 text-red-700 font-bold text-xs mb-1">
+            <AlertTriangle size={13} /> Please fix the following:
+          </div>
+          <ul className="list-disc list-inside text-red-600 text-[11px] space-y-0.5">
+            {validationErrors.map((err, i) => (
+              <li key={i}>{err}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       {loading ? <p className="text-sm text-slate-500">Loading OPD schedule...</p> : days.length === 0 ? <p className="text-sm text-slate-500">No OPD weekly schedule configured.</p> : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] border-collapse text-left text-sm">
@@ -77,13 +124,13 @@ export function WorkingHoursSchedule({
             <tbody>{days.map((day) => { const current = dayValue(days, drafts, day); const interval = current.workingIntervals[0] || { startTime: "", endTime: "" }; const breakItem = current.breaks[0] || { breakName: "Lunch Break", startTime: "", endTime: "" }; return (
               <tr key={day.dayOfWeek} className="border-b border-[#F1F5F9]">
                 <td className="p-3 font-bold">{day.dayOfWeek}</td>
-                <td className="p-3"><input type="checkbox" checked={current.open} onChange={(e) => updateDay(day, { open: e.target.checked })} /></td>
-                <td className="p-3"><input className="w-24 rounded border border-[#D1D5DB] px-2 py-1" value={interval.startTime} disabled={!current.open} onChange={(e) => updateInterval(day, "startTime", e.target.value)} /></td>
-                <td className="p-3"><input className="w-24 rounded border border-[#D1D5DB] px-2 py-1" value={interval.endTime} disabled={!current.open} onChange={(e) => updateInterval(day, "endTime", e.target.value)} /></td>
-                <td className="p-3"><input className="w-28 rounded border border-[#D1D5DB] px-2 py-1" value={breakItem.breakName} disabled={!current.open} onChange={(e) => updateBreak(day, "breakName", e.target.value)} /></td>
-                <td className="p-3"><input className="w-24 rounded border border-[#D1D5DB] px-2 py-1" value={breakItem.startTime} disabled={!current.open} onChange={(e) => updateBreak(day, "startTime", e.target.value)} /></td>
-                <td className="p-3"><input className="w-24 rounded border border-[#D1D5DB] px-2 py-1" value={breakItem.endTime} disabled={!current.open} onChange={(e) => updateBreak(day, "endTime", e.target.value)} /></td>
-                <td className="p-3"><button className="rounded border border-[#D1D5DB] px-2 py-1 text-xs font-semibold disabled:opacity-50" disabled={saving || !current.open} onClick={() => void onSaveBreaks(day.dayOfWeek, current.breaks)}>{saving ? "Saving" : "Save Break"}</button></td>
+                <td className="p-3"><input type="checkbox" checked={current.isOpen} onChange={(e) => updateDay(day, { isOpen: e.target.checked })} /></td>
+                <td className="p-3"><TimeSelect value={interval.startTime} disabled={!current.isOpen} onChange={(val) => updateInterval(day, "startTime", val)} className="w-28" /></td>
+                <td className="p-3"><TimeSelect value={interval.endTime} disabled={!current.isOpen} onChange={(val) => updateInterval(day, "endTime", val)} className="w-28" /></td>
+                <td className="p-3"><input className="w-28 rounded border border-[#D1D5DB] px-2 py-1" value={breakItem.breakName} disabled={!current.isOpen} onChange={(e) => updateBreak(day, "breakName", e.target.value)} /></td>
+                <td className="p-3"><TimeSelect value={breakItem.startTime} disabled={!current.isOpen} onChange={(val) => updateBreak(day, "startTime", val)} className="w-28" /></td>
+                <td className="p-3"><TimeSelect value={breakItem.endTime} disabled={!current.isOpen} onChange={(val) => updateBreak(day, "endTime", val)} className="w-28" /></td>
+                <td className="p-3"><button className="rounded border border-[#D1D5DB] px-2 py-1 text-xs font-semibold disabled:opacity-50" disabled={saving || !current.isOpen} onClick={() => void onSaveBreaks(day.dayOfWeek, current.breaks)}>{saving ? "Saving" : "Save Break"}</button></td>
               </tr>
             ); })}</tbody>
           </table>

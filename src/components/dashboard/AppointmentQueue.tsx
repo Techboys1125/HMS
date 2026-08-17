@@ -4,6 +4,7 @@ import type { AppStatus } from "../../types/app.types";
 import { APPOINTMENTS } from "../../constants/dashboard";
 import { Avatar } from "../../common/components/Avatar";
 import { StatusBadge } from "../../common/components/StatusBadge";
+import { formatTime } from "../../../lib/time-utils";
 
 export function AppointmentQueue({
   onPatientSelect,
@@ -89,7 +90,7 @@ export function AppointmentQueue({
               >
                 <td className="px-5 py-3.5">
                   <span className="font-mono text-xs font-medium text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded">
-                    {apt.time}
+                    {formatTime(apt.time)}
                   </span>
                 </td>
                 <td className="px-5 py-3.5">

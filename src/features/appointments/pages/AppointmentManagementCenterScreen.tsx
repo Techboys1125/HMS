@@ -24,6 +24,7 @@ import {
 import { PP, RB } from "../constants/appointment.constants";
 import { appointmentService } from "../services/appointment.service";
 import { useAppointments } from "../hooks/useAppointments";
+import { formatTime } from "../../../lib/time-utils";
 import type { AppointmentRecord } from "../types/appointment.types";
 import type { UserRole } from "../types/appointment-screen.types";
 import { DockableQueueWorkspace } from "../components/DockableQueueWorkspace";
@@ -1305,7 +1306,7 @@ export function AppointmentManagementCenterScreen({
                             )}
 
                             <td className="px-4 py-3.5 font-mono text-[#0D47A1] font-bold">
-                              {apt.timeSlot}
+                              {formatTime(apt.timeSlot)}
                             </td>
 
                             <td className="px-4 py-3.5">

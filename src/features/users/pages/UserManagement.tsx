@@ -15,7 +15,6 @@ import {
   CheckCircle2,
   AlertTriangle,
   Mail,
-  Building2,
   Clock,
   ArrowUpDown,
   RotateCcw,
@@ -34,6 +33,30 @@ import type { User } from "../../auth/types/auth.types";
 // --- Typography & Design Tokens ---
 const PP = "Poppins, sans-serif";
 const RB = "Roboto, sans-serif";
+
+const formatLastLogin = (lastLogin: string | null): string => {
+  if (!lastLogin) return "\u2014";
+  try {
+    const date = new Date(lastLogin);
+    if (isNaN(date.getTime())) return "\u2014";
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return "\u2014";
+  }
+};
 
 export type SystemRole =
   | "Super Admin"
@@ -54,9 +77,9 @@ export interface UserRecord {
   email: string;
   phone: string;
   role: SystemRole;
-  department: string;
+  department: string | null;
   status: AccountStatus;
-  lastLogin: string;
+  lastLogin: string | null;
   joinedDate: string;
   twoFactor: boolean;
   departmentId?: number;
@@ -98,7 +121,6 @@ export const UserManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("All");
   const [statusFilter, setStatusFilter] = useState<string>("All");
-  const [deptFilter, setDeptFilter] = useState<string>("All");
 
   // Sorting
   const [sortColumn, setSortColumn] = useState<keyof UserRecord>("empId");
@@ -192,18 +214,21 @@ export const UserManagement: React.FC = () => {
               BACKEND_TO_DISPLAY_STATUS[String(u.status).toUpperCase()] ||
               "Active";
             const deptId = Number(
-              u.primaryDepartmentId ??
-                u.departmentId ??
-                u.hospitalId ??
-                (apiDepartments.length > 0 ? Number(apiDepartments[0].id) : 2),
-            );
+              u.primaryDepartmentId ?? u.departmentId ?? u.hospitalId,
+            ) || undefined;
+
+            // Extract department name from multiple possible API locations
+            const doctorProfile = (u as Record<string, unknown>)
+              .doctorProfile as Record<string, unknown> | undefined;
+            const primaryDept = doctorProfile?.primaryDepartment as
+              | Record<string, unknown>
+              | undefined;
             const deptName =
               u.departmentName ??
               u.department ??
+              (primaryDept?.departmentName as string) ??
               deptIdToName[deptId] ??
-              (apiDepartments.length > 0
-                ? apiDepartments[0].name
-                : "General Medicine");
+              null;
 
             return {
               id: uid,
@@ -220,7 +245,11 @@ export const UserManagement: React.FC = () => {
               department: deptName,
               departmentId: deptId,
               status: statusDisplay,
-              lastLogin: "Today, 10:15 AM",
+              lastLogin: (u as Record<string, unknown>).lastSuccessfulLogin
+                ? String((u as Record<string, unknown>).lastSuccessfulLogin)
+                : (u as Record<string, unknown>).lastLogin
+                  ? String((u as Record<string, unknown>).lastLogin)
+                  : null,
               joinedDate: "2023-11-01",
               twoFactor: false,
             };
@@ -237,7 +266,7 @@ export const UserManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [apiDepartments, deptIdToName, localStatusOverrides]);
+  }, [deptIdToName, localStatusOverrides]);
 
   useEffect(() => {
     let active = true;
@@ -264,20 +293,21 @@ export const UserManagement: React.FC = () => {
                 BACKEND_TO_DISPLAY_STATUS[String(u.status).toUpperCase()] ||
                 "Active";
               const deptId = Number(
-                u.primaryDepartmentId ??
-                  u.departmentId ??
-                  u.hospitalId ??
-                  (apiDepartments.length > 0
-                    ? Number(apiDepartments[0].id)
-                    : 2),
-              );
+                u.primaryDepartmentId ?? u.departmentId ?? u.hospitalId,
+              ) || undefined;
+
+              // Extract department name from multiple possible API locations
+              const doctorProfile = (u as Record<string, unknown>)
+                .doctorProfile as Record<string, unknown> | undefined;
+              const primaryDept = doctorProfile?.primaryDepartment as
+                | Record<string, unknown>
+                | undefined;
               const deptName =
                 u.departmentName ??
                 u.department ??
+                (primaryDept?.departmentName as string) ??
                 deptIdToName[deptId] ??
-                (apiDepartments.length > 0
-                  ? apiDepartments[0].name
-                  : "General Medicine");
+                null;
 
               return {
                 id: uid,
@@ -294,30 +324,34 @@ export const UserManagement: React.FC = () => {
                 department: deptName,
                 departmentId: deptId,
                 status: statusDisplay,
-                lastLogin: "Today, 10:15 AM",
-                joinedDate: "2023-11-01",
-                twoFactor: false,
-              };
-            },
-          );
-          setUsers(mappedUsers);
-        } else {
-          setErrorMsg(response?.message || "Failed to retrieve staff list.");
-        }
-      })
-      .catch((err: unknown) => {
-        if (!active) return;
-        const errMsg =
-          err instanceof Error ? err.message : "Error fetching staff accounts";
-        setErrorMsg(errMsg);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
+              lastLogin: (u as Record<string, unknown>).lastSuccessfulLogin
+                ? String((u as Record<string, unknown>).lastSuccessfulLogin)
+                : (u as Record<string, unknown>).lastLogin
+                  ? String((u as Record<string, unknown>).lastLogin)
+                  : null,
+              joinedDate: "2023-11-01",
+              twoFactor: false,
+            };
+          },
+        );
+        setUsers(mappedUsers);
+      } else {
+        setErrorMsg(response?.message || "Failed to retrieve staff list.");
+      }
+    })
+    .catch((err: unknown) => {
+      if (!active) return;
+      const errMsg =
+        err instanceof Error ? err.message : "Error fetching staff accounts";
+      setErrorMsg(errMsg);
+    })
+    .finally(() => {
+      if (active) setLoading(false);
+    });
+  return () => {
+    active = false;
     };
-  }, [apiDepartments, deptIdToName, localStatusOverrides]);
+  }, [deptIdToName, localStatusOverrides]);
 
   const triggerToast = (msg: string) => {
     setToastMsg(msg);
@@ -459,7 +493,6 @@ export const UserManagement: React.FC = () => {
         // Filters
         if (roleFilter !== "All" && u.role !== roleFilter) return false;
         if (statusFilter !== "All" && u.status !== statusFilter) return false;
-        if (deptFilter !== "All" && u.department !== deptFilter) return false;
         return true;
       })
       .sort((a, b) => {
@@ -476,7 +509,6 @@ export const UserManagement: React.FC = () => {
     searchQuery,
     roleFilter,
     statusFilter,
-    deptFilter,
     sortColumn,
     sortDirection,
   ]);
@@ -750,31 +782,6 @@ export const UserManagement: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Department Filter */}
-                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                  <Building2 size={13} className="text-slate-400" />
-                  <span className="text-slate-500 font-medium">Dept:</span>
-                  <select
-                    value={deptFilter}
-                    onChange={(e) => setDeptFilter(e.target.value)}
-                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
-                  >
-                    <option value="All">All Departments</option>
-                    <option value="Cardiology">Cardiology</option>
-                    <option value="General Medicine">General Medicine</option>
-                    <option value="Neurology">Neurology</option>
-                    <option value="Administration">Administration</option>
-                    <option value="OPD Reception">OPD Reception</option>
-                    <option value="Accounts & Billing">
-                      Accounts & Billing
-                    </option>
-                    <option value="Nursing & Patient Care">
-                      Nursing & Patient Care
-                    </option>
-                    <option value="IT & Systems">IT & Systems</option>
-                  </select>
-                </div>
-
                 <button
                   onClick={() => {
                     setSearchQuery("");
@@ -963,7 +970,7 @@ export const UserManagement: React.FC = () => {
                               </span>
                             </td>
                             <td className="px-4 py-3.5 text-slate-500 text-[11px]">
-                              {user.lastLogin}
+                              {formatLastLogin(user.lastLogin)}
                             </td>
                             <td className="px-5 py-3.5 text-right">
                               <div className="flex items-center justify-end gap-1">
@@ -1053,7 +1060,7 @@ export const UserManagement: React.FC = () => {
                       })
                     ) : (
                       <tr>
-                        <td colSpan={8} className="py-12 text-center">
+                        <td colSpan={9} className="py-12 text-center">
                           <div className="flex flex-col items-center justify-center space-y-3">
                             <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
                               <Users size={32} />
@@ -1423,7 +1430,7 @@ export const UserManagement: React.FC = () => {
                         Last Login Timestamp
                       </span>
                       <span className="font-bold text-slate-900 mt-1 block">
-                        {detailsUser.lastLogin}
+                        {formatLastLogin(detailsUser.lastLogin)}
                       </span>
                     </div>
                     <div>

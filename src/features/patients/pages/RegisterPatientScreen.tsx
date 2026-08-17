@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   ChevronRight,
   User,
@@ -12,7 +12,7 @@ import {
   Calendar,
   Upload,
 } from "lucide-react";
-import { PP, RB } from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.fonts";
 import { useCreatePatient } from "../hooks/useCreatePatient";
 import { patientsApi } from "../api/patient.api";
 import type {
@@ -21,7 +21,7 @@ import type {
 } from "../types/patient.types";
 import { ROLE_FIELD_PERMISSIONS } from "../types/patient.types";
 import { useAuthStore } from "../../auth";
-import { usePatientPortal } from "../context/PatientPortalContext";
+import { usePatientPortal } from "../context/usePatientPortal";
 
 /* ─────────────────── Design Tokens ─────────────────── */
 const inputBase =
@@ -423,18 +423,6 @@ export function RegisterPatientScreen({
           mobileNumber: user?.mobile || "",
         }),
   }));
-
-  useEffect(() => {
-    if (user && !isAddingFamilyMember) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setForm((prev) => ({
-        ...prev,
-        fullName: prev.fullName || user.fullName || "",
-        email: prev.email || user.email || "",
-        mobileNumber: prev.mobileNumber || user.mobile || "",
-      }));
-    }
-  }, [user, isAddingFamilyMember, isFamilyMode]);
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [toast, setToast] = useState<{

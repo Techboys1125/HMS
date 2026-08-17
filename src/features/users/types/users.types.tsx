@@ -162,3 +162,19 @@ export interface DoctorProfile {
 export interface AdminCreateDoctorStaffData extends AdminCreateStaffData {
   doctorProfile?: DoctorProfile;
 }
+
+export interface OpdWorkingInterval {
+  startTime: string;
+  endTime: string;
+}
+
+export interface OpdWeeklyScheduleDay {
+  dayOfWeek: string;
+  workingIntervals: OpdWorkingInterval[];
+  breaks: { startTime: string; endTime: string; label?: string }[];
+  isOpen: boolean;
+}
+
+export interface OpdWeeklySchedule {
+  weeklySchedule: OpdWeeklyScheduleDay[];
+}

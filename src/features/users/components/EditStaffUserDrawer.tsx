@@ -1,13 +1,17 @@
 import { useState, useEffect, useMemo } from "react";
-import { Edit, X, Check, Loader2, AlertTriangle } from "lucide-react";
+import { Edit, X, Check, Loader2, AlertTriangle, Clock } from "lucide-react";
+import { TimeSelect } from "../../../components/TimeSelect";
 import { usersApi } from "../api/users.api";
 import { departmentsApi } from "../api/departments.api";
+import { doctorsApi } from "../../doctors/api/doctors.api";
 import type {
   BackendAvailabilityItem,
   UserDetailData,
   AdminUpdateStaffData,
   ScheduleException,
+  OpdWeeklySchedule,
 } from "../types/users.types";
+import type { ApiWeeklyScheduleData } from "../../doctors/types/doctors.types";
 
 const PP = "Poppins, sans-serif";
 const RB = "Roboto, sans-serif";
@@ -21,6 +25,7 @@ export interface EditableStaffUser {
   role: string;
   department: string;
   status: string;
+  doctorId?: number;
 }
 
 export interface EditStaffUserDrawerProps {
@@ -29,24 +34,39 @@ export interface EditStaffUserDrawerProps {
   onSaved: () => void;
 }
 
-const DEFAULT_DEPARTMENTS = [
-  "Cardiology",
-  "General Medicine",
-  "Neurology",
-  "Administration",
-  "OPD Reception",
-  "Accounts & Billing",
-  "Nursing & Patient Care",
-  "IT & Systems",
-];
+const DAY_NAME_MAP: Record<string, string> = {
+  MONDAY: "Monday",
+  TUESDAY: "Tuesday",
+  WEDNESDAY: "Wednesday",
+  THURSDAY: "Thursday",
+  FRIDAY: "Friday",
+  SATURDAY: "Saturday",
+  SUNDAY: "Sunday",
+};
 
-const DEFAULT_AVAILABILITY: BackendAvailabilityItem[] = [
-  { dayOfWeek: "MONDAY", startTime: "09:00", endTime: "17:00" },
-  { dayOfWeek: "TUESDAY", startTime: "09:00", endTime: "17:00" },
-  { dayOfWeek: "WEDNESDAY", startTime: "09:00", endTime: "17:00" },
-  { dayOfWeek: "THURSDAY", startTime: "09:00", endTime: "17:00" },
-  { dayOfWeek: "FRIDAY", startTime: "09:00", endTime: "17:00" },
-];
+const mapHospitalScheduleToAvailability = (
+  schedule: OpdWeeklySchedule,
+): BackendAvailabilityItem[] => {
+  if (!schedule?.weeklySchedule) return [];
+  return schedule.weeklySchedule.map((day) => {
+    const intervals = day.workingIntervals || [];
+    const firstInterval = intervals[0];
+    return {
+      dayOfWeek: day.dayOfWeek.toUpperCase(),
+      startTime: firstInterval?.startTime || "",
+      endTime: firstInterval?.endTime || "",
+    };
+  });
+};
+
+const isTimeWithinWindow = (
+  time: string,
+  windowStart: string,
+  windowEnd: string,
+): boolean => {
+  if (!time || !windowStart || !windowEnd) return true;
+  return time >= windowStart && time <= windowEnd;
+};
 
 const createInitialForm = (
   user: EditableStaffUser | null,
@@ -68,9 +88,8 @@ const createInitialForm = (
       primaryDepartmentId: 2,
       primarySpecialtyId: 1,
       consultationFee: 500,
-      followUpFee: 300,
       slotDurationMinutes: 15,
-      availability: DEFAULT_AVAILABILITY,
+      availability: [] as BackendAvailabilityItem[],
       scheduleExceptions: [] as ScheduleException[],
       department: "General Medicine",
       status: "Active",
@@ -92,9 +111,8 @@ const createInitialForm = (
       (departments.length ? Number(departments[0].id) : 2),
     primarySpecialtyId: 1,
     consultationFee: 500,
-    followUpFee: 300,
     slotDurationMinutes: 15,
-    availability: DEFAULT_AVAILABILITY,
+    availability: [] as BackendAvailabilityItem[],
     scheduleExceptions: [] as ScheduleException[],
     department: user.department || "General Medicine",
     status: user.status || "Active",
@@ -109,6 +127,8 @@ export function EditStaffUserDrawer({
   const [departments, setDepartments] = useState<
     { id: number | string; name: string }[]
   >([]);
+  const [hospitalSchedule, setHospitalSchedule] =
+    useState<OpdWeeklySchedule | null>(null);
 
   const deptNameToId = useMemo(() => {
     const map: Record<string, number> = {};
@@ -121,6 +141,9 @@ export function EditStaffUserDrawer({
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [loadWarning, setLoadWarning] = useState<string | null>(null);
+  const [doctorSchedule, setDoctorSchedule] =
+    useState<ApiWeeklyScheduleData | null>(null);
 
   const [form, setForm] = useState(() =>
     createInitialForm(user, departments, deptNameToId),
@@ -132,6 +155,7 @@ export function EditStaffUserDrawer({
     setPrevUserId(user.id);
     setSaveError(null);
     setIsLoadingDetail(true);
+    setLoadWarning(null);
     setForm(createInitialForm(user, departments, deptNameToId));
   }
 
@@ -151,14 +175,28 @@ export function EditStaffUserDrawer({
       .catch(() => {});
   }, []);
 
+  // Fetch hospital OPD weekly schedule for doctor availability defaults
+  useEffect(() => {
+    usersApi
+      .fetchOpdWeeklySchedule()
+      .then((schedule) => {
+        setHospitalSchedule(schedule);
+      })
+      .catch(() => {});
+  }, []);
+
   // Reset + prefill whenever a new user opens the drawer
   useEffect(() => {
     if (!user) return;
+    let isCancelled = false;
 
-    usersApi
-      .adminGetUserById(user.id)
-      .then((response) => {
-        if (!response.success || !response.data) return;
+    const loadUserDetails = async (candidateId: string) => {
+      try {
+        const response = await usersApi.adminGetUserById(candidateId);
+        if (isCancelled) return null;
+        if (!response.success || !response.data) {
+          return null;
+        }
         const detail: UserDetailData = response.data;
         const profile = detail.doctorProfile;
         setForm((prev) => ({
@@ -176,18 +214,85 @@ export function EditStaffUserDrawer({
             (departments.length > 0 ? Number(departments[0].id) : 2),
           primarySpecialtyId: profile?.primarySpecialty?.specialtyId || 1,
           consultationFee: profile?.consultationFee ?? 500,
-          followUpFee: profile?.followUpFee ?? 300,
           slotDurationMinutes: profile?.slotDurationMinutes || 15,
           availability:
             profile?.availability && profile.availability.length > 0
               ? profile.availability
-              : DEFAULT_AVAILABILITY,
+              : hospitalSchedule
+                ? mapHospitalScheduleToAvailability(hospitalSchedule)
+                : [],
           scheduleExceptions: profile?.scheduleExceptions || [],
         }));
+        return detail;
+      } catch {
+        return null;
+      }
+    };
+
+    const resolveAndLoad = async () => {
+      setIsLoadingDetail(true);
+      setLoadWarning(null);
+
+      const candidates = [
+        user.id,
+        user.doctorId ? String(user.doctorId) : null,
+      ].filter(Boolean) as string[];
+
+      let detail: UserDetailData | null = null;
+      for (const candidate of candidates) {
+        detail = await loadUserDetails(candidate);
+        if (detail) break;
+      }
+
+      if (!detail && user.email) {
+        try {
+          const allUsers = await usersApi.adminGetUsers();
+          const matchedUser = allUsers.data?.find(
+            (u) => u.email === user.email,
+          );
+          if (matchedUser && matchedUser.id) {
+            detail = await loadUserDetails(String(matchedUser.id));
+          }
+        } catch {
+          // ignore lookup failure
+        }
+      }
+
+      if (!detail && !isCancelled) {
+        setLoadWarning(
+          "User account could not be found for this doctor. You can still update the locally available information.",
+        );
+      }
+
+      if (!isCancelled) setIsLoadingDetail(false);
+    };
+
+    resolveAndLoad();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [departments, deptNameToId, user, user?.id, hospitalSchedule, user?.doctorId, user?.email]);
+
+  useEffect(() => {
+    if (!user || user.role !== "Doctor" || !user.doctorId) {
+      return;
+    }
+    let isCancelled = false;
+
+    doctorsApi
+      .getWeeklySchedule(user.doctorId)
+      .then((data) => {
+        if (!isCancelled) setDoctorSchedule(data);
       })
-      .catch(() => {})
-      .finally(() => setIsLoadingDetail(false));
-  }, [departments, deptNameToId, user, user?.id]);
+      .catch(() => {
+        if (!isCancelled) setDoctorSchedule(null);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [user?.doctorId, user?.role, user]);
 
   if (!user) return null;
 
@@ -200,6 +305,46 @@ export function EditStaffUserDrawer({
     setIsSubmitting(true);
     setSaveError(null);
     try {
+      // Validate doctor availability against hospital schedule
+      if (isDoctor && hospitalSchedule?.weeklySchedule) {
+        for (const item of form.availability) {
+          const hospitalDay = hospitalSchedule.weeklySchedule.find(
+            (d) => d.dayOfWeek.toUpperCase() === item.dayOfWeek.toUpperCase(),
+          );
+          if (hospitalDay && hospitalDay.isOpen) {
+            const interval = hospitalDay.workingIntervals?.[0];
+            if (interval) {
+              if (
+                !isTimeWithinWindow(
+                  item.startTime,
+                  interval.startTime,
+                  interval.endTime,
+                )
+              ) {
+                setSaveError(
+                  `${item.dayOfWeek} start time ${item.startTime} is outside hospital schedule (${interval.startTime} - ${interval.endTime}).`,
+                );
+                setIsSubmitting(false);
+                return;
+              }
+              if (
+                !isTimeWithinWindow(
+                  item.endTime,
+                  interval.startTime,
+                  interval.endTime,
+                )
+              ) {
+                setSaveError(
+                  `${item.dayOfWeek} end time ${item.endTime} is outside hospital schedule (${interval.startTime} - ${interval.endTime}).`,
+                );
+                setIsSubmitting(false);
+                return;
+              }
+            }
+          }
+        }
+      }
+
       const deptId =
         form.primaryDepartmentId ||
         deptNameToId[form.department] ||
@@ -232,7 +377,6 @@ export function EditStaffUserDrawer({
         primarySpecialtyId: form.primarySpecialtyId || 1,
         secondarySpecialtyIds: [],
         consultationFee: Number(form.consultationFee),
-        followUpFee: Number(form.followUpFee),
         slotDurationMinutes: Number(form.slotDurationMinutes),
         availability: form.availability,
         scheduleExceptions: form.scheduleExceptions,
@@ -315,6 +459,13 @@ export function EditStaffUserDrawer({
               </div>
             )}
 
+            {loadWarning && (
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-700 font-semibold flex items-start gap-2">
+                <AlertTriangle size={15} className="shrink-0 mt-0.5" />
+                <span>{loadWarning}</span>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-bold text-[#64748B] mb-1">
@@ -387,28 +538,46 @@ export function EditStaffUserDrawer({
               <label className="block text-xs font-bold text-[#111827] mb-1">
                 Department
               </label>
-              <select
-                value={form.department}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    department: e.target.value,
-                    primaryDepartmentId:
-                      deptNameToId[e.target.value] ||
-                      (departments.length > 0 ? Number(departments[0].id) : 2),
-                  })
-                }
-                className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-              >
-                {(departments.length > 0
-                  ? departments.map((d) => d.name)
-                  : DEFAULT_DEPARTMENTS
-                ).map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
+              {isDoctor ? (
+                <select
+                  value={form.department}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      department: e.target.value,
+                      primaryDepartmentId:
+                        deptNameToId[e.target.value] ||
+                        (departments.length > 0
+                          ? Number(departments[0].id)
+                          : 2),
+                    })
+                  }
+                  className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
+                >
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.name}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={form.department}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      department: e.target.value,
+                      primaryDepartmentId:
+                        deptNameToId[e.target.value] ||
+                        (departments.length > 0
+                          ? Number(departments[0].id)
+                          : 2),
+                    })
+                  }
+                  className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
+                />
+              )}
             </div>
 
             {/* Additional Doctor Clinical Profile Inputs if Doctor */}
@@ -483,22 +652,6 @@ export function EditStaffUserDrawer({
                       className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#111827] mb-1">
-                      Followup Fee (₹)
-                    </label>
-                    <input
-                      type="number"
-                      value={form.followUpFee}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          followUpFee: Number(e.target.value),
-                        })
-                      }
-                      className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                    />
-                  </div>
                 </div>
 
                 <div>
@@ -525,9 +678,65 @@ export function EditStaffUserDrawer({
                       Doctor Weekly Availability Schedule
                     </label>
                     <span className="text-[10px] text-slate-400 font-semibold uppercase">
-                      HH:mm Format
+                      AM/PM Format
                     </span>
                   </div>
+
+                   {/* Hospital Schedule Reference */}
+                   {hospitalSchedule?.weeklySchedule && (
+                     <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs">
+                       <div className="flex items-center gap-1.5 text-[#0D47A1] font-bold mb-2">
+                         <Clock size={12} />
+                         <span>Hospital OPD Schedule (Reference)</span>
+                       </div>
+                       <div className="flex flex-wrap gap-1.5">
+                         {hospitalSchedule.weeklySchedule
+                           .filter((d) => d.isOpen)
+                           .map((day) => {
+                             const interval = day.workingIntervals?.[0];
+                             return (
+                               <span
+                                 key={day.dayOfWeek}
+                                 className="bg-white border border-blue-200 text-blue-700 px-2 py-0.5 rounded-lg text-[10px] font-semibold"
+                               >
+                                 {DAY_NAME_MAP[day.dayOfWeek] || day.dayOfWeek}:{" "}
+                                 {interval
+                                   ? `${interval.startTime}–${interval.endTime}`
+                                   : "Closed"}
+                               </span>
+                             );
+                           })}
+                       </div>
+                     </div>
+                   )}
+
+                   {/* Doctor Schedule from API */}
+                   {doctorSchedule?.weeklySchedule && (
+                     <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs">
+                       <div className="flex items-center gap-1.5 text-emerald-700 font-bold mb-2">
+                         <Clock size={12} />
+                         <span>Doctor Schedule</span>
+                       </div>
+                       <div className="flex flex-wrap gap-1.5">
+                         {doctorSchedule.weeklySchedule
+                           .filter((day) => day.workingDay)
+                           .map((day) => {
+                             const firstPeriod = day.workingPeriods?.[0];
+                             return (
+                               <span
+                                 key={day.dayOfWeek}
+                                 className="bg-white border border-emerald-200 text-emerald-700 px-2 py-0.5 rounded-lg text-[10px] font-semibold"
+                               >
+                                 {DAY_NAME_MAP[day.dayOfWeek] || day.dayOfWeek}:{" "}
+                                 {firstPeriod
+                                   ? `${firstPeriod.startTime}–${firstPeriod.endTime}`
+                                   : "Off"}
+                               </span>
+                             );
+                           })}
+                       </div>
+                     </div>
+                   )}
 
                   <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                     {form.availability.map((item, index) => (
@@ -538,28 +747,20 @@ export function EditStaffUserDrawer({
                         <span className="w-20 font-bold text-slate-700">
                           {item.dayOfWeek}
                         </span>
-                        <input
-                          type="text"
+                        <TimeSelect
                           value={item.startTime}
-                          placeholder="09:00"
-                          onChange={(e) =>
-                            updateAvailability(
-                              index,
-                              "startTime",
-                              e.target.value,
-                            )
+                          onChange={(val) =>
+                            updateAvailability(index, "startTime", val)
                           }
-                          className="w-20 px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-mono text-center"
+                          className="w-28"
                         />
                         <span className="text-slate-400 font-bold">-</span>
-                        <input
-                          type="text"
+                        <TimeSelect
                           value={item.endTime}
-                          placeholder="17:00"
-                          onChange={(e) =>
-                            updateAvailability(index, "endTime", e.target.value)
+                          onChange={(val) =>
+                            updateAvailability(index, "endTime", val)
                           }
-                          className="w-20 px-2 py-1 bg-white border border-slate-300 rounded-lg text-xs font-mono text-center"
+                          className="w-28"
                         />
                       </div>
                     ))}

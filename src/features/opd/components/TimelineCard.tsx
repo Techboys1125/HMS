@@ -1,5 +1,6 @@
 import React from "react";
 import { Clock } from "lucide-react";
+import { formatTime } from "../../../lib/time-utils";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -56,7 +57,7 @@ export const TimelineCard: React.FC<TimelineCardProps> = ({
                 </span>
               </div>
               <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                {e.date} · {e.time}
+                {e.date} · {formatTime(e.time)}
               </div>
               {e.description && (
                 <div

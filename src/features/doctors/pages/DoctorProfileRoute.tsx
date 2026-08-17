@@ -1,25 +1,16 @@
 import { useParams, useNavigate } from "react-router";
 import { DoctorProfilePage } from "./DoctorProfilePage";
 import { useAuthStore } from "../../auth/index";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { ROUTES } from "../../../app/routes/routes";
-import type { Role } from "../utils/doctorPermissions";
+import { normalizeRole } from "../utils/doctorPermissions";
 
 export function DoctorProfileRoute() {
   const { doctorId } = useParams<{ doctorId: string }>();
   const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
-  const [currentRole, setCurrentRole] = useState<string>("ADMIN");
 
-  useEffect(() => {
-    const role = String(user?.role ?? "ADMIN").toUpperCase();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (role === "RECEPTIONIST") setCurrentRole("RECEPTIONIST");
-    else if (role === "DOCTOR") setCurrentRole("DOCTOR");
-    else if (role === "NURSE") setCurrentRole("NURSE");
-    else if (role === "PATIENT") setCurrentRole("PATIENT");
-    else setCurrentRole("ADMIN");
-  }, [user?.role]);
+  const currentRole = normalizeRole(user?.role);
 
   const userDoctorId =
     user?.doctorId ?? user?.doctorProfile?.doctorId ?? user?.id ?? "";
@@ -45,7 +36,7 @@ export function DoctorProfileRoute() {
   return (
     <DoctorProfilePage
       doctorId={String(resolvedDoctorId)}
-      currentRole={currentRole as Role}
+      currentRole={currentRole}
       onBack={() => {}}
     />
   );

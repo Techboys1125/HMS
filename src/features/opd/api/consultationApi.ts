@@ -98,7 +98,8 @@ export const consultationApi = {
   ): Promise<{ success: boolean; status: string }> => {
     try {
       const response = await apiClient.patch<
-        ApiEnvelope<{ success: boolean; status: string }> | { success: boolean; status: string }
+        | ApiEnvelope<{ success: boolean; status: string }>
+        | { success: boolean; status: string }
       >(`/api/v1/doctor/appointments/${appointmentId}/start`, {});
       return unwrap(response.data);
     } catch (error: unknown) {
@@ -114,7 +115,8 @@ export const consultationApi = {
   ): Promise<{ success: boolean; status: string }> => {
     try {
       const response = await apiClient.patch<
-        ApiEnvelope<{ success: boolean; status: string }> | { success: boolean; status: string }
+        | ApiEnvelope<{ success: boolean; status: string }>
+        | { success: boolean; status: string }
       >(`/api/v1/doctor/appointments/${appointmentId}/complete`, {});
       return unwrap(response.data);
     } catch (error: unknown) {
@@ -225,16 +227,17 @@ export const consultationApi = {
       return undefined;
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dto: Record<string, any> = {};
+    const dto: Record<string, { value: number; unit: string } | { systolic: number; diastolic: number; unit: string }> = {};
     const temp = stripUnit(vitals.temp);
-    if (temp !== undefined) dto.temperature = { value: temp, unit: "FAHRENHEIT" };
+    if (temp !== undefined)
+      dto.temperature = { value: temp, unit: "FAHRENHEIT" };
     const bp = parseBp(vitals.bp);
     if (bp) dto.bloodPressure = bp;
     const pulse = stripUnit(vitals.pulse);
     if (pulse !== undefined) dto.pulse = { value: pulse, unit: "BPM" };
     const rr = stripUnit(vitals.respiratoryRate);
-    if (rr !== undefined) dto.respiratoryRate = { value: rr, unit: "BREATHS_PER_MINUTE" };
+    if (rr !== undefined)
+      dto.respiratoryRate = { value: rr, unit: "BREATHS_PER_MINUTE" };
     const spo2 = stripUnit(vitals.spo2);
     if (spo2 !== undefined) dto.spo2 = { value: spo2, unit: "PERCENT" };
     const weight = stripUnit(vitals.weight);
@@ -295,14 +298,12 @@ export const consultationApi = {
    */
   getConsultationDetails: async (
     consultationId: string | number,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ): Promise<any | null> => {
+  ): Promise<Consultation | null> => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const response = await apiClient.get<any>(
+      const response = await apiClient.get<Consultation>(
         `/api/v1/consultations/${consultationId}`,
       );
-      return response.data?.data || response.data || null;
+      return response.data?.data || response.data?.content || null;
     } catch {
       return null;
     }
@@ -316,10 +317,11 @@ export const consultationApi = {
     encounterId: string | number,
   ): Promise<Encounter | null> => {
     try {
-      const response = await apiClient.get<{ data?: Encounter; content?: Encounter }>(
-        `/api/v1/encounters/${encounterId}`,
-      );
-      return response.data?.data || response.data || null;
+      const response = await apiClient.get<{
+        data?: Encounter;
+        content?: Encounter;
+      }>(`/api/v1/encounters/${encounterId}`);
+      return response.data?.data || response.data?.content || null;
     } catch {
       return null;
     }
@@ -329,13 +331,12 @@ export const consultationApi = {
    * GET /api/v1/encounters/{encounterId}/diagnoses
    * Get all diagnoses for an encounter
    */
-  getDiagnoses: async (
-    encounterId: string | number,
-  ): Promise<Diagnosis[]> => {
+  getDiagnoses: async (encounterId: string | number): Promise<Diagnosis[]> => {
     try {
-      const response = await apiClient.get<{ data?: Diagnosis[]; content?: Diagnosis[] }>(
-        `/api/v1/encounters/${encounterId}/diagnoses`,
-      );
+      const response = await apiClient.get<{
+        data?: Diagnosis[];
+        content?: Diagnosis[];
+      }>(`/api/v1/encounters/${encounterId}/diagnoses`);
       const list = response.data?.data || response.data;
       return Array.isArray(list) ? list : [];
     } catch {
@@ -351,9 +352,9 @@ export const consultationApi = {
     encounterId: string | number,
   ): Promise<EncounterPrescription | null> => {
     try {
-      const response = await apiClient.get<ApiEnvelope<EncounterPrescription> | EncounterPrescription>(
-        `/api/v1/encounters/${encounterId}/prescription`,
-      );
+      const response = await apiClient.get<
+        ApiEnvelope<EncounterPrescription> | EncounterPrescription
+      >(`/api/v1/encounters/${encounterId}/prescription`);
       return unwrap<EncounterPrescription>(response.data);
     } catch {
       return null;
@@ -369,7 +370,8 @@ export const consultationApi = {
   ): Promise<{ success: boolean; status: string }> => {
     try {
       const response = await apiClient.patch<
-        ApiEnvelope<{ success: boolean; status: string }> | { success: boolean; status: string }
+        | ApiEnvelope<{ success: boolean; status: string }>
+        | { success: boolean; status: string }
       >(`/api/v1/queue/${appointmentId}/call`);
       return unwrap(response.data);
     } catch (error: unknown) {
@@ -387,7 +389,8 @@ export const consultationApi = {
   ): Promise<{ success: boolean; data: unknown }> => {
     try {
       const response = await apiClient.put<
-        ApiEnvelope<{ success: boolean; data: unknown }> | { success: boolean; data: unknown }
+        | ApiEnvelope<{ success: boolean; data: unknown }>
+        | { success: boolean; data: unknown }
       >(`/api/v1/nurse/appointments/${appointmentId}/vitals`, vitals);
       return unwrap(response.data);
     } catch (error: unknown) {
@@ -418,7 +421,8 @@ export const consultationApi = {
     },
   ): Promise<{ success: boolean; data: unknown }> => {
     const dto: Record<string, unknown> = {};
-    const hpi = clinicalNotes.subjective || clinicalNotes.historyOfPresentIllness;
+    const hpi =
+      clinicalNotes.subjective || clinicalNotes.historyOfPresentIllness;
     if (hpi) dto.subjective = { historyOfPresentIllness: hpi };
     const pe = clinicalNotes.objective || clinicalNotes.physicalExamination;
     if (pe) dto.objective = { physicalExamination: pe };
@@ -429,7 +433,8 @@ export const consultationApi = {
 
     try {
       const response = await apiClient.put<
-        ApiEnvelope<{ success: boolean; data: unknown }> | { success: boolean; data: unknown }
+        | ApiEnvelope<{ success: boolean; data: unknown }>
+        | { success: boolean; data: unknown }
       >(`/api/v1/consultations/${consultationId}/clinical-notes`, dto);
       return unwrap(response.data);
     } catch (error: unknown) {
@@ -509,9 +514,10 @@ export const consultationApi = {
    */
   getConsultationQueue: async (): Promise<unknown[]> => {
     try {
-      const response = await apiClient.get<{ data?: unknown[]; content?: unknown[] }>(
-        "/api/v1/doctors/me/consultation-queue",
-      );
+      const response = await apiClient.get<{
+        data?: unknown[];
+        content?: unknown[];
+      }>("/api/v1/doctors/me/consultation-queue");
       const list = response.data?.data || response.data;
       return Array.isArray(list) ? list : [];
     } catch {

@@ -1,5 +1,5 @@
 import type { ChipVariant } from "../types/patient.types";
-import { PP, RB } from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.fonts";
 
 export function Avatar({
   name,

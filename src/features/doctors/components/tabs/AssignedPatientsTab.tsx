@@ -24,18 +24,22 @@ export function AssignedPatientsTab({
 
   useEffect(() => {
     let cancelled = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    const targetId = resolveDoctorId(doctor);
-    doctorsService
-      .listDoctorAppointments(targetId)
-      .then((data: DoctorAppointment[]) => {
+
+    const loadPatients = async () => {
+      try {
+        const targetId = resolveDoctorId(doctor);
+        const data: DoctorAppointment[] =
+          await doctorsService.listDoctorAppointments(targetId);
         if (!cancelled) setAppointments(data || []);
-      })
-      .catch(() => {})
-      .finally(() => {
+      } catch {
+        if (!cancelled) setAppointments([]);
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    };
+
+    void loadPatients();
+
     return () => {
       cancelled = true;
     };

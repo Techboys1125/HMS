@@ -115,7 +115,7 @@ export interface OpdWeeklyScheduleDay {
   dayOfWeek: string;
   workingIntervals: OpdWorkingInterval[];
   breaks: OpdBreak[];
-  open: boolean;
+  isOpen: boolean;
 }
 
 export interface OpdWeeklySchedule {

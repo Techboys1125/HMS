@@ -13,9 +13,29 @@ import type {
   OpdHoliday,
   OpdHolidayPayload,
   OpdWeeklySchedule,
+  OpdWeeklyScheduleDay,
 } from "../types/settings.types";
 
 const EMPTY_SCHEDULE: OpdWeeklySchedule = { weeklySchedule: [] };
+
+function normalizeScheduleDay(day: OpdWeeklyScheduleDay): OpdWeeklyScheduleDay {
+  const raw = day as unknown as Record<string, unknown>;
+  return {
+    ...day,
+    isOpen:
+      typeof raw.isOpen === "boolean"
+        ? raw.isOpen
+        : typeof raw.open === "boolean"
+          ? raw.open
+          : false,
+  };
+}
+
+function normalizeSchedule(schedule: OpdWeeklySchedule): OpdWeeklySchedule {
+  return {
+    weeklySchedule: schedule.weeklySchedule.map(normalizeScheduleDay),
+  };
+}
 
 export function useOpdConfiguration(year = new Date().getFullYear()) {
   const [schedule, setSchedule] = useState<OpdWeeklySchedule>(EMPTY_SCHEDULE);
@@ -32,48 +52,84 @@ export function useOpdConfiguration(year = new Date().getFullYear()) {
         fetchOpdWeeklySchedule(),
         fetchOpdHolidays(year),
       ]);
-      setSchedule(scheduleResult);
+      setSchedule(normalizeSchedule(scheduleResult));
       setHolidays(holidayResult);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load OPD settings");
+      setError(
+        err instanceof Error ? err.message : "Failed to load OPD settings",
+      );
     } finally {
       setLoading(false);
     }
   }, [year]);
 
   useEffect(() => {
-    // The API load updates local settings state after the component mounts.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void reload();
-  }, [reload]);
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [scheduleResult, holidayResult] = await Promise.all([
+          fetchOpdWeeklySchedule(),
+          fetchOpdHolidays(year),
+        ]);
+        if (!cancelled) {
+          setSchedule(normalizeSchedule(scheduleResult));
+          setHolidays(holidayResult);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load OPD settings",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [year]);
 
   const saveSchedule = useCallback(async (next: OpdWeeklySchedule) => {
     setSaving(true);
     setError(null);
     try {
-      const result = await saveOpdWeeklySchedule(next);
-      setSchedule(result);
+      const normalized = normalizeSchedule(next);
+      const result = await saveOpdWeeklySchedule(normalized);
+      setSchedule(normalizeSchedule(result));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save OPD schedule");
+      setError(
+        err instanceof Error ? err.message : "Failed to save OPD schedule",
+      );
       throw err;
     } finally {
       setSaving(false);
     }
   }, []);
 
-  const saveBreaks = useCallback(async (dayOfWeek: string, breaks: OpdBreak[]) => {
-    setSaving(true);
-    setError(null);
-    try {
-      const result = await updateOpdBreaks({ dayOfWeek, breaks });
-      setSchedule(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save OPD breaks");
-      throw err;
-    } finally {
-      setSaving(false);
-    }
-  }, []);
+  const saveBreaks = useCallback(
+    async (dayOfWeek: string, breaks: OpdBreak[]) => {
+      setSaving(true);
+      setError(null);
+      try {
+        const result = await updateOpdBreaks({ dayOfWeek, breaks });
+        setSchedule(result);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to save OPD breaks",
+        );
+        throw err;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [],
+  );
 
   const addHoliday = useCallback(async (payload: OpdHolidayPayload) => {
     setSaving(true);
@@ -89,19 +145,26 @@ export function useOpdConfiguration(year = new Date().getFullYear()) {
     }
   }, []);
 
-  const editHoliday = useCallback(async (id: number, payload: OpdHolidayPayload) => {
-    setSaving(true);
-    setError(null);
-    try {
-      const result = await updateOpdHoliday(id, payload);
-      setHolidays((current) => current.map((item) => (item.id === id ? result : item)));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update holiday");
-      throw err;
-    } finally {
-      setSaving(false);
-    }
-  }, []);
+  const editHoliday = useCallback(
+    async (id: number, payload: OpdHolidayPayload) => {
+      setSaving(true);
+      setError(null);
+      try {
+        const result = await updateOpdHoliday(id, payload);
+        setHolidays((current) =>
+          current.map((item) => (item.id === id ? result : item)),
+        );
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to update holiday",
+        );
+        throw err;
+      } finally {
+        setSaving(false);
+      }
+    },
+    [],
+  );
 
   const toggleHoliday = useCallback(async (holiday: OpdHoliday) => {
     setSaving(true);
@@ -111,9 +174,13 @@ export function useOpdConfiguration(year = new Date().getFullYear()) {
         holiday.id,
         holiday.status === "ACTIVE" ? "INACTIVE" : "ACTIVE",
       );
-      setHolidays((current) => current.map((item) => (item.id === holiday.id ? result : item)));
+      setHolidays((current) =>
+        current.map((item) => (item.id === holiday.id ? result : item)),
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update holiday status");
+      setError(
+        err instanceof Error ? err.message : "Failed to update holiday status",
+      );
       throw err;
     } finally {
       setSaving(false);

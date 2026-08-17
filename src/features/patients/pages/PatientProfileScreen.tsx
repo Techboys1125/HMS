@@ -12,7 +12,8 @@ import {
   Printer,
 } from "lucide-react";
 import type { PatientProfileScreenProps } from "../types/patient.types";
-import { PP, RB } from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.fonts";
+import { formatTime } from "../../../lib/time-utils";
 import { Avatar, Chip } from "../components/Avatar";
 import { StatusBadge } from "../components/StatusBadges";
 import { Pagination } from "../../../common/components/Pagination";
@@ -601,7 +602,7 @@ export function PatientProfileScreen({
                               {item.dept}
                             </td>
                             <td className="px-3 py-3 font-mono text-slate-500">
-                              {item.date} · {item.time}
+                              {item.date} · {formatTime(item.time)}
                             </td>
                             <td className="px-3 py-3">
                               <Chip

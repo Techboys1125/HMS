@@ -5,6 +5,7 @@ import type {
   AdminCreateStaffResponse,
   AdminUpdateStaffData,
   UserDetailData,
+  OpdWeeklySchedule,
 } from "../types/users.types";
 
 export const usersApi = {
@@ -203,6 +204,33 @@ export const usersApi = {
       }
       const msg =
         error instanceof Error ? error.message : "Failed to fetch user details";
+      throw new Error(msg, { cause: error });
+    }
+  },
+
+  // 8. Fetch Hospital OPD Weekly Schedule (GET /api/v1/admin/opd/weekly-schedule)
+  fetchOpdWeeklySchedule: async (): Promise<OpdWeeklySchedule> => {
+    try {
+      const response = await apiClient.get<
+        { data: OpdWeeklySchedule } | OpdWeeklySchedule
+      >("/api/v1/admin/opd/weekly-schedule");
+      const body = response.data;
+      if (body && typeof body === "object" && "data" in body) {
+        return (body as { data: OpdWeeklySchedule }).data;
+      }
+      return body as OpdWeeklySchedule;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          { message?: string } | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
+      }
+      const msg =
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch OPD weekly schedule";
       throw new Error(msg, { cause: error });
     }
   },

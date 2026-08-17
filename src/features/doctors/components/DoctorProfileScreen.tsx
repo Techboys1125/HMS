@@ -29,6 +29,7 @@ import type {
   ExceptionAction,
 } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
+import { TimeSelect } from "../../../components/TimeSelect";
 import type { AppPermission } from "../../../permissions/types";
 import { usePermissions } from "../../../permissions";
 import { doctorsService } from "../services/doctors.service";
@@ -92,7 +93,20 @@ const todayKey = () => {
   return `${d.getFullYear()}-${m}-${day}`;
 };
 
-const formatTime = (t?: string) => t || "—";
+const formatTime = (time?: string | null): string => {
+  if (!time) return "—";
+  const trimmed = String(time).trim();
+  if (!trimmed) return "—";
+  if (/AM|PM/i.test(trimmed)) return trimmed;
+  const parts = trimmed.split(":");
+  if (parts.length < 2) return trimmed;
+  let hour = parseInt(parts[0], 10);
+  const minute = parts[1];
+  if (isNaN(hour)) return trimmed;
+  const suffix = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12 || 12;
+  return `${String(hour).padStart(2, "0")}:${minute} ${suffix}`;
+};
 
 const DEFAULT_DOCTOR: DoctorRecord = {
   id: "",
@@ -1666,22 +1680,20 @@ export function DoctorProfileScreen({
                       <label className="block font-bold text-[#111827] mb-1">
                         Start Time
                       </label>
-                      <input
-                        type="time"
+                      <TimeSelect
                         value={exceptionStartTime}
-                        onChange={(e) => setExceptionStartTime(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                        onChange={setExceptionStartTime}
+                        className="w-full"
                       />
                     </div>
                     <div>
                       <label className="block font-bold text-[#111827] mb-1">
                         End Time
                       </label>
-                      <input
-                        type="time"
+                      <TimeSelect
                         value={exceptionEndTime}
-                        onChange={(e) => setExceptionEndTime(e.target.value)}
-                        className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                        onChange={setExceptionEndTime}
+                        className="w-full"
                       />
                     </div>
                   </div>

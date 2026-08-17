@@ -35,8 +35,6 @@ import {
   Legend,
 } from "recharts";
 import {
-  useDoctorSelfPatientAnalytics,
-  useDoctorSelfPatientDashboard,
   useDoctorSelfPatientRegister,
 } from "../hooks/useReports";
 
@@ -128,13 +126,10 @@ export function DoctorPatientReportScreen({
   const [hasError, setHasError] = useState(false);
 
   // React Query Hooks for Doctor Personal Patient Reports
-  const { data: patientAnalytics } = useDoctorSelfPatientAnalytics();
-  const { data: patientDashboard, refetch: refetchDash } = useDoctorSelfPatientDashboard();
   const { data: registerData, refetch: refetchRegister } = useDoctorSelfPatientRegister({ size: 20 });
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    refetchDash();
     refetchRegister();
     setTimeout(() => setIsRefreshing(false), 600);
   };

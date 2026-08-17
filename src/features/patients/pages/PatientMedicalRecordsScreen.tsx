@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
+import type { AppointmentRecord } from "../../appointments/types/appointment.types";
+import type { ApiResponse } from "../../auth/types/auth.types";
 import { patientsApi } from "../api/patient.api";
-import { usePatientPortal } from "../context/PatientPortalContext";
+import { usePatientPortal } from "../context/usePatientPortal";
 import type { FamilyMember } from "./FamilyMembersManagement";
 import {
   Search,
@@ -21,7 +23,7 @@ import type {
   MedicalVisitRecord,
   PrescriptionRecord,
 } from "../types/patient.types";
-import { PP, RB } from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.fonts";
 import { Pagination } from "../../../common/components/Pagination";
 
 export function PatientMedicalRecordsScreen({
@@ -52,18 +54,16 @@ export function PatientMedicalRecordsScreen({
           ? { patientId: activePatient.id || activePatient.mrn }
           : undefined,
       )
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .then((res: any) => {
+      .then((res: ApiResponse<unknown>) => {
         const data = res?.data || res;
         const list = Array.isArray(data)
           ? data
-          : Array.isArray(data?.content)
-            ? data.content
+          : Array.isArray((data as Record<string, unknown>)?.content)
+            ? (data as { content: unknown[] }).content
             : [];
         if (list && list.length > 0) {
           const mapped: MedicalVisitRecord[] = list.map(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (a: any, idx: number) => ({
+            (a: AppointmentRecord, idx: number) => ({
               id: String(a.appointmentId || a.id || `VIS-${idx}`),
               date: a.appointmentDate || a.date || "",
               time: a.startTime || a.time || "",
@@ -104,11 +104,7 @@ export function PatientMedicalRecordsScreen({
 
   useEffect(() => {
     const mrn = activePatient?.mrn;
-    if (!mrn) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPrescriptionRecords([]);
-      return;
-    }
+    if (!mrn) return;
 
     let cancelled = false;
     patientsApi
@@ -151,6 +147,10 @@ export function PatientMedicalRecordsScreen({
     };
   }, [activePatient?.mrn]);
 
+  const displayedPrescriptionRecords = activePatient?.mrn
+    ? prescriptionRecords
+    : [];
+
   // Drawer states
   const [selectedRx, setSelectedRx] = useState<PrescriptionRecord | null>(null);
   const [selectedVisit, setSelectedVisit] = useState<MedicalVisitRecord | null>(
@@ -179,7 +179,7 @@ export function PatientMedicalRecordsScreen({
   });
 
   // Filtered Prescriptions
-  const filteredPrescriptions = prescriptionRecords.filter((rx) => {
+  const filteredPrescriptions = displayedPrescriptionRecords.filter((rx) => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       const match =
@@ -290,7 +290,7 @@ export function PatientMedicalRecordsScreen({
               style={{ fontFamily: PP }}
             >
               {
-                prescriptionRecords.filter((rx) => rx.status === "Active")
+                displayedPrescriptionRecords.filter((rx) => rx.status === "Active")
                   .length
               }
             </div>
@@ -356,7 +356,7 @@ export function PatientMedicalRecordsScreen({
           {
             id: "prescriptions",
             label: "Prescriptions",
-            count: prescriptionRecords.length,
+            count: displayedPrescriptionRecords.length,
           },
         ].map((tab) => {
           const isActive = activeTab === tab.id;

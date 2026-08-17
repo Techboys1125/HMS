@@ -1,6 +1,7 @@
 import { X, Calendar } from "lucide-react";
 import type { DoctorAppointment } from "../types/doctors.types";
 import { PP } from "../constants/doctors.constants";
+import { formatTime } from "../../../lib/time-utils";
 
 export interface AppointmentDetailModalProps {
   isOpen: boolean;
@@ -53,7 +54,7 @@ export function AppointmentDetailModal({
           <div className="flex justify-between py-1 border-b border-gray-100">
             <span className="text-[#64748B]">Date &amp; Time</span>
             <span className="font-medium text-[#111827]">
-              {appointment.date} &bull; {appointment.time}
+              {appointment.date} &bull; {formatTime(appointment.time)}
             </span>
           </div>
           <div className="flex justify-between py-1 border-b border-gray-100">

@@ -4,6 +4,7 @@ export interface ApiSpecialtyItem {
   code?: string;
   description?: string;
   active?: boolean;
+  updatedAt?: string;
 }
 
 export interface ApiDepartmentSpecialtiesItem {
@@ -12,6 +13,7 @@ export interface ApiDepartmentSpecialtiesItem {
   departmentCode?: string;
   description?: string;
   active?: boolean;
+  doctorCount?: number;
   specialties?: ApiSpecialtyItem[];
   // Legacy / fallback field compatibility
   id?: number | string;
@@ -54,8 +56,20 @@ export interface ApiSpecialty {
 }
 
 export interface DepartmentSpecialtiesPageResponse {
-  totalElements?: number;
-  totalPages?: number;
+  map: <U>(fn: (item: ApiDepartmentSpecialtiesItem, index: number) => U) => U[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  content: ApiDepartmentSpecialtiesItem[];
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+export interface DepartmentListParams {
+  search?: string;
+  activeOnly?: boolean;
+  page?: number;
   size?: number;
-  content?: ApiDepartmentSpecialtiesItem[];
 }

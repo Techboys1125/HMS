@@ -12,7 +12,7 @@ import { useAuthStore } from "../../auth";
 import { patientsApi } from "../api/patient.api";
 import { RegisterPatientScreen } from "../pages/RegisterPatientScreen";
 import { ROUTES } from "../../../app/routes/routes";
-import { usePatientPortal } from "../context/PatientPortalContext";
+import { usePatientPortal } from "../context/usePatientPortal";
 
 type OnboardingState = "checking" | "complete" | "incomplete";
 
@@ -23,14 +23,13 @@ export function PatientOnboardingRoute() {
   const isPatient = String(user?.role ?? "").toUpperCase() === "PATIENT";
   const [state, setState] = useState<OnboardingState>("checking");
 
+  const effectiveState = !isPatient ? "complete" : state;
+
   useEffect(() => {
     if (!isPatient) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setState("complete");
       return;
     }
     let cancelled = false;
-    setState("checking");
 
     const checkProfile = async () => {
       try {
@@ -61,11 +60,11 @@ export function PatientOnboardingRoute() {
     };
   }, [isPatient, user?.patientId, user?.id]);
 
-  if (!isPatient || state === "complete") {
+  if (!isPatient || effectiveState === "complete") {
     return <Outlet />;
   }
 
-  if (state === "checking") {
+  if (effectiveState === "checking") {
     return (
       <div className="flex-1 min-h-screen bg-[#F4F6F9] flex items-center justify-center">
         <div className="text-xs text-[#64748B]">Loading your profile...</div>

@@ -28,18 +28,21 @@ export function DailyAvailabilityTab({ doctor }: DailyAvailabilityTabProps) {
 
   useEffect(() => {
     let cancelled = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    const targetId = resolveDoctorId(doctor);
-    doctorsService
-      .getDailyAvailability(targetId, date)
-      .then((data) => {
+
+    const loadAvailability = async () => {
+      try {
+        const targetId = resolveDoctorId(doctor);
+        const data = await doctorsService.getDailyAvailability(targetId, date);
         if (!cancelled && data) setSlots(data.slots || []);
-      })
-      .catch(() => {})
-      .finally(() => {
+      } catch {
+        if (!cancelled) setSlots([]);
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    };
+
+    void loadAvailability();
+
     return () => {
       cancelled = true;
     };

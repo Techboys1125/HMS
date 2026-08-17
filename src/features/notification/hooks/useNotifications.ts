@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../../auth";
 import type { NotificationSettings } from "../types/notifications.types";
@@ -130,7 +130,9 @@ export function useUpdateNotificationPreferences() {
       payload: Parameters<typeof updateNotificationPreferences>[0],
     ) => updateNotificationPreferences(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: notificationKeys.preferences() });
+      queryClient.invalidateQueries({
+        queryKey: notificationKeys.preferences(),
+      });
     },
   });
 }
@@ -223,31 +225,40 @@ export function useNotificationSettingsState() {
   const { data: preferences, isLoading } = useNotificationPreferences();
   const updatePreferences = useUpdateNotificationPreferences();
 
-  const [settings, setSettings] = useState<NotificationSettings>({
+  const [localSettings, setLocalSettings] = useState({
     appointmentNotifs: true,
     patientNotifs: true,
     billingNotifs: true,
     reportsNotifs: true,
-    securityAlerts: true,
-    emailNotifs: true,
-    pushNotifs: true,
     soundAlerts: false,
   });
 
-  useEffect(() => {
-    if (!preferences) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSettings((prev) => ({
-      ...prev,
-      emailNotifs: preferences.emailEnabled,
-      pushNotifs: preferences.inAppEnabled,
-      securityAlerts: preferences.criticalAlertsEnabled,
-    }));
-  }, [preferences]);
+  const [localOverrides, setLocalOverrides] = useState<
+    Partial<Pick<NotificationSettings, "emailNotifs" | "pushNotifs" | "securityAlerts">>
+  >({});
+
+  const settings: NotificationSettings = useMemo(
+    () => ({
+      ...localSettings,
+      emailNotifs: localOverrides.emailNotifs ?? preferences?.emailEnabled ?? true,
+      pushNotifs: localOverrides.pushNotifs ?? preferences?.inAppEnabled ?? true,
+      securityAlerts:
+        localOverrides.securityAlerts ?? preferences?.criticalAlertsEnabled ?? true,
+    }),
+    [localSettings, localOverrides, preferences],
+  );
 
   const updateSetting = useCallback(
     (key: keyof NotificationSettings, value: boolean) => {
-      setSettings((prev) => ({ ...prev, [key]: value }));
+      switch (key) {
+        case "emailNotifs":
+        case "pushNotifs":
+        case "securityAlerts":
+          setLocalOverrides((prev) => ({ ...prev, [key]: value }));
+          break;
+        default:
+          setLocalSettings((prev) => ({ ...prev, [key]: value }));
+      }
     },
     [],
   );
@@ -260,5 +271,5 @@ export function useNotificationSettingsState() {
     });
   }, [settings, updatePreferences]);
 
-  return { settings, updateSetting, saveSettings, setSettings, isLoading };
+  return { settings, updateSetting, saveSettings, isLoading };
 }

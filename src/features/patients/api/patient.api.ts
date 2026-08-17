@@ -1,6 +1,7 @@
 import { apiClient, axios, ApiError } from "../../../lib/axios";
 import { useAuthStore } from "../../auth";
 import { triggerNotificationMatrix } from "../../notification/services/notificationTrigger";
+import type { AppointmentRecord } from "../../appointments/types/appointment.types";
 import type {
   ApiPatientAppointment,
   ApiPatientFamilyMember,
@@ -701,8 +702,8 @@ export const patientsApi = {
       let patientName = "Patient";
       let doctorId: string | number = "";
       try {
-        const aptRes = await apiClient.get<any>(`/api/v1/appointments/${appointmentId}`);
-        const apt = aptRes.data?.data || aptRes.data;
+        const aptRes = await apiClient.get<PatientApiResponse<AppointmentRecord>>(`/api/v1/appointments/${appointmentId}`);
+        const apt = aptRes.data?.data;
         if (apt) {
           patientName = apt.patientName || apt.patient?.fullName || "Patient";
           doctorId = apt.doctorId || apt.doctor?.id || "";
@@ -739,16 +740,16 @@ export const patientsApi = {
       const response = await apiClient.get<
         PatientApiResponse<{ token: string }>
       >(`/api/v1/reception/appointments/${appointmentId}/token`);
-      const resData = response.data?.data || (response.data as any);
+      const resData = response.data?.data;
       
       if (resData) {
-        const tokenNo = resData.tokenNumber || resData.token || "TK-001";
+        const tokenNo = resData.token || "TK-001";
         let patientId = "";
         try {
-          const aptRes = await apiClient.get<any>(`/api/v1/appointments/${appointmentId}`);
-          const apt = aptRes.data?.data || aptRes.data;
+          const aptRes = await apiClient.get<PatientApiResponse<AppointmentRecord>>(`/api/v1/appointments/${appointmentId}`);
+          const apt = aptRes.data?.data;
           if (apt) {
-            patientId = apt.patientId || apt.patient?.id || "";
+            patientId = String(apt.patientId || apt.patient?.id || "");
           }
         } catch (e) {
           console.warn("Failed to fetch patientId for token notification", e);
@@ -811,8 +812,8 @@ export const patientsApi = {
       let doctorId: string | number = "";
       let isUpdate = false;
       try {
-        const aptRes = await apiClient.get<any>(`/api/v1/appointments/${appointmentId}`);
-        const apt = aptRes.data?.data || aptRes.data;
+        const aptRes = await apiClient.get<PatientApiResponse<AppointmentRecord>>(`/api/v1/appointments/${appointmentId}`);
+        const apt = aptRes.data?.data;
         if (apt) {
           patientName = apt.patientName || apt.patient?.fullName || "Patient";
           doctorId = apt.doctorId || apt.doctor?.id || "";

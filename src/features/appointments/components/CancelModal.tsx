@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { AlertTriangle, X, Check, Loader2, DollarSign } from "lucide-react";
 import type { AppointmentRecord } from "../types/appointment.types";
+import { formatTime } from "../../../lib/time-utils";
 
 const PP = "Poppins, sans-serif";
 
@@ -71,7 +72,8 @@ export const CancelModal: React.FC<CancelModalProps> = ({
               </span>
             </p>
             <p className="text-slate-500">
-              Date: {appointment.appointmentDate} at {appointment.startTime}
+              Date: {appointment.appointmentDate} at{" "}
+              {formatTime(appointment.startTime)}
             </p>
           </div>
 

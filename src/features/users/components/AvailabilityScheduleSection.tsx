@@ -1,6 +1,9 @@
 import React from "react";
-import { CalendarRange, Copy, AlertTriangle } from "lucide-react";
+import { CalendarRange, Copy, AlertTriangle, Clock } from "lucide-react";
+import { TimeSelect } from "../../../components/TimeSelect";
+import { formatTime } from "../../../lib/time-utils";
 import type { FormValues, FormErrors } from "../hooks/useCreateStaffForm";
+import type { OpdWeeklySchedule } from "../types/users.types";
 
 interface AvailabilityScheduleSectionProps {
   form: FormValues;
@@ -12,7 +15,18 @@ interface AvailabilityScheduleSectionProps {
     value: { isAvailable: boolean; startTime: string; endTime: string },
   ) => void;
   copyMondayHoursToWeekdays: () => void;
+  hospitalSchedule?: OpdWeeklySchedule | null;
 }
+
+const DAY_UPPER_TO_TITLE: Record<string, string> = {
+  MONDAY: "Monday",
+  TUESDAY: "Tuesday",
+  WEDNESDAY: "Wednesday",
+  THURSDAY: "Thursday",
+  FRIDAY: "Friday",
+  SATURDAY: "Saturday",
+  SUNDAY: "Sunday",
+};
 
 const WEEK_DAYS = [
   "Monday",
@@ -26,7 +40,13 @@ const WEEK_DAYS = [
 
 export const AvailabilityScheduleSection: React.FC<
   AvailabilityScheduleSectionProps
-> = ({ form, errors, setNestedFieldValue, copyMondayHoursToWeekdays }) => {
+> = ({
+  form,
+  errors,
+  setNestedFieldValue,
+  copyMondayHoursToWeekdays,
+  hospitalSchedule,
+}) => {
   const handleDayToggle = (day: string, checked: boolean) => {
     const currentDay = form.availability[day];
     setNestedFieldValue("availability", day, {
@@ -71,6 +91,58 @@ export const AvailabilityScheduleSection: React.FC<
         </div>
       )}
 
+      {/* Hospital OPD Schedule Reference */}
+      {hospitalSchedule?.weeklySchedule && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs">
+          <div className="flex items-center gap-1.5 text-[#0D47A1] font-bold mb-2">
+            <Clock size={12} />
+            <span>Hospital OPD Schedule (Reference)</span>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            {hospitalSchedule.weeklySchedule.map((day) => {
+              const titleCase =
+                DAY_UPPER_TO_TITLE[day.dayOfWeek.toUpperCase()] ||
+                day.dayOfWeek;
+              const interval = day.workingIntervals?.[0];
+              const breaks = day.breaks || [];
+              return (
+                <div
+                  key={day.dayOfWeek}
+                  className="bg-white border border-blue-200 rounded-lg px-2.5 py-1.5"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-blue-700 text-[10px] w-20">
+                      {titleCase}
+                    </span>
+                    {day.isOpen && interval ? (
+                      <span className="text-blue-600 text-[10px]">
+                        {formatTime(interval.startTime)}–{formatTime(interval.endTime)}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 text-[10px] italic">
+                        Hospital Closed
+                      </span>
+                    )}
+                  </div>
+                  {breaks.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-1 ml-20">
+                      {breaks.map((brk, idx) => (
+                        <span
+                          key={`${day.dayOfWeek}-break-${idx}`}
+                          className="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 rounded px-1.5 py-0.5 font-medium"
+                        >
+                          {brk.breakName || "Break"}: {formatTime(brk.startTime)}–{formatTime(brk.endTime)}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Grid Schedule */}
       <div className="border border-[#E5E7EB] rounded-2xl overflow-hidden divide-y divide-gray-100 bg-white">
         {WEEK_DAYS.map((day) => {
@@ -80,6 +152,10 @@ export const AvailabilityScheduleSection: React.FC<
             endTime: "",
           };
           const dayErrors = errors.availabilityDays?.[day];
+          const hospitalDay = hospitalSchedule?.weeklySchedule?.find(
+            (d) => d.dayOfWeek.toUpperCase() === day.toUpperCase(),
+          );
+          const isHospitalClosed = hospitalDay ? !hospitalDay.isOpen : false;
 
           return (
             <div
@@ -94,8 +170,9 @@ export const AvailabilityScheduleSection: React.FC<
                   type="checkbox"
                   id={`avail-${day}`}
                   checked={sched.isAvailable}
+                  disabled={isHospitalClosed}
                   onChange={(e) => handleDayToggle(day, e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-[#0D47A1] focus:ring-[#0D47A1] cursor-pointer"
+                  className="w-4 h-4 rounded border-slate-300 text-[#0D47A1] focus:ring-[#0D47A1] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 />
                 <label
                   htmlFor={`avail-${day}`}
@@ -103,6 +180,11 @@ export const AvailabilityScheduleSection: React.FC<
                 >
                   {day}
                 </label>
+                {isHospitalClosed && (
+                  <span className="text-[9px] text-slate-400 font-medium italic">
+                    (Hospital Closed)
+                  </span>
+                )}
               </div>
 
               {/* Start Time */}
@@ -110,16 +192,13 @@ export const AvailabilityScheduleSection: React.FC<
                 <label className="block text-[10px] font-semibold text-slate-400 uppercase">
                   Start Time
                 </label>
-                <input
-                  type="time"
+                <TimeSelect
                   disabled={!sched.isAvailable}
                   value={sched.startTime}
-                  onChange={(e) =>
-                    handleTimeChange(day, "startTime", e.target.value)
+                  onChange={(val) =>
+                    handleTimeChange(day, "startTime", val)
                   }
-                  className={`w-full bg-white border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs outline-none focus:border-[#0D47A1] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed ${
-                    dayErrors?.startTime ? "border-red-500 bg-red-50/50" : ""
-                  }`}
+                  error={!!dayErrors?.startTime}
                 />
                 {sched.isAvailable && dayErrors?.startTime && (
                   <p className="text-red-500 text-[10px] font-semibold mt-0.5">
@@ -133,16 +212,13 @@ export const AvailabilityScheduleSection: React.FC<
                 <label className="block text-[10px] font-semibold text-slate-400 uppercase">
                   End Time
                 </label>
-                <input
-                  type="time"
+                <TimeSelect
                   disabled={!sched.isAvailable}
                   value={sched.endTime}
-                  onChange={(e) =>
-                    handleTimeChange(day, "endTime", e.target.value)
+                  onChange={(val) =>
+                    handleTimeChange(day, "endTime", val)
                   }
-                  className={`w-full bg-white border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs outline-none focus:border-[#0D47A1] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed ${
-                    dayErrors?.endTime ? "border-red-500 bg-red-50/50" : ""
-                  }`}
+                  error={!!dayErrors?.endTime}
                 />
                 {sched.isAvailable && dayErrors?.endTime && (
                   <p className="text-red-500 text-[10px] font-semibold mt-0.5">

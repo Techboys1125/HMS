@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   ArrowUpDown,
   Stethoscope,
-  UserPlus,
   Eye,
   Edit,
   Calendar,
@@ -79,12 +78,12 @@ export interface DoctorTableProps {
   onSort: (col: keyof DoctorRecord) => void;
   onViewProfile: (doc: DoctorRecord) => void;
   onQuickView: (doc: DoctorRecord) => void;
-  onEdit: (doc: DoctorRecord) => void;
-  onViewSchedule: (doc: DoctorRecord) => void;
-  onDeactivate: (doc: DoctorRecord) => void;
-  onActivate: (doc: DoctorRecord) => void;
-  onResetPassword: (doc: DoctorRecord) => void;
-  onAddDoctor: () => void;
+  onEdit?: (doc: DoctorRecord) => void;
+  onViewSchedule?: (doc: DoctorRecord) => void;
+  onDeactivate?: (doc: DoctorRecord) => void;
+  onActivate?: (doc: DoctorRecord) => void;
+  onResetPassword?: (doc: DoctorRecord) => void;
+  onAddDoctor?: () => void;
   onResetFilters: () => void;
 }
 
@@ -100,7 +99,6 @@ export function DoctorTable({
   onDeactivate,
   onActivate,
   onResetPassword,
-  onAddDoctor,
   onResetFilters,
 }: DoctorTableProps) {
   const { can } = usePermissions();
@@ -241,15 +239,6 @@ export function DoctorTable({
                       >
                         Reset Filters
                       </button>
-                      {can("DOCTOR_CREATE") && (
-                        <button
-                          onClick={onAddDoctor}
-                          className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5 shadow-sm"
-                          style={{ fontFamily: PP }}
-                        >
-                          <UserPlus size={14} /> Add Doctor
-                        </button>
-                      )}
                     </div>
                   </div>
                 </td>
@@ -371,7 +360,7 @@ export function DoctorTable({
                           </button>
                         )}
 
-                        {can("DOCTOR_EDIT") && (
+                        {can("DOCTOR_EDIT") && onEdit && (
                           <button
                             onClick={() => onEdit(doc)}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
@@ -381,7 +370,7 @@ export function DoctorTable({
                           </button>
                         )}
 
-                        {can("DOCTOR_SCHEDULE_VIEW") && (
+                        {can("DOCTOR_SCHEDULE_VIEW") && onViewSchedule && (
                           <button
                             onClick={() => onViewSchedule(doc)}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-colors"
@@ -391,7 +380,7 @@ export function DoctorTable({
                           </button>
                         )}
 
-                        {can("DOCTOR_DEACTIVATE") && (
+                        {can("DOCTOR_DEACTIVATE") && onResetPassword && (
                           <button
                             onClick={() => onResetPassword(doc)}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
@@ -402,6 +391,7 @@ export function DoctorTable({
                         )}
 
                         {can("DOCTOR_DEACTIVATE") &&
+                          onActivate &&
                           doc.status === "Inactive" && (
                             <button
                               onClick={() => onActivate(doc)}
@@ -413,6 +403,7 @@ export function DoctorTable({
                           )}
 
                         {can("DOCTOR_DEACTIVATE") &&
+                          onDeactivate &&
                           doc.status !== "Inactive" && (
                             <button
                               onClick={() => onDeactivate(doc)}

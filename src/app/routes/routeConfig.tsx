@@ -32,8 +32,8 @@ import {
 } from "../../features/patients";
 import {
   PatientPortalProvider,
-  usePatientPortal,
 } from "../../features/patients/context/PatientPortalContext";
+import { usePatientPortal } from "../../features/patients/context/usePatientPortal";
 import { PatientOnboardingRoute } from "../../features/patients/routes/PatientOnboardingRoute";
 import { patientsApi } from "../../features/patients/api/patient.api";
 import {
@@ -46,20 +46,17 @@ import {
   OpdConsultationCenterScreen,
   StartOpdConsultationWorkspaceScreen,
 } from "../../features/opd";
-import { DoctorManagementCenterScreen } from "../../features/doctors";
 import { PrescriptionManagementPage } from "../../features/prescriptions";
+import { DoctorManagementPage } from "../../features/doctors/pages/DoctorManagementPage";
 import { DoctorProfileRoute } from "../../features/doctors/pages/DoctorProfileRoute";
 import { DoctorDirectoryPage } from "../../features/doctors/pages/DoctorDirectoryPage";
-import { ReceptionistDoctorListPage } from "../../features/doctors/pages/ReceptionistDoctorListPage";
 import { useAuthStore } from "../../features/auth";
 
 function DoctorsRouteDispatcher() {
   const role = useAuthStore((s) => s.user?.role);
   const r = String(role ?? "").toUpperCase();
-  if (r === "RECEPTIONIST") return <ReceptionistDoctorListPage />;
   if (r === "PATIENT") return <DoctorDirectoryPage />;
-  if (r === "DOCTOR") return <DoctorProfileRoute />;
-  return <DoctorManagementCenterScreen />;
+  return <DoctorManagementPage />;
 }
 import { DoctorScheduleScreen } from "../../features/doctors/components/DoctorScheduleScreen";
 import { DoctorQueueScreen } from "../../features/doctors/components/DoctorQueueScreen";

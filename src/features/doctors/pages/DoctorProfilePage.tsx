@@ -27,26 +27,23 @@ export function DoctorProfilePage({
         doctorId === "me" ||
         String(doctorId) === String(userDoctorId)
       : String(doctorId) === String(userDoctorId);
-  const [doctor, setDoctor] = useState<DoctorRecord | null>(
-    initialDoctor || null,
+  const hasCompleteInitialDoctor = initialDoctor?.id && (
+    initialDoctor.department ||
+    initialDoctor.specialty ||
+    initialDoctor.qualification ||
+    initialDoctor.experienceYrs
   );
 
+  const [doctor, setDoctor] = useState<DoctorRecord | null>(() => {
+    if (hasCompleteInitialDoctor) {
+      return initialDoctor;
+    }
+    return initialDoctor ?? null;
+  });
+
   useEffect(() => {
-    if (
-      initialDoctor &&
-      initialDoctor.id &&
-      (initialDoctor.department ||
-        initialDoctor.specialty ||
-        initialDoctor.qualification ||
-        initialDoctor.experienceYrs)
-    ) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setDoctor(initialDoctor);
-      return;
-    }
-    if (initialDoctor) {
-      setDoctor(initialDoctor);
-    }
+    if (hasCompleteInitialDoctor) return;
+
     let cancelled = false;
     doctorProfileService
       .getDoctorProfile(doctorId)
@@ -57,7 +54,7 @@ export function DoctorProfilePage({
     return () => {
       cancelled = true;
     };
-  }, [doctorId, initialDoctor]);
+  }, [doctorId, hasCompleteInitialDoctor]);
 
   return (
     <DoctorProfileScreen

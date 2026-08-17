@@ -11,11 +11,12 @@ import {
   Info,
   AlertCircle,
 } from "lucide-react";
+import { formatTime } from "../../../lib/time-utils";
 import type {
   PatientCancelAppointmentDialogProps,
   PatientRescheduleAppointmentDialogProps,
 } from "../types/patient.types";
-import { PP, RB } from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.fonts";
 
 export function PatientCancelAppointmentDialog({
   appointment,
@@ -94,7 +95,7 @@ export function PatientCancelAppointmentDialog({
             <div className="flex justify-between">
               <span className="text-[#64748B]">Date & Time:</span>
               <span className="font-semibold text-[#111827]">
-                {appointment.date} @ {appointment.time}
+                {appointment.date} @ {formatTime(appointment.time)}
               </span>
             </div>
             <div className="flex justify-between">
@@ -661,7 +662,7 @@ export function PatientRescheduleAppointmentDialog({
                       Current Date & Time
                     </span>
                     <span className="font-semibold text-[#009688]">
-                      {appointment.date} @ {appointment.time}
+                      {appointment.date} @ {formatTime(appointment.time)}
                     </span>
                   </div>
                 </div>

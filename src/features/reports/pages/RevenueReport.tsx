@@ -37,7 +37,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { PP, RB } from "../constants/reports.constants";
-import type { RevenueReportRecord } from "../types/reports.types";
+import type { RevenueReportRecord, DailyRevenuePoint, DailyRevenueDetail } from "../types/reports.types";
 import {
   useDailyRevenue,
   useDailyRevenueDetails,
@@ -134,11 +134,11 @@ export function DailyRevenueReportScreen({
   const { data: rawDetails } = useDailyRevenueDetails(reportFilters);
   const { data: collectionRateData } = useCollectionRate(reportFilters);
 
-  const dailyRevenueData = useMemo(() => extractList<any>(rawDailyRevenue), [rawDailyRevenue]);
-  const revenueDetailsList = useMemo(() => extractList<any>(rawDetails), [rawDetails]);
+  const dailyRevenueData = useMemo(() => extractList<DailyRevenuePoint>(rawDailyRevenue), [rawDailyRevenue]);
+  const revenueDetailsList = useMemo(() => extractList<DailyRevenueDetail>(rawDetails), [rawDetails]);
 
   const revenueTableSource = useMemo(() => {
-    return revenueDetailsList.map((d: any) => ({
+    return revenueDetailsList.map((d: DailyRevenueDetail) => ({
       id: d.paymentId || d.receiptNumber || d.invoiceNumber || `INV-${d.id || ""}`,
       patientName: d.patientName ?? d.receiptNumber ?? "N/A",
       mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,

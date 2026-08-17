@@ -4,6 +4,7 @@ import {
   type SecurityEvent,
 } from "../../constants/security.constants";
 import { EventDetailsModal } from "./EventDetailsModal";
+import { formatTime } from "../../../../lib/time-utils";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -131,7 +132,7 @@ export function SecurityEventsTable() {
                       fontSize: "12px",
                     }}
                   >
-                    {ev.datetime}
+                    {formatTime(ev.datetime)}
                   </td>
                   <td style={{ padding: "12px 16px" }}>
                     <span

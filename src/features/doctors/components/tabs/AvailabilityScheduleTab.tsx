@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Save, X } from "lucide-react";
+import { TimeSelect } from "../../../../components/TimeSelect";
 import type {
   DoctorRecord,
   ApiWeeklyScheduleDay,
@@ -37,18 +38,21 @@ export function AvailabilityScheduleTab({
 
   useEffect(() => {
     let cancelled = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoading(true);
-    const targetId = resolveDoctorId(doctor);
-    doctorsService
-      .getWeeklySchedule(targetId)
-      .then((data) => {
+
+    const loadSchedule = async () => {
+      try {
+        const targetId = resolveDoctorId(doctor);
+        const data = await doctorsService.getWeeklySchedule(targetId);
         if (!cancelled) setSchedule(data?.weeklySchedule || []);
-      })
-      .catch(() => {})
-      .finally(() => {
+      } catch {
+        if (!cancelled) setSchedule([]);
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    };
+
+    void loadSchedule();
+
     return () => {
       cancelled = true;
     };
@@ -275,13 +279,10 @@ export function AvailabilityScheduleTab({
                 </td>
                 <td className="px-3.5 py-2.5">
                   {canEdit && day.workingDay ? (
-                    <input
-                      type="time"
+                    <TimeSelect
                       value={day.workingPeriods[0]?.startTime || "09:00"}
-                      onChange={(e) =>
-                        updatePeriod(idx, 0, "startTime", e.target.value)
-                      }
-                      className="bg-slate-50 border border-[#E5E7EB] rounded-lg px-2 py-1 text-xs outline-none focus:border-[#0D47A1]"
+                      onChange={(val) => updatePeriod(idx, 0, "startTime", val)}
+                      className="w-28"
                     />
                   ) : (
                     <span className="text-[#111827]">
@@ -291,13 +292,10 @@ export function AvailabilityScheduleTab({
                 </td>
                 <td className="px-3.5 py-2.5">
                   {canEdit && day.workingDay ? (
-                    <input
-                      type="time"
+                    <TimeSelect
                       value={day.workingPeriods[0]?.endTime || "17:00"}
-                      onChange={(e) =>
-                        updatePeriod(idx, 0, "endTime", e.target.value)
-                      }
-                      className="bg-slate-50 border border-[#E5E7EB] rounded-lg px-2 py-1 text-xs outline-none focus:border-[#0D47A1]"
+                      onChange={(val) => updatePeriod(idx, 0, "endTime", val)}
+                      className="w-28"
                     />
                   ) : (
                     <span className="text-[#111827]">

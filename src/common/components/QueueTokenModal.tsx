@@ -1,5 +1,6 @@
 import React from "react";
 import { Receipt, X, Printer, CheckCircle } from "lucide-react";
+import { formatTime } from "../../lib/time-utils";
 
 interface QueueTokenModalProps {
   isOpen: boolean;
@@ -21,7 +22,7 @@ export const QueueTokenModal: React.FC<QueueTokenModalProps> = ({
   patientMrn,
   doctorName = "Duty Doctor",
   departmentName = "General OPD",
-  appointmentTime = "09:00 AM",
+  appointmentTime = formatTime(appointmentTime || "09:00 AM"),
   onPrint,
 }) => {
   if (!isOpen) return null;

@@ -1,5 +1,3 @@
-import type { AppStatus } from "../types/app.types";
-
 export const STATUS_CONFIG: Record<
   string,
   { bg: string; text: string; dot: string; label: string }

@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { doctorsApi } from "../../doctors/api/doctors.api";
 import type { DoctorRecord } from "../../doctors/types/doctors.types";
-import { PP, RB } from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.fonts";
 
 export function PatientDoctorSearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");

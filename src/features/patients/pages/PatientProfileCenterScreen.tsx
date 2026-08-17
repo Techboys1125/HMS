@@ -12,7 +12,7 @@ import {
   Save,
 } from "lucide-react";
 import type { Patient } from "../types/patient.types";
-import { PP, RB } from "../constants/patient.mock";
+import { PP, RB } from "../constants/patient.fonts";
 import { PatientSearchScreen } from "./PatientSearchScreen";
 
 interface ActivePatientProfile extends Omit<Patient, "emergencyContact"> {
