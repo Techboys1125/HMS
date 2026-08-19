@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useReducer, useState } from "react";
 import {
   Users,
   UserPlus,
@@ -70,6 +70,17 @@ export type LinkActivity = {
 
 const MOCK_ACTIVITIES: LinkActivity[] = [];
 
+type FilterState = {
+  searchTerm: string;
+  relFilter: string;
+  statusFilter: string;
+};
+type FilterAction = { type: "SET_FIELD"; field: keyof FilterState; value: string };
+const filterReducer = (state: FilterState, action: FilterAction): FilterState => ({
+  ...state,
+  [action.field]: action.value,
+});
+
 interface FamilyMembersManagementProps {
   familyMembers?: FamilyMember[];
   activeFamilyMember?: FamilyMember;
@@ -90,9 +101,13 @@ export function FamilyMembersManagement({
   onRemoveFamilyMember,
   onUpdateRelationship,
 }: FamilyMembersManagementProps = {}) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [relFilter, setRelFilter] = useState<string>("All");
-  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [filters, dispatch] = useReducer(filterReducer, {
+    searchTerm: "",
+    relFilter: "All",
+    statusFilter: "All",
+  });
+  const setFilter = (field: keyof FilterState, value: string) =>
+    dispatch({ type: "SET_FIELD", field, value });
 
   // Drawer & Dialog states
   const [viewDrawerMember, setViewDrawerMember] = useState<FamilyMember | null>(
@@ -131,13 +146,13 @@ export function FamilyMembersManagement({
   // Filtered List
   const filteredMembers = familyMembers.filter((m) => {
     const matchesSearch =
-      m.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.mrn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.relationship.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.registeredMobile.includes(searchTerm);
-    const matchesRel = relFilter === "All" || m.relationship === relFilter;
+      m.patientName.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+      m.mrn.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+      m.relationship.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+      m.registeredMobile.includes(filters.searchTerm);
+    const matchesRel = filters.relFilter === "All" || m.relationship === filters.relFilter;
     const matchesStatus =
-      statusFilter === "All" || m.verificationStatus === statusFilter;
+      filters.statusFilter === "All" || m.verificationStatus === filters.statusFilter;
     return matchesSearch && matchesRel && matchesStatus;
   });
 
@@ -339,15 +354,15 @@ export function FamilyMembersManagement({
           />
           <input
             type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={filters.searchTerm}
+            onChange={(e) => setFilter("searchTerm", e.target.value)}
             placeholder="Search by Name, MRN, Mobile, Rel..."
             className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-sm text-[#111827] placeholder-[#64748B] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
             style={{ fontFamily: RB }}
           />
-          {searchTerm && (
+          {filters.searchTerm && (
             <button
-              onClick={() => setSearchTerm("")}
+              onClick={() => setFilter("searchTerm", "")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
               <X size={14} />
@@ -369,8 +384,8 @@ export function FamilyMembersManagement({
 
           {/* Relationship Filter */}
           <select
-            value={relFilter}
-            onChange={(e) => setRelFilter(e.target.value)}
+            value={filters.relFilter}
+            onChange={(e) => setFilter("relFilter", e.target.value)}
             className="px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs font-medium text-[#111827] outline-none focus:border-[#0D47A1]"
             style={{ fontFamily: RB }}
           >
@@ -391,8 +406,8 @@ export function FamilyMembersManagement({
 
           {/* Status Filter */}
           <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            value={filters.statusFilter}
+            onChange={(e) => setFilter("statusFilter", e.target.value)}
             className="px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs font-medium text-[#111827] outline-none focus:border-[#0D47A1]"
             style={{ fontFamily: RB }}
           >

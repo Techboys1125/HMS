@@ -2,7 +2,7 @@ import { triggerInternalNotification } from "../api/notification.api";
 
 export function isEventAlreadyTriggered(eventId: string): boolean {
   try {
-    const list = JSON.parse(localStorage.getItem("hms_triggered_notifications") || "[]");
+    const list = JSON.parse(localStorage.getItem("hms_triggered_notifications:v1") || "[]");
     return list.includes(eventId);
   } catch {
     return false;
@@ -11,10 +11,10 @@ export function isEventAlreadyTriggered(eventId: string): boolean {
 
 export function markEventAsTriggered(eventId: string): void {
   try {
-    const list = JSON.parse(localStorage.getItem("hms_triggered_notifications") || "[]");
+    const list = JSON.parse(localStorage.getItem("hms_triggered_notifications:v1") || "[]");
     if (!list.includes(eventId)) {
       list.push(eventId);
-      localStorage.setItem("hms_triggered_notifications", JSON.stringify(list));
+      localStorage.setItem("hms_triggered_notifications:v1", JSON.stringify(list));
     }
   } catch (e) {
     console.error("[NotificationTrigger] Failed to save triggered event:", e);

@@ -48,15 +48,9 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
   showVisitTypeFilter = true,
   doctorOptions = [
     { value: "All", label: "All Doctors" },
-    { value: "Dr. Arjun Mehta", label: "Dr. Arjun Mehta (Logged in)" },
-    { value: "Dr. Priya Sharma", label: "Dr. Priya Sharma" },
-    { value: "Dr. Rajesh Kapoor", label: "Dr. Rajesh Kapoor" },
   ],
   departmentOptions = [
     { value: "All", label: "All Departments" },
-    { value: "Cardiology", label: "Cardiology" },
-    { value: "General Medicine", label: "General Medicine" },
-    { value: "Neurology", label: "Neurology" },
   ],
 }) => {
   return (

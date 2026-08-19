@@ -122,7 +122,7 @@ export function PasswordPolicy() {
             onChange={(e) =>
               setPassPolicy((prev) => ({
                 ...prev,
-                minLength: parseInt(e.target.value) || 8,
+                minLength: e.currentTarget.valueAsNumber || 8,
               }))
             }
             style={{

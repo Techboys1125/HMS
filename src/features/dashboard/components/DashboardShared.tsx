@@ -1,6 +1,12 @@
 import React from "react";
 import { AlertTriangle, TrendingDown, TrendingUp } from "lucide-react";
-import { AreaChart, Area, ResponsiveContainer } from "recharts";
+
+import {
+  AreaChart,
+  Area,
+  ResponsiveContainer,
+} from "../../../common/components/recharts-lazy";
+
 
 export const PP = "Poppins, system-ui, sans-serif";
 export const RB = "Roboto, system-ui, sans-serif";

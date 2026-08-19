@@ -63,7 +63,7 @@ export function LoginProtection() {
             onChange={(e) =>
               setLoginProtection((prev) => ({
                 ...prev,
-                maxFailedAttempts: parseInt(e.target.value) || 3,
+                maxFailedAttempts: e.currentTarget.valueAsNumber || 3,
               }))
             }
             style={{

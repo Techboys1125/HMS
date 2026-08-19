@@ -37,6 +37,7 @@ export function useAppointments(
         let items: AppointmentRecord[] = [];
         if (userRole === "Doctor") {
           items = await appointmentService.listDoctorAppointments(
+            params?.doctorId,
             date,
             params?.status,
           );
@@ -94,6 +95,7 @@ export function useAppointments(
       let items: AppointmentRecord[] = [];
       if (userRole === "Doctor") {
         items = await appointmentService.listDoctorAppointments(
+          params?.doctorId,
           date,
           params?.status,
         );

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { ROUTES } from "../../../app/routes/routes";
 import {
   Calendar,
@@ -14,6 +14,16 @@ import {
   Pill,
 } from "lucide-react";
 import {
+  useDoctorStatistics,
+  useDoctorCurrentPatient,
+  useDoctorNextPatient,
+  useDoctorTodayAppointments,
+  useDoctorConsultationQueue,
+  useDoctorCallToken,
+  useDoctorCompleteAppointment,
+} from "../hooks/useDoctorDashboard";
+
+import {
   AreaChart,
   Area,
   BarChart,
@@ -23,16 +33,8 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-} from "recharts";
-import {
-  useDoctorStatistics,
-  useDoctorCurrentPatient,
-  useDoctorNextPatient,
-  useDoctorTodayAppointments,
-  useDoctorConsultationQueue,
-  useDoctorCallToken,
-  useDoctorCompleteAppointment,
-} from "../hooks/useDoctorDashboard";
+} from "../../../common/components/recharts-lazy";
+
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";

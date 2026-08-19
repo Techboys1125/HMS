@@ -47,7 +47,7 @@ export function BookAppointmentScreen({
       (p) =>
         (p.name || "Unknown Patient").toLowerCase().includes(q) ||
         (p.mrn || "").toLowerCase().includes(q) ||
-        (p.phone || "").includes(q) ||
+        p.phone.toLowerCase().includes(q) ||
         String(p.id).toLowerCase().includes(q),
     );
   }, [patientQuery, patientDatabase]);

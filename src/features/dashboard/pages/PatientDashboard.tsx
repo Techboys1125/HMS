@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import {
   Calendar,
   Clock,
@@ -12,6 +12,16 @@ import {
   User,
   Loader2,
 } from "lucide-react";
+import { PatientQueueCard } from "../../patients/components/PatientQueueCard";
+import {
+  usePatientDashboard,
+  usePatientAppointmentsTimeline,
+  usePatientPrescriptionSummary,
+  usePatientConsultationHistory,
+  usePatientUnreadNotificationsCount,
+} from "../hooks/usePatientDashboard";
+import { formatTime } from "../../../lib/time-utils";
+
 import {
   AreaChart,
   Area,
@@ -22,16 +32,8 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-} from "recharts";
-import { PatientQueueCard } from "../../patients/components/PatientQueueCard";
-import {
-  usePatientDashboard,
-  usePatientAppointments,
-  usePatientPrescriptionSummary,
-  usePatientConsultationHistory,
-  usePatientUnreadNotificationsCount,
-} from "../hooks/usePatientDashboard";
-import { formatTime } from "../../../lib/time-utils";
+} from "../../../common/components/recharts-lazy";
+
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -193,6 +195,11 @@ const PAT_STATUS_CHIP: Record<
   Expired: "error",
   Downloaded: "info",
   Success: "success",
+  Booked: "teal",
+  Scheduled: "teal",
+  "Checked-In": "info",
+  "In Consultation": "warning",
+  "No Show": "error",
 };
 
 const PAT_QUICK_ACTIONS = [
@@ -263,24 +270,27 @@ export function PatientDashboard({
   onAddFamilyMember?: () => void;
 }) {
   const dashboardQuery = usePatientDashboard();
-  const appointmentsQuery = usePatientAppointments();
+  const appointmentsQuery = usePatientAppointmentsTimeline();
   const prescriptionQuery = usePatientPrescriptionSummary();
   const consultationQuery = usePatientConsultationHistory();
   const unreadQuery = usePatientUnreadNotificationsCount();
 
   const dashboard = dashboardQuery.data;
   const appointments = appointmentsQuery.data?.items || [];
+  const nextVisit = appointmentsQuery.data?.nextVisit;
   const prescriptions = prescriptionQuery.data;
   const consultations = consultationQuery.data;
   const unreadCount = unreadQuery.data?.count ?? 0;
 
   const upcomingApt = appointments.find(
-    (a) => a.status === "SCHEDULED" || a.status === "Confirmed" || a.status === "BOOKED",
+    (a) => a.status === "SCHEDULED" || a.status === "Confirmed" || a.status === "BOOKED" || a.status === "Booked",
   );
 
-  const upcomingStr = upcomingApt
-    ? `${upcomingApt.date} ${upcomingApt.time || ""}`
-    : "No Upcoming Visit";
+  const upcomingStr = nextVisit
+    ? `${nextVisit.appointmentDate} ${nextVisit.appointmentTime || ""}`
+    : upcomingApt
+      ? `${upcomingApt.appointmentDate} ${upcomingApt.appointmentTime || ""}`
+      : "No Upcoming Visit";
 
   const prescriptionSummaryData = useMemo(() => {
     if (!prescriptions) return [];
@@ -497,7 +507,7 @@ export function PatientDashboard({
             {appointments.length > 0 ? (
               appointments.map((item, idx) => (
                 <div
-                  key={item.appointmentId || item.appointmentNumber || idx}
+                  key={item.appointmentId || idx}
                   className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-slate-50 hover:bg-white transition-colors"
                 >
                   <div className="flex items-center gap-3">
@@ -511,23 +521,23 @@ export function PatientDashboard({
                       >
                         {item.doctorName} ·{" "}
                         <span className="text-[#64748B] font-normal">
-                          {item.department}
+                          {item.specialty}
                         </span>
                       </div>
                       <div
                         className="text-[11px] text-[#64748B] mt-0.5"
                         style={{ fontFamily: RB }}
                       >
-                        {item.date} at{" "}
+                        {item.appointmentDate} at{" "}
                         <span className="font-mono font-semibold text-[#0D47A1]">
-                          {formatTime(item.time)}
+                          {formatTime(item.appointmentTime)}
                         </span>
                       </div>
                     </div>
                   </div>
                   <Chip
-                    label={item.status}
-                    variant={PAT_STATUS_CHIP[item.status] || "default"}
+                    label={item.displayStatus || item.status}
+                    variant={PAT_STATUS_CHIP[item.displayStatus || item.status] || "default"}
                   />
                 </div>
               ))

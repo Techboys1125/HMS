@@ -407,7 +407,7 @@ export function useBillingDashboard(params?: {
 
 // ── useBillingConfiguration ─────────────────────────────────────────────────
 
-const BILLING_CONFIG_KEY = "hms-billing-configuration";
+const BILLING_CONFIG_KEY = "hms-billing-configuration:v1";
 
 function loadBillingConfig(): BillingConfiguration | null {
   try {

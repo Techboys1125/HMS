@@ -102,7 +102,10 @@ export function CollectPaymentDrawer({
               <input
                 type="number"
                 value={collectAmount}
-                onChange={(e) => setCollectAmount(Number(e.target.value))}
+                onChange={(e) => {
+                  const v = e.currentTarget.valueAsNumber;
+                  setCollectAmount(Number.isFinite(v) ? v : 0);
+                }}
                 max={invoice.balance}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-sm font-bold text-[#111827] focus:bg-white focus:border-[#009688] focus:outline-none"
               />

@@ -109,7 +109,7 @@ export function BillingRuleConfiguration({
           onChange={(e) =>
             setBillingRules((prev) => ({
               ...prev,
-              gracePeriodDays: parseInt(e.target.value) || 0,
+              gracePeriodDays: e.currentTarget.valueAsNumber || 0,
             }))
           }
           style={{

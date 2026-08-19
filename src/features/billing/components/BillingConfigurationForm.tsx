@@ -604,7 +604,7 @@ export function BillingConfigurationForm({
                 }}
               >
                 <div>
-                  <strong>ST. JUDE HOSPITAL</strong>
+                  <strong>[Hospital Name]</strong>
                   <div style={{ fontSize: "10px", color: "#64748B" }}>
                     OPD Receipt
                   </div>
@@ -626,8 +626,8 @@ export function BillingConfigurationForm({
                   marginBottom: "12px",
                 }}
               >
-                <div>Patient: Sarah Mitchell</div>
-                <div>MRN: MRN-89201</div>
+                <div>Patient: [Patient Name]</div>
+                <div>MRN: [MRN]</div>
               </div>
               <table
                 style={{ width: "100%", textAlign: "left", fontSize: "11px" }}

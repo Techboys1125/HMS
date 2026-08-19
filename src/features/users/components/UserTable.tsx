@@ -43,7 +43,8 @@ export const UserTable: React.FC<UserTableProps> = ({
   };
 
   return (
-    <div className="overflow-x-auto max-h-150 overflow-y-auto w-full">
+    <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
+      <div className="overflow-x-auto max-h-150 overflow-y-auto w-full">
       <table className="w-full border-collapse text-left text-xs bg-white">
         <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10 text-[#64748B] font-bold">
           <tr style={{ fontFamily: PP }}>
@@ -183,6 +184,7 @@ export const UserTable: React.FC<UserTableProps> = ({
           })}
         </tbody>
       </table>
+    </div>
     </div>
   );
 };

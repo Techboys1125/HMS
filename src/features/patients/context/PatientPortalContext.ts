@@ -1,7 +1,7 @@
 import { createContext } from "react";
 import type { FamilyMember } from "../pages/FamilyMembersManagement";
 
-export const SWITCH_ACCOUNT_STORAGE_KEY = "hms-active-patient-mrn";
+export const SWITCH_ACCOUNT_STORAGE_KEY = "hms-active-patient-mrn:v1";
 
 export interface PatientPortalContextValue {
   familyMembers: FamilyMember[];

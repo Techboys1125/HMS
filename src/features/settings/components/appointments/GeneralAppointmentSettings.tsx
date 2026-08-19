@@ -152,7 +152,7 @@ export function GeneralAppointmentSettings() {
             onChange={(e) =>
               setGeneralConfig((prev) => ({
                 ...prev,
-                maxAdvanceBookingDays: parseInt(e.target.value) || 0,
+                maxAdvanceBookingDays: e.currentTarget.valueAsNumber || 0,
               }))
             }
             style={{
@@ -183,7 +183,7 @@ export function GeneralAppointmentSettings() {
             onChange={(e) =>
               setGeneralConfig((prev) => ({
                 ...prev,
-                minAdvanceBookingHours: parseInt(e.target.value) || 0,
+                minAdvanceBookingHours: e.currentTarget.valueAsNumber || 0,
               }))
             }
             style={{

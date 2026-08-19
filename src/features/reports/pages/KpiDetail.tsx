@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Download,
   RefreshCw,
@@ -6,7 +6,7 @@ import {
   Search,
   ChevronRight,
   Clock,
-  PieChart,
+  PieChart as PieChartIcon,
   AlertCircle,
   TrendingUp,
   Printer,
@@ -15,21 +15,6 @@ import {
   Eye,
   BarChart3,
 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  PieChart as RechartsPie,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
 import { PP, RB } from "../constants/reports.constants";
 import type {
   KpiRevenueRecord,
@@ -49,6 +34,22 @@ import {
   useInvoiceRegister,
   extractList,
 } from "../hooks/useReports";
+import {
+  BarChart,
+  Bar,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "../../../common/components/recharts-lazy";
+
 
 
 export function DashboardKpiDetailScreen({
@@ -193,20 +194,27 @@ export function DashboardKpiDetailScreen({
 
     if (isRevenueKpi) {
       const source = revenueList.length > 0 ? revenueList : invoiceList;
-      const mapped = source.map((d: DailyRevenueDetail | InvoiceRegisterRecord) => ({
-        invoiceId: d.paymentId || d.invoiceNumber || d.receiptNumber || `INV-${("id" in d ? d.id : "") || ""}`,
-        patientName: d.patientName || "N/A",
-        mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
-        doctorName: d.doctorName || "N/A",
-        department: d.department || "General Medicine",
-        invoiceDate: d.paidAt || d.invoiceDate || d.createdDate || today,
-        totalAmount: Number(d.amount || d.billedAmount || 0),
-        collectedAmount: Number(d.paidAmount || d.amount || d.collectedAmount || 0),
-        outstandingAmount: Number(d.outstandingAmount || 0),
-        paymentMethod: d.paymentMethod || "Cash",
-        invoiceStatus: d.paymentStatus || "Paid",
-        cashierName: d.collectedBy || d.cashierName || "System",
-      }));
+      const mapped = source.map((d: DailyRevenueDetail | InvoiceRegisterRecord) => {
+        const isDaily = "paymentId" in d;
+        const daily = d as DailyRevenueDetail;
+        const invoice = d as InvoiceRegisterRecord;
+        return {
+          invoiceId: isDaily
+            ? daily.paymentId || daily.receiptNumber || `INV-${daily.id || ""}`
+            : invoice.invoiceNumber || `INV-${invoice.mrn || ""}`,
+          patientName: "patientName" in d ? (d as { patientName: string }).patientName : "N/A",
+          mrn: "mrn" in d ? (String((d as { mrn: string }).mrn).startsWith("MRN-") ? String((d as { mrn: string }).mrn) : `MRN-${(d as { mrn: string }).mrn}`) : `MRN-`,
+          doctorName: (d as { doctorName?: string }).doctorName || "N/A",
+          department: (d as { department?: string }).department || "General Medicine",
+          invoiceDate: isDaily
+            ? daily.paidAt || today
+            : invoice.invoiceDate || today,
+          invoiceAmount: Number(isDaily ? daily.amount || 0 : invoice.billedAmount || 0),
+          collectedAmount: Number(isDaily ? daily.amount || 0 : invoice.paidAmount || 0),
+          paymentMethod: (d as { paymentMethod?: string }).paymentMethod || "Cash",
+          invoiceStatus: isDaily ? "Paid" : (invoice.paymentStatus || "Paid"),
+        };
+      }) as unknown as KpiRevenueRecord[];
       return mapped.filter((item) => {
         const matchesSearch =
           item.invoiceId.toLowerCase().includes(q) ||
@@ -224,7 +232,7 @@ export function DashboardKpiDetailScreen({
           appliedFilters.payStatus === "All Payment Statuses" ||
           item.invoiceStatus === appliedFilters.payStatus;
         return matchesSearch && matchesDept && matchesDoctor && matchesStatus;
-      });
+      }) as unknown as KpiRevenueRecord[];
     }
 
     if (isAppointmentKpi) {
@@ -234,11 +242,10 @@ export function DashboardKpiDetailScreen({
         mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
         doctorName: d.doctorName || "N/A",
         department: d.department || "General Medicine",
-        appointmentDate: d.appointmentDate || d.date || today,
+        visitType: d.appointmentType || "New Visit",
         appointmentTime: d.appointmentTime || "09:00 AM",
-        visitType: d.visitType || d.appointmentType || "New Visit",
+        tokenNumber: d.queueNumber || "Q-1",
         appointmentStatus: d.status || "Scheduled",
-        queueNumber: d.queueNumber || "Q-1",
       }));
       return mapped.filter((item) => {
         const matchesSearch =
@@ -266,7 +273,7 @@ export function DashboardKpiDetailScreen({
           matchesVisit &&
           matchesStatus
         );
-      });
+      }) as unknown as KpiAppointmentRecord[];
     }
 
     if (isPatientKpi) {
@@ -274,53 +281,45 @@ export function DashboardKpiDetailScreen({
         patientId: String(d.patientId || ""),
         patientName: d.patientName || d.fullName || "N/A",
         mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
-        mobile: d.mobile || d.phone || "",
         gender: d.gender || "Other",
         age: d.age || 0,
-        department: d.department || "General Medicine",
-        assignedDoctor: d.doctorName || "Unassigned",
         registrationDate: d.registrationDate || d.createdDate || today,
+        registeredBy: d.doctorName || "Unassigned",
         visitType: d.visitType || "New Visit",
-        patientStatus: d.status || "Active",
       }));
       return mapped.filter((item) => {
         const matchesSearch =
           item.patientName.toLowerCase().includes(q) ||
           item.mrn.toLowerCase().includes(q) ||
-          item.mobile.includes(q) ||
-          item.assignedDoctor.toLowerCase().includes(q) ||
-          item.department.toLowerCase().includes(q);
+          item.gender.toLowerCase().includes(q) ||
+          item.registeredBy.toLowerCase().includes(q);
         const matchesDept =
           appliedFilters.dept === "All Departments" ||
-          item.department === appliedFilters.dept;
+          item.registeredBy === appliedFilters.dept;
         const matchesDoctor =
           appliedFilters.doctor === "All Doctors" ||
-          item.assignedDoctor === appliedFilters.doctor;
+          item.registeredBy === appliedFilters.doctor;
         const matchesVisit =
           appliedFilters.visitType === "All Visit Types" ||
           item.visitType === appliedFilters.visitType;
         return matchesSearch && matchesDept && matchesDoctor && matchesVisit;
-      });
+      }) as unknown as KpiPatientRecord[];
     }
 
     if (isConsultationKpi) {
       const mapped = apptList.map((d: DailyAppointmentDetail) => ({
         consultationId: d.appointmentNumber || `CNS-${d.appointmentId || ""}`,
         patientName: d.patientName || "N/A",
-        mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
         doctorName: d.doctorName || "N/A",
         department: d.department || "General Medicine",
-        consultationDate: d.appointmentDate || today,
         consultationTime: d.appointmentTime || "10:00 AM",
-        diagnosis: d.diagnosis || "General OPD Checkup",
-        consultationStatus: d.status === "Completed" || d.status === "COMPLETED" ? "Completed" : "In Consultation",
-        prescriptionIssued: d.prescriptionIssued ?? true,
+        durationMinutes: d.durationMinutes || 30,
+        status: d.status === "Completed" || d.status === "COMPLETED" ? "Completed" : "In-Progress",
       }));
       return mapped.filter((item) => {
         const matchesSearch =
           item.consultationId.toLowerCase().includes(q) ||
           item.patientName.toLowerCase().includes(q) ||
-          item.mrn.toLowerCase().includes(q) ||
           item.doctorName.toLowerCase().includes(q) ||
           item.department.toLowerCase().includes(q);
         const matchesDept =
@@ -330,30 +329,25 @@ export function DashboardKpiDetailScreen({
           appliedFilters.doctor === "All Doctors" ||
           item.doctorName === appliedFilters.doctor;
         return matchesSearch && matchesDept && matchesDoctor;
-      });
+      }) as unknown as KpiConsultationRecord[];
     }
 
     if (isPendingKpi) {
       const pendingInvoices = invoiceList.filter((d: InvoiceRegisterRecord) => Number(d.outstandingAmount || 0) > 0 || d.paymentStatus === "Pending" || d.paymentStatus === "UNPAID");
       const source = pendingInvoices.length > 0 ? pendingInvoices : invoiceList;
       const mapped = source.map((d: InvoiceRegisterRecord) => ({
-        billId: d.invoiceNumber || d.billId || `BILL-${d.id || ""}`,
+        invoiceId: d.invoiceNumber || `INV-${d.mrn || ""}`,
         patientName: d.patientName || "N/A",
-        mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
         doctorName: d.doctorName || "N/A",
         department: d.department || "General Medicine",
-        billDate: d.invoiceDate || today,
-        totalBillAmount: Number(d.billedAmount || d.amount || 0),
-        paidAmount: Number(d.paidAmount || 0),
-        pendingBalance: Number(d.outstandingAmount || d.billedAmount || 0),
+        pendingAmount: Number(d.outstandingAmount || d.billedAmount || 0),
         dueDate: d.dueDate || today,
-        overdueDays: d.overdueDays || 0,
+        status: d.paymentStatus === "Pending" || d.paymentStatus === "UNPAID" ? "Pending" : d.paymentStatus === "Partially Paid" ? "Partially Paid" : "Overdue",
       }));
       return mapped.filter((item) => {
         const matchesSearch =
-          item.billId.toLowerCase().includes(q) ||
+          item.invoiceId.toLowerCase().includes(q) ||
           item.patientName.toLowerCase().includes(q) ||
-          item.mrn.toLowerCase().includes(q) ||
           item.doctorName.toLowerCase().includes(q) ||
           item.department.toLowerCase().includes(q);
         const matchesDept =
@@ -363,7 +357,7 @@ export function DashboardKpiDetailScreen({
           appliedFilters.doctor === "All Doctors" ||
           item.doctorName === appliedFilters.doctor;
         return matchesSearch && matchesDept && matchesDoctor;
-      });
+      }) as unknown as KpiPendingPaymentRecord[];
     }
 
     return [];
@@ -1286,7 +1280,7 @@ export function DashboardKpiDetailScreen({
                       Categorical split of {selectedKpi}
                     </p>
                   </div>
-                  <PieChart className="w-4 h-4 text-[#009688]" />
+                  <PieChartIcon className="w-4 h-4 text-[#009688]" />
                 </div>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">

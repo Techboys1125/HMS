@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
 import {
@@ -12,11 +12,12 @@ import {
   UserCheck,
   Activity,
   Clock,
-  PieChart,
+  PieChart as PieChartIcon,
   Eye,
   Printer,
   AlertCircle,
 } from "lucide-react";
+
 import {
   AreaChart,
   Area,
@@ -33,7 +34,8 @@ import {
   Legend,
   LineChart,
   Line,
-} from "recharts";
+} from "../../../common/components/recharts-lazy";
+
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";

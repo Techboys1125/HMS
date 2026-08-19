@@ -23,7 +23,7 @@ export const RescheduleModal: React.FC<RescheduleModalProps> = ({
   const [newDate, setNewDate] = useState(
     () => new Date(Date.now() + 86400000).toISOString().split("T")[0],
   );
-  const [newTime, setNewTime] = useState("11:00 AM");
+  const [newTime, setNewTime] = useState("");
   const [reason, setReason] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);

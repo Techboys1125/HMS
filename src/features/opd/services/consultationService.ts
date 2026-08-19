@@ -106,7 +106,7 @@ export const consultationService = {
             ? appointment.department
             : appointment.department?.name ||
               appointment.department?.departmentName) ||
-          "Cardiology",
+          "",
         appointmentTime: appointment.appointmentTime || "",
         visitType: (appointment.appointmentType ||
           appointment.visitType ||

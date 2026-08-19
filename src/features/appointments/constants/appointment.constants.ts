@@ -68,6 +68,12 @@ export const STATUS_CONFIG: Record<
     dot: "bg-[#009688]",
     border: "border-teal-200",
   },
+  "In Progress": {
+    bg: "bg-teal-50",
+    text: "text-[#009688]",
+    dot: "bg-[#009688]",
+    border: "border-teal-200",
+  },
   Completed: {
     bg: "bg-green-50",
     text: "text-[#66BB6A]",

@@ -90,10 +90,27 @@ const mapHospitalScheduleToFormAvailability = (
     const titleCase = DAY_UPPER_TO_TITLE[day.dayOfWeek.toUpperCase()];
     if (titleCase && result[titleCase] !== undefined) {
       const interval = day.workingIntervals?.[0];
+      if (!interval) continue;
+      let startTime = interval.startTime || "";
+      let endTime = interval.endTime || "";
+      if (day.breaks && day.breaks.length > 0) {
+        for (const brk of day.breaks) {
+          if (
+            startTime &&
+            endTime &&
+            startTime < brk.endTime &&
+            endTime > brk.startTime
+          ) {
+            if (startTime < brk.startTime) {
+              endTime = brk.startTime;
+            }
+          }
+        }
+      }
       result[titleCase] = {
         isAvailable: day.isOpen,
-        startTime: interval?.startTime || "",
-        endTime: interval?.endTime || "",
+        startTime,
+        endTime,
       };
     }
   }

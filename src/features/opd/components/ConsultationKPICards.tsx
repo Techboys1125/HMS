@@ -5,13 +5,10 @@ import {
   CheckCircle2,
   Activity,
   Users,
-  ArrowUpRight,
-  Calendar,
 } from "lucide-react";
 import type { ConsultationRecord, OauthRole } from "../types/consultation";
 
 const PP = "'Poppins', system-ui, sans-serif";
-const RB = "'Roboto', system-ui, sans-serif";
 
 export interface ConsultationKPICardsProps {
   role: OauthRole;
@@ -75,15 +72,6 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
           icon={<Stethoscope size={18} />}
           iconBg="bg-blue-50"
           iconColor="text-[#0D47A1]"
-          trend={
-            <div
-              className="flex items-center gap-1 text-[11px] text-emerald-600 font-medium"
-              style={{ fontFamily: RB }}
-            >
-              <Activity size={12} />
-              <span>+15% vs yesterday</span>
-            </div>
-          }
         />
         <KpiCard
           label="Patients Waiting"
@@ -91,15 +79,6 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
           icon={<Clock size={18} />}
           iconBg="bg-amber-50"
           iconColor="text-[#F59E0B]"
-          trend={
-            <div
-              className="flex items-center gap-1 text-[11px] text-amber-600 font-medium"
-              style={{ fontFamily: RB }}
-            >
-              <Activity size={12} />
-              <span>Avg wait: 14 mins</span>
-            </div>
-          }
         />
         <KpiCard
           label="In Consultation"
@@ -107,15 +86,6 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
           icon={<Activity size={18} />}
           iconBg="bg-teal-50"
           iconColor="text-[#009688]"
-          trend={
-            <div
-              className="flex items-center gap-1 text-[11px] text-[#009688] mt-1 font-medium"
-              style={{ fontFamily: RB }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#009688] animate-pulse" />
-              <span>1 Active Session</span>
-            </div>
-          }
         />
         <KpiCard
           label="Completed"
@@ -123,15 +93,6 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
           icon={<CheckCircle2 size={18} />}
           iconBg="bg-green-50"
           iconColor="text-[#66BB6A]"
-          trend={
-            <div
-              className="flex items-center gap-1 text-[11px] text-emerald-600 mt-1 font-medium"
-              style={{ fontFamily: RB }}
-            >
-              <ArrowUpRight size={12} />
-              <span>94% completion rate</span>
-            </div>
-          }
         />
         <KpiCard
           label="Avg Duration"
@@ -139,11 +100,6 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
           icon={<Clock size={18} />}
           iconBg="bg-purple-50"
           iconColor="text-purple-600"
-          trend={
-            <div className="text-[11px] text-purple-600 mt-1 font-medium" style={{ fontFamily: RB }}>
-              Target: &lt; 15 mins
-            </div>
-          }
         />
       </div>
     );
@@ -157,15 +113,6 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
         icon={<Stethoscope size={18} />}
         iconBg="bg-blue-50"
         iconColor="text-[#0D47A1]"
-        trend={
-          <div
-            className="flex items-center gap-1 text-[11px] text-emerald-600 font-medium"
-            style={{ fontFamily: RB }}
-          >
-            <Activity size={12} />
-            <span>+12% vs yesterday</span>
-          </div>
-        }
       />
       <KpiCard
         label="Waiting Patients"
@@ -173,15 +120,6 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
         icon={<Clock size={18} />}
         iconBg="bg-amber-50"
         iconColor="text-[#F59E0B]"
-        trend={
-          <div
-            className="flex items-center gap-1 text-[11px] text-amber-600 font-medium"
-            style={{ fontFamily: RB }}
-          >
-            <Activity size={12} />
-            <span>Avg wait: 14 mins</span>
-          </div>
-        }
       />
       <KpiCard
         label="In Consultation"
@@ -189,15 +127,6 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
         icon={<Activity size={18} />}
         iconBg="bg-teal-50"
         iconColor="text-[#009688]"
-        trend={
-          <div
-            className="flex items-center gap-1 text-[11px] text-[#009688] mt-1 font-medium"
-            style={{ fontFamily: RB }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-[#009688] animate-pulse" />
-            <span>Active Sessions</span>
-          </div>
-        }
       />
       <KpiCard
         label="Completed"
@@ -205,15 +134,6 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
         icon={<CheckCircle2 size={18} />}
         iconBg="bg-green-50"
         iconColor="text-[#66BB6A]"
-        trend={
-          <div
-            className="flex items-center gap-1 text-[11px] text-emerald-600 mt-1 font-medium"
-            style={{ fontFamily: RB }}
-          >
-            <Activity size={12} />
-            <span>94% efficiency rate</span>
-          </div>
-        }
       />
       <KpiCard
         label="Follow-up Cases"
@@ -221,15 +141,6 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
         icon={<Users size={18} />}
         iconBg="bg-purple-50"
         iconColor="text-purple-600"
-        trend={
-          <div
-            className="flex items-center gap-1 text-[11px] text-purple-600 mt-1 font-medium"
-            style={{ fontFamily: RB }}
-          >
-            <Calendar size={12} />
-            <span>Scheduled this week</span>
-          </div>
-        }
       />
     </div>
   );

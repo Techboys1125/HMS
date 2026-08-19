@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useReducer, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -200,33 +200,54 @@ function downloadCsv(records: AuditRecord[], filename: string): void {
 }
 
 export function AuditLogManagementPage() {
-  const [currentWorkspace, setCurrentWorkspace] =
-    useState<AuditCategory>("All Logs");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDateRange, setSelectedDateRange] = useState("All Time");
-  const [selectedModule, setSelectedModule] = useState("All");
-  const [selectedDepartment, setSelectedDepartment] = useState("All");
-  const [selectedRole, setSelectedRole] = useState("All");
-  const [selectedUser, setSelectedUser] = useState("All");
-  const [selectedSeverity, setSelectedSeverity] = useState("All");
-  const [selectedStatus, setSelectedStatus] = useState("All");
-  const [selectedEventType, setSelectedEventType] = useState("All");
+  type FilterState = {
+    currentWorkspace: AuditCategory;
+    searchQuery: string;
+    selectedDateRange: string;
+    selectedModule: string;
+    selectedDepartment: string;
+    selectedRole: string;
+    selectedUser: string;
+    selectedSeverity: string;
+    selectedStatus: string;
+    selectedEventType: string;
+  };
+  type FilterAction = { type: "SET_FIELD"; field: keyof FilterState; value: string };
+  const filterReducer = (state: FilterState, action: FilterAction): FilterState => ({
+    ...state,
+    [action.field]: action.value,
+  });
+  const [filters, dispatch] = useReducer(filterReducer, {
+    currentWorkspace: "All Logs" as AuditCategory,
+    searchQuery: "",
+    selectedDateRange: "All Time",
+    selectedModule: "All",
+    selectedDepartment: "All",
+    selectedRole: "All",
+    selectedUser: "All",
+    selectedSeverity: "All",
+    selectedStatus: "All",
+    selectedEventType: "All",
+  });
+  const setFilter = (field: keyof FilterState, value: string) =>
+    dispatch({ type: "SET_FIELD", field, value });
+
   const [activeDetailsRecord, setActiveDetailsRecord] =
     useState<AuditRecord | null>(null);
   const [page, setPage] = useState(0);
 
   const dateRange = useMemo(
-    () => getDateRange(selectedDateRange),
-    [selectedDateRange],
+    () => getDateRange(filters.selectedDateRange),
+    [filters.selectedDateRange],
   );
   const listParams = useMemo<AuditLogListParams>(
     () => ({ page, size: PAGE_SIZE, ...dateRange }),
     [dateRange, page],
   );
 
-  const isAllWorkspace = currentWorkspace === "All Logs";
-  const isCriticalWorkspace = currentWorkspace === "Critical Events";
-  const isLoginWorkspace = currentWorkspace === "Login History";
+  const isAllWorkspace = filters.currentWorkspace === "All Logs";
+  const isCriticalWorkspace = filters.currentWorkspace === "Critical Events";
+  const isLoginWorkspace = filters.currentWorkspace === "Login History";
 
   // Shared endpoints are loaded once. Stream and workspace-dashboard calls are
   // only enabled for the selected workspace, preventing unrelated API errors.
@@ -250,19 +271,19 @@ export function AuditLogManagementPage() {
   const loginLogsQuery = useLoginHistoryLogs(listParams, isLoginWorkspace);
   const userActivityLogsQuery = useUserActivityLogs(
     listParams,
-    currentWorkspace === "User Activities",
+    filters.currentWorkspace === "User Activities",
   );
   const dataChangeLogsQuery = useDataChangeLogs(
     listParams,
-    currentWorkspace === "Data Changes",
+    filters.currentWorkspace === "Data Changes",
   );
   const deletedRecordLogsQuery = useDeletedRecordLogs(
     listParams,
-    currentWorkspace === "Deleted Records",
+    filters.currentWorkspace === "Deleted Records",
   );
   const systemLogLogsQuery = useSystemLogLogs(
     listParams,
-    currentWorkspace === "System Logs",
+    filters.currentWorkspace === "System Logs",
   );
 
   const loginDashboardQuery = useLoginHistoryDashboard(
@@ -273,22 +294,22 @@ export function AuditLogManagementPage() {
   const userActivitiesDashboardQuery = useUserActivitiesDashboard(
     dateRange.fromDate,
     dateRange.toDate,
-    currentWorkspace === "User Activities",
+    filters.currentWorkspace === "User Activities",
   );
   const dataChangesDashboardQuery = useDataChangesDashboard(
     dateRange.fromDate,
     dateRange.toDate,
-    currentWorkspace === "Data Changes",
+    filters.currentWorkspace === "Data Changes",
   );
   const deletedRecordsDashboardQuery = useDeletedRecordsDashboard(
     dateRange.fromDate,
     dateRange.toDate,
-    currentWorkspace === "Deleted Records",
+    filters.currentWorkspace === "Deleted Records",
   );
   const systemLogsDashboardQuery = useSystemLogsDashboard(
     dateRange.fromDate,
     dateRange.toDate,
-    currentWorkspace === "System Logs",
+    filters.currentWorkspace === "System Logs",
   );
 
   const activeSessionsQuery = useActiveSessions(listParams, isLoginWorkspace);
@@ -296,17 +317,17 @@ export function AuditLogManagementPage() {
   const lockedAccountsQuery = useLockedAccounts(listParams, isLoginWorkspace);
 
   const activeQuery =
-    currentWorkspace === "Critical Events"
+    filters.currentWorkspace === "Critical Events"
       ? criticalEventsQuery
-      : currentWorkspace === "Login History"
+      : filters.currentWorkspace === "Login History"
         ? loginLogsQuery
-        : currentWorkspace === "User Activities"
+        : filters.currentWorkspace === "User Activities"
           ? userActivityLogsQuery
-          : currentWorkspace === "Data Changes"
+          : filters.currentWorkspace === "Data Changes"
             ? dataChangeLogsQuery
-            : currentWorkspace === "Deleted Records"
+            : filters.currentWorkspace === "Deleted Records"
               ? deletedRecordLogsQuery
-              : currentWorkspace === "System Logs"
+              : filters.currentWorkspace === "System Logs"
                 ? systemLogLogsQuery
                 : mainLogsQuery;
 
@@ -317,7 +338,7 @@ export function AuditLogManagementPage() {
     : auditFilterOptionsQuery.data;
 
   const filteredRecords = useMemo(() => {
-    const search = searchQuery.trim().toLowerCase();
+    const search = filters.searchQuery.trim().toLowerCase();
     return apiRecords.filter((record) => {
       if (
         search &&
@@ -337,27 +358,27 @@ export function AuditLogManagementPage() {
       ) {
         return false;
       }
-      if (!isInDateRange(record.timestamp, selectedDateRange)) return false;
-      if (!matchesCode(record.module, selectedModule)) return false;
-      if (!matchesCode(record.department, selectedDepartment)) return false;
-      if (!matchesCode(record.userRole, selectedRole)) return false;
+      if (!isInDateRange(record.timestamp, filters.selectedDateRange)) return false;
+      if (!matchesCode(record.module, filters.selectedModule)) return false;
+      if (!matchesCode(record.department, filters.selectedDepartment)) return false;
+      if (!matchesCode(record.userRole, filters.selectedRole)) return false;
       if (
-        selectedUser !== "All" &&
+        filters.selectedUser !== "All" &&
         ![record.userId, record.user].some(
-          (value) => normalizeCode(value) === normalizeCode(selectedUser),
+          (value) => normalizeCode(value) === normalizeCode(filters.selectedUser),
         )
       ) {
         return false;
       }
-      if (!matchesAnyCode([record.severityCode, record.severity], selectedSeverity)) {
+      if (!matchesAnyCode([record.severityCode, record.severity], filters.selectedSeverity)) {
         return false;
       }
-      if (!matchesAnyCode([record.statusCode, record.status], selectedStatus)) {
+      if (!matchesAnyCode([record.statusCode, record.status], filters.selectedStatus)) {
         return false;
       }
       if (
-        selectedEventType !== "All" &&
-        !matchesAnyCode([record.eventType, record.action, record.categoryCode], selectedEventType)
+        filters.selectedEventType !== "All" &&
+        !matchesAnyCode([record.eventType, record.action, record.categoryCode], filters.selectedEventType)
       ) {
         return false;
       }
@@ -365,15 +386,15 @@ export function AuditLogManagementPage() {
     });
   }, [
     apiRecords,
-    searchQuery,
-    selectedDateRange,
-    selectedDepartment,
-    selectedEventType,
-    selectedModule,
-    selectedRole,
-    selectedSeverity,
-    selectedStatus,
-    selectedUser,
+    filters.searchQuery,
+    filters.selectedDateRange,
+    filters.selectedDepartment,
+    filters.selectedEventType,
+    filters.selectedModule,
+    filters.selectedRole,
+    filters.selectedSeverity,
+    filters.selectedStatus,
+    filters.selectedUser,
   ]);
 
   const criticalRecords = safeArray(criticalEventsQuery.data?.content);
@@ -454,7 +475,7 @@ export function AuditLogManagementPage() {
       ];
     }
 
-    if (currentWorkspace === "User Activities") {
+    if (filters.currentWorkspace === "User Activities") {
       const dashboard = userActivitiesDashboardQuery.data;
       if (!dashboard) return [];
       return [
@@ -475,7 +496,7 @@ export function AuditLogManagementPage() {
       ];
     }
 
-    if (currentWorkspace === "Data Changes") {
+    if (filters.currentWorkspace === "Data Changes") {
       const dashboard = dataChangesDashboardQuery.data;
       if (!dashboard) return [];
       return [
@@ -491,7 +512,7 @@ export function AuditLogManagementPage() {
       ];
     }
 
-    if (currentWorkspace === "Deleted Records") {
+    if (filters.currentWorkspace === "Deleted Records") {
       const dashboard = deletedRecordsDashboardQuery.data;
       if (!dashboard) return [];
       return [
@@ -523,7 +544,7 @@ export function AuditLogManagementPage() {
   }, [
     allDashboardQuery.data,
     auditMetricsQuery.data,
-    currentWorkspace,
+    filters.currentWorkspace,
     dataChangesDashboardQuery.data,
     deletedRecordsDashboardQuery.data,
     isAllWorkspace,
@@ -535,30 +556,30 @@ export function AuditLogManagementPage() {
   ]);
 
   const resetFilters = () => {
-    setSearchQuery("");
-    setSelectedDateRange("All Time");
-    setSelectedModule("All");
-    setSelectedDepartment("All");
-    setSelectedRole("All");
-    setSelectedUser("All");
-    setSelectedSeverity("All");
-    setSelectedStatus("All");
-    setSelectedEventType("All");
+    setFilter("searchQuery", "");
+    setFilter("selectedDateRange", "All Time");
+    setFilter("selectedModule", "All");
+    setFilter("selectedDepartment", "All");
+    setFilter("selectedRole", "All");
+    setFilter("selectedUser", "All");
+    setFilter("selectedSeverity", "All");
+    setFilter("selectedStatus", "All");
+    setFilter("selectedEventType", "All");
     setPage(0);
   };
 
   const handleWorkspaceChange = useCallback((workspace: AuditCategory) => {
-    setCurrentWorkspace(workspace);
+    setFilter("currentWorkspace", workspace);
     // Workspace streams use different server fields. Do not carry a module,
     // role, status, or event-type filter from another stream into this one.
-    setSearchQuery("");
-    setSelectedModule("All");
-    setSelectedDepartment("All");
-    setSelectedRole("All");
-    setSelectedUser("All");
-    setSelectedSeverity("All");
-    setSelectedStatus("All");
-    setSelectedEventType("All");
+    setFilter("searchQuery", "");
+    setFilter("selectedModule", "All");
+    setFilter("selectedDepartment", "All");
+    setFilter("selectedRole", "All");
+    setFilter("selectedUser", "All");
+    setFilter("selectedSeverity", "All");
+    setFilter("selectedStatus", "All");
+    setFilter("selectedEventType", "All");
     setPage(0);
   }, []);
 
@@ -594,7 +615,7 @@ export function AuditLogManagementPage() {
     return (
       <AuditLogDetailsPage
         recordId={activeDetailsRecord.id}
-        sourceCategory={currentWorkspace}
+        sourceCategory={filters.currentWorkspace}
         onBack={() => setActiveDetailsRecord(null)}
       />
     );
@@ -620,7 +641,7 @@ export function AuditLogManagementPage() {
               {!isAllWorkspace && (
                 <>
                   <ChevronRight className="w-4 h-4 text-gray-400" />
-                  <span className="font-semibold text-gray-800">{currentWorkspace}</span>
+                  <span className="font-semibold text-gray-800">{filters.currentWorkspace}</span>
                 </>
               )}
             </div>
@@ -636,7 +657,7 @@ export function AuditLogManagementPage() {
               )}
               <div>
                 <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: PP }}>
-                  {isAllWorkspace ? "Audit Logs" : currentWorkspace}
+                  {isAllWorkspace ? "Audit Logs" : filters.currentWorkspace}
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
                   Audit records are loaded directly from the hospital administration API.
@@ -780,7 +801,7 @@ export function AuditLogManagementPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {workspaceCards.map((card) => {
             const CardIcon = card.icon;
-            const isActive = currentWorkspace === card.id;
+            const isActive = filters.currentWorkspace === card.id;
             return (
               <button
                 key={card.id}
@@ -818,28 +839,28 @@ export function AuditLogManagementPage() {
           <Search className="w-5 h-5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="search"
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
+            value={filters.searchQuery}
+            onChange={(event) => setFilter("searchQuery", event.target.value)}
             placeholder="Search loaded records by event, user, module, action, or record ID"
             className="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition-all"
           />
         </div>
         <div className="mt-4 pt-4 border-t border-gray-100">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-            <FilterSelect label="Date range" value={selectedDateRange} onChange={(value) => { setSelectedDateRange(value); setPage(0); }}>
+            <FilterSelect label="Date range" value={filters.selectedDateRange} onChange={(value) => { setFilter("selectedDateRange", value); setPage(0); }}>
               <option value="All Time">All time</option>
               <option value="Today">Today</option>
               <option value="Yesterday">Yesterday</option>
               <option value="Last 7 Days">Last 7 days</option>
               <option value="Last 30 Days">Last 30 days</option>
             </FilterSelect>
-            <ApiFilterSelect label="Module" value={selectedModule} onChange={setSelectedModule} options={filterOptions?.modules} allLabel="All modules" />
-            <ApiFilterSelect label="Department" value={selectedDepartment} onChange={setSelectedDepartment} options={filterOptions?.departments} allLabel="All departments" />
-            <ApiFilterSelect label="Role" value={selectedRole} onChange={setSelectedRole} options={filterOptions?.roles} allLabel="All roles" />
-            <ApiFilterSelect label="User" value={selectedUser} onChange={setSelectedUser} options={filterOptions?.users} allLabel="All users" />
-            <ApiFilterSelect label="Severity" value={selectedSeverity} onChange={setSelectedSeverity} options={filterOptions?.severities} allLabel="All severities" />
-            <ApiFilterSelect label="Status" value={selectedStatus} onChange={setSelectedStatus} options={filterOptions?.statuses} allLabel="All statuses" />
-            <ApiFilterSelect label="Event type" value={selectedEventType} onChange={setSelectedEventType} options={filterOptions?.eventTypes} allLabel="All event types" />
+            <ApiFilterSelect label="Module" value={filters.selectedModule} onChange={(v) => setFilter("selectedModule", v)} options={filterOptions?.modules} allLabel="All modules" />
+            <ApiFilterSelect label="Department" value={filters.selectedDepartment} onChange={(v) => setFilter("selectedDepartment", v)} options={filterOptions?.departments} allLabel="All departments" />
+            <ApiFilterSelect label="Role" value={filters.selectedRole} onChange={(v) => setFilter("selectedRole", v)} options={filterOptions?.roles} allLabel="All roles" />
+            <ApiFilterSelect label="User" value={filters.selectedUser} onChange={(v) => setFilter("selectedUser", v)} options={filterOptions?.users} allLabel="All users" />
+            <ApiFilterSelect label="Severity" value={filters.selectedSeverity} onChange={(v) => setFilter("selectedSeverity", v)} options={filterOptions?.severities} allLabel="All severities" />
+            <ApiFilterSelect label="Status" value={filters.selectedStatus} onChange={(v) => setFilter("selectedStatus", v)} options={filterOptions?.statuses} allLabel="All statuses" />
+            <ApiFilterSelect label="Event type" value={filters.selectedEventType} onChange={(v) => setFilter("selectedEventType", v)} options={filterOptions?.eventTypes} allLabel="All event types" />
           </div>
           <div className="flex items-center justify-between gap-3 pt-3 mt-3 border-t border-gray-100">
             <p className="text-[11px] text-gray-500">
@@ -879,7 +900,7 @@ export function AuditLogManagementPage() {
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-blue-900" />
             <h2 className="text-sm font-bold text-gray-900" style={{ fontFamily: PP }}>
-              {currentWorkspace} stream
+              {filters.currentWorkspace} stream
             </h2>
           </div>
           <span className="text-xs font-semibold text-gray-500 font-mono">
@@ -900,10 +921,10 @@ export function AuditLogManagementPage() {
                   <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold uppercase tracking-wider">
                     {isAllTable && <AllLogHeaders />}
                     {isLoginWorkspace && <LoginHeaders />}
-                    {currentWorkspace === "User Activities" && <UserActivityHeaders />}
-                    {currentWorkspace === "Data Changes" && <DataChangeHeaders />}
-                    {currentWorkspace === "Deleted Records" && <DeletedRecordHeaders />}
-                    {currentWorkspace === "System Logs" && <SystemLogHeaders />}
+                    {filters.currentWorkspace === "User Activities" && <UserActivityHeaders />}
+                    {filters.currentWorkspace === "Data Changes" && <DataChangeHeaders />}
+                    {filters.currentWorkspace === "Deleted Records" && <DeletedRecordHeaders />}
+                    {filters.currentWorkspace === "System Logs" && <SystemLogHeaders />}
                     <th className="p-3.5 text-right">View</th>
                   </tr>
                 </thead>
@@ -912,10 +933,10 @@ export function AuditLogManagementPage() {
                     <tr key={record.id} className="hover:bg-blue-50/40 transition-colors">
                       {isAllTable && <AllLogCells record={record} />}
                       {isLoginWorkspace && <LoginCells record={record} />}
-                      {currentWorkspace === "User Activities" && <UserActivityCells record={record} />}
-                      {currentWorkspace === "Data Changes" && <DataChangeCells record={record} />}
-                      {currentWorkspace === "Deleted Records" && <DeletedRecordCells record={record} />}
-                      {currentWorkspace === "System Logs" && <SystemLogCells record={record} />}
+                      {filters.currentWorkspace === "User Activities" && <UserActivityCells record={record} />}
+                      {filters.currentWorkspace === "Data Changes" && <DataChangeCells record={record} />}
+                      {filters.currentWorkspace === "Deleted Records" && <DeletedRecordCells record={record} />}
+                      {filters.currentWorkspace === "System Logs" && <SystemLogCells record={record} />}
                       <td className="p-3.5 text-right whitespace-nowrap">
                         <button
                           onClick={() => setActiveDetailsRecord(record)}
@@ -1007,10 +1028,10 @@ function ApiFilterSelect({
   return (
     <FilterSelect label={label} value={value} onChange={onChange}>
       <option value="All">{allLabel}</option>
-      {safeArray(options).map((option, index) => {
+      {safeArray(options).map((option) => {
         const optionId = optionValue(option);
         return (
-          <option key={`${optionId}-${index}`} value={optionId}>
+          <option key={optionId} value={optionId}>
             {optionLabel(option)}
           </option>
         );
@@ -1079,8 +1100,8 @@ function LoginSupplementaryData({
             ))}
           </LoginDataPanel>
           <LoginDataPanel title="Failed Attempts" count={failedAttempts.length}>
-            {failedAttempts.map((attempt, index) => (
-              <div key={attempt.eventId || `${attempt.userId}-${index}`} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
+            {failedAttempts.map((attempt) => (
+              <div key={attempt.eventId} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
                 <p className="font-semibold text-gray-900">{attempt.userName || attempt.userId || "—"}</p>
                 <p className="text-gray-500">{display(attempt.failureReason)} · {display(attempt.attemptCount)} attempts</p>
                 <p className="font-mono text-[10px] text-gray-400">{display(attempt.timestamp)}</p>
@@ -1088,8 +1109,8 @@ function LoginSupplementaryData({
             ))}
           </LoginDataPanel>
           <LoginDataPanel title="Locked Accounts" count={lockedAccounts.length}>
-            {lockedAccounts.map((account, index) => (
-              <div key={account.userId || `${account.email}-${index}`} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
+            {lockedAccounts.map((account) => (
+              <div key={account.userId} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
                 <p className="font-semibold text-gray-900">{account.fullName || account.userId || "—"}</p>
                 <p className="text-gray-500">{display(account.reason)} · {display(account.failedAttemptCount)} attempts</p>
                 <p className="font-mono text-[10px] text-gray-400">{display(account.lockedAt)}</p>

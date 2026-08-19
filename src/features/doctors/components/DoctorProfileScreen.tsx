@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef, useReducer } from "react";
 import type { FormEvent } from "react";
 import {
   Calendar,
@@ -153,6 +153,34 @@ type TabId =
   | "queue"
   | "timeline";
 
+interface FilterState {
+  activeTab: TabId;
+  apptSearch: string;
+  apptDateFilter: string;
+  patientSearch: string;
+}
+
+type FilterAction =
+  | { type: "SET_TAB"; tab: TabId }
+  | { type: "SET_APPT_SEARCH"; query: string }
+  | { type: "SET_APPT_DATE_FILTER"; filter: string }
+  | { type: "SET_PATIENT_SEARCH"; query: string };
+
+const filterReducer = (state: FilterState, action: FilterAction): FilterState => {
+  switch (action.type) {
+    case "SET_TAB":
+      return { ...state, activeTab: action.tab };
+    case "SET_APPT_SEARCH":
+      return { ...state, apptSearch: action.query };
+    case "SET_APPT_DATE_FILTER":
+      return { ...state, apptDateFilter: action.filter };
+    case "SET_PATIENT_SEARCH":
+      return { ...state, patientSearch: action.query };
+    default:
+      return state;
+  }
+};
+
 export function DoctorProfileScreen({
   doctor,
   doctorId,
@@ -207,18 +235,17 @@ export function DoctorProfileScreen({
     return tabs.filter((t) => can(t.perm));
   }, [can]);
 
-  const [activeTab, setActiveTab] = useState<TabId>(() => {
-    return visibleTabs[0]?.id || "schedule";
+  const [filterState, dispatch] = useReducer(filterReducer, {
+    activeTab: visibleTabs[0]?.id || "schedule",
+    apptSearch: "",
+    apptDateFilter: "All Dates",
+    patientSearch: "",
   });
 
   // Render-phase tab reset: if current tab is not in visible tabs, correct it
-  if (visibleTabs.length > 0 && !visibleTabs.some((t) => t.id === activeTab)) {
-    setActiveTab(visibleTabs[0].id);
+  if (visibleTabs.length > 0 && !visibleTabs.some((t) => t.id === filterState.activeTab)) {
+    dispatch({ type: "SET_TAB", tab: visibleTabs[0].id });
   }
-
-  const [apptSearch, setApptSearch] = useState("");
-  const [apptDateFilter, setApptDateFilter] = useState("All Dates");
-  const [patientSearch, setPatientSearch] = useState("");
 
   const [weeklySchedule, setWeeklySchedule] = useState<ApiWeeklyScheduleDay[]>(
     [],
@@ -229,7 +256,7 @@ export function DoctorProfileScreen({
   const [availDate, setAvailDate] = useState(todayKey);
   const [appointments, setAppointments] = useState<DoctorAppointment[]>([]);
   const [exceptions, setExceptions] = useState<ApiScheduleExceptionItem[]>([]);
-  const [, setQueueSummary] = useState<DoctorQueueSummary>({});
+  const queueSummaryRef = useRef<DoctorQueueSummary>({});
   const [queueItems, setQueueItems] = useState<DoctorQueueItem[]>([]);
   const visibleQueueItems = useMemo(() => {
     return (queueItems || []).filter((item) => {
@@ -308,7 +335,7 @@ export function DoctorProfileScreen({
   const resolvedDocState = (() => {
     if (doctor && doctor.id) {
       const overrides = JSON.parse(
-        localStorage.getItem("doctor_status_overrides") || "{}",
+        localStorage.getItem("doctor_status_overrides:v1") || "{}",
       );
       if (overrides[doctor.id]) {
         return {
@@ -341,7 +368,7 @@ export function DoctorProfileScreen({
         doctor.experienceYrs)
     ) {
       const overrides = JSON.parse(
-        localStorage.getItem("doctor_status_overrides") || "{}",
+        localStorage.getItem("doctor_status_overrides:v1") || "{}",
       );
       if (overrides[doctor.id]) {
         return {
@@ -366,7 +393,7 @@ export function DoctorProfileScreen({
       const fresh = await doctorsService.getById(String(idToFetch));
       if (fresh && fresh.name && fresh.name !== "Dr. Unknown Doctor") {
         const overrides = JSON.parse(
-          localStorage.getItem("doctor_status_overrides") || "{}",
+          localStorage.getItem("doctor_status_overrides:v1") || "{}",
         );
         if (overrides[fresh.id]) {
           const updated = {
@@ -439,7 +466,7 @@ export function DoctorProfileScreen({
     setIsQueueLoading(true);
     try {
       const data = await doctorsService.getQueue(id);
-      setQueueSummary(data?.summary || {});
+      queueSummaryRef.current = data?.summary || {};
       setQueueItems(
         (data?.content || []).filter(
           (item: { status?: string; queueStatus?: string }) => {
@@ -451,7 +478,7 @@ export function DoctorProfileScreen({
         ),
       );
     } catch {
-      setQueueSummary({});
+        queueSummaryRef.current = {};
       setQueueItems([]);
     } finally {
       setIsQueueLoading(false);
@@ -569,16 +596,16 @@ export function DoctorProfileScreen({
 
   const matchesDateFilter = useCallback(
     (dateStr: string) => {
-      if (apptDateFilter === "Today") return dateStr === todayKey();
-      if (apptDateFilter === "This Week") return isSameWeek(dateStr);
-      if (apptDateFilter === "This Month") return isSameMonth(dateStr);
+      if (filterState.apptDateFilter === "Today") return dateStr === todayKey();
+      if (filterState.apptDateFilter === "This Week") return isSameWeek(dateStr);
+      if (filterState.apptDateFilter === "This Month") return isSameMonth(dateStr);
       return true;
     },
-    [apptDateFilter],
+    [filterState.apptDateFilter],
   );
 
   const filteredAppointments = useMemo<DoctorAppointment[]>(() => {
-    const q = apptSearch.toLowerCase();
+    const q = filterState.apptSearch.toLowerCase();
     return appointments.filter(
       (apt) =>
         matchesDateFilter(apt.date) &&
@@ -586,7 +613,7 @@ export function DoctorProfileScreen({
           String(apt.id).toLowerCase().includes(q) ||
           apt.patientName.toLowerCase().includes(q)),
     );
-  }, [appointments, apptSearch, matchesDateFilter]);
+  }, [appointments, filterState.apptSearch, matchesDateFilter]);
 
   const patients = useMemo<DoctorPatient[]>(() => {
     const map = new Map<string, DoctorPatient>();
@@ -613,7 +640,7 @@ export function DoctorProfileScreen({
   }, [appointments]);
 
   const filteredPatients = useMemo<DoctorPatient[]>(() => {
-    const q = patientSearch.toLowerCase();
+    const q = filterState.patientSearch.toLowerCase();
     return patients.filter(
       (pt) =>
         q === "" ||
@@ -621,7 +648,7 @@ export function DoctorProfileScreen({
         pt.name.toLowerCase().includes(q) ||
         pt.complaint.toLowerCase().includes(q),
     );
-  }, [patients, patientSearch]);
+  }, [patients, filterState.patientSearch]);
 
   const todayAppointments = useMemo(
     () => appointments.filter((a) => a.date === todayKey()),
@@ -678,14 +705,14 @@ export function DoctorProfileScreen({
       );
 
       const overrides = JSON.parse(
-        localStorage.getItem("doctor_status_overrides") || "{}",
+        localStorage.getItem("doctor_status_overrides:v1") || "{}",
       );
       overrides[docState.id] = {
         status: "Inactive",
         availability: "Out of Office",
       };
       localStorage.setItem(
-        "doctor_status_overrides",
+        "doctor_status_overrides:v1",
         JSON.stringify(overrides),
       );
 
@@ -718,14 +745,14 @@ export function DoctorProfileScreen({
       await usersApi.adminActivateUser(userId);
 
       const overrides = JSON.parse(
-        localStorage.getItem("doctor_status_overrides") || "{}",
+        localStorage.getItem("doctor_status_overrides:v1") || "{}",
       );
       overrides[docState.id] = {
         status: "Active",
         availability: "Available Today",
       };
       localStorage.setItem(
-        "doctor_status_overrides",
+        "doctor_status_overrides:v1",
         JSON.stringify(overrides),
       );
 
@@ -888,7 +915,7 @@ export function DoctorProfileScreen({
         onOpenEdit={() => setShowEditDrawer(true)}
         onOpenActivate={() => setActivateDialogOpen(true)}
         onOpenDeactivate={() => setDeactivateDialogOpen(true)}
-        onSelectTab={(tabId) => setActiveTab(tabId as TabId)}
+        onSelectTab={(tabId) => dispatch({ type: "SET_TAB", tab: tabId as TabId })}
       />
 
       <div className="space-y-6">
@@ -896,9 +923,9 @@ export function DoctorProfileScreen({
           {visibleTabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => dispatch({ type: "SET_TAB", tab: tab.id })}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors shrink-0 ${
-                activeTab === tab.id
+                filterState.activeTab === tab.id
                   ? "bg-[#0D47A1] text-white shadow-xs"
                   : "text-[#64748B] hover:text-[#111827] hover:bg-slate-50"
               }`}
@@ -909,7 +936,7 @@ export function DoctorProfileScreen({
           ))}
         </div>
 
-        {activeTab === "overview" && (
+        {filterState.activeTab === "overview" && (
           <PersonalDetailsTab
             doctor={docState}
             todayAppointments={todayAppointments}
@@ -925,7 +952,7 @@ export function DoctorProfileScreen({
           />
         )}
 
-        {activeTab === "professional" && (
+        {filterState.activeTab === "professional" && (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
             <div>
               <h3
@@ -1031,7 +1058,7 @@ export function DoctorProfileScreen({
           </div>
         )}
 
-        {activeTab === "schedule" && (
+        {filterState.activeTab === "schedule" && (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
@@ -1138,7 +1165,7 @@ export function DoctorProfileScreen({
           </div>
         )}
 
-        {activeTab === "availability" && (
+        {filterState.activeTab === "availability" && (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
             <div className="bg-slate-50 rounded-2xl border border-[#E5E7EB] p-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
@@ -1200,13 +1227,13 @@ export function DoctorProfileScreen({
           </div>
         )}
 
-        {activeTab === "monthly_calendar" && (
+        {filterState.activeTab === "monthly_calendar" && (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
             <MonthlyCalendarTab doctor={docState} canEdit={false} />
           </div>
         )}
 
-        {activeTab === "schedule" && (
+        {filterState.activeTab === "schedule" && (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
             <div className="bg-slate-50 rounded-2xl border border-[#E5E7EB] p-5">
               <h4
@@ -1256,7 +1283,7 @@ export function DoctorProfileScreen({
           </div>
         )}
 
-        {activeTab === "appointments" && (
+        {filterState.activeTab === "appointments" && (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="relative flex-1 max-w-md">
@@ -1266,14 +1293,14 @@ export function DoctorProfileScreen({
                 />
                 <input
                   type="text"
-                  value={apptSearch}
-                  onChange={(e) => setApptSearch(e.target.value)}
+                  value={filterState.apptSearch}
+                  onChange={(e) => dispatch({ type: "SET_APPT_SEARCH", query: e.target.value })}
                   placeholder="Search Appointment ID, Patient Name..."
                   className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
                 />
-                {apptSearch && (
+                {filterState.apptSearch && (
                   <button
-                    onClick={() => setApptSearch("")}
+                    onClick={() => dispatch({ type: "SET_APPT_SEARCH", query: "" })}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
                     <X size={13} />
@@ -1288,8 +1315,8 @@ export function DoctorProfileScreen({
                     Filter Date:
                   </span>
                   <select
-                    value={apptDateFilter}
-                    onChange={(e) => setApptDateFilter(e.target.value)}
+                    value={filterState.apptDateFilter}
+                    onChange={(e) => dispatch({ type: "SET_APPT_DATE_FILTER", filter: e.target.value })}
                     className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
                   >
                     <option value="All Dates">All Dates</option>
@@ -1406,7 +1433,7 @@ export function DoctorProfileScreen({
           </div>
         )}
 
-        {activeTab === "patients" && (
+        {filterState.activeTab === "patients" && (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-4">
             <div className="relative max-w-md">
               <Search
@@ -1415,14 +1442,14 @@ export function DoctorProfileScreen({
               />
               <input
                 type="text"
-                value={patientSearch}
-                onChange={(e) => setPatientSearch(e.target.value)}
+                value={filterState.patientSearch}
+                onChange={(e) => dispatch({ type: "SET_PATIENT_SEARCH", query: e.target.value })}
                 placeholder="Search Patient ID, Name, Complaint..."
                 className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
               />
-              {patientSearch && (
+              {filterState.patientSearch && (
                 <button
-                  onClick={() => setPatientSearch("")}
+                  onClick={() => dispatch({ type: "SET_PATIENT_SEARCH", query: "" })}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
                   <X size={13} />
@@ -1553,7 +1580,7 @@ export function DoctorProfileScreen({
           </div>
         )}
 
-        {activeTab === "exceptions" && (
+        {filterState.activeTab === "exceptions" && (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
@@ -1855,7 +1882,7 @@ export function DoctorProfileScreen({
           </div>
         )}
 
-        {activeTab === "queue" && (
+        {filterState.activeTab === "queue" && (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
@@ -2056,7 +2083,7 @@ export function DoctorProfileScreen({
           </div>
         )}
 
-        {activeTab === "timeline" && (
+        {filterState.activeTab === "timeline" && (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm space-y-6">
             <div>
               <h3

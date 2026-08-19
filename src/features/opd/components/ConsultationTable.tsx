@@ -102,11 +102,11 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
 
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
+      <div className="overflow-x-auto max-h-150 overflow-y-auto">
+        <table className="w-full border-collapse text-left text-xs">
+          <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
             <tr
-              className="bg-slate-50 border-b border-[#E5E7EB] text-[11px] font-bold text-[#64748B] uppercase tracking-wider"
+              className="text-[#64748B] font-bold"
               style={{ fontFamily: PP }}
             >
               <th className="py-3.5 px-4">Consultation ID</th>
@@ -122,7 +122,7 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
               <th className="py-3.5 px-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#E5E7EB] text-xs" style={{ fontFamily: RB }}>
+          <tbody className="divide-y divide-gray-100 text-[#111827]" style={{ fontFamily: RB }}>
             {paginatedConsultations.map((item) => (
               <tr key={item.id} className="hover:bg-slate-50/80 transition-colors group">
                 <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">

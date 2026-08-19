@@ -101,6 +101,13 @@ export interface ReceiptConfiguration {
   showTaxDetails: boolean;
   showTerms: boolean;
   footerNotes: string;
+  hospitalName: string;
+  hospitalTagline: string;
+  hospitalAddress: string;
+  hospitalPhone: string;
+  hospitalGstin: string;
+  hospitalEmail: string;
+  hospitalWebsite: string;
 }
 
 export interface BillingRuleConfiguration {

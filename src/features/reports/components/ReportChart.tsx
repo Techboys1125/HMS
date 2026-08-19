@@ -1,4 +1,5 @@
 import React, { useId } from "react";
+
 import {
   AreaChart,
   Area,
@@ -15,7 +16,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
-} from "recharts";
+} from "../../../common/components/recharts-lazy";
+
 
 type ChartType = "area" | "bar" | "pie" | "line";
 

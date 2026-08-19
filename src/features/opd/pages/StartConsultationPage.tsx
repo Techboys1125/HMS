@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   CheckCircle2,
   AlertCircle,
@@ -197,7 +197,7 @@ export function StartConsultationPage({
   const [isDraftSaved, setIsDraftSaved] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
-  const [createdBillId, setCreatedBillId] = useState<string | null>(null);
+  const createdBillIdRef = useRef<string | null>(null);
   const [finalizedData, setFinalizedData] = useState<{
     date: string;
     patientName: string;
@@ -410,7 +410,7 @@ export function StartConsultationPage({
               patientMrn,
               doctorId: Number(doctorId),
             });
-            setCreatedBillId(String(bill.billId));
+            createdBillIdRef.current = String(bill.billId);
           } catch (billErr) {
             console.warn("Auto bill creation warning:", billErr);
           }
@@ -820,25 +820,29 @@ export function StartConsultationPage({
                   if (onCompleteSuccess) onCompleteSuccess();
                   else if (onBack) onBack();
                   else {
-                    const aptId = activeAppointmentId || selectedConsultation?.id || "";
-                    const encId = activeEncounterId || selectedConsultation?.encounterId || "";
-                    const patientId = selectedAppointment?.patientId || selectedConsultation?.patientId || "";
-                    const patientMrn = selectedAppointment?.mrn || selectedConsultation?.mrn || "";
-                    const doctorId = selectedAppointment?.doctorId || selectedConsultation?.doctorId || "";
-                    const query = new URLSearchParams();
-                    if (createdBillId) {
-                      navigate(`/billing/create?billId=${createdBillId}`, { replace: true });
+                    if (createdBillIdRef.current) {
+                      navigate(`/billing/create?billId=${createdBillIdRef.current}`, { replace: true });
                     } else {
-                      if (aptId) query.set("appointmentId", String(aptId));
-                      if (encId) query.set("encounterId", String(encId));
-                      if (patientId) query.set("patientId", String(patientId));
-                      if (patientMrn) query.set("patientMrn", String(patientMrn));
-                      if (doctorId) query.set("doctorId", String(doctorId));
-                      navigate(`/billing/create?${query.toString()}`, { replace: true });
-                    }
-                  }
-                }}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
+                      const aptId = activeAppointmentId || selectedConsultation?.id || "";
+                      const encId = activeEncounterId || selectedConsultation?.encounterId || "";
+                      const patientId = selectedAppointment?.patientId || selectedConsultation?.patientId || "";
+                      const patientMrn = selectedAppointment?.mrn || selectedConsultation?.mrn || "";
+                      const doctorId = selectedAppointment?.doctorId || selectedConsultation?.doctorId || "";
+                      const query = new URLSearchParams();
+                      if (createdBillIdRef.current) {
+                        navigate(`/billing/create?billId=${createdBillIdRef.current}`, { replace: true });
+                      } else {
+                        if (aptId) query.set("appointmentId", String(aptId));
+                        if (encId) query.set("encounterId", String(encId));
+                        if (patientId) query.set("patientId", String(patientId));
+                       if (patientMrn) query.set("patientMrn", String(patientMrn));
+                       if (doctorId) query.set("doctorId", String(doctorId));
+                       navigate(`/billing/create?${query.toString()}`, { replace: true });
+                     }
+                   }
+                 }
+               }}
+                 className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
               >
                 <X size={20} />
               </button>
@@ -1186,8 +1190,8 @@ export function StartConsultationPage({
                   if (onCompleteSuccess) onCompleteSuccess();
                   else if (onBack) onBack();
                   else {
-                    if (createdBillId) {
-                      navigate(`/billing/create?billId=${createdBillId}`, { replace: true });
+                    if (createdBillIdRef.current) {
+                      navigate(`/billing/create?billId=${createdBillIdRef.current}`, { replace: true });
                     } else {
                       const aptId = activeAppointmentId || selectedConsultation?.id || "";
                       const encId = activeEncounterId || selectedConsultation?.encounterId || "";
@@ -1204,10 +1208,9 @@ export function StartConsultationPage({
                     }
                   }
                 }}
-                className="px-6 py-2.5 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-all"
-                style={{ fontFamily: PP }}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
               >
-                Close & Exit
+                <X size={20} />
               </button>
               <div className="flex items-center gap-3">
                 <button

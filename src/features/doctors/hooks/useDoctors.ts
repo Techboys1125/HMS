@@ -48,7 +48,7 @@ export function useDoctors() {
 
       // Apply overrides from localStorage
       const overrides = JSON.parse(
-        localStorage.getItem("doctor_status_overrides") || "{}",
+        localStorage.getItem("doctor_status_overrides:v1") || "{}",
       );
       const updatedRecords = records.map((r) => {
         if (overrides[r.id]) {
@@ -150,11 +150,11 @@ export function useDoctors() {
       );
 
       const overrides = JSON.parse(
-        localStorage.getItem("doctor_status_overrides") || "{}",
+        localStorage.getItem("doctor_status_overrides:v1") || "{}",
       );
       overrides[id] = { status: "Inactive", availability: "Out of Office" };
       localStorage.setItem(
-        "doctor_status_overrides",
+        "doctor_status_overrides:v1",
         JSON.stringify(overrides),
       );
 
@@ -186,11 +186,11 @@ export function useDoctors() {
       await usersApi.adminActivateUser(numericId);
 
       const overrides = JSON.parse(
-        localStorage.getItem("doctor_status_overrides") || "{}",
+        localStorage.getItem("doctor_status_overrides:v1") || "{}",
       );
       overrides[id] = { status: "Active", availability: "Available Today" };
       localStorage.setItem(
-        "doctor_status_overrides",
+        "doctor_status_overrides:v1",
         JSON.stringify(overrides),
       );
 

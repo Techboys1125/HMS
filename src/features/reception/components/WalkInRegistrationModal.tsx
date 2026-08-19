@@ -155,9 +155,10 @@ export const WalkInRegistrationModal: React.FC<
                 min="0"
                 max="120"
                 value={form.age || 30}
-                onChange={(e) =>
-                  setForm({ ...form, age: Number(e.target.value) })
-                }
+                onChange={(e) => {
+                  const v = e.currentTarget.valueAsNumber;
+                  setForm({ ...form, age: Number.isFinite(v) ? v : 30 });
+                }}
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-[#0D47A1] focus:bg-white"
               />
             </div>
@@ -211,9 +212,10 @@ export const WalkInRegistrationModal: React.FC<
               <input
                 type="number"
                 value={form.consultationFee}
-                onChange={(e) =>
-                  setForm({ ...form, consultationFee: Number(e.target.value) })
-                }
+                onChange={(e) => {
+                  const v = e.currentTarget.valueAsNumber;
+                  setForm({ ...form, consultationFee: Number.isFinite(v) ? v : 0 });
+                }}
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:border-[#0D47A1] focus:bg-white font-bold"
               />
             </div>

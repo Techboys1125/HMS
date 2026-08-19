@@ -9,6 +9,7 @@ import type {
   PatientBillWorkspace,
   PatientNotificationsResponse,
   PatientUnreadNotificationsResponse,
+  PatientAppointmentsTimeline,
 } from "../types/dashboard.types";
 
 function unwrap<T>(response: { data: DashboardApiResponse<T> | T }): T {
@@ -31,6 +32,23 @@ export const patientDashboardApi = {
     const res = await apiClient.get<DashboardApiResponse<PatientDashboardAppointments>>(
       "/api/v1/patients/me/appointments",
     );
+    return unwrap(res);
+  },
+
+  getAppointmentsTimeline: async (params?: {
+    mrn?: string;
+    fromDate?: string;
+    toDate?: string;
+    limit?: number;
+  }): Promise<PatientAppointmentsTimeline> => {
+    const query = new URLSearchParams();
+    if (params?.mrn) query.set("mrn", params.mrn);
+    if (params?.fromDate) query.set("fromDate", params.fromDate);
+    if (params?.toDate) query.set("toDate", params.toDate);
+    if (params?.limit) query.set("limit", String(params.limit));
+    const qs = query.toString();
+    const url = `/api/v1/patients/me/appointments/timeline${qs ? `?${qs}` : ""}`;
+    const res = await apiClient.get<DashboardApiResponse<PatientAppointmentsTimeline>>(url);
     return unwrap(res);
   },
 

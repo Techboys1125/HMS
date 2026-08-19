@@ -12,7 +12,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { PP, RB } from "../constants/billing.constants";
-import { useInvoice, useReceipt } from "../hooks/useBilling";
+import { useInvoice, useReceipt, useBillingConfiguration } from "../hooks/useBilling";
 import type { BillPaymentRecord } from "../types/billing.types";
 
 export function InvoicePrintPreviewPage() {
@@ -21,6 +21,7 @@ export function InvoicePrintPreviewPage() {
 
   const { bill, isLoading: billLoading } = useInvoice(invoiceId);
   const { receipt, isLoading: receiptLoading } = useReceipt(invoiceId);
+  const { configuration } = useBillingConfiguration();
 
   const [zoom, setZoom] = useState(100);
   const [showSettings, setShowSettings] = useState(false);
@@ -28,6 +29,14 @@ export function InvoicePrintPreviewPage() {
   const [showPrintSuccess, setShowPrintSuccess] = useState(false);
 
   const isLoading = billLoading || receiptLoading;
+
+  const hospitalName = configuration?.receipt?.hospitalName || "";
+  const hospitalTagline = configuration?.receipt?.hospitalTagline || "";
+  const hospitalAddress = configuration?.receipt?.hospitalAddress || "";
+  const hospitalPhone = configuration?.receipt?.hospitalPhone || "";
+  const hospitalGstin = configuration?.receipt?.hospitalGstin || "";
+  const hospitalEmail = configuration?.receipt?.hospitalEmail || "";
+  const hospitalWebsite = configuration?.receipt?.hospitalWebsite || "";
 
   const patientName = bill?.patient?.name || receipt?.patientName || "N/A";
   const patientMrn = bill?.patient?.mrn || receipt?.mrn || "N/A";
@@ -249,22 +258,30 @@ export function InvoicePrintPreviewPage() {
               </div>
               <div className="text-left">
                 <h1 className="text-xl font-bold" style={{ fontFamily: PP }}>
-                  Safe Hands Hospital
+                  {hospitalName || "Hospital"}
                 </h1>
-                <p className="text-xs text-blue-200" style={{ fontFamily: RB }}>
-                  Multi-Specialty Medical Center
-                </p>
+                {hospitalTagline && (
+                  <p className="text-xs text-blue-200" style={{ fontFamily: RB }}>
+                    {hospitalTagline}
+                  </p>
+                )}
               </div>
             </div>
-            <p
-              className="text-xs text-blue-200 mt-2"
-              style={{ fontFamily: RB }}
-            >
-              123 Medical Center Road, Healthcare City, HC 560001
-            </p>
-            <p className="text-xs text-blue-200" style={{ fontFamily: RB }}>
-              Phone: +91 80 4567 8900 | GSTIN: 29AABCS1234F1Z5
-            </p>
+            {hospitalAddress && (
+              <p
+                className="text-xs text-blue-200 mt-2"
+                style={{ fontFamily: RB }}
+              >
+                {hospitalAddress}
+              </p>
+            )}
+            {(hospitalPhone || hospitalGstin) && (
+              <p className="text-xs text-blue-200" style={{ fontFamily: RB }}>
+                {hospitalPhone && `Phone: ${hospitalPhone}`}
+                {hospitalPhone && hospitalGstin && " | "}
+                {hospitalGstin && `GSTIN: ${hospitalGstin}`}
+              </p>
+            )}
           </div>
 
           {/* RECEIPT TITLE */}
@@ -478,25 +495,30 @@ export function InvoicePrintPreviewPage() {
 
           {/* FOOTER */}
           <div className="p-6 bg-slate-50 text-center space-y-2">
-            <p
-              className="text-[10px] text-slate-500"
-              style={{ fontFamily: RB }}
-            >
-              This is a computer-generated receipt. For queries, contact
-              billing@safehandshospital.com
-            </p>
-            <p
-              className="text-[10px] text-slate-400"
-              style={{ fontFamily: RB }}
-            >
-              Thank you for choosing Safe Hands Hospital. We wish you a speedy
-              recovery.
-            </p>
-            <div className="flex items-center justify-center gap-4 pt-2 text-[10px] text-[#0D47A1] font-semibold">
-              <span>www.safehandshospital.com</span>
-              <span>|</span>
-              <span>+91 80 4567 8900</span>
-            </div>
+            {hospitalEmail && (
+              <p
+                className="text-[10px] text-slate-500"
+                style={{ fontFamily: RB }}
+              >
+                This is a computer-generated receipt. For queries, contact{" "}
+                {hospitalEmail}
+              </p>
+            )}
+            {configuration?.receipt?.footerNotes && (
+              <p
+                className="text-[10px] text-slate-400"
+                style={{ fontFamily: RB }}
+              >
+                {configuration.receipt.footerNotes}
+              </p>
+            )}
+            {(hospitalWebsite || hospitalPhone) && (
+              <div className="flex items-center justify-center gap-4 pt-2 text-[10px] text-[#0D47A1] font-semibold">
+                {hospitalWebsite && <span>{hospitalWebsite}</span>}
+                {hospitalWebsite && hospitalPhone && <span>|</span>}
+                {hospitalPhone && <span>{hospitalPhone}</span>}
+              </div>
+            )}
           </div>
         </div>
       </div>

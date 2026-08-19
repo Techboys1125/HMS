@@ -436,6 +436,11 @@ export interface DailyAppointmentDetail {
   appointmentDate: string;
   status: string;
   appointmentType: string;
+  mrn?: string;
+  queueNumber?: string;
+  durationMinutes?: number;
+  diagnosis?: string;
+  prescriptionIssued?: boolean;
 }
 
 // 4. Collection Rate
@@ -483,6 +488,8 @@ export interface InvoiceRegisterRecord {
   outstandingAmount: number;
   paymentStatus: string;
   invoiceDate: string;
+  dueDate?: string;
+  overdueDays?: number;
 }
 
 // 9. Invoice Summary
@@ -548,6 +555,7 @@ export interface DailyRevenuePoint {
 
 // 15. Daily Revenue Detail
 export interface DailyRevenueDetail {
+  id: string;
   paymentId: string;
   receiptNumber: string;
   paymentMethod: string;
@@ -644,6 +652,8 @@ export interface PatientMasterRecord {
   lastVisitDate: string;
   totalVisits: number;
   status: string;
+  phone?: string;
+  createdDate?: string;
 }
 
 export interface PatientMasterRegisterData {

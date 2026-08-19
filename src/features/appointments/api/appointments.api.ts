@@ -449,10 +449,10 @@ export const appointmentsApi = {
   getAvailableSlots: async (
     doctorId: string | number,
     date: string,
-  ): Promise<ApiResponse<unknown[]>> => {
+  ): Promise<ApiResponse<{ slots: unknown[] }>> => {
     try {
-      const url = `/api/v1/doctors/${doctorId}/slots?date=${encodeURIComponent(date)}`;
-      const response = await apiClient.get<ApiResponse<unknown[]>>(url);
+      const url = `/api/v1/doctors/${doctorId}/availability?date=${encodeURIComponent(date)}`;
+      const response = await apiClient.get<ApiResponse<{ slots: unknown[] }>>(url);
       return response.data;
     } catch (error: unknown) {
       return handleApiError(error);

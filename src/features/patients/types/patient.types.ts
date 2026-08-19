@@ -257,6 +257,7 @@ export type PatientAppointment = {
   id: string;
   date: string;
   time: string;
+  doctorId?: number | string;
   doctor: string;
   specialty: string;
   department: string;
@@ -264,10 +265,11 @@ export type PatientAppointment = {
   status:
     | "Confirmed"
     | "Scheduled"
-    | "In-Progress"
+    | "In Progress"
     | "Completed"
     | "Cancelled"
     | "Pending"
+    | "Checked-In"
     | "Waiting for Vitals"
     | "Waiting for Doctor";
   roomLocation: string;
@@ -508,6 +510,7 @@ export interface ApiPatientAppointment {
   id: string | number;
   date?: string;
   time?: string;
+  doctorId?: number | string;
   doctor?: string;
   department?: string;
   specialty?: string;

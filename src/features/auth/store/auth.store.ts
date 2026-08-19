@@ -6,7 +6,7 @@ import {
   removeToken,
 } from "../../../lib/cookie-token-storage";
 
-const STORAGE_KEY = "hms-auth-storage";
+const STORAGE_KEY = "hms-auth-storage:v1";
 
 function loadInitialState(): AuthState {
   try {
@@ -30,7 +30,7 @@ function loadInitialState(): AuthState {
   // Fallback to individual localStorage items if available
   const accessToken = getToken("accessToken");
   const refreshToken = getToken("refreshToken");
-  const storedUserRaw = localStorage.getItem("hms-user");
+  const storedUserRaw = localStorage.getItem("hms-user:v1");
 
   if (accessToken && refreshToken && storedUserRaw) {
     try {
@@ -75,12 +75,12 @@ function saveState(state: AuthState) {
         STORAGE_KEY,
         JSON.stringify({ user: state.user, tokens: state.tokens }),
       );
-      localStorage.setItem("hms-user", JSON.stringify(state.user));
+      localStorage.setItem("hms-user:v1", JSON.stringify(state.user));
       setToken("accessToken", state.tokens.accessToken);
       setToken("refreshToken", state.tokens.refreshToken);
     } else {
       localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem("hms-user");
+      localStorage.removeItem("hms-user:v1");
       removeToken("accessToken");
       removeToken("refreshToken");
     }

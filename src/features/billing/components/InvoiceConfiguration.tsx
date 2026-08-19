@@ -104,7 +104,7 @@ export function InvoiceConfiguration({
               onChange={(e) =>
                 setInvoiceConfig((prev) => ({
                   ...prev,
-                  startingNumber: parseInt(e.target.value) || 1001,
+                  startingNumber: e.currentTarget.valueAsNumber || 1001,
                 }))
               }
               style={{

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useReducer } from "react";
 import {
   CheckCircle2,
   ChevronRight,
@@ -24,7 +24,7 @@ import {
 import { PP, RB } from "../constants/appointment.constants";
 import { appointmentService } from "../services/appointment.service";
 import { useAppointments } from "../hooks/useAppointments";
-import { formatTime } from "../../../lib/time-utils";
+import { formatTime, to24Hour } from "../../../lib/time-utils";
 import type { AppointmentRecord } from "../types/appointment.types";
 import type { UserRole } from "../types/appointment-screen.types";
 import { DockableQueueWorkspace } from "../components/DockableQueueWorkspace";
@@ -66,6 +66,7 @@ export function AppointmentManagementCenterScreen({
   onBookAppointmentClick,
   onReceptionQueueClick,
   userRole = "Receptionist",
+  doctorId,
   onRegisterNewPatientClick,
   onRegisterPatientClick,
 }: Props) {
@@ -75,15 +76,32 @@ export function AppointmentManagementCenterScreen({
   const { appointments, setAppointments, refetch } = useAppointments(
     userRole,
     dateFilter === "Today" ? todayDateStr : undefined,
+    userRole === "Doctor" && doctorId ? { doctorId } : undefined,
   );
   const [viewMode, setViewMode] = useState<"directory" | "queue">("directory");
 
   // Search & Filter state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("All");
-  const [doctorFilter, setDoctorFilter] = useState<string>("All");
-  const [deptFilter, setDeptFilter] = useState<string>("All");
-  const [visitTypeFilter, setVisitTypeFilter] = useState<string>("All");
+  type FilterState = {
+    searchQuery: string;
+    statusFilter: string;
+    doctorFilter: string;
+    deptFilter: string;
+    visitTypeFilter: string;
+  };
+  type FilterAction = { type: "SET_FIELD"; field: keyof FilterState; value: string };
+  const filterReducer = (state: FilterState, action: FilterAction): FilterState => ({
+    ...state,
+    [action.field]: action.value,
+  });
+  const [filters, dispatch] = useReducer(filterReducer, {
+    searchQuery: "",
+    statusFilter: "All",
+    doctorFilter: "All",
+    deptFilter: "All",
+    visitTypeFilter: "All",
+  });
+  const setFilter = (field: keyof FilterState, value: string) =>
+    dispatch({ type: "SET_FIELD", field, value });
   const [deptOptions, setDeptOptions] = useState<string[]>([]);
 
   useEffect(() => {
@@ -131,14 +149,6 @@ export function AppointmentManagementCenterScreen({
     if (userRole === "Doctor") {
       return appointments;
     }
-    if (userRole === "Nurse") {
-      return appointments.filter(
-        (a) =>
-          a.department === "Cardiology" ||
-          a.doctorName === "Dr. Arjun Mehta" ||
-          a.doctorName === "Dr. Priya Sharma",
-      );
-    }
     return appointments;
   }, [appointments, userRole]);
 
@@ -174,17 +184,17 @@ export function AppointmentManagementCenterScreen({
   // Doctor List
   const doctorsList = useMemo(() => {
     const filteredByDept =
-      deptFilter !== "All"
-        ? appointments.filter((a) => a.department === deptFilter)
+      filters.deptFilter !== "All"
+        ? appointments.filter((a) => a.department === filters.deptFilter)
         : appointments;
     return Array.from(new Set(filteredByDept.map((a) => a.doctorName)));
-  }, [appointments, deptFilter]);
+  }, [appointments, filters.deptFilter]);
 
   // --- Filtered & Sorted Appointments ---
   const filteredAppointments = useMemo(() => {
     const filtered = roleAppointments.filter((apt) => {
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
+      if (filters.searchQuery) {
+        const q = filters.searchQuery.toLowerCase();
         const match =
           String(apt.id).toLowerCase().includes(q) ||
           apt.patientName.toLowerCase().includes(q) ||
@@ -197,24 +207,24 @@ export function AppointmentManagementCenterScreen({
             .includes(q);
         if (!match) return false;
       }
-      if (statusFilter !== "All") {
+      if (filters.statusFilter !== "All") {
         const matchesStatus =
-          apt.status === statusFilter ||
-          (statusFilter === "Waiting" &&
+          apt.status === filters.statusFilter ||
+          (filters.statusFilter === "Waiting" &&
             (apt.status === "Waiting" ||
               apt.status === "Waiting for Vitals" ||
               apt.status === "Waiting for Doctor" ||
               apt.status === "Called")) ||
-          (statusFilter === "In Consultation" &&
+          (filters.statusFilter === "In Consultation" &&
             (apt.status === "In Consultation" || apt.status === "In Progress"));
         if (!matchesStatus) return false;
       }
-      if (doctorFilter !== "All" && apt.doctorName !== doctorFilter)
+      if (filters.doctorFilter !== "All" && apt.doctorName !== filters.doctorFilter)
         return false;
-      if (deptFilter !== "All" && apt.department !== deptFilter) return false;
+      if (filters.deptFilter !== "All" && apt.department !== filters.deptFilter) return false;
       if (dateFilter === "Today" && apt.appointmentDate !== todayDateStr)
         return false;
-      if (visitTypeFilter !== "All" && apt.visitType !== visitTypeFilter)
+      if (filters.visitTypeFilter !== "All" && apt.visitType !== filters.visitTypeFilter)
         return false;
       return true;
     });
@@ -230,12 +240,8 @@ export function AppointmentManagementCenterScreen({
     });
   }, [
     roleAppointments,
-    searchQuery,
-    statusFilter,
-    doctorFilter,
-    deptFilter,
+    filters,
     dateFilter,
-    visitTypeFilter,
     sortColumn,
     sortDirection,
     todayDateStr,
@@ -341,7 +347,7 @@ export function AppointmentManagementCenterScreen({
   ) => {
     await appointmentService.rescheduleAppointment(aptId, {
       appointmentDate: newDate,
-      startTime: newTimeSlot,
+      startTime: to24Hour(newTimeSlot),
       reason,
     });
     await refetch();
@@ -650,14 +656,14 @@ export function AppointmentManagementCenterScreen({
                 />
                 <input
                   type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={filters.searchQuery}
+                  onChange={(e) => setFilter("searchQuery", e.target.value)}
                   placeholder="Search by Patient Name, MRN, Appointment ID..."
                   className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
                 />
-                {searchQuery && (
+                {filters.searchQuery && (
                   <button
-                    onClick={() => setSearchQuery("")}
+                    onClick={() => setFilter("searchQuery", "")}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
                     <X size={13} />
@@ -683,8 +689,8 @@ export function AppointmentManagementCenterScreen({
                   <Filter size={13} className="text-slate-400" />
                   <span className="text-slate-500 font-medium">Status:</span>
                   <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
+                    value={filters.statusFilter}
+                    onChange={(e) => setFilter("statusFilter", e.target.value)}
                     className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
                   >
                     <option value="All">All Statuses</option>
@@ -708,8 +714,8 @@ export function AppointmentManagementCenterScreen({
                     <Stethoscope size={13} className="text-slate-400" />
                     <span className="text-slate-500 font-medium">Doctor:</span>
                     <select
-                      value={doctorFilter}
-                      onChange={(e) => setDoctorFilter(e.target.value)}
+                      value={filters.doctorFilter}
+                      onChange={(e) => setFilter("doctorFilter", e.target.value)}
                       className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
                     >
                       <option value="All">All Doctors</option>
@@ -726,18 +732,18 @@ export function AppointmentManagementCenterScreen({
                   <Building2 size={13} className="text-slate-400" />
                   <span className="text-slate-500 font-medium">Dept:</span>
                   <select
-                    value={deptFilter}
+                    value={filters.deptFilter}
                     onChange={(e) => {
                       const selectedDeptVal = e.target.value;
-                      setDeptFilter(selectedDeptVal);
-                      if (selectedDeptVal !== "All" && doctorFilter !== "All") {
+                      setFilter("deptFilter", selectedDeptVal);
+                      if (selectedDeptVal !== "All" && filters.doctorFilter !== "All") {
                         const doctorInDept = appointments.some(
                           (a) =>
                             a.department === selectedDeptVal &&
-                            a.doctorName === doctorFilter,
+                            a.doctorName === filters.doctorFilter,
                         );
                         if (!doctorInDept) {
-                          setDoctorFilter("All");
+                          setFilter("doctorFilter", "All");
                         }
                       }
                     }}
@@ -758,8 +764,8 @@ export function AppointmentManagementCenterScreen({
                     Visit Type:
                   </span>
                   <select
-                    value={visitTypeFilter}
-                    onChange={(e) => setVisitTypeFilter(e.target.value)}
+                    value={filters.visitTypeFilter}
+                    onChange={(e) => setFilter("visitTypeFilter", e.target.value)}
                     className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
                   >
                     <option value="All">All Visit Types</option>
@@ -771,12 +777,12 @@ export function AppointmentManagementCenterScreen({
 
                 <button
                   onClick={() => {
-                    setSearchQuery("");
-                    setStatusFilter("All");
-                    setDoctorFilter("All");
-                    setDeptFilter("All");
+                    setFilter("searchQuery", "");
+                    setFilter("statusFilter", "All");
+                    setFilter("doctorFilter", "All");
+                    setFilter("deptFilter", "All");
                     setDateFilter("Today");
-                    setVisitTypeFilter("All");
+                    setFilter("visitTypeFilter", "All");
                     triggerToast("Filters reset.");
                   }}
                   className="p-2 rounded-xl border border-[#E5E7EB] bg-white text-slate-500 hover:text-[#0D47A1] hover:bg-slate-50 transition-colors"
@@ -835,9 +841,9 @@ export function AppointmentManagementCenterScreen({
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setStatusFilter(tab.id)}
+                  onClick={() => setFilter("statusFilter", tab.id)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
-                    statusFilter === tab.id
+                    filters.statusFilter === tab.id
                       ? "bg-[#0D47A1] text-white shadow-xs"
                       : "bg-slate-50 text-[#64748B] hover:bg-slate-100 hover:text-[#111827]"
                   }`}
@@ -846,7 +852,7 @@ export function AppointmentManagementCenterScreen({
                   <span>{tab.label}</span>
                   <span
                     className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                      statusFilter === tab.id
+                      filters.statusFilter === tab.id
                         ? "bg-white/20 text-white"
                         : "bg-slate-200 text-[#111827]"
                     }`}
@@ -1386,13 +1392,17 @@ export function AppointmentManagementCenterScreen({
                                       </button>
                                     )}
 
-                                    <button
-                                      onClick={() => setRescheduleApt(apt)}
-                                      className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors"
-                                      title="Reschedule Appointment"
-                                    >
-                                      <CalendarIcon size={14} />
-                                    </button>
+                                    {apt.status !== "Cancelled" &&
+                                      apt.status !== "Completed" &&
+                                      apt.status !== "In Consultation" && (
+                                        <button
+                                          onClick={() => setRescheduleApt(apt)}
+                                          className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors"
+                                          title="Reschedule Appointment"
+                                        >
+                                          <CalendarIcon size={14} />
+                                        </button>
+                                      )}
 
                                     {apt.status !== "Cancelled" &&
                                       apt.status !== "Completed" && (

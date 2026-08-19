@@ -20,6 +20,7 @@ interface BillingTableProps {
   onGenerateInvoiceClick?: (invoice: InvoiceRecord) => void;
   onCancelInvoice?: (invoiceId: string) => void;
   onViewPaymentHistory?: (invoice: InvoiceRecord) => void;
+  onPrintInvoice?: (invoice: InvoiceRecord) => void;
 }
 
 export function InvoiceRow({
@@ -32,6 +33,7 @@ export function InvoiceRow({
   onGenerateInvoiceClick,
   onCancelInvoice,
   onViewPaymentHistory,
+  onPrintInvoice,
 }: {
   invoice: InvoiceRecord;
   isAdminReadOnly: boolean;
@@ -42,22 +44,23 @@ export function InvoiceRow({
   onGenerateInvoiceClick?: (invoice: InvoiceRecord) => void;
   onCancelInvoice?: (invoiceId: string) => void;
   onViewPaymentHistory?: (invoice: InvoiceRecord) => void;
+  onPrintInvoice?: (invoice: InvoiceRecord) => void;
 }) {
   return (
-    <tr className="hover:bg-slate-50/80 transition-colors group">
+    <tr className="hover:bg-slate-50/80 transition-colors group cursor-pointer">
       {/* Invoice ID */}
       <td
-        className="py-3 px-4 font-bold text-[#0D47A1]"
+        className="px-4 py-3.5 font-bold text-[#0D47A1]"
         style={{ fontFamily: PP }}
       >
         {invoice.billNumber || invoice.id}
       </td>
       {/* Date */}
-      <td className="py-3 px-4 text-slate-500 whitespace-nowrap">
+      <td className="px-4 py-3.5 text-slate-500 whitespace-nowrap">
         {invoice.invoiceDate}
       </td>
       {/* Patient */}
-      <td className="py-3 px-4">
+      <td className="px-4 py-3.5">
         <div className="font-semibold text-[#111827]">
           {invoice.patientName}
         </div>
@@ -66,32 +69,31 @@ export function InvoiceRow({
         </div>
       </td>
       {/* Doctor & Department */}
-      <td className="py-3 px-4">
+      <td className="px-4 py-3.5">
         <div className="font-medium text-[#111827]">{invoice.doctorName}</div>
         <div className="text-[11px] text-[#009688] font-medium">
           {invoice.department}
         </div>
       </td>
       {/* Amounts */}
-      <td className="py-3 px-4 text-right font-semibold text-[#111827]">
+      <td className="px-4 py-3.5 text-right font-semibold text-[#111827]">
         ₹{invoice.invoiceAmount.toLocaleString()}
       </td>
-      <td className="py-3 px-4 text-right font-medium text-[#66BB6A]">
+      <td className="px-4 py-3.5 text-right font-medium text-[#66BB6A]">
         ₹{invoice.paidAmount.toLocaleString()}
       </td>
-      <td className="py-3 px-4 text-right font-bold text-[#EF4444]">
+      <td className="px-4 py-3.5 text-right font-bold text-[#EF4444]">
         ₹{invoice.balance.toLocaleString()}
       </td>
       {/* Status Chip */}
-      <td className="py-3 px-4 text-center whitespace-nowrap">
+      <td className="px-4 py-3.5 text-center whitespace-nowrap">
         <BillingStatusBadge status={invoice.paymentStatus} />
       </td>
       {/* Actions */}
-      <td className="py-3 px-4 text-center relative">
+      <td className="px-4 py-3.5 text-right relative">
         <div className="flex items-center justify-center gap-2">
           {/* Contextual Principal Button */}
           {invoice.status?.toUpperCase() === "READY_FOR_BILLING" ||
-          invoice.status?.toUpperCase() === "DRAFT" ||
           invoice.status?.toUpperCase() === "PENDING_BILLING" ? (
             <button
               onClick={() => onGenerateInvoiceClick?.(invoice)}
@@ -100,6 +102,15 @@ export function InvoiceRow({
             >
               <Zap size={12} />
               Generate Invoice
+            </button>
+          ) : invoice.status?.toUpperCase() === "DRAFT" ? (
+            <button
+              onClick={() => onGenerateInvoiceClick?.(invoice)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white text-[11px] font-semibold hover:bg-blue-900 transition-all shadow-xs whitespace-nowrap cursor-pointer"
+              title="Edit Invoice"
+            >
+              <FileText size={12} />
+              Edit Invoice
             </button>
           ) : (
             <button
@@ -154,7 +165,8 @@ export function InvoiceRow({
                   )}
                 <button
                   onClick={() => {
-                    onViewInvoiceDetailsClick?.(invoice);
+                    if (onPrintInvoice) onPrintInvoice(invoice);
+                    else onViewInvoiceDetailsClick?.(invoice);
                     setActiveMenuId(null);
                   }}
                   className="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
@@ -193,29 +205,28 @@ export function BillingTable({
   onGenerateInvoiceClick,
   onCancelInvoice,
   onViewPaymentHistory,
+  onPrintInvoice,
 }: BillingTableProps) {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   return (
-    <div className="overflow-x-auto">
-      <table
-        className="w-full text-left border-collapse"
-        style={{ fontFamily: RB }}
-      >
-        <thead>
-          <tr className="bg-slate-50 border-b border-gray-100 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">
-            <th className="py-3 px-4">Invoice ID</th>
-            <th className="py-3 px-4">Date</th>
-            <th className="py-3 px-4">Patient / MRN</th>
-            <th className="py-3 px-4">Doctor & Dept</th>
-            <th className="py-3 px-4 text-right">Invoice Amt</th>
-            <th className="py-3 px-4 text-right">Paid</th>
-            <th className="py-3 px-4 text-right">Balance</th>
-            <th className="py-3 px-4 text-center">Status</th>
-            <th className="py-3 px-4 text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100 text-xs">
+    <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
+      <div className="overflow-x-auto max-h-150 overflow-y-auto">
+        <table className="w-full border-collapse text-left text-xs">
+          <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
+            <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
+              <th className="px-4 py-3.5">Invoice ID</th>
+              <th className="px-4 py-3.5">Date</th>
+              <th className="px-4 py-3.5">Patient / MRN</th>
+              <th className="px-4 py-3.5">Doctor & Dept</th>
+              <th className="px-4 py-3.5 text-right">Invoice Amt</th>
+              <th className="px-4 py-3.5 text-right">Paid</th>
+              <th className="px-4 py-3.5 text-right">Balance</th>
+              <th className="px-4 py-3.5 text-center">Status</th>
+              <th className="px-4 py-3.5 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 text-[#111827]">
           {invoices.length > 0 ? (
             invoices.map((inv) => (
               <InvoiceRow
@@ -229,6 +240,7 @@ export function BillingTable({
                 onGenerateInvoiceClick={onGenerateInvoiceClick}
                 onCancelInvoice={onCancelInvoice}
                 onViewPaymentHistory={onViewPaymentHistory}
+                onPrintInvoice={onPrintInvoice}
               />
             ))
           ) : (
@@ -258,6 +270,7 @@ export function BillingTable({
           )}
         </tbody>
       </table>
+    </div>
     </div>
   );
 }

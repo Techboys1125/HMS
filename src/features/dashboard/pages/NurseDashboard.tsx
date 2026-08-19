@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Activity,
   Clock,
@@ -10,6 +11,17 @@ import {
   Search,
   Loader2,
 } from "lucide-react";
+import {
+  useNurseDashboardSummary,
+  useNurseVitalsTrend,
+  useNursePreparationStatus,
+  useNurseQueue,
+  useNurseDoctorAssistance,
+  useNurseDepartments,
+  useNurseVitalsStatus,
+  useNursePerformance,
+} from "../hooks/useNurseDashboard";
+
 import {
   AreaChart,
   Area,
@@ -24,17 +36,8 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-} from "recharts";
-import {
-  useNurseDashboardSummary,
-  useNurseVitalsTrend,
-  useNursePreparationStatus,
-  useNurseQueue,
-  useNurseDoctorAssistance,
-  useNurseDepartments,
-  useNurseVitalsStatus,
-  useNursePerformance,
-} from "../hooks/useNurseDashboard";
+} from "../../../common/components/recharts-lazy";
+
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";

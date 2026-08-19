@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useEffectEvent } from "react";
+import React, { useState, useEffect, useRef, useEffectEvent, useReducer } from "react";
 import {
   Calendar as CalendarIcon,
   X,
@@ -10,8 +10,9 @@ import {
 } from "lucide-react";
 import type { AppointmentRecord } from "../types/appointment.types";
 import { StatusBadge } from "./StatusBadge";
-import { PP, RB, EMPTY_AVAILABILITY } from "../constants/appointment.constants";
+import { PP, RB } from "../constants/appointment.constants";
 import { formatTime } from "../../../lib/time-utils";
+import { useAppointmentSlots } from "../hooks/useAppointmentSlots";
 
 export function RescheduleAppointmentConfirmationDialog({
   apt,
@@ -30,13 +31,39 @@ export function RescheduleAppointmentConfirmationDialog({
     remarks?: string,
   ) => void;
 }) {
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
-  const [rescheduleReason, setRescheduleReason] = useState("Patient Request");
-  const [additionalRemarks, setAdditionalRemarks] = useState("");
-  const [currentMonthDate, setCurrentMonthDate] = useState(
-    new Date(2026, 6, 1),
-  ); // July 2026
+  type FormState = {
+    selectedDate: string;
+    selectedTimeSlot: string;
+    rescheduleReason: string;
+    additionalRemarks: string;
+  };
+  type FormAction =
+    | { type: "SET_FIELD"; field: keyof FormState; value: string }
+    | { type: "RESET"; defaultDate: string };
+  const formReducer = (state: FormState, action: FormAction): FormState => {
+    switch (action.type) {
+      case "SET_FIELD":
+        return { ...state, [action.field]: action.value };
+      case "RESET":
+        return {
+          selectedDate: action.defaultDate,
+          selectedTimeSlot: "",
+          rescheduleReason: "Patient Request",
+          additionalRemarks: "",
+        };
+    }
+  };
+  const [form, dispatch] = useReducer(formReducer, {
+    selectedDate: "",
+    selectedTimeSlot: "",
+    rescheduleReason: "Patient Request",
+    additionalRemarks: "",
+  });
+  const setField = (field: keyof FormState, value: string) =>
+    dispatch({ type: "SET_FIELD", field, value });
+  const currentMonthDateState = useState(new Date());
+  const currentMonthDate = currentMonthDateState[0];
+  const setCurrentMonthDate = currentMonthDateState[1];
   const [errors, setErrors] = useState<Record<string, string>>({});
   const dateInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,10 +75,7 @@ export function RescheduleAppointmentConfirmationDialog({
       const defaultDateStr = tomorrow.toISOString().split("T")[0];
 
       const timer = setTimeout(() => {
-        setSelectedDate(defaultDateStr);
-        setSelectedTimeSlot("09:30 AM");
-        setRescheduleReason("Patient Request");
-        setAdditionalRemarks("");
+        dispatch({ type: "RESET", defaultDate: defaultDateStr });
         setErrors({});
       }, 0);
       return () => clearTimeout(timer);
@@ -61,6 +85,13 @@ export function RescheduleAppointmentConfirmationDialog({
   const onEscape = useEffectEvent(() => {
     onClose();
   });
+
+  // Reset selected time slot when date changes
+  useEffect(() => {
+    if (form.selectedDate) {
+      setField("selectedTimeSlot", "");
+    }
+  }, [form.selectedDate]);
 
   // ESC Key listener
   useEffect(() => {
@@ -74,9 +105,30 @@ export function RescheduleAppointmentConfirmationDialog({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen]);
 
+  const doctorId = apt ? String(apt.doctorId) : undefined;
+  const { slots: apiSlots, isLoading: slotsLoading } = useAppointmentSlots(
+    doctorId,
+    form.selectedDate || undefined,
+  );
+
   if (!isOpen || !apt) return null;
 
-  const docAvail = EMPTY_AVAILABILITY;
+  const docAvail = {
+    specialty: String(
+      (apt?.doctor as Record<string, unknown>)?.specialty || ""
+    ),
+    department: typeof apt.department === "string"
+      ? apt.department
+      : apt.department?.departmentName || "",
+    opdRoom: apt.opdRoom || "",
+    slotDuration: "15 Minutes",
+    slots: (apiSlots as { time: string; available: boolean }[] || []).map(
+      (s) => ({
+        time: s.time || s.startTime || s.slot || "",
+        available: s.available !== false,
+      })
+    ),
+  };
 
   const handlePrevMonth = () => {
     setCurrentMonthDate(
@@ -102,9 +154,9 @@ export function RescheduleAppointmentConfirmationDialog({
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (!selectedDate) errs.date = "Appointment date is required.";
-    if (!selectedTimeSlot) errs.slot = "Time slot selection is required.";
-    if (!rescheduleReason) errs.reason = "Reschedule reason is required.";
+    if (!form.selectedDate) errs.date = "Appointment date is required.";
+    if (!form.selectedTimeSlot) errs.slot = "Time slot selection is required.";
+    if (!form.rescheduleReason) errs.reason = "Reschedule reason is required.";
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -115,10 +167,10 @@ export function RescheduleAppointmentConfirmationDialog({
     if (!validate()) return;
     onConfirmReschedule(
       apt.id,
-      selectedDate,
-      selectedTimeSlot,
-      rescheduleReason,
-      additionalRemarks,
+      form.selectedDate,
+      form.selectedTimeSlot,
+      form.rescheduleReason,
+      form.additionalRemarks,
     );
     onClose();
   };
@@ -233,9 +285,9 @@ export function RescheduleAppointmentConfirmationDialog({
               <input
                 ref={dateInputRef}
                 type="date"
-                value={selectedDate}
+                value={form.selectedDate}
                 onChange={(e) => {
-                  setSelectedDate(e.target.value);
+                  setField("selectedDate", e.target.value);
                   if (errors.date) setErrors((prev) => ({ ...prev, date: "" }));
                 }}
                 className="px-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg text-[#111827] font-mono outline-none focus:border-[#009688]"
@@ -285,7 +337,7 @@ export function RescheduleAppointmentConfirmationDialog({
                 {Array.from({ length: totalDays }).map((_, i) => {
                   const dayNum = i + 1;
                   const dayStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
-                  const isSelected = selectedDate === dayStr;
+                   const isSelected = form.selectedDate === dayStr;
                   const isCurrentAptDate = apt.appointmentDate === dayStr;
                   const isPast = dayStr < todayStr;
                   const isSunday = new Date(year, month, dayNum).getDay() === 0;
@@ -298,7 +350,7 @@ export function RescheduleAppointmentConfirmationDialog({
                       type="button"
                       disabled={isDisabled}
                       onClick={() => {
-                        setSelectedDate(dayStr);
+                        setField("selectedDate", dayStr);
                         if (errors.date)
                           setErrors((prev) => ({ ...prev, date: "" }));
                       }}
@@ -340,9 +392,20 @@ export function RescheduleAppointmentConfirmationDialog({
               </span>
             </div>
 
+            {slotsLoading ? (
+              <div className="flex items-center justify-center py-6 text-xs text-[#64748B]">
+                <Clock size={14} className="animate-spin mr-2" /> Loading available slots...
+              </div>
+            ) : docAvail.slots.length === 0 ? (
+              <div className="flex items-center justify-center py-6 text-xs text-[#64748B]">
+                {form.selectedDate
+                  ? "No available slots for this date. Try another date."
+                  : "Select a date to view available time slots."}
+              </div>
+            ) : (
             <div className="grid grid-cols-4 gap-2">
               {docAvail.slots.map((s) => {
-                const isSelected = selectedTimeSlot === s.time;
+                 const isSelected = form.selectedTimeSlot === s.time;
                 const isAvailable = s.available;
 
                 return (
@@ -352,7 +415,7 @@ export function RescheduleAppointmentConfirmationDialog({
                     disabled={!isAvailable}
                     onClick={() => {
                       if (isAvailable) {
-                        setSelectedTimeSlot(s.time);
+                        setField("selectedTimeSlot", s.time);
                         if (errors.slot)
                           setErrors((prev) => ({ ...prev, slot: "" }));
                       }
@@ -370,6 +433,7 @@ export function RescheduleAppointmentConfirmationDialog({
                 );
               })}
             </div>
+            )}
             {errors.slot && (
               <p className="text-[11px] text-[#EF4444] font-medium">
                 {errors.slot}
@@ -384,9 +448,9 @@ export function RescheduleAppointmentConfirmationDialog({
                 Reschedule Reason *
               </label>
               <select
-                value={rescheduleReason}
+                value={form.rescheduleReason}
                 onChange={(e) => {
-                  setRescheduleReason(e.target.value);
+                  setField("rescheduleReason", e.target.value);
                   if (errors.reason)
                     setErrors((prev) => ({ ...prev, reason: "" }));
                 }}
@@ -415,8 +479,8 @@ export function RescheduleAppointmentConfirmationDialog({
               <textarea
                 rows={2}
                 placeholder="Provide additional notes..."
-                value={additionalRemarks}
-                onChange={(e) => setAdditionalRemarks(e.target.value)}
+                value={form.additionalRemarks}
+                onChange={(e) => setField("additionalRemarks", e.target.value)}
                 className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688] resize-none"
               />
             </div>
@@ -456,7 +520,7 @@ export function RescheduleAppointmentConfirmationDialog({
                   New Date
                 </span>
                 <span className="font-mono text-[#009688] font-bold">
-                  {selectedDate || "Select Date"}
+                   {form.selectedDate || "Select Date"}
                 </span>
               </div>
               <div>
@@ -464,7 +528,7 @@ export function RescheduleAppointmentConfirmationDialog({
                   New Time Slot
                 </span>
                 <span className="font-mono text-[#0D47A1] font-bold">
-                  {selectedTimeSlot || "Select Slot"}
+                   {form.selectedTimeSlot || "Select Slot"}
                 </span>
               </div>
             </div>

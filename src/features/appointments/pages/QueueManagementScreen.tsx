@@ -61,7 +61,7 @@ export function QueueManagementScreen({
   }, []);
 
   // Selected Row for Right Context Panel
-  const [selectedTokenId, setSelectedTokenId] = useState<string>("TK-086");
+  const [selectedTokenId, setSelectedTokenId] = useState<string>("");
 
   // Dialog States
   const [noShowDialogApt, setNoShowDialogApt] =
@@ -521,26 +521,26 @@ export function QueueManagementScreen({
               </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-150 overflow-y-auto">
               <table
-                className="w-full text-left text-xs"
+                className="w-full border-collapse text-left text-xs"
                 style={{ fontFamily: RB }}
               >
-                <thead>
+                <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
                   <tr
-                    className="bg-slate-50 border-b border-gray-100 text-[#64748B] uppercase tracking-wider text-[10px]"
+                    className="text-[#64748B] font-bold"
                     style={{ fontFamily: PP }}
                   >
-                    <th className="px-4 py-3">Token</th>
-                    <th className="px-4 py-3">Patient</th>
-                    <th className="px-4 py-3">MRN</th>
-                    <th className="px-4 py-3">Doctor</th>
-                    <th className="px-4 py-3">Department</th>
-                    <th className="px-4 py-3">Appt Time</th>
-                    <th className="px-4 py-3">Arrival Time</th>
-                    <th className="px-4 py-3">Wait Time</th>
-                    <th className="px-4 py-3">Queue Status</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
+                    <th className="px-4 py-3.5">Token</th>
+                    <th className="px-4 py-3.5">Patient</th>
+                    <th className="px-4 py-3.5">MRN</th>
+                    <th className="px-4 py-3.5">Doctor</th>
+                    <th className="px-4 py-3.5">Department</th>
+                    <th className="px-4 py-3.5">Appt Time</th>
+                    <th className="px-4 py-3.5">Arrival Time</th>
+                    <th className="px-4 py-3.5">Wait Time</th>
+                    <th className="px-4 py-3.5">Queue Status</th>
+                    <th className="px-4 py-3.5 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-[#111827]">

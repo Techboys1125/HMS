@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ChevronDown, Plus, Eye, ArrowLeft } from "lucide-react";
 import { usePermissions } from "../../../permissions";
 import type { TimelineConsultationItem } from "../types/consultation";
 import { formatTime } from "../../../lib/time-utils";
+import { consultationApi } from "../api/consultationApi";
 
 // Reusable Components
 import { ConsultationHeader } from "../components/ConsultationHeader";
@@ -11,100 +12,9 @@ import { PatientSummaryCard } from "../components/PatientSummaryCard";
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
 
-const HISTORICAL_CONSULTATIONS: TimelineConsultationItem[] = [
-  {
-    id: "CNS-1001",
-    date: "24 Jul 2026",
-    time: "09:00 AM",
-    doctor: "Dr. Arjun Mehta",
-    department: "Cardiology",
-    visitType: "First Visit",
-    status: "Completed",
-    chiefComplaint:
-      "Severe chest tightness radiating to left shoulder with acute dyspnea",
-    diagnosis: "Angina Pectoris, unspecified",
-    icdCode: "I20.9",
-    medicinesCount: 2,
-    investigationsCount: 3,
-    followupStatus: "Scheduled for 31 Jul 2026",
-    nextFollowupDate: "31 Jul 2026",
-    vitals: {
-      bp: "145/92",
-      pulse: "88 bpm",
-      temp: "37.2°C",
-      spo2: "97%",
-      bmi: "25.5 kg/m²",
-    },
-    medicines: [
-      {
-        name: "Amlodipine",
-        dosage: "5mg",
-        freq: "Once Daily",
-        duration: "30 Days",
-      },
-      {
-        name: "Metformin",
-        dosage: "500mg",
-        freq: "Twice Daily",
-        duration: "30 Days",
-      },
-    ],
-    investigations: ["CBC", "ECG", "2D Echocardiogram & Trop-I STAT"],
-    examinationFindings:
-      "Chest wall non-tender. Normal S1/S2 heart sounds. Bilateral vesicular breath sounds.",
-    clinicalNotes:
-      "High cardiovascular risk profile. Low sodium diet & rest recommended.",
-  },
-  {
-    id: "CNS-0982",
-    date: "12 Jun 2026",
-    time: "11:15 AM",
-    doctor: "Dr. Arjun Mehta",
-    department: "Cardiology",
-    visitType: "Follow-up",
-    status: "Completed",
-    chiefComplaint: "Routine hypertension follow-up & BP check",
-    diagnosis: "Essential (primary) Hypertension",
-    icdCode: "I10",
-    medicinesCount: 3,
-    investigationsCount: 1,
-    followupStatus: "Completed",
-    vitals: {
-      bp: "138/86",
-      pulse: "76 bpm",
-      temp: "36.8°C",
-      spo2: "98%",
-      bmi: "25.7 kg/m²",
-    },
-    medicines: [
-      {
-        name: "Amlodipine",
-        dosage: "5mg",
-        freq: "Once Daily",
-        duration: "30 Days",
-      },
-      {
-        name: "Aspirin",
-        dosage: "75mg",
-        freq: "Once Daily",
-        duration: "30 Days",
-      },
-      {
-        name: "Atorvastatin",
-        dosage: "20mg",
-        freq: "Once Nightly",
-        duration: "30 Days",
-      },
-    ],
-    investigations: ["Lipid Profile"],
-    examinationFindings: "No peripheral edema. Heart sounds clear.",
-    clinicalNotes:
-      "BP response satisfactory. Continue current anti-hypertensive regimen.",
-  },
-];
-
 export function ConsultationHistoryPage({
   role: overrideRole,
+  patientId,
   onBack,
   onStartNewConsultation,
   onViewFullConsultation,
@@ -125,6 +35,59 @@ export function ConsultationHistoryPage({
     currentRole === "nurse" ||
     currentRole === "patient";
 
+  // State for historical consultations from API
+  const [historicalConsultations, setHistoricalConsultations] = useState<TimelineConsultationItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch consultation history from API
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        // Use the consultation queue API to fetch completed consultations
+        const queueData = await consultationApi.getConsultationQueue();
+        const completedConsultations = (queueData || []).filter(
+          (item: Record<string, unknown>) => 
+            String(item.status || "").toUpperCase() === "COMPLETED"
+        );
+        
+        // Map API data to TimelineConsultationItem format
+        const mapped: TimelineConsultationItem[] = completedConsultations.map((item: Record<string, unknown>) => ({
+          id: String(item.consultationId || item.id || ""),
+          date: String(item.appointmentDate || item.date || ""),
+          time: String(item.startTime || item.time || ""),
+          doctor: String(item.doctorName || item.doctor?.name || ""),
+          department: String(item.departmentName || item.department || ""),
+          visitType: String(item.visitType || item.appointmentType || "First Visit"),
+          status: "Completed",
+          chiefComplaint: String(item.chiefComplaint || item.reason || ""),
+          diagnosis: String(item.diagnosis || ""),
+          icdCode: String(item.icdCode || ""),
+          medicinesCount: Number(item.medicinesCount || 0),
+          investigationsCount: Number(item.investigationsCount || 0),
+          followupStatus: String(item.followupStatus || ""),
+          nextFollowupDate: String(item.nextFollowupDate || ""),
+          vitals: item.vitals as TimelineConsultationItem["vitals"],
+          medicines: item.medicines as TimelineConsultationItem["medicines"],
+          investigations: item.investigations as string[],
+          examinationFindings: String(item.examinationFindings || ""),
+          clinicalNotes: String(item.clinicalNotes || ""),
+        }));
+        
+        setHistoricalConsultations(mapped);
+      } catch (err) {
+        console.error("Failed to fetch consultation history:", err);
+        setError("Failed to load consultation history");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, [patientId]);
+
   // Search & Filter States
   const [searchQuery] = useState("");
   const [filterDoctor] = useState("All");
@@ -135,9 +98,7 @@ export function ConsultationHistoryPage({
   // Expanded Timeline Cards State
   const [expandedCardIds, setExpandedCardIds] = useState<
     Record<string, boolean>
-  >({
-    "CNS-1001": true, // default first expanded
-  });
+  >({});
 
   const toggleExpand = (id: string) => {
     setExpandedCardIds((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -145,7 +106,7 @@ export function ConsultationHistoryPage({
 
   // Filtered Timeline
   const filteredTimeline = useMemo(() => {
-    return HISTORICAL_CONSULTATIONS.filter((item) => {
+    return historicalConsultations.filter((item) => {
       if (filterDoctor !== "All" && item.doctor !== filterDoctor) return false;
       if (filterDepartment !== "All" && item.department !== filterDepartment)
         return false;
@@ -158,9 +119,9 @@ export function ConsultationHistoryPage({
         const matchId = item.id.toLowerCase().includes(q);
         const matchDx = item.diagnosis.toLowerCase().includes(q);
         const matchDate = item.date.toLowerCase().includes(q);
-        const matchMeds = item.medicines.some((m) =>
+        const matchMeds = item.medicines?.some((m) =>
           m.name.toLowerCase().includes(q),
-        );
+        ) || false;
         const matchDoc = item.doctor.toLowerCase().includes(q);
         if (!matchId && !matchDx && !matchDate && !matchMeds && !matchDoc)
           return false;
@@ -168,6 +129,7 @@ export function ConsultationHistoryPage({
       return true;
     });
   }, [
+    historicalConsultations,
     searchQuery,
     filterDoctor,
     filterDepartment,
@@ -253,22 +215,52 @@ export function ConsultationHistoryPage({
       />
 
       <div className="p-6 space-y-6 flex-1">
-        {/* PATIENT SUMMARY */}
-        <PatientSummaryCard
-          patientName="Sarah Mitchell"
-          mrn="MRN-2024-001"
-          age={34}
-          gender="Female"
-          bloodGroup="A+"
-          allergies={["Penicillin", "Aspirin"]}
-          phone="+1 (555) 234-5678"
-          totalVisitsCount={HISTORICAL_CONSULTATIONS.length}
-          lastVisitDate="24 Jul 2026"
-        />
+        {/* PATIENT SUMMARY - Show loading or empty state */}
+        {isLoading ? (
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#0D47A1] border-t-transparent mx-auto mb-3"></div>
+            <p className="text-sm text-slate-600" style={{ fontFamily: RB }}>
+              Loading consultation history...
+            </p>
+          </div>
+        ) : error ? (
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-8 text-center">
+            <p className="text-sm text-red-600" style={{ fontFamily: RB }}>
+              {error}
+            </p>
+          </div>
+        ) : (
+          <PatientSummaryCard
+            patientName=""
+            mrn=""
+            age={0}
+            gender=""
+            bloodGroup=""
+            allergies={[]}
+            phone=""
+            totalVisitsCount={historicalConsultations.length}
+            lastVisitDate=""
+          />
+        )}
 
         {/* TIMELINE LIST */}
         <div className="space-y-4">
-          {filteredTimeline.map((item) => {
+          {isLoading && (
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#0D47A1] border-t-transparent mx-auto mb-3"></div>
+              <p className="text-sm text-slate-600" style={{ fontFamily: RB }}>
+                Loading consultations...
+              </p>
+            </div>
+          )}
+          {!isLoading && filteredTimeline.length === 0 && (
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-8 text-center">
+              <p className="text-sm text-slate-600" style={{ fontFamily: RB }}>
+                No consultation history found.
+              </p>
+            </div>
+          )}
+          {!isLoading && filteredTimeline.map((item) => {
             const isExpanded = !!expandedCardIds[item.id];
             return (
               <div

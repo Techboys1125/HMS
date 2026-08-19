@@ -22,9 +22,9 @@ export function GenerateInvoiceModal({
 }: GenerateInvoiceModalProps) {
   const [patientName, setPatientName] = useState("");
   const [mrn, setMrn] = useState("");
-  const [doctorName, setDoctorName] = useState("Dr. Arjun Mehta");
-  const [department, setDepartment] = useState("Cardiology");
-  const [invoiceAmount, setInvoiceAmount] = useState<number>(1000);
+  const [doctorName, setDoctorName] = useState("");
+  const [department, setDepartment] = useState("");
+  const [invoiceAmount, setInvoiceAmount] = useState<number>(0);
 
   if (!isOpen) return null;
 
@@ -40,7 +40,7 @@ export function GenerateInvoiceModal({
     });
     setPatientName("");
     setMrn("");
-    setInvoiceAmount(1000);
+    setInvoiceAmount(0);
   };
 
   return (
@@ -102,7 +102,10 @@ export function GenerateInvoiceModal({
                 type="number"
                 required
                 value={invoiceAmount}
-                onChange={(e) => setInvoiceAmount(Number(e.target.value))}
+                onChange={(e) => {
+                  const v = e.currentTarget.valueAsNumber;
+                  setInvoiceAmount(Number.isFinite(v) ? v : 0);
+                }}
                 className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
               />
             </div>
@@ -118,10 +121,7 @@ export function GenerateInvoiceModal({
                 onChange={(e) => setDoctorName(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
               >
-                <option>Dr. Arjun Mehta</option>
-                <option>Dr. Priya Sharma</option>
-                <option>Dr. Sunita Patel</option>
-                <option>Dr. Rajesh Kapoor</option>
+                <option value="">Select Doctor</option>
               </select>
             </div>
             <div>
@@ -133,10 +133,7 @@ export function GenerateInvoiceModal({
                 onChange={(e) => setDepartment(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
               >
-                <option>Cardiology</option>
-                <option>General Medicine</option>
-                <option>Gynecology</option>
-                <option>Neurology</option>
+                <option value="">Select Department</option>
               </select>
             </div>
           </div>

@@ -98,7 +98,7 @@ function generateTimeline(
 }
 
 export function ConsultationDetailsPage({
-  consultationId = "CNS-1001",
+  consultationId,
   onBack,
   onEditConsultation,
   onViewHistory,

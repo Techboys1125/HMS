@@ -30,10 +30,10 @@ export const ReceptionWorklistTable: React.FC<ReceptionWorklistTableProps> = ({
   const navigate = useNavigate();
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col flex-1">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50/80 border-b border-gray-100 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+      <div className="overflow-x-auto max-h-150 overflow-y-auto">
+        <table className="w-full border-collapse text-left text-xs">
+          <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
+            <tr className="text-[#64748B] font-bold">
               <th className="px-4 py-3.5">Token / Status</th>
               <th className="px-4 py-3.5">Patient Info</th>
               <th className="px-4 py-3.5">Department & Doctor</th>
@@ -43,7 +43,7 @@ export const ReceptionWorklistTable: React.FC<ReceptionWorklistTableProps> = ({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-gray-100 text-xs font-medium text-slate-700">
+          <tbody className="divide-y divide-gray-100 text-[#111827]">
             {queue.length > 0 ? (
               queue.map((item) => (
                 <tr

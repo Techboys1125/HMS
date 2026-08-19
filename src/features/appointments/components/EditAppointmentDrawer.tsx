@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 import {
   Edit,
   X,
@@ -45,14 +45,54 @@ export function EditAppointmentDrawer({
   onCancelClick: (apt: AppointmentRecord) => void;
   onPatientSelect?: (id: number | string) => void;
 }) {
-  const [department, setDepartment] = useState("Cardiology");
-  const [doctorName, setDoctorName] = useState("Dr. Arjun Mehta");
-  const [appointmentDate, setAppointmentDate] = useState("");
-  const [timeSlot, setTimeSlot] = useState("");
-  const [visitType, setVisitType] = useState<VisitType>("First Visit");
-  const [status, setStatus] = useState<AppointmentStatus | string>("Scheduled");
-  const [reasonForVisit, setReasonForVisit] = useState("");
-  const [additionalNotes, setAdditionalNotes] = useState("");
+  type FormState = {
+    department: string;
+    doctorName: string;
+    appointmentDate: string;
+    timeSlot: string;
+    visitType: VisitType;
+    status: AppointmentStatus | string;
+    reasonForVisit: string;
+    additionalNotes: string;
+  };
+  type FormAction =
+    | { type: "SET_FIELD"; field: keyof FormState; value: string }
+    | { type: "LOAD_FROM_APT"; apt: NonNullable<typeof apt> };
+  const formReducer = (state: FormState, action: FormAction): FormState => {
+    switch (action.type) {
+      case "SET_FIELD":
+        return { ...state, [action.field]: action.value };
+      case "LOAD_FROM_APT":
+        return {
+          department:
+            typeof action.apt.department === "string"
+              ? action.apt.department
+              : action.apt.department?.departmentName ||
+                action.apt.department?.name ||
+                action.apt.department?.departmentCode ||
+                "",
+          doctorName: action.apt.doctorName,
+          appointmentDate: action.apt.appointmentDate,
+          timeSlot: action.apt.timeSlot || "",
+          visitType: (action.apt.visitType as VisitType) || "First Visit",
+          status: String(action.apt.status),
+          reasonForVisit: action.apt.chiefComplaint || "",
+          additionalNotes: action.apt.notes || "",
+        };
+    }
+  };
+  const [form, dispatch] = useReducer(formReducer, {
+    department: "",
+    doctorName: "",
+    appointmentDate: "",
+    timeSlot: "",
+    visitType: "First Visit" as VisitType,
+    status: "Scheduled" as AppointmentStatus | string,
+    reasonForVisit: "",
+    additionalNotes: "",
+  });
+  const setField = (field: keyof FormState, value: string) =>
+    dispatch({ type: "SET_FIELD", field, value });
 
   const [, setErrors] = useState<Record<string, string>>({});
   const [showErrorAlert, setShowErrorAlert] = useState(false);
@@ -82,7 +122,7 @@ export function EditAppointmentDrawer({
 
   useEffect(() => {
     const matchedDept = departments.find(
-      (d) => d.departmentName === department,
+      (d) => d.departmentName === form.department,
     );
     const deptId = matchedDept ? matchedDept.departmentId : undefined;
     appointmentService
@@ -90,35 +130,21 @@ export function EditAppointmentDrawer({
       .then((data) => {
         setDoctors(data);
         if (data.length > 0) {
-          const currentDoc = data.find((d) => d.name === doctorName);
+          const currentDoc = data.find((d) => d.name === form.doctorName);
           if (!currentDoc) {
-            setDoctorName(data[0].name);
+            setField("doctorName", data[0].name);
           }
         } else {
-          setDoctorName("");
+          setField("doctorName", "");
         }
       })
       .catch(() => {});
-  }, [department, departments, doctorName]);
+  }, [departments, form.department, form.doctorName]);
 
   useEffect(() => {
     if (apt) {
       const timer = setTimeout(() => {
-        setDepartment(
-          typeof apt.department === "string"
-            ? apt.department
-            : apt.department?.departmentName ||
-                apt.department?.name ||
-                apt.department?.departmentCode ||
-                "",
-        );
-        setDoctorName(apt.doctorName);
-        setAppointmentDate(apt.appointmentDate);
-        setTimeSlot(apt.timeSlot || "");
-        setVisitType((apt.visitType as VisitType) || "First Visit");
-        setStatus(String(apt.status));
-        setReasonForVisit(apt.chiefComplaint || "");
-        setAdditionalNotes(apt.notes || "");
+        dispatch({ type: "LOAD_FROM_APT", apt });
         setErrors({});
         setShowErrorAlert(false);
       }, 0);
@@ -132,18 +158,18 @@ export function EditAppointmentDrawer({
   const docAvailability = EMPTY_AVAILABILITY;
 
   const handleDoctorChange = (doc: string) => {
-    setDoctorName(doc);
+    setField("doctorName", doc);
     void doc;
   };
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (!department) errs.department = "Department selection is required.";
-    if (!doctorName) errs.doctor = "Doctor selection is required.";
-    if (!appointmentDate)
+    if (!form.department) errs.department = "Department selection is required.";
+    if (!form.doctorName) errs.doctor = "Doctor selection is required.";
+    if (!form.appointmentDate)
       errs.appointmentDate = "Appointment date is required.";
-    if (!timeSlot) errs.timeSlot = "Time slot selection is required.";
-    if (!reasonForVisit.trim())
+    if (!form.timeSlot) errs.timeSlot = "Time slot selection is required.";
+    if (!form.reasonForVisit.trim())
       errs.reasonForVisit = "Reason for visit is required.";
 
     setErrors(errs);
@@ -158,16 +184,16 @@ export function EditAppointmentDrawer({
 
     const updated: AppointmentRecord = {
       ...apt,
-      department,
-      doctorName,
+      department: form.department,
+      doctorName: form.doctorName,
       doctorSpecialty: docAvailability.specialty,
       opdRoom: docAvailability.opdRoom,
-      appointmentDate,
-      timeSlot,
-      visitType,
-      status,
-      chiefComplaint: reasonForVisit,
-      notes: additionalNotes,
+      appointmentDate: form.appointmentDate,
+      timeSlot: form.timeSlot,
+      visitType: form.visitType,
+      status: form.status,
+      chiefComplaint: form.reasonForVisit,
+      notes: form.additionalNotes,
     };
 
     onSaveSuccess(updated);
@@ -271,8 +297,8 @@ export function EditAppointmentDrawer({
                     Department *
                   </label>
                   <select
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
+                    value={form.department}
+                    onChange={(e) => setField("department", e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
                   >
                     {departments.length === 0 && (
@@ -294,7 +320,7 @@ export function EditAppointmentDrawer({
                     Doctor *
                   </label>
                   <select
-                    value={doctorName}
+                    value={form.doctorName}
                     onChange={(e) => handleDoctorChange(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none"
                   >
@@ -318,8 +344,8 @@ export function EditAppointmentDrawer({
                   </label>
                   <input
                     type="date"
-                    value={appointmentDate}
-                    onChange={(e) => setAppointmentDate(e.target.value)}
+                    value={form.appointmentDate}
+                    onChange={(e) => setField("appointmentDate", e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
                   />
                 </div>
@@ -330,8 +356,8 @@ export function EditAppointmentDrawer({
                   </label>
                   <input
                     type="text"
-                    value={timeSlot}
-                    onChange={(e) => setTimeSlot(e.target.value)}
+                    value={form.timeSlot}
+                    onChange={(e) => setField("timeSlot", e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
                   />
                 </div>
@@ -341,11 +367,11 @@ export function EditAppointmentDrawer({
                 <label className="block text-xs font-bold text-[#111827] mb-1">
                   Status Dropdown *
                 </label>
-                <select
-                  value={status}
-                  onChange={(e) =>
-                    setStatus(e.target.value as AppointmentStatus)
-                  }
+                  <select
+                    value={form.status}
+                    onChange={(e) =>
+                      setField("status", e.target.value as AppointmentStatus)
+                    }
                   className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1]"
                 >
                   <option value="Scheduled">Scheduled</option>

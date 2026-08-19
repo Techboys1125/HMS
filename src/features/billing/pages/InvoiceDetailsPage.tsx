@@ -89,10 +89,6 @@ export function InvoiceDetailsPage() {
   const patientMrn = bill?.patient?.mrn || "N/A";
   const patientPhone = bill?.patient?.phone || "";
   const doctorName = bill?.doctor?.name || "N/A";
-  const billData = (bill?.bill || {}) as Record<
-    string,
-    string | number | boolean | null | undefined
-  >;
   const summaryData = bill?.summary;
   const items = bill?.items || [];
   const paymentRecords = bill?.paymentHistory || paymentHistory?.payments || [];
@@ -105,10 +101,10 @@ export function InvoiceDetailsPage() {
     netAmount > 0 ? Math.round((paidAmount / netAmount) * 100) : 0,
   );
 
-  const isDraft = billData?.status === "DRAFT";
-  const isFinalized = billData?.status === "FINALIZED";
-  const isCancelled = billData?.status === "CANCELLED";
-  const isVoided = billData?.status === "VOIDED";
+  const isDraft = bill?.status === "DRAFT";
+  const isFinalized = bill?.status === "FINALIZED";
+  const isCancelled = bill?.status === "CANCELLED";
+  const isVoided = bill?.status === "VOIDED";
   const canCollect = balanceAmount > 0 && !isCancelled && !isVoided;
 
   if (isLoading) {
@@ -120,7 +116,7 @@ export function InvoiceDetailsPage() {
     );
   }
 
-  if (isError || !bill || !billData) {
+  if (isError || !bill) {
     return (
       <div className="p-8 text-center bg-slate-50 min-h-screen flex flex-col items-center justify-center space-y-4">
         <FileText size={48} className="text-slate-300 animate-bounce" />
@@ -188,9 +184,9 @@ export function InvoiceDetailsPage() {
               className="text-xl md:text-2xl font-bold text-[#111827] tracking-tight"
               style={{ fontFamily: PP }}
             >
-              Invoice — {billData.billNumber}
+              Invoice — {bill.billNumber}
             </h1>
-            <BillingStatusBadge status={String(billData.paymentStatus || "")} />
+            <BillingStatusBadge status={String(bill.paymentStatus || "")} />
           </div>
           <p
             className="text-xs md:text-sm text-[#64748B] mt-0.5"
@@ -298,7 +294,7 @@ export function InvoiceDetailsPage() {
                   Invoice Number
                 </span>
                 <span className="font-mono font-bold text-sm text-[#0D47A1]">
-                  {billData.billNumber}
+                  {bill.billNumber}
                 </span>
               </div>
               <div>
@@ -306,7 +302,7 @@ export function InvoiceDetailsPage() {
                   Bill Status
                 </span>
                 <span className="font-medium text-[#111827]">
-                  {billData.status}
+                  {bill.status}
                 </span>
               </div>
               <div>
@@ -314,7 +310,7 @@ export function InvoiceDetailsPage() {
                   Payment Status
                 </span>
                 <span className="font-medium text-[#111827]">
-                  {billData.paymentStatus}
+                  {bill.paymentStatus}
                 </span>
               </div>
               {bill.appointment && (
@@ -670,7 +666,7 @@ export function InvoiceDetailsPage() {
                 <div className="flex justify-between">
                   <span className="text-slate-500">Invoice:</span>
                   <span className="font-mono font-bold text-[#0D47A1]">
-                    {billData.billNumber}
+                    {bill.billNumber}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -687,7 +683,10 @@ export function InvoiceDetailsPage() {
                 <input
                   type="number"
                   value={refundAmount || ""}
-                  onChange={(e) => setRefundAmount(Number(e.target.value))}
+                  onChange={(e) => {
+                    const v = e.currentTarget.valueAsNumber;
+                    setRefundAmount(Number.isFinite(v) ? v : 0);
+                  }}
                   max={paidAmount}
                   className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-sm font-bold focus:bg-white focus:border-[#0D47A1] focus:outline-none"
                 />

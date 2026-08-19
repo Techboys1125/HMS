@@ -64,10 +64,10 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
         </div>
 
         {/* Desktop View */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs" style={{ fontFamily: RB }}>
-            <thead>
-              <tr className="bg-slate-50 border-b border-gray-200 text-[10px] font-bold text-slate-500 uppercase" style={{ fontFamily: PP }}>
+        <div className="hidden md:block overflow-x-auto max-h-150 overflow-y-auto">
+          <table className="w-full border-collapse text-left text-xs" style={{ fontFamily: RB }}>
+            <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
+              <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
                 <th className="p-3">Prescription ID</th>
                 <th className="p-3">Consultation Date</th>
                 <th className="p-3">Prescribing Doctor</th>
@@ -78,27 +78,27 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
                 <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 text-[#111827]">
             {paginatedPrescriptions.map((rx) => (
-                <tr key={rx.id} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="p-3 font-mono font-bold text-[#0D47A1]">
+                <tr key={rx.id} className="hover:bg-slate-50/80 transition-colors group cursor-pointer">
+                  <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
                     <button onClick={() => onView(rx)} className="hover:underline text-left">
                       {rx.id}
                     </button>
                   </td>
-                  <td className="p-3 text-slate-700 font-medium">{rx.consultationDate}</td>
-                  <td className="p-3 font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                  <td className="px-4 py-3.5 text-slate-700 font-medium">{rx.consultationDate}</td>
+                  <td className="px-4 py-3.5 font-bold text-[#111827]" style={{ fontFamily: PP }}>
                     {rx.doctorName}
                   </td>
-                  <td className="p-3 text-slate-600">{rx.department}</td>
-                  <td className="p-3 font-semibold text-[#009688]">
+                  <td className="px-4 py-3.5 text-slate-600">{rx.department}</td>
+                  <td className="px-4 py-3.5 font-semibold text-[#009688]">
                     {rx.medicines.length} Medication{rx.medicines.length > 1 ? "s" : ""}
                   </td>
-                  <td className="p-3 text-slate-700 font-medium">{rx.followupDate || "—"}</td>
-                  <td className="p-3">
+                  <td className="px-4 py-3.5 text-slate-700 font-medium">{rx.followupDate || "—"}</td>
+                  <td className="px-4 py-3.5">
                     <PrescriptionStatusBadge status={rx.status} />
                   </td>
-                  <td className="p-3 text-right">
+                  <td className="px-4 py-3.5 text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       <button
                         onClick={() => onView(rx)}
@@ -204,38 +204,38 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50/80 border-b border-gray-100 text-slate-500 text-[11px] font-bold uppercase tracking-wider sticky top-0" style={{ fontFamily: PP }}>
-              <th className="px-5 py-3.5">Prescription ID</th>
-              <th className="px-5 py-3.5">Patient Name</th>
-              <th className="px-5 py-3.5">MRN</th>
-              <th className="px-5 py-3.5">Consultation ID</th>
-              <th className="px-5 py-3.5">Department</th>
-              <th className="px-5 py-3.5">Consultation Date</th>
-              <th className="px-5 py-3.5">Medicines</th>
-              <th className="px-5 py-3.5">Follow-up</th>
-              <th className="px-5 py-3.5">Status</th>
-              <th className="px-5 py-3.5 text-right">Actions</th>
+      <div className="overflow-x-auto max-h-150 overflow-y-auto">
+        <table className="w-full border-collapse text-left text-xs">
+          <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
+            <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
+              <th className="px-4 py-3.5">Prescription ID</th>
+              <th className="px-4 py-3.5">Patient Name</th>
+              <th className="px-4 py-3.5">MRN</th>
+              <th className="px-4 py-3.5">Consultation ID</th>
+              <th className="px-4 py-3.5">Department</th>
+              <th className="px-4 py-3.5">Consultation Date</th>
+              <th className="px-4 py-3.5">Medicines</th>
+              <th className="px-4 py-3.5">Follow-up</th>
+              <th className="px-4 py-3.5">Status</th>
+              <th className="px-4 py-3.5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 text-xs text-[#111827]" style={{ fontFamily: RB }}>
+          <tbody className="divide-y divide-gray-100 text-[#111827]" style={{ fontFamily: RB }}>
             {prescriptions.map((rx) => (
-              <tr key={rx.id} onClick={() => onView(rx)} className="hover:bg-blue-50/40 cursor-pointer transition-colors group">
-                <td className="px-5 py-3.5 font-mono font-semibold text-[#0D47A1] whitespace-nowrap">
+              <tr key={rx.id} onClick={() => onView(rx)} className="hover:bg-slate-50/80 transition-colors group cursor-pointer">
+                <td className="px-4 py-3.5 font-mono font-semibold text-[#0D47A1] whitespace-nowrap">
                   {rx.id}
                 </td>
-                <td className="px-5 py-3.5 font-semibold text-[#111827] whitespace-nowrap">
+                <td className="px-4 py-3.5 font-semibold text-[#111827] whitespace-nowrap">
                   <div className="flex items-center gap-2">
                     <Avatar name={rx.patientName || "Patient"} />
                     <span>{rx.patientName || "Patient"}</span>
                   </div>
                 </td>
-                <td className="px-5 py-3.5 font-mono text-slate-600 whitespace-nowrap">
+                <td className="px-4 py-3.5 font-mono text-slate-600 whitespace-nowrap">
                   {rx.mrn || "—"}
                 </td>
-                <td className="px-5 py-3.5 font-mono text-slate-600 whitespace-nowrap">
+                <td className="px-4 py-3.5 font-mono text-slate-600 whitespace-nowrap">
                   {rx.consultationId ? (
                     <button
                       onClick={(e) => {
@@ -250,19 +250,19 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
                     "—"
                   )}
                 </td>
-                <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">
+                <td className="px-4 py-3.5 text-slate-600 whitespace-nowrap">
                   {rx.department}
                 </td>
-                <td className="px-5 py-3.5 text-slate-600 whitespace-nowrap">
+                <td className="px-4 py-3.5 text-slate-600 whitespace-nowrap">
                   {rx.consultationDate}
                 </td>
-                <td className="px-5 py-3.5 whitespace-nowrap">
+                <td className="px-4 py-3.5 whitespace-nowrap">
                   <span className="inline-flex items-center gap-1 text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md font-medium">
                     <Pill size={12} className="text-[#009688]" />
                     {rx.medicineCount} Medicines
                   </span>
                 </td>
-                <td className="px-5 py-3.5 whitespace-nowrap">
+                <td className="px-4 py-3.5 whitespace-nowrap">
                   {rx.followup ? (
                     <span className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
                       Yes ({rx.followupDate})
@@ -271,10 +271,10 @@ export const PrescriptionTable: React.FC<PrescriptionTableProps> = ({
                     <span className="text-xs font-medium text-slate-400">No</span>
                   )}
                 </td>
-                <td className="px-5 py-3.5 whitespace-nowrap">
+                <td className="px-4 py-3.5 whitespace-nowrap">
                   <PrescriptionStatusBadge status={rx.status} />
                 </td>
-                <td className="px-5 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                <td className="px-4 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-end gap-1">
                     <button
                       onClick={() => onView(rx)}

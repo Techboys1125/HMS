@@ -421,7 +421,10 @@ export function CollectPaymentWorkspacePage() {
                   <input
                     type="number"
                     value={amount || ""}
-                    onChange={(e) => setAmount(Number(e.target.value))}
+                    onChange={(e) => {
+                      const v = e.currentTarget.valueAsNumber;
+                      setAmount(Number.isFinite(v) ? v : 0);
+                    }}
                     max={balanceAmount}
                     placeholder={`Max: ₹${balanceAmount.toLocaleString()}`}
                     className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-sm font-bold text-[#111827] focus:bg-white focus:border-[#0D47A1] focus:outline-none"

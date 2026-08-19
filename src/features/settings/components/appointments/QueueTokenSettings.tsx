@@ -171,7 +171,7 @@ export function QueueTokenSettings() {
             onChange={(e) =>
               setQueueConfig((prev) => ({
                 ...prev,
-                startTokenNo: parseInt(e.target.value) || 101,
+                startTokenNo: e.currentTarget.valueAsNumber || 101,
               }))
             }
             style={{
@@ -202,7 +202,7 @@ export function QueueTokenSettings() {
             onChange={(e) =>
               setQueueConfig((prev) => ({
                 ...prev,
-                maxQueueSize: parseInt(e.target.value) || 200,
+                maxQueueSize: e.currentTarget.valueAsNumber || 200,
               }))
             }
             style={{

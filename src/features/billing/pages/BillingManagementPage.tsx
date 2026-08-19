@@ -161,6 +161,12 @@ export function BillingManagementPage() {
             navigate(`/billing/invoice/${inv.id}`)
           }
           onCancelInvoice={canCancelInvoice ? handleCancelInvoice : undefined}
+          onViewPaymentHistory={(inv) =>
+            navigate(`/billing/history?billId=${encodeURIComponent(inv.id)}`)
+          }
+          onPrintInvoice={(inv) =>
+            navigate(`/billing/invoice/${inv.id}/print`)
+          }
         />
 
         <BillingPagination
@@ -282,6 +288,12 @@ export function BillingManagementPage() {
               }}
               onCancelInvoice={
                 canCancelInvoice ? handleCancelInvoice : undefined
+              }
+              onViewPaymentHistory={(inv) =>
+                navigate(`/billing/history?billId=${encodeURIComponent(inv.id)}`)
+              }
+              onPrintInvoice={(inv) =>
+                navigate(`/billing/invoice/${inv.id}/print`)
               }
             />
 

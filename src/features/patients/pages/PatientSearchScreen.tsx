@@ -2078,7 +2078,7 @@ export function PatientSearchScreen({
       {/* ── SINGLE COMMON PATIENT TABLE COMPONENT FOR ALL ROLES (RBAC CONTROLLED) ── */}
       <PatientTable
         patients={filteredPatients}
-        totalCount={filteredPatients.length}
+        totalCount={patientsResponse?.total ?? dbPatients.length}
         isLoading={isLoading}
         selectedPatientId={selectedPatientId}
         activeActionMenuId={activeActionMenuId}

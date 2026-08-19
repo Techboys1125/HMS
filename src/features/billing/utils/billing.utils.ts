@@ -25,16 +25,16 @@ export function mapApiInvoiceToInvoiceRecord(
     invoiceDate: apiInv.date || "N/A",
     patientName: patientName,
     mrn: mrn,
-    mobile: "N/A",
-    doctorName: "N/A",
-    department: "N/A",
+    mobile: apiInv.mobile || "",
+    doctorName: apiInv.doctorName || "",
+    department: apiInv.department || "",
     invoiceAmount: amount,
     paidAmount:
       status === "Paid" ? amount : status === "Partially Paid" ? amount / 2 : 0,
     balance: status === "Paid" ? 0 : amount,
-    paymentMethod: "UPI",
+    paymentMethod: apiInv.paymentMethod || "",
     paymentStatus: status,
-    collectedBy: "System",
+    collectedBy: apiInv.collectedBy || "",
   };
 }
 
@@ -70,7 +70,6 @@ export function mapApiBillToInvoiceRecord(bill: BillListItem): InvoiceRecord {
     netAmount - paidAmount;
 
   return {
-    // Routes use the database bill id; billNumber is display-only.
     id: String(bill.billId ?? bill.id ?? bill.billNumber),
     billNumber: bill.billNumber,
     invoiceDate: bill.createdAt
@@ -78,15 +77,15 @@ export function mapApiBillToInvoiceRecord(bill: BillListItem): InvoiceRecord {
       : new Date().toLocaleDateString(),
     patientName: bill.patientName,
     mrn: bill.patientMrn,
-    mobile: "N/A",
-    doctorName: bill.doctorName || "N/A",
-    department: "OPD",
+    mobile: bill.mobile || "",
+    doctorName: bill.doctorName || "",
+    department: bill.departmentName || "",
     invoiceAmount: netAmount,
     paidAmount,
     balance: balanceAmount,
-    paymentMethod: "UPI",
+    paymentMethod: bill.paymentMethod || "",
     paymentStatus,
-    collectedBy: "System",
+    collectedBy: bill.collectedBy || "",
     status: bill.status,
     appointmentId: bill.appointmentId,
     encounterId: bill.encounterId,

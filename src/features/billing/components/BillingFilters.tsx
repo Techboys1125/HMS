@@ -9,6 +9,7 @@ interface FiltersProps {
   deptFilter: string;
   onDeptChange: (dept: string) => void;
   onReset: () => void;
+  departmentOptions?: Array<{ value: string; label: string }>;
 }
 
 export function BillingFilters({
@@ -19,6 +20,7 @@ export function BillingFilters({
   deptFilter,
   onDeptChange,
   onReset,
+  departmentOptions = [],
 }: FiltersProps) {
   return (
     <div className="flex flex-wrap items-center gap-2.5">
@@ -59,10 +61,11 @@ export function BillingFilters({
         style={{ fontFamily: RB }}
       >
         <option value="All">All Departments</option>
-        <option value="Cardiology">Cardiology</option>
-        <option value="General Medicine">General Medicine</option>
-        <option value="Gynecology">Gynecology</option>
-        <option value="Neurology">Neurology</option>
+        {departmentOptions.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
       </select>
 
       {/* Reset Filters */}

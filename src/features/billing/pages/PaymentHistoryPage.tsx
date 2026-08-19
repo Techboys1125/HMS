@@ -63,8 +63,8 @@ export function PaymentHistoryPage() {
   const payments = useMemo((): PaymentHistoryRecord[] => {
     return invoices
       .filter((inv) => inv.paidAmount > 0 || inv.paymentStatus !== "Pending")
-      .map((inv, idx) => ({
-        receiptNo: `REC-${9942 - idx}`,
+      .map((inv) => ({
+        receiptNo: inv.billNumber || inv.id,
         invoiceId: inv.id,
         paymentDate: inv.invoiceDate,
         patientName: inv.patientName,
@@ -73,13 +73,13 @@ export function PaymentHistoryPage() {
         doctorName: inv.doctorName,
         department: inv.department,
         paymentMethod: inv.paymentMethod,
-        referenceNo: inv.notes || `TXN-${100000 + idx}`,
+        referenceNo: inv.notes || "",
         invoiceAmount: inv.invoiceAmount,
         amountPaid: inv.paidAmount,
         balance: inv.balance,
         collectedBy: inv.collectedBy,
         status: inv.paymentStatus,
-        remarks: "OPD service payment settlement.",
+        remarks: "",
       }));
   }, [invoices]);
 
@@ -246,8 +246,6 @@ export function PaymentHistoryPage() {
               className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium text-slate-700"
             >
               <option value="All">All Cashiers / Users</option>
-              <option value="Emma Wilson">Emma Wilson</option>
-              <option value="Sarah Jenkins">Sarah Jenkins</option>
             </select>
           </div>
           <div className="md:col-span-2 flex items-center justify-end gap-2">
@@ -463,7 +461,8 @@ export function PaymentHistoryPage() {
             <select
               value={rowsPerPage}
               onChange={(e) => {
-                setRowsPerPage(Number(e.target.value));
+                const v = e.currentTarget.valueAsNumber;
+                setRowsPerPage(Number.isFinite(v) && v > 0 ? v : 10);
                 setCurrentPage(1);
               }}
               className="px-2 py-1 rounded-lg border border-slate-200 bg-slate-50 font-medium"

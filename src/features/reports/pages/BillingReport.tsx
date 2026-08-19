@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Download,
   RefreshCw,
@@ -6,7 +6,7 @@ import {
   Search,
   ChevronRight,
   Clock,
-  PieChart,
+  PieChart as PieChartIcon,
   CheckCircle2,
   AlertCircle,
   DollarSign,
@@ -18,23 +18,6 @@ import {
   Eye,
   UserCheck,
 } from "lucide-react";
-import {
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  PieChart as RechartsPie,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
 import { PP, RB } from "../constants/reports.constants";
 import type { BillingReportRecord } from "../types/reports.types";
 import {
@@ -42,6 +25,9 @@ import {
   useInvoiceSummary,
   extractList,
 } from "../hooks/useReports";
+
+import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "../../../common/components/recharts-lazy";
+
 
 interface ApiInvoiceRegisterItem {
   id?: string | number;

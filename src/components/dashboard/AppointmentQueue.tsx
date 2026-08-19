@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Download } from "lucide-react";
 import type { AppStatus } from "../../types/app.types";
-import { APPOINTMENTS } from "../../constants/dashboard";
 import { Avatar } from "../../common/components/Avatar";
 import { StatusBadge } from "../../common/components/StatusBadge";
 import { formatTime } from "../../../lib/time-utils";
+import { appointmentService } from "../../features/appointments/services/appointment.service";
+import type { AppointmentRecord } from "../../features/appointments/types/appointment.types";
 
 export function AppointmentQueue({
   onPatientSelect,
@@ -12,10 +13,28 @@ export function AppointmentQueue({
   onPatientSelect: (id: number) => void;
 }) {
   const [filter, setFilter] = useState<AppStatus | "all">("all");
+  const [appointments, setAppointments] = useState<AppointmentRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const today = new Date().toISOString().split("T")[0];
+        const data = await appointmentService.listAppointments({ date: today });
+        setAppointments(data);
+      } catch (error) {
+        console.error("Failed to fetch appointments:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchAppointments();
+  }, []);
+
   const filtered =
     filter === "all"
-      ? APPOINTMENTS
-      : APPOINTMENTS.filter((a) => a.status === filter);
+      ? appointments
+      : appointments.filter((a) => a.status === filter);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm shadow-slate-50 flex flex-col overflow-hidden">
@@ -25,7 +44,7 @@ export function AppointmentQueue({
             Today's Queue
           </div>
           <div className="text-xs text-slate-400 mt-0.5">
-            {APPOINTMENTS.length} appointments ·{" "}
+            {appointments.length} appointments ·{" "}
             {new Date().toLocaleDateString("en-US", {
               weekday: "long",
               month: "long",
@@ -66,68 +85,74 @@ export function AppointmentQueue({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-50">
-              {["Time", "Patient", "Complaint", "Doctor", "Status", ""].map(
-                (h) => (
-                  <th
-                    key={h}
-                    className="px-5 py-3 text-left text-xs font-semibold text-slate-400 whitespace-nowrap"
-                  >
-                    {h}
-                  </th>
-                ),
-              )}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {filtered.map((apt) => (
-              <tr
-                key={apt.id}
-                className="hover:bg-slate-50 transition-colors cursor-pointer group"
-                onClick={() => onPatientSelect(apt.id)}
-              >
-                <td className="px-5 py-3.5">
-                  <span className="font-mono text-xs font-medium text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded">
-                    {formatTime(apt.time)}
-                  </span>
-                </td>
-                <td className="px-5 py-3.5">
-                  <div className="flex items-center gap-2.5">
-                    <Avatar name={apt.patient} size="sm" />
-                    <div>
-                      <div className="text-sm font-medium text-[#111827] leading-tight">
-                        {apt.patient}
-                      </div>
-                      <div className="text-xs text-slate-400">
-                        {apt.gender}/{apt.age} · {apt.mrn}
+        {isLoading ? (
+          <div className="p-8 text-center text-sm text-slate-400">
+            Loading appointments...
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-50">
+                {["Time", "Patient", "Complaint", "Doctor", "Status", ""].map(
+                  (h) => (
+                    <th
+                      key={h}
+                      className="px-5 py-3 text-left text-xs font-semibold text-slate-400 whitespace-nowrap"
+                    >
+                      {h}
+                    </th>
+                  ),
+                )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map((apt) => (
+                <tr
+                  key={apt.id}
+                  className="hover:bg-slate-50 transition-colors cursor-pointer group"
+                  onClick={() => onPatientSelect(Number(apt.patientId))}
+                >
+                  <td className="px-5 py-3.5">
+                    <span className="font-mono text-xs font-medium text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded">
+                      {formatTime(apt.timeSlot || apt.startTime)}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-2.5">
+                      <Avatar name={apt.patientName} size="sm" />
+                      <div>
+                        <div className="text-sm font-medium text-[#111827] leading-tight">
+                          {apt.patientName}
+                        </div>
+                        <div className="text-xs text-slate-400">
+                          {apt.patientGender}/{apt.patientAge} · {apt.mrn}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </td>
-                <td className="px-5 py-3.5">
-                  <span className="text-sm text-slate-600">
-                    {apt.complaint}
-                  </span>
-                </td>
-                <td className="px-5 py-3.5">
-                  <span className="text-sm text-slate-600 font-medium">
-                    {apt.doctor}
-                  </span>
-                </td>
-                <td className="px-5 py-3.5">
-                  <StatusBadge status={apt.status} />
-                </td>
-                <td className="px-5 py-3.5 text-right">
-                  <span className="text-xs font-medium text-[#0D47A1] opacity-0 group-hover:opacity-100 transition-opacity">
-                    View →
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span className="text-sm text-slate-600">
+                      {apt.chiefComplaint || apt.reason}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span className="text-sm text-slate-600 font-medium">
+                      {apt.doctorName}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <StatusBadge status={apt.status} />
+                  </td>
+                  <td className="px-5 py-3.5 text-right">
+                    <span className="text-xs font-medium text-[#0D47A1] opacity-0 group-hover:opacity-100 transition-opacity">
+                      View →
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );

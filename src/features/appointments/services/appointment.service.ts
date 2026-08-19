@@ -319,9 +319,7 @@ export const appointmentService = {
               return (
                 (docIdStr && itemDocId === docIdStr) ||
                 (docIdStr && itemDocCode.toLowerCase() === docIdStr) ||
-                itemDocName.includes("subha") ||
-                (docIdStr && itemDocName.includes(docIdStr)) ||
-                itemDocCode === "KJBJC"
+                (docIdStr && itemDocName.includes(docIdStr))
               );
             });
           }
@@ -712,7 +710,18 @@ export const appointmentService = {
     date: string,
   ): Promise<unknown[]> {
     const res = await appointmentsApi.getAvailableSlots(doctorId, date);
-    let slots = Array.isArray(res?.data) ? res.data : [];
+    const availabilitySlots = Array.isArray(res?.data?.slots)
+      ? res.data.slots
+      : [];
+    let slots = availabilitySlots.map((s: Record<string, unknown>) => {
+      const statusUpper = String(s.status || "").toUpperCase();
+      const available = ["AVAILABLE", "OPEN", "FREE"].includes(statusUpper);
+      return {
+        ...s,
+        time: s.startTime || s.endTime || "",
+        available,
+      };
+    });
 
     try {
       const apptRes = await appointmentsApi.getAppointments({ doctorId, date });
@@ -721,7 +730,7 @@ export const appointmentService = {
       );
 
       const occupiedSlots = new Set<string>();
-      const blockingStatuses = [
+      const blockingStatusSet = new Set([
         "BOOKED",
         "CONFIRMED",
         "CHECKED_IN",
@@ -742,14 +751,14 @@ export const appointmentService = {
         "Called",
         "In Consultation",
         "In Progress",
-      ];
+      ]);
 
       appointments.forEach((apt) => {
         const statusUpper = String(apt.status || "").toUpperCase();
         const displayStatus = STATUS_MAP[statusUpper] || apt.status;
         const isBlocking =
-          blockingStatuses.includes(statusUpper) ||
-          blockingStatuses.includes(displayStatus);
+          blockingStatusSet.has(statusUpper) ||
+          blockingStatusSet.has(displayStatus);
 
         if (isBlocking) {
           const slotTime = apt.startTime || apt.timeSlot || apt.appointmentTime;

@@ -11,7 +11,7 @@ import {
   Activity,
   CheckCircle2,
   Clock,
-  PieChart,
+  PieChart as PieChartIcon,
   Eye,
   Printer,
   ChevronLeft,
@@ -20,6 +20,7 @@ import {
   Shield,
   Star,
 } from "lucide-react";
+
 import {
   AreaChart,
   Area,
@@ -36,7 +37,8 @@ import {
   Legend,
   LineChart,
   Line,
-} from "recharts";
+} from "../../../common/components/recharts-lazy";
+
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";

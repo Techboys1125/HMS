@@ -22,7 +22,7 @@ function mapUserRoleToAppRole(userRole?: string | null): Role {
   return "admin";
 }
 
-const pathToNavId: Record<string, NavId> = {
+const exactPathToNavId: Record<string, NavId> = {
   [ROUTES.DASHBOARD]: "dashboard",
   [ROUTES.PATIENTS]: "patients",
   [ROUTES.DOCTORS]: "doctors",
@@ -57,6 +57,25 @@ const pathToNavId: Record<string, NavId> = {
   [ROUTES.DOCTOR_PRESCRIPTIONS]: "prescriptions",
   [ROUTES.DOCTOR_PATIENT_DETAILS]: "patients",
 };
+
+const BILLING_PREFIXES: NavId[] = [
+  "/billing",
+  "/patients/billing",
+  "/patients/my-bills",
+  "/accountant/patients/billing",
+  "/receptionist/billing",
+];
+
+function resolvePathToNavId(pathname: string): NavId {
+  const exact = exactPathToNavId[pathname];
+  if (exact) return exact;
+
+  for (const prefix of BILLING_PREFIXES) {
+    if (pathname.startsWith(prefix)) return "billing";
+  }
+
+  return "dashboard";
+}
 
 const navIdToPath = (role: Role, navId: NavId): string => {
   const isPatient = role === "patient";
@@ -169,7 +188,7 @@ export function HMSAppShell({ onLogout }: { onLogout?: () => void }) {
   const handleLogout = onLogout || (() => authStoreActions.logout());
 
   const role = user?.role ? mapUserRoleToAppRole(user.role) : "admin";
-  const activeNav = pathToNavId[location.pathname] || "dashboard";
+  const activeNav = resolvePathToNavId(location.pathname);
   const [sidebarTheme, setSidebarTheme] = useState<"light" | "dark">("light");
   const portal = usePatientPortal();
 

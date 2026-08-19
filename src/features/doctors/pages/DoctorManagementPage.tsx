@@ -86,7 +86,7 @@ export function DoctorManagementPage() {
   const fetchDoctors = async () => {
     const res = await doctorsService.getAll();
     const overrides = JSON.parse(
-      localStorage.getItem("doctor_status_overrides") || "{}",
+      localStorage.getItem("doctor_status_overrides:v1") || "{}",
     );
     return res.items.map((r: DoctorRecord) => {
       if (overrides[r.id]) {
@@ -173,14 +173,14 @@ export function DoctorManagementPage() {
         "Deactivated from Doctor Management",
       );
       const overrides = JSON.parse(
-        localStorage.getItem("doctor_status_overrides") || "{}",
+        localStorage.getItem("doctor_status_overrides:v1") || "{}",
       );
       overrides[deactivateDialogDoctor.id] = {
         status: "Inactive",
         availability: "Out of Office",
       };
       localStorage.setItem(
-        "doctor_status_overrides",
+        "doctor_status_overrides:v1",
         JSON.stringify(overrides),
       );
       setDoctors((prev) =>
@@ -212,14 +212,14 @@ export function DoctorManagementPage() {
       const numericId = activateDialogDoctor.id.replace(/^DOC-/, "");
       await usersApi.adminActivateUser(numericId);
       const overrides = JSON.parse(
-        localStorage.getItem("doctor_status_overrides") || "{}",
+        localStorage.getItem("doctor_status_overrides:v1") || "{}",
       );
       overrides[activateDialogDoctor.id] = {
         status: "Active",
         availability: "Available Today",
       };
       localStorage.setItem(
-        "doctor_status_overrides",
+        "doctor_status_overrides:v1",
         JSON.stringify(overrides),
       );
       setDoctors((prev) =>

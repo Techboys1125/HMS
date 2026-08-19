@@ -13,7 +13,7 @@ export interface AppointmentsTabProps {
 const APPT_STATUS_STYLE: Record<string, string> = {
   Confirmed: "bg-emerald-50 text-[#66BB6A] border-emerald-200",
   Scheduled: "bg-blue-50 text-[#0D47A1] border-blue-200",
-  "In-Progress": "bg-sky-50 text-sky-700 border-sky-200",
+  "In Progress": "bg-sky-50 text-sky-700 border-sky-200",
   Completed: "bg-gray-50 text-gray-600 border-gray-200",
   Cancelled: "bg-red-50 text-[#EF4444] border-red-200",
   Pending: "bg-amber-50 text-[#F59E0B] border-amber-200",

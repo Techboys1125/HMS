@@ -139,7 +139,7 @@ export function SlotConfigurationSettings() {
             onChange={(e) =>
               setSlotConfig((prev) => ({
                 ...prev,
-                maxPatientsPerSlot: parseInt(e.target.value) || 1,
+                maxPatientsPerSlot: e.currentTarget.valueAsNumber || 1,
               }))
             }
             style={{

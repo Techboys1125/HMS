@@ -14,28 +14,13 @@ import {
   DollarSign,
   TrendingUp,
   Clock,
-  PieChart,
+  PieChart as PieChartIcon,
   Building2,
   Printer,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   AlertCircle,
 } from "lucide-react";
-import {
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  PieChart as RechartsPie,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
 
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
@@ -68,6 +53,9 @@ import {
   useInvoiceSummary,
   useCollectionRateSummary,
 } from "../hooks/useReports";
+
+import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "../../../common/components/recharts-lazy";
+
 
 // ─── Custom Circular Progress Component ──────────────────────────────────────
 function CircularProgress({
@@ -611,7 +599,7 @@ export function AdminReportsDashboardScreen({
         category: "Financial",
         description:
           "Department-wise and method-wise billing collection efficiency and outstanding balance tracking.",
-        icon: PieChart,
+        icon: PieChart as PieChartIcon,
         color: "#009688",
         bg: "#E0F2F1",
         lastGenerated: "Today, 05:30 PM",

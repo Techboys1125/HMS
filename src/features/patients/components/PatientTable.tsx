@@ -11,12 +11,9 @@ import {
   Users,
   UserCheck,
   ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
 } from "lucide-react";
 import type { Patient } from "../types/patient.types";
 import { usePermissions } from "../../../permissions";
-import { Pagination } from "../../../common/components/Pagination";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -203,7 +200,7 @@ export function PatientTable({
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(10);
 
   const totalPages = Math.ceil(sortedPatients.length / pageSize);
   const safeCurrentPage = currentPage > totalPages ? 1 : currentPage;
@@ -249,7 +246,7 @@ export function PatientTable({
     permissions.can("BILLING_CREATE") || permissions.can("BILLING_VIEW");
 
   return (
-    <div className="bg-white border border-[#E5E7EB] rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden relative">
+    <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
       {/* Click-outside Backdrop for Actions Dropdown */}
       {activeActionMenuId && (
         <div
@@ -321,10 +318,10 @@ export function PatientTable({
         </div>
       ) : (
         /* COMMON PATIENT TABLE */
-        <div className="overflow-x-auto flex-1">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#F1F5F9]/80 border-b border-[#E5E7EB]">
+        <div className="overflow-x-auto max-h-150 overflow-y-auto">
+          <table className="w-full border-collapse text-left text-xs">
+            <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
+              <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
                 {columns.map((col) => {
                   const isSorted = sortColumn === col.key;
                   const isActions = col.key === "actions";
@@ -333,37 +330,19 @@ export function PatientTable({
                     <th
                       key={col.key}
                       onClick={() => handleSort(col.key)}
-                      className={`px-4 py-3.5 text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-colors select-none ${
+                      className={`px-4 py-3.5 ${
                         isActions
                           ? "text-right cursor-default"
-                          : "text-[#64748B] hover:text-[#0D47A1] cursor-pointer"
+                          : "cursor-pointer hover:text-[#0D47A1] transition-colors"
                       }`}
                       style={{ fontFamily: PP }}
                     >
                       <div
-                        className={`flex items-center gap-1.5 ${
-                          isActions ? "justify-end" : "justify-start"
-                        }`}
+                        className={`flex items-center gap-1 ${isActions ? "justify-end" : ""}`}
                       >
                         <span>{col.label}</span>
                         {!isActions && (
-                          <span className="text-slate-400">
-                            {isSorted ? (
-                              sortDirection === "asc" ? (
-                                <ArrowUp size={13} className="text-[#0D47A1]" />
-                              ) : (
-                                <ArrowDown
-                                  size={13}
-                                  className="text-[#0D47A1]"
-                                />
-                              )
-                            ) : (
-                              <ArrowUpDown
-                                size={12}
-                                className="opacity-50 hover:opacity-100"
-                              />
-                            )}
-                          </span>
+                          <ArrowUpDown size={12} className="text-slate-400" />
                         )}
                       </div>
                     </th>
@@ -395,7 +374,7 @@ export function PatientTable({
                 return (
                   <tr
                     key={mrn}
-                    className={`hover:bg-blue-50/40 transition-colors cursor-pointer group ${selectedPatientId === mrn ? "bg-blue-50/60" : ""}`}
+                    className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
                     onClick={() => onSelectRow(p)}
                   >
                     {columns.some((c) => c.key === "mrn") && (
@@ -631,13 +610,73 @@ export function PatientTable({
 
       {/* TABLE FOOTER / PAGINATION */}
       {!isLoading && patients.length > 0 && (
-        <Pagination
-          currentPage={safeCurrentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          pageSize={pageSize}
-          totalCount={sortedPatients.length}
-        />
+        <div className="px-4 py-3 bg-slate-50 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#64748B]">
+          <div className="flex items-center gap-3">
+            <span>
+              Showing{" "}
+              <span className="font-bold text-[#111827]">
+                {sortedPatients.length > 0 ? (safeCurrentPage - 1) * pageSize + 1 : 0}
+              </span>{" "}
+              to <span className="font-bold text-[#111827]">
+                {Math.min(safeCurrentPage * pageSize, sortedPatients.length)}
+              </span> of{" "}
+              <span className="font-bold text-[#111827]">
+                {sortedPatients.length}
+              </span>{" "}
+              patients (total {totalCount})
+            </span>
+            <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 pl-3">
+              <span>Rows:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-white border border-[#E5E7EB] rounded-lg px-2 py-1 font-semibold text-[#111827] outline-none"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              disabled={safeCurrentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              className="px-3 py-1.5 text-xs text-slate-700 bg-white border border-[#E5E7EB] rounded-lg font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Previous
+            </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setCurrentPage(p)}
+                  className={`w-7 h-7 rounded-lg text-xs font-bold transition-colors ${
+                    safeCurrentPage === p
+                      ? "bg-[#0D47A1] text-white"
+                      : "bg-white border border-[#E5E7EB] text-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+            <button
+              disabled={safeCurrentPage >= totalPages}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
+              className="px-3 py-1.5 text-xs text-slate-700 bg-white border border-[#E5E7EB] rounded-lg font-semibold hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

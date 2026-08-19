@@ -143,9 +143,12 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
   const loadWeekly = useCallback(async () => {
     if (!doctorId) return;
     setIsLoading(true);
-    const data = await doctorsApi.getWeeklySchedule(doctorId);
-    setWeekly(data);
-    setIsLoading(false);
+    try {
+      const data = await doctorsApi.getWeeklySchedule(doctorId);
+      setWeekly(data);
+    } finally {
+      setIsLoading(false);
+    }
   }, [doctorId]);
 
   const loadExceptions = useCallback(async () => {
@@ -241,18 +244,21 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
         .filter((p) => p.startTime && p.endTime),
     };
     setIsSaving(true);
-    const ok = await doctorsApi.updateWeeklyScheduleDay(
-      doctorId,
-      editingDay,
-      cleaned,
-    );
-    setIsSaving(false);
-    if (ok) {
-      showToast(`${editingDay} schedule updated successfully.`);
-      cancelEditDay();
-      await loadWeekly();
-    } else {
-      showToast("Failed to update schedule. Please try again.");
+    try {
+      const ok = await doctorsApi.updateWeeklyScheduleDay(
+        doctorId,
+        editingDay,
+        cleaned,
+      );
+      if (ok) {
+        showToast(`${editingDay} schedule updated successfully.`);
+        cancelEditDay();
+        await loadWeekly();
+      } else {
+        showToast("Failed to update schedule. Please try again.");
+      }
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -316,25 +322,28 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
       action: exceptionForm.action,
     };
     setIsSaving(true);
-    const ok = editingException?.id
-      ? await doctorsApi.updateScheduleException(
-          doctorId,
-          editingException.id,
-          payload,
-        )
-      : await doctorsApi.createScheduleException(doctorId, payload);
-    setIsSaving(false);
-    if (ok) {
-      showToast(
-        editingException?.id
-          ? "Schedule exception updated successfully."
-          : "Schedule exception created successfully.",
-      );
-      setExceptionFormOpen(false);
-      setEditingException(null);
-      await loadExceptions();
-    } else {
-      showToast("Failed to save schedule exception.");
+    try {
+      const ok = editingException?.id
+        ? await doctorsApi.updateScheduleException(
+            doctorId,
+            editingException.id,
+            payload,
+          )
+        : await doctorsApi.createScheduleException(doctorId, payload);
+      if (ok) {
+        showToast(
+          editingException?.id
+            ? "Schedule exception updated successfully."
+            : "Schedule exception created successfully.",
+        );
+        setExceptionFormOpen(false);
+        setEditingException(null);
+        await loadExceptions();
+      } else {
+        showToast("Failed to save schedule exception.");
+      }
+    } finally {
+      setIsSaving(false);
     }
   };
 

@@ -1,3 +1,4 @@
+import React from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
 // React imports
@@ -14,17 +15,6 @@ import {
   BarChart2,
 } from "lucide-react";
 import {
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  Cell,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-  Tooltip,
-} from "recharts";
-import {
   useHospitalAdminSummary,
   useHospitalAdminAppointmentFlow,
   useHospitalAdminStatusDistribution,
@@ -34,6 +24,19 @@ import {
   useHospitalAdminRevenueDistribution,
   useHospitalAdminDepartmentSummary,
 } from "../hooks/useHospitalAdminDashboard";
+
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  Cell,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "../../../common/components/recharts-lazy";
+
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";

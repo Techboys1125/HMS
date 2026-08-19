@@ -67,7 +67,7 @@ export const appointmentService = {
       ),
       completed: appointments.filter((a) => a.status === "Completed"),
       cancelled: appointments.filter((a) => a.status === "Cancelled"),
-      inProgress: appointments.filter((a) => a.status === "In-Progress"),
+      inProgress: appointments.filter((a) => a.status === "In Progress"),
     };
   },
 };

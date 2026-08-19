@@ -286,7 +286,7 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
 
       <PatientTable
         patients={filteredPatients}
-        totalCount={filteredPatients.length}
+        totalCount={patients.length}
         isLoading={loading}
         selectedPatientId={selectedPatientId}
         activeActionMenuId={activeActionMenuId}

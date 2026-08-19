@@ -26,7 +26,7 @@ export interface BillingState {
   billingConfiguration: BillingConfiguration;
 }
 
-const STORAGE_KEY = "hms-billing-storage";
+const STORAGE_KEY = "hms-billing-storage:v1";
 
 function loadInitialState(): BillingState {
   try {

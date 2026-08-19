@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { getToken, removeToken } from "../../../lib/cookie-token-storage";
 import { useNavigate } from "react-router";
 import { useAuthStore } from "../store/auth.store";
@@ -35,8 +35,8 @@ export const LoginPage: React.FC = () => {
     message: string;
   } | null>(null);
 
-  const [pendingUser, setPendingUser] = useState<User | null>(null);
-  const [pendingTokens, setPendingTokens] = useState<AuthTokens | null>(null);
+  const pendingUserRef = useRef<User | null>(null);
+  const pendingTokensRef = useRef<AuthTokens | null>(null);
 
   const handleLoginSuccess = (response: LoginResponse) => {
     const resAny = response as unknown as Record<string, unknown>;
@@ -63,15 +63,15 @@ export const LoginPage: React.FC = () => {
     }
 
     if (loggedInUser) {
-      setPendingUser(loggedInUser);
-      setPendingTokens({
+      pendingUserRef.current = loggedInUser;
+      pendingTokensRef.current = {
         accessToken: String(authData.accessToken || resAny.accessToken || ""),
         refreshToken: String(
           authData.refreshToken || resAny.refreshToken || "",
         ),
         tokenType: String(authData.tokenType || resAny.tokenType || "Bearer"),
         expiresIn: Number(authData.expiresIn || resAny.expiresIn || 86400),
-      });
+      };
     }
 
     if (!loggedInUser) {
@@ -197,10 +197,10 @@ export const LoginPage: React.FC = () => {
               title={successInfo?.title || "Action Completed!"}
               message={successInfo?.message || "Operation successful."}
               onContinue={() => {
-                if (pendingUser && pendingTokens) {
-                  useAuthStore.login(pendingUser, pendingTokens);
-                  setPendingUser(null);
-                  setPendingTokens(null);
+                if (pendingUserRef.current && pendingTokensRef.current) {
+                  useAuthStore.login(pendingUserRef.current, pendingTokensRef.current);
+                  pendingUserRef.current = null;
+                  pendingTokensRef.current = null;
                 }
                 const isAuthenticated = useAuthStore.getState().isAuthenticated;
                 setSuccessInfo(null);

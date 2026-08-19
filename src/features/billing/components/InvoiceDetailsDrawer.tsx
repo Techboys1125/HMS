@@ -68,7 +68,7 @@ export function InvoiceDetailsDrawer({
             <tbody className="divide-y divide-slate-100">
               <tr>
                 <td className="py-2.5 px-3">
-                  OPD Consultation Fee ({invoice.doctorName})
+                  {invoice.serviceName || "Consultation"} ({invoice.doctorName})
                 </td>
                 <td className="py-2.5 px-3 text-right">1</td>
                 <td className="py-2.5 px-3 text-right font-semibold">

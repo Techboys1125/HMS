@@ -1,4 +1,9 @@
-import { AreaChart, Area, ResponsiveContainer } from "recharts";
+import {
+  AreaChart,
+  Area,
+  ResponsiveContainer,
+} from "../../common/components/recharts-lazy";
+
 
 export function Sparkline({
   data,

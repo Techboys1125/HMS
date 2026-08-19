@@ -1,3 +1,4 @@
+import React from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
 import {
@@ -13,6 +14,15 @@ import {
   Loader2,
 } from "lucide-react";
 import {
+  useReceptionSummary,
+  useReceptionRegistrationTrend,
+  useReceptionAppointmentStatus,
+  useReceptionPatientsByDepartment,
+  useReceptionRegistrationCategories,
+  useReceptionPerformanceSummary,
+} from "../hooks/useReceptionDashboard";
+
+import {
   AreaChart,
   Area,
   BarChart,
@@ -22,15 +32,8 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-} from "recharts";
-import {
-  useReceptionSummary,
-  useReceptionRegistrationTrend,
-  useReceptionAppointmentStatus,
-  useReceptionPatientsByDepartment,
-  useReceptionRegistrationCategories,
-  useReceptionPerformanceSummary,
-} from "../hooks/useReceptionDashboard";
+} from "../../../common/components/recharts-lazy";
+
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";

@@ -1,5 +1,4 @@
 import React from "react";
-import { AreaChart, Area, ResponsiveContainer } from "recharts";
 import {
   Wallet,
   FileText,
@@ -23,7 +22,6 @@ interface KpiCardProps {
   color: string;
   Icon: React.ElementType;
   bgTint: string;
-  dataTrend: { v: number }[];
 }
 
 export function BillingKpiCard({
@@ -34,7 +32,6 @@ export function BillingKpiCard({
   color,
   Icon,
   bgTint,
-  dataTrend,
 }: KpiCardProps) {
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200 group">
@@ -79,35 +76,6 @@ export function BillingKpiCard({
             Live OPD sync
           </span>
         )}
-        <div className="w-14 h-6">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={dataTrend}
-              margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
-            >
-              <defs>
-                <linearGradient
-                  id={`grad-${title.replace(/\s+/g, "")}`}
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop offset="0%" stopColor={color} stopOpacity={0.4} />
-                  <stop offset="100%" stopColor={color} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <Area
-                type="monotone"
-                dataKey="v"
-                stroke={color}
-                strokeWidth={1.5}
-                fill={`url(#grad-${title.replace(/\s+/g, "")})`}
-                isAnimationActive={false}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
       </div>
     </div>
   );
@@ -157,120 +125,54 @@ export function BillingKPICards({
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-7 gap-3 md:gap-4">
-      {/* Card 1: Today's Revenue */}
       <BillingKpiCard
         title="Today's Revenue"
         value={isReady ? `₹${totalRevenue.toLocaleString()}` : "—"}
-        trend={dashboardData ? "Live" : "+12%"}
-        isUp={true}
         color="#0D47A1"
         Icon={Wallet}
         bgTint="rgba(13, 71, 161, 0.08)"
-        dataTrend={[
-          { v: 45 },
-          { v: 60 },
-          { v: 55 },
-          { v: 75 },
-          { v: totalRevenue > 0 ? totalRevenue / 1000 : 84.75 },
-        ]}
       />
-      {/* Card 2: Invoices Generated */}
       <BillingKpiCard
         title="Invoices Generated"
         value={isReady ? String(countGenerated) : "—"}
-        trend={dashboardData ? "Live" : "+5%"}
-        isUp={true}
         color="#4DB6AC"
         Icon={FileText}
         bgTint="rgba(77, 182, 172, 0.12)"
-        dataTrend={[
-          { v: 90 },
-          { v: 105 },
-          { v: 110 },
-          { v: 120 },
-          { v: countGenerated },
-        ]}
       />
-      {/* Card 3: Paid Bills */}
       <BillingKpiCard
         title="Paid Bills"
         value={isReady ? String(countPaid) : "—"}
-        trend={dashboardData ? "Live" : "+8%"}
-        isUp={true}
         color="#66BB6A"
         Icon={CheckCircle2}
         bgTint="rgba(102, 187, 106, 0.12)"
-        dataTrend={[
-          { v: 70 },
-          { v: 80 },
-          { v: 85 },
-          { v: 90 },
-          { v: countPaid },
-        ]}
       />
-      {/* Card 4: Pending Payments */}
       <BillingKpiCard
         title="Pending Payments"
         value={isReady ? String(countPending) : "—"}
-        trend={dashboardData ? "Live" : "-2%"}
-        isUp={false}
         color="#F59E0B"
         Icon={Clock}
         bgTint="rgba(245, 158, 11, 0.12)"
-        dataTrend={[
-          { v: 28 },
-          { v: 25 },
-          { v: 24 },
-          { v: 22 },
-          { v: countPending },
-        ]}
       />
-      {/* Card 5: Partially Paid */}
       <BillingKpiCard
         title="Partially Paid"
         value={isReady ? String(countPartial) : "—"}
         color="#0D47A1"
         Icon={CreditCard}
         bgTint="rgba(13, 71, 161, 0.08)"
-        dataTrend={[
-          { v: 5 },
-          { v: 6 },
-          { v: 7 },
-          { v: 9 },
-          { v: countPartial },
-        ]}
       />
-      {/* Card 6: Refunded Bills */}
       <BillingKpiCard
         title="Refunded Bills"
         value={isReady ? String(countRefunded) : "—"}
         color="#EF4444"
         Icon={Ban}
         bgTint="rgba(239, 68, 68, 0.12)"
-        dataTrend={[
-          { v: 1 },
-          { v: 2 },
-          { v: 1 },
-          { v: 4 },
-          { v: countRefunded },
-        ]}
       />
-      {/* Card 7: Outstanding Amount */}
       <BillingKpiCard
         title="Outstanding Amount"
         value={isReady ? `₹${totalOutstanding.toLocaleString()}` : "—"}
-        trend={dashboardData ? "Live" : "-4%"}
-        isUp={true}
         color="#8B5CF6"
         Icon={AlertCircle}
         bgTint="rgba(139, 92, 246, 0.12)"
-        dataTrend={[
-          { v: 24000 },
-          { v: 22000 },
-          { v: 21000 },
-          { v: 19500 },
-          { v: totalOutstanding },
-        ]}
       />
     </div>
   );

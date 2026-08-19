@@ -80,7 +80,14 @@ export const DEFAULT_CONFIGURATION: BillingConfiguration = {
     showTaxDetails: true,
     showTerms: true,
     footerNotes:
-      "Thank you for choosing St. Jude Hospital. Wishing you a speedy recovery! Payment once settled is subject to official refund policy.",
+      "Payment once settled is subject to official refund policy.",
+    hospitalName: "",
+    hospitalTagline: "",
+    hospitalAddress: "",
+    hospitalPhone: "",
+    hospitalGstin: "",
+    hospitalEmail: "",
+    hospitalWebsite: "",
   },
   rules: {
     allowPartial: true,

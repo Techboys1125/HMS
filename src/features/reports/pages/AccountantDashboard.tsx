@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
 import {
@@ -12,7 +12,7 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  PieChart,
+  PieChart as PieChartIcon,
   Printer,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
@@ -23,21 +23,6 @@ import {
   CreditCard,
 } from "lucide-react";
 import {
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  PieChart as RechartsPie,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
-import {
   useInvoiceSummary,
   useDailyRevenue,
   useAccountantMainReport,
@@ -45,6 +30,9 @@ import {
   useAccountantTransactionReport,
 } from "../hooks/useReports";
 import type { DailyRevenuePoint } from "../types/reports.types";
+
+import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "../../../common/components/recharts-lazy";
+
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";

@@ -111,8 +111,8 @@ export function WorkingHoursSchedule({
             <AlertTriangle size={13} /> Please fix the following:
           </div>
           <ul className="list-disc list-inside text-red-600 text-[11px] space-y-0.5">
-            {validationErrors.map((err, i) => (
-              <li key={i}>{err}</li>
+            {validationErrors.map((err) => (
+              <li key={err}>{err}</li>
             ))}
           </ul>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useReducer } from "react";
 import {
   Search,
   Plus,
@@ -29,6 +29,29 @@ import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentS
 import { appointmentsApi } from "../../appointments/api/appointments.api";
 import type { ApiResponse } from "../../auth/types/auth.types";
 import { Pagination } from "../../../common/components/Pagination";
+import { to24Hour } from "../../../lib/time-utils";
+
+type AppointmentListState = {
+  appointments: PatientAppointment[];
+  viewMode: "list" | "book";
+};
+type AppointmentListAction =
+  | { type: "SET_VIEW_MODE"; viewMode: "list" | "book" }
+  | { type: "SET_APPOINTMENTS"; appointments: PatientAppointment[] }
+  | { type: "CLEAR_APPOINTMENTS" };
+const appointmentListReducer = (
+  state: AppointmentListState,
+  action: AppointmentListAction,
+): AppointmentListState => {
+  switch (action.type) {
+    case "SET_VIEW_MODE":
+      return { ...state, viewMode: action.viewMode };
+    case "SET_APPOINTMENTS":
+      return { ...state, appointments: action.appointments };
+    case "CLEAR_APPOINTMENTS":
+      return { ...state, appointments: [] };
+  }
+};
 
 export function PatientAppointmentsScreen({
   activePatient: propActivePatient,
@@ -37,8 +60,10 @@ export function PatientAppointmentsScreen({
 }) {
   const portal = usePatientPortal();
   const activePatient = propActivePatient ?? portal?.activePatient;
-  const [appointments, setAppointments] = useState<PatientAppointment[]>([]);
-  const [viewMode, setViewMode] = useState<"list" | "book">("list");
+  const [listState, dispatch] = useReducer(appointmentListReducer, {
+    appointments: [],
+    viewMode: "list" as const,
+  });
   const [cancellingAppt, setCancellingAppt] =
     useState<PatientAppointment | null>(null);
   const [prevPatientMrn, setPrevPatientMrn] = useState<string | number | null>(
@@ -49,7 +74,7 @@ export function PatientAppointmentsScreen({
 
   if (activePatientMrn !== prevPatientMrn) {
     setPrevPatientMrn(activePatientMrn);
-    setAppointments([]);
+    dispatch({ type: "CLEAR_APPOINTMENTS" });
   }
 
   const loadAppointments = useCallback((patient?: FamilyMember | null) => {
@@ -107,11 +132,16 @@ export function PatientAppointmentsScreen({
                 formattedStatus = "Pending";
               } else if (
                 rawStatus === "IN_PROGRESS" ||
-                rawStatus === "IN-PROGRESS"
+                rawStatus === "IN-PROGRESS" ||
+                rawStatus === "IN CONSULTATION"
               ) {
-                formattedStatus = "In-Progress";
+                formattedStatus = "In Progress";
               } else if (
                 rawStatus === "CHECKED_IN" ||
+                rawStatus === "CHECKED-IN"
+              ) {
+                formattedStatus = "Checked-In";
+              } else if (
                 rawStatus === "WAITING_FOR_VITALS"
               ) {
                 formattedStatus = "Waiting for Vitals";
@@ -128,6 +158,7 @@ export function PatientAppointmentsScreen({
                 id: String(a.appointmentId || a.id || `APT-${idx}`),
                 date: datePart,
                 time: timePart,
+                doctorId: a.doctorId,
                 doctor: doctorName,
                 specialty: a.specialty || deptName,
                 department: deptName,
@@ -146,13 +177,13 @@ export function PatientAppointmentsScreen({
               };
             },
           );
-          setAppointments(mapped);
+          dispatch({ type: "SET_APPOINTMENTS", appointments: mapped });
         } else {
-          setAppointments([]);
+          dispatch({ type: "CLEAR_APPOINTMENTS" });
         }
       })
       .catch(() => {
-        setAppointments([]);
+        dispatch({ type: "CLEAR_APPOINTMENTS" });
       });
   }, []);
 
@@ -197,7 +228,7 @@ export function PatientAppointmentsScreen({
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  if (viewMode === "book") {
+  if (listState.viewMode === "book") {
     return (
       <BookAppointmentScreen
         role="patient"
@@ -205,10 +236,10 @@ export function PatientAppointmentsScreen({
           activePatient?.mrn ||
           (activePatient?.id ? String(activePatient.id) : undefined)
         }
-        onBack={() => setViewMode("list")}
+        onBack={() => dispatch({ type: "SET_VIEW_MODE", viewMode: "list" })}
         onBookSuccess={() => {
           triggerToast("Appointment booked successfully!");
-          setViewMode("list");
+          dispatch({ type: "SET_VIEW_MODE", viewMode: "list" });
           loadAppointments(activePatient);
         }}
       />
@@ -216,15 +247,15 @@ export function PatientAppointmentsScreen({
   }
 
   // Summary counts
-  const totalCount = appointments.length;
-  const upcomingAppointments = appointments.filter((a) =>
-    ["Confirmed", "Scheduled", "In-Progress", "Pending"].includes(a.status),
+  const totalCount = listState.appointments.length;
+  const upcomingAppointments = listState.appointments.filter((a) =>
+    ["Confirmed", "Scheduled", "In Progress", "Checked-In", "Pending"].includes(a.status),
   );
   const upcomingCount = upcomingAppointments.length;
-  const completedCount = appointments.filter(
+  const completedCount = listState.appointments.filter(
     (a) => a.status === "Completed",
   ).length;
-  const cancelledCount = appointments.filter(
+  const cancelledCount = listState.appointments.filter(
     (a) => a.status === "Cancelled",
   ).length;
 
@@ -233,11 +264,11 @@ export function PatientAppointmentsScreen({
     upcomingAppointments.length > 0 ? upcomingAppointments[0] : null;
 
   // Filtered Appointments
-  const filteredAppointments = appointments.filter((appt) => {
+  const filteredAppointments = listState.appointments.filter((appt) => {
     // Tab Filter
     if (
       activeTab === "upcoming" &&
-      !["Confirmed", "Scheduled", "In-Progress", "Pending"].includes(
+      !["Confirmed", "Scheduled", "In Progress", "Pending"].includes(
         appt.status,
       )
     )
@@ -303,8 +334,9 @@ export function PatientAppointmentsScreen({
   const handleSaveAppointment = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingAppt) {
-      setAppointments((prev) =>
-        prev.map((a) =>
+      dispatch({
+        type: "SET_APPOINTMENTS",
+        appointments: listState.appointments.map((a) =>
           a.id === editingAppt.id
             ? {
                 ...a,
@@ -319,13 +351,13 @@ export function PatientAppointmentsScreen({
               }
             : a,
         ),
-      );
+      });
       triggerToast(
         `Appointment ${editingAppt.id} successfully rescheduled for ${formDate} at ${formTime}!`,
       );
     } else {
       const newAppt: PatientAppointment = {
-        id: `APT-2025-00${appointments.length + 1}`,
+        id: `APT-2025-00${listState.appointments.length + 1}`,
         date: formDate,
         time: formTime,
         doctor: formDoctor,
@@ -345,21 +377,20 @@ export function PatientAppointmentsScreen({
         billingStatus: "Pending ($65.00)",
         billingAmount: "$65.00",
       };
-      setAppointments([newAppt, ...appointments]);
+      dispatch({ type: "SET_APPOINTMENTS", appointments: [newAppt, ...listState.appointments] });
       triggerToast(`New appointment ${newAppt.id} booked successfully!`);
     }
     setShowBookDrawer(false);
   };
 
-  const handleCancelAppointment = (id: string) => {
-    setAppointments((prev) =>
-      prev.map((a) =>
-        a.id === id
-          ? { ...a, status: "Cancelled", consultationStatus: "Cancelled" }
-          : a,
-      ),
-    );
-    triggerToast(`Appointment ${id} has been cancelled.`);
+  const handleCancelAppointment = async (id: string, reason: string, comments?: string) => {
+    try {
+      await appointmentsApi.cancelAppointment(id, { reason: reason || comments || "Patient request" });
+      loadAppointments(activePatient);
+      triggerToast(`Appointment ${id} has been cancelled.`);
+    } catch {
+      triggerToast(`Failed to cancel appointment ${id}.`);
+    }
   };
 
   const handleResetFilters = () => {
@@ -409,7 +440,7 @@ export function PatientAppointmentsScreen({
 
         <div className="flex items-center gap-2.5">
           <button
-            onClick={() => setViewMode("book")}
+            onClick={() => dispatch({ type: "SET_VIEW_MODE", viewMode: "book" })}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm"
             style={{ fontFamily: PP }}
           >
@@ -703,6 +734,8 @@ export function PatientAppointmentsScreen({
                         const isUpcoming = [
                           "Confirmed",
                           "Scheduled",
+                          "In Progress",
+                          "Checked-In",
                           "Pending",
                         ].includes(appt.status);
                         return (
@@ -779,7 +812,11 @@ export function PatientAppointmentsScreen({
                                         ? "bg-amber-50 text-[#F59E0B]"
                                         : appt.status === "Completed"
                                           ? "bg-teal-50 text-[#009688]"
-                                          : "bg-red-50 text-[#EF4444]"
+                                          : appt.status === "In Progress"
+                                            ? "bg-purple-50 text-purple-600"
+                                            : appt.status === "Checked-In"
+                                              ? "bg-indigo-50 text-indigo-600"
+                                              : "bg-red-50 text-[#EF4444]"
                                 }`}
                               >
                                 <span
@@ -792,7 +829,11 @@ export function PatientAppointmentsScreen({
                                           ? "bg-[#F59E0B]"
                                           : appt.status === "Completed"
                                             ? "bg-[#009688]"
-                                            : "bg-[#EF4444]"
+                                            : appt.status === "In Progress"
+                                              ? "bg-purple-500"
+                                              : appt.status === "Checked-In"
+                                                ? "bg-indigo-500"
+                                                : "bg-[#EF4444]"
                                   }`}
                                 />
                                 {appt.status}
@@ -857,6 +898,8 @@ export function PatientAppointmentsScreen({
                   const isUpcoming = [
                     "Confirmed",
                     "Scheduled",
+                    "In Progress",
+                    "Checked-In",
                     "Pending",
                   ].includes(appt.status);
                   return (
@@ -895,7 +938,11 @@ export function PatientAppointmentsScreen({
                                 ? "bg-blue-50 text-[#0D47A1]"
                                 : appt.status === "Completed"
                                   ? "bg-teal-50 text-[#009688]"
-                                  : "bg-red-50 text-[#EF4444]"
+                                  : appt.status === "In Progress"
+                                    ? "bg-purple-50 text-purple-600"
+                                    : appt.status === "Checked-In"
+                                      ? "bg-indigo-50 text-indigo-600"
+                                      : "bg-red-50 text-[#EF4444]"
                           }`}
                         >
                           {appt.status}
@@ -1151,7 +1198,7 @@ export function PatientAppointmentsScreen({
 
             <div className="space-y-2">
               <button
-                onClick={() => setViewMode("book")}
+                onClick={() => dispatch({ type: "SET_VIEW_MODE", viewMode: "book" })}
                 className="w-full p-3 rounded-xl bg-blue-50 border border-blue-100 text-[#0D47A1] text-xs font-bold hover:bg-blue-100 transition-colors flex items-center justify-between"
                 style={{ fontFamily: PP }}
               >
@@ -1668,12 +1715,12 @@ export function PatientAppointmentsScreen({
         appointment={cancellingAppt}
         isOpen={!!cancellingAppt}
         onClose={() => setCancellingAppt(null)}
-        onConfirmCancel={(id) => {
-          handleCancelAppointment(id);
+        onConfirmCancel={(id, reason, comments) => {
+          handleCancelAppointment(id, reason, comments);
         }}
         onBookNewAppointment={() => {
           setCancellingAppt(null);
-          setViewMode("book");
+          dispatch({ type: "SET_VIEW_MODE", viewMode: "book" });
         }}
       />
 
@@ -1682,17 +1729,20 @@ export function PatientAppointmentsScreen({
         appointment={reschedulingAppt}
         isOpen={!!reschedulingAppt}
         onClose={() => setReschedulingAppt(null)}
-        onConfirmReschedule={(id, newDate, newTime) => {
-          setAppointments((prev) =>
-            prev.map((a) =>
-              a.id === id
-                ? { ...a, date: newDate, time: newTime, status: "Scheduled" }
-                : a,
-            ),
-          );
-          triggerToast(
-            `Appointment ${id} rescheduled to ${newDate} at ${newTime}!`,
-          );
+        onConfirmReschedule={async (id, newDate, newTime, reason) => {
+          try {
+            await appointmentsApi.rescheduleAppointment(id, {
+              appointmentDate: newDate,
+              startTime: to24Hour(newTime),
+              reason: reason || "Patient request",
+            });
+            loadAppointments(activePatient);
+            triggerToast(
+              `Appointment ${id} rescheduled to ${newDate} at ${newTime}!`,
+            );
+          } catch {
+            triggerToast(`Failed to reschedule appointment ${id}.`);
+          }
         }}
         onViewDetails={(appt) => {
           setSelectedDetailsAppt(appt);

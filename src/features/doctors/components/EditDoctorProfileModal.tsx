@@ -252,12 +252,13 @@ export function EditDoctorProfileModal({
                 min="0"
                 disabled={isFieldDisabled("experienceYrs")}
                 value={formData.experienceYrs}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const v = e.currentTarget.valueAsNumber;
                   setFormData({
                     ...formData,
-                    experienceYrs: Number(e.target.value),
-                  })
-                }
+                    experienceYrs: Number.isFinite(v) ? v : 0,
+                  });
+                }}
                 className={inputClass(isFieldDisabled("experienceYrs"))}
               />
             </div>

@@ -44,7 +44,13 @@ export function BillingHeader({
         .map((n) => n[0])
         .join("")
         .toUpperCase()
-    : "EW";
+    : user?.name
+      ? user.name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+      : "";
 
   const defaultSubtitle = isAdminReadOnly
     ? "Monitor billing operations, invoice status and revenue overview across the hospital."
@@ -156,7 +162,7 @@ export function BillingHeader({
               className="text-xs font-semibold text-[#111827]"
               style={{ fontFamily: PP }}
             >
-              {user?.fullName || "Emma Wilson"}
+              {user?.fullName || user?.name || ""}
             </div>
             <div
               className="text-[10px] text-[#64748B]"
@@ -164,7 +170,7 @@ export function BillingHeader({
             >
               {user?.role
                 ? String(user.role).replace("_", " ")
-                : "Chief Accountant"}
+                : ""}
             </div>
           </div>
         </div>

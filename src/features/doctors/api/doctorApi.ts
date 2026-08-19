@@ -120,8 +120,12 @@ export const doctorApi = {
       >(`/api/v1/doctors/${doctorId}/schedules`);
       const rawData = response.data?.data || response.data;
       if (!rawData) return null;
-      if (Array.isArray(rawData.weeklySchedule)) {
-        return rawData as ApiWeeklyScheduleData;
+      const scheduleData =
+        "weeklySchedule" in rawData
+          ? (rawData as unknown as ApiWeeklyScheduleData)
+          : (rawData as unknown as ApiWeeklyScheduleData);
+      if (Array.isArray(scheduleData.weeklySchedule)) {
+        return scheduleData;
       }
       if (Array.isArray(rawData)) {
         return {
@@ -130,7 +134,7 @@ export const doctorApi = {
           weeklySchedule: rawData,
         };
       }
-      return rawData as ApiWeeklyScheduleData;
+      return scheduleData;
     } catch {
       return null;
     }
@@ -175,20 +179,19 @@ export const doctorApi = {
       const rawData = response.data?.data || response.data;
       const list = Array.isArray(rawData)
         ? rawData
-        : Array.isArray(rawData?.content)
-          ? rawData.content
+        : Array.isArray((rawData as unknown as { content?: unknown[] })?.content)
+          ? ((rawData as unknown as { content: unknown[] }).content)
           : [];
       return list.map((item: ApiScheduleExceptionItem) => ({
-        id: item.exceptionId || item.id,
+        id: item.id || Number(doctorId),
         doctorId: Number(doctorId),
-        exceptionDate: item.date || item.exceptionDate || item.startDate || "",
-        startDate: item.startDate || item.date || "",
-        endDate: item.endDate || item.date || "",
+        exceptionDate:
+          item.exceptionDate || item.startDate || item.endDate || "",
+        startDate: item.startDate || "",
+        endDate: item.endDate || "",
         reason: item.reason || "",
         exceptionType:
-          item.exceptionType ||
-          item.type ||
-          (item.isAvailable === false ? "VACATION" : "OTHER"),
+          item.exceptionType || item.type || "OTHER",
         isFullDay: item.isFullDay ?? item.fullDay ?? true,
         action: item.action || "BLOCK_APPOINTMENTS",
         status: item.status || "ACTIVE",
@@ -262,11 +265,12 @@ export const doctorApi = {
       >(`/api/v1/doctors/${doctorId}/availability?date=${date}`);
       const rawData = response.data?.data || response.data;
       if (!rawData) return null;
+      const dailyData = rawData as DoctorDailyAvailabilityData;
       return {
-        doctorId: rawData.doctorId || Number(doctorId),
-        date: rawData.date || date,
-        scheduleStatus: rawData.scheduleStatus || "AVAILABLE",
-        slots: Array.isArray(rawData.slots) ? rawData.slots : [],
+        doctorId: dailyData.doctorId || Number(doctorId),
+        date: dailyData.date || date,
+        scheduleStatus: dailyData.scheduleStatus || "AVAILABLE",
+        slots: Array.isArray(dailyData.slots) ? dailyData.slots : [],
       };
     } catch {
       return null;
@@ -283,10 +287,11 @@ export const doctorApi = {
       >(`/api/v1/doctors/${doctorId}/availability/calendar?month=${month}`);
       const rawData = response.data?.data || response.data;
       if (!rawData) return null;
+      const monthlyData = rawData as DoctorMonthlyAvailabilityData;
       return {
-        doctorId: rawData.doctorId || Number(doctorId),
-        month: rawData.month || month,
-        days: Array.isArray(rawData.days) ? rawData.days : [],
+        doctorId: monthlyData.doctorId || Number(doctorId),
+        month: monthlyData.month || month,
+        days: Array.isArray(monthlyData.days) ? monthlyData.days : [],
       };
     } catch {
       return null;
@@ -303,22 +308,20 @@ export const doctorApi = {
       const rawData = response.data?.data || response.data;
       const list = Array.isArray(rawData)
         ? rawData
-        : Array.isArray(rawData?.content)
-          ? rawData.content
+        : Array.isArray((rawData as unknown as { content?: unknown[] })?.content)
+          ? ((rawData as unknown as { content: unknown[] }).content)
           : [];
       return list.map((item: DoctorAppointment) => ({
-        id: String(item.appointmentId || item.id || ""),
-        patientId: String(
-          item.patientId || item.patient?.id || item.patientName || "",
-        ),
-        patientName: item.patientName || item.patient?.name || "Patient",
-        gender: item.gender || item.patient?.gender || "Unknown",
-        age: item.age || item.patient?.age || 0,
-        date: item.appointmentDate || item.date || "",
-        time: item.appointmentTime || item.time || "",
-        type: item.type || item.appointmentType || "General Consultation",
+        id: String(item.id || ""),
+        patientId: String(item.patientId || item.patientName || ""),
+        patientName: item.patientName || "Patient",
+        gender: item.gender || "Unknown",
+        age: item.age || 0,
+        date: item.date || "",
+        time: item.time || "",
+        type: item.type || "General Consultation",
         status: item.status || "BOOKED",
-        complaint: item.complaint || item.chiefComplaint || "General Checkup",
+        complaint: item.complaint || "General Checkup",
       }));
     } catch {
       return [];

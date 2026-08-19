@@ -596,6 +596,28 @@ export interface PatientDashboardAppointments {
   nextVisit: unknown;
 }
 
+export interface PatientTimelineItem {
+  appointmentId: string;
+  doctorName: string;
+  specialty: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  status: string;
+  displayStatus: string;
+}
+
+export interface PatientTimelineNextVisit {
+  appointmentId: string;
+  doctorName: string;
+  appointmentDate: string;
+  appointmentTime: string;
+}
+
+export interface PatientAppointmentsTimeline {
+  items: PatientTimelineItem[];
+  nextVisit: PatientTimelineNextVisit | null;
+}
+
 export interface PatientAppointmentDetail {
   id: number;
   appointmentNumber: string;

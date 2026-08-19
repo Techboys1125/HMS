@@ -5,24 +5,7 @@ import type { DiagnosisItem } from "../types/diagnosis";
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
 
-const ICD_CODES: DiagnosisItem[] = [
-  { code: "I20.9", label: "I20.9 — Angina Pectoris, unspecified" },
-  { code: "I10", label: "I10 — Essential (primary) Hypertension" },
-  {
-    code: "E11.9",
-    label: "E11.9 — Type 2 Diabetes Mellitus without complications",
-  },
-  {
-    code: "J06.9",
-    label: "J06.9 — Acute upper respiratory infection, unspecified",
-  },
-  { code: "M25.50", label: "M25.50 — Pain in unspecified joint" },
-  { code: "R07.9", label: "R07.9 — Chest pain, unspecified" },
-  {
-    code: "G43.909",
-    label: "G43.909 — Migraine, unspecified, not intractable",
-  },
-];
+const DEFAULT_ICD_CODES: DiagnosisItem[] = [];
 
 interface DiagnosisFormProps {
   provisionalDiagnosis: string;
@@ -31,6 +14,7 @@ interface DiagnosisFormProps {
   onChange: (field: string, val: string) => void;
   // Multiple diagnoses support callback
   onAddDiagnosis?: (code: string, label: string) => void;
+  icdCodes?: DiagnosisItem[];
 }
 
 export const DiagnosisForm: React.FC<DiagnosisFormProps> = ({
@@ -39,19 +23,20 @@ export const DiagnosisForm: React.FC<DiagnosisFormProps> = ({
   icdCode,
   onChange,
   onAddDiagnosis,
+  icdCodes = DEFAULT_ICD_CODES,
 }) => {
   const [icdSearchQuery, setIcdSearchQuery] = useState("");
   const [showIcdDropdown, setShowIcdDropdown] = useState(false);
 
   const filteredIcdCodes = useMemo(() => {
-    if (!icdSearchQuery.trim()) return ICD_CODES;
+    if (!icdSearchQuery.trim()) return icdCodes;
     const q = icdSearchQuery.toLowerCase();
-    return ICD_CODES.filter(
+    return icdCodes.filter(
       (item) =>
         item.code.toLowerCase().includes(q) ||
         item.label.toLowerCase().includes(q),
     );
-  }, [icdSearchQuery]);
+  }, [icdSearchQuery, icdCodes]);
 
   return (
     <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-4">

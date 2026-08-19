@@ -177,12 +177,13 @@ export function ProfileTab({
               type="number"
               min="0"
               value={formData.experienceYrs}
-              onChange={(e) =>
+              onChange={(e) => {
+                const v = e.currentTarget.valueAsNumber;
                 setFormData({
                   ...formData,
-                  experienceYrs: Number(e.target.value),
-                })
-              }
+                  experienceYrs: Number.isFinite(v) ? v : 0,
+                });
+              }}
               className={fieldStyle(true)}
             />
           ) : (

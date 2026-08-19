@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useReducer, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
   Clock,
@@ -151,13 +151,27 @@ export function OPDConsultationPage({
     );
   }, [mappedConsultations]);
 
-  const [filterDate, setFilterDate] = useState(
-    new Date().toISOString().split("T")[0],
-  );
-  const [filterDoctor, setFilterDoctor] = useState("All");
-  const [filterDepartment, setFilterDepartment] = useState("All");
-  const [filterStatus, setFilterStatus] = useState<string>("All");
-  const [filterVisitType, setFilterVisitType] = useState("All");
+  type FilterState = {
+    filterDate: string;
+    filterDoctor: string;
+    filterDepartment: string;
+    filterStatus: string;
+    filterVisitType: string;
+  };
+  type FilterAction = { type: "SET_FIELD"; field: keyof FilterState; value: string };
+  const filterReducer = (state: FilterState, action: FilterAction): FilterState => ({
+    ...state,
+    [action.field]: action.value,
+  });
+  const [filters, dispatch] = useReducer(filterReducer, {
+    filterDate: new Date().toISOString().split("T")[0],
+    filterDoctor: "All",
+    filterDepartment: "All",
+    filterStatus: "All",
+    filterVisitType: "All",
+  });
+  const setFilter = (field: keyof FilterState, value: string) =>
+    dispatch({ type: "SET_FIELD", field, value });
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [selectedPrescriptionRecord, setSelectedPrescriptionRecord] =
     useState<ConsultationRecord | null>(null);
@@ -173,8 +187,8 @@ export function OPDConsultationPage({
     }
   };
 
-  const waitingStatuses: ConsultationStatus[] = useMemo(
-    () => ["WAITING_FOR_DOCTOR_CALL", "WAITING_FOR_DOCTOR", "WAITING"],
+  const waitingStatuses = useMemo(
+    () => new Set<ConsultationStatus>(["WAITING_FOR_DOCTOR_CALL", "WAITING_FOR_DOCTOR", "WAITING"]),
     [],
   );
 
@@ -184,7 +198,7 @@ export function OPDConsultationPage({
         .toUpperCase()
         .replace(/[\s-]/g, "_");
       if (activeTab === "Waiting" || activeTab === "WAITING") {
-        if (!waitingStatuses.includes(itemStatusUpper as ConsultationStatus)) {
+        if (!waitingStatuses.has(itemStatusUpper as ConsultationStatus)) {
           return false;
         }
       } else if (activeTab !== "All") {
@@ -197,7 +211,7 @@ export function OPDConsultationPage({
           activeTabUpper === "WAITING_FOR_DOCTOR"
         ) {
           if (
-            !waitingStatuses.includes(itemStatusUpper as ConsultationStatus)
+            !waitingStatuses.has(itemStatusUpper as ConsultationStatus)
           ) {
             return false;
           }
@@ -205,8 +219,8 @@ export function OPDConsultationPage({
           return false;
         }
       }
-      if (filterStatus !== "All") {
-        const filterStatusUpper = String(filterStatus)
+      if (filters.filterStatus !== "All") {
+        const filterStatusUpper = String(filters.filterStatus)
           .toUpperCase()
           .replace(/[\s-]/g, "_");
         if (
@@ -214,17 +228,17 @@ export function OPDConsultationPage({
           filterStatusUpper === "WAITING_FOR_DOCTOR" ||
           filterStatusUpper === "WAITING"
         ) {
-          if (!waitingStatuses.includes(itemStatusUpper as ConsultationStatus))
+          if (!waitingStatuses.has(itemStatusUpper as ConsultationStatus))
             return false;
         } else if (itemStatusUpper !== filterStatusUpper) {
           return false;
         }
       }
-      if (filterVisitType !== "All" && item.visitType !== filterVisitType)
+      if (filters.filterVisitType !== "All" && item.visitType !== filters.filterVisitType)
         return false;
-      if (filterDepartment !== "All" && item.department !== filterDepartment)
+      if (filters.filterDepartment !== "All" && item.department !== filters.filterDepartment)
         return false;
-      if (filterDoctor !== "All" && item.doctor !== filterDoctor) return false;
+      if (filters.filterDoctor !== "All" && item.doctor !== filters.filterDoctor) return false;
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -242,21 +256,21 @@ export function OPDConsultationPage({
   }, [
     consultations,
     activeTab,
-    filterStatus,
-    filterVisitType,
-    filterDepartment,
-    filterDoctor,
+    filters.filterStatus,
+    filters.filterVisitType,
+    filters.filterDepartment,
+    filters.filterDoctor,
     searchQuery,
     waitingStatuses,
   ]);
 
   const handleResetFilters = () => {
     setSearchQuery("");
-    setFilterDate(new Date().toISOString().split("T")[0]);
-    setFilterDoctor("All");
-    setFilterDepartment("All");
-    setFilterStatus("All");
-    setFilterVisitType("All");
+    setFilter("filterDate", new Date().toISOString().split("T")[0]);
+    setFilter("filterDoctor", "All");
+    setFilter("filterDepartment", "All");
+    setFilter("filterStatus", "All");
+    setFilter("filterVisitType", "All");
     setActiveTab("All");
   };
 
@@ -271,7 +285,7 @@ export function OPDConsultationPage({
       const statusUpper = String(c.status || "")
         .toUpperCase()
         .replace(/[\s-]/g, "_");
-      return waitingStatuses.includes(statusUpper as ConsultationStatus);
+      return waitingStatuses.has(statusUpper as ConsultationStatus);
     }).length;
     const counts: Record<string, number> = {
       All: consultations.length,
@@ -317,7 +331,7 @@ export function OPDConsultationPage({
     const s = String(c.status || "")
       .toUpperCase()
       .replace(/[\s-]/g, "_");
-    return waitingStatuses.includes(s as ConsultationStatus);
+    return waitingStatuses.has(s as ConsultationStatus);
   });
   const hasCalledPatient = consultations.some((c) => {
     const s = String(c.status || "")
@@ -330,7 +344,7 @@ export function OPDConsultationPage({
     const statusUpper = String(record.status || "")
       .toUpperCase()
       .replace(/[\s-]/g, "_");
-    if (!waitingStatuses.includes(statusUpper as ConsultationStatus)) {
+    if (!waitingStatuses.has(statusUpper as ConsultationStatus)) {
       return;
     }
     const aptId = record.appointmentId || record.id;
@@ -516,16 +530,16 @@ export function OPDConsultationPage({
           <ConsultationFilters
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            filterDate={filterDate}
-            onDateChange={setFilterDate}
-            filterDoctor={filterDoctor}
-            onDoctorChange={setFilterDoctor}
-            filterDepartment={filterDepartment}
-            onDepartmentChange={setFilterDepartment}
-            filterStatus={filterStatus}
-            onStatusChange={setFilterStatus}
-            filterVisitType={filterVisitType}
-            onVisitTypeChange={setFilterVisitType}
+            filterDate={filters.filterDate}
+            onDateChange={(value) => setFilter("filterDate", value)}
+            filterDoctor={filters.filterDoctor}
+            onDoctorChange={(value) => setFilter("filterDoctor", value)}
+            filterDepartment={filters.filterDepartment}
+            onDepartmentChange={(value) => setFilter("filterDepartment", value)}
+            filterStatus={filters.filterStatus}
+            onStatusChange={(value) => setFilter("filterStatus", value)}
+            filterVisitType={filters.filterVisitType}
+            onVisitTypeChange={(value) => setFilter("filterVisitType", value)}
             onReset={handleResetFilters}
             onApply={handleRefresh}
             resultCount={filteredConsultations.length}

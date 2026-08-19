@@ -1,4 +1,4 @@
-export const HOSPITAL_BRANDING_STORAGE_KEY = "hms.hospital.branding";
+export const HOSPITAL_BRANDING_STORAGE_KEY = "hms.hospital.branding:v1";
 export const HOSPITAL_BRANDING_CHANGED_EVENT = "hms:hospital-branding-changed";
 
 export interface StoredHospitalBranding {

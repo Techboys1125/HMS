@@ -32,7 +32,7 @@ import {
 } from "../../features/patients";
 import {
   PatientPortalProvider,
-} from "../../features/patients/context/PatientPortalContext";
+} from "../../features/patients/context/PatientPortalContext.tsx";
 import { usePatientPortal } from "../../features/patients/context/usePatientPortal";
 import { PatientOnboardingRoute } from "../../features/patients/routes/PatientOnboardingRoute";
 import { patientsApi } from "../../features/patients/api/patient.api";
@@ -132,7 +132,7 @@ function FamilyMembersRouteWrapper() {
         const wasActive = String(portal?.activePatient?.id) === String(id);
         const removed = await patientsApi.deleteFamilyMember(primaryMrn, id);
         if (removed && wasActive) {
-          localStorage.setItem("hms-active-patient-mrn", primaryMrn);
+          localStorage.setItem("hms-active-patient-mrn:v1", primaryMrn);
         }
         if (removed) portal?.refresh();
       }}

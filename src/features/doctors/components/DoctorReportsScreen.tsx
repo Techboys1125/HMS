@@ -1,5 +1,12 @@
-import { useState } from "react";
+import React from "react";
 import { TrendingUp, TrendingDown, Download } from "lucide-react";
+
+import { PP, RB } from "../constants/doctors.constants";
+import { Card } from "./Card";
+import { SectionHeader } from "./SectionHeader";
+
+const WEEKLY_CONSULTATIONS: { id: number; day: string; count: number }[] = [];
+
 import {
   ResponsiveContainer,
   BarChart,
@@ -8,11 +15,8 @@ import {
   YAxis,
   Tooltip,
   Cell,
-} from "recharts";
-const WEEKLY_CONSULTATIONS: { id: number; day: string; count: number }[] = [];
-import { PP, RB } from "../constants/doctors.constants";
-import { Card } from "./Card";
-import { SectionHeader } from "./SectionHeader";
+} from "../../../common/components/recharts-lazy";
+
 
 export function DoctorReportsScreen() {
   const [period, setPeriod] = useState<"week" | "month">("week");

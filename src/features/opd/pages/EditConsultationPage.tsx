@@ -18,18 +18,19 @@ const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
 
 export function EditConsultationPage({
+  encounterId,
   onBack,
   onUpdateSuccess,
   onViewHistory,
 }: {
-  consultationId?: string;
+  encounterId?: string;
   onBack?: () => void;
   onUpdateSuccess?: () => void;
   onViewHistory?: (patientId?: string) => void;
 }) {
   const { can } = usePermissions();
 
-  const activeEncounterId = "ENC-1001"; // Mock / resolved active encounter
+  const activeEncounterId = encounterId || "";
 
   // Vitals hook
   const { loadVitals, saveVitals } = useVitals(activeEncounterId);
@@ -57,66 +58,41 @@ export function EditConsultationPage({
 
   // Form State
   const [formData, setFormData] = useState<ConsultationFormData>({
-    visitDate: "2026-07-24",
-    doctorName: "Dr. Arjun Mehta",
-    department: "Cardiology",
+    visitDate: "",
+    doctorName: "",
+    department: "",
     visitType: "New Consultation",
-    chiefComplaint:
-      "Severe chest tightness radiating to left shoulder with acute dyspnea",
-    durationOfSymptoms: "3 days",
-    height: "168",
-    weight: "72",
-    temperature: "37.2",
-    bp: "145/92",
-    pulse: "88",
-    respiratoryRate: "18",
-    spo2: "97",
-    bloodSugar: "110",
-    clinicalExamination:
-      "Chest wall non-tender. S1 S2 heard normal. No gallop or murmurs. Bilateral vesicular breath sounds.",
-    provisionalDiagnosis: "Acute Coronary Syndrome / Angina Pectoris",
-    finalDiagnosis: "Angina Pectoris, unspecified",
-    icdCode: "I20.9",
-    medicines: [
-      {
-        id: "1",
-        name: "Amlodipine",
-        dosage: "5mg",
-        frequency: "Once Daily",
-        duration: "30 Days",
-        instructions: "Take after breakfast",
-      },
-      {
-        id: "2",
-        name: "Metformin",
-        dosage: "500mg",
-        frequency: "Twice Daily",
-        duration: "30 Days",
-        instructions: "Take with meals",
-      },
-    ],
+    chiefComplaint: "",
+    durationOfSymptoms: "",
+    height: "",
+    weight: "",
+    temperature: "",
+    bp: "",
+    pulse: "",
+    respiratoryRate: "",
+    spo2: "",
+    bloodSugar: "",
+    clinicalExamination: "",
+    provisionalDiagnosis: "",
+    finalDiagnosis: "",
+    icdCode: "",
+    medicines: [],
     investigations: {
-      cbc: true,
-      ecg: true,
+      cbc: false,
+      ecg: false,
       xray: false,
       ultrasound: false,
       other: false,
     },
-    customInvestigation: "2D Echocardiogram & Trop-I STAT",
-    investigationRemarks:
-      "Perform 12-lead ECG immediately and check Troponin-I level.",
-    symptoms:
-      "Substernal chest pressure, exertional shortness of breath, mild diaphoresis.",
-    assessment:
-      "High cardiovascular risk profile. Borderline hypertension and elevated BP.",
-    advice:
-      "Strict low sodium diet. Avoid strenuous activity. Continue cardiac medications as prescribed.",
-    lifestyleRecommendations:
-      "Daily 30 min light walking after 1 week. Smoking cessation & stress management.",
-    followupRequired: true,
-    nextVisitDate: "2026-07-31",
-    followupNotes:
-      "Review ECG & Troponin reports. Adjust anti-hypertensive dosage if required.",
+    customInvestigation: "",
+    investigationRemarks: "",
+    symptoms: "",
+    assessment: "",
+    advice: "",
+    lifestyleRecommendations: "",
+    followupRequired: false,
+    nextVisitDate: "",
+    followupNotes: "",
   });
 
   // Load and sync vitals values to form state on component mount
@@ -334,24 +310,24 @@ export function EditConsultationPage({
           </div>
         )}
 
-        {/* SUMMARY CARD */}
+        {/* SUMMARY CARD - Patient info loaded from API */}
         <PatientSummaryCard
-          patientName="Sarah Mitchell"
-          mrn="MRN-2024-001"
-          age={34}
-          gender="Female"
-          bloodGroup="A+"
-          allergies={["Penicillin", "Aspirin"]}
-          phone="+1 (555) 234-5678"
-          primaryDoctor="Dr. Arjun Mehta"
-          opdRoom="TK-01"
+          patientName=""
+          mrn=""
+          age={0}
+          gender=""
+          bloodGroup=""
+          allergies={[]}
+          phone=""
+          primaryDoctor=""
+          opdRoom=""
           visitType={formData.visitType}
-          appointmentTime="09:00 AM"
+          appointmentTime=""
           extraDetails={
             onViewHistory && (
               <button
                 type="button"
-                onClick={() => onViewHistory("MRN-2024-001")}
+                onClick={() => onViewHistory("")}
                 className="px-3.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#0D47A1] text-xs font-bold rounded-xl border border-blue-100 transition-colors"
                 style={{ fontFamily: PP }}
               >

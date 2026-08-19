@@ -4,12 +4,13 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 //http://192.168.1.44:8081
+//https://safe-hands-hms-backend.onrender.com
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
       "/api": {
-        target: "https://safe-hands-hms-backend.onrender.com/swagger-ui/index.html",
+        target: "http://192.168.1.44:8081",
         changeOrigin: true,
         secure: false,
       },

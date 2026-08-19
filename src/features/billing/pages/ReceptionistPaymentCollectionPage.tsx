@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useReducer, useMemo } from "react";
 import { useNavigate } from "react-router";
 import {
   Search,
@@ -31,12 +31,29 @@ export function ReceptionistPaymentCollectionPage() {
     [billsData],
   );
 
-  const [searchQuery, setSearchQuery] = useState("");
+  type PaymentFormState = {
+    searchQuery: string;
+    paymentMethod: PaymentMethod;
+    amount: number;
+    referenceNumber: string;
+    remarks: string;
+  };
+  type PaymentFormAction = { type: "SET_FIELD"; field: keyof PaymentFormState; value: string | number };
+  const paymentFormReducer = (state: PaymentFormState, action: PaymentFormAction): PaymentFormState => ({
+    ...state,
+    [action.field]: action.value,
+  });
+  const [form, dispatch] = useReducer(paymentFormReducer, {
+    searchQuery: "",
+    paymentMethod: "Cash" as PaymentMethod,
+    amount: 0,
+    referenceNumber: "",
+    remarks: "",
+  });
+  const setField = (field: keyof PaymentFormState, value: string | number) =>
+    dispatch({ type: "SET_FIELD", field, value });
+
   const [selectedBill, setSelectedBill] = useState<InvoiceRecord | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Cash");
-  const [amount, setAmount] = useState<number>(0);
-  const [referenceNumber, setReferenceNumber] = useState("");
-  const [remarks, setRemarks] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [receiptData, setReceiptData] = useState<PaymentReceiveResponse | null>(
     null,
@@ -56,38 +73,38 @@ export function ReceptionistPaymentCollectionPage() {
   }, [invoices]);
 
   const filteredInvoices = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
+    const q = form.searchQuery.toLowerCase().trim();
     if (!q) return outstandingInvoices;
     return outstandingInvoices.filter(
       (inv) =>
         inv.id.toLowerCase().includes(q) ||
         inv.patientName.toLowerCase().includes(q) ||
         inv.mrn.toLowerCase().includes(q) ||
-        inv.mobile.includes(searchQuery),
+        inv.mobile.includes(form.searchQuery),
     );
-  }, [outstandingInvoices, searchQuery]);
+  }, [outstandingInvoices, form.searchQuery]);
 
   const handleSelectBill = (inv: InvoiceRecord) => {
     setSelectedBill(inv);
-    setAmount(inv.balance);
-    setPaymentMethod("Cash");
-    setReferenceNumber("");
-    setRemarks("");
+    setField("amount", inv.balance);
+    setField("paymentMethod", "Cash");
+    setField("referenceNumber", "");
+    setField("remarks", "");
   };
 
   const handleCollectPayment = async () => {
-    if (!selectedBill || amount <= 0) return;
+    if (!selectedBill || form.amount <= 0) return;
     try {
       const result = await receivePayment({
         billId: selectedBill.id,
         payments: [
           {
-            method: paymentMethod,
-            amount,
-            referenceNumber: referenceNumber || undefined,
+            method: form.paymentMethod,
+            amount: form.amount,
+            referenceNumber: form.referenceNumber || undefined,
           },
         ],
-        remarks: remarks || undefined,
+        remarks: form.remarks || undefined,
       });
       setReceiptData(result);
       setShowSuccess(true);
@@ -99,10 +116,10 @@ export function ReceptionistPaymentCollectionPage() {
 
   const handleReset = () => {
     setSelectedBill(null);
-    setAmount(0);
-    setPaymentMethod("Cash");
-    setReferenceNumber("");
-    setRemarks("");
+    setField("amount", 0);
+    setField("paymentMethod", "Cash");
+    setField("referenceNumber", "");
+    setField("remarks", "");
   };
 
   return (
@@ -179,7 +196,7 @@ export function ReceptionistPaymentCollectionPage() {
             {
               label: "Payment Amount Matches",
               done:
-                selectedBill && amount > 0 && amount <= selectedBill.balance,
+                selectedBill && form.amount > 0 && form.amount <= selectedBill.balance,
             },
             { label: "Payment Method Selected", done: true },
           ].map((item, i) => (
@@ -241,8 +258,8 @@ export function ReceptionistPaymentCollectionPage() {
               />
               <input
                 type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={form.searchQuery}
+                onChange={(e) => setField("searchQuery", e.target.value)}
                 placeholder="Search by Invoice No, Patient Name, MRN..."
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 focus:bg-white focus:border-[#0D47A1] focus:outline-none text-xs font-medium"
               />
@@ -257,7 +274,7 @@ export function ReceptionistPaymentCollectionPage() {
                 </div>
               ) : filteredInvoices.length === 0 ? (
                 <div className="py-8 text-center text-xs text-slate-400">
-                  {searchQuery
+                  {form.searchQuery
                     ? "No invoices match your search."
                     : "No outstanding invoices found."}
                 </div>
@@ -390,8 +407,8 @@ export function ReceptionistPaymentCollectionPage() {
                       <button
                         key={pm}
                         type="button"
-                        onClick={() => setPaymentMethod(pm)}
-                        className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${paymentMethod === pm ? "border-[#0D47A1] bg-blue-50 text-[#0D47A1]" : "border-[#E5E7EB] text-slate-600 hover:bg-slate-50"}`}
+                        onClick={() => setField("paymentMethod", pm)}
+                        className={`p-2.5 rounded-xl border text-xs font-semibold transition-all ${form.paymentMethod === pm ? "border-[#0D47A1] bg-blue-50 text-[#0D47A1]" : "border-[#E5E7EB] text-slate-600 hover:bg-slate-50"}`}
                       >
                         {pm}
                       </button>
@@ -406,14 +423,17 @@ export function ReceptionistPaymentCollectionPage() {
                   </label>
                   <input
                     type="number"
-                    value={amount || ""}
-                    onChange={(e) => setAmount(Number(e.target.value))}
+                    value={form.amount || ""}
+                    onChange={(e) => {
+                      const v = e.currentTarget.valueAsNumber;
+                      setField("amount", Number.isFinite(v) ? v : 0);
+                    }}
                     max={selectedBill.balance}
                     className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-sm font-bold text-[#111827] focus:bg-white focus:border-[#0D47A1] focus:outline-none"
                   />
                   <button
                     type="button"
-                    onClick={() => setAmount(selectedBill.balance)}
+                    onClick={() => setField("amount", selectedBill.balance)}
                     className="text-[10px] text-[#0D47A1] font-bold hover:underline mt-1"
                   >
                     Pay Full Balance
@@ -427,8 +447,8 @@ export function ReceptionistPaymentCollectionPage() {
                   </label>
                   <input
                     type="text"
-                    value={referenceNumber}
-                    onChange={(e) => setReferenceNumber(e.target.value)}
+                    value={form.referenceNumber}
+                    onChange={(e) => setField("referenceNumber", e.target.value)}
                     placeholder="e.g. UPI Ref / Cash receipt no"
                     className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs font-mono focus:bg-white focus:border-[#0D47A1] focus:outline-none"
                   />
@@ -441,8 +461,8 @@ export function ReceptionistPaymentCollectionPage() {
                   </label>
                   <textarea
                     rows={2}
-                    value={remarks}
-                    onChange={(e) => setRemarks(e.target.value)}
+                    value={form.remarks}
+                    onChange={(e) => setField("remarks", e.target.value)}
                     placeholder="Optional notes..."
                     className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs focus:bg-white focus:border-[#0D47A1] focus:outline-none"
                   />
@@ -452,7 +472,7 @@ export function ReceptionistPaymentCollectionPage() {
                 <button
                   onClick={handleCollectPayment}
                   disabled={
-                    isReceiving || amount <= 0 || amount > selectedBill.balance
+                    isReceiving || form.amount <= 0 || form.amount > selectedBill.balance
                   }
                   className="w-full py-3 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                   style={{ fontFamily: PP }}
@@ -460,7 +480,7 @@ export function ReceptionistPaymentCollectionPage() {
                   <DollarSign size={15} />
                   {isReceiving
                     ? "Processing..."
-                    : `Collect ₹${amount.toLocaleString()}`}
+                    : `Collect ₹${form.amount.toLocaleString()}`}
                 </button>
               </div>
             ) : (
@@ -493,7 +513,7 @@ export function ReceptionistPaymentCollectionPage() {
           <button
             onClick={handleCollectPayment}
             disabled={
-              isReceiving || amount <= 0 || amount > selectedBill.balance
+              isReceiving || form.amount <= 0 || form.amount > selectedBill.balance
             }
             className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-all shadow-sm disabled:opacity-50"
             style={{ fontFamily: PP }}
@@ -501,7 +521,7 @@ export function ReceptionistPaymentCollectionPage() {
             <DollarSign size={15} />
             {isReceiving
               ? "Processing..."
-              : `Collect ₹${amount.toLocaleString()}`}
+              : `Collect ₹${form.amount.toLocaleString()}`}
           </button>
         )}
       </div>
@@ -538,13 +558,13 @@ export function ReceptionistPaymentCollectionPage() {
               <div className="flex justify-between">
                 <span className="text-slate-500">Amount Collected:</span>
                 <span className="font-bold text-[#66BB6A]">
-                  ₹{amount.toLocaleString()}
+                  ₹{form.amount.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Payment Method:</span>
                 <span className="font-semibold text-[#111827]">
-                  {paymentMethod}
+                  {form.paymentMethod}
                 </span>
               </div>
               <div className="flex justify-between">

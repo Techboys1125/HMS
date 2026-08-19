@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Clock,
   User,
@@ -20,6 +20,11 @@ import {
   X,
   RefreshCw,
 } from "lucide-react";
+import { PP, RB } from "../constants/doctors.constants";
+import { Card } from "./Card";
+import { Avatar } from "./Avatar";
+import { appointmentService } from "../../appointments";
+
 import {
   ResponsiveContainer,
   BarChart,
@@ -27,11 +32,8 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-} from "recharts";
-import { PP, RB } from "../constants/doctors.constants";
-import { Card } from "./Card";
-import { Avatar } from "./Avatar";
-import { appointmentService } from "../../appointments";
+} from "../../../common/components/recharts-lazy";
+
 
 type ConsultTab = "overview" | "vitals" | "soap" | "prescription" | "history";
 

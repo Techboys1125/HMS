@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Download,
   RefreshCw,
@@ -6,7 +6,7 @@ import {
   Search,
   ChevronRight,
   Clock,
-  PieChart,
+  PieChart as PieChartIcon,
   CheckCircle2,
   AlertCircle,
   UserCheck,
@@ -19,23 +19,6 @@ import {
   CreditCard,
   Eye,
 } from "lucide-react";
-import {
-  AreaChart,
-  Area,
-  BarChart,
-  Bar,
-  PieChart as RechartsPie,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
 import { PP, RB } from "../constants/reports.constants";
 import type { RevenueReportRecord, DailyRevenuePoint, DailyRevenueDetail } from "../types/reports.types";
 import {
@@ -44,6 +27,9 @@ import {
   useCollectionRate,
   extractList,
 } from "../hooks/useReports";
+
+import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "../../../common/components/recharts-lazy";
+
 function CircularProgress({
   percentage,
   size = 54,

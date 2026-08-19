@@ -1,3 +1,4 @@
+import React from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
 import {
@@ -14,6 +15,12 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import {
+  useAccountantDashboard,
+  useAccountantPaymentMethods,
+  useAccountantRecentTransactions,
+} from "../hooks/useAccountantDashboard";
+
+import {
   AreaChart,
   Area,
   BarChart,
@@ -23,12 +30,8 @@ import {
   YAxis,
   Tooltip,
   Cell,
-} from "recharts";
-import {
-  useAccountantDashboard,
-  useAccountantPaymentMethods,
-  useAccountantRecentTransactions,
-} from "../hooks/useAccountantDashboard";
+} from "../../../common/components/recharts-lazy";
+
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";

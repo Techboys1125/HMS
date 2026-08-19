@@ -627,12 +627,13 @@ export function EditStaffUserDrawer({
                     <input
                       type="number"
                       value={form.yearsOfExperience}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const v = e.currentTarget.valueAsNumber;
                         setForm({
                           ...form,
-                          yearsOfExperience: Number(e.target.value),
-                        })
-                      }
+                          yearsOfExperience: Number.isFinite(v) ? v : 0,
+                        });
+                      }}
                       className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
                     />
                   </div>
@@ -643,12 +644,13 @@ export function EditStaffUserDrawer({
                     <input
                       type="number"
                       value={form.consultationFee}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const v = e.currentTarget.valueAsNumber;
                         setForm({
                           ...form,
-                          consultationFee: Number(e.target.value),
-                        })
-                      }
+                          consultationFee: Number.isFinite(v) ? v : 0,
+                        });
+                      }}
                       className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
                     />
                   </div>
@@ -661,12 +663,13 @@ export function EditStaffUserDrawer({
                   <input
                     type="number"
                     value={form.slotDurationMinutes}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const v = e.currentTarget.valueAsNumber;
                       setForm({
                         ...form,
-                        slotDurationMinutes: Number(e.target.value),
-                      })
-                    }
+                        slotDurationMinutes: Number.isFinite(v) ? v : 0,
+                      });
+                    }}
                     className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
                   />
                 </div>
