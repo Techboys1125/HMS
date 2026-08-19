@@ -47,6 +47,14 @@ import {
   fetchAccountantRefundLog,
   fetchAccountantRevenueReport,
   fetchAccountantTransactionReport,
+  fetchReceptionDashboard,
+  fetchReceptionRegistrationTrend,
+  fetchReceptionAppointmentStatus,
+  fetchReceptionCheckinAnalytics,
+  fetchReceptionQueuePerformance,
+  fetchReceptionRegister,
+  fetchReceptionActivityLog,
+  fetchReceptionSummary,
 } from "../services/reports.service";
 
 // ─── Query Key Factories ────────────────────────────────────────────────────
@@ -602,6 +610,72 @@ export function useAccountantTransactionReport(params?: { fromDate?: string; toD
   return useQuery({
     queryKey: [...reportKeys.all, "accountant-transaction-report", params] as const,
     queryFn: () => fetchAccountantTransactionReport(params),
+    staleTime: 60_000,
+  });
+}
+
+// ─── Reception Operational Reports Hooks (/api/v1/reception/reports/**) ─────
+
+export function useReceptionDashboard(params?: { date?: string }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "reception-dashboard", params] as const,
+    queryFn: () => fetchReceptionDashboard(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useReceptionRegistrationTrend(params?: { fromDate?: string; toDate?: string }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "reception-registration-trend", params] as const,
+    queryFn: () => fetchReceptionRegistrationTrend(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useReceptionAppointmentStatus(params?: { date?: string }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "reception-appointment-status", params] as const,
+    queryFn: () => fetchReceptionAppointmentStatus(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useReceptionCheckinAnalytics(params?: { date?: string }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "reception-checkin-analytics", params] as const,
+    queryFn: () => fetchReceptionCheckinAnalytics(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useReceptionQueuePerformance(params?: { date?: string }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "reception-queue-performance", params] as const,
+    queryFn: () => fetchReceptionQueuePerformance(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useReceptionRegister(params?: { fromDate?: string; toDate?: string; page?: number; size?: number }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "reception-register", params] as const,
+    queryFn: () => fetchReceptionRegister(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useReceptionActivityLog(params?: { fromDate?: string; toDate?: string; page?: number; size?: number }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "reception-activity-log", params] as const,
+    queryFn: () => fetchReceptionActivityLog(params),
+    staleTime: 60_000,
+  });
+}
+
+export function useReceptionSummary(params?: { date?: string }) {
+  return useQuery({
+    queryKey: [...reportKeys.all, "reception-summary", params] as const,
+    queryFn: () => fetchReceptionSummary(params),
     staleTime: 60_000,
   });
 }

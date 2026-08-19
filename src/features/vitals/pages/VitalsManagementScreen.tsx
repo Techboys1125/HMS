@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Activity,
   Heart,
@@ -24,6 +25,7 @@ import { Pagination } from "../../../common/components/Pagination";
 import type { AppointmentRecord } from "../../appointments";
 import { toDisplayStatus } from "../../appointments/services/appointment.service";
 import { vitalsService } from "../services/vitals.service";
+import { QUEUE_QUERY_KEY } from "../../opd/hooks/useQueue";
 import type {
   RecordedVitalsData,
   NurseWaitingPatient,
@@ -1126,6 +1128,7 @@ export function RecordPatientVitalsScreen({
   initialViewMode = "center",
 }: Props) {
   const { can } = usePermissions();
+  const queryClient = useQueryClient();
   const [appointments, setAppointments] = useState<AppointmentRecord[]>([]);
   const [selectedAptId, setSelectedAptId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"center" | "record" | "details">(
@@ -1388,12 +1391,10 @@ export function RecordPatientVitalsScreen({
   };
 
   const handleMarkPatientReady = async () => {
-    // Nurse API (POST /nurse/appointments/{id}/vitals) already transitions
-    // status to WAITING_FOR_DOCTOR_CALL on the backend.
-    // Reload the worklist so the UI uses that persisted status.
     await loadWaitingAppointments();
     setSelectedAptId(null);
     setViewMode("center");
+    queryClient.invalidateQueries({ queryKey: QUEUE_QUERY_KEY });
   };
 
   const handleResetFilters = () => {

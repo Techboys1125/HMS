@@ -34,7 +34,7 @@ export function BillingHeader({
   const showGenerate =
     checkBillingPermission(role, "generate_invoice") && !isAdminReadOnly;
   const showExport =
-    checkBillingPermission(role, "export_reports") || isAdminReadOnly;
+    checkBillingPermission(role, "export_reports") && !isAdminReadOnly;
   const showDailyReport = checkBillingPermission(role, "view_daily_report");
   const showPaymentsLedger = checkBillingPermission(role, "view_history");
 
@@ -108,7 +108,7 @@ export function BillingHeader({
         {showExport && !showGenerate && (
           <button
             onClick={
-              onExportReport || (() => alert("Exporting Billing Report..."))
+              onExportReport || (() => console.log("Exporting Billing Report..."))
             }
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95 cursor-pointer"
             style={{ fontFamily: PP }}

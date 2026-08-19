@@ -339,41 +339,23 @@ export const consultationService = {
       // Complete appointment using dedicated doctor endpoint & update status to COMPLETED
       if (appointmentId) {
         try {
-          const latestAppointment =
-            await appointmentsApi.getAppointmentById(appointmentId);
-          const currentStatus =
-            latestAppointment?.data?.status;
-
-          if (currentStatus !== "COMPLETED") {
-            if (currentStatus !== "IN_CONSULTATION") {
-              try {
-                await appointmentsApi.updateAppointmentStatus(
-                  appointmentId,
-                  "IN_CONSULTATION",
-                );
-              } catch {
-                // May already be in consultation
-              }
-            }
+          try {
+            await consultationApi.completeAppointment(appointmentId);
+          } catch {
             try {
-              await consultationApi.completeAppointment(appointmentId);
-            } catch (compErr: unknown) {
-              const msg =
-                compErr instanceof Error
-                  ? compErr.message
-                  : String(compErr || "");
-              if (!msg.includes("COMPLETED")) {
-                try {
-                  await appointmentsApi.updateAppointmentStatus(
-                    appointmentId,
-                    "COMPLETED",
-                    "OPD consultation completed",
-                  );
-                } catch {
-                  // Ignore if already completed in backend
-                }
-              }
+              await appointmentsApi.doctorCompleteConsultation(appointmentId);
+            } catch {
+              // Fallback
             }
+          }
+          try {
+            await appointmentsApi.updateAppointmentStatus(
+              appointmentId,
+              "COMPLETED",
+              "OPD consultation completed",
+            );
+          } catch {
+            // Ignore if backend already set COMPLETED
           }
         } catch (aptErr) {
           console.warn(
@@ -384,7 +366,6 @@ export const consultationService = {
       }
 
       consultationStoreActions.setStatus("COMPLETED");
-      consultationStoreActions.reset();
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to finalize consultation";
@@ -411,7 +392,7 @@ export const consultationService = {
         throw new Error("Consultation details not found");
       }
 
-      const cnsRecord = consultation;
+      const cnsRecord = consultation as Record<string, any>;
 
       const encounterId = cnsRecord.encounterId || `ENC-${consultationId}`;
 
@@ -443,29 +424,45 @@ export const consultationService = {
         : cnsRecord.vitals;
 
       const fullRecord: ConsultationRecord = {
-        ...cnsRecord,
+        id: String(cnsRecord.id || consultationId),
+        appointmentId: Number(cnsRecord.appointmentId || consultationId),
+        tokenNo: String(cnsRecord.tokenNo || cnsRecord.token || ""),
+        patientName: String(cnsRecord.patientName || cnsRecord.patient?.name || "Patient"),
+        mrn: String(cnsRecord.mrn || cnsRecord.patient?.mrn || ""),
+        age: Number(cnsRecord.age || cnsRecord.patient?.age || 0),
+        gender: (cnsRecord.gender || cnsRecord.patient?.gender || "Other") as "Male" | "Female" | "Other",
+        phone: String(cnsRecord.phone || cnsRecord.patient?.contact || ""),
+        doctor: String(cnsRecord.doctor || cnsRecord.doctorName || ""),
+        department: String(cnsRecord.department || cnsRecord.departmentName || ""),
+        appointmentTime: String(cnsRecord.appointmentTime || cnsRecord.checkInTime || ""),
+        visitType: (cnsRecord.visitType || "First Visit") as "First Visit" | "Follow-up",
+        status: (cnsRecord.status || "IN_CONSULTATION") as any,
+        chiefComplaint: String(cnsRecord.chiefComplaint || ""),
+        opdRoom: String(cnsRecord.opdRoom || ""),
+        date: String(cnsRecord.date || new Date().toISOString().split("T")[0]),
         vitals: normalizedVitals,
         finalDiagnosis:
           diagnoses.length > 0
             ? diagnoses[0].diagnosisName
-            : cnsRecord.finalDiagnosis,
+            : cnsRecord.finalDiagnosis || "",
         icdCode:
           diagnoses.length > 0
             ? `${diagnoses[0].diagnosisCode} — ${diagnoses[0].diagnosisName}`
-            : cnsRecord.icdCode,
+            : cnsRecord.icdCode || "",
         medicines:
           prescription && prescription.medications
             ? prescription.medications.map(
                 (med: Record<string, unknown>, idx: number) => ({
                   id: String(med.id || idx),
-                  name: med.medicineName || med.name,
-                  dosage: med.strength || med.dosage,
-                  frequency: med.frequencyDisplay || med.frequency,
+                  name: String(med.medicineName || med.name || ""),
+                  dosage: String(med.strength || med.dosage || ""),
+                  frequency: String(med.frequencyDisplay || med.frequency || ""),
                   duration: `${med.durationValue || 7} Days`,
-                  instructions: med.instructions || "",
+                  instructions: String(med.instructions || ""),
                 }),
               )
-            : cnsRecord.medicines,
+            : cnsRecord.medicines || [],
+        ...cnsRecord,
       };
 
       consultationStoreActions.setConsultation(fullRecord);

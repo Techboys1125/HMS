@@ -66,12 +66,20 @@ const BILLING_PREFIXES: NavId[] = [
   "/receptionist/billing",
 ];
 
+const PATIENT_PROFILE_PREFIXES: NavId[] = [
+  "/patients/profile/",
+];
+
 function resolvePathToNavId(pathname: string): NavId {
   const exact = exactPathToNavId[pathname];
   if (exact) return exact;
 
   for (const prefix of BILLING_PREFIXES) {
     if (pathname.startsWith(prefix)) return "billing";
+  }
+
+  for (const prefix of PATIENT_PROFILE_PREFIXES) {
+    if (pathname.startsWith(prefix)) return "patients";
   }
 
   return "dashboard";
@@ -117,15 +125,13 @@ const navIdToPath = (role: Role, navId: NavId): string => {
       case "my-schedule":
         return ROUTES.DOCTOR_MY_SCHEDULE;
       case "patients":
-        return ROUTES.DOCTOR_PATIENTS;
+        return ROUTES.PATIENTS;
       case "appointments":
         return ROUTES.DOCTOR_APPOINTMENTS;
       case "my-queue":
         return ROUTES.DOCTOR_MY_QUEUE;
       case "consultation":
         return ROUTES.DOCTOR_CONSULTATION;
-      case "prescriptions":
-        return ROUTES.DOCTOR_PRESCRIPTIONS;
       case "medical-history":
         return ROUTES.DOCTOR_MEDICAL_RECORDS;
       case "doctors":
@@ -148,6 +154,7 @@ const navIdToPath = (role: Role, navId: NavId): string => {
     patients: ROUTES.PATIENTS,
     doctors: ROUTES.DOCTORS,
     appointments: ROUTES.APPOINTMENTS,
+    "book-appointment": ROUTES.BOOK_APPOINTMENT,
     checkin: ROUTES.QUEUE,
     consultation: ROUTES.CONSULTATION,
     vitals: ROUTES.VITALS,

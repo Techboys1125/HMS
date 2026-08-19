@@ -40,7 +40,9 @@ import {
   AppointmentManagementCenterScreen,
   BookAppointmentScreen,
   QueueManagementScreen,
+  PatientCheckInScreen,
 } from "../../features/appointments";
+import { AppointmentDetailPage } from "../../features/appointments/pages/AppointmentDetailPage";
 import { RecordPatientVitalsScreen } from "../../features/vitals";
 import {
   OpdConsultationCenterScreen,
@@ -415,6 +417,22 @@ export function AppRoutes() {
           element={
             <RouteGuard requiredPermission="APPOINTMENT_CREATE">
               <BookAppointmentScreen />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.APPOINTMENT_DETAILS}
+          element={
+            <RouteGuard requiredPermission="APPOINTMENT_VIEW">
+              <AppointmentDetailPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/appointments/checkin"
+          element={
+            <RouteGuard requiredPermission="APPOINTMENT_VIEW">
+              <PatientCheckInScreen />
             </RouteGuard>
           }
         />

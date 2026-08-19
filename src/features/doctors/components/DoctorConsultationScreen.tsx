@@ -183,6 +183,11 @@ export function DoctorConsultationScreen({
     setCompleteMsg(null);
     try {
       await appointmentService.doctorCompleteConsultation(appointmentId);
+      try {
+        await appointmentService.updateAppointmentStatus(appointmentId, "COMPLETED");
+      } catch {
+        // ignore fallback
+      }
 
       setCompleteMsg(
         "Consultation completed. Encounter and appointment finalized. Patient is now available for billing.",

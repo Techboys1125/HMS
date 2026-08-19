@@ -261,12 +261,21 @@ export const appointmentsApi = {
     appointmentId: string | number,
   ): Promise<ApiResponse<QueueActionResponse>> => {
     try {
+      // Primary: backend queue endpoint
       const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
-        `/api/v1/doctor/appointments/${appointmentId}/start`,
+        `/api/v1/queue/${appointmentId}/start-consultation`,
       );
       return response.data;
     } catch (error: unknown) {
-      return handleApiError(error);
+      // Fallback: doctor-specific endpoint
+      try {
+        const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
+          `/api/v1/doctor/appointments/${appointmentId}/start`,
+        );
+        return response.data;
+      } catch {
+        return handleApiError(error);
+      }
     }
   },
 
@@ -275,11 +284,29 @@ export const appointmentsApi = {
   ): Promise<ApiResponse<QueueActionResponse>> => {
     try {
       const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
-        `/api/v1/doctor/appointments/${appointmentId}/complete`,
+        `/api/v1/queue/${appointmentId}/complete-consultation`,
       );
       return response.data;
-    } catch (error: unknown) {
-      return handleApiError(error);
+    } catch {
+      try {
+        const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
+          `/api/v1/doctor/appointments/${appointmentId}/complete`,
+        );
+        return response.data;
+      } catch {
+        try {
+          const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
+            `/api/v1/appointments/${appointmentId}/status`,
+            { status: "COMPLETED", reason: "Consultation completed" },
+          );
+          return response.data;
+        } catch {
+          const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
+            `/api/v1/appointments/${appointmentId}/complete`,
+          );
+          return response.data;
+        }
+      }
     }
   },
 
@@ -453,6 +480,143 @@ export const appointmentsApi = {
     try {
       const url = `/api/v1/doctors/${doctorId}/availability?date=${encodeURIComponent(date)}`;
       const response = await apiClient.get<ApiResponse<{ slots: unknown[] }>>(url);
+      return response.data;
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  // ── Queue Management APIs ──
+
+  /** PATCH /api/v1/queue/{appointmentId}/call – Call a specific patient */
+  queueCallPatient: async (
+    appointmentId: string | number,
+  ): Promise<ApiResponse<QueueActionResponse>> => {
+    try {
+      const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
+        `/api/v1/queue/${appointmentId}/call`,
+      );
+      return response.data;
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /** PATCH /api/v1/queue/{appointmentId}/recall – Recall a called patient */
+  queueRecallPatient: async (
+    appointmentId: string | number,
+  ): Promise<ApiResponse<QueueActionResponse>> => {
+    try {
+      const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
+        `/api/v1/queue/${appointmentId}/recall`,
+      );
+      return response.data;
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /** PATCH /api/v1/queue/{appointmentId}/start-consultation – Start consultation */
+  queueStartConsultation: async (
+    appointmentId: string | number,
+  ): Promise<ApiResponse<QueueActionResponse>> => {
+    try {
+      const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
+        `/api/v1/queue/${appointmentId}/start-consultation`,
+      );
+      return response.data;
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /** PATCH /api/v1/queue/{appointmentId}/complete-consultation – Complete consultation */
+  queueCompleteConsultation: async (
+    appointmentId: string | number,
+  ): Promise<ApiResponse<QueueActionResponse>> => {
+    try {
+      const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
+        `/api/v1/queue/${appointmentId}/complete-consultation`,
+      );
+      return response.data;
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /** PATCH /api/v1/queue/{appointmentId}/skip – Skip a patient */
+  queueSkipPatient: async (
+    appointmentId: string | number,
+    reason?: string,
+  ): Promise<ApiResponse<QueueActionResponse>> => {
+    try {
+      const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
+        `/api/v1/queue/${appointmentId}/skip`,
+        reason ? { reason } : {},
+      );
+      return response.data;
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /** PATCH /api/v1/queue/{appointmentId}/requeue – Requeue a skipped patient */
+  queueRequeuePatient: async (
+    appointmentId: string | number,
+  ): Promise<ApiResponse<QueueActionResponse>> => {
+    try {
+      const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
+        `/api/v1/queue/${appointmentId}/requeue`,
+      );
+      return response.data;
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /** POST /api/v1/queue/{appointmentId}/transfer – Transfer to another doctor */
+  queueTransferPatient: async (
+    appointmentId: string | number,
+    targetDoctorId: string | number,
+    reason?: string,
+  ): Promise<ApiResponse<QueueActionResponse>> => {
+    try {
+      const response = await apiClient.post<ApiResponse<QueueActionResponse>>(
+        `/api/v1/queue/${appointmentId}/transfer`,
+        { targetDoctorId, reason },
+      );
+      return response.data;
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /** DELETE /api/v1/queue/{appointmentId} – Remove from queue */
+  queueRemovePatient: async (
+    appointmentId: string | number,
+    reason?: string,
+  ): Promise<ApiResponse<QueueActionResponse>> => {
+    try {
+      const url = reason
+        ? `/api/v1/queue/${appointmentId}?reason=${encodeURIComponent(reason)}`
+        : `/api/v1/queue/${appointmentId}`;
+      const response = await apiClient.delete<ApiResponse<QueueActionResponse>>(url);
+      return response.data;
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /** PATCH /api/v1/reception/appointments/{appointmentId}/no-show – Mark no-show */
+  receptionMarkNoShow: async (
+    appointmentId: string | number,
+    reason?: string,
+  ): Promise<ApiResponse<AppointmentRecord>> => {
+    try {
+      const response = await apiClient.patch<ApiResponse<AppointmentRecord>>(
+        `/api/v1/reception/appointments/${appointmentId}/no-show`,
+        reason ? { reason } : {},
+      );
       return response.data;
     } catch (error: unknown) {
       return handleApiError(error);

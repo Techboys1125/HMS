@@ -91,6 +91,12 @@ export function StartConsultationPage({
 
   const { createBill } = useInvoice();
 
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const triggerToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
   const activeEncounterId =
     selectedEncounter?.encounterId || selectedConsultation?.encounterId;
   const activeAppointmentId =
@@ -365,6 +371,7 @@ export function StartConsultationPage({
           );
         } catch (diagErr) {
           console.warn("Non-blocking diagnosis save warning:", diagErr);
+          triggerToast("Warning: Diagnosis could not be saved. Please retry.");
         }
       }
       if (activePrescriptionId) {
@@ -372,6 +379,7 @@ export function StartConsultationPage({
           await saveMedications(activePrescriptionId, formData.medicines);
         } catch (medErr) {
           console.warn("Non-blocking medication save warning:", medErr);
+          triggerToast("Warning: Prescription could not be saved. Please retry.");
         }
       }
       if (selectedConsultation?.id) {
@@ -454,7 +462,9 @@ export function StartConsultationPage({
       setShowToast(false);
       setShowCompleteModal(true);
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to finalize consultation";
       console.error("Error finalizing consultation:", err);
+      triggerToast(errorMessage);
       setShowToast(false);
       setIsFinalizing(false);
     }
@@ -490,6 +500,15 @@ export function StartConsultationPage({
               Encounter records saved & finalized.
             </div>
           </div>
+        </div>
+      )}
+      {toastMsg && !showToast && (
+        <div
+          className="fixed top-5 right-5 z-50 bg-red-600 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4"
+          style={{ fontFamily: PP }}
+        >
+          <AlertCircle size={20} />
+          <div className="font-bold text-sm">{toastMsg}</div>
         </div>
       )}
 

@@ -48,6 +48,7 @@ export interface DoctorRecord {
 
 export interface DoctorAppointment {
   id: string;
+  appointmentNumber?: string;
   patientId: string;
   patientName: string;
   gender: string;

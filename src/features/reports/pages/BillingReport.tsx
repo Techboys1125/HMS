@@ -1043,7 +1043,7 @@ export function BillingReportScreen({
                         Share of paid, pending, partial & cancelled invoices
                       </p>
                     </div>
-                    <PieChart className="w-4 h-4 text-[#009688]" />
+                    <PieChartIcon className="w-4 h-4 text-[#009688]" />
                   </div>
                   <div className="h-60">
                     {paymentStatusData.length > 0 && (

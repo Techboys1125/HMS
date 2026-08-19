@@ -33,7 +33,8 @@ export type NavId =
   | "opd"
   | "queue-status"
   | "my-schedule"
-  | "my-queue";
+  | "my-queue"
+  | "book-appointment";
 
 export type Role =
   | "super-admin"

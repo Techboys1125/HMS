@@ -88,8 +88,15 @@ export function AppointmentManagementCenterScreen({
     deptFilter: string;
     visitTypeFilter: string;
   };
-  type FilterAction = { type: "SET_FIELD"; field: keyof FilterState; value: string };
-  const filterReducer = (state: FilterState, action: FilterAction): FilterState => ({
+  type FilterAction = {
+    type: "SET_FIELD";
+    field: keyof FilterState;
+    value: string;
+  };
+  const filterReducer = (
+    state: FilterState,
+    action: FilterAction,
+  ): FilterState => ({
     ...state,
     [action.field]: action.value,
   });
@@ -121,6 +128,7 @@ export function AppointmentManagementCenterScreen({
 
   // Toast State
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<"success" | "error">("success");
 
   // Drawer States
   const [showBookDrawer, setShowBookDrawer] = useState(false);
@@ -139,15 +147,26 @@ export function AppointmentManagementCenterScreen({
   const [checkInConfirmationToken, setCheckInConfirmationToken] =
     useState<string>("");
 
-  const triggerToast = (msg: string) => {
+  const triggerToast = (msg: string, type: "success" | "error" = "success") => {
     setToastMsg(msg);
+    setToastType(type);
     setTimeout(() => setToastMsg(null), 3000);
   };
 
   // --- ROLE-BASED APPOINTMENT FILTERING ---
   const roleAppointments = useMemo(() => {
     if (userRole === "Doctor") {
-      return appointments;
+      return appointments.filter((a) => {
+        const st = String(a.status || "").toUpperCase();
+        return (
+          st !== "WAITING_FOR_VITALS" &&
+          st !== "WAITING FOR VITALS" &&
+          st !== "CHECKED_IN" &&
+          st !== "CHECKED-IN" &&
+          st !== "BOOKED" &&
+          st !== "WAITING"
+        );
+      });
     }
     return appointments;
   }, [appointments, userRole]);
@@ -219,12 +238,19 @@ export function AppointmentManagementCenterScreen({
             (apt.status === "In Consultation" || apt.status === "In Progress"));
         if (!matchesStatus) return false;
       }
-      if (filters.doctorFilter !== "All" && apt.doctorName !== filters.doctorFilter)
+      if (
+        filters.doctorFilter !== "All" &&
+        apt.doctorName !== filters.doctorFilter
+      )
         return false;
-      if (filters.deptFilter !== "All" && apt.department !== filters.deptFilter) return false;
+      if (filters.deptFilter !== "All" && apt.department !== filters.deptFilter)
+        return false;
       if (dateFilter === "Today" && apt.appointmentDate !== todayDateStr)
         return false;
-      if (filters.visitTypeFilter !== "All" && apt.visitType !== filters.visitTypeFilter)
+      if (
+        filters.visitTypeFilter !== "All" &&
+        apt.visitType !== filters.visitTypeFilter
+      )
         return false;
       return true;
     });
@@ -416,8 +442,15 @@ export function AppointmentManagementCenterScreen({
     >
       {/* Toast Notification */}
       {toastMsg && (
-        <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200">
-          <CheckCircle2 size={16} className="text-[#66BB6A]" />
+        <div
+          className={`fixed top-5 right-5 z-50 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${toastType === "error" ? "bg-[#EF4444]" : "bg-[#111827]"}`}
+        >
+          <CheckCircle2
+            size={16}
+            className={
+              toastType === "error" ? "text-red-200" : "text-[#66BB6A]"
+            }
+          />
           <span>{toastMsg}</span>
         </div>
       )}
@@ -706,6 +739,7 @@ export function AppointmentManagementCenterScreen({
                     <option value="In Consultation">In Consultation</option>
                     <option value="Completed">Completed</option>
                     <option value="Cancelled">Cancelled</option>
+                    <option value="No Show">No Show</option>
                   </select>
                 </div>
 
@@ -715,7 +749,9 @@ export function AppointmentManagementCenterScreen({
                     <span className="text-slate-500 font-medium">Doctor:</span>
                     <select
                       value={filters.doctorFilter}
-                      onChange={(e) => setFilter("doctorFilter", e.target.value)}
+                      onChange={(e) =>
+                        setFilter("doctorFilter", e.target.value)
+                      }
                       className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
                     >
                       <option value="All">All Doctors</option>
@@ -736,7 +772,10 @@ export function AppointmentManagementCenterScreen({
                     onChange={(e) => {
                       const selectedDeptVal = e.target.value;
                       setFilter("deptFilter", selectedDeptVal);
-                      if (selectedDeptVal !== "All" && filters.doctorFilter !== "All") {
+                      if (
+                        selectedDeptVal !== "All" &&
+                        filters.doctorFilter !== "All"
+                      ) {
                         const doctorInDept = appointments.some(
                           (a) =>
                             a.department === selectedDeptVal &&
@@ -765,7 +804,9 @@ export function AppointmentManagementCenterScreen({
                   </span>
                   <select
                     value={filters.visitTypeFilter}
-                    onChange={(e) => setFilter("visitTypeFilter", e.target.value)}
+                    onChange={(e) =>
+                      setFilter("visitTypeFilter", e.target.value)
+                    }
                     className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
                   >
                     <option value="All">All Visit Types</option>
@@ -837,6 +878,12 @@ export function AppointmentManagementCenterScreen({
                   count: roleAppointments.filter(
                     (a) => a.status === "Cancelled",
                   ).length,
+                },
+                {
+                  id: "No Show",
+                  label: "No Show",
+                  count: roleAppointments.filter((a) => a.status === "No Show")
+                    .length,
                 },
               ].map((tab) => (
                 <button
@@ -1339,14 +1386,6 @@ export function AppointmentManagementCenterScreen({
 
                             <td className="px-4 py-3.5 text-right">
                               <div className="flex items-center justify-end gap-1.5">
-                                <button
-                                  onClick={() => setDetailsApt(apt)}
-                                  className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-blue-50 text-[#0D47A1] transition-colors"
-                                  title="View Appointment Details"
-                                >
-                                  <Eye size={14} />
-                                </button>
-
                                 {userRole === "Nurse" ? (
                                   <div className="flex items-center justify-end gap-1.5">
                                     <button
@@ -1378,34 +1417,49 @@ export function AppointmentManagementCenterScreen({
                                   </button>
                                 ) : (
                                   <>
+                                    <button
+                                      onClick={() => setDetailsApt(apt)}
+                                      className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-blue-50 text-[#0D47A1] transition-colors"
+                                      title="View Appointment Details"
+                                    >
+                                      <Eye size={14} />
+                                    </button>
                                     {(apt.status === "Scheduled" ||
                                       apt.status === "Booked" ||
-                                      apt.status === "BOOKED") && (
-                                      <button
-                                        onClick={() =>
-                                          handleCheckInPatient(apt)
-                                        }
-                                        className="px-2 py-1 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-1 shadow-xs bg-[#0D47A1] text-white hover:bg-[#0c3d8a] cursor-pointer"
-                                        title="Check-In Patient"
-                                      >
-                                        <CheckCircle2 size={12} /> Check-In
-                                      </button>
-                                    )}
-
-                                    {apt.status !== "Cancelled" &&
-                                      apt.status !== "Completed" &&
-                                      apt.status !== "In Consultation" && (
+                                      apt.status === "BOOKED" ||
+                                      apt.status === "Confirmed" ||
+                                      apt.status === "CONFIRMED") && (
                                         <button
-                                          onClick={() => setRescheduleApt(apt)}
-                                          className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors"
-                                          title="Reschedule Appointment"
+                                          onClick={() =>
+                                            handleCheckInPatient(apt)
+                                          }
+                                          className="px-2 py-1 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-1 shadow-xs bg-[#0D47A1] text-white hover:bg-[#0c3d8a] cursor-pointer"
+                                          title="Check-In Patient"
                                         >
-                                          <CalendarIcon size={14} />
+                                          <CheckCircle2 size={12} /> Check-In
                                         </button>
                                       )}
 
-                                    {apt.status !== "Cancelled" &&
-                                      apt.status !== "Completed" && (
+                                    {(apt.status === "Booked" ||
+                                      apt.status === "Confirmed" ||
+                                      apt.status === "BOOKED" ||
+                                      apt.status === "CONFIRMED" ||
+                                      apt.status === "Scheduled") && (
+                                      <button
+                                        onClick={() => setRescheduleApt(apt)}
+                                        className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors"
+                                        title="Reschedule Appointment"
+                                      >
+                                        <CalendarIcon size={14} />
+                                      </button>
+                                    )}
+
+                                    {apt.status !== "Completed" &&
+                                      apt.status !== "Cancelled" &&
+                                      apt.status !== "No Show" &&
+                                      apt.status !== "COMPLETED" &&
+                                      apt.status !== "CANCELLED" &&
+                                      apt.status !== "NO_SHOW" && (
                                         <button
                                           onClick={() => setCancelApt(apt)}
                                           className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-red-50 text-[#EF4444] transition-colors"
@@ -1488,6 +1542,7 @@ export function AppointmentManagementCenterScreen({
           setDetailsApt(null);
           onStartConsultation?.(detailsApt || undefined);
         }}
+        onError={(msg) => triggerToast(msg, "error")}
         onCheckInSuccess={async (token) => {
           await refetch();
           setDetailsApt(null);

@@ -926,7 +926,7 @@ export function PatientReportScreen({
                       Gender Distribution
                     </span>
                     <div className="p-2 rounded-xl bg-indigo-50 text-[#0D47A1]">
-                      <PieChart className="w-4 h-4" />
+                      <PieChartIcon className="w-4 h-4" />
                     </div>
                   </div>
                   <div className="text-xs font-bold text-[#111827] mb-1">
@@ -1154,7 +1154,7 @@ export function PatientReportScreen({
                         Ratio of Male, Female, and Other registrations
                       </p>
                     </div>
-                    <PieChart className="w-4 h-4 text-[#009688]" />
+                    <PieChartIcon className="w-4 h-4 text-[#009688]" />
                   </div>
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">

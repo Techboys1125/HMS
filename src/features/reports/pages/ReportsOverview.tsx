@@ -599,7 +599,7 @@ export function AdminReportsDashboardScreen({
         category: "Financial",
         description:
           "Department-wise and method-wise billing collection efficiency and outstanding balance tracking.",
-        icon: PieChart as PieChartIcon,
+        icon: PieChartIcon,
         color: "#009688",
         bg: "#E0F2F1",
         lastGenerated: "Today, 05:30 PM",
@@ -1494,7 +1494,7 @@ export function AdminReportsDashboardScreen({
                         Percentage distribution across operational modules
                       </p>
                     </div>
-                    <PieChart className="w-4 h-4 text-[#009688]" />
+                    <PieChartIcon className="w-4 h-4 text-[#009688]" />
                   </div>
                   <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">

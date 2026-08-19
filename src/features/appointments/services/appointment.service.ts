@@ -26,21 +26,23 @@ export interface AppointmentPage<T> {
 
 export const STATUS_MAP: Record<string, AppointmentRecord["status"]> = {
   BOOKED: "Booked",
-  CONFIRMED: "Booked",
-  CHECKED_IN: "Waiting for Vitals",
+  CONFIRMED: "Confirmed",
+  CHECKED_IN: "Checked-In",
+  WAITING_FOR_VITALS: "Waiting for Vitals",
+  WAITING_FOR_DOCTOR: "Waiting for Doctor",
+  WAITING_FOR_DOCTOR_CALL: "Waiting for Doctor",
+  CALLED: "Called",
   IN_CONSULTATION: "In Consultation",
+  CONSULTATION_COMPLETED: "Consultation Completed",
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
-  NO_SHOW: "Cancelled",
-  RESCHEDULED: "Booked",
+  NO_SHOW: "No Show",
+  RESCHEDULED: "Rescheduled",
   WAITING: "Waiting",
-  WAITING_FOR_VITALS: "Waiting for Vitals",
-  WAITING_FOR_DOCTOR_CALL: "Waiting for Doctor",
   WAITING_FOR_CONSULTATION: "Waiting for Doctor",
   VITALS_DONE: "Waiting for Doctor",
   REGULAR: "Booked",
-  CALLED: "Called",
-  SCHEDULED: "Booked",
+  SCHEDULED: "Scheduled",
 };
 
 export const toDisplayStatus = (status?: string): AppointmentRecord["status"] =>
@@ -843,6 +845,52 @@ export const appointmentService = {
 
   async getBlockedStatuses(): Promise<string[]> {
     return ["CANCELLED", "NO_SHOW"];
+  },
+
+  // ── Queue Management Methods ──
+
+  async queueCallPatient(appointmentId: string | number) {
+    return appointmentsApi.queueCallPatient(appointmentId);
+  },
+
+  async queueRecallPatient(appointmentId: string | number) {
+    return appointmentsApi.queueRecallPatient(appointmentId);
+  },
+
+  async queueStartConsultation(appointmentId: string | number) {
+    return appointmentsApi.queueStartConsultation(appointmentId);
+  },
+
+  async queueCompleteConsultation(appointmentId: string | number) {
+    return appointmentsApi.queueCompleteConsultation(appointmentId);
+  },
+
+  async queueSkipPatient(appointmentId: string | number, reason?: string) {
+    return appointmentsApi.queueSkipPatient(appointmentId, reason);
+  },
+
+  async queueRequeuePatient(appointmentId: string | number) {
+    return appointmentsApi.queueRequeuePatient(appointmentId);
+  },
+
+  async queueTransferPatient(
+    appointmentId: string | number,
+    targetDoctorId: string | number,
+    reason?: string,
+  ) {
+    return appointmentsApi.queueTransferPatient(
+      appointmentId,
+      targetDoctorId,
+      reason,
+    );
+  },
+
+  async queueRemovePatient(appointmentId: string | number, reason?: string) {
+    return appointmentsApi.queueRemovePatient(appointmentId, reason);
+  },
+
+  async receptionMarkNoShow(appointmentId: string | number, reason?: string) {
+    return appointmentsApi.receptionMarkNoShow(appointmentId, reason);
   },
 };
 

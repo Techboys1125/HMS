@@ -100,17 +100,31 @@ export function PatientAppointmentsScreen({
                 ? dt.split("T")[1]?.substring(0, 5)
                 : a.startTime || a.time || "";
 
-              const doctorName =
-                a.doctor && typeof a.doctor === "object"
-                  ? a.doctor.name || a.doctor.fullName || "Doctor"
-                  : String(a.doctorName || a.doctor || "Doctor");
+              const doctorRaw = a.doctor;
+              let doctorName = "Doctor";
+              if (doctorRaw && typeof doctorRaw === "object" && doctorRaw !== null) {
+                doctorName =
+                  (doctorRaw as { name?: string; fullName?: string }).name ||
+                  (doctorRaw as { name?: string; fullName?: string }).fullName ||
+                  "Doctor";
+              } else if (typeof doctorRaw === "string" && doctorRaw.trim()) {
+                doctorName = doctorRaw.trim();
+              } else {
+                doctorName = String(a.doctorName || "Doctor");
+              }
 
-              const deptName =
-                a.department && typeof a.department === "object"
-                  ? a.department.departmentName ||
-                    a.department.name ||
-                    "General"
-                  : String(a.departmentName || a.department || "General");
+              const deptRaw = a.department;
+              let deptName = "General";
+              if (deptRaw && typeof deptRaw === "object" && deptRaw !== null) {
+                deptName =
+                  (deptRaw as { departmentName?: string; name?: string }).departmentName ||
+                  (deptRaw as { departmentName?: string; name?: string }).name ||
+                  "General";
+              } else if (typeof deptRaw === "string" && deptRaw.trim()) {
+                deptName = deptRaw.trim();
+              } else {
+                deptName = String(a.departmentName || "General");
+              }
 
               let formattedStatus: PatientAppointment["status"] = "Confirmed";
               const rawStatus = (
@@ -171,9 +185,9 @@ export function PatientAppointmentsScreen({
                 reason: a.reason || "Consultation",
                 notes: a.symptoms || a.notes || "",
                 consultationStatus: rawStatus,
-                prescriptionStatus: "Pending",
-                billingStatus: "Paid",
-                billingAmount: "$50.00",
+                prescriptionStatus: a.prescriptionStatus || "Pending",
+                billingStatus: a.billingStatus || a.paymentStatus || "Pending",
+                billingAmount: a.billingAmount || "$50.00",
               };
             },
           );

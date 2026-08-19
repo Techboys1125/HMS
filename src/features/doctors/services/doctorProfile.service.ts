@@ -35,6 +35,7 @@ export const toDoctorAppointment = (
   const patient = a.patient;
   return {
     id: String(a.id ?? a.appointmentNumber ?? ""),
+    appointmentNumber: a.appointmentNumber || String(a.id ?? ""),
     patientId: String(a.patientId ?? a.mrn ?? ""),
     patientName: a.patientName || patient?.fullName || "Unknown",
     gender: patient?.gender || a.patientGender || "N/A",

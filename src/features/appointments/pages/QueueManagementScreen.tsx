@@ -29,6 +29,15 @@ export function QueueManagementScreen({
   const canCheckIn = can("APPOINTMENT_CHECK_IN") || can("CHECKIN_CREATE");
   const canRecordVitals = can("VITALS_CREATE");
 
+  // Toast State
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<"success" | "error">("success");
+  const triggerToast = (msg: string, type: "success" | "error" = "success") => {
+    setToastMsg(msg);
+    setToastType(type);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
   // Global Search state
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -119,9 +128,10 @@ export function QueueManagementScreen({
       if (onCheckInClick)
         onCheckInClick(genToken, apt.patientMrn || apt.mrn || "");
     } catch (err) {
-      alert(
+      triggerToast(
         (err instanceof Error ? err.message : null) ||
           "Check-in is only allowed on the appointment date.",
+        "error",
       );
     }
   };
@@ -214,14 +224,20 @@ export function QueueManagementScreen({
     setSelectedType("All Types");
   };
 
-  const handleMarkNoShow = (apt: AppointmentRecord) => {
-    setQueueItems((prev) =>
-      prev.map((i) =>
-        i.id === apt.id
-          ? { ...i, status: "No Show" as AppointmentRecord["status"] }
-          : i,
-      ),
-    );
+  const handleMarkNoShow = async (apt: AppointmentRecord) => {
+    try {
+      await appointmentService.receptionMarkNoShow(apt.id, "Patient did not arrive");
+      setQueueItems((prev) =>
+        prev.map((i) =>
+          i.id === apt.id
+            ? { ...i, status: "No Show" as AppointmentRecord["status"] }
+            : i,
+        ),
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to mark no-show";
+      triggerToast(msg, "error");
+    }
     setNoShowDialogApt(null);
   };
 
@@ -256,6 +272,14 @@ export function QueueManagementScreen({
       className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9]"
       style={{ fontFamily: RB }}
     >
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className={`fixed top-5 right-5 z-50 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${toastType === "error" ? "bg-[#EF4444]" : "bg-[#111827]"}`}>
+          <AlertCircle size={16} className={toastType === "error" ? "text-red-200" : "text-[#66BB6A]"} />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
       {/* ── HEADER & BREADCRUMBS & PRIMARY ACTIONS ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm">
         <div>

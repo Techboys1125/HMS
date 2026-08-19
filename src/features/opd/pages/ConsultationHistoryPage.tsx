@@ -30,6 +30,12 @@ export function ConsultationHistoryPage({
   const currentRole =
     overrideRole || (userRole ? userRole.toLowerCase() : "doctor");
 
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const triggerToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
   const isReadOnly =
     currentRole === "admin" ||
     currentRole === "nurse" ||
@@ -78,8 +84,10 @@ export function ConsultationHistoryPage({
         
         setHistoricalConsultations(mapped);
       } catch (err) {
+        const msg = err instanceof Error ? err.message : "Failed to fetch consultation history";
         console.error("Failed to fetch consultation history:", err);
-        setError("Failed to load consultation history");
+        setError(msg);
+        triggerToast(msg);
       } finally {
         setIsLoading(false);
       }

@@ -508,16 +508,32 @@ export interface ApiPatientFamilyMember {
  */
 export interface ApiPatientAppointment {
   id: string | number;
+  appointmentId?: string | number;
   date?: string;
   time?: string;
   doctorId?: number | string;
-  doctor?: string;
-  department?: string;
+  doctor?: string | { name?: string; fullName?: string; id?: number | string };
+  doctorName?: string;
+  department?: string | { departmentName?: string; name?: string };
+  departmentName?: string;
   specialty?: string;
   visitType?: string;
   status?: string;
+  appointmentStatus?: string;
   reason?: string;
   notes?: string;
+  roomLocation?: string;
+  billingStatus?: string;
+  paymentStatus?: string;
+  billingAmount?: string;
+  consultationStatus?: string;
+  prescriptionStatus?: string;
+  symptoms?: string;
+  mrn?: string;
+  patientMrn?: string;
+  appointmentDate?: string;
+  startTime?: string;
+  visitDateTime?: string;
 }
 
 /**

@@ -61,6 +61,16 @@ export const queueApi = {
       const { doctorId, departmentId, date, status, search, page = 0, size = 50 } = params;
 
       if (doctorId) {
+        const query = new URLSearchParams();
+        if (date) query.set("date", date);
+        if (status) query.set("status", status);
+        if (search) query.set("search", search);
+        if (page !== undefined) query.set("page", String(page));
+        if (size !== undefined) query.set("size", String(size));
+
+        const qs = query.toString();
+        const url = `/api/v1/doctors/${doctorId}/queue${qs ? `?${qs}` : ""}`;
+
         const response = await apiClient.get<{
           data?: {
             summary?: Record<string, number>;
@@ -70,13 +80,17 @@ export const queueApi = {
           summary?: Record<string, number>;
           content?: QueueItem[];
           page?: Record<string, unknown>;
-        }>(`/api/v1/doctors/${doctorId}/queue`);
+        }>(url);
 
         const payload = response.data;
         const data = payload?.data || payload;
         if (!data) return emptyResult;
 
-        const content = Array.isArray(data.content) ? data.content : [];
+        const content = Array.isArray(data.content)
+          ? data.content
+          : Array.isArray(data)
+            ? data
+            : [];
         const summaryRaw = (data as Record<string, unknown>).summary as Record<string, number> || {};
 
         return {

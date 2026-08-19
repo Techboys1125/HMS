@@ -55,7 +55,7 @@ export function mapApiPatientToPatientRecord(
     knownAllergies: patient.knownAllergies || patient.allergies || [],
     chronicDiseases: patient.chronicDiseases || [],
     specialNotes: patient.specialNotes || "",
-    assignedDoctor: patient.assignedDoctor || "",
+    assignedDoctor: extractDoctorName(p) || patient.assignedDoctor || "",
     registrationDate: patient.registrationDate || patient.createdAt || "",
     version: patient.version ?? 1,
     updatedAt: patient.updatedAt || "",
@@ -68,6 +68,72 @@ export function mapApiPatientToPatientRecord(
         }
       : undefined,
   };
+}
+
+export function extractDoctorName(
+  p: unknown,
+  doctorMap?: Record<string | number, string>,
+): string {
+  if (!p || typeof p !== "object") return "";
+  const obj = p as Record<string, unknown>;
+
+  const checkString = (val: unknown): string => {
+    if (!val) return "";
+    if (typeof val === "string" && isNaN(Number(val.trim())) && val.trim().length > 1) {
+      return val.trim();
+    }
+    if (typeof val === "object") {
+      const d = val as Record<string, unknown>;
+      const name = String(d.fullName || d.name || d.doctorName || d.nameEn || "").trim();
+      if (name) return name;
+    }
+    return "";
+  };
+
+  const directName =
+    checkString(obj.assignedDoctor) ||
+    checkString(obj.doctorName) ||
+    checkString(obj.primaryDoctorName) ||
+    checkString(obj.assignedDoctorName) ||
+    checkString(obj.primaryDoctor) ||
+    checkString(obj.attendingDoctor) ||
+    checkString(obj.doctor);
+
+  if (directName) return directName;
+
+  const extractId = (val: unknown): string | number | null => {
+    if (!val) return null;
+    if (typeof val === "number" || (typeof val === "string" && !isNaN(Number(val.trim())))) {
+      return val;
+    }
+    if (typeof val === "object") {
+      const d = val as Record<string, unknown>;
+      return (d.id || d.doctorId || d.userId || null) as string | number | null;
+    }
+    return null;
+  };
+
+  const id =
+    extractId(obj.assignedDoctorId) ||
+    extractId(obj.doctorId) ||
+    extractId(obj.primaryDoctorId) ||
+    extractId(obj.assignedDoctor) ||
+    extractId(obj.doctor) ||
+    extractId(obj.primaryDoctor);
+
+  if (id != null && doctorMap) {
+    const rawId = String(id);
+    const cleanedId = rawId.replace(/^DOC-/, "");
+    const resolvedName =
+      doctorMap[id] ||
+      doctorMap[rawId] ||
+      doctorMap[cleanedId] ||
+      doctorMap[Number(id)] ||
+      doctorMap[Number(cleanedId)];
+    if (resolvedName) return resolvedName;
+  }
+
+  return "";
 }
 
 function calculateAge(dob?: string): number {

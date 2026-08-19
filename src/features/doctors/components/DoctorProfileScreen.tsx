@@ -1,4 +1,11 @@
-import { useState, useMemo, useCallback, useEffect, useRef, useReducer } from "react";
+import {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+  useReducer,
+} from "react";
 import type { FormEvent } from "react";
 import {
   Calendar,
@@ -166,7 +173,10 @@ type FilterAction =
   | { type: "SET_APPT_DATE_FILTER"; filter: string }
   | { type: "SET_PATIENT_SEARCH"; query: string };
 
-const filterReducer = (state: FilterState, action: FilterAction): FilterState => {
+const filterReducer = (
+  state: FilterState,
+  action: FilterAction,
+): FilterState => {
   switch (action.type) {
     case "SET_TAB":
       return { ...state, activeTab: action.tab };
@@ -243,7 +253,10 @@ export function DoctorProfileScreen({
   });
 
   // Render-phase tab reset: if current tab is not in visible tabs, correct it
-  if (visibleTabs.length > 0 && !visibleTabs.some((t) => t.id === filterState.activeTab)) {
+  if (
+    visibleTabs.length > 0 &&
+    !visibleTabs.some((t) => t.id === filterState.activeTab)
+  ) {
     dispatch({ type: "SET_TAB", tab: visibleTabs[0].id });
   }
 
@@ -263,7 +276,12 @@ export function DoctorProfileScreen({
       const s = String(item.status || item.queueStatus || "")
         .toUpperCase()
         .replace(/[\s-]/g, "_");
-      return s !== "WAITING_FOR_VITALS" && s !== "CHECKED_IN";
+      return (
+        s !== "WAITING_FOR_VITALS" &&
+        s !== "CHECKED_IN" &&
+        s !== "BOOKED" &&
+        s !== "WAITING"
+      );
     });
   }, [queueItems]);
 
@@ -273,7 +291,6 @@ export function DoctorProfileScreen({
         .toUpperCase()
         .replace(/[\s-]/g, "_");
       return (
-        s === "WAITING" ||
         s === "WAITING_FOR_DOCTOR" ||
         s === "WAITING_FOR_DOCTOR_CALL"
       );
@@ -473,12 +490,17 @@ export function DoctorProfileScreen({
             const st = String(
               item.status || item.queueStatus || "",
             ).toUpperCase();
-            return st !== "WAITING_FOR_VITALS" && st !== "CHECKED_IN";
+            return (
+              st !== "WAITING_FOR_VITALS" &&
+              st !== "CHECKED_IN" &&
+              st !== "BOOKED" &&
+              st !== "WAITING"
+            );
           },
         ),
       );
     } catch {
-        queueSummaryRef.current = {};
+      queueSummaryRef.current = {};
       setQueueItems([]);
     } finally {
       setIsQueueLoading(false);
@@ -597,8 +619,10 @@ export function DoctorProfileScreen({
   const matchesDateFilter = useCallback(
     (dateStr: string) => {
       if (filterState.apptDateFilter === "Today") return dateStr === todayKey();
-      if (filterState.apptDateFilter === "This Week") return isSameWeek(dateStr);
-      if (filterState.apptDateFilter === "This Month") return isSameMonth(dateStr);
+      if (filterState.apptDateFilter === "This Week")
+        return isSameWeek(dateStr);
+      if (filterState.apptDateFilter === "This Month")
+        return isSameMonth(dateStr);
       return true;
     },
     [filterState.apptDateFilter],
@@ -606,13 +630,15 @@ export function DoctorProfileScreen({
 
   const filteredAppointments = useMemo<DoctorAppointment[]>(() => {
     const q = filterState.apptSearch.toLowerCase();
-    return appointments.filter(
-      (apt) =>
+    return appointments.filter((apt) => {
+      const idStr = String(apt.id).toLowerCase();
+      return (
         matchesDateFilter(apt.date) &&
         (q === "" ||
-          String(apt.id).toLowerCase().includes(q) ||
-          apt.patientName.toLowerCase().includes(q)),
-    );
+          idStr.includes(q) ||
+          apt.patientName.toLowerCase().includes(q))
+      );
+    });
   }, [appointments, filterState.apptSearch, matchesDateFilter]);
 
   const patients = useMemo<DoctorPatient[]>(() => {
@@ -915,7 +941,9 @@ export function DoctorProfileScreen({
         onOpenEdit={() => setShowEditDrawer(true)}
         onOpenActivate={() => setActivateDialogOpen(true)}
         onOpenDeactivate={() => setDeactivateDialogOpen(true)}
-        onSelectTab={(tabId) => dispatch({ type: "SET_TAB", tab: tabId as TabId })}
+        onSelectTab={(tabId) =>
+          dispatch({ type: "SET_TAB", tab: tabId as TabId })
+        }
       />
 
       <div className="space-y-6">
@@ -1294,13 +1322,17 @@ export function DoctorProfileScreen({
                 <input
                   type="text"
                   value={filterState.apptSearch}
-                  onChange={(e) => dispatch({ type: "SET_APPT_SEARCH", query: e.target.value })}
+                  onChange={(e) =>
+                    dispatch({ type: "SET_APPT_SEARCH", query: e.target.value })
+                  }
                   placeholder="Search Appointment ID, Patient Name..."
                   className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
                 />
                 {filterState.apptSearch && (
                   <button
-                    onClick={() => dispatch({ type: "SET_APPT_SEARCH", query: "" })}
+                    onClick={() =>
+                      dispatch({ type: "SET_APPT_SEARCH", query: "" })
+                    }
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
                     <X size={13} />
@@ -1316,7 +1348,12 @@ export function DoctorProfileScreen({
                   </span>
                   <select
                     value={filterState.apptDateFilter}
-                    onChange={(e) => dispatch({ type: "SET_APPT_DATE_FILTER", filter: e.target.value })}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "SET_APPT_DATE_FILTER",
+                        filter: e.target.value,
+                      })
+                    }
                     className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
                   >
                     <option value="All Dates">All Dates</option>
@@ -1443,13 +1480,20 @@ export function DoctorProfileScreen({
               <input
                 type="text"
                 value={filterState.patientSearch}
-                onChange={(e) => dispatch({ type: "SET_PATIENT_SEARCH", query: e.target.value })}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_PATIENT_SEARCH",
+                    query: e.target.value,
+                  })
+                }
                 placeholder="Search Patient ID, Name, Complaint..."
                 className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
               />
               {filterState.patientSearch && (
                 <button
-                  onClick={() => dispatch({ type: "SET_PATIENT_SEARCH", query: "" })}
+                  onClick={() =>
+                    dispatch({ type: "SET_PATIENT_SEARCH", query: "" })
+                  }
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
                   <X size={13} />
@@ -1902,24 +1946,11 @@ export function DoctorProfileScreen({
                     .toUpperCase()
                     .replace(/[\s-]/g, "_");
                   return (
-                    s === "WAITING" ||
-                    s === "WAITING_FOR_VITALS" ||
                     s === "WAITING_FOR_DOCTOR" ||
-                    s === "WAITING_FOR_DOCTOR_CALL" ||
-                    s === "BOOKED" ||
-                    s === "CHECKED_IN"
+                    s === "WAITING_FOR_DOCTOR_CALL"
                   );
                 });
-                const isFirstWaitingVitals =
-                  firstWaiting &&
-                  (() => {
-                    const s = String(
-                      firstWaiting.status || firstWaiting.queueStatus || "",
-                    )
-                      .toUpperCase()
-                      .replace(/[\s-]/g, "_");
-                    return s === "WAITING_FOR_VITALS" || s === "CHECKED_IN";
-                  })();
+                const isFirstWaitingVitals = !firstWaiting;
 
                 return (
                   can("QUEUE_CALL_NEXT") && (

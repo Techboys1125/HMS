@@ -201,10 +201,16 @@ export function EditStaffUserDrawer({
         const profile = detail.doctorProfile;
         setForm((prev) => ({
           ...prev,
+          fullName: detail.fullName || user.fullName,
+          email: detail.email || user.email,
+          phone: detail.mobile || user.phone,
           gender: detail.gender || "MALE",
           dateOfBirth: detail.dateOfBirth || "",
           residentialAddress: detail.residentialAddress || "",
           professionalBio: detail.professionalBio || "",
+          employeeId: detail.employeeId || user.empId,
+          role: detail.role || user.role,
+          status: detail.status || user.status,
           medicalRegistrationNumber: profile?.medicalRegistrationNumber || "",
           qualification: profile?.qualification || "",
           yearsOfExperience: profile?.yearsOfExperience || 0,

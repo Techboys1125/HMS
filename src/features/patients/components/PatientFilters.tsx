@@ -6,8 +6,6 @@ export type PatientFilterValues = {
   searchQuery: string;
   genderFilter: string;
   statusFilter: string;
-  doctorFilter: string;
-  regDateFilter: string;
   registrationTypeFilter: string;
 };
 
@@ -30,8 +28,6 @@ export function PatientFilters({
     searchQuery,
     genderFilter,
     statusFilter,
-    doctorFilter,
-    regDateFilter,
     registrationTypeFilter,
   } = values;
 
@@ -92,36 +88,6 @@ export function PatientFilters({
               <option value="Inactive">Inactive</option>
               <option value="Admitted">Admitted</option>
               <option value="Discharged">Discharged</option>
-            </select>
-          </div>
-
-          {/* Assigned Doctor Filter */}
-          <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-[#E5E7EB] bg-[#F1F5F9]/60 text-xs text-[#111827]">
-            <span className="text-[#64748B]">Doctor:</span>
-            <select
-              value={doctorFilter}
-              onChange={(e) => onChange({ doctorFilter: e.target.value })}
-              className="bg-transparent font-semibold outline-none cursor-pointer text-[#0D47A1]"
-            >
-              <option value="All">All Doctors</option>
-              <option value="Dr. A. Mehta">Dr. A. Mehta</option>
-              <option value="Dr. P. Sharma">Dr. P. Sharma</option>
-              <option value="Dr. S. Patel">Dr. S. Patel</option>
-              <option value="Dr. R. Kapoor">Dr. R. Kapoor</option>
-            </select>
-          </div>
-
-          {/* Registration Date Filter */}
-          <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-[#E5E7EB] bg-[#F1F5F9]/60 text-xs text-[#111827]">
-            <span className="text-[#64748B]">Reg Date:</span>
-            <select
-              value={regDateFilter}
-              onChange={(e) => onChange({ regDateFilter: e.target.value })}
-              className="bg-transparent font-semibold outline-none cursor-pointer text-[#0D47A1]"
-            >
-              <option value="All">All Time</option>
-              <option value="Today">Today</option>
-              <option value="This Month">This Month</option>
             </select>
           </div>
 

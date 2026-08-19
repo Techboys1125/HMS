@@ -26,6 +26,14 @@ export function checkBillingPermission(
       // Full Billing Access
       return true;
 
+    case "DOCTOR":
+      // Doctor read-only access to billing (per backend contract)
+      return [
+        "view_dashboard",
+        "view_bills",
+        "view_history",
+      ].includes(action);
+
     case "ACCOUNTANT":
       // Financial review and reconciliation only; operational collection is
       // performed by Reception or an administrator.

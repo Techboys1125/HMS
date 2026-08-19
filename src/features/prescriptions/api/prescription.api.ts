@@ -1,17 +1,138 @@
-import { apiClient } from "../../../lib/axios";
+import { apiClient, axios } from "../../../lib/axios";
 import type { ApiPatientPrescription } from "../../patients/types/patient.types";
 
 export interface ApiEnvelope<T> {
-  data: T;
-  status: number;
+  success?: boolean;
+  code?: string;
+  message?: string;
+  timestamp?: string;
+  data?: T;
+  errors?: Record<string, unknown>;
 }
 
 interface ApiResponseBody<T> {
-  data: T;
+  data?: T;
   content?: T;
 }
 
+const unwrap = <T>(body: ApiEnvelope<T> | T): T => {
+  if (
+    body !== null &&
+    typeof body === "object" &&
+    "data" in body &&
+    (body as ApiEnvelope<T>).data !== undefined
+  ) {
+    return (body as ApiEnvelope<T>).data as T;
+  }
+  return body as T;
+};
+
+const handleApiError = (error: unknown): never => {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as { message?: string } | undefined;
+    if (data?.message) {
+      throw new Error(data.message);
+    }
+  }
+  throw error;
+};
+
+export interface PrescriptionDetailResponse {
+  prescriptionId: number | string;
+  prescriptionNumber?: string;
+  patientName?: string;
+  patientMrn?: string;
+  doctorName?: string;
+  department?: string;
+  status?: string;
+  outcome?: string;
+  currentVersion?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  finalizedAt?: string;
+  medicines?: Array<{
+    medicationId?: number | string;
+    medicineId?: number | string;
+    medicineName?: string;
+    name?: string;
+    strength?: string;
+    dosage?: string;
+    dose?: { value?: number; unit?: string };
+    frequency?: string | { code?: string; display?: string };
+    duration?: string | { value?: number; unit?: string };
+    quantity?: { value?: number; unit?: string };
+    route?: string;
+    instructions?: string;
+    source?: string;
+    displayOrder?: number;
+  }>;
+  advice?: {
+    general?: string;
+    diet?: string;
+    precautions?: string;
+    additionalInstructions?: string;
+  };
+  followUp?: {
+    instructions?: string;
+    type?: string;
+    intervalValue?: number;
+    intervalUnit?: string;
+    followUpDate?: string;
+  };
+}
+
+export interface PrescriptionSummaryResponse {
+  totalPrescriptions?: number;
+  issuedCount?: number;
+  completedCount?: number;
+  activeFollowUps?: number;
+  reprintCount?: number;
+}
+
+export interface AmendmentResponse {
+  amendmentId?: number | string;
+  prescriptionId?: number | string;
+  version?: number;
+  reason?: string;
+  createdAt?: string;
+}
+
+export interface ReprintResponse {
+  reprintId?: number | string;
+  prescriptionId?: number | string;
+  printedAt?: string;
+  reason?: string;
+}
+
+export interface PrintOutputResponse {
+  prescriptionNumber?: string;
+  patientName?: string;
+  patientMrn?: string;
+  doctorName?: string;
+  registrationNumber?: string;
+  department?: string;
+  medicines?: Array<{
+    medicineName?: string;
+    strength?: string;
+    dosage?: string;
+    frequency?: string;
+    duration?: string;
+    instructions?: string;
+  }>;
+  advice?: {
+    general?: string;
+    diet?: string;
+    precautions?: string;
+  };
+  followUpDate?: string;
+  digitalSeal?: string;
+}
+
 export const prescriptionApi = {
+  /**
+   * GET /api/v1/patient/prescriptions
+   * GET /api/v1/patient/prescriptions?mrn=...
+   */
   getPrescriptions: async (mrn?: string): Promise<ApiPatientPrescription[]> => {
     try {
       let url: string;
@@ -40,6 +161,9 @@ export const prescriptionApi = {
     }
   },
 
+  /**
+   * GET /api/v1/patient/prescriptions/{id}
+   */
   getPrescriptionById: async (id: string | number): Promise<ApiPatientPrescription | null> => {
     try {
       const response = await apiClient.get<ApiResponseBody<ApiPatientPrescription>>(`/api/v1/patient/prescriptions/${id}`);
@@ -49,6 +173,21 @@ export const prescriptionApi = {
     }
   },
 
+  /**
+   * GET /api/v1/prescriptions/{prescriptionId}
+   */
+  getPrescriptionDetails: async (prescriptionId: string | number): Promise<PrescriptionDetailResponse | null> => {
+    try {
+      const response = await apiClient.get<ApiResponseBody<PrescriptionDetailResponse>>(`/api/v1/prescriptions/${prescriptionId}`);
+      return response.data?.data || response.data || null;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * GET /api/v1/encounters/{encounterId}/prescription
+   */
   getEncounterPrescription: async (encounterId: string | number): Promise<ApiPatientPrescription | null> => {
     try {
       const response = await apiClient.get<ApiResponseBody<ApiPatientPrescription>>(`/api/v1/encounters/${encounterId}/prescription`);
@@ -58,6 +197,9 @@ export const prescriptionApi = {
     }
   },
 
+  /**
+   * POST /api/v1/prescriptions/{prescriptionId}/finalize
+   */
   finalizePrescription: async (
     prescriptionId: string | number,
     payload: { confirmation: boolean } = { confirmation: true }
@@ -67,5 +209,111 @@ export const prescriptionApi = {
       payload
     );
     return response.data?.data || response.data;
-  }
+  },
+
+  /**
+   * POST /api/v1/prescriptions/{prescriptionId}/amendments
+   */
+  createAmendment: async (prescriptionId: string | number, payload?: { reason?: string }) => {
+    try {
+      const idempotencyKey = typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `idemp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      const response = await apiClient.post<ApiResponseBody<AmendmentResponse>>(
+        `/api/v1/prescriptions/${prescriptionId}/amendments`,
+        payload || {},
+        {
+          headers: {
+            "Idempotency-Key": idempotencyKey,
+          },
+        }
+      );
+      return unwrap<AmendmentResponse>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * POST /api/v1/prescriptions/{prescriptionId}/reprint
+   */
+  reprintPrescription: async (prescriptionId: string | number, payload?: { reason?: string }) => {
+    try {
+      const idempotencyKey = typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `idemp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      const response = await apiClient.post<ApiResponseBody<ReprintResponse>>(
+        `/api/v1/prescriptions/${prescriptionId}/reprint`,
+        payload || {},
+        {
+          headers: {
+            "Idempotency-Key": idempotencyKey,
+          },
+        }
+      );
+      return unwrap<ReprintResponse>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * GET /api/v1/prescriptions/{prescriptionId}/print-output
+   */
+  getPrintOutput: async (prescriptionId: string | number): Promise<PrintOutputResponse | null> => {
+    try {
+      const response = await apiClient.get<ApiResponseBody<PrintOutputResponse>>(`/api/v1/prescriptions/${prescriptionId}/print-output`);
+      return response.data?.data || response.data || null;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * GET /api/v1/doctor/prescriptions/summary
+   */
+  getDoctorSummary: async (): Promise<PrescriptionSummaryResponse | null> => {
+    try {
+      const response = await apiClient.get<ApiResponseBody<PrescriptionSummaryResponse>>("/api/v1/doctor/prescriptions/summary");
+      return response.data?.data || response.data || null;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * GET /api/v1/doctors/{id}/prescriptions
+   */
+  getDoctorPrescriptions: async (doctorId: string | number): Promise<ApiPatientPrescription[]> => {
+    try {
+      const response = await apiClient.get<ApiResponseBody<ApiPatientPrescription[]>>(`/api/v1/doctors/${doctorId}/prescriptions`);
+      const body = response.data;
+      if (Array.isArray(body)) return body;
+      if (body && typeof body === "object" && "data" in body) {
+        const inner = body.data;
+        if (Array.isArray(inner)) return inner;
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * GET /api/v1/patients/{mrn}/prescriptions-history
+   */
+  getPatientPrescriptionsHistory: async (mrn: string): Promise<ApiPatientPrescription[]> => {
+    try {
+      const response = await apiClient.get<ApiResponseBody<ApiPatientPrescription[]>>(`/api/v1/patients/${mrn}/prescriptions-history`);
+      const body = response.data;
+      if (Array.isArray(body)) return body;
+      if (body && typeof body === "object" && "data" in body) {
+        const inner = body.data;
+        if (Array.isArray(inner)) return inner;
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  },
 };

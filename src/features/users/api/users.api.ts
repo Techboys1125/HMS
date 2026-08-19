@@ -190,10 +190,27 @@ export const usersApi = {
     userId: number | string,
   ): Promise<ApiResponse<UserDetailData>> => {
     try {
-      const response = await apiClient.get<ApiResponse<UserDetailData>>(
+      const response = await apiClient.get<ApiResponse<UserDetailData> | { data: UserDetailData }>(
         `/api/v1/admin/users/${userId}`,
       );
-      return response.data;
+      const res = response.data as Record<string, unknown>;
+      if (res && typeof res === "object") {
+        if ("data" in res && res.data && typeof res.data === "object" && "userId" in (res.data as Record<string, unknown>)) {
+          return {
+            success: true,
+            data: res.data as UserDetailData,
+            message: String(res.message || "User fetched successfully"),
+          };
+        }
+        if ("data" in res && res.data && typeof res.data === "object" && "data" in (res.data as Record<string, unknown>)) {
+          return {
+            success: true,
+            data: (res.data as Record<string, unknown>).data as UserDetailData,
+            message: String(res.message || "User fetched successfully"),
+          };
+        }
+      }
+      return response.data as ApiResponse<UserDetailData>;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as

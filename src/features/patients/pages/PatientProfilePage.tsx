@@ -1,28 +1,25 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import type { Patient } from "../types/patient.types";
 import { PP, RB } from "../../doctors/constants/doctors.constants";
-import { patientsApi } from "../api/patient.api";
 import { can } from "../utils/patientPermissions";
 import type { Role } from "../utils/patientPermissions";
-import { PatientProfileTab } from "../components/tabs/ProfileTab";
-import { FamilyMembersTab } from "../components/tabs/FamilyMembersTab";
+import { OverviewTab } from "../components/tabs/OverviewTab";
 import { PatientAppointmentsTab } from "../components/tabs/AppointmentsTab";
-import { PatientQueueTab } from "../components/tabs/QueueTab";
+import { PatientMedicalRecordsTab } from "../components/tabs/MedicalRecordsTab";
+import { VisitHistoryTab } from "../components/tabs/VisitHistoryTab";
 import { PatientPrescriptionsTab } from "../components/tabs/PrescriptionsTab";
 import { PatientBillingTab } from "../components/tabs/BillingTab";
-import { PatientMedicalRecordsTab } from "../components/tabs/MedicalRecordsTab";
-import { PatientReportsTab } from "../components/tabs/ReportsTab";
+import { PatientDocumentsTab } from "../components/tabs/DocumentsTab";
 import { PatientProfileHeader } from "../components/PatientProfileHeader";
 
 type PatientTabId =
-  | "profile"
-  | "family"
+  | "overview"
   | "appointments"
-  | "queue"
+  | "medicalHistory"
+  | "visitHistory"
   | "prescriptions"
-  | "medicalRecords"
   | "billing"
-  | "reports";
+  | "documents";
 
 interface PatientProfilePageProps {
   patient: Patient;
@@ -33,14 +30,13 @@ interface PatientProfilePageProps {
 }
 
 const TAB_CONFIG: Array<{ id: PatientTabId; label: string }> = [
-  { id: "profile", label: "Profile" },
-  { id: "family", label: "Family Members" },
+  { id: "overview", label: "Overview" },
   { id: "appointments", label: "Appointments" },
-  { id: "queue", label: "Queue" },
+  { id: "medicalHistory", label: "Medical History" },
+  { id: "visitHistory", label: "Visit History" },
   { id: "prescriptions", label: "Prescriptions" },
-  { id: "medicalRecords", label: "Medical Records" },
-  { id: "billing", label: "Billing" },
-  { id: "reports", label: "Reports" },
+  { id: "billing", label: "Billing & Payments" },
+  { id: "documents", label: "Documents" },
 ];
 
 export function PatientProfilePage({
@@ -50,27 +46,29 @@ export function PatientProfilePage({
   onBookAppointment,
   onEdit,
 }: PatientProfilePageProps) {
-  const [activeTab, setActiveTab] = useState<PatientTabId>("profile");
+  const [activeTab, setActiveTab] = useState<PatientTabId>("overview");
   const isOwnRecord = currentRole === "PATIENT";
+
+  const handleNavigateToTab = useCallback((tabId: string) => {
+    setActiveTab(tabId as PatientTabId);
+  }, []);
 
   const visibleTabs = TAB_CONFIG.filter((tab) => {
     switch (tab.id) {
-      case "profile":
+      case "overview":
         return can(currentRole, "viewProfile", isOwnRecord);
-      case "family":
-        return can(currentRole, "manageFamilyMembers", isOwnRecord);
       case "appointments":
         return can(currentRole, "viewAppointments", isOwnRecord);
-      case "queue":
-        return can(currentRole, "viewQueue", isOwnRecord);
+      case "medicalHistory":
+        return can(currentRole, "viewMedicalRecords", isOwnRecord);
+      case "visitHistory":
+        return can(currentRole, "viewAppointments", isOwnRecord);
       case "prescriptions":
         return can(currentRole, "viewPrescriptions", isOwnRecord);
-      case "medicalRecords":
-        return can(currentRole, "viewMedicalRecords", isOwnRecord);
       case "billing":
         return can(currentRole, "viewBilling", isOwnRecord);
-      case "reports":
-        return can(currentRole, "viewReports", isOwnRecord);
+      case "documents":
+        return can(currentRole, "viewProfile", isOwnRecord);
       default:
         return false;
     }
@@ -78,53 +76,11 @@ export function PatientProfilePage({
 
   const tabContent = (() => {
     switch (activeTab) {
-      case "profile":
+      case "overview":
         return (
-          <PatientProfileTab
+          <OverviewTab
             patient={patient}
-            isOwnProfile={isOwnRecord}
-            canEdit={can(currentRole, "editProfile", isOwnRecord)}
-            onSave={async (updated) => {
-              await patientsApi.updatePatient(patient.mrn, {
-                fullName: updated.fullName || updated.name || "",
-                mobileNumber:
-                  updated.mobileNumber || updated.phone || updated.mobile || "",
-                email: updated.email,
-                gender: updated.gender,
-                dateOfBirth: updated.dateOfBirth || updated.dob,
-                address:
-                  typeof updated.address === "string" ? updated.address : "",
-                bloodGroup: updated.bloodGroup,
-                maritalStatus: updated.maritalStatus,
-                knownAllergies: (updated.knownAllergies || []).join(", "),
-                chronicDiseases: (updated.chronicDiseases || []).join(", "),
-                specialNotes: updated.specialNotes,
-                emergencyContact: updated.emergencyContact
-                  ? typeof updated.emergencyContact === "string"
-                    ? updated.emergencyContact
-                    : [
-                        updated.emergencyContact.name ||
-                          updated.emergencyContact.contactName ||
-                          "",
-                        updated.emergencyContact.relationship || "",
-                        updated.emergencyContact.phone ||
-                          updated.emergencyContact.contactNumber ||
-                          updated.emergencyContact.mobile ||
-                          updated.emergencyContact.mobileNumber ||
-                          "",
-                      ]
-                        .filter(Boolean)
-                        .join(", ")
-                  : "",
-              });
-            }}
-          />
-        );
-      case "family":
-        return (
-          <FamilyMembersTab
-            patient={patient}
-            canEdit={can(currentRole, "manageFamilyMembers", isOwnRecord)}
+            onNavigateToTab={handleNavigateToTab}
           />
         );
       case "appointments":
@@ -135,11 +91,18 @@ export function PatientProfilePage({
             isOwnProfile={isOwnRecord}
           />
         );
-      case "queue":
+      case "medicalHistory":
         return (
-          <PatientQueueTab
+          <PatientMedicalRecordsTab
             patient={patient}
-            canEdit={false}
+            canEdit={can(currentRole, "editMedicalRecords", isOwnRecord)}
+            isOwnProfile={isOwnRecord}
+          />
+        );
+      case "visitHistory":
+        return (
+          <VisitHistoryTab
+            patient={patient}
             isOwnProfile={isOwnRecord}
           />
         );
@@ -151,14 +114,6 @@ export function PatientProfilePage({
             isOwnProfile={isOwnRecord}
           />
         );
-      case "medicalRecords":
-        return (
-          <PatientMedicalRecordsTab
-            patient={patient}
-            canEdit={can(currentRole, "editMedicalRecords", isOwnRecord)}
-            isOwnProfile={isOwnRecord}
-          />
-        );
       case "billing":
         return (
           <PatientBillingTab
@@ -167,11 +122,11 @@ export function PatientProfilePage({
             isOwnProfile={isOwnRecord}
           />
         );
-      case "reports":
+      case "documents":
         return (
-          <PatientReportsTab
+          <PatientDocumentsTab
             patient={patient}
-            canEdit={false}
+            canEdit={can(currentRole, "editProfile", isOwnRecord)}
             isOwnProfile={isOwnRecord}
           />
         );
@@ -185,7 +140,7 @@ export function PatientProfilePage({
       className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9]"
       style={{ fontFamily: RB }}
     >
-      <div className="max-w-5xl mx-auto space-y-4">
+      <div className="max-w-6xl mx-auto space-y-4">
         {/* Profile Header */}
         <PatientProfileHeader
           patient={patient}

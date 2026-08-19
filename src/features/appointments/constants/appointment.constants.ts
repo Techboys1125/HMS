@@ -86,6 +86,12 @@ export const STATUS_CONFIG: Record<
     dot: "bg-[#EF4444]",
     border: "border-red-200",
   },
+  "No Show": {
+    bg: "bg-red-50",
+    text: "text-[#EF4444]",
+    dot: "bg-[#EF4444]",
+    border: "border-red-200",
+  },
 };
 
 export const EMPTY_AVAILABILITY = {

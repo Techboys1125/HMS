@@ -29,8 +29,8 @@ export function CollectPaymentDrawer({
 
   const handleProcessCollection = () => {
     if (collectAmount <= 0 || collectAmount > invoice.balance) {
-      alert(
-        `Please enter a valid amount between ₹1 and ₹${invoice.balance.toLocaleString()}`,
+      console.warn(
+        `Invalid amount: Please enter a valid amount between ₹1 and ₹${invoice.balance.toLocaleString()}`,
       );
       return;
     }

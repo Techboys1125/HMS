@@ -1,4 +1,5 @@
 import { prescriptionApi } from "../api/prescription.api";
+import { encountersApi } from "../../encounters/api/encounters.api";
 import { prescriptionStoreActions } from "../store/prescription.store";
 import type {
   UnifiedPrescription,
@@ -33,16 +34,22 @@ export const prescriptionService = {
       dosage: m.dose?.value
         ? `${m.dose.value}${m.dose.unit || ""}`
         : m.dosage || "",
-      frequency: m.frequency || "",
-      duration: m.duration || "",
+      frequency: typeof m.frequency === "string"
+        ? m.frequency
+        : m.frequency?.display || "",
+      duration: typeof m.duration === "string"
+        ? m.duration
+        : m.duration?.value
+          ? `${m.duration.value} ${m.duration.unit || ""}`
+          : "",
       instructions: m.instructions || "",
     }));
 
     return {
       id: String(apiRx.id ?? ""),
-      patientName: fallbackPatientName || "Patient",
-      mrn: "",
-      consultationId: "",
+      patientName: fallbackPatientName || apiRx.patientName || "Patient",
+      mrn: apiRx.patientMrn || apiRx.mrn || "",
+      consultationId: String(apiRx.encounterId || apiRx.consultationId || ""),
       department: apiRx.department || "",
       consultationDate: apiRx.date || "",
       medicineCount: apiRx.medicineCount || medicines.length,
@@ -107,12 +114,98 @@ export const prescriptionService = {
     }
   },
 
+  getEncounterPrescription: async (encounterId: string | number): Promise<UnifiedPrescription | null> => {
+    try {
+      const apiRx = await prescriptionApi.getEncounterPrescription(encounterId);
+      if (apiRx) {
+        const unified = prescriptionService.mapApiToUnified(apiRx);
+        prescriptionStoreActions.setSelectedPrescription(unified);
+        return unified;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  },
+
+  createPrescription: async (encounterId: string | number, payload?: { outcome?: string }) => {
+    try {
+      return await encountersApi.createPrescription(encounterId, payload || {});
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to create prescription";
+      prescriptionStoreActions.setError(msg);
+      throw err;
+    }
+  },
+
+  addMedication: async (prescriptionId: string | number, payload: Record<string, unknown>) => {
+    try {
+      return await encountersApi.addMedication(prescriptionId, payload);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to add medication";
+      prescriptionStoreActions.setError(msg);
+      throw err;
+    }
+  },
+
+  saveAdvice: async (prescriptionId: string | number, payload: { generalAdvice?: string; dietAdvice?: string; precautions?: string }) => {
+    try {
+      return await encountersApi.savePrescriptionAdvice(prescriptionId, payload);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to save advice";
+      prescriptionStoreActions.setError(msg);
+      throw err;
+    }
+  },
+
+  validatePrescription: async (prescriptionId: string | number) => {
+    try {
+      return await encountersApi.validatePrescription(prescriptionId);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to validate prescription";
+      prescriptionStoreActions.setError(msg);
+      throw err;
+    }
+  },
+
   finalizePrescription: async (id: string | number): Promise<boolean> => {
     try {
       await prescriptionApi.finalizePrescription(id);
       return true;
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to finalize prescription";
+      prescriptionStoreActions.setError(msg);
       return false;
+    }
+  },
+
+  createAmendment: async (prescriptionId: string | number, payload?: { reason?: string }) => {
+    try {
+      return await prescriptionApi.createAmendment(prescriptionId, payload);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to create amendment";
+      prescriptionStoreActions.setError(msg);
+      throw err;
+    }
+  },
+
+  reprintPrescription: async (prescriptionId: string | number, payload?: { reason?: string }) => {
+    try {
+      return await prescriptionApi.reprintPrescription(prescriptionId, payload);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to reprint prescription";
+      prescriptionStoreActions.setError(msg);
+      throw err;
+    }
+  },
+
+  getPrintOutput: async (prescriptionId: string | number) => {
+    try {
+      return await prescriptionApi.getPrintOutput(prescriptionId);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to load print layout";
+      prescriptionStoreActions.setError(msg);
+      return null;
     }
   },
 };

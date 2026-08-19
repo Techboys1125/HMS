@@ -36,6 +36,12 @@ export function EditConsultationPage({
   const { loadVitals, saveVitals } = useVitals(activeEncounterId);
   const { addDiagnosis } = useDiagnosis(activeEncounterId);
 
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const triggerToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
   // Collapsible section states
   const [collapsedSections, setCollapsedSections] = useState<
     Record<string, boolean>
@@ -247,7 +253,9 @@ export function EditConsultationPage({
         else if (onBack) onBack();
       }, 2000);
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to update consultation";
       console.error("Failed to update consultation:", err);
+      triggerToast(errorMessage);
       setShowToast(false);
     }
   };
@@ -267,6 +275,15 @@ export function EditConsultationPage({
             </div>
             <div className="text-xs text-white/95">Changes saved & merged.</div>
           </div>
+        </div>
+      )}
+      {toastMsg && !showToast && (
+        <div
+          className="fixed top-5 right-5 z-50 bg-red-600 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 animate-in fade-in"
+          style={{ fontFamily: PP }}
+        >
+          <AlertCircle size={20} />
+          <div className="font-bold text-sm">{toastMsg}</div>
         </div>
       )}
 

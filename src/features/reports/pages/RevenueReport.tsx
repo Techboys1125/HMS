@@ -1033,7 +1033,7 @@ export function DailyRevenueReportScreen({
                       Payment Methods
                     </span>
                     <div className="p-2 rounded-xl bg-[#F1F5F9] text-[#0D47A1]">
-                      <PieChart className="w-4 h-4" />
+                      <PieChartIcon className="w-4 h-4" />
                     </div>
                   </div>
                   <div className="text-xs font-bold text-[#111827] mb-1">

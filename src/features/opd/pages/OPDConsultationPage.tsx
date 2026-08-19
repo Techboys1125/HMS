@@ -1,4 +1,10 @@
-import React, { useState, useReducer, useMemo, useCallback, useEffect } from "react";
+import React, {
+  useState,
+  useReducer,
+  useMemo,
+  useCallback,
+  useEffect,
+} from "react";
 import { useNavigate } from "react-router";
 import {
   Clock,
@@ -24,6 +30,7 @@ import {
 import type { QueueItem } from "../types/queue.types";
 import type { AppointmentStatus } from "../../appointments/types/appointment.types";
 import { useAuthStore } from "../../auth";
+import { normalizeStatus } from "../../../lib/status-utils";
 
 import { ConsultationHeader } from "../components/ConsultationHeader";
 import { ConsultationKPICards } from "../components/ConsultationKPICards";
@@ -48,17 +55,17 @@ export interface OPDConsultationPageProps {
 
 function mapQueueItemToConsultation(item: QueueItem): ConsultationRecord {
   const statusMap: Record<string, ConsultationStatus> = {
-    WAITING: "WAITING",
+    WAITING: "WAITING_FOR_DOCTOR",
     WAITING_FOR_VITALS: "WAITING_FOR_VITALS",
     WAITING_FOR_DOCTOR: "WAITING_FOR_DOCTOR",
-    WAITING_FOR_DOCTOR_CALL: "WAITING_FOR_DOCTOR_CALL",
+    WAITING_FOR_DOCTOR_CALL: "WAITING_FOR_DOCTOR",
     CALLED: "CALLED",
     IN_CONSULTATION: "IN_CONSULTATION",
+    IN_PROGRESS: "IN_CONSULTATION",
+    CONSULTATION_COMPLETED: "COMPLETED",
     COMPLETED: "COMPLETED",
   };
-  const normalizedStatus = String(item.status || "")
-    .toUpperCase()
-    .replace(/[\s-]/g, "_");
+  const normalizedStatus = normalizeStatus(item.status || item.queueStatus || "");
 
   return {
     id: String(item.appointmentId),
@@ -107,6 +114,13 @@ export function OPDConsultationPage({
   const navigate = useNavigate();
   const { can } = usePermissions();
   const user = useAuthStore((s) => s.user);
+
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const triggerToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
   const {
     callPatient: apiCallPatient,
     startConsultation: apiStartConsultation,
@@ -118,16 +132,19 @@ export function OPDConsultationPage({
       can("CONSULTATION_START");
   const resolvedRole: OauthRole = isDoctor ? "doctor" : "admin";
 
+  // Resolve doctorId: parse out DOC- prefix so NaN is never passed
+  const rawDocId = isDoctor
+    ? (user?.doctorProfile?.doctorId ?? user?.doctorId ?? undefined)
+    : undefined;
+  const parsedDocId = rawDocId ? String(rawDocId).replace(/^DOC-/, "").trim() : undefined;
+  const numericDocId = parsedDocId && !isNaN(Number(parsedDocId)) ? Number(parsedDocId) : undefined;
+
   const {
     items: queueItems,
     refetch,
     error: queueError,
   } = useQueue({
-    doctorId: isDoctor
-      ? (user?.doctorId ?? user?.id)
-        ? Number(user.doctorId || user.id)
-        : undefined
-      : undefined,
+    doctorId: numericDocId,
   });
 
   useEffect(() => {
@@ -158,8 +175,15 @@ export function OPDConsultationPage({
     filterStatus: string;
     filterVisitType: string;
   };
-  type FilterAction = { type: "SET_FIELD"; field: keyof FilterState; value: string };
-  const filterReducer = (state: FilterState, action: FilterAction): FilterState => ({
+  type FilterAction = {
+    type: "SET_FIELD";
+    field: keyof FilterState;
+    value: string;
+  };
+  const filterReducer = (
+    state: FilterState,
+    action: FilterAction,
+  ): FilterState => ({
     ...state,
     [action.field]: action.value,
   });
@@ -188,7 +212,12 @@ export function OPDConsultationPage({
   };
 
   const waitingStatuses = useMemo(
-    () => new Set<ConsultationStatus>(["WAITING_FOR_DOCTOR_CALL", "WAITING_FOR_DOCTOR", "WAITING"]),
+    () =>
+      new Set<ConsultationStatus>([
+        "WAITING_FOR_DOCTOR_CALL",
+        "WAITING_FOR_DOCTOR",
+        "WAITING",
+      ]),
     [],
   );
 
@@ -210,9 +239,7 @@ export function OPDConsultationPage({
           activeTabUpper === "WAITING_FOR_DOCTOR_CALL" ||
           activeTabUpper === "WAITING_FOR_DOCTOR"
         ) {
-          if (
-            !waitingStatuses.has(itemStatusUpper as ConsultationStatus)
-          ) {
+          if (!waitingStatuses.has(itemStatusUpper as ConsultationStatus)) {
             return false;
           }
         } else if (itemStatusUpper !== activeTabUpper) {
@@ -234,11 +261,21 @@ export function OPDConsultationPage({
           return false;
         }
       }
-      if (filters.filterVisitType !== "All" && item.visitType !== filters.filterVisitType)
+      if (
+        filters.filterVisitType !== "All" &&
+        item.visitType !== filters.filterVisitType
+      )
         return false;
-      if (filters.filterDepartment !== "All" && item.department !== filters.filterDepartment)
+      if (
+        filters.filterDepartment !== "All" &&
+        item.department !== filters.filterDepartment
+      )
         return false;
-      if (filters.filterDoctor !== "All" && item.doctor !== filters.filterDoctor) return false;
+      if (
+        filters.filterDoctor !== "All" &&
+        item.doctor !== filters.filterDoctor
+      )
+        return false;
 
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -387,7 +424,10 @@ export function OPDConsultationPage({
         navigate("/consultation/workspace");
       }
     } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to start consultation";
       console.error("Failed to start consultation:", err);
+      triggerToast(msg);
     } finally {
       setIsLoading(false);
     }
@@ -512,9 +552,15 @@ export function OPDConsultationPage({
       <div className="p-6 space-y-6 flex-1">
         {queueError && (
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            Unable to load consultation queue: {queueError instanceof Error
+            Unable to load consultation queue:{" "}
+            {queueError instanceof Error
               ? queueError.message
               : "Please refresh and try again."}
+          </div>
+        )}
+        {toastMsg && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            {toastMsg}
           </div>
         )}
         {/* ── SUMMARY KPI CARDS ── */}

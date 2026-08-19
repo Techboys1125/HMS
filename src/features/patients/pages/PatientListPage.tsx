@@ -22,8 +22,6 @@ const DEFAULT_FILTERS: PatientFilterValues = {
   searchQuery: "",
   genderFilter: "All",
   statusFilter: "All",
-  doctorFilter: "All",
-  regDateFilter: "All",
   registrationTypeFilter: "All",
 };
 

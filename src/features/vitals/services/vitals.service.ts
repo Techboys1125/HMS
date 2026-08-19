@@ -1,5 +1,5 @@
-import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { vitalsApi } from "../api/vitals.api";
+import { appointmentsApi } from "../../appointments/api/appointments.api";
 import type {
   NurseVitalsPayload,
   NurseWaitingPatient,
@@ -35,13 +35,23 @@ export const vitalsService = {
       // Parse blood pressure - handle both string and separate fields
       let systolic = "";
       let diastolic = "";
-      if (d.bloodPressure && typeof d.bloodPressure === "string" && d.bloodPressure.includes("/")) {
+      if (
+        d.bloodPressure &&
+        typeof d.bloodPressure === "string" &&
+        d.bloodPressure.includes("/")
+      ) {
         const parts = d.bloodPressure.split("/");
         systolic = parts[0]?.trim() || "";
         diastolic = parts[1]?.trim() || "";
       } else {
-        systolic = d.bloodPressureSystolic != null ? String(d.bloodPressureSystolic) : "";
-        diastolic = d.bloodPressureDiastolic != null ? String(d.bloodPressureDiastolic) : "";
+        systolic =
+          d.bloodPressureSystolic != null
+            ? String(d.bloodPressureSystolic)
+            : "";
+        diastolic =
+          d.bloodPressureDiastolic != null
+            ? String(d.bloodPressureDiastolic)
+            : "";
       }
 
       // Handle pulse/heartRate - backend may use either field name
@@ -58,7 +68,10 @@ export const vitalsService = {
         weight: d.weight != null ? String(d.weight) : "",
         bmi:
           d.height && d.weight
-            ? ((d.weight as number) / ((d.height as number) / 100) ** 2).toFixed(1)
+            ? (
+                (d.weight as number) /
+                ((d.height as number) / 100) ** 2
+              ).toFixed(1)
             : "",
         temp: d.temperature != null ? String(d.temperature) : "",
         systolic,
@@ -78,6 +91,108 @@ export const vitalsService = {
     }
   },
 
+  /**
+   * Create an encounter for an appointment (backend contract: POST /api/v1/encounters)
+   * Then record vitals for the encounter (POST /api/v1/encounters/{encounterId}/vitals)
+   */
+  async submitVitalsWithEncounter(
+    appointmentId: string | number,
+    formData:
+      | NurseVitalsPayload
+      | (RecordedVitalsData & {
+          chiefComplaint?: string;
+          symptoms?: string;
+          diagnosis?: string;
+          clinicalNotes?: string;
+          notes?: string;
+        }),
+  ): Promise<{ encounterId: string | number; success: boolean }> {
+    // 1. Create encounter for the appointment
+    const encounterResult = await vitalsApi.createEncounter(appointmentId);
+    const encounterId = encounterResult.encounterId;
+
+    if (!encounterId) {
+      throw new Error("Failed to create encounter for appointment");
+    }
+
+    // 2. Extract numeric values from form data
+    const extractNumber = (val: unknown, defaultVal: number): number => {
+      if (typeof val === "number") return val;
+      if (typeof val === "string") {
+        const parsed = parseFloat(val.replace(/[^0-9.-]/g, ""));
+        return isNaN(parsed) ? defaultVal : parsed;
+      }
+      return defaultVal;
+    };
+
+    const extractBpParts = (
+      bp?: string,
+    ): { systolic: number; diastolic: number } => {
+      if (bp && bp.includes("/")) {
+        const parts = bp.split("/").map((p) => parseFloat(p.trim()));
+        if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+          return { systolic: parts[0], diastolic: parts[1] };
+        }
+      }
+      return { systolic: 120, diastolic: 80 };
+    };
+
+    const f = formData as Record<string, unknown>;
+    const tempVal = extractNumber(f.temperature ?? f.temp, 98.6);
+    const weightVal = extractNumber(f.weight, 70);
+    const heightVal = extractNumber(f.height, 170);
+    const pulseVal = extractNumber(f.pulse ?? f.pulseRate, 72);
+    const spo2Val = extractNumber(f.spo2, 98);
+
+    let bpStr = f.bloodPressure as string | undefined;
+    if (!bpStr) {
+      const sys = extractNumber(f.systolic ?? f.bpSystolic, 120);
+      const dia = extractNumber(f.diastolic ?? f.bpDiastolic, 80);
+      bpStr = `${sys}/${dia}`;
+    }
+    const { systolic, diastolic } = extractBpParts(bpStr);
+
+    // 3. Record vitals for the encounter (backend contract format)
+    const vitalsPayload = {
+      tempValue: tempVal,
+      bpSystolicVal: systolic,
+      bpDiastolicVal: diastolic,
+      pulseVal: pulseVal,
+      spo2Val: spo2Val,
+      weightVal: weightVal,
+      heightVal: heightVal,
+    };
+
+    const vitalsRes = await vitalsApi.recordEncounterVitals(
+      encounterId,
+      vitalsPayload,
+    );
+
+    // Transition appointment status to WAITING_FOR_DOCTOR after vitals are recorded
+    if (vitalsRes?.success !== false) {
+      try {
+        await appointmentsApi.updateAppointmentStatus(
+          appointmentId,
+          "WAITING_FOR_DOCTOR",
+        );
+      } catch (statusErr) {
+        console.warn(
+          "Vitals recorded but failed to transition status to WAITING_FOR_DOCTOR:",
+          statusErr,
+        );
+      }
+    }
+
+    return {
+      encounterId,
+      success: vitalsRes?.success !== false,
+    };
+  },
+
+  /**
+   * Legacy submit vitals using appointment-based endpoint
+   * Use submitVitalsWithEncounter for the new backend contract flow
+   */
   async submitVitals(
     appointmentId: string | number,
     formData:
@@ -159,13 +274,17 @@ export const vitalsService = {
 
     const res = await vitalsApi.recordVitals(appointmentId, payload);
     if (res?.success !== false) {
+      // Transition appointment status to WAITING_FOR_DOCTOR after vitals are recorded
       try {
         await appointmentsApi.updateAppointmentStatus(
           appointmentId,
-          "WAITING_FOR_DOCTOR_CALL",
+          "WAITING_FOR_DOCTOR",
         );
-      } catch {
-        // Status updated by backend or fallback
+      } catch (statusErr) {
+        console.warn(
+          "Vitals recorded but failed to transition status to WAITING_FOR_DOCTOR:",
+          statusErr,
+        );
       }
       return true;
     }

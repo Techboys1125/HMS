@@ -638,11 +638,14 @@ export function CreateInvoiceWorkspacePage() {
           });
         }
 
-        // Finalize the bill unconditionally before payment
-        try {
-          await finalizeBill(billId);
-        } catch (finErr) {
-          console.warn("Unconditional finalization warning:", finErr);
+        // Only finalize when collecting payment; keep DRAFT for "Save as Draft"
+        const isDraftSave = !collectFull && amountReceived <= 0;
+        if (!isDraftSave) {
+          try {
+            await finalizeBill(billId);
+          } catch (finErr) {
+            console.warn("Unconditional finalization warning:", finErr);
+          }
         }
 
         // Receive payment if amountReceived > 0 or if collectFull is true (Must be done AFTER finalizing)
@@ -682,6 +685,8 @@ export function CreateInvoiceWorkspacePage() {
               actualAmountToReceive >= grandTotal ? "Paid" : "Partially Paid",
             );
           }
+        } else if (isDraftSave) {
+          setPaymentStatus("Pending");
         } else {
           setPaymentStatus("Pending");
         }
@@ -1689,8 +1694,9 @@ export function CreateInvoiceWorkspacePage() {
                       : `Generate & Collect (₹${grandTotal.toLocaleString()})`}
                   </button>
                   <button
-                    onClick={() => navigate("/billing")}
-                    className="w-full py-2.5 rounded-xl border border-[#E5E7EB] text-slate-600 text-xs font-semibold hover:bg-slate-50 flex items-center justify-center gap-2"
+                    onClick={() => handleGenerateInvoice(false)}
+                    disabled={isSubmitting || isBillLoading || !selectedPatient}
+                    className="w-full py-2.5 rounded-xl border border-[#E5E7EB] text-slate-600 text-xs font-semibold hover:bg-slate-50 flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     <FileText size={15} className="text-slate-400" />
                     Save as Draft

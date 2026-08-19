@@ -151,18 +151,18 @@ export const UserDetailsDrawer: React.FC<UserDetailsDrawerProps> = ({
         <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs text-[#64748B] font-medium leading-relaxed">
           {/* Card Top */}
           <div className="flex items-center gap-4 border-b border-gray-100 pb-5">
-            <UserAvatar name={user.fullName} size="lg" />
+            <UserAvatar name={fullDetail?.fullName || user.fullName} size="lg" />
             <div className="space-y-1">
               <h4
                 className="font-bold text-[#1E293B] text-base"
                 style={{ fontFamily: PP }}
               >
-                {user.fullName}
+                {fullDetail?.fullName || user.fullName}
               </h4>
               <span className="text-slate-400 block">@{user.username}</span>
               <div className="flex items-center gap-2 mt-1">
-                <RoleBadge role={user.role} />
-                <StatusBadge status={user.status} />
+                <RoleBadge role={fullDetail?.role || user.role} />
+                <StatusBadge status={fullDetail?.status || user.status} />
               </div>
             </div>
           </div>
@@ -174,7 +174,7 @@ export const UserDetailsDrawer: React.FC<UserDetailsDrawerProps> = ({
                 Employee ID
               </span>
               <span className="text-[#1E293B] font-bold font-mono">
-                {user.empId}
+                {fullDetail?.employeeId || user.empId}
               </span>
             </div>
             <div>
@@ -182,15 +182,15 @@ export const UserDetailsDrawer: React.FC<UserDetailsDrawerProps> = ({
                 Department
               </span>
               <span className="text-[#1E293B] font-bold">
-                {deptName || user.department}
+                {fullDetail?.doctorProfile?.primaryDepartment?.departmentName || deptName || user.department}
               </span>
             </div>
             <div>
               <span className="text-slate-400 font-bold block mb-1">
-                Internal Database Key
+                User ID / DB Key
               </span>
               <span className="text-[#1E293B] font-bold font-mono">
-                {user.id}
+                {fullDetail?.userId || user.id}
               </span>
             </div>
             <div>
@@ -201,6 +201,16 @@ export const UserDetailsDrawer: React.FC<UserDetailsDrawerProps> = ({
                 {fullDetail?.gender || "MALE"}
               </span>
             </div>
+            {fullDetail?.dateOfBirth && (
+              <div>
+                <span className="text-slate-400 font-bold block mb-1">
+                  Date of Birth
+                </span>
+                <span className="text-[#1E293B] font-bold">
+                  {fullDetail.dateOfBirth}
+                </span>
+              </div>
+            )}
           </div>
 
           <hr className="border-gray-100" />
@@ -215,7 +225,7 @@ export const UserDetailsDrawer: React.FC<UserDetailsDrawerProps> = ({
                 <span className="text-slate-400 font-bold block mb-1">
                   Email Address
                 </span>
-                <span className="text-[#1E293B] font-bold">{user.email}</span>
+                <span className="text-[#1E293B] font-bold">{fullDetail?.email || user.email}</span>
               </div>
               <div>
                 <span className="text-slate-400 font-bold block mb-1">
@@ -225,8 +235,82 @@ export const UserDetailsDrawer: React.FC<UserDetailsDrawerProps> = ({
                   {fullDetail?.mobile || user.phone}
                 </span>
               </div>
+              {fullDetail?.residentialAddress && (
+                <div className="col-span-2">
+                  <span className="text-slate-400 font-bold block mb-1">
+                    Residential Address
+                  </span>
+                  <span className="text-[#1E293B] font-bold">
+                    {fullDetail.residentialAddress}
+                  </span>
+                </div>
+              )}
+              {fullDetail?.professionalBio && (
+                <div className="col-span-2">
+                  <span className="text-slate-400 font-bold block mb-1">
+                    Professional Bio
+                  </span>
+                  <span className="text-[#1E293B] font-medium italic">
+                    {fullDetail.professionalBio}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
+
+          {fullDetail?.doctorProfile && (
+            <>
+              <hr className="border-gray-100" />
+              {/* Doctor Clinical Profile */}
+              <div className="space-y-4">
+                <h5 className="font-bold text-[#1E293B] text-xs font-heading">
+                  Doctor Clinical Profile
+                </h5>
+                <div className="grid grid-cols-2 gap-y-4 gap-x-6">
+                  {fullDetail.doctorProfile.medicalRegistrationNumber && (
+                    <div>
+                      <span className="text-slate-400 font-bold block mb-1">
+                        Reg. Number
+                      </span>
+                      <span className="text-teal-700 font-bold font-mono">
+                        {fullDetail.doctorProfile.medicalRegistrationNumber}
+                      </span>
+                    </div>
+                  )}
+                  {fullDetail.doctorProfile.qualification && (
+                    <div>
+                      <span className="text-slate-400 font-bold block mb-1">
+                        Qualification
+                      </span>
+                      <span className="text-[#1E293B] font-bold">
+                        {fullDetail.doctorProfile.qualification}
+                      </span>
+                    </div>
+                  )}
+                  {fullDetail.doctorProfile.primarySpecialty?.specialtyName && (
+                    <div>
+                      <span className="text-slate-400 font-bold block mb-1">
+                        Specialty
+                      </span>
+                      <span className="text-[#0D47A1] font-bold">
+                        {fullDetail.doctorProfile.primarySpecialty.specialtyName}
+                      </span>
+                    </div>
+                  )}
+                  {fullDetail.doctorProfile.consultationFee !== undefined && (
+                    <div>
+                      <span className="text-slate-400 font-bold block mb-1">
+                        Consultation Fee
+                      </span>
+                      <span className="text-[#0D47A1] font-bold font-mono">
+                        ${fullDetail.doctorProfile.consultationFee}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
 
           <hr className="border-gray-100" />
 
@@ -241,7 +325,9 @@ export const UserDetailsDrawer: React.FC<UserDetailsDrawerProps> = ({
                   Last Logged Session
                 </span>
                 <span className="text-[#1E293B] font-bold">
-                  {user.lastLogin}
+                  {fullDetail?.lastSuccessfulLogin
+                    ? new Date(fullDetail.lastSuccessfulLogin).toLocaleString()
+                    : user.lastLogin}
                 </span>
               </div>
               <div>

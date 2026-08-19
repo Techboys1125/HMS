@@ -568,9 +568,10 @@ export function PatientCheckInScreen({
             {/* Modal Action Buttons */}
             <div className="space-y-2 pt-1">
               <button
-                onClick={() =>
-                  alert(`Printing Queue Token ${generatedToken}...`)
-                }
+                onClick={() => {
+                  console.log(`Printing Queue Token ${generatedToken}...`);
+                  window.print();
+                }}
                 className="w-full py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all flex items-center justify-center gap-2"
                 style={{ fontFamily: PP }}
               >

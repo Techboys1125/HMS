@@ -108,7 +108,7 @@ export const consultationApi = {
   },
 
   /**
-   * PATCH /api/v1/doctor/appointments/{appointmentId}/complete
+   * Complete consultation / appointment endpoint with full fallback support
    */
   completeAppointment: async (
     appointmentId: string | number,
@@ -117,10 +117,33 @@ export const consultationApi = {
       const response = await apiClient.patch<
         | ApiEnvelope<{ success: boolean; status: string }>
         | { success: boolean; status: string }
-      >(`/api/v1/doctor/appointments/${appointmentId}/complete`, {});
+      >(`/api/v1/queue/${appointmentId}/complete-consultation`, {});
       return unwrap(response.data);
-    } catch (error: unknown) {
-      return handleApiError(error);
+    } catch {
+      try {
+        const response = await apiClient.patch<
+          | ApiEnvelope<{ success: boolean; status: string }>
+          | { success: boolean; status: string }
+        >(`/api/v1/doctor/appointments/${appointmentId}/complete`, {});
+        return unwrap(response.data);
+      } catch {
+        try {
+          const response = await apiClient.patch<
+            | ApiEnvelope<{ success: boolean; status: string }>
+            | { success: boolean; status: string }
+          >(`/api/v1/appointments/${appointmentId}/status`, {
+            status: "COMPLETED",
+            reason: "Consultation completed",
+          });
+          return unwrap(response.data);
+        } catch {
+          const response = await apiClient.patch<
+            | ApiEnvelope<{ success: boolean; status: string }>
+            | { success: boolean; status: string }
+          >(`/api/v1/appointments/${appointmentId}/complete`, {});
+          return unwrap(response.data);
+        }
+      }
     }
   },
 
@@ -300,10 +323,11 @@ export const consultationApi = {
     consultationId: string | number,
   ): Promise<Consultation | null> => {
     try {
-      const response = await apiClient.get<Consultation>(
-        `/api/v1/consultations/${consultationId}`,
-      );
-      return response.data?.data || response.data?.content || null;
+      const response = await apiClient.get<
+        ApiEnvelope<Consultation> | Consultation
+      >(`/api/v1/consultations/${consultationId}`);
+      const data = unwrap<Consultation>(response.data);
+      return data || null;
     } catch {
       return null;
     }
@@ -519,6 +543,128 @@ export const consultationApi = {
         content?: unknown[];
       }>("/api/v1/doctors/me/consultation-queue");
       const list = response.data?.data || response.data;
+      return Array.isArray(list) ? list : [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * GET /api/v1/encounters/{encounterId}/workspace
+   * Get aggregated clinical workspace data
+   */
+  getEncounterWorkspace: async (encounterId: string | number) => {
+    try {
+      const response = await apiClient.get<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/workspace`);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * PUT /api/v1/encounters/{encounterId}/draft
+   * Save encounter draft
+   */
+  saveDraft: async (encounterId: string | number, draft: Record<string, unknown>) => {
+    try {
+      const response = await apiClient.post<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/draft`, draft);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * GET /api/v1/consultations/{consultationId}/clinical-notes
+   * Get SOAP clinical notes
+   */
+  getClinicalNotes: async (consultationId: string | number) => {
+    try {
+      const response = await apiClient.get<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/consultations/${consultationId}/clinical-notes`);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * GET /api/v1/patients/{mrn}/encounters
+   * Get patient encounter history
+   */
+  getPatientEncounters: async (mrn: string) => {
+    try {
+      const response = await apiClient.get<
+        ApiEnvelope<Record<string, unknown>[]> | Record<string, unknown>[]
+      >(`/api/v1/patients/${mrn}/encounters`);
+      const list = unwrap<Record<string, unknown>[]>(response.data);
+      return Array.isArray(list) ? list : [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * PUT /api/v1/encounters/{encounterId}/vitals
+   * Update raw vitals DTO
+   */
+  updateVitalsRaw: async (encounterId: string | number, vitals: Record<string, unknown>) => {
+    try {
+      const response = await apiClient.put<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/vitals`, vitals);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * PATCH /api/v1/encounters/{encounterId}/vitals
+   * Partially update vitals
+   */
+  patchVitals: async (encounterId: string | number, vitals: Record<string, unknown>) => {
+    try {
+      const response = await apiClient.patch<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/vitals`, vitals);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * POST /api/v1/encounters/{encounterId}/amendments
+   * Create post-finalization amendment
+   */
+  createAmendment: async (encounterId: string | number, amendment: Record<string, unknown>) => {
+    try {
+      const response = await apiClient.post<
+        ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
+      >(`/api/v1/encounters/${encounterId}/amendments`, amendment);
+      return unwrap<Record<string, unknown>>(response.data);
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
+  /**
+   * GET /api/v1/encounters/{encounterId}/amendments
+   * Get amendment history
+   */
+  getAmendments: async (encounterId: string | number) => {
+    try {
+      const response = await apiClient.get<
+        ApiEnvelope<Record<string, unknown>[]> | Record<string, unknown>[]
+      >(`/api/v1/encounters/${encounterId}/amendments`);
+      const list = unwrap<Record<string, unknown>[]>(response.data);
       return Array.isArray(list) ? list : [];
     } catch {
       return [];

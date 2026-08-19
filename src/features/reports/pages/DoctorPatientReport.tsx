@@ -759,7 +759,7 @@ export function DoctorPatientReportScreen({
                         Status of follow-up reviews scheduled for my patients
                       </p>
                     </div>
-                    <PieChart className="w-4 h-4 text-[#009688]" />
+                    <PieChartIcon className="w-4 h-4 text-[#009688]" />
                   </div>
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">

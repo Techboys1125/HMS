@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Activity, ChevronRight } from "lucide-react";
 import { PP, RB } from "../../doctors/constants/doctors.constants";
 import { vitalsService } from "../../vitals/services/vitals.service";
+import { QUEUE_QUERY_KEY } from "../../opd/hooks/useQueue";
 import { RecordPatientVitalsForm } from "../../vitals/pages/VitalsManagementScreen";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
 import type { NurseWaitingPatient } from "../../vitals/types/vitals.types";
@@ -34,6 +36,7 @@ const toAppointmentRecord = (item: VitalsWaitingItem): AppointmentRecord => ({
 });
 
 export function NurseVitalsWorklistPage() {
+  const queryClient = useQueryClient();
   const [waitingPatients, setWaitingPatients] = useState<VitalsWaitingItem[]>(
     [],
   );
@@ -74,6 +77,7 @@ export function NurseVitalsWorklistPage() {
         onMarkReady={() => {
           setSelectedPatient(null);
           fetchWorklist();
+          queryClient.invalidateQueries({ queryKey: QUEUE_QUERY_KEY });
         }}
       />
     );

@@ -2,9 +2,16 @@ export type AppointmentStatus =
   | "Scheduled"
   | "Checked-In"
   | "Waiting"
+  | "Waiting for Vitals"
+  | "Waiting for Doctor"
+  | "Called"
   | "In Progress"
+  | "In Consultation"
   | "Completed"
-  | "Cancelled";
+  | "Cancelled"
+  | "No Show"
+  | "Booked"
+  | string;
 
 export type VisitType = "First Visit" | "Follow-up" | "Walk-In";
 

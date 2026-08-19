@@ -47,6 +47,7 @@ export function mapApiStatusToPaymentStatus(
   if (s === "PARTIALLY_PAID" || s === "PARTIALLY PAID") return "Partially Paid";
   if (s === "CANCELLED") return "Cancelled";
   if (s === "REFUNDED") return "Refunded";
+  if (s === "VOIDED") return "Voided";
   return "Pending";
 }
 

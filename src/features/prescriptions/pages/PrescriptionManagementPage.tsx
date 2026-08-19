@@ -65,6 +65,7 @@ export const PrescriptionManagementPage: React.FC<{
     handlePrint,
     handleDownload,
     handleDuplicate,
+    handleReprint,
   } = usePrescriptionActions(showToast);
 
   // Modal view states

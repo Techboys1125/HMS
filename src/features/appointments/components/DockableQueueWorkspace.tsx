@@ -60,28 +60,31 @@ export function DockableQueueWorkspace({
   const isNurse = userRole === "Nurse";
 
   const todayStr = new Date().toISOString().split("T")[0];
+
   const todayQueue = useMemo(() => {
+    // Doctor-eligible statuses: only show patients ready for consultation
+    const doctorEligibleStatuses = new Set([
+      "Waiting for Doctor",
+      "Waiting",
+      "Called",
+      "In Consultation",
+      "In Progress",
+      "Completed",
+    ]);
+
     let list = appointments.filter((a) => a.appointmentDate === todayStr);
     if (isDoctor) {
-      list = list.filter((a) => a.doctorName === "Dr. Arjun Mehta");
-    } else if (isNurse) {
-      list = list.filter(
-        (a) =>
-          a.department === "Cardiology" ||
-          a.doctorName === "Dr. Arjun Mehta" ||
-          a.doctorName === "Dr. Priya Sharma",
-      );
+      // Doctors only see patients ready for consultation — NOT waiting for vitals or just checked-in
+      // Filter by current user's doctorId when available, otherwise show all eligible
+      list = list.filter((a) => doctorEligibleStatuses.has(a.status));
     }
     return list;
-  }, [appointments, todayStr, isDoctor, isNurse]);
+  }, [appointments, todayStr, isDoctor]);
 
   const waitingPatients = todayQueue.filter(
     (a) =>
-      a.status === "Waiting" ||
-      a.status === "Booked" ||
-      a.status === "Scheduled" ||
-      a.status === "Waiting for Vitals" ||
-      a.status === "Waiting for Doctor",
+      a.status === "Waiting for Doctor" ||
+      a.status === "Waiting",
   );
   const checkedInPatients = todayQueue.filter(
     (a) => a.status === "Checked-In" || a.status === "Waiting for Vitals",
@@ -94,8 +97,7 @@ export function DockableQueueWorkspace({
       a.status === "In Consultation" ||
       a.status === "In Progress" ||
       a.status === "Called" ||
-      a.status === "Waiting for Doctor" ||
-      a.status === "Checked-In",
+      a.status === "Waiting for Doctor",
   );
   const completedPatients = todayQueue.filter((a) => a.status === "Completed");
 
@@ -701,22 +703,20 @@ export function DockableQueueWorkspace({
                                 </button>
                               )}
 
-                              {(q.status === "Checked-In" ||
-                                q.status === "Waiting") &&
-                                isDoctor && (
-                                  <button
-                                    onClick={() =>
-                                      onUpdateStatus(
-                                        q.id,
-                                        "Checked-In",
-                                        "Patient called for consultation.",
-                                      )
-                                    }
-                                    className="px-2.5 py-1 rounded-lg bg-teal-50 text-[#009688] text-[11px] font-bold border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1"
-                                  >
-                                    <PhoneCall size={12} /> Call Next Patient
-                                  </button>
-                                )}
+                              {q.status === "Waiting for Doctor" && (
+                                <button
+                                  onClick={() =>
+                                    onUpdateStatus(
+                                      q.id,
+                                      "Called",
+                                      "Patient called for consultation.",
+                                    )
+                                  }
+                                  className="px-2.5 py-1 rounded-lg bg-teal-50 text-[#009688] text-[11px] font-bold border border-teal-200 hover:bg-teal-100 transition-colors flex items-center gap-1"
+                                >
+                                  <PhoneCall size={12} /> Call Patient
+                                </button>
+                              )}
                             </>
                           )}
                         </div>

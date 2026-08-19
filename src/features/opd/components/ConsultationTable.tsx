@@ -64,7 +64,10 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
           <div className="h-6 bg-slate-100 rounded w-1/3 animate-pulse" />
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((n) => (
-              <div key={n} className="h-12 bg-slate-50 rounded-xl animate-pulse" />
+              <div
+                key={n}
+                className="h-12 bg-slate-50 rounded-xl animate-pulse"
+              />
             ))}
           </div>
         </div>
@@ -79,14 +82,18 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
           <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-4">
             <Stethoscope size={32} />
           </div>
-          <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>
+          <h3
+            className="text-base font-bold text-[#111827]"
+            style={{ fontFamily: PP }}
+          >
             No consultation records available.
           </h3>
           <p
             className="text-xs text-[#64748B] max-w-sm mt-1 mb-4"
             style={{ fontFamily: RB }}
           >
-            There are no matching consultation records for the selected operational filters.
+            There are no matching consultation records for the selected
+            operational filters.
           </p>
           <button
             onClick={onResetFilters}
@@ -105,26 +112,33 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
       <div className="overflow-x-auto max-h-150 overflow-y-auto">
         <table className="w-full border-collapse text-left text-xs">
           <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
-            <tr
-              className="text-[#64748B] font-bold"
-              style={{ fontFamily: PP }}
-            >
+            <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
               <th className="py-3.5 px-4">Consultation ID</th>
               <th className="py-3.5 px-4">Patient</th>
               <th className="py-3.5 px-4">MRN</th>
-              {role === "doctor" && <th className="py-3.5 px-4">Age / Gender</th>}
+              {role === "doctor" && (
+                <th className="py-3.5 px-4">Age / Gender</th>
+              )}
               <th className="py-3.5 px-4">Doctor</th>
               <th className="py-3.5 px-4">Department</th>
-              <th className="py-3.5 px-4">{role === "doctor" ? "Appointment Time" : "Appt Time"}</th>
+              <th className="py-3.5 px-4">
+                {role === "doctor" ? "Appointment Time" : "Appt Time"}
+              </th>
               {role === "doctor" && <th className="py-3.5 px-4">Visit Type</th>}
               <th className="py-3.5 px-4">Status</th>
               {role === "admin" && <th className="py-3.5 px-4">Duration</th>}
               <th className="py-3.5 px-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 text-[#111827]" style={{ fontFamily: RB }}>
+          <tbody
+            className="divide-y divide-gray-100 text-[#111827]"
+            style={{ fontFamily: RB }}
+          >
             {paginatedConsultations.map((item) => (
-              <tr key={item.id} className="hover:bg-slate-50/80 transition-colors group">
+              <tr
+                key={item.id}
+                className="hover:bg-slate-50/80 transition-colors group"
+              >
                 <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">
                   <div className="flex items-center gap-1.5">
                     <span>{item.id}</span>
@@ -138,15 +152,22 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
                   <div className="flex items-center gap-2.5">
                     <Avatar name={item.patientName} size="sm" />
                     <div>
-                      <div className="font-bold text-[#111827]" style={{ fontFamily: PP }}>
+                      <div
+                        className="font-bold text-[#111827]"
+                        style={{ fontFamily: PP }}
+                      >
                         {item.patientName}
                       </div>
-                      <div className="text-[11px] text-slate-500">{item.phone}</div>
+                      <div className="text-[11px] text-slate-500">
+                        {item.phone}
+                      </div>
                     </div>
                   </div>
                 </td>
 
-                <td className="py-3.5 px-4 font-mono text-slate-700">{item.mrn}</td>
+                <td className="py-3.5 px-4 font-mono text-slate-700">
+                  {item.mrn}
+                </td>
 
                 {role === "doctor" && (
                   <td className="py-3.5 px-4 text-slate-700">
@@ -154,9 +175,15 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
                   </td>
                 )}
 
-                <td className="py-3.5 px-4 font-medium text-slate-800">{item.doctor}</td>
-                <td className="py-3.5 px-4 text-slate-600">{item.department}</td>
-                <td className="py-3.5 px-4 font-medium text-slate-800">{formatTime(item.appointmentTime)}</td>
+                <td className="py-3.5 px-4 font-medium text-slate-800">
+                  {item.doctor}
+                </td>
+                <td className="py-3.5 px-4 text-slate-600">
+                  {item.department}
+                </td>
+                <td className="py-3.5 px-4 font-medium text-slate-800">
+                  {formatTime(item.appointmentTime)}
+                </td>
 
                 {role === "doctor" && (
                   <td className="py-3.5 px-4">
@@ -174,7 +201,9 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
                 </td>
 
                 {role === "admin" && (
-                  <td className="py-3.5 px-4 font-medium text-slate-700">{item.duration || "N/A"}</td>
+                  <td className="py-3.5 px-4 font-medium text-slate-700">
+                    {item.duration || "N/A"}
+                  </td>
                 )}
 
                 <ConsultationActionMenu

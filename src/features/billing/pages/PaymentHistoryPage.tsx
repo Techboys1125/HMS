@@ -169,7 +169,7 @@ export function PaymentHistoryPage() {
             <span className="hidden sm:inline">Print Report</span>
           </button>
           <button
-            onClick={() => alert("Exporting Payment History...")}
+            onClick={() => console.log("Exporting Payment History...")}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95"
             style={{ fontFamily: PP }}
           >

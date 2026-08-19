@@ -1,8 +1,11 @@
+import { useQueryClient } from "@tanstack/react-query";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
 import { useConsultationStore } from "../store/consultationStore";
 import { consultationService } from "../services/consultationService";
+import { QUEUE_QUERY_KEY } from "./useQueue";
 
 export const useConsultation = () => {
+  const queryClient = useQueryClient();
   const selectedAppointment = useConsultationStore(
     (s) => s.selectedAppointment,
   );
@@ -16,17 +19,27 @@ export const useConsultation = () => {
   const error = useConsultationStore((s) => s.error);
 
   const callPatient = async (appointmentId: string | number) => {
-    return await consultationService.callPatient(appointmentId);
+    const result = await consultationService.callPatient(appointmentId);
+    // Invalidate queue so the patient moves from Waiting to Called
+    await queryClient.invalidateQueries({ queryKey: QUEUE_QUERY_KEY });
+    return result;
   };
 
   const startConsultation = async (
     appointment: AppointmentRecord,
     chiefComplaint: string = "",
   ) => {
-    return await consultationService.startConsultation(
+    const result = await consultationService.startConsultation(
       appointment,
       chiefComplaint,
     );
+    // Invalidate queue so the patient moves from Called to In Consultation
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: QUEUE_QUERY_KEY }),
+      queryClient.invalidateQueries({ queryKey: ["appointments"] }),
+      queryClient.invalidateQueries({ queryKey: ["encounters"] }),
+    ]);
+    return result;
   };
 
   const loadFullConsultationDetails = async (

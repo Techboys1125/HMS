@@ -5,6 +5,27 @@ import type {
   NurseVitalsApiResponse,
 } from "../types/vitals.types";
 
+interface ApiEnvelope<T> {
+  success?: boolean;
+  code?: string;
+  message?: string;
+  timestamp?: string;
+  data?: T;
+  errors?: Record<string, unknown>;
+}
+
+const unwrap = <T>(body: ApiEnvelope<T> | T): T => {
+  if (
+    body !== null &&
+    typeof body === "object" &&
+    "data" in body &&
+    (body as ApiEnvelope<T>).data !== undefined
+  ) {
+    return (body as ApiEnvelope<T>).data as T;
+  }
+  return body as T;
+};
+
 export const vitalsApi = {
   /**
    * GET /api/v1/nurse/vitals/waiting
@@ -98,8 +119,64 @@ export const vitalsApi = {
   },
 
   /**
+   * POST /api/v1/encounters
+   * Create an encounter for an appointment (backend contract)
+   */
+  async createEncounter(
+    appointmentId: string | number,
+  ): Promise<{ encounterId: string | number }> {
+    try {
+      const response = await apiClient.post<
+        ApiEnvelope<{ encounterId: string | number }> | { encounterId: string | number }
+      >("/api/v1/encounters", { appointmentId });
+      return unwrap(response.data);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * POST /api/v1/encounters/{encounterId}/vitals
+   * Record vitals for an encounter (backend contract)
+   */
+  async recordEncounterVitals(
+    encounterId: string | number,
+    payload: {
+      tempValue?: number;
+      bpSystolicVal?: number;
+      bpDiastolicVal?: number;
+      pulseVal?: number;
+      spo2Val?: number;
+      weightVal?: number;
+      heightVal?: number;
+    },
+  ): Promise<NurseVitalsApiResponse<unknown>> {
+    try {
+      const response = await apiClient.post<NurseVitalsApiResponse<unknown>>(
+        `/api/v1/encounters/${encounterId}/vitals`,
+        payload,
+      );
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { message?: string } | undefined;
+        if (data?.message) {
+          throw new Error(data.message, { cause: error });
+        }
+      }
+      throw error;
+    }
+  },
+
+  /**
    * POST /api/v1/nurse/appointments/{appointmentId}/vitals
-   * Submit recorded patient vitals
+   * Submit recorded patient vitals (legacy endpoint)
    */
   async recordVitals(
     appointmentId: string | number,

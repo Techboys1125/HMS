@@ -36,6 +36,7 @@ export function AppointmentDetailsDrawer({
   userRole = "Receptionist",
   onStartConsultation,
   onCheckInSuccess,
+  onError,
 }: {
   apt: AppointmentRecord | null;
   isOpen: boolean;
@@ -47,6 +48,7 @@ export function AppointmentDetailsDrawer({
   userRole?: UserRole;
   onStartConsultation?: (aptId?: string | number) => void;
   onCheckInSuccess?: (token?: string) => void;
+  onError?: (message: string) => void;
 }) {
   void isDetailsLoading;
   const [activeTab, setActiveTab] = useState<
@@ -83,9 +85,8 @@ export function AppointmentDetailsDrawer({
       onClose();
     } catch (err) {
       const error = err as Error | null | undefined;
-      alert(
-        error?.message || "Check-in is only allowed on the appointment date.",
-      );
+      const msg = error?.message || "Check-in is only allowed on the appointment date.";
+      onError?.(msg);
     } finally {
       setIsCheckingIn(false);
     }

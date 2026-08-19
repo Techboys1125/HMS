@@ -1,15 +1,25 @@
 export type ConsultationStatus =
   | "BOOKED"
+  | "CONFIRMED"
+  | "SCHEDULED"
   | "WAITING"
   | "WAITING_FOR_VITALS"
   | "WAITING_FOR_DOCTOR"
   | "WAITING_FOR_DOCTOR_CALL"
   | "CALLED"
   | "IN_CONSULTATION"
+  | "CONSULTATION_COMPLETED"
   | "COMPLETED"
   | "CANCELLED"
   | "NO_SHOW"
   | "FOLLOW_UP_SCHEDULED";
+
+import {
+  isDoctorConsultationStatus as _isDoctorConsultationStatus,
+  isDoctorActiveStatus as _isDoctorActiveStatus,
+  isDoctorWaitingStatus as _isDoctorWaitingStatus,
+  DOCTOR_CONSULTATION_LIST_STATUSES,
+} from "../../../lib/status-utils";
 
 /**
  * Only appointments that have completed the vitals stage may be handled in
@@ -17,42 +27,39 @@ export type ConsultationStatus =
  * the consultation history/list, but are never part of the active queue.
  */
 export const DOCTOR_CONSULTATION_WAITING_STATUSES = [
-  "WAITING",
   "WAITING_FOR_DOCTOR",
   "WAITING_FOR_DOCTOR_CALL",
-] as const satisfies readonly ConsultationStatus[];
-
-export const DOCTOR_CONSULTATION_ACTIVE_STATUSES = [
-  ...DOCTOR_CONSULTATION_WAITING_STATUSES,
-  "CALLED",
-  "IN_CONSULTATION",
-] as const satisfies readonly ConsultationStatus[];
-
-export const DOCTOR_CONSULTATION_LIST_STATUSES = [
-  ...DOCTOR_CONSULTATION_ACTIVE_STATUSES,
-  "COMPLETED",
 ] as const satisfies readonly ConsultationStatus[];
 
 export function isDoctorConsultationStatus(
   status: unknown,
 ): status is (typeof DOCTOR_CONSULTATION_LIST_STATUSES)[number] {
-  const normalized = String(status || "")
-    .toUpperCase()
-    .replace(/[\s-]/g, "_");
+  return _isDoctorConsultationStatus(status as string);
+}
 
-  return (DOCTOR_CONSULTATION_LIST_STATUSES as readonly string[]).includes(
-    normalized,
-  );
+export function isDoctorActiveStatus(
+  status: unknown,
+): boolean {
+  return _isDoctorActiveStatus(status as string);
+}
+
+export function isDoctorWaitingStatus(
+  status: unknown,
+): boolean {
+  return _isDoctorWaitingStatus(status as string);
 }
 
 export const appointmentStatusMap: Record<ConsultationStatus, string> = {
   BOOKED: "Booked",
+  CONFIRMED: "Confirmed",
+  SCHEDULED: "Scheduled",
   WAITING: "Waiting for Doctor",
   WAITING_FOR_VITALS: "Waiting for Vitals",
   WAITING_FOR_DOCTOR: "Waiting for Doctor",
   WAITING_FOR_DOCTOR_CALL: "Waiting for Doctor",
   CALLED: "Called",
   IN_CONSULTATION: "In Consultation",
+  CONSULTATION_COMPLETED: "Consultation Completed",
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
   NO_SHOW: "No Show",

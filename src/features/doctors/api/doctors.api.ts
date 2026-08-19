@@ -385,19 +385,8 @@ export const doctorsApi = {
       }
     }
 
-    if (!isAdminRole()) {
-      try {
-        return await fetchDoctorFacing();
-      } catch {
-        try {
-          return await fetchAdmin(isSelfFetch ? currentUserId : undefined);
-        } catch {
-          return fallbackRecord();
-        }
-      }
-    }
     try {
-      return await fetchAdmin(isSelfFetch ? currentUserId : undefined);
+      return await fetchAdmin(numericUserId);
     } catch {
       try {
         return await fetchDoctorFacing();

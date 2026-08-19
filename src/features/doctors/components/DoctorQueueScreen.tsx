@@ -195,9 +195,7 @@ export function DoctorQueueScreen() {
     }
   };
 
-  const handleCompleteConsultation = async (
-    appointmentId: number | string,
-  ) => {
+  const handleCompleteConsultation = async (appointmentId: number | string) => {
     if (!appointmentId || actionId) return;
     setActionId(appointmentId);
     try {
@@ -213,10 +211,15 @@ export function DoctorQueueScreen() {
 
   const content: DoctorQueueItem[] = (queue.content || []).filter((p) => {
     const key = statusKey(p.status || p.queueStatus);
-    return key !== "WAITING_FOR_VITALS" && key !== "CHECKED_IN";
+    return (
+      key !== "WAITING_FOR_VITALS" &&
+      key !== "CHECKED_IN" &&
+      key !== "BOOKED" &&
+      key !== "SCHEDULED"
+    );
   });
   const waitingCount = content.filter((p) =>
-    ["WAITING", "WAITING_FOR_DOCTOR", "WAITING_FOR_DOCTOR_CALL"].includes(
+    ["WAITING_FOR_DOCTOR", "WAITING_FOR_DOCTOR_CALL", "WAITING"].includes(
       statusKey(p.status || p.queueStatus),
     ),
   ).length;
@@ -238,24 +241,12 @@ export function DoctorQueueScreen() {
     currentPage * pageSize,
   );
 
-  const firstWaitingPatient = (queue.content || []).find((p) =>
-    [
-      "WAITING",
-      "WAITING_FOR_DOCTOR",
-      "WAITING_FOR_DOCTOR_CALL",
-      "WAITING_FOR_VITALS",
-      "CHECKED_IN",
-      "BOOKED",
-    ].includes(statusKey(p.status || p.queueStatus)),
+  const firstWaitingPatient = content.find((p) =>
+    ["WAITING_FOR_DOCTOR", "WAITING_FOR_DOCTOR_CALL", "WAITING"].includes(
+      statusKey(p.status || p.queueStatus),
+    ),
   );
-  const isCallNextBlocked =
-    firstWaitingPatient &&
-    (statusKey(
-      firstWaitingPatient.status || firstWaitingPatient.queueStatus,
-    ) === "WAITING_FOR_VITALS" ||
-      statusKey(
-        firstWaitingPatient.status || firstWaitingPatient.queueStatus,
-      ) === "CHECKED_IN");
+  const isCallNextBlocked = !firstWaitingPatient;
 
   return (
     <div className="space-y-6">
@@ -400,7 +391,7 @@ export function DoctorQueueScreen() {
 
               return (
                 <div
-                  key={patient?.id || patient?._id || patient?.key || patient?.value || patient?.code || patient?.name || patient?.title || patient?.label || (typeof patient === 'object' ? JSON.stringify(patient) : String(patient))}
+                  key={patient.queueId || patient.appointmentId || patient.appointmentNumber || idx}
                   className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 ${meta.row}`}
                 >
                   <div className="flex items-center gap-4">

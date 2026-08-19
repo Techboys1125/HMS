@@ -14,6 +14,7 @@ export type AppointmentStatusEnum =
   | "CONFIRMED"
   | "CHECKED_IN"
   | "WAITING_FOR_VITALS"
+  | "WAITING_FOR_DOCTOR"
   | "WAITING_FOR_DOCTOR_CALL"
   | "CALLED"
   | "IN_CONSULTATION"
@@ -160,14 +161,28 @@ export interface AppointmentRecord {
 }
 
 export interface CreateAppointmentRequest {
-  mrn: string;
+  /** Patient MRN (Medical Record Number) */
+  patientMrn: string;
+  /** Doctor ID */
   doctorId: number | string;
+  /** Department ID */
+  departmentId?: number | string;
+  /** Appointment date in YYYY-MM-DD format */
   appointmentDate: string;
-  startTime: string;
+  /** Appointment time slot (e.g., "10:30-10:45") */
+  appointmentSlot?: string;
+  /** Start time (legacy field, use appointmentSlot for new backend) */
+  startTime?: string;
+  /** Slot ID (optional) */
   slotId?: number;
+  /** Appointment type: FIRST_VISIT, FOLLOW_UP, WALK_IN, EMERGENCY, ROUTINE */
   appointmentType?: string;
+  /** Reason for visit */
   reason?: string;
+  /** Symptoms */
   symptoms?: string;
+  /** MRN (legacy field, use patientMrn for new backend) */
+  mrn?: string;
 }
 
 export interface RescheduleAppointmentRequest {

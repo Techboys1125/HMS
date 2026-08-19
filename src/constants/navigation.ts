@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   Users,
   Calendar,
+  CalendarPlus,
   Stethoscope,
   FileText,
   Pill,
@@ -78,13 +79,12 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "patients", Icon: Users, label: "Patients" },
         { id: "doctors", Icon: UserCheck, label: "Doctors" },
         { id: "appointments", Icon: Calendar, label: "Appointments" },
+
         {
           id: "consultation",
           Icon: Stethoscope,
           label: "OPD Consultation Management",
         },
-        { id: "reception", Icon: LogIn, label: "Reception" },
-        { id: "opd", Icon: Stethoscope, label: "OPD" },
       ],
     },
     {
@@ -115,7 +115,6 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "patients", Icon: Users, label: "Patients" },
         { id: "appointments", Icon: Calendar, label: "Appointments" },
         { id: "consultation", Icon: MessageSquare, label: "Consultation" },
-        { id: "prescriptions", Icon: Pill, label: "Prescriptions" },
         {
           id: "medical-history",
           Icon: ClipboardList,
@@ -151,6 +150,7 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "patients", Icon: Users, label: "Patients" },
         { id: "doctors", Icon: UserCheck, label: "Doctors" },
         { id: "appointments", Icon: Calendar, label: "Appointments" },
+       
         { id: "billing", Icon: CreditCard, label: "Billing" },
         { id: "reports", Icon: BarChart2, label: "Reports" },
       ],

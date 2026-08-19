@@ -915,3 +915,106 @@ export interface AccountantTransactionRegisterResponse {
   totalElements: number;
   totalPages: number;
 }
+
+// ─── Reception Reports ─────────────────────────────────────────────────────
+
+export interface ReceptionDashboardData {
+  date: string;
+  totalAppointments: number;
+  checkedIn: number;
+  inConsultation: number;
+  completed: number;
+  cancelled: number;
+  noShow: number;
+  averageWaitTime: number;
+  queueLength: number;
+}
+
+export interface ReceptionRegistrationTrendPoint {
+  date: string;
+  registrations: number;
+  walkIns: number;
+  online: number;
+}
+
+export interface ReceptionRegistrationTrendData {
+  fromDate: string;
+  toDate: string;
+  dataPoints: ReceptionRegistrationTrendPoint[];
+}
+
+export interface ReceptionAppointmentStatusItem {
+  status: string;
+  count: number;
+  percentage: number;
+}
+
+export interface ReceptionAppointmentStatusData {
+  date: string;
+  total: number;
+  breakdown: ReceptionAppointmentStatusItem[];
+}
+
+export interface ReceptionCheckinAnalyticsData {
+  date: string;
+  totalCheckedIn: number;
+  averageCheckinTime: string;
+  peakHour: string;
+  checkinsByHour: Array<{ hour: string; count: number }>;
+}
+
+export interface ReceptionQueuePerformanceData {
+  date: string;
+  averageWaitTime: number;
+  longestWait: number;
+  patientsWaiting: number;
+  tokensIssued: number;
+  patientsServed: number;
+}
+
+export interface ReceptionRegisterItem {
+  appointmentId: string;
+  patientName: string;
+  mrn: string;
+  doctorName: string;
+  department: string;
+  timeSlot: string;
+  visitType: string;
+  status: string;
+  checkedInAt: string;
+}
+
+export interface ReceptionRegisterResponse {
+  content: ReceptionRegisterItem[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface ReceptionActivityLogItem {
+  id: string;
+  timestamp: string;
+  user: string;
+  action: string;
+  patientName: string;
+  details: string;
+}
+
+export interface ReceptionActivityLogResponse {
+  content: ReceptionActivityLogItem[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface ReceptionSummaryData {
+  date: string;
+  todayAppointments: number;
+  todayCheckedIn: number;
+  todayCompleted: number;
+  todayCancelled: number;
+  averageWaitTime: number;
+  patientSatisfaction: number;
+}

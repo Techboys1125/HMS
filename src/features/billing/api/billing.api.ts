@@ -55,8 +55,12 @@ export interface BillItem {
 }
 
 export interface BillItemPayload {
-  serviceId: string;
+  serviceCode: string;
+  itemName: string;
+  description: string;
   quantity: number;
+  unitPrice: number;
+  taxRate: number;
 }
 
 export interface BillDiscountPayload {
@@ -463,10 +467,25 @@ export const billingApi = {
     payload: BillDiscountPayload,
   ): Promise<ApiResponse<unknown>> {
     try {
-      const response = await apiClient.patch<ApiResponse<unknown>>(
-        `/api/v1/billing/${billId}/discount`,
-        payload,
-      );
+      let response;
+      try {
+        response = await apiClient.post<ApiResponse<unknown>>(
+          `/api/v1/billing/${billId}/discount`,
+          payload,
+        );
+      } catch (err: unknown) {
+        if (
+          axios.isAxiosError(err) &&
+          (err.response?.status === 405 || err.response?.status === 404)
+        ) {
+          response = await apiClient.patch<ApiResponse<unknown>>(
+            `/api/v1/billing/${billId}/discount`,
+            payload,
+          );
+        } else {
+          throw err;
+        }
+      }
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -500,9 +519,23 @@ export const billingApi = {
     billId: number | string,
   ): Promise<ApiResponse<BillFinalizeResponse>> {
     try {
-      const response = await apiClient.patch<ApiResponse<BillFinalizeResponse>>(
-        `/api/v1/billing/${billId}/finalize`,
-      );
+      let response;
+      try {
+        response = await apiClient.post<ApiResponse<BillFinalizeResponse>>(
+          `/api/v1/billing/${billId}/finalize`,
+        );
+      } catch (err: unknown) {
+        if (
+          axios.isAxiosError(err) &&
+          (err.response?.status === 405 || err.response?.status === 404)
+        ) {
+          response = await apiClient.patch<ApiResponse<BillFinalizeResponse>>(
+            `/api/v1/billing/${billId}/finalize`,
+          );
+        } else {
+          throw err;
+        }
+      }
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -691,13 +724,20 @@ export const billingApi = {
   },
 
   // ── 19. Outstanding Bills ──────────────────────────────────────────────
-  async getOutstanding(): Promise<
+  async getOutstanding(params?: {
+    fromDate?: string;
+    toDate?: string;
+  }): Promise<
     ApiResponse<{ totalOutstanding: number; bills: OutstandingBill[] }>
   > {
     try {
+      const query = new URLSearchParams();
+      if (params?.fromDate) query.set("fromDate", params.fromDate);
+      if (params?.toDate) query.set("toDate", params.toDate);
+      const qs = query.toString();
       const response = await apiClient.get<
         ApiResponse<{ totalOutstanding: number; bills: OutstandingBill[] }>
-      >("/api/v1/billing/outstanding");
+      >(`/api/v1/billing/outstanding${qs ? `?${qs}` : ""}`);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -727,10 +767,15 @@ export const billingApi = {
   },
 
   // ── 21. Daily Collection Report ────────────────────────────────────────
-  async getDailyReport(): Promise<ApiResponse<DailyReport>> {
+  async getDailyReport(params?: {
+    date?: string;
+  }): Promise<ApiResponse<DailyReport>> {
     try {
+      const query = new URLSearchParams();
+      if (params?.date) query.set("date", params.date);
+      const qs = query.toString();
       const response = await apiClient.get<ApiResponse<DailyReport>>(
-        "/api/v1/billing/reports/daily",
+        `/api/v1/billing/reports/daily${qs ? `?${qs}` : ""}`,
       );
       return response.data;
     } catch (error) {
@@ -743,10 +788,17 @@ export const billingApi = {
   },
 
   // ── 22. Payment Modes Report ───────────────────────────────────────────
-  async getPaymentModesReport(): Promise<ApiResponse<PaymentModeReport>> {
+  async getPaymentModesReport(params?: {
+    fromDate?: string;
+    toDate?: string;
+  }): Promise<ApiResponse<PaymentModeReport>> {
     try {
+      const query = new URLSearchParams();
+      if (params?.fromDate) query.set("fromDate", params.fromDate);
+      if (params?.toDate) query.set("toDate", params.toDate);
+      const qs = query.toString();
       const response = await apiClient.get<ApiResponse<PaymentModeReport>>(
-        "/api/v1/billing/reports/payment-modes",
+        `/api/v1/billing/reports/payment-modes${qs ? `?${qs}` : ""}`,
       );
       return response.data;
     } catch (error) {

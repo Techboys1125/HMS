@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { Patient } from "../types/patient.types";
 import { usePermissions } from "../../../permissions";
+import { extractDoctorName } from "../api/mapApiPatientToPatientRecord";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -76,6 +77,7 @@ export function PatientTable({
   onGenerateBill,
   onResetFilters,
   userRole,
+  doctorMap,
 }: {
   patients: Patient[];
   totalCount: number;
@@ -83,6 +85,7 @@ export function PatientTable({
   selectedPatientId: string | null;
   activeActionMenuId: string | null;
   hasActiveFilters: boolean;
+  doctorMap?: Record<string | number, string>;
   onSelectRow: (p: Patient) => void;
   onOpenQuickView?: (p: Patient) => void;
   onToggleActionMenu: (id: string | null) => void;
@@ -165,8 +168,8 @@ export function PatientTable({
           valB = (b.registrationType || "").toLowerCase();
           break;
         case "assigned_doctor":
-          valA = (a.assignedDoctor || "").toLowerCase();
-          valB = (b.assignedDoctor || "").toLowerCase();
+          valA = (extractDoctorName(a, doctorMap) || a.assignedDoctor || "N/A").toLowerCase();
+          valB = (extractDoctorName(b, doctorMap) || b.assignedDoctor || "N/A").toLowerCase();
           break;
         case "reg_date":
           valA = a.registrationDate || "";
@@ -226,7 +229,7 @@ export function PatientTable({
       visible: !isDoctor && !isReceptionist,
     },
     { key: "reg_type", label: "Reg. Type", visible: !isDoctor },
-    { key: "assigned_doctor", label: "Assigned Doctor", visible: !isDoctor },
+    { key: "assigned_doctor", label: "Assigned Doctor", visible: true },
     { key: "reg_date", label: "Registration Date", visible: !isDoctor },
     { key: "visit_count", label: "Visit Count", visible: isDoctor },
     { key: "last_visit", label: "Last Visit", visible: isDoctor },
@@ -321,7 +324,10 @@ export function PatientTable({
         <div className="overflow-x-auto max-h-150 overflow-y-auto">
           <table className="w-full border-collapse text-left text-xs">
             <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
-              <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
+              <tr
+                className="text-[#64748B] font-bold"
+                style={{ fontFamily: PP }}
+              >
                 {columns.map((col) => {
                   const isSorted = sortColumn === col.key;
                   const isActions = col.key === "actions";
@@ -365,7 +371,7 @@ export function PatientTable({
                 const regType = (p.registrationType || "WALK_IN")
                   .replace(/_/g, " ")
                   .replace(/\b\w/g, (c) => c.toUpperCase());
-                const doctor = p.assignedDoctor || "Unassigned";
+                const doctor = extractDoctorName(p, doctorMap) || p.assignedDoctor || "N/A";
                 const regDate = p.registrationDate
                   ? p.registrationDate.split("T")[0]
                   : "";
@@ -424,7 +430,13 @@ export function PatientTable({
 
                     {columns.some((c) => c.key === "blood_group") && (
                       <td className="px-4 py-3.5 whitespace-nowrap text-xs font-bold text-[#009688]">
-                        {p.bloodGroup ? p.bloodGroup.replace("_POSITIVE", "+").replace("_NEGATIVE", "-").replace("UNKNOWN", "N/A").replace("N/A", "N/A") : "-"}
+                        {p.bloodGroup
+                          ? p.bloodGroup
+                              .replace("_POSITIVE", "+")
+                              .replace("_NEGATIVE", "-")
+                              .replace("UNKNOWN", "N/A")
+                              .replace("N/A", "N/A")
+                          : "-"}
                       </td>
                     )}
 
@@ -615,11 +627,15 @@ export function PatientTable({
             <span>
               Showing{" "}
               <span className="font-bold text-[#111827]">
-                {sortedPatients.length > 0 ? (safeCurrentPage - 1) * pageSize + 1 : 0}
+                {sortedPatients.length > 0
+                  ? (safeCurrentPage - 1) * pageSize + 1
+                  : 0}
               </span>{" "}
-              to <span className="font-bold text-[#111827]">
+              to{" "}
+              <span className="font-bold text-[#111827]">
                 {Math.min(safeCurrentPage * pageSize, sortedPatients.length)}
-              </span> of{" "}
+              </span>{" "}
+              of{" "}
               <span className="font-bold text-[#111827]">
                 {sortedPatients.length}
               </span>{" "}

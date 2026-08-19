@@ -1029,7 +1029,7 @@ export function DailyAppointmentReportScreen({
                         Percentage distribution across all status types
                       </p>
                     </div>
-                    <PieChart className="w-4 h-4 text-[#0D47A1]" />
+                    <PieChartIcon className="w-4 h-4 text-[#0D47A1]" />
                   </div>
                   <div className="h-60">
                     <ResponsiveContainer width="100%" height="100%">
