@@ -1,5 +1,6 @@
 import { apiClient, axios } from "../../../lib/axios";
 import type { User, ApiResponse } from "../../auth/types/auth.types";
+import { to24Hour } from "../../../lib/time-utils";
 import type {
   AdminCreateStaffData,
   AdminCreateStaffResponse,
@@ -21,9 +22,31 @@ export const usersApi = {
     data: AdminCreateStaffData,
   ): Promise<AdminCreateStaffResponse> => {
     try {
+      const formattedData = {
+        ...data,
+        availability: data.availability?.map((item: any) => ({
+          ...item,
+          startTime: to24Hour(item.startTime),
+          endTime: to24Hour(item.endTime),
+        })),
+        ...((data as any).doctorProfile?.availability
+          ? {
+              doctorProfile: {
+                ...(data as any).doctorProfile,
+                availability: (data as any).doctorProfile.availability.map(
+                  (item: any) => ({
+                    ...item,
+                    startTime: to24Hour(item.startTime),
+                    endTime: to24Hour(item.endTime),
+                  }),
+                ),
+              },
+            }
+          : {}),
+      };
       const response = await apiClient.post<AdminCreateStaffResponse>(
         "/api/v1/admin/users",
-        data,
+        formattedData,
       );
       return response.data;
     } catch (error: unknown) {
@@ -94,9 +117,17 @@ export const usersApi = {
     data: AdminUpdateStaffData,
   ): Promise<ApiResponse<UserDetailData>> => {
     try {
+      const formattedData = {
+        ...data,
+        availability: data.availability?.map((item) => ({
+          ...item,
+          startTime: to24Hour(item.startTime),
+          endTime: to24Hour(item.endTime),
+        })),
+      };
       const response = await apiClient.put<ApiResponse<UserDetailData>>(
         `/api/v1/admin/users/${userId}`,
-        data,
+        formattedData,
       );
       return response.data;
     } catch (error: unknown) {

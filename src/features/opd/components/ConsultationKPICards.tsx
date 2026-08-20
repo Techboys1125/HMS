@@ -58,10 +58,17 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
   consultations,
   tabCounts,
 }) => {
-  const waitingForDoctor = tabCounts["WAITING_FOR_DOCTOR_CALL"] || 0;
+  const waitingForDoctor =
+    tabCounts["WAITING_FOR_DOCTOR"] ||
+    tabCounts["WAITING_FOR_DOCTOR_CALL"] ||
+    tabCounts["WAITING"] ||
+    tabCounts["Waiting"] ||
+    0;
   const inConsultation = tabCounts["IN_CONSULTATION"] || 0;
   const completed = tabCounts["COMPLETED"] || 0;
-  const followUps = tabCounts["FOLLOW_UP_SCHEDULED"] || 0;
+  const followUps = consultations.filter(
+    (c) => c.visitType === "Follow-up" || c.visitType === "Follow",
+  ).length;
 
   if (role === "admin") {
     return (

@@ -19,10 +19,16 @@ import { useAuthStore } from "../../auth";
 import type { BillPaymentRecord } from "../types/billing.types";
 
 export function InvoiceDetailsPage() {
-  const { invoiceId } = useParams<{ invoiceId: string }>();
+  const { invoiceId, billId } = useParams<{
+    invoiceId?: string;
+    billId?: string;
+  }>();
+  const targetId = invoiceId || billId;
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const role = user?.role;
+  const isPatient = String(role || "").toUpperCase() === "PATIENT";
+  const backUrl = isPatient ? "/patient/billing" : "/billing";
 
   const {
     bill,
@@ -32,9 +38,9 @@ export function InvoiceDetailsPage() {
     voidBill,
     isRefunding,
     refund,
-  } = useInvoice(invoiceId);
+  } = useInvoice(targetId);
 
-  const { paymentHistory } = usePayment(invoiceId);
+  const { paymentHistory } = usePayment(targetId);
 
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showRefundModal, setShowRefundModal] = useState(false);
@@ -42,9 +48,13 @@ export function InvoiceDetailsPage() {
   const [refundReason, setRefundReason] = useState("");
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
-  const canEdit = checkBillingPermission(role, "edit_invoice");
-  const canCancel = checkBillingPermission(role, "cancel_invoice");
-  const canRefund = checkBillingPermission(role, "refund_invoice");
+  const canEdit = !isPatient && checkBillingPermission(role, "edit_invoice");
+  const canCancel =
+    !isPatient && checkBillingPermission(role, "cancel_invoice");
+  const canRefund =
+    !isPatient && checkBillingPermission(role, "refund_invoice");
+  const canCollectRole =
+    !isPatient && checkBillingPermission(role, "collect_payment");
 
   const showSuccess = (message: string) => {
     setActionSuccess(message);
@@ -52,25 +62,31 @@ export function InvoiceDetailsPage() {
   };
 
   const handleCancel = async () => {
-    if (invoiceId) {
-      await cancelBill({ id: invoiceId, reason: "Cancelled by " + user?.name });
+    if (targetId) {
+      await cancelBill({
+        id: targetId,
+        reason: "Cancelled by " + (user?.name || "staff"),
+      });
       showSuccess("Invoice cancelled successfully");
       setShowMoreMenu(false);
     }
   };
 
   const handleVoid = async () => {
-    if (invoiceId) {
-      await voidBill({ id: invoiceId, reason: "Voided by " + user?.name });
+    if (targetId) {
+      await voidBill({
+        id: targetId,
+        reason: "Voided by " + (user?.name || "staff"),
+      });
       showSuccess("Invoice voided successfully");
       setShowMoreMenu(false);
     }
   };
 
   const handleRefund = async () => {
-    if (invoiceId && refundAmount > 0 && refundAmount <= paidAmount) {
+    if (targetId && refundAmount > 0 && refundAmount <= paidAmount) {
       await refund({
-        billId: invoiceId,
+        billId: targetId,
         amount: refundAmount,
         reason: refundReason,
       });
@@ -82,20 +98,29 @@ export function InvoiceDetailsPage() {
   };
 
   const handleCollectPayment = () => {
-    navigate(`/billing/collect-payment/${invoiceId}`);
+    if (targetId) {
+      navigate(`/billing/collect-payment/${targetId}`);
+    }
   };
 
   const patientName = bill?.patient?.name || "N/A";
   const patientMrn = bill?.patient?.mrn || "N/A";
-  const patientPhone = bill?.patient?.phone || "";
+  const patientPhone =
+    bill?.patient?.phone ||
+    bill?.patient?.registeredMobile ||
+    "";
   const doctorName = bill?.doctor?.name || "N/A";
+  const doctorCode = bill?.doctor?.doctorCode || "";
   const summaryData = bill?.summary;
   const items = bill?.items || [];
-  const paymentRecords = bill?.paymentHistory || paymentHistory?.payments || [];
+  const paymentRecords =
+    bill?.paymentHistory && bill.paymentHistory.length > 0
+      ? bill.paymentHistory
+      : paymentHistory?.payments || [];
 
   const netAmount = summaryData?.netAmount ?? 0;
   const paidAmount = summaryData?.paidAmount ?? 0;
-  const balanceAmount = summaryData?.balanceAmount ?? netAmount;
+  const balanceAmount = summaryData?.balanceAmount ?? Math.max(0, netAmount - paidAmount);
   const progressPercent = Math.min(
     100,
     netAmount > 0 ? Math.round((paidAmount / netAmount) * 100) : 0,
@@ -105,7 +130,15 @@ export function InvoiceDetailsPage() {
   const isFinalized = bill?.status === "FINALIZED";
   const isCancelled = bill?.status === "CANCELLED";
   const isVoided = bill?.status === "VOIDED";
-  const canCollect = balanceAmount > 0 && !isCancelled && !isVoided;
+
+  const capabilities = bill?.capabilities;
+  const canCollect =
+    (capabilities?.canCollectPayment ?? (balanceAmount > 0 && !isCancelled && !isVoided)) &&
+    canCollectRole;
+  const canCancelAction = (capabilities?.canCancel ?? isDraft) && canCancel;
+  const canVoidAction = (capabilities?.canVoid ?? isFinalized) && canCancel;
+  const canRefundAction =
+    (capabilities?.canRefund ?? (paidAmount > 0)) && canRefund;
 
   if (isLoading) {
     return (
@@ -127,13 +160,13 @@ export function InvoiceDetailsPage() {
           Invoice Not Found
         </h2>
         <p className="text-sm text-slate-500">
-          The invoice reference "{invoiceId}" does not exist in our systems.
+          The invoice reference "{targetId}" does not exist or you do not have permission to view it.
         </p>
         <button
-          onClick={() => navigate("/billing")}
+          onClick={() => navigate(backUrl)}
           className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 cursor-pointer"
         >
-          Return to Billing Register
+          {isPatient ? "Return to My Bills" : "Return to Billing Register"}
         </button>
       </div>
     );
@@ -163,16 +196,16 @@ export function InvoiceDetailsPage() {
           >
             <span
               className="hover:text-[#0D47A1] cursor-pointer"
-              onClick={() => navigate("/billing")}
+              onClick={() => navigate(isPatient ? "/dashboard" : "/billing")}
             >
               Home
             </span>
             <ChevronRight size={12} />
             <span
               className="hover:text-[#0D47A1] cursor-pointer"
-              onClick={() => navigate("/billing")}
+              onClick={() => navigate(backUrl)}
             >
-              Billing & Payments
+              {isPatient ? "My Bills" : "Billing & Payments"}
             </span>
             <ChevronRight size={12} />
             <span className="text-[#0D47A1] font-semibold">
@@ -184,7 +217,7 @@ export function InvoiceDetailsPage() {
               className="text-xl md:text-2xl font-bold text-[#111827] tracking-tight"
               style={{ fontFamily: PP }}
             >
-              Invoice — {bill.billNumber}
+              Invoice — {bill.billNumber || bill.id}
             </h1>
             <BillingStatusBadge status={String(bill.paymentStatus || "")} />
           </div>
@@ -192,8 +225,7 @@ export function InvoiceDetailsPage() {
             className="text-xs md:text-sm text-[#64748B] mt-0.5"
             style={{ fontFamily: RB }}
           >
-            Review invoice details, itemizations, payment receipts, and
-            collection transactions.
+            Review invoice details, itemizations, payment receipts, and collection records.
           </p>
         </div>
 
@@ -209,68 +241,70 @@ export function InvoiceDetailsPage() {
             </button>
           )}
           <button
-            onClick={() => navigate(`/billing/invoice/${invoiceId}/print`)}
+            onClick={() => navigate(`/billing/invoice/${targetId}/print`)}
             className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
             style={{ fontFamily: RB }}
           >
             <Eye size={14} />
             <span className="hidden sm:inline">Print Preview</span>
           </button>
-          <div className="relative">
-            <button
-              onClick={() => setShowMoreMenu(!showMoreMenu)}
-              className="p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
-            >
-              <MoreVertical size={16} />
-            </button>
-            {showMoreMenu && (
-              <div
-                className="absolute right-0 mt-1 w-44 bg-white rounded-xl border border-[#E5E7EB] shadow-lg py-1 z-30 text-left text-xs"
-                style={{ fontFamily: RB }}
+          {!isPatient && (canCancelAction || canVoidAction || canRefundAction) && (
+            <div className="relative">
+              <button
+                onClick={() => setShowMoreMenu(!showMoreMenu)}
+                className="p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
               >
-                <button
-                  onClick={() => {
-                    navigate(`/billing/invoice/${invoiceId}/print`);
-                    setShowMoreMenu(false);
-                  }}
-                  className="w-full px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium cursor-pointer"
+                <MoreVertical size={16} />
+              </button>
+              {showMoreMenu && (
+                <div
+                  className="absolute right-0 mt-1 w-44 bg-white rounded-xl border border-[#E5E7EB] shadow-lg py-1 z-30 text-left text-xs"
+                  style={{ fontFamily: RB }}
                 >
-                  <Eye size={13} />
-                  View Print Preview
-                </button>
-                {isDraft && canCancel && (
-                  <button
-                    onClick={handleCancel}
-                    className="w-full px-3 py-2 text-[#EF4444] hover:bg-red-50 flex items-center gap-2 font-medium cursor-pointer"
-                  >
-                    <Ban size={13} />
-                    Cancel Invoice
-                  </button>
-                )}
-                {isFinalized && canCancel && (
-                  <button
-                    onClick={handleVoid}
-                    className="w-full px-3 py-2 text-[#F59E0B] hover:bg-amber-50 flex items-center gap-2 font-medium cursor-pointer"
-                  >
-                    <Ban size={13} />
-                    Void Invoice
-                  </button>
-                )}
-                {paidAmount > 0 && canRefund && (
                   <button
                     onClick={() => {
-                      setShowRefundModal(true);
+                      navigate(`/billing/invoice/${targetId}/print`);
                       setShowMoreMenu(false);
                     }}
-                    className="w-full px-3 py-2 text-[#F59E0B] hover:bg-amber-50 flex items-center gap-2 font-medium cursor-pointer"
+                    className="w-full px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium cursor-pointer"
                   >
-                    <RotateCcw size={13} />
-                    Process Refund
+                    <Eye size={13} />
+                    View Print Preview
                   </button>
-                )}
-              </div>
-            )}
-          </div>
+                  {canCancelAction && (
+                    <button
+                      onClick={handleCancel}
+                      className="w-full px-3 py-2 text-[#EF4444] hover:bg-red-50 flex items-center gap-2 font-medium cursor-pointer"
+                    >
+                      <Ban size={13} />
+                      Cancel Invoice
+                    </button>
+                  )}
+                  {canVoidAction && (
+                    <button
+                      onClick={handleVoid}
+                      className="w-full px-3 py-2 text-[#F59E0B] hover:bg-amber-50 flex items-center gap-2 font-medium cursor-pointer"
+                    >
+                      <Ban size={13} />
+                      Void Invoice
+                    </button>
+                  )}
+                  {canRefundAction && (
+                    <button
+                      onClick={() => {
+                        setShowRefundModal(true);
+                        setShowMoreMenu(false);
+                      }}
+                      className="w-full px-3 py-2 text-[#F59E0B] hover:bg-amber-50 flex items-center gap-2 font-medium cursor-pointer"
+                    >
+                      <RotateCcw size={13} />
+                      Process Refund
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -286,7 +320,7 @@ export function InvoiceDetailsPage() {
               Invoice Metadata
             </h2>
             <div
-              className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs"
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-xs"
               style={{ fontFamily: RB }}
             >
               <div>
@@ -294,7 +328,15 @@ export function InvoiceDetailsPage() {
                   Invoice Number
                 </span>
                 <span className="font-mono font-bold text-sm text-[#0D47A1]">
-                  {bill.billNumber}
+                  {bill.billNumber || bill.id}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[11px]">
+                  Bill Type
+                </span>
+                <span className="font-semibold text-[#111827]">
+                  {bill.billType || "OPD"}
                 </span>
               </div>
               <div>
@@ -313,6 +355,16 @@ export function InvoiceDetailsPage() {
                   {bill.paymentStatus}
                 </span>
               </div>
+              {bill.createdAt && (
+                <div>
+                  <span className="text-slate-400 block text-[11px]">
+                    Created Date
+                  </span>
+                  <span className="font-medium text-slate-700">
+                    {new Date(bill.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              )}
               {bill.appointment && (
                 <div>
                   <span className="text-slate-400 block text-[11px]">
@@ -320,6 +372,16 @@ export function InvoiceDetailsPage() {
                   </span>
                   <span className="font-mono text-slate-700">
                     {bill.appointment.appointmentNumber}
+                  </span>
+                </div>
+              )}
+              {bill.encounter && (
+                <div>
+                  <span className="text-slate-400 block text-[11px]">
+                    Encounter
+                  </span>
+                  <span className="font-mono text-slate-700">
+                    {bill.encounter.encounterNumber}
                   </span>
                 </div>
               )}
@@ -390,13 +452,13 @@ export function InvoiceDetailsPage() {
                 </span>
                 <span className="font-bold text-[#111827]">{doctorName}</span>
               </div>
-              {bill.doctor?.doctorCode && (
+              {doctorCode && (
                 <div>
                   <span className="text-slate-400 block text-[11px]">
                     Doctor Code
                   </span>
                   <span className="font-mono font-semibold text-slate-700">
-                    {bill.doctor.doctorCode}
+                    {doctorCode}
                   </span>
                 </div>
               )}
@@ -411,46 +473,77 @@ export function InvoiceDetailsPage() {
             >
               Itemized Line Bill ({items.length} items)
             </h2>
-            <table
-              className="w-full text-left border-collapse text-xs"
-              style={{ fontFamily: RB }}
-            >
-              <thead>
-                <tr className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase border-b border-slate-200">
-                  <th className="py-2.5 px-3">Service Name</th>
-                  <th className="py-2.5 px-3 text-right">Qty</th>
-                  <th className="py-2.5 px-3 text-right">Unit Price</th>
-                  <th className="py-2.5 px-3 text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {items.length > 0 ? (
-                  items.map((item) => (
-                    <tr key={item.id}>
-                      <td className="py-3 px-3">{item.serviceName}</td>
-                      <td className="py-3 px-3 text-right">{item.quantity}</td>
-                      <td className="py-3 px-3 text-right">
-                        ₹{item.unitPrice.toLocaleString()}
-                      </td>
-                      <td className="py-3 px-3 text-right font-semibold">
-                        ₹
-                        {(
-                          item.totalAmount ||
-                          item.totalPrice ||
-                          0
-                        ).toLocaleString()}
+            <div className="overflow-x-auto">
+              <table
+                className="w-full text-left border-collapse text-xs"
+                style={{ fontFamily: RB }}
+              >
+                <thead>
+                  <tr className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase border-b border-slate-200">
+                    <th className="py-2.5 px-3">Service / Item Name</th>
+                    <th className="py-2.5 px-3 text-right">Qty</th>
+                    <th className="py-2.5 px-3 text-right">Unit Price</th>
+                    <th className="py-2.5 px-3 text-right">Tax</th>
+                    <th className="py-2.5 px-3 text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {items.length > 0 ? (
+                    items.map((item) => {
+                      const itemName =
+                        item.itemName ||
+                        item.serviceName ||
+                        "General Doctor Consultation Fee";
+                      const unitPrice = item.unitPrice ?? 0;
+                      const qty = item.quantity ?? 1;
+                      const taxRate = item.taxRate ?? item.taxPercent ?? 0;
+                      const totalAmount =
+                        item.totalAmount ??
+                        item.totalPrice ??
+                        qty * unitPrice;
+
+                      return (
+                        <tr key={item.id}>
+                          <td className="py-3 px-3">
+                            <div className="font-semibold text-[#111827]">
+                              {itemName}
+                            </div>
+                            {item.description && (
+                              <div className="text-[11px] text-slate-500 mt-0.5">
+                                {item.description}
+                              </div>
+                            )}
+                            {item.serviceCode && (
+                              <div className="text-[10px] font-mono text-slate-400 mt-0.5">
+                                Code: {item.serviceCode}
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 text-right font-medium">
+                            {qty}
+                          </td>
+                          <td className="py-3 px-3 text-right">
+                            ₹{unitPrice.toLocaleString()}
+                          </td>
+                          <td className="py-3 px-3 text-right text-slate-500">
+                            {taxRate > 0 ? `${taxRate}%` : "0%"}
+                          </td>
+                          <td className="py-3 px-3 text-right font-semibold text-[#111827]">
+                            ₹{totalAmount.toLocaleString()}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td className="py-3 px-3 text-slate-400" colSpan={5}>
+                        No line items recorded for this invoice.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td className="py-3 px-3 text-slate-400" colSpan={4}>
-                      No items added to this bill.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Payment History */}
@@ -462,39 +555,47 @@ export function InvoiceDetailsPage() {
               >
                 Payment History ({paymentRecords.length} transactions)
               </h2>
-              <table
-                className="w-full text-left border-collapse text-xs"
-                style={{ fontFamily: RB }}
-              >
-                <thead>
-                  <tr className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase border-b border-slate-200">
-                    <th className="py-2.5 px-3">Method</th>
-                    <th className="py-2.5 px-3 text-right">Amount</th>
-                    <th className="py-2.5 px-3">Reference</th>
-                    <th className="py-2.5 px-3">Received By</th>
-                    <th className="py-2.5 px-3">Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {paymentRecords.map((p: BillPaymentRecord) => (
-                    <tr key={p.receiptNumber || p.paymentNumber || p.id}>
-                      <td className="py-3 px-3 font-semibold">{p.method}</td>
-                      <td className="py-3 px-3 text-right font-bold text-[#66BB6A]">
-                        ₹{p.amount.toLocaleString()}
-                      </td>
-                      <td className="py-3 px-3 text-slate-500 font-mono">
-                        {p.referenceNumber || p.paymentNumber || "—"}
-                      </td>
-                      <td className="py-3 px-3 text-slate-500">
-                        {p.receivedBy || "—"}
-                      </td>
-                      <td className="py-3 px-3 text-slate-500">
-                        {p.paidAt || p.transactionDate || "—"}
-                      </td>
+              <div className="overflow-x-auto">
+                <table
+                  className="w-full text-left border-collapse text-xs"
+                  style={{ fontFamily: RB }}
+                >
+                  <thead>
+                    <tr className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase border-b border-slate-200">
+                      <th className="py-2.5 px-3">Payment / Receipt No</th>
+                      <th className="py-2.5 px-3">Method</th>
+                      <th className="py-2.5 px-3 text-right">Amount</th>
+                      <th className="py-2.5 px-3">Ref No</th>
+                      <th className="py-2.5 px-3">Status</th>
+                      <th className="py-2.5 px-3">Date</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {paymentRecords.map((p: BillPaymentRecord) => (
+                      <tr key={p.receiptNumber || p.paymentNumber || p.id}>
+                        <td className="py-3 px-3 font-mono font-medium text-[#0D47A1]">
+                          {p.receiptNumber || p.paymentNumber || `PMT-${p.id || ""}`}
+                        </td>
+                        <td className="py-3 px-3 font-semibold">{p.method}</td>
+                        <td className="py-3 px-3 text-right font-bold text-[#66BB6A]">
+                          ₹{(p.amount ?? 0).toLocaleString()}
+                        </td>
+                        <td className="py-3 px-3 text-slate-500 font-mono">
+                          {p.referenceNumber || p.transactionRef || "—"}
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-50 text-green-700 border border-green-200">
+                            {p.status || "SUCCESS"}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-slate-500">
+                          {p.transactionDate || p.paidAt || "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
@@ -512,7 +613,7 @@ export function InvoiceDetailsPage() {
               <div className="flex justify-between">
                 <span className="text-slate-500">Gross Amount:</span>
                 <span className="font-semibold text-slate-800">
-                  ₹{(summaryData?.grossAmount ?? 0).toLocaleString()}
+                  ₹{(summaryData?.grossAmount ?? summaryData?.netAmount ?? 0).toLocaleString()}
                 </span>
               </div>
               {(summaryData?.discountAmount ?? 0) > 0 && (
@@ -523,9 +624,25 @@ export function InvoiceDetailsPage() {
                   </span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span className="text-slate-500">Net Amount:</span>
-                <span className="font-semibold text-slate-800">
+              {(summaryData?.taxAmount ?? 0) > 0 && (
+                <div className="flex justify-between text-slate-600">
+                  <span>Tax Amount:</span>
+                  <span className="font-semibold">
+                    +₹{(summaryData?.taxAmount ?? 0).toLocaleString()}
+                  </span>
+                </div>
+              )}
+              {((summaryData?.roundOffAmount ?? summaryData?.roundOff ?? 0) !== 0) && (
+                <div className="flex justify-between text-slate-500">
+                  <span>Round Off:</span>
+                  <span className="font-semibold">
+                    ₹{(summaryData?.roundOffAmount ?? summaryData?.roundOff ?? 0).toLocaleString()}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm font-bold text-[#111827] border-t border-slate-100 pt-2">
+                <span>Grand / Net Total:</span>
+                <span className="text-[#0D47A1]">
                   ₹{netAmount.toLocaleString()}
                 </span>
               </div>
@@ -543,6 +660,12 @@ export function InvoiceDetailsPage() {
                 <span>Balance Due:</span>
                 <span>₹{balanceAmount.toLocaleString()}</span>
               </div>
+              {(summaryData?.refundedAmount ?? 0) > 0 && (
+                <div className="flex justify-between text-xs font-semibold text-amber-600 border-t border-slate-100 pt-2">
+                  <span>Refunded:</span>
+                  <span>₹{(summaryData?.refundedAmount ?? 0).toLocaleString()}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -558,7 +681,7 @@ export function InvoiceDetailsPage() {
                 Collect Payment
               </button>
               <button
-                onClick={() => navigate(`/billing/invoice/${invoiceId}/print`)}
+                onClick={() => navigate(`/billing/invoice/${targetId}/print`)}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
                 style={{ fontFamily: RB }}
               >
@@ -666,7 +789,7 @@ export function InvoiceDetailsPage() {
                 <div className="flex justify-between">
                   <span className="text-slate-500">Invoice:</span>
                   <span className="font-mono font-bold text-[#0D47A1]">
-                    {bill.billNumber}
+                    {bill.billNumber || bill.id}
                   </span>
                 </div>
                 <div className="flex justify-between">

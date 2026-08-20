@@ -106,6 +106,7 @@ export const vitalsService = {
           clinicalNotes?: string;
           notes?: string;
         }),
+    currentStatus?: string,
   ): Promise<{ encounterId: string | number; success: boolean }> {
     // 1. Create encounter for the appointment
     const encounterResult = await vitalsApi.createEncounter(appointmentId);
@@ -170,15 +171,25 @@ export const vitalsService = {
 
     // Transition appointment status to WAITING_FOR_DOCTOR after vitals are recorded
     if (vitalsRes?.success !== false) {
-      try {
-        await appointmentsApi.updateAppointmentStatus(
-          appointmentId,
-          "WAITING_FOR_DOCTOR",
-        );
-      } catch (statusErr) {
-        console.warn(
-          "Vitals recorded but failed to transition status to WAITING_FOR_DOCTOR:",
-          statusErr,
+      if (
+        !currentStatus ||
+        currentStatus === "CHECKED_IN" ||
+        currentStatus === "WAITING_FOR_VITALS"
+      ) {
+        try {
+          await appointmentsApi.updateAppointmentStatus(
+            appointmentId,
+            "WAITING_FOR_DOCTOR",
+          );
+        } catch (statusErr) {
+          console.warn(
+            "Vitals recorded but failed to transition status to WAITING_FOR_DOCTOR:",
+            statusErr,
+          );
+        }
+      } else {
+        console.info(
+          `Status transition skipped: Appointment is already in ${currentStatus}.`,
         );
       }
     }
@@ -204,6 +215,7 @@ export const vitalsService = {
           clinicalNotes?: string;
           notes?: string;
         }),
+    currentStatus?: string,
   ): Promise<boolean> {
     let payload: NurseVitalsPayload;
 
@@ -275,15 +287,25 @@ export const vitalsService = {
     const res = await vitalsApi.recordVitals(appointmentId, payload);
     if (res?.success !== false) {
       // Transition appointment status to WAITING_FOR_DOCTOR after vitals are recorded
-      try {
-        await appointmentsApi.updateAppointmentStatus(
-          appointmentId,
-          "WAITING_FOR_DOCTOR",
-        );
-      } catch (statusErr) {
-        console.warn(
-          "Vitals recorded but failed to transition status to WAITING_FOR_DOCTOR:",
-          statusErr,
+      if (
+        !currentStatus ||
+        currentStatus === "CHECKED_IN" ||
+        currentStatus === "WAITING_FOR_VITALS"
+      ) {
+        try {
+          await appointmentsApi.updateAppointmentStatus(
+            appointmentId,
+            "WAITING_FOR_DOCTOR",
+          );
+        } catch (statusErr) {
+          console.warn(
+            "Vitals recorded but failed to transition status to WAITING_FOR_DOCTOR:",
+            statusErr,
+          );
+        }
+      } else {
+        console.info(
+          `Status transition skipped: Appointment is already in ${currentStatus}.`,
         );
       }
       return true;

@@ -66,6 +66,9 @@ export const appointmentStatusMap: Record<ConsultationStatus, string> = {
   FOLLOW_UP_SCHEDULED: "Follow-up Scheduled",
 };
 
+export const READY_FOR_BILLING_MAP = "Ready for Billing";
+export const BILLING_PENDING_MAP = "Billing Pending";
+
 export type VisitType =
   "First Visit" | "Follow-up" | "Walk-In" | "New Consultation";
 

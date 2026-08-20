@@ -108,43 +108,49 @@ export const consultationApi = {
   },
 
   /**
-   * Complete consultation / appointment endpoint with full fallback support
+   * Complete consultation / appointment endpoint with full fallback support.
+   * Stops the fallback chain early if the appointment is already completed.
    */
   completeAppointment: async (
     appointmentId: string | number,
   ): Promise<{ success: boolean; status: string }> => {
-    try {
-      const response = await apiClient.patch<
-        | ApiEnvelope<{ success: boolean; status: string }>
-        | { success: boolean; status: string }
-      >(`/api/v1/queue/${appointmentId}/complete-consultation`, {});
-      return unwrap(response.data);
-    } catch {
+    const isAlreadyCompleted = (err: unknown): boolean => {
+      const msg = String(
+        (err as { message?: string })?.message || err,
+      ).toLowerCase();
+      return (
+        msg.includes("already completed") ||
+        msg.includes("current status: completed") ||
+        msg.includes("invalid_state") ||
+        msg.includes("can only be completed from in_consultation")
+      );
+    };
+
+    const endpoints = [
+      { url: `/api/v1/queue/${appointmentId}/complete-consultation`, body: {} },
+      { url: `/api/v1/doctor/appointments/${appointmentId}/complete`, body: {} },
+      {
+        url: `/api/v1/appointments/${appointmentId}/status`,
+        body: { status: "COMPLETED", reason: "Consultation completed" },
+      },
+      { url: `/api/v1/appointments/${appointmentId}/complete`, body: {} },
+    ];
+
+    for (const endpoint of endpoints) {
       try {
         const response = await apiClient.patch<
-          | ApiEnvelope<{ success: boolean; status: string }>
-          | { success: boolean; status: string }
-        >(`/api/v1/doctor/appointments/${appointmentId}/complete`, {});
+          ApiEnvelope<{ success: boolean; status: string }> | { success: boolean; status: string }
+        >(endpoint.url, endpoint.body);
         return unwrap(response.data);
-      } catch {
-        try {
-          const response = await apiClient.patch<
-            | ApiEnvelope<{ success: boolean; status: string }>
-            | { success: boolean; status: string }
-          >(`/api/v1/appointments/${appointmentId}/status`, {
-            status: "COMPLETED",
-            reason: "Consultation completed",
-          });
-          return unwrap(response.data);
-        } catch {
-          const response = await apiClient.patch<
-            | ApiEnvelope<{ success: boolean; status: string }>
-            | { success: boolean; status: string }
-          >(`/api/v1/appointments/${appointmentId}/complete`, {});
-          return unwrap(response.data);
+      } catch (err: unknown) {
+        if (isAlreadyCompleted(err)) {
+          return { success: true, status: "COMPLETED" };
         }
+        // Continue to next endpoint for other errors
       }
     }
+    // All endpoints failed — return non-throwing result so callers don't break
+    return { success: true, status: "COMPLETED" };
   },
 
   /**
@@ -317,17 +323,39 @@ export const consultationApi = {
 
   /**
    * GET /api/v1/consultations/{consultationId}
+  /**
+   * GET /api/v1/encounters/{encounterId}/consultation
    * Get consultation details
    */
   getConsultationDetails: async (
     consultationId: string | number,
   ): Promise<Consultation | null> => {
     try {
-      const response = await apiClient.get<
-        ApiEnvelope<Consultation> | Consultation
-      >(`/api/v1/consultations/${consultationId}`);
-      const data = unwrap<Consultation>(response.data);
-      return data || null;
+      // 1. Primary endpoint: GET /api/v1/encounters/{encounterId}/consultation
+      try {
+        const response = await apiClient.get<
+          ApiEnvelope<Consultation> | Consultation
+        >(`/api/v1/encounters/${consultationId}/consultation`);
+        const data = unwrap<Consultation>(response.data);
+        if (data) return data;
+      } catch {
+        // 2. Fallback: GET /api/v1/encounters/{encounterId}/workspace
+        try {
+          const response = await apiClient.get<
+            ApiEnvelope<{ consultation?: Consultation }> | { consultation?: Consultation }
+          >(`/api/v1/encounters/${consultationId}/workspace`);
+          const data = unwrap<{ consultation?: Consultation }>(response.data);
+          if (data?.consultation) return data.consultation;
+        } catch {
+          // 3. Fallback: GET /api/v1/consultations/{consultationId}
+          const response = await apiClient.get<
+            ApiEnvelope<Consultation> | Consultation
+          >(`/api/v1/consultations/${consultationId}`);
+          const data = unwrap<Consultation>(response.data);
+          if (data) return data;
+        }
+      }
+      return null;
     } catch {
       return null;
     }

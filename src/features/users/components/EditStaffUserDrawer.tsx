@@ -4,6 +4,7 @@ import { TimeSelect } from "../../../components/TimeSelect";
 import { usersApi } from "../api/users.api";
 import { departmentsApi } from "../api/departments.api";
 import { doctorsApi } from "../../doctors/api/doctors.api";
+import { to24Hour } from "../../../lib/time-utils";
 import type {
   BackendAvailabilityItem,
   UserDetailData,
@@ -65,7 +66,10 @@ const isTimeWithinWindow = (
   windowEnd: string,
 ): boolean => {
   if (!time || !windowStart || !windowEnd) return true;
-  return time >= windowStart && time <= windowEnd;
+  const t = to24Hour(time);
+  const ws = to24Hour(windowStart);
+  const we = to24Hour(windowEnd);
+  return t >= ws && t <= we;
 };
 
 const createInitialForm = (
@@ -278,7 +282,15 @@ export function EditStaffUserDrawer({
     return () => {
       isCancelled = true;
     };
-  }, [departments, deptNameToId, user, user?.id, hospitalSchedule, user?.doctorId, user?.email]);
+  }, [
+    departments,
+    deptNameToId,
+    user,
+    user?.id,
+    hospitalSchedule,
+    user?.doctorId,
+    user?.email,
+  ]);
 
   useEffect(() => {
     if (!user || user.role !== "Doctor" || !user.doctorId) {
@@ -384,7 +396,11 @@ export function EditStaffUserDrawer({
         secondarySpecialtyIds: [],
         consultationFee: Number(form.consultationFee),
         slotDurationMinutes: Number(form.slotDurationMinutes),
-        availability: form.availability,
+        availability: form.availability.map((item) => ({
+          ...item,
+          startTime: to24Hour(item.startTime),
+          endTime: to24Hour(item.endTime),
+        })),
         scheduleExceptions: form.scheduleExceptions,
         departmentId: deptId,
         status: apiStatus,
@@ -691,66 +707,78 @@ export function EditStaffUserDrawer({
                     </span>
                   </div>
 
-                   {/* Hospital Schedule Reference */}
-                   {hospitalSchedule?.weeklySchedule && (
-                     <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs">
-                       <div className="flex items-center gap-1.5 text-[#0D47A1] font-bold mb-2">
-                         <Clock size={12} />
-                         <span>Hospital OPD Schedule (Reference)</span>
-                       </div>
-                       <div className="flex flex-wrap gap-1.5">
-                         {hospitalSchedule.weeklySchedule
-                           .filter((d) => d.isOpen)
-                           .map((day) => {
-                             const interval = day.workingIntervals?.[0];
-                             return (
-                               <span
-                                 key={day.dayOfWeek}
-                                 className="bg-white border border-blue-200 text-blue-700 px-2 py-0.5 rounded-lg text-[10px] font-semibold"
-                               >
-                                 {DAY_NAME_MAP[day.dayOfWeek] || day.dayOfWeek}:{" "}
-                                 {interval
-                                   ? `${interval.startTime}–${interval.endTime}`
-                                   : "Closed"}
-                               </span>
-                             );
-                           })}
-                       </div>
-                     </div>
-                   )}
+                  {/* Hospital Schedule Reference */}
+                  {hospitalSchedule?.weeklySchedule && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs">
+                      <div className="flex items-center gap-1.5 text-[#0D47A1] font-bold mb-2">
+                        <Clock size={12} />
+                        <span>Hospital OPD Schedule (Reference)</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {hospitalSchedule.weeklySchedule
+                          .filter((d) => d.isOpen)
+                          .map((day) => {
+                            const interval = day.workingIntervals?.[0];
+                            return (
+                              <span
+                                key={day.dayOfWeek}
+                                className="bg-white border border-blue-200 text-blue-700 px-2 py-0.5 rounded-lg text-[10px] font-semibold"
+                              >
+                                {DAY_NAME_MAP[day.dayOfWeek] || day.dayOfWeek}:{" "}
+                                {interval
+                                  ? `${interval.startTime}–${interval.endTime}`
+                                  : "Closed"}
+                              </span>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
 
-                   {/* Doctor Schedule from API */}
-                   {doctorSchedule?.weeklySchedule && (
-                     <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs">
-                       <div className="flex items-center gap-1.5 text-emerald-700 font-bold mb-2">
-                         <Clock size={12} />
-                         <span>Doctor Schedule</span>
-                       </div>
-                       <div className="flex flex-wrap gap-1.5">
-                         {doctorSchedule.weeklySchedule
-                           .filter((day) => day.workingDay)
-                           .map((day) => {
-                             const firstPeriod = day.workingPeriods?.[0];
-                             return (
-                               <span
-                                 key={day.dayOfWeek}
-                                 className="bg-white border border-emerald-200 text-emerald-700 px-2 py-0.5 rounded-lg text-[10px] font-semibold"
-                               >
-                                 {DAY_NAME_MAP[day.dayOfWeek] || day.dayOfWeek}:{" "}
-                                 {firstPeriod
-                                   ? `${firstPeriod.startTime}–${firstPeriod.endTime}`
-                                   : "Off"}
-                               </span>
-                             );
-                           })}
-                       </div>
-                     </div>
-                   )}
+                  {/* Doctor Schedule from API */}
+                  {doctorSchedule?.weeklySchedule && (
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs">
+                      <div className="flex items-center gap-1.5 text-emerald-700 font-bold mb-2">
+                        <Clock size={12} />
+                        <span>Doctor Schedule</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {doctorSchedule.weeklySchedule
+                          .filter((day) => day.workingDay)
+                          .map((day) => {
+                            const firstPeriod = day.workingPeriods?.[0];
+                            return (
+                              <span
+                                key={day.dayOfWeek}
+                                className="bg-white border border-emerald-200 text-emerald-700 px-2 py-0.5 rounded-lg text-[10px] font-semibold"
+                              >
+                                {DAY_NAME_MAP[day.dayOfWeek] || day.dayOfWeek}:{" "}
+                                {firstPeriod
+                                  ? `${firstPeriod.startTime}–${firstPeriod.endTime}`
+                                  : "Off"}
+                              </span>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                     {form.availability.map((item, index) => (
                       <div
-                        key={item?.id || item?._id || item?.key || item?.value || item?.code || item?.name || item?.title || item?.label || (typeof item === 'object' ? JSON.stringify(item) : String(item))}
+                        key={
+                          item?.id ||
+                          item?._id ||
+                          item?.key ||
+                          item?.value ||
+                          item?.code ||
+                          item?.name ||
+                          item?.title ||
+                          item?.label ||
+                          (typeof item === "object"
+                            ? JSON.stringify(item)
+                            : String(item))
+                        }
                         className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 text-xs"
                       >
                         <span className="w-20 font-bold text-slate-700">

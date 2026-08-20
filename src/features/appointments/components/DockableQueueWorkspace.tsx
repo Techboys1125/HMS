@@ -23,6 +23,7 @@ import type {
 } from "../types/appointment-screen.types";
 import type { AppointmentRecord } from "../types/appointment.types";
 import { Pagination } from "../../../common/components/Pagination";
+import { getTodayDateString, normalizeDateString } from "../../../lib/time-utils";
 
 export function DockableQueueWorkspace({
   appointments,
@@ -33,6 +34,7 @@ export function DockableQueueWorkspace({
   userRole = "Receptionist",
   onStartConsultation,
   onRefresh,
+  isLoading: isRefreshing = false,
 }: {
   appointments: AppointmentRecord[];
   onUpdateStatus: (
@@ -41,12 +43,13 @@ export function DockableQueueWorkspace({
     toastMsg: string,
   ) => void;
   onViewDetails: (apt: AppointmentRecord) => void;
-  onBookClick: () => void;
-  onBackToDirectory: () => void;
+  onBookClick?: () => void;
+  onBackToDirectory?: () => void;
   onPatientSelect?: (id: number | string) => void;
   userRole?: UserRole;
   onStartConsultation?: (apt?: AppointmentRecord | null) => void;
   onRefresh?: () => void;
+  isLoading?: boolean;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [doctorFilter] = useState("All");
@@ -59,7 +62,7 @@ export function DockableQueueWorkspace({
   const isDoctor = userRole === "Doctor";
   const isNurse = userRole === "Nurse";
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getTodayDateString();
 
   const todayQueue = useMemo(() => {
     // Doctor-eligible statuses: only show patients ready for consultation
@@ -72,7 +75,7 @@ export function DockableQueueWorkspace({
       "Completed",
     ]);
 
-    let list = appointments.filter((a) => a.appointmentDate === todayStr);
+    let list = appointments.filter((a) => normalizeDateString(a.appointmentDate) === todayStr);
     if (isDoctor) {
       // Doctors only see patients ready for consultation — NOT waiting for vitals or just checked-in
       // Filter by current user's doctorId when available, otherwise show all eligible

@@ -16,6 +16,9 @@ export const ROUTES = {
   PATIENT_MEDICAL_RECORDS: "/patients/medical-records",
   PATIENT_PRESCRIPTIONS: "/patients/prescriptions",
   PATIENT_BILLING: "/patients/billing",
+  PATIENT_PORTAL_BILLING: "/patient/billing",
+  PATIENT_PORTAL_BILLING_DETAIL: "/patient/billing/:billId",
+  PATIENT_PORTAL_BILLING_RECEIPT: "/patient/billing/:billId/receipt",
   PATIENT_DOCTORS: "/patient-doctors",
   PATIENT_QUEUE: "/my-queue",
   PATIENT_NOTIFICATIONS: "/patient-notifications",
@@ -30,6 +33,7 @@ export const ROUTES = {
   CONSULTATION: "/consultation",
   CONSULTATION_WORKSPACE: "/consultation/workspace",
   PRESCRIPTIONS: "/prescriptions",
+  ENCOUNTER_PRESCRIPTION: "/prescriptions/encounter/:encounterId",
   BILLING: "/billing",
   BILLING_CREATE: "/billing/create",
   BILLING_COLLECT_PAYMENT: "/billing/collect-payment/:billId",
@@ -58,6 +62,7 @@ export const ROUTES = {
   USER_MANAGEMENT: "/users",
   AUDIT_LOGS: "/audit-logs",
   NOTIFICATIONS: "/notifications",
+  MY_PROFILE: "/my-profile",
   NOT_FOUND: "*",
 } as const;
 

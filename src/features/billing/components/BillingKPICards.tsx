@@ -106,19 +106,20 @@ export function BillingKPICards({
       )
       .reduce((sum, i) => sum + i.balance, 0);
 
-  const countGenerated =
-    dashboardData?.readyForBilling ?? dashboardData?.draft ?? invoices.length;
-  const countPaid = dashboardData?.partiallyPaid
-    ? invoices.filter((i) => i.paymentStatus === "Paid").length
-    : invoices.filter((i) => i.paymentStatus === "Paid").length;
-  const countPending =
-    dashboardData?.unpaid ??
-    invoices.filter((i) => i.paymentStatus === "Pending").length;
-  const countPartial =
-    dashboardData?.partiallyPaid ??
-    invoices.filter((i) => i.paymentStatus === "Partially Paid").length;
+  const countGenerated = invoices.length;
+  const countPaid = invoices.filter(
+    (i) => String(i.paymentStatus || "").toUpperCase() === "PAID",
+  ).length;
+  const countPending = invoices.filter((i) => {
+    const s = String(i.paymentStatus || "").toUpperCase();
+    return s === "PENDING" || s === "UNPAID" || s === "DRAFT";
+  }).length;
+  const countPartial = invoices.filter((i) => {
+    const s = String(i.paymentStatus || "").toUpperCase();
+    return s === "PARTIALLY PAID" || s === "PARTIALLY_PAID" || s === "PARTIAL";
+  }).length;
   const countRefunded = invoices.filter(
-    (i) => i.paymentStatus === "Refunded",
+    (i) => String(i.paymentStatus || "").toUpperCase() === "REFUNDED",
   ).length;
 
   const isReady = !isLoading;

@@ -24,7 +24,7 @@ import {
 import { PP, RB } from "../constants/appointment.constants";
 import { appointmentService } from "../services/appointment.service";
 import { useAppointments } from "../hooks/useAppointments";
-import { formatTime, to24Hour } from "../../../lib/time-utils";
+import { formatTime, to24Hour, getTodayDateString, normalizeDateString } from "../../../lib/time-utils";
 import type { AppointmentRecord } from "../types/appointment.types";
 import type { UserRole } from "../types/appointment-screen.types";
 import { DockableQueueWorkspace } from "../components/DockableQueueWorkspace";
@@ -70,7 +70,7 @@ export function AppointmentManagementCenterScreen({
   onRegisterNewPatientClick,
   onRegisterPatientClick,
 }: Props) {
-  const todayDateStr = new Date().toISOString().split("T")[0];
+  const todayDateStr = getTodayDateString();
   const [dateFilter, setDateFilter] = useState<string>("All");
 
   const { appointments, setAppointments, refetch } = useAppointments(
@@ -162,9 +162,7 @@ export function AppointmentManagementCenterScreen({
           st !== "WAITING_FOR_VITALS" &&
           st !== "WAITING FOR VITALS" &&
           st !== "CHECKED_IN" &&
-          st !== "CHECKED-IN" &&
-          st !== "BOOKED" &&
-          st !== "WAITING"
+          st !== "CHECKED-IN"
         );
       });
     }
@@ -173,7 +171,7 @@ export function AppointmentManagementCenterScreen({
 
   // --- SUMMARY KPI COUNTS ---
   const todayAppointments = roleAppointments.filter(
-    (a) => a.appointmentDate === todayDateStr,
+    (a) => normalizeDateString(a.appointmentDate) === todayDateStr,
   );
   const totalTodayCount = todayAppointments.length;
   const checkedInCount = todayAppointments.filter(
@@ -245,7 +243,10 @@ export function AppointmentManagementCenterScreen({
         return false;
       if (filters.deptFilter !== "All" && apt.department !== filters.deptFilter)
         return false;
-      if (dateFilter === "Today" && apt.appointmentDate !== todayDateStr)
+      if (
+        dateFilter === "Today" &&
+        normalizeDateString(apt.appointmentDate) !== todayDateStr
+      )
         return false;
       if (
         filters.visitTypeFilter !== "All" &&

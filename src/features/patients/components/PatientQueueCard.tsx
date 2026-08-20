@@ -43,7 +43,29 @@ export function PatientQueueCard({
     );
   }
 
-  if (!queue) return null;
+  if (!queue) {
+    return (
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
+            <Ticket size={18} />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-[#111827]">My Queue Status</h3>
+            <p className="text-xs text-[#64748B]">No active OPD queue ticket for today</p>
+          </div>
+        </div>
+        {onViewQueue && (
+          <button
+            onClick={onViewQueue}
+            className="text-xs font-semibold text-[#0D47A1] hover:underline"
+          >
+            View Queue
+          </button>
+        )}
+      </div>
+    );
+  }
 
   const statusLabel =
     queue.status === "CALLED"

@@ -25,9 +25,14 @@ export function formatTime(time?: string | null): string {
 
 export function to24Hour(time?: string | null): string {
   if (!time) return "";
-  const trimmed = String(time).trim();
+  let trimmed = String(time).trim();
   if (!trimmed) return "";
-  if (!/AM|PM/i.test(trimmed)) return trimmed;
+  if (!/AM|PM/i.test(trimmed)) {
+    if (/^\d{1}:\d{2}$/.test(trimmed)) {
+      return "0" + trimmed;
+    }
+    return trimmed;
+  }
   const match = trimmed.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
   if (!match) return trimmed;
   let hour = parseInt(match[1], 10);
@@ -37,3 +42,18 @@ export function to24Hour(time?: string | null): string {
   if (suffix === "PM" && hour !== 12) hour += 12;
   return `${String(hour).padStart(2, "0")}:${minute}`;
 }
+
+export function getTodayDateString(date: Date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function normalizeDateString(dateStr?: string | null): string {
+  if (!dateStr) return "";
+  const trimmed = String(dateStr).trim();
+  if (!trimmed) return "";
+  return trimmed.split("T")[0].split(" ")[0];
+}
+

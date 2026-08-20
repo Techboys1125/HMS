@@ -127,7 +127,9 @@ export const mapDoctorSummaryToDoctorRecord = (u: unknown): DoctorRecord => {
         userObj.doctorName ??
           userObj.fullName ??
           userObj.name ??
-          (rawUserId || finalDoctorId ? `Doctor ${rawUserId ?? finalDoctorId}` : "Doctor"),
+          (rawUserId || finalDoctorId
+            ? `Doctor ${rawUserId ?? finalDoctorId}`
+            : "Doctor"),
       );
       return rawName.startsWith("Dr.") ? rawName : `Dr. ${rawName}`;
     })(),
@@ -346,9 +348,9 @@ export const doctorsApi = {
 
     const fetchDoctorFacing = async (): Promise<DoctorRecord> => {
       try {
-        const response = await apiClient.get<DoctorApiResponse<ApiUserDoctorRecord> | ApiUserDoctorRecord>(
-          `/api/v1/doctors/${numericUserId}`,
-        );
+        const response = await apiClient.get<
+          DoctorApiResponse<ApiUserDoctorRecord> | ApiUserDoctorRecord
+        >(`/api/v1/doctors/${numericUserId}`);
         const data = response.data?.data || response.data;
         if (data && (data.userId || data.fullName || data.name || data.id)) {
           if (data.userId || data.fullName || data.name) {

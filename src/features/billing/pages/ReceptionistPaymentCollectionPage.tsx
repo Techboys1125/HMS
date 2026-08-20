@@ -38,8 +38,15 @@ export function ReceptionistPaymentCollectionPage() {
     referenceNumber: string;
     remarks: string;
   };
-  type PaymentFormAction = { type: "SET_FIELD"; field: keyof PaymentFormState; value: string | number };
-  const paymentFormReducer = (state: PaymentFormState, action: PaymentFormAction): PaymentFormState => ({
+  type PaymentFormAction = {
+    type: "SET_FIELD";
+    field: keyof PaymentFormState;
+    value: string | number;
+  };
+  const paymentFormReducer = (
+    state: PaymentFormState,
+    action: PaymentFormAction,
+  ): PaymentFormState => ({
     ...state,
     [action.field]: action.value,
   });
@@ -92,8 +99,20 @@ export function ReceptionistPaymentCollectionPage() {
     setField("remarks", "");
   };
 
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+
   const handleCollectPayment = async () => {
     if (!selectedBill || form.amount <= 0) return;
+    if (
+      form.paymentMethod.toUpperCase() !== "CASH" &&
+      !form.referenceNumber.trim()
+    ) {
+      setPaymentError(
+        "Reference / Transaction number is mandatory for non-cash payment methods (UPI, Card, Bank Transfer, Cheque).",
+      );
+      return;
+    }
+    setPaymentError(null);
     try {
       const result = await receivePayment({
         billId: selectedBill.id,
@@ -109,8 +128,11 @@ export function ReceptionistPaymentCollectionPage() {
       setReceiptData(result);
       setShowSuccess(true);
       refetch();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Payment failed:", err);
+      setPaymentError(
+        err instanceof Error ? err.message : "Payment collection failed.",
+      );
     }
   };
 
@@ -196,12 +218,14 @@ export function ReceptionistPaymentCollectionPage() {
             {
               label: "Payment Amount Matches",
               done:
-                selectedBill && form.amount > 0 && form.amount <= selectedBill.balance,
+                selectedBill &&
+                form.amount > 0 &&
+                form.amount <= selectedBill.balance,
             },
             { label: "Payment Method Selected", done: true },
           ].map((item, i) => (
             <div
-              key={item?.id || item?._id || item?.key || item?.value || item?.code || item?.name || item?.title || item?.label || (typeof item === 'object' ? JSON.stringify(item) : String(item))}
+              key={item.label}
               className={`p-3 rounded-xl border flex items-center gap-2 ${item.done ? "border-green-200 bg-green-50" : "border-slate-200 bg-slate-50"}`}
             >
               <div
@@ -448,7 +472,9 @@ export function ReceptionistPaymentCollectionPage() {
                   <input
                     type="text"
                     value={form.referenceNumber}
-                    onChange={(e) => setField("referenceNumber", e.target.value)}
+                    onChange={(e) =>
+                      setField("referenceNumber", e.target.value)
+                    }
                     placeholder="e.g. UPI Ref / Cash receipt no"
                     className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs font-mono focus:bg-white focus:border-[#0D47A1] focus:outline-none"
                   />
@@ -468,11 +494,19 @@ export function ReceptionistPaymentCollectionPage() {
                   />
                 </div>
 
+                {paymentError && (
+                  <p className="text-[11px] text-red-600 font-medium bg-red-50 p-2 rounded-lg border border-red-200">
+                    {paymentError}
+                  </p>
+                )}
+
                 {/* Collect Button */}
                 <button
                   onClick={handleCollectPayment}
                   disabled={
-                    isReceiving || form.amount <= 0 || form.amount > selectedBill.balance
+                    isReceiving ||
+                    form.amount <= 0 ||
+                    form.amount > selectedBill.balance
                   }
                   className="w-full py-3 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                   style={{ fontFamily: PP }}
@@ -513,7 +547,9 @@ export function ReceptionistPaymentCollectionPage() {
           <button
             onClick={handleCollectPayment}
             disabled={
-              isReceiving || form.amount <= 0 || form.amount > selectedBill.balance
+              isReceiving ||
+              form.amount <= 0 ||
+              form.amount > selectedBill.balance
             }
             className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-all shadow-sm disabled:opacity-50"
             style={{ fontFamily: PP }}

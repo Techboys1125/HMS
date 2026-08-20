@@ -5,6 +5,9 @@ import type {
   InvoiceRecord,
   BillingConfiguration,
   BillDiscountPayload,
+  BillItemPayload,
+  BillSummaryAmount,
+  NormalizedBillWorkspace,
 } from "../types/billing.types";
 
 export const billingKeys = {
@@ -34,6 +37,16 @@ export const billingKeys = {
   billingSearch: (query: string) =>
     [...billingKeys.all, "billing-search", query] as const,
 };
+
+import { useAuthStore } from "../../auth/store/auth.store";
+import { DEFAULT_CONFIGURATION } from "../constants/billing.constants";
+
+function isStaffBillingAllowed(): boolean {
+  const role = useAuthStore.getState().user?.role;
+  if (!role) return false;
+  const r = String(role).toUpperCase();
+  return !["DOCTOR", "NURSE", "PATIENT"].includes(r);
+}
 
 // ── useBilling ──────────────────────────────────────────────────────────────
 
@@ -71,10 +84,16 @@ export function useBillingList(params?: {
   search?: string;
   fromDate?: string;
   toDate?: string;
+  enabled?: boolean;
 }) {
+  const { enabled: paramEnabled, ...queryParams } = params ?? {};
+  const isAllowed = isStaffBillingAllowed();
   return useQuery({
-    queryKey: billingKeys.list(params as Record<string, unknown> | undefined),
-    queryFn: () => billingService.searchBills(params),
+    queryKey: billingKeys.list(
+      queryParams as Record<string, unknown> | undefined,
+    ),
+    queryFn: () => billingService.searchBills(queryParams),
+    enabled: isAllowed && paramEnabled !== false,
   });
 }
 
@@ -88,21 +107,30 @@ export function usePendingBilling(params?: {
   date?: string;
   fromDate?: string;
   toDate?: string;
+  enabled?: boolean;
 }) {
+  const { enabled: paramEnabled, ...queryParams } = params ?? {};
+  const isAllowed = isStaffBillingAllowed();
   return useQuery({
-    queryKey: billingKeys.pendingBilling(params),
-    queryFn: () => billingService.searchPendingBilling(params),
+    queryKey: billingKeys.pendingBilling(queryParams),
+    queryFn: () => billingService.searchPendingBilling(queryParams),
+    enabled: isAllowed && paramEnabled !== false,
     staleTime: 60_000,
   });
 }
 
 // ── useBillingPatientSearch ─────────────────────────────────────────────────
 
-export function useBillingPatientSearch(query: string) {
+export function useBillingPatientSearch(
+  query: string,
+  options?: { enabled?: boolean },
+) {
+  const isAllowed = isStaffBillingAllowed();
   return useQuery({
     queryKey: billingKeys.billingSearch(query),
     queryFn: () => billingService.searchBillingPatients(query),
-    enabled: query.trim().length >= 2,
+    enabled:
+      isAllowed && options?.enabled !== false && query.trim().length >= 2,
     staleTime: 30_000,
   });
 }
@@ -110,7 +138,11 @@ export function useBillingPatientSearch(query: string) {
 // ── useReadyForBillingSearch ────────────────────────────────────────────────
 // Searches /api/v1/billing with status=READY_FOR_BILLING for the invoice workspace
 
-export function useReadyForBillingSearch(search: string) {
+export function useReadyForBillingSearch(
+  search: string,
+  options?: { enabled?: boolean },
+) {
+  const isAllowed = isStaffBillingAllowed();
   return useQuery({
     queryKey: [...billingKeys.all, "ready-for-billing-search", search] as const,
     queryFn: () =>
@@ -123,7 +155,7 @@ export function useReadyForBillingSearch(search: string) {
         sortBy: "createdAt",
         direction: "desc",
       }),
-    enabled: true,
+    enabled: isAllowed && options?.enabled !== false,
     staleTime: 30_000,
   });
 }
@@ -273,9 +305,61 @@ export function useInvoice(billId?: number | string) {
     },
   });
 
+  const workspace = billQuery.data || null;
+  const rawBill = workspace?.bill || null;
+  const rawSummary = workspace?.summary || summaryQuery.data?.amount || null;
+
+  const billSummary: BillSummaryAmount = {
+    grossAmount: rawSummary?.grossAmount ?? rawSummary?.netAmount ?? 0,
+    discountAmount: rawSummary?.discountAmount ?? 0,
+    taxableAmount: rawSummary?.taxableAmount,
+    taxAmount: rawSummary?.taxAmount ?? 0,
+    roundOff: rawSummary?.roundOff,
+    roundOffAmount: rawSummary?.roundOffAmount,
+    netAmount: rawSummary?.netAmount ?? 0,
+    paidAmount: rawSummary?.paidAmount ?? 0,
+    balanceAmount: rawSummary?.balanceAmount ?? 0,
+    refundedAmount: rawSummary?.refundedAmount ?? 0,
+    paymentStatus: rawSummary?.paymentStatus,
+  };
+
+  const normalizedBill: NormalizedBillWorkspace | null = workspace
+    ? {
+        ...workspace,
+        id: String(rawBill?.id ?? rawBill?.billId ?? billId ?? ""),
+        billId:
+          rawBill?.id ??
+          rawBill?.billId ??
+          (typeof billId === "number" ? billId : Number(billId) || undefined),
+        billNumber: String(
+          rawBill?.billNumber || workspace.bill?.billNumber || billId || "",
+        ),
+        billType: String(rawBill?.billType || "OPD"),
+        status: String(rawBill?.status || "FINALIZED"),
+        paymentStatus: String(rawBill?.paymentStatus || "UNPAID"),
+        discountType: rawBill?.discountType,
+        discountValue: rawBill?.discountValue,
+        discountReason: rawBill?.discountReason,
+        version: rawBill?.version,
+        createdAt: rawBill?.createdAt,
+        updatedAt: rawBill?.updatedAt,
+        patient: workspace.patient,
+        doctor: workspace.doctor,
+        appointment: workspace.appointment,
+        encounter: workspace.encounter,
+        summary: billSummary,
+        items: workspace.items || [],
+        paymentHistory: workspace.paymentHistory || [],
+        auditHistory: workspace.auditHistory || [],
+        capabilities: workspace.capabilities,
+        bill: rawBill || workspace.bill,
+      }
+    : null;
+
   return {
-    bill: billQuery.data?.bill || null,
-    summary: summaryQuery.data || null,
+    bill: normalizedBill,
+    summary: billSummary,
+    workspace: workspace,
     isLoading: billQuery.isLoading,
     isError: billQuery.isError,
     error: billQuery.error,
@@ -398,10 +482,14 @@ export function useReceipt(billId?: number | string) {
 export function useBillingDashboard(params?: {
   fromDate?: string;
   toDate?: string;
+  enabled?: boolean;
 }) {
+  const { enabled: paramEnabled, ...queryParams } = params ?? {};
+  const isAllowed = isStaffBillingAllowed();
   return useQuery({
-    queryKey: billingKeys.dashboard(params),
-    queryFn: () => billingService.getDashboardSummary(params),
+    queryKey: billingKeys.dashboard(queryParams),
+    queryFn: () => billingService.getDashboardSummary(queryParams),
+    enabled: isAllowed && paramEnabled !== false,
   });
 }
 
@@ -425,7 +513,7 @@ function saveBillingConfig(config: BillingConfiguration) {
 
 export function useBillingConfiguration() {
   const [configuration, setConfiguration] =
-    useState<BillingConfiguration | null>(() => loadBillingConfig());
+    useState<BillingConfiguration>(() => loadBillingConfig() || DEFAULT_CONFIGURATION);
 
   const saveConfiguration = (config: BillingConfiguration) => {
     saveBillingConfig(config);

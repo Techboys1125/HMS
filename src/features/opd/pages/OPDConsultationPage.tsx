@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   X,
   Printer,
+  FileText,
 } from "lucide-react";
 import { usePermissions } from "../../../permissions";
 import { useConsultation } from "../hooks/useConsultation";
@@ -31,6 +32,8 @@ import type { QueueItem } from "../types/queue.types";
 import type { AppointmentStatus } from "../../appointments/types/appointment.types";
 import { useAuthStore } from "../../auth";
 import { normalizeStatus } from "../../../lib/status-utils";
+import { getTodayDateString } from "../../../lib/time-utils";
+import { EncounterPrescriptionViewModal } from "../../prescriptions";
 
 import { ConsultationHeader } from "../components/ConsultationHeader";
 import { ConsultationKPICards } from "../components/ConsultationKPICards";
@@ -65,7 +68,9 @@ function mapQueueItemToConsultation(item: QueueItem): ConsultationRecord {
     CONSULTATION_COMPLETED: "COMPLETED",
     COMPLETED: "COMPLETED",
   };
-  const normalizedStatus = normalizeStatus(item.status || item.queueStatus || "");
+  const normalizedStatus = normalizeStatus(
+    item.status || item.queueStatus || "",
+  );
 
   return {
     id: String(item.appointmentId),
@@ -134,10 +139,15 @@ export function OPDConsultationPage({
 
   // Resolve doctorId: parse out DOC- prefix so NaN is never passed
   const rawDocId = isDoctor
-    ? (user?.doctorProfile?.doctorId ?? user?.doctorId ?? undefined)
+    ? (user?.doctorProfile?.doctorId ?? user?.doctorId ?? user?.id ?? undefined)
     : undefined;
-  const parsedDocId = rawDocId ? String(rawDocId).replace(/^DOC-/, "").trim() : undefined;
-  const numericDocId = parsedDocId && !isNaN(Number(parsedDocId)) ? Number(parsedDocId) : undefined;
+  const parsedDocId = rawDocId
+    ? String(rawDocId).replace(/^DOC-/, "").trim()
+    : undefined;
+  const numericDocId =
+    parsedDocId && !isNaN(Number(parsedDocId))
+      ? Number(parsedDocId)
+      : undefined;
 
   const {
     items: queueItems,
@@ -188,7 +198,7 @@ export function OPDConsultationPage({
     [action.field]: action.value,
   });
   const [filters, dispatch] = useReducer(filterReducer, {
-    filterDate: new Date().toISOString().split("T")[0],
+    filterDate: getTodayDateString(),
     filterDoctor: "All",
     filterDepartment: "All",
     filterStatus: "All",
@@ -200,6 +210,8 @@ export function OPDConsultationPage({
   const [selectedPrescriptionRecord, setSelectedPrescriptionRecord] =
     useState<ConsultationRecord | null>(null);
   const [isLoadingPrescription] = useState(false);
+  const [viewPrescriptionEncounterId, setViewPrescriptionEncounterId] =
+    useState<string | number | null>(null);
 
   const handleViewPrescriptionDetails = (id: string) => {
     const localRecord = consultations.find((c) => c.id === id);
@@ -746,63 +758,6 @@ export function OPDConsultationPage({
                 </div>
               </div>
 
-              {/* Vitals Summary Card */}
-              <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                <h3
-                  className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                  style={{ fontFamily: PP }}
-                >
-                  Patient Vitals
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                  <div className="p-3 bg-blue-50/50 rounded-xl">
-                    <div className="text-slate-400 text-[10px]">
-                      Height / Weight
-                    </div>
-                    <div className="font-bold text-slate-800">
-                      {selectedPrescriptionRecord.vitals?.height
-                        ? `${selectedPrescriptionRecord.vitals.height} cm`
-                        : "--"}{" "}
-                      /{" "}
-                      {selectedPrescriptionRecord.vitals?.weight
-                        ? `${selectedPrescriptionRecord.vitals.weight} kg`
-                        : "--"}
-                    </div>
-                  </div>
-                  <div className="p-3 bg-blue-50/50 rounded-xl">
-                    <div className="text-slate-400 text-[10px]">
-                      Blood Pressure
-                    </div>
-                    <div className="font-bold text-slate-800">
-                      {selectedPrescriptionRecord.vitals?.bp || "--"}
-                    </div>
-                  </div>
-                  <div className="p-3 bg-blue-50/50 rounded-xl">
-                    <div className="text-slate-400 text-[10px]">
-                      Pulse / Temp
-                    </div>
-                    <div className="font-bold text-slate-800">
-                      {selectedPrescriptionRecord.vitals?.pulse
-                        ? `${selectedPrescriptionRecord.vitals.pulse} bpm`
-                        : "--"}{" "}
-                      /{" "}
-                      {selectedPrescriptionRecord.vitals?.temp
-                        ? `${selectedPrescriptionRecord.vitals.temp} °C`
-                        : "--"}
-                    </div>
-                  </div>
-                  <div className="p-3 bg-blue-50/50 rounded-xl">
-                    <div className="text-slate-400 text-[10px]">SpO2 / BMI</div>
-                    <div className="font-bold text-slate-800">
-                      {selectedPrescriptionRecord.vitals?.spo2
-                        ? `${selectedPrescriptionRecord.vitals.spo2} %`
-                        : "--"}{" "}
-                      / {selectedPrescriptionRecord.vitals?.bmi || "--"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               {/* Clinical Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
@@ -971,17 +926,38 @@ export function OPDConsultationPage({
               >
                 Close & Exit
               </button>
-              <button
-                onClick={() => window.print()}
-                className="px-6 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Printer size={16} /> Print Summary
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    const encId =
+                      selectedPrescriptionRecord?.encounterId ||
+                      selectedPrescriptionRecord?.id;
+                    if (encId) setViewPrescriptionEncounterId(encId);
+                  }}
+                  className="px-6 py-2.5 bg-[#009688] hover:bg-[#00796B] text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2"
+                  style={{ fontFamily: PP }}
+                >
+                  <FileText size={16} /> View Prescription
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  className="px-6 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2"
+                  style={{ fontFamily: PP }}
+                >
+                  <Printer size={16} /> Print Summary
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* View Prescription Modal */}
+      <EncounterPrescriptionViewModal
+        encounterId={viewPrescriptionEncounterId}
+        isOpen={Boolean(viewPrescriptionEncounterId)}
+        onClose={() => setViewPrescriptionEncounterId(null)}
+      />
     </div>
   );
 }

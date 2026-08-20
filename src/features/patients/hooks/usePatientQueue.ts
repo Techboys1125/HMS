@@ -1,34 +1,54 @@
 import { useState, useEffect } from "react";
 import { patientQueueService } from "../services/patientQueue.service";
 import { usePatientPortal } from "../context/usePatientPortal";
+import { useAuthStore } from "../../auth/store/auth.store";
+import { ApiError } from "../../../lib/axios";
 import type { PatientQueueData } from "../types/patient.types";
 
 export function usePatientQueue() {
   const portal = usePatientPortal();
+  const user = useAuthStore((s) => s.user);
   const [queue, setQueue] = useState<PatientQueueData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const activeMrn = portal?.activeMrn;
+  const rawMrn =
+    portal?.activeMrn || portal?.primaryMrn || user?.patientId || user?.mrn;
+  const isValidPatient = Boolean(
+    rawMrn &&
+    !String(rawMrn).includes("MRN-PATIENT") &&
+    !String(rawMrn).includes("Generating"),
+  );
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
+      if (!isValidPatient || !rawMrn) {
+        setQueue(null);
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
-        if (!activeMrn) {
-          setQueue(null);
-          return;
-        }
-        const data = await patientQueueService.getPatientQueue(activeMrn);
+        const data = await patientQueueService.getPatientQueue(rawMrn);
         if (!cancelled) setQueue(data);
       } catch (err: unknown) {
-        if (!cancelled)
-          setError(
-            err instanceof Error ? err.message : "Failed to load patient queue",
-          );
+        if (!cancelled) {
+          if (err instanceof ApiError && err.status === 404) {
+            setQueue(null);
+            setError(null);
+          } else {
+            setQueue(null);
+            setError(
+              err instanceof Error
+                ? err.message
+                : "Failed to load patient queue",
+            );
+          }
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -39,22 +59,27 @@ export function usePatientQueue() {
     return () => {
       cancelled = true;
     };
-  }, [activeMrn]);
+  }, [isValidPatient, rawMrn]);
 
   const refresh = async () => {
+    if (!isValidPatient || !rawMrn) {
+      setQueue(null);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
-      if (!activeMrn) {
-        setQueue(null);
-        return;
-      }
-      const data = await patientQueueService.getPatientQueue(activeMrn);
+      const data = await patientQueueService.getPatientQueue(rawMrn);
       setQueue(data);
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Failed to load patient queue",
-      );
+      if (err instanceof ApiError && err.status === 404) {
+        setQueue(null);
+        setError(null);
+      } else {
+        setError(
+          err instanceof Error ? err.message : "Failed to load patient queue",
+        );
+      }
     } finally {
       setLoading(false);
     }

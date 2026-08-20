@@ -122,6 +122,7 @@ const DEFAULT_DOCTOR: DoctorRecord = {
   empId: "",
   regNumber: "",
   name: "",
+  fullName: "",
   gender: "Male",
   department: "",
   primaryDepartmentId: 0,
@@ -290,10 +291,7 @@ export function DoctorProfileScreen({
       const s = String(item.status || item.queueStatus || "")
         .toUpperCase()
         .replace(/[\s-]/g, "_");
-      return (
-        s === "WAITING_FOR_DOCTOR" ||
-        s === "WAITING_FOR_DOCTOR_CALL"
-      );
+      return s === "WAITING_FOR_DOCTOR" || s === "WAITING_FOR_DOCTOR_CALL";
     }).length;
   }, [visibleQueueItems]);
 

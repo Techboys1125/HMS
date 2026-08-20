@@ -5,6 +5,12 @@ import {
   ChevronDown,
   Printer,
   X,
+  FileText,
+  Pill,
+  User,
+  Stethoscope,
+  Calendar,
+  Info,
 } from "lucide-react";
 import { usePermissions } from "../../../permissions";
 import { useConsultation } from "../hooks/useConsultation";
@@ -13,7 +19,7 @@ import { useVitals } from "../hooks/useVitals";
 import { useDiagnosis } from "../hooks/useDiagnosis";
 import { useInvoice } from "../../billing/hooks/useBilling";
 import type { ConsultationFormData, MedicineItem } from "../types/consultation";
-import { encountersApi } from "../../encounters";
+import { encountersApi, type Prescription } from "../../encounters";
 import { consultationApi } from "../api/consultationApi";
 import { ConsultationHeader } from "../components/ConsultationHeader";
 import { PatientSummaryCard } from "../components/PatientSummaryCard";
@@ -24,6 +30,7 @@ import { MedicineTable } from "../components/MedicineTable";
 import { InvestigationTable } from "../components/InvestigationTable";
 import { FollowupForm } from "../components/FollowupForm";
 import { ConsultationFooter } from "../components/ConsultationFooter";
+import { EncounterPrescriptionViewModal } from "../../prescriptions";
 import { useNavigate } from "react-router";
 
 const PP = "'Poppins', system-ui, sans-serif";
@@ -204,6 +211,14 @@ export function StartConsultationPage({
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const createdBillIdRef = useRef<string | null>(null);
+  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
+  const [prescriptionData, setPrescriptionData] = useState<Prescription | null>(
+    null,
+  );
+  const [isLoadingPrescription, setIsLoadingPrescription] = useState(false);
+  const [prescriptionError, setPrescriptionError] = useState<string | null>(
+    null,
+  );
   const [finalizedData, setFinalizedData] = useState<{
     date: string;
     patientName: string;
@@ -238,6 +253,9 @@ export function StartConsultationPage({
     followupNotes?: string;
   } | null>(null);
 
+  const [viewPrescriptionEncounterId, setViewPrescriptionEncounterId] =
+    useState<string | number | null>(null);
+
   const handleAddMedicine = () => {
     const newMed: MedicineItem = {
       id: Date.now().toString(),
@@ -271,6 +289,17 @@ export function StartConsultationPage({
       ...prev,
       medicines: prev.medicines.filter((m) => m.id !== id),
     }));
+  };
+
+  const handleViewPrescription = () => {
+    const encId =
+      finalizedData?.encounterId ||
+      activeEncounterId ||
+      selectedConsultation?.encounterId ||
+      selectedConsultation?.id;
+    if (encId) {
+      setViewPrescriptionEncounterId(encId);
+    }
   };
 
   const handleFieldChange = (field: string, val: unknown) => {
@@ -366,7 +395,8 @@ export function StartConsultationPage({
         try {
           await addDiagnosis(
             formData.icdCode || "R69",
-            formData.finalDiagnosis || "Documented clinical conclusion/assessment",
+            formData.finalDiagnosis ||
+              "Documented clinical conclusion/assessment",
             activeEncounterId,
           );
         } catch (diagErr) {
@@ -379,7 +409,9 @@ export function StartConsultationPage({
           await saveMedications(activePrescriptionId, formData.medicines);
         } catch (medErr) {
           console.warn("Non-blocking medication save warning:", medErr);
-          triggerToast("Warning: Prescription could not be saved. Please retry.");
+          triggerToast(
+            "Warning: Prescription could not be saved. Please retry.",
+          );
         }
       }
       if (selectedConsultation?.id) {
@@ -409,7 +441,8 @@ export function StartConsultationPage({
 
         const patientMrn =
           selectedAppointment?.mrn || selectedConsultation?.mrn || "";
-        const doctorId = selectedAppointment?.doctorId || selectedConsultation?.doctorId;
+        const doctorId =
+          selectedAppointment?.doctorId || selectedConsultation?.doctorId;
         if (encId && aptId && patientMrn && doctorId) {
           try {
             const bill = await createBill({
@@ -462,7 +495,8 @@ export function StartConsultationPage({
       setShowToast(false);
       setShowCompleteModal(true);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to finalize consultation";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to finalize consultation";
       console.error("Error finalizing consultation:", err);
       triggerToast(errorMessage);
       setShowToast(false);
@@ -840,28 +874,51 @@ export function StartConsultationPage({
                   else if (onBack) onBack();
                   else {
                     if (createdBillIdRef.current) {
-                      navigate(`/billing/create?billId=${createdBillIdRef.current}`, { replace: true });
+                      navigate(
+                        `/billing/create?billId=${createdBillIdRef.current}`,
+                        { replace: true },
+                      );
                     } else {
-                      const aptId = activeAppointmentId || selectedConsultation?.id || "";
-                      const encId = activeEncounterId || selectedConsultation?.encounterId || "";
-                      const patientId = selectedAppointment?.patientId || selectedConsultation?.patientId || "";
-                      const patientMrn = selectedAppointment?.mrn || selectedConsultation?.mrn || "";
-                      const doctorId = selectedAppointment?.doctorId || selectedConsultation?.doctorId || "";
+                      const aptId =
+                        activeAppointmentId || selectedConsultation?.id || "";
+                      const encId =
+                        activeEncounterId ||
+                        selectedConsultation?.encounterId ||
+                        "";
+                      const patientId =
+                        selectedAppointment?.patientId ||
+                        selectedConsultation?.patientId ||
+                        "";
+                      const patientMrn =
+                        selectedAppointment?.mrn ||
+                        selectedConsultation?.mrn ||
+                        "";
+                      const doctorId =
+                        selectedAppointment?.doctorId ||
+                        selectedConsultation?.doctorId ||
+                        "";
                       const query = new URLSearchParams();
                       if (createdBillIdRef.current) {
-                        navigate(`/billing/create?billId=${createdBillIdRef.current}`, { replace: true });
+                        navigate(
+                          `/billing/create?billId=${createdBillIdRef.current}`,
+                          { replace: true },
+                        );
                       } else {
                         if (aptId) query.set("appointmentId", String(aptId));
                         if (encId) query.set("encounterId", String(encId));
-                        if (patientId) query.set("patientId", String(patientId));
-                       if (patientMrn) query.set("patientMrn", String(patientMrn));
-                       if (doctorId) query.set("doctorId", String(doctorId));
-                       navigate(`/billing/create?${query.toString()}`, { replace: true });
-                     }
-                   }
-                 }
-               }}
-                 className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
+                        if (patientId)
+                          query.set("patientId", String(patientId));
+                        if (patientMrn)
+                          query.set("patientMrn", String(patientMrn));
+                        if (doctorId) query.set("doctorId", String(doctorId));
+                        navigate(`/billing/create?${query.toString()}`, {
+                          replace: true,
+                        });
+                      }
+                    }
+                  }
+                }}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
               >
                 <X size={20} />
               </button>
@@ -947,63 +1004,6 @@ export function StartConsultationPage({
                     <span className="font-bold text-slate-800">
                       {finalizedData.visitType}
                     </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Vitals Summary Card */}
-              <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                <h3
-                  className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                  style={{ fontFamily: PP }}
-                >
-                  Patient Vitals
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                  <div className="p-3 bg-blue-50/50 rounded-xl">
-                    <div className="text-slate-400 text-[10px]">
-                      Height / Weight
-                    </div>
-                    <div className="font-bold text-slate-800">
-                      {finalizedData.vitals.height
-                        ? `${finalizedData.vitals.height} cm`
-                        : "--"}{" "}
-                      /{" "}
-                      {finalizedData.vitals.weight
-                        ? `${finalizedData.vitals.weight} kg`
-                        : "--"}
-                    </div>
-                  </div>
-                  <div className="p-3 bg-blue-50/50 rounded-xl">
-                    <div className="text-slate-400 text-[10px]">
-                      Blood Pressure
-                    </div>
-                    <div className="font-bold text-slate-800">
-                      {finalizedData.vitals.bp || "--"}
-                    </div>
-                  </div>
-                  <div className="p-3 bg-blue-50/50 rounded-xl">
-                    <div className="text-slate-400 text-[10px]">
-                      Pulse / Temp
-                    </div>
-                    <div className="font-bold text-slate-800">
-                      {finalizedData.vitals.pulse
-                        ? `${finalizedData.vitals.pulse} bpm`
-                        : "--"}{" "}
-                      /{" "}
-                      {finalizedData.vitals.temp
-                        ? `${finalizedData.vitals.temp} °C`
-                        : "--"}
-                    </div>
-                  </div>
-                  <div className="p-3 bg-blue-50/50 rounded-xl">
-                    <div className="text-slate-400 text-[10px]">SpO2 / BMI</div>
-                    <div className="font-bold text-slate-800">
-                      {finalizedData.vitals.spo2
-                        ? `${finalizedData.vitals.spo2} %`
-                        : "--"}{" "}
-                      / {finalizedData.vitals.bmi || "--"}
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1210,20 +1210,39 @@ export function StartConsultationPage({
                   else if (onBack) onBack();
                   else {
                     if (createdBillIdRef.current) {
-                      navigate(`/billing/create?billId=${createdBillIdRef.current}`, { replace: true });
+                      navigate(
+                        `/billing/create?billId=${createdBillIdRef.current}`,
+                        { replace: true },
+                      );
                     } else {
-                      const aptId = activeAppointmentId || selectedConsultation?.id || "";
-                      const encId = activeEncounterId || selectedConsultation?.encounterId || "";
-                      const patientId = selectedAppointment?.patientId || selectedConsultation?.patientId || "";
-                      const patientMrn = selectedAppointment?.mrn || selectedConsultation?.mrn || "";
-                      const doctorId = selectedAppointment?.doctorId || selectedConsultation?.doctorId || "";
+                      const aptId =
+                        activeAppointmentId || selectedConsultation?.id || "";
+                      const encId =
+                        activeEncounterId ||
+                        selectedConsultation?.encounterId ||
+                        "";
+                      const patientId =
+                        selectedAppointment?.patientId ||
+                        selectedConsultation?.patientId ||
+                        "";
+                      const patientMrn =
+                        selectedAppointment?.mrn ||
+                        selectedConsultation?.mrn ||
+                        "";
+                      const doctorId =
+                        selectedAppointment?.doctorId ||
+                        selectedConsultation?.doctorId ||
+                        "";
                       const query = new URLSearchParams();
                       if (aptId) query.set("appointmentId", String(aptId));
                       if (encId) query.set("encounterId", String(encId));
                       if (patientId) query.set("patientId", String(patientId));
-                      if (patientMrn) query.set("patientMrn", String(patientMrn));
+                      if (patientMrn)
+                        query.set("patientMrn", String(patientMrn));
                       if (doctorId) query.set("doctorId", String(doctorId));
-                      navigate(`/billing/create?${query.toString()}`, { replace: true });
+                      navigate(`/billing/create?${query.toString()}`, {
+                        replace: true,
+                      });
                     }
                   }
                 }}
@@ -1232,6 +1251,14 @@ export function StartConsultationPage({
                 <X size={20} />
               </button>
               <div className="flex items-center gap-3">
+                <button
+                  onClick={handleViewPrescription}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#009688] hover:bg-[#00796B] text-white text-xs font-bold rounded-xl shadow-md transition-all"
+                  style={{ fontFamily: PP }}
+                >
+                  <FileText size={14} />
+                  View Prescription
+                </button>
                 <button
                   onClick={() => window.print()}
                   className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-bold rounded-xl shadow-md transition-all"
@@ -1245,6 +1272,13 @@ export function StartConsultationPage({
           </div>
         </div>
       )}
+
+      {/* View Prescription Modal */}
+      <EncounterPrescriptionViewModal
+        encounterId={viewPrescriptionEncounterId}
+        isOpen={Boolean(viewPrescriptionEncounterId)}
+        onClose={() => setViewPrescriptionEncounterId(null)}
+      />
     </div>
   );
 }

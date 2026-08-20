@@ -27,6 +27,7 @@ export interface InvoiceRecord {
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   collectedBy: string;
+  serviceName?: string;
   notes?: string;
   status?: string;
   appointmentId?: number;
@@ -152,6 +153,7 @@ export interface BillSummaryAmount {
   paidAmount: number;
   balanceAmount: number;
   refundedAmount?: number;
+  paymentStatus?: string;
 }
 
 export interface BillListItem {
@@ -220,12 +222,15 @@ export interface BillCreateResponse {
 
 export interface BillItem {
   id: number;
-  serviceId: string;
+  serviceId?: string;
   serviceCode?: string;
-  serviceName: string;
+  serviceName?: string;
+  itemName?: string;
+  description?: string | null;
   quantity: number;
   unitPrice: number;
   taxRate?: number;
+  taxPercent?: number;
   discountAmount?: number;
   totalPrice?: number;
   totalAmount: number;
@@ -236,12 +241,16 @@ export interface BillDetailPatient {
   mrn: string;
   name: string;
   phone?: string;
+  dob?: string;
+  gender?: string;
+  registeredMobile?: string;
 }
 
 export interface BillDetailDoctor {
   id: number;
   name: string;
   doctorCode?: string;
+  department?: string;
 }
 
 export interface BillDetailAppointment {
@@ -254,6 +263,17 @@ export interface BillDetailEncounter {
   id: number;
   encounterNumber: string;
   status: string;
+}
+
+export interface BillCapabilities {
+  canAddItems?: boolean;
+  canEditItems?: boolean;
+  canApplyDiscount?: boolean;
+  canFinalize?: boolean;
+  canCollectPayment?: boolean;
+  canRefund?: boolean;
+  canVoid?: boolean;
+  canCancel?: boolean;
 }
 
 export interface BillDetailBill {
@@ -288,6 +308,32 @@ export interface BillWorkspace {
   items: BillItem[];
   paymentHistory: BillPaymentRecord[];
   auditHistory: BillAuditLog[];
+  capabilities?: BillCapabilities;
+}
+
+export interface NormalizedBillWorkspace extends BillWorkspace {
+  id: string;
+  billId?: number;
+  billNumber: string;
+  billType: string;
+  status: string;
+  paymentStatus: string;
+  discountType?: string;
+  discountValue?: number;
+  discountReason?: string;
+  version?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  patient?: BillDetailPatient;
+  doctor?: BillDetailDoctor;
+  appointment?: BillDetailAppointment;
+  encounter?: BillDetailEncounter;
+  summary: BillSummaryAmount;
+  items: BillItem[];
+  paymentHistory: BillPaymentRecord[];
+  auditHistory: BillAuditLog[];
+  capabilities?: BillCapabilities;
+  bill: BillDetailBill;
 }
 
 export interface BillItemPayload {
@@ -331,6 +377,7 @@ export interface BillPaymentRecord {
   status?: string;
   amount: number;
   referenceNumber?: string;
+  transactionRef?: string;
   receivedBy?: string;
   paidAt?: string;
 }

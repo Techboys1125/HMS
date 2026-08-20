@@ -56,6 +56,18 @@ const STATUS_CONFIG: Record<
     dot: "bg-emerald-500",
     border: "border-emerald-200",
   },
+  READY_FOR_BILLING: {
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    dot: "bg-emerald-500",
+    border: "border-emerald-200",
+  },
+  BILLING_PENDING: {
+    bg: "bg-amber-50",
+    text: "text-amber-700",
+    dot: "bg-amber-500",
+    border: "border-amber-200",
+  },
   CANCELLED: {
     bg: "bg-rose-50",
     text: "text-rose-700",

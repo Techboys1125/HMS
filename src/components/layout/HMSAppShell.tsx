@@ -35,6 +35,7 @@ const exactPathToNavId: Record<string, NavId> = {
   [ROUTES.REPORTS]: "reports",
   [ROUTES.SETTINGS]: "settings",
   [ROUTES.PROFILE]: "profile",
+  [ROUTES.MY_PROFILE]: "profile",
   [ROUTES.DOCTOR_ME_PROFILE]: "profile",
   [ROUTES.USER_MANAGEMENT]: "user-management",
   [ROUTES.AUDIT_LOGS]: "audit-logs",
@@ -44,6 +45,7 @@ const exactPathToNavId: Record<string, NavId> = {
   [ROUTES.PATIENT_MEDICAL_RECORDS]: "medical-history",
   [ROUTES.PATIENT_PRESCRIPTIONS]: "prescriptions",
   [ROUTES.PATIENT_BILLING]: "bills-payments",
+  [ROUTES.PATIENT_PORTAL_BILLING]: "bills-payments",
   [ROUTES.PATIENT_DOCTORS]: "doctors",
   [ROUTES.PATIENT_QUEUE]: "queue-status",
   [ROUTES.PATIENT_NOTIFICATIONS]: "notifications",
@@ -58,24 +60,29 @@ const exactPathToNavId: Record<string, NavId> = {
   [ROUTES.DOCTOR_PATIENT_DETAILS]: "patients",
 };
 
-const BILLING_PREFIXES: NavId[] = [
-  "/billing",
+const BILLING_PREFIXES: string[] = [
+  "/patient/billing",
   "/patients/billing",
+  "/billing",
   "/patients/my-bills",
   "/accountant/patients/billing",
   "/receptionist/billing",
 ];
 
-const PATIENT_PROFILE_PREFIXES: NavId[] = [
+const PATIENT_PROFILE_PREFIXES: string[] = [
   "/patients/profile/",
+  "/patient/profile/",
+  "/patients/",
 ];
 
-function resolvePathToNavId(pathname: string): NavId {
+function resolvePathToNavId(pathname: string, role?: Role): NavId {
   const exact = exactPathToNavId[pathname];
   if (exact) return exact;
 
   for (const prefix of BILLING_PREFIXES) {
-    if (pathname.startsWith(prefix)) return "billing";
+    if (pathname.startsWith(prefix)) {
+      return role === "patient" ? "bills-payments" : "billing";
+    }
   }
 
   for (const prefix of PATIENT_PROFILE_PREFIXES) {
@@ -108,7 +115,7 @@ const navIdToPath = (role: Role, navId: NavId): string => {
       case "prescriptions":
         return ROUTES.PATIENT_PRESCRIPTIONS;
       case "bills-payments":
-        return ROUTES.PATIENT_BILLING;
+        return ROUTES.PATIENT_PORTAL_BILLING;
       case "notifications":
         return ROUTES.PATIENT_NOTIFICATIONS;
       case "settings":
@@ -168,7 +175,7 @@ const navIdToPath = (role: Role, navId: NavId): string => {
     "audit-logs": ROUTES.AUDIT_LOGS,
     notifications: ROUTES.NOTIFICATIONS,
     settings: ROUTES.SETTINGS,
-    profile: ROUTES.PROFILE,
+    profile: ROUTES.MY_PROFILE,
     "hospital-management": ROUTES.SETTINGS,
     "user-management": ROUTES.USER_MANAGEMENT,
     "roles-permissions": ROUTES.USER_MANAGEMENT,
@@ -195,7 +202,7 @@ export function HMSAppShell({ onLogout }: { onLogout?: () => void }) {
   const handleLogout = onLogout || (() => authStoreActions.logout());
 
   const role = user?.role ? mapUserRoleToAppRole(user.role) : "admin";
-  const activeNav = resolvePathToNavId(location.pathname);
+  const activeNav = resolvePathToNavId(location.pathname, role);
   const [sidebarTheme, setSidebarTheme] = useState<"light" | "dark">("light");
   const portal = usePatientPortal();
 

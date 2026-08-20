@@ -27,6 +27,8 @@ import { StatusBadge } from "../components/StatusBadges";
 import { Pagination } from "../../../common/components/Pagination";
 import { patientsApi } from "../api/patient.api";
 import { mapApiPatientToPatientRecord, extractDoctorName } from "../api/mapApiPatientToPatientRecord";
+import { useAuthStore } from "../../auth";
+import { can, type Role } from "../utils/patientPermissions";
 
 export function PatientProfileScreen({
   onBack,
@@ -228,13 +230,24 @@ export function PatientProfileScreen({
     }
   };
 
-  const tabs = [
-    { id: "overview" as const, label: "Overview" },
-    { id: "appointments" as const, label: "Appointments" },
-    { id: "visits" as const, label: "Visit History" },
-    { id: "billing" as const, label: "Billing" },
-    { id: "documents" as const, label: "Documents" },
+  const userRole = useAuthStore((s) => s.user?.role);
+  const normalizedRole: Role =
+    String(userRole || "").toUpperCase() === "RECEPTIONIST" ? "RECEPTIONIST"
+    : String(userRole || "").toUpperCase() === "NURSE" ? "NURSE"
+    : String(userRole || "").toUpperCase() === "ACCOUNTANT" ? "ACCOUNTANT"
+    : String(userRole || "").toUpperCase() === "PATIENT" ? "PATIENT"
+    : String(userRole || "").toUpperCase() === "DOCTOR" ? "DOCTOR"
+    : "ADMIN";
+
+  const allTabs = [
+    { id: "overview" as const, label: "Overview", action: "viewProfile" as const },
+    { id: "appointments" as const, label: "Appointments", action: "viewAppointments" as const },
+    { id: "visits" as const, label: "Visit History", action: "viewAppointments" as const },
+    { id: "billing" as const, label: "Billing", action: "viewBilling" as const },
+    { id: "documents" as const, label: "Documents", action: "viewProfile" as const },
   ];
+
+  const tabs = allTabs.filter((t) => can(normalizedRole, t.action));
 
   if (loading) {
     return (
@@ -342,26 +355,32 @@ export function PatientProfileScreen({
 
           {/* QUICK ACTION BUTTONS */}
           <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <button
-              onClick={() => onBookAppointment?.(mrn)}
-              className="px-3.5 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm flex items-center gap-1.5"
-              style={{ fontFamily: PP }}
-            >
-              <Calendar size={14} /> Book Appointment
-            </button>
-            <button
-              onClick={() => onCheckInClick?.(undefined, mrn)}
-              className="px-3.5 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors shadow-sm flex items-center gap-1.5"
-              style={{ fontFamily: PP }}
-            >
-              <UserCheck size={14} /> Patient Check-In
-            </button>
-            <button
-              onClick={onEditPatient}
-              className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
-            >
-              <Edit size={14} className="text-slate-500" /> Edit Patient Information
-            </button>
+            {can(normalizedRole, "manageAppointments") && (
+              <button
+                onClick={() => onBookAppointment?.(mrn)}
+                className="px-3.5 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm flex items-center gap-1.5"
+                style={{ fontFamily: PP }}
+              >
+                <Calendar size={14} /> Book Appointment
+              </button>
+            )}
+            {can(normalizedRole, "checkIn") && (
+              <button
+                onClick={() => onCheckInClick?.(undefined, mrn)}
+                className="px-3.5 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors shadow-sm flex items-center gap-1.5"
+                style={{ fontFamily: PP }}
+              >
+                <UserCheck size={14} /> Patient Check-In
+              </button>
+            )}
+            {can(normalizedRole, "editProfile") && (
+              <button
+                onClick={onEditPatient}
+                className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
+              >
+                <Edit size={14} className="text-slate-500" /> Edit Patient Information
+              </button>
+            )}
             <button
               onClick={() => window.print()}
               className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"

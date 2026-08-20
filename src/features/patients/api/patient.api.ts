@@ -1,6 +1,7 @@
 import { apiClient, axios, ApiError } from "../../../lib/axios";
 import { useAuthStore } from "../../auth";
 import { triggerNotificationMatrix } from "../../notification/services/notificationTrigger";
+import { billingService } from "../../billing/services/billing.service";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
 import type {
   ApiPatientAppointment,
@@ -527,13 +528,14 @@ export const patientsApi = {
           {
             role: "Patient Portal",
             userId: data.userId || data.id,
-            messageOverride: "Your profile information has been updated successfully.",
-            eventTypeOverride: "PATIENT_UPDATED_PATIENT"
+            messageOverride:
+              "Your profile information has been updated successfully.",
+            eventTypeOverride: "PATIENT_UPDATED_PATIENT",
           },
           {
             role: "Hospital Admin",
-            eventTypeOverride: "PATIENT_UPDATED_ADMIN"
-          }
+            eventTypeOverride: "PATIENT_UPDATED_ADMIN",
+          },
         ],
       });
 
@@ -659,15 +661,33 @@ export const patientsApi = {
         position?: number;
         token?: string;
       };
-      if (!mrn) return null;
-      const response = await apiClient.get<
-        PatientApiResponse<QueueData> | QueueData
-      >(`/api/v1/patients/me/queue`);
-      return (
-        (response.data as PatientApiResponse<QueueData>)?.data ||
-        (response.data as QueueData) ||
-        null
-      );
+      if (
+        !mrn ||
+        mrn.includes("MRN-PATIENT") ||
+        mrn.includes("Generating") ||
+        mrn === "N/A"
+      ) {
+        return null;
+      }
+      try {
+        const response = await apiClient.get<
+          PatientApiResponse<QueueData> | QueueData
+        >(`/api/v1/patients/me/queue`);
+        return (
+          (response.data as PatientApiResponse<QueueData>)?.data ||
+          (response.data as QueueData) ||
+          null
+        );
+      } catch (err: unknown) {
+        if (
+          axios.isAxiosError(err) &&
+          (err.response?.status === 404 || err.response?.status === 400)
+        ) {
+          // Gracefully return null if patient profile is not yet linked or 404 is returned
+          return null;
+        }
+        return null;
+      }
     } catch {
       return null;
     }
@@ -702,14 +722,19 @@ export const patientsApi = {
       let patientName = "Patient";
       let doctorId: string | number = "";
       try {
-        const aptRes = await apiClient.get<PatientApiResponse<AppointmentRecord>>(`/api/v1/appointments/${appointmentId}`);
+        const aptRes = await apiClient.get<
+          PatientApiResponse<AppointmentRecord>
+        >(`/api/v1/appointments/${appointmentId}`);
         const apt = aptRes.data?.data;
         if (apt) {
           patientName = apt.patientName || apt.patient?.fullName || "Patient";
           doctorId = apt.doctorId || apt.doctor?.id || "";
         }
       } catch (e) {
-        console.warn("Failed to fetch appointment details for check-in notification", e);
+        console.warn(
+          "Failed to fetch appointment details for check-in notification",
+          e,
+        );
       }
 
       triggerNotificationMatrix({
@@ -720,11 +745,21 @@ export const patientsApi = {
         eventType: "PATIENT_CHECKED_IN",
         priority: "MEDIUM",
         receivers: [
-          { role: "Doctor", userId: doctorId, messageOverride: `Patient ${patientName} has checked in and is waiting.` },
-          { role: "Nurse", messageOverride: `Patient ${patientName} is ready for vitals.` },
-          { role: "Receptionist", messageOverride: `Patient ${patientName} has been checked in at reception.` },
-          { role: "Hospital Admin" }
-        ]
+          {
+            role: "Doctor",
+            userId: doctorId,
+            messageOverride: `Patient ${patientName} has checked in and is waiting.`,
+          },
+          {
+            role: "Nurse",
+            messageOverride: `Patient ${patientName} is ready for vitals.`,
+          },
+          {
+            role: "Receptionist",
+            messageOverride: `Patient ${patientName} has been checked in at reception.`,
+          },
+          { role: "Hospital Admin" },
+        ],
       });
 
       return true;
@@ -741,12 +776,14 @@ export const patientsApi = {
         PatientApiResponse<{ token: string }>
       >(`/api/v1/reception/appointments/${appointmentId}/token`);
       const resData = response.data?.data;
-      
+
       if (resData) {
         const tokenNo = resData.token || "TK-001";
         let patientId = "";
         try {
-          const aptRes = await apiClient.get<PatientApiResponse<AppointmentRecord>>(`/api/v1/appointments/${appointmentId}`);
+          const aptRes = await apiClient.get<
+            PatientApiResponse<AppointmentRecord>
+          >(`/api/v1/appointments/${appointmentId}`);
           const apt = aptRes.data?.data;
           if (apt) {
             patientId = String(apt.patientId || apt.patient?.id || "");
@@ -763,7 +800,7 @@ export const patientsApi = {
             module: "QUEUE",
             eventType: "QUEUE_TOKEN_GENERATED",
             priority: "LOW",
-            receivers: [{ role: "Patient Portal", userId: patientId }]
+            receivers: [{ role: "Patient Portal", userId: patientId }],
           });
         }
       }
@@ -812,7 +849,9 @@ export const patientsApi = {
       let doctorId: string | number = "";
       let isUpdate = false;
       try {
-        const aptRes = await apiClient.get<PatientApiResponse<AppointmentRecord>>(`/api/v1/appointments/${appointmentId}`);
+        const aptRes = await apiClient.get<
+          PatientApiResponse<AppointmentRecord>
+        >(`/api/v1/appointments/${appointmentId}`);
         const apt = aptRes.data?.data;
         if (apt) {
           patientName = apt.patientName || apt.patient?.fullName || "Patient";
@@ -820,7 +859,10 @@ export const patientsApi = {
           isUpdate = apt.vitalsRecorded === true;
         }
       } catch (e) {
-        console.warn("Failed to fetch appointment details for vitals notification", e);
+        console.warn(
+          "Failed to fetch appointment details for vitals notification",
+          e,
+        );
       }
 
       triggerNotificationMatrix({
@@ -834,8 +876,11 @@ export const patientsApi = {
         priority: "MEDIUM",
         receivers: [
           { role: "Doctor", userId: doctorId },
-          { role: "Hospital Admin", messageOverride: `Vitals for ${patientName} have been ${isUpdate ? "updated" : "completed"}.` }
-        ]
+          {
+            role: "Hospital Admin",
+            messageOverride: `Vitals for ${patientName} have been ${isUpdate ? "updated" : "completed"}.`,
+          },
+        ],
       });
 
       return true;
@@ -903,59 +948,13 @@ export const patientsApi = {
 
   getBilling: async (mrn: string): Promise<ApiPatientInvoice[]> => {
     try {
-      interface BillingApiBill {
-        billId?: string | number;
-        billNumber?: string;
-        date?: string;
-        doctor?: string;
-        billStatus?: string;
-        paymentStatus?: string;
-        amount?: string | number;
-      }
-      interface BillingApiData {
-        mrn?: string;
-        patientName?: string;
-        bills?: BillingApiBill[];
-        page?: number;
-        size?: number;
-      }
-
-      const response = await apiClient.get<
-        PatientApiResponse<BillingApiData> | BillingApiData | BillingApiBill[]
-      >(`/api/v1/billing/patient/${mrn}`);
-      const body = response.data as
-        PatientApiResponse<BillingApiData> | BillingApiData | BillingApiBill[];
-
-      let bills: BillingApiBill[] = [];
-      if (Array.isArray(body)) {
-        bills = body as BillingApiBill[];
-      } else if (body !== null && typeof body === "object") {
-        if ("data" in body) {
-          const inner = (body as PatientApiResponse<BillingApiData>).data;
-          if (Array.isArray(inner)) {
-            bills = inner as unknown as BillingApiBill[];
-          } else if (
-            inner !== null &&
-            typeof inner === "object" &&
-            Array.isArray((inner as BillingApiData).bills)
-          ) {
-            bills = (inner as BillingApiData).bills as BillingApiBill[];
-          }
-        }
-        if (
-          bills.length === 0 &&
-          Array.isArray((body as BillingApiData).bills)
-        ) {
-          bills = (body as BillingApiData).bills as BillingApiBill[];
-        }
-      }
-
-      return bills.map((bill) => ({
-        id: bill.billId ?? "",
-        invoiceNumber: bill.billNumber ?? "",
-        date: bill.date ?? "",
-        status: bill.billStatus ?? bill.paymentStatus ?? "",
-        amount: bill.amount ?? "",
+      const records = await billingService.getPatientBilling(mrn);
+      return records.map((r) => ({
+        id: String(r.id),
+        invoiceNumber: r.billNumber || r.id,
+        date: r.invoiceDate,
+        amount: r.invoiceAmount,
+        status: r.paymentStatus,
       }));
     } catch {
       return [];

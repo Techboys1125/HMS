@@ -484,6 +484,8 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
 
     "CONSULTATION_STATUS_VIEW",
 
+    "OPD_VIEW",
+
     "NOTIFICATION_VIEW",
 
     "REPORTS_VIEW",
@@ -574,6 +576,8 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "CONSULTATION_PRINT",
 
     "NOTIFICATION_VIEW",
+
+    "BILLING_VIEW",
   ],
 
   NURSE: [
@@ -618,10 +622,14 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "CONSULTATION_READ",
 
     "NOTIFICATION_VIEW",
+
+    "BILLING_VIEW",
   ],
 
   ACCOUNTANT: [
     "DASHBOARD_VIEW",
+
+    "PATIENT_VIEW",
 
     "PATIENT_VIEW_MINIMAL",
 

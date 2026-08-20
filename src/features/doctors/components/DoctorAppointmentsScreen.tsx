@@ -7,7 +7,10 @@ export function DoctorAppointmentsScreen({
   onStartConsultation?: (id: number) => void;
 }) {
   const { user } = useAuthStore();
-  const doctorId = user?.doctorProfile?.doctorId ?? user?.doctorId;
+  const doctorId =
+    user?.doctorProfile?.doctorId ??
+    user?.doctorId ??
+    (String(user?.role || "").toUpperCase() === "DOCTOR" ? user?.id : undefined);
 
   return (
     <AppointmentManagementCenterScreen

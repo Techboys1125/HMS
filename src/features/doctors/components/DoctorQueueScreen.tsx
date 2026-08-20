@@ -93,8 +93,11 @@ const statusKey = (status: unknown): QueueItemStatus =>
 
 export function DoctorQueueScreen() {
   const { user } = useAuthStore();
-  const doctorId = user?.doctorId || user?.doctorProfile?.doctorId;
   const isDoctor = user?.role === "Doctor" || user?.role === "DOCTOR";
+  const doctorId =
+    user?.doctorId ||
+    user?.doctorProfile?.doctorId ||
+    (isDoctor ? user?.id : undefined);
   const [queue, setQueue] = useState<{
     summary: DoctorQueueSummary;
     content: DoctorQueueItem[];

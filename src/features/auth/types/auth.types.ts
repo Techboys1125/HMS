@@ -11,6 +11,8 @@ export type AuthScreen =
   | "success";
 
 export interface User {
+  mrn: string;
+  phone: string;
   name: string;
   id: number;
   employeeId: string | null;

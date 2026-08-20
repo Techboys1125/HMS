@@ -1,4 +1,5 @@
 import { billingApi } from "../api/billing.api";
+import { apiClient } from "../../../lib/axios";
 import type {
   BillListItem,
   BillWorkspace,
@@ -49,7 +50,7 @@ export const billingService = {
     const response = await billingApi.searchBills(params);
     const data = response.data;
     return {
-      bills: data.content || [],
+      bills: (data.content || []) as unknown as BillListItem[],
       totalElements: data.totalElements || 0,
       totalPages: data.totalPages || 0,
     };
@@ -198,31 +199,60 @@ export const billingService = {
   // ── Patient Billing ──────────────────────────────────────────────────────
 
   async getPatientBilling(mrn: string): Promise<InvoiceRecord[]> {
-    const response = await billingApi.getPatientBilling(mrn);
-    const data = response.data;
-    return data.bills.map((bill) =>
-      mapApiBillToInvoiceRecord({
-        billId: bill.billId,
-        billNumber: bill.billNumber,
-        patientName: data.patientName,
-        patientMrn: data.mrn,
-        status: bill.billStatus,
-        paymentStatus: bill.paymentStatus,
-        summary: {
-          grossAmount: bill.amount,
-          discountAmount: 0,
-          taxAmount: 0,
-          netAmount: bill.amount,
-          paidAmount:
-            bill.paymentStatus === "PAID"
-              ? bill.amount
-              : bill.paymentStatus === "PARTIALLY_PAID"
-                ? bill.amount / 2
-                : 0,
-          balanceAmount: bill.paymentStatus === "PAID" ? 0 : bill.amount,
-        },
-      }),
-    );
+    try {
+      let responseData: Record<string, unknown> | null = null;
+      try {
+        const response = await billingApi.getPatientBilling(mrn);
+        responseData = response.data as unknown as Record<string, unknown>;
+      } catch {
+        try {
+          const res = await apiClient.get<Record<string, unknown>>(`/api/v1/patients/${encodeURIComponent(mrn)}/billing`);
+          responseData = (res.data?.data || res.data) as Record<string, unknown>;
+        } catch {
+          try {
+            const res = await apiClient.get<Record<string, unknown>>(`/api/v1/billing?mrn=${encodeURIComponent(mrn)}`);
+            responseData = (res.data?.data || res.data) as Record<string, unknown>;
+          } catch {
+            return [];
+          }
+        }
+      }
+
+      if (!responseData) return [];
+
+      const rawBills = Array.isArray(responseData.bills)
+        ? (responseData.bills as Record<string, unknown>[])
+        : Array.isArray(responseData.content)
+          ? (responseData.content as Record<string, unknown>[])
+          : Array.isArray(responseData)
+            ? (responseData as Record<string, unknown>[])
+            : [];
+
+      return rawBills.map((bill: Record<string, unknown>) => {
+        const summaryObj = (bill.summary || {}) as Record<string, unknown>;
+        const patientObj = (bill.patient || {}) as Record<string, unknown>;
+        return mapApiBillToInvoiceRecord({
+          billId: (bill.billId || bill.id) as number | undefined,
+          billNumber: String(bill.billNumber || bill.invoiceNumber || bill.billId || bill.id || ""),
+          patientName: String(bill.patientName || responseData?.patientName || patientObj.name || ""),
+          patientMrn: String(bill.patientMrn || responseData?.mrn || patientObj.mrn || mrn),
+          mrn: String(bill.patientMrn || responseData?.mrn || patientObj.mrn || mrn),
+          consultationFee: 0,
+          status: String(bill.billStatus || bill.status || "FINALIZED"),
+          paymentStatus: String(bill.paymentStatus || "UNPAID"),
+          summary: {
+            grossAmount: Number(summaryObj.grossAmount || bill.amount || bill.totalAmount || 0),
+            discountAmount: Number(summaryObj.discountAmount || bill.discount || 0),
+            taxAmount: Number(summaryObj.taxAmount || bill.tax || 0),
+            netAmount: Number(summaryObj.netAmount || bill.amount || bill.netAmount || 0),
+            paidAmount: Number(summaryObj.paidAmount || (bill.paymentStatus === "PAID" ? (bill.amount || 0) : 0)),
+            balanceAmount: Number(summaryObj.balanceAmount || (bill.paymentStatus === "PAID" ? 0 : (bill.amount || 0))),
+          },
+        } as unknown as BillListItem);
+      });
+    } catch {
+      return [];
+    }
   },
 
   // ── Reports ──────────────────────────────────────────────────────────────

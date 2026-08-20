@@ -14,13 +14,14 @@ import { useBilling } from "../hooks/useBilling";
 import { useAuthStore } from "../../auth";
 import { usePatientPortal } from "../../patients/context/usePatientPortal";
 import { BillingStatusBadge } from "../components/BillingStatusBadge";
+import { ROUTES } from "../../../app/routes/routes";
 
 export function PatientMyBillsPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const portal = usePatientPortal();
   const patientMrn = String(
-    portal?.activeMrn || portal?.primaryMrn || user?.patientId || user?.id || "",
+    portal?.activeMrn || portal?.primaryMrn || user?.patientId || user?.mrn || user?.id || "",
   );
 
   const { invoices, loading: isLoading } = useBilling(patientMrn || undefined);
@@ -332,7 +333,14 @@ export function PatientMyBillsPage() {
                     <td className="py-3 px-4 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <button
-                          onClick={() => navigate(`/billing/invoice/${inv.id}`)}
+                          onClick={() =>
+                            navigate(
+                              ROUTES.PATIENT_PORTAL_BILLING_DETAIL.replace(
+                                ":billId",
+                                inv.id,
+                              ),
+                            )
+                          }
                           className="p-1.5 rounded-lg text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
                           title="View Details"
                         >
@@ -340,10 +348,29 @@ export function PatientMyBillsPage() {
                         </button>
                         <button
                           onClick={() =>
-                            navigate(`/billing/invoice/${inv.id}/print`)
+                            navigate(
+                              ROUTES.PATIENT_PORTAL_BILLING_RECEIPT.replace(
+                                ":billId",
+                                inv.id,
+                              ),
+                            )
+                          }
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-teal-700 hover:bg-teal-50 transition-colors"
+                          title="Print Receipt"
+                        >
+                          <Printer size={14} />
+                        </button>
+                        <button
+                          onClick={() =>
+                            navigate(
+                              ROUTES.PATIENT_PORTAL_BILLING_RECEIPT.replace(
+                                ":billId",
+                                inv.id,
+                              ),
+                            )
                           }
                           className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                          title="Download Receipt"
+                          title="Download Receipt PDF"
                         >
                           <Download size={14} />
                         </button>
@@ -360,7 +387,7 @@ export function PatientMyBillsPage() {
       {/* BOTTOM STICKY BAR */}
       <div className="sticky bottom-0 -mx-4 md:-mx-6 -mb-4 md:-mb-6 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] p-3.5 px-6 z-40 flex items-center justify-between shadow-lg">
         <button
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate(ROUTES.DASHBOARD)}
           className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-100"
         >
           Back to Dashboard

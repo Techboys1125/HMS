@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { queueApi, type QueueListResult } from "../api/queueApi";
 import type { QueueListParams, QueueStatus } from "../types/queue.types";
 
@@ -19,7 +19,7 @@ export function useQueue(options: UseQueueOptions = {}) {
   const queryClient = useQueryClient();
   const {
     doctorId,
-    date = new Date().toISOString().split("T")[0],
+    date,
     status,
     search,
     page = 0,
@@ -35,6 +35,22 @@ export function useQueue(options: UseQueueOptions = {}) {
     page,
     size,
   });
+
+  useEffect(() => {
+    setParams((prev) => {
+      if (
+        prev.doctorId === doctorId &&
+        prev.date === date &&
+        prev.status === status &&
+        prev.search === search &&
+        prev.page === page &&
+        prev.size === size
+      ) {
+        return prev;
+      }
+      return { doctorId, date, status, search, page, size };
+    });
+  }, [doctorId, date, status, search, page, size]);
 
   const {
     data,

@@ -319,44 +319,48 @@ export const consultationService = {
           // non-blocking
         }
 
-        // Step 20: Finalize encounter (non-blocking if encounter missing in backend)
-        try {
-          let version = selectedEncounter?.version;
-          const latestEncounter =
-            await consultationApi.getEncounter(encounterId);
-          if (latestEncounter && latestEncounter.version !== undefined) {
-            version = latestEncounter.version;
+        // Step 20: Finalize encounter (fetch fresh version immediately before each attempt)
+        const MAX_RETRIES = 3;
+        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+          try {
+            // Always fetch the freshest encounter right before finalizing
+            const freshEncounter = await consultationApi
+              .getEncounter(encounterId)
+              .catch(() => null);
+            const freshVersion = freshEncounter?.version;
+            if (freshEncounter) {
+              consultationStoreActions.setEncounter(freshEncounter);
+            }
+
+            await encountersApi.finalizeEncounter(encounterId, {
+              confirmation: true,
+              version: freshVersion,
+            });
+            break; // Success — exit retry loop
+          } catch (finalizeErr: unknown) {
+            const errMsg = String(
+              (finalizeErr as { message?: string })?.message || finalizeErr,
+            );
+            const isStale =
+              errMsg.includes("STALE_ENCOUNTER") ||
+              errMsg.includes("modified") ||
+              errMsg.includes("409");
+
+            if (isStale && attempt < MAX_RETRIES - 1) {
+              // Brief delay to let any pending DB writes settle, then retry
+              await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+              continue;
+            }
+            // Non-stale error or max retries exhausted — throw
+            throw finalizeErr;
           }
-          await encountersApi.finalizeEncounter(encounterId, {
-            confirmation: true,
-            version,
-          });
-        } catch (encErr) {
-          console.warn("Finalize encounter warning:", encErr);
         }
       }
 
-      // Complete appointment using dedicated doctor endpoint & update status to COMPLETED
+      // Complete appointment using dedicated doctor endpoint
       if (appointmentId) {
         try {
-          try {
-            await consultationApi.completeAppointment(appointmentId);
-          } catch {
-            try {
-              await appointmentsApi.doctorCompleteConsultation(appointmentId);
-            } catch {
-              // Fallback
-            }
-          }
-          try {
-            await appointmentsApi.updateAppointmentStatus(
-              appointmentId,
-              "COMPLETED",
-              "OPD consultation completed",
-            );
-          } catch {
-            // Ignore if backend already set COMPLETED
-          }
+          await consultationApi.completeAppointment(appointmentId);
         } catch (aptErr) {
           console.warn(
             "Non-blocking appointment status completion warning:",
@@ -385,10 +389,15 @@ export const consultationService = {
     consultationStoreActions.setLoading(true);
     try {
       // 1. Fetch consultation details
-      const consultation =
+      let consultation =
         await consultationApi.getConsultationDetails(consultationId);
 
       if (!consultation) {
+        // Fallback: Check aggregated clinical workspace endpoint GET /api/v1/encounters/{id}/workspace
+        const workspace = await consultationApi.getEncounterWorkspace(consultationId);
+        if (workspace && (workspace.consultation || workspace.encounter)) {
+          return workspace;
+        }
         throw new Error("Consultation details not found");
       }
 

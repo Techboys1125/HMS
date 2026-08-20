@@ -3,7 +3,7 @@ import { Search, RefreshCw } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
 import { doctorsService } from "../services/doctors.service";
-import { DoctorProfilePage } from "./DoctorProfilePage";
+import { DoctorProfileScreen } from "../components/DoctorProfileScreen";
 
 export function DoctorDirectoryPage() {
   const [doctors, setDoctors] = useState<DoctorRecord[]>([]);
@@ -44,10 +44,11 @@ export function DoctorDirectoryPage() {
 
   if (viewingProfile) {
     return (
-      <DoctorProfilePage
-        doctorId={viewingProfile.id}
+      <DoctorProfileScreen
         doctor={viewingProfile}
+        doctorId={viewingProfile.id}
         currentRole="PATIENT"
+        isOwnRecord={false}
         onBack={() => setViewingProfile(null)}
       />
     );

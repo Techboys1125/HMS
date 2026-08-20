@@ -232,6 +232,22 @@ export const encountersApi = {
       return null;
     }
   },
+
+  /**
+   * GET /api/v1/encounters/{encounterId}/prescription
+   */
+  getPrescriptionByEncounterId: async (
+    encounterId: string | number,
+  ): Promise<Prescription | null> => {
+    try {
+      const response = await apiClient.get<
+        ApiEnvelope<Prescription> | Prescription
+      >(`/api/v1/encounters/${encounterId}/prescription`);
+      return unwrap<Prescription>(response.data);
+    } catch {
+      return null;
+    }
+  },
 };
 
 export default encountersApi;

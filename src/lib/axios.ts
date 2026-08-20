@@ -185,7 +185,9 @@ async function customFetch<T = unknown>(
         : response.statusText) ||
       `Request failed with status ${response.status}`;
 
-    console.error(`[API Error ${response.status}] ${url}:`, responseData);
+    if (response.status !== 404 || !url.includes("/patients/me/queue")) {
+      console.error(`[API Error ${response.status}] ${url}:`, responseData);
+    }
     throw new ApiError(errorMsg, response.status, responseData);
   }
 

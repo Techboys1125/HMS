@@ -17,7 +17,12 @@ export function usePrescription(mrn?: string, doctorNameFilter?: string) {
   };
 
   useEffect(() => {
-    if (isPatient || mrn) {
+    if (isPatient && mrn) {
+      prescriptionService.loadPatientPrescriptions(mrn).catch((err) => {
+        const message = err instanceof Error ? err.message : "Failed to load prescriptions";
+        showToast(message);
+      });
+    } else if (mrn) {
       prescriptionService.loadPrescriptions(mrn, doctorNameFilter).catch((err) => {
         const message = err instanceof Error ? err.message : "Failed to load prescriptions";
         showToast(message);
@@ -57,7 +62,12 @@ export function usePrescription(mrn?: string, doctorNameFilter?: string) {
   }, [prescriptions, filters]);
 
   const triggerRefresh = () => {
-    if (isPatient || mrn) {
+    if (isPatient && mrn) {
+      prescriptionService.loadPatientPrescriptions(mrn).catch((err) => {
+        const message = err instanceof Error ? err.message : "Failed to refresh prescriptions";
+        showToast(message);
+      });
+    } else if (mrn) {
       prescriptionService.loadPrescriptions(mrn, doctorNameFilter).catch((err) => {
         const message = err instanceof Error ? err.message : "Failed to refresh prescriptions";
         showToast(message);
@@ -133,8 +143,37 @@ export function usePrescriptionActions(showToast: (msg: string) => void) {
     }
   };
 
-  const handleDownload = (rxId: string | number) => {
-    showToast(`Downloaded PDF for ${rxId}`);
+  const handleDownload = async (rxId: string | number) => {
+    try {
+      const printData = await prescriptionService.getPrintOutput(rxId);
+      if (!printData) {
+        showToast(`Failed to load prescription data for ${rxId}`);
+        return;
+      }
+      const medicines = (printData.medicines || [])
+        .map(
+          (m) =>
+            `<tr><td style="padding:4px 8px;border:1px solid #ddd">${m.medicineName || ""}</td><td style="padding:4px 8px;border:1px solid #ddd">${m.strength || ""}</td><td style="padding:4px 8px;border:1px solid #ddd">${m.dosage || ""}</td><td style="padding:4px 8px;border:1px solid #ddd">${m.frequency || ""}</td><td style="padding:4px 8px;border:1px solid #ddd">${m.duration || ""}</td><td style="padding:4px 8px;border:1px solid #ddd">${m.instructions || ""}</td></tr>`,
+        )
+        .join("");
+      const html = `<!DOCTYPE html><html><head><title>Prescription ${printData.prescriptionNumber || rxId}</title><style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:4px 8px;text-align:left;font-size:12px}h2,h3{margin:4px 0}</style></head><body>
+        <h2>Prescription ${printData.prescriptionNumber || ""}</h2>
+        <p><strong>Patient:</strong> ${printData.patientName || ""} (${printData.patientMrn || ""})</p>
+        <p><strong>Doctor:</strong> ${printData.doctorName || ""} | <strong>Dept:</strong> ${printData.department || ""}</p>
+        ${printData.followUpDate ? `<p><strong>Follow-up:</strong> ${printData.followUpDate}</p>` : ""}
+        <h3>Medications</h3>
+        <table><thead><tr><th>Medicine</th><th>Strength</th><th>Dosage</th><th>Frequency</th><th>Duration</th><th>Instructions</th></tr></thead><tbody>${medicines}</tbody></table>
+        ${printData.advice ? `<h3>Advice</h3><p>${printData.advice.general || ""}</p>${printData.advice.diet ? `<p><strong>Diet:</strong> ${printData.advice.diet}</p>` : ""}${printData.advice.precautions ? `<p><strong>Precautions:</strong> ${printData.advice.precautions}</p>` : ""}` : ""}
+        ${printData.digitalSeal ? `<p style="margin-top:20px;color:#666;font-size:10px">Digital Seal: ${printData.digitalSeal}</p>` : ""}
+        </body></html>`;
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      showToast(`Prescription ${rxId} ready for download`);
+    } catch {
+      showToast(`Failed to download prescription ${rxId}`);
+    }
   };
 
   const handleFinalize = async (rxId: string | number) => {

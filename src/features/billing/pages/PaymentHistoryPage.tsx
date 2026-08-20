@@ -14,6 +14,7 @@ import {
 import { PP, RB } from "../constants/billing.constants";
 import { useBillingList } from "../hooks/useBilling";
 import { BillingStatusBadge } from "../components/BillingStatusBadge";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { mapApiBillToInvoiceRecord } from "../utils/billing.utils";
 
 interface PaymentHistoryRecord {
@@ -37,7 +38,14 @@ interface PaymentHistoryRecord {
 
 export function PaymentHistoryPage() {
   const navigate = useNavigate();
-  const { data: billsData, isLoading } = useBillingList({ page: 0, size: 200 });
+  const role = useAuthStore((s) => s.user)?.role;
+  const isUnauthorizedRole = ["DOCTOR", "NURSE", "PATIENT"].includes(
+    String(role).toUpperCase(),
+  );
+
+  const { data: billsData, isLoading } = useBillingList(
+    isUnauthorizedRole ? { enabled: false } : { page: 0, size: 200 },
+  );
   const invoices = useMemo(
     () => (billsData?.bills || []).map(mapApiBillToInvoiceRecord),
     [billsData],
@@ -461,7 +469,7 @@ export function PaymentHistoryPage() {
             <select
               value={rowsPerPage}
               onChange={(e) => {
-                const v = e.currentTarget.valueAsNumber;
+                const v = Number(e.currentTarget.value);
                 setRowsPerPage(Number.isFinite(v) && v > 0 ? v : 10);
                 setCurrentPage(1);
               }}

@@ -117,16 +117,31 @@ export const queueApi = {
 
       const qs = query.toString();
       const url = `/api/v1/queue${qs ? `?${qs}` : ""}`;
-      const response = await apiClient.get<{
-        data?: {
-          summary: QueueSummary;
-          content: QueueItem[];
-          page: QueuePage;
-        };
-        summary: QueueSummary;
-        content: QueueItem[];
-        page: QueuePage;
-      }>(url);
+      let response;
+      try {
+        response = await apiClient.get<{
+          data?: {
+            summary?: QueueSummary;
+            content?: QueueItem[];
+            page?: QueuePage;
+          };
+          summary?: QueueSummary;
+          content?: QueueItem[];
+          page?: QueuePage;
+        }>(url);
+      } catch {
+        const fallbackUrl = `/api/v1/appointments${qs ? `?${qs}` : ""}`;
+        response = await apiClient.get<{
+          data?: {
+            summary?: QueueSummary;
+            content?: QueueItem[];
+            page?: QueuePage;
+          };
+          summary?: QueueSummary;
+          content?: QueueItem[];
+          page?: QueuePage;
+        }>(fallbackUrl);
+      }
 
       const payload = response.data;
       const data = payload?.data || payload;

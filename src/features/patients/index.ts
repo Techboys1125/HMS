@@ -17,12 +17,14 @@ export { PatientProfilePage } from "./pages/PatientProfilePage";
 export { DoctorAssignedPatientsPage } from "./pages/DoctorAssignedPatientsPage";
 export { NurseVitalsWorklistPage } from "./pages/NurseVitalsWorklistPage";
 export { MyProfilePage as PatientMyProfilePage } from "./pages/MyProfilePage";
+export { StaffProfilePage } from "./pages/StaffProfilePage";
 
 // Route Wrappers
 export { PatientListPageRoute } from "./routes/PatientListPageRoute";
 export { PatientProfileRoute } from "./routes/PatientProfileRoute";
 export { PatientMyProfileRoute } from "./routes/PatientMyProfileRoute";
 export { DoctorAssignedPatientsRoute } from "./routes/DoctorAssignedPatientsRoute";
+export { UserProfileRoute } from "./routes/UserProfileRoute";
 
 // Tab Components
 export { PatientProfileTab } from "./components/tabs/ProfileTab";

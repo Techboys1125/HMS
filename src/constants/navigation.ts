@@ -127,6 +127,11 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
       label: "Reports",
       items: [{ id: "reports", Icon: BarChart2, label: "Reports" }],
     },
+    {
+      id: "account",
+      label: "Account",
+      items: [{ id: "profile", Icon: User, label: "My Profile" }],
+    },
   ],
   nurse: [
     {
@@ -139,6 +144,11 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "consultation", Icon: Stethoscope, label: "OPD Consultation" },
         { id: "vitals", Icon: Activity, label: "Vitals" },
       ],
+    },
+    {
+      id: "account",
+      label: "Account",
+      items: [{ id: "profile", Icon: User, label: "My Profile" }],
     },
   ],
   receptionist: [
@@ -155,6 +165,11 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "reports", Icon: BarChart2, label: "Reports" },
       ],
     },
+    {
+      id: "account",
+      label: "Account",
+      items: [{ id: "profile", Icon: User, label: "My Profile" }],
+    },
   ],
   accountant: [
     {
@@ -166,6 +181,11 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "doctors", Icon: UserCheck, label: "Doctors" },
         { id: "reports", Icon: BarChart2, label: "Reports" },
       ],
+    },
+    {
+      id: "account",
+      label: "Account",
+      items: [{ id: "profile", Icon: User, label: "My Profile" }],
     },
   ],
   patient: [

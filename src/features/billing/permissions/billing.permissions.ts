@@ -27,7 +27,8 @@ export function checkBillingPermission(
       return true;
 
     case "DOCTOR":
-      // Doctor read-only access to billing (per backend contract)
+    case "NURSE":
+      // Read-only access to billing
       return [
         "view_dashboard",
         "view_bills",
@@ -35,11 +36,13 @@ export function checkBillingPermission(
       ].includes(action);
 
     case "ACCOUNTANT":
-      // Financial review and reconciliation only; operational collection is
-      // performed by Reception or an administrator.
+      // Accountant financial management
       return [
         "view_dashboard",
         "view_bills",
+        "generate_invoice",
+        "edit_invoice",
+        "collect_payment",
         "view_reports",
         "export_reports",
         "view_history",
@@ -47,12 +50,15 @@ export function checkBillingPermission(
       ].includes(action);
 
     case "RECEPTIONIST": {
-      // Receptionist owns the operational invoice and collection workflow.
+      // Receptionist operational invoice and collection workflow
       const receptionistAllowed: BillingAction[] = [
+        "view_dashboard",
         "view_bills",
         "generate_invoice",
+        "edit_invoice",
         "collect_payment",
         "view_history",
+        "view_daily_report",
       ];
       return receptionistAllowed.includes(action);
     }

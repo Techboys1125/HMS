@@ -29,10 +29,9 @@ import {
   DoctorAssignedPatientsRoute,
   NurseVitalsWorklistPage,
   PatientMyProfileRoute,
+  UserProfileRoute,
 } from "../../features/patients";
-import {
-  PatientPortalProvider,
-} from "../../features/patients/context/PatientPortalContext.tsx";
+import { PatientPortalProvider } from "../../features/patients/context/PatientPortalContext.tsx";
 import { usePatientPortal } from "../../features/patients/context/usePatientPortal";
 import { PatientOnboardingRoute } from "../../features/patients/routes/PatientOnboardingRoute";
 import { patientsApi } from "../../features/patients/api/patient.api";
@@ -48,7 +47,7 @@ import {
   OpdConsultationCenterScreen,
   StartOpdConsultationWorkspaceScreen,
 } from "../../features/opd";
-import { PrescriptionManagementPage } from "../../features/prescriptions";
+import { PrescriptionManagementPage, EncounterPrescriptionPage } from "../../features/prescriptions";
 import { DoctorManagementPage } from "../../features/doctors/pages/DoctorManagementPage";
 import { DoctorProfileRoute } from "../../features/doctors/pages/DoctorProfileRoute";
 import { DoctorDirectoryPage } from "../../features/doctors/pages/DoctorDirectoryPage";
@@ -86,6 +85,15 @@ import { PatientNotificationsPage } from "../../features/notification/pages/Pati
 
 // Main HMS Layout shell
 import { HMSAppShell } from "../../components/layout/HMSAppShell";
+
+function PatientBillingRouteDispatcher() {
+  const role = useAuthStore((s) => s.user?.role);
+  const isPatient = String(role || "").toUpperCase() === "PATIENT";
+  if (isPatient) {
+    return <PatientMyBillsPage />;
+  }
+  return <BillingManagementPage />;
+}
 
 function FamilyMembersRouteWrapper() {
   const [registering, setRegistering] = useState(false);
@@ -214,7 +222,7 @@ export function AppRoutes() {
           path={ROUTES.PATIENTS}
           element={
             <RouteGuard requiredPermission="PATIENT_VIEW">
-              <PatientProfileCenterScreen />
+              <PatientListPageRoute />
             </RouteGuard>
           }
         />
@@ -263,7 +271,7 @@ export function AppRoutes() {
             path={ROUTES.PATIENT_BILLING}
             element={
               <RouteGuard requiredPermission="BILLING_VIEW">
-                <BillingManagementPage />
+                <PatientBillingRouteDispatcher />
               </RouteGuard>
             }
           />
@@ -292,9 +300,17 @@ export function AppRoutes() {
             }
           />
           <Route
-            path={ROUTES.PATIENT_MY_PROFILE}
+            path="/patients/:mrn"
             element={
               <RouteGuard requiredPermission="PATIENT_VIEW">
+                <PatientProfileRoute />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path={ROUTES.PATIENT_MY_PROFILE}
+            element={
+              <RouteGuard requiredPermission="PROFILE_VIEW">
                 <PatientMyProfileRoute />
               </RouteGuard>
             }
@@ -477,6 +493,14 @@ export function AppRoutes() {
           }
         />
         <Route
+          path={ROUTES.ENCOUNTER_PRESCRIPTION}
+          element={
+            <RouteGuard requiredPermission="PRESCRIPTION_VIEW">
+              <EncounterPrescriptionPage />
+            </RouteGuard>
+          }
+        />
+        <Route
           path={ROUTES.BILLING}
           element={
             <RouteGuard requiredPermission="BILLING_VIEW">
@@ -557,6 +581,46 @@ export function AppRoutes() {
           }
         />
         <Route
+          path={ROUTES.PATIENT_PORTAL_BILLING}
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <PatientMyBillsPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.PATIENT_PORTAL_BILLING_DETAIL}
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <InvoiceDetailsPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.PATIENT_PORTAL_BILLING_RECEIPT}
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <InvoicePrintPreviewPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/patients/billing/:billId"
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <InvoiceDetailsPage />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/patients/billing/:billId/receipt"
+          element={
+            <RouteGuard requiredPermission="BILLING_VIEW">
+              <InvoicePrintPreviewPage />
+            </RouteGuard>
+          }
+        />
+        <Route
           path={ROUTES.DOCTORS}
           element={
             <RouteGuard requiredPermission="DOCTOR_VIEW">
@@ -600,16 +664,24 @@ export function AppRoutes() {
         <Route
           path={ROUTES.DOCTOR_ME_PROFILE}
           element={
-            <RouteGuard requiredPermission="DOCTOR_PROFILE_VIEW">
-              <DoctorProfileRoute />
+            <RouteGuard requiredPermission="PROFILE_VIEW">
+              <UserProfileRoute />
             </RouteGuard>
           }
         />
         <Route
           path={ROUTES.PROFILE}
           element={
-            <RouteGuard requiredPermission="DOCTOR_PROFILE_VIEW">
-              <DoctorProfileRoute />
+            <RouteGuard requiredPermission="PROFILE_VIEW">
+              <UserProfileRoute />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.MY_PROFILE}
+          element={
+            <RouteGuard requiredPermission="PROFILE_VIEW">
+              <UserProfileRoute />
             </RouteGuard>
           }
         />

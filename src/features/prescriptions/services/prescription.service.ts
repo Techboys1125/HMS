@@ -4,6 +4,7 @@ import { prescriptionStoreActions } from "../store/prescription.store";
 import type {
   UnifiedPrescription,
   RxStatus,
+  PatientPrescriptionSummary,
 } from "../types/prescription.types";
 import type { ApiPatientPrescription } from "../../patients/types/patient.types";
 
@@ -62,6 +63,42 @@ export const prescriptionService = {
     };
   },
 
+  mapPatientSummaryToUnified: (rx: PatientPrescriptionSummary): UnifiedPrescription => {
+    const statusRaw = String(rx.prescriptionStatus ?? "").toUpperCase();
+    let status: RxStatus = "Issued";
+    if (statusRaw === "DRAFT") status = "Draft";
+    else if (statusRaw === "FINALIZED" || statusRaw === "COMPLETED") status = "Completed";
+    else if (statusRaw === "CANCELLED") status = "Cancelled";
+    else if (statusRaw === "ARCHIVED") status = "Archived";
+
+    const medicineCount = rx.medications?.totalMedicines ?? 0;
+    const sampleMedicines = rx.medications?.sampleMedicines ?? [];
+
+    return {
+      id: String(rx.prescriptionId ?? ""),
+      patientName: "Patient",
+      mrn: "",
+      consultationId: String(rx.encounterId || rx.appointmentId || ""),
+      department: rx.department?.departmentName || "",
+      consultationDate: rx.visitDateTime || rx.createdAt || "",
+      medicineCount,
+      followup: !!rx.followUp?.required,
+      followupDate: rx.followUp?.followUpDate || "",
+      status,
+      doctorName: rx.doctor?.doctorName || "",
+      diagnosis: rx.diagnosis?.primaryDiagnosis || "",
+      medicines: sampleMedicines.map((name) => ({
+        name,
+        strength: "",
+        route: "ORAL",
+        dosage: "",
+        frequency: "",
+        duration: "",
+        instructions: "",
+      })),
+    };
+  },
+
   loadPrescriptions: async (
     mrn?: string,
     doctorNameFilter?: string,
@@ -83,6 +120,28 @@ export const prescriptionService = {
         );
       }
 
+      prescriptionStoreActions.setPrescriptions(mapped);
+      return mapped;
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to load prescriptions";
+      prescriptionStoreActions.setError(msg);
+      return [];
+    } finally {
+      prescriptionStoreActions.setLoading(false);
+    }
+  },
+
+  loadPatientPrescriptions: async (
+    mrn: string,
+    params?: { page?: number; size?: number; status?: string; fromDate?: string; toDate?: string },
+  ): Promise<UnifiedPrescription[]> => {
+    prescriptionStoreActions.setLoading(true);
+    try {
+      const result = await prescriptionApi.getPatientPrescriptions(mrn, params);
+      const mapped = (result.content || []).map((rx) =>
+        prescriptionService.mapPatientSummaryToUnified(rx),
+      );
       prescriptionStoreActions.setPrescriptions(mapped);
       return mapped;
     } catch (err) {

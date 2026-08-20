@@ -1,6 +1,6 @@
 import { useReducer, useState, useMemo, useCallback, useEffect, startTransition } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   User,
   Search,
@@ -99,7 +99,7 @@ type BillingFormAction =
   | { type: "SET_SHOW_SEARCH_DROPDOWN"; payload: boolean }
   | {
       type: "SELECT_PATIENT";
-      payload: { patient: Patient; search: string };
+      payload: { patient: Patient | null; search: string };
     }
   | { type: "SELECT_BILLING_RECORD"; payload: BillListItem | null }
   | {
@@ -232,6 +232,7 @@ const initialBillingFormState: BillingFormState = {
 export function CreateInvoiceWorkspacePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
 
   // URL params for pre-population from consultation
   const urlAppointmentId = searchParams.get("appointmentId");
@@ -360,7 +361,7 @@ export function CreateInvoiceWorkspacePage() {
         if (billWorkspace.items && billWorkspace.items.length > 0) {
           const mappedItems = billWorkspace.items.map((item) => ({
             id: String(item.id),
-            serviceName: item.serviceName,
+            serviceName: item.serviceName || item.itemName || "Consultation Fee",
             category: "Consultation",
             quantity: item.quantity,
             unitPrice: item.unitPrice,
@@ -388,10 +389,7 @@ export function CreateInvoiceWorkspacePage() {
           });
         }
 
-        // Pre-populate amountReceived and status
-        if (billWorkspace.summary) {
-          setAmountReceived(Number(billWorkspace.summary.paidAmount || 0));
-        }
+        // Pre-populate status if existing
         if (billWorkspace.bill?.paymentStatus) {
           const payStatus = billWorkspace.bill.paymentStatus.toUpperCase();
           if (payStatus === "PAID") {
@@ -408,7 +406,11 @@ export function CreateInvoiceWorkspacePage() {
           billWorkspace.summary &&
           billWorkspace.summary.paidAmount > 0
         ) {
-          setPaymentStatus("Paid");
+          if (billWorkspace.summary.balanceAmount <= 0) {
+            setPaymentStatus("Paid");
+          } else {
+            setPaymentStatus("Partially Paid");
+          }
         } else {
           setPaymentStatus("Pending");
         }
@@ -456,9 +458,15 @@ export function CreateInvoiceWorkspacePage() {
     return billingSearchData.bills.slice(0, 8);
   }, [billingSearchData]);
 
-  // Calculations
+  // Calculations — rawSubtotal uses pre-tax base (qty*unitPrice - discount)
+  // to avoid double-counting tax (per-item tax is already in item.total)
   const rawSubtotal = useMemo(
-    () => lineItems.reduce((acc, item) => acc + item.total, 0),
+    () =>
+      lineItems.reduce((acc, item) => {
+        const base = item.quantity * item.unitPrice;
+        const afterDisc = Math.max(0, base - item.discount);
+        return acc + afterDisc;
+      }, 0),
     [lineItems],
   );
 
@@ -478,7 +486,72 @@ export function CreateInvoiceWorkspacePage() {
   const grandTotal = Math.round(
     taxableAmount + calculatedTax + Number(additionalCharges),
   );
-  const balanceDue = Math.max(0, grandTotal - Number(amountReceived));
+
+  // Previously paid amount on existing bill
+  const previouslyPaid = useMemo(() => {
+    return Number(
+      billWorkspace?.summary?.paidAmount ??
+        selectedBillingRecord?.summary?.paidAmount ??
+        0,
+    );
+  }, [billWorkspace, selectedBillingRecord]);
+
+  // Outstanding balance before this transaction
+  const outstandingBalance = useMemo(() => {
+    return Math.max(0, grandTotal - previouslyPaid);
+  }, [grandTotal, previouslyPaid]);
+
+  // Current payment amount entered in the Received Amount field
+  const currentReceived = useMemo(() => {
+    const val = Number(amountReceived);
+    return Number.isFinite(val) ? val : 0;
+  }, [amountReceived]);
+
+  // Balance due = Grand Total - Previously Paid - Current Received
+  const balanceDue = useMemo(() => {
+    return Math.max(
+      0,
+      grandTotal - previouslyPaid - Math.max(0, currentReceived),
+    );
+  }, [grandTotal, previouslyPaid, currentReceived]);
+
+  // Payment validations
+  const isOverpayment = currentReceived > outstandingBalance;
+  const isNegativePayment = currentReceived < 0;
+  const hasReceivedAmount = currentReceived > 0;
+  const isPaymentValid =
+    hasReceivedAmount && !isOverpayment && !isNegativePayment;
+
+  const canCollect =
+    !isSubmitting &&
+    !isBillLoading &&
+    !!selectedPatient &&
+    isPaymentValid &&
+    !isAlreadyPaidOrFinalized;
+
+  const handlePaymentStatusChange = (newStatus: PaymentStatus) => {
+    setPaymentStatus(newStatus);
+    if (newStatus === "Paid") {
+      setAmountReceived(outstandingBalance);
+    } else if (newStatus === "Pending") {
+      setAmountReceived(0);
+    } else if (newStatus === "Partially Paid") {
+      if (currentReceived <= 0 || currentReceived >= outstandingBalance) {
+        setAmountReceived(Math.round(outstandingBalance / 2));
+      }
+    }
+  };
+
+  const handleAmountReceivedChange = (val: number) => {
+    setAmountReceived(val);
+    if (val >= outstandingBalance && outstandingBalance > 0) {
+      setPaymentStatus("Paid");
+    } else if (val > 0 && val < outstandingBalance) {
+      setPaymentStatus("Partially Paid");
+    } else if (val <= 0) {
+      setPaymentStatus("Pending");
+    }
+  };
 
   // Update item totals on row change
   const handleUpdateItem = (
@@ -514,7 +587,7 @@ export function CreateInvoiceWorkspacePage() {
   };
 
   const handleGenerateInvoice = useCallback(
-    async (collectFull = false) => {
+    async (isCollectPayment = false) => {
       if (!selectedPatient || !resolvedPatientMrn) return;
       if (isAlreadyPaidOrFinalized) {
         return;
@@ -529,6 +602,30 @@ export function CreateInvoiceWorkspacePage() {
         );
         return;
       }
+
+      const numReceived = Math.max(0, Number(amountReceived) || 0);
+
+      // Validation for payment collection
+      if (isCollectPayment) {
+        if (numReceived <= 0) {
+          setValidationError(
+            "Please enter an amount received to collect payment.",
+          );
+          return;
+        }
+        if (numReceived > outstandingBalance) {
+          setValidationError(
+            `Received amount (₹${numReceived.toLocaleString()}) cannot exceed the outstanding balance (₹${outstandingBalance.toLocaleString()}).`,
+          );
+          return;
+        }
+        if (Number(amountReceived) < 0) {
+          setValidationError("Received amount cannot be negative.");
+          return;
+        }
+      }
+
+      setValidationError(null);
       setIsSubmitting(true);
       try {
         let billId = Number(urlBillId);
@@ -638,8 +735,8 @@ export function CreateInvoiceWorkspacePage() {
           });
         }
 
-        // Only finalize when collecting payment; keep DRAFT for "Save as Draft"
-        const isDraftSave = !collectFull && amountReceived <= 0;
+        // Only finalize when collecting payment or finalizing non-draft bill; keep DRAFT for "Save as Draft"
+        const isDraftSave = !isCollectPayment && numReceived <= 0;
         if (!isDraftSave) {
           try {
             await finalizeBill(billId);
@@ -648,19 +745,14 @@ export function CreateInvoiceWorkspacePage() {
           }
         }
 
-        // Receive payment if amountReceived > 0 or if collectFull is true (Must be done AFTER finalizing)
-        const actualAmountToReceive = collectFull ? grandTotal : amountReceived;
-        if (collectFull) {
-          setAmountReceived(grandTotal);
-        }
-
-        if (actualAmountToReceive > 0) {
+        // Receive payment if isCollectPayment is true and numReceived > 0 (Must be done AFTER finalizing)
+        if (isCollectPayment && numReceived > 0) {
           const payRes = await receivePayment({
             billId,
             payments: [
               {
                 method: paymentMode,
-                amount: actualAmountToReceive,
+                amount: numReceived,
                 referenceNumber: referenceNo || undefined,
               },
             ],
@@ -681,8 +773,9 @@ export function CreateInvoiceWorkspacePage() {
             else if (apiStatus === "REFUNDED") setPaymentStatus("Refunded");
             else setPaymentStatus("Pending");
           } else {
+            const totalPaidSoFar = previouslyPaid + numReceived;
             setPaymentStatus(
-              actualAmountToReceive >= grandTotal ? "Paid" : "Partially Paid",
+              totalPaidSoFar >= grandTotal ? "Paid" : "Partially Paid",
             );
           }
         } else if (isDraftSave) {
@@ -690,6 +783,9 @@ export function CreateInvoiceWorkspacePage() {
         } else {
           setPaymentStatus("Pending");
         }
+
+        // Refresh billing queries
+        queryClient.invalidateQueries({ queryKey: billingKeys.all });
 
         setCreatedBillId(String(billId));
         setShowSuccessModal(true);
@@ -724,7 +820,10 @@ export function CreateInvoiceWorkspacePage() {
       referenceNo,
       txnNotes,
       grandTotal,
+      previouslyPaid,
+      outstandingBalance,
       isAlreadyPaidOrFinalized,
+      queryClient,
     ],
   );
 
@@ -792,8 +891,14 @@ export function CreateInvoiceWorkspacePage() {
             </button>
           ) : (
             <button
-              onClick={() => handleGenerateInvoice(false)}
-              disabled={isSubmitting || isBillLoading || !selectedPatient}
+              onClick={() => handleGenerateInvoice(hasReceivedAmount)}
+              disabled={
+                isSubmitting ||
+                isBillLoading ||
+                !selectedPatient ||
+                isOverpayment ||
+                isNegativePayment
+              }
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95 disabled:opacity-50"
               style={{ fontFamily: PP }}
             >
@@ -1292,8 +1397,21 @@ export function CreateInvoiceWorkspacePage() {
                           </button>
                         </div>
                       </td>
-                      <td className="py-2 px-3 text-right font-medium text-[#111827]">
-                        ₹{item.unitPrice}
+                      <td className="py-2 px-3 text-right">
+                        <input
+                          type="number"
+                          value={item.unitPrice}
+                          onChange={(e) =>
+                            handleUpdateItem(
+                              item.id,
+                              "unitPrice",
+                              Number.isFinite(e.currentTarget.valueAsNumber)
+                                ? e.currentTarget.valueAsNumber
+                                : 0,
+                            )
+                          }
+                          className="w-20 px-2 py-1 text-right rounded-lg border border-slate-200 bg-white focus:border-[#0D47A1] focus:outline-none font-bold text-[#111827]"
+                        />
                       </td>
                       <td className="py-2 px-3 text-right">
                         <input
@@ -1506,7 +1624,7 @@ export function CreateInvoiceWorkspacePage() {
                 <select
                   value={paymentStatus}
                   onChange={(e) =>
-                    setPaymentStatus(e.target.value as PaymentStatus)
+                    handlePaymentStatusChange(e.target.value as PaymentStatus)
                   }
                   className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-bold focus:bg-white focus:border-[#0D47A1] focus:outline-none"
                 >
@@ -1540,13 +1658,30 @@ export function CreateInvoiceWorkspacePage() {
                 </label>
                 <input
                   type="number"
+                  min="0"
+                  max={outstandingBalance}
                   value={amountReceived}
                   onChange={(e) => {
                     const v = e.currentTarget.valueAsNumber;
-                    setAmountReceived(Number.isFinite(v) ? v : 0);
+                    handleAmountReceivedChange(Number.isFinite(v) ? v : 0);
                   }}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-bold text-[#111827] focus:bg-white focus:border-[#0D47A1] focus:outline-none"
+                  className={`w-full px-3 py-2 rounded-xl border ${
+                    isOverpayment || isNegativePayment
+                      ? "border-red-400 bg-red-50/50"
+                      : "border-[#E5E7EB] bg-slate-50"
+                  } font-bold text-[#111827] focus:bg-white focus:border-[#0D47A1] focus:outline-none`}
                 />
+                {isOverpayment && (
+                  <p className="text-[11px] text-red-600 mt-1">
+                    Cannot exceed outstanding balance of ₹
+                    {outstandingBalance.toLocaleString()}
+                  </p>
+                )}
+                {isNegativePayment && (
+                  <p className="text-[11px] text-red-600 mt-1">
+                    Amount cannot be negative
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-slate-700 font-semibold mb-1">
@@ -1655,9 +1790,15 @@ export function CreateInvoiceWorkspacePage() {
                   ₹{grandTotal.toLocaleString()}
                 </span>
               </div>
+              {previouslyPaid > 0 && (
+                <div className="flex justify-between text-xs font-semibold text-slate-500">
+                  <span>Previously Paid:</span>
+                  <span>₹{previouslyPaid.toLocaleString()}</span>
+                </div>
+              )}
               <div className="flex justify-between text-xs font-semibold text-[#66BB6A]">
-                <span>Amount Paid:</span>
-                <span>₹{amountReceived.toLocaleString()}</span>
+                <span>Received Amount:</span>
+                <span>₹{currentReceived.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-xs font-bold text-[#EF4444]">
                 <span>Balance Due:</span>
@@ -1683,17 +1824,21 @@ export function CreateInvoiceWorkspacePage() {
               ) : (
                 <>
                   <button
+                    type="button"
                     onClick={() => handleGenerateInvoice(true)}
-                    disabled={isSubmitting || isBillLoading || !selectedPatient}
+                    disabled={!canCollect}
                     className="w-full py-3 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
                     style={{ fontFamily: PP }}
                   >
                     <CheckCircle2 size={16} />
                     {isSubmitting
-                      ? "Generating..."
-                      : `Generate & Collect (₹${grandTotal.toLocaleString()})`}
+                      ? "Generating & Collecting..."
+                      : isPaymentValid
+                        ? `Generate & Collect (₹${currentReceived.toLocaleString()})`
+                        : "Generate & Collect"}
                   </button>
                   <button
+                    type="button"
                     onClick={() => handleGenerateInvoice(false)}
                     disabled={isSubmitting || isBillLoading || !selectedPatient}
                     className="w-full py-2.5 rounded-xl border border-[#E5E7EB] text-slate-600 text-xs font-semibold hover:bg-slate-50 flex items-center justify-center gap-2 disabled:opacity-50"
@@ -1733,15 +1878,18 @@ export function CreateInvoiceWorkspacePage() {
           </button>
         ) : (
           <button
+            type="button"
             onClick={() => handleGenerateInvoice(true)}
-            disabled={isSubmitting || isBillLoading || !selectedPatient}
+            disabled={!canCollect}
             className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-all shadow-sm disabled:opacity-50"
             style={{ fontFamily: PP }}
           >
             <CheckCircle2 size={15} />
             {isSubmitting
-              ? "Generating..."
-              : `Generate & Collect (₹${grandTotal.toLocaleString()})`}
+              ? "Generating & Collecting..."
+              : isPaymentValid
+                ? `Generate & Collect (₹${currentReceived.toLocaleString()})`
+                : "Generate & Collect"}
           </button>
         )}
       </div>
@@ -1781,10 +1929,24 @@ export function CreateInvoiceWorkspacePage() {
                   ₹{grandTotal.toLocaleString()}
                 </span>
               </div>
+              {previouslyPaid > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Previously Paid:</span>
+                  <span className="font-medium text-slate-700">
+                    ₹{previouslyPaid.toLocaleString()}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-slate-500">Amount Paid:</span>
                 <span className="font-bold text-[#66BB6A]">
-                  ₹{amountReceived.toLocaleString()}
+                  ₹{currentReceived.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Balance Due:</span>
+                <span className="font-bold text-[#EF4444]">
+                  ₹{balanceDue.toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between">

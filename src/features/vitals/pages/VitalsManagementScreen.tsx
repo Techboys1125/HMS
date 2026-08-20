@@ -777,7 +777,7 @@ export function RecordPatientVitalsForm({
         spo2: Number(spo2),
       };
 
-      const wasSaved = await vitalsService.submitVitals(activeApt.id, payload);
+      const wasSaved = await vitalsService.submitVitals(activeApt.id, payload, activeApt.status);
       if (!wasSaved) throw new Error("Vitals submission was not accepted");
 
       triggerToast("Vitals recorded successfully!", "success");
@@ -1139,67 +1139,67 @@ export function RecordPatientVitalsScreen({
     try {
       const list = await vitalsService.getWaitingPatients();
       if (Array.isArray(list)) {
-          const mapped: AppointmentRecord[] = list.map(
-            (item: NurseWaitingPatient, idx: number) => ({
-              id: item.appointmentId || item.id || `apt-${idx + 1}`,
-              appointmentNumber:
-                item.appointmentNumber || item.tokenNumber || `TK-${100 + idx}`,
-              tokenNo: item.tokenNumber || item.token || `TK-${100 + idx}`,
-              patientId: item.patientId || item.patient?.id || `P-${idx + 1}`,
-              patientName:
-                item.patientName ||
-                item.patient?.name ||
-                item.patient?.fullName ||
-                "Patient",
-              patientAge: Number(item.age || item.patient?.age || 30),
-              patientGender: (item.gender ||
-                item.patient?.gender ||
-                "Male") as AppointmentRecord["patientGender"],
-              patientPhone:
-                item.contact || item.patient?.contact || item.phone || "N/A",
-              mrn: item.mrn || item.patient?.mrn || `MRN-${1000 + idx}`,
-              doctorId: item.doctorId || item.doctor?.doctorId || 1,
-              doctorName: item.doctorName || item.doctor?.name || "Duty Doctor",
-              department:
-                item.departmentName ||
-                (typeof item.department === "object"
-                  ? item.department?.departmentName ||
-                    item.department?.name ||
-                    item.department?.departmentCode
-                  : undefined) ||
-                (typeof item.department === "string"
-                  ? item.department
-                  : undefined) ||
-                item.doctor?.departmentName ||
-                item.doctor?.department ||
-                "Cardiology",
-              departmentName:
-                item.departmentName ||
-                (typeof item.department === "object"
-                  ? item.department?.departmentName ||
-                    item.department?.name ||
-                    item.department?.departmentCode
-                  : undefined) ||
-                (typeof item.department === "string"
-                  ? item.department
-                  : undefined) ||
-                item.doctor?.departmentName ||
-                item.doctor?.department ||
-                "Cardiology",
+        const mapped: AppointmentRecord[] = list.map(
+          (item: NurseWaitingPatient, idx: number) => ({
+            id: item.appointmentId || item.id || `apt-${idx + 1}`,
+            appointmentNumber:
+              item.appointmentNumber || item.tokenNumber || `TK-${100 + idx}`,
+            tokenNo: item.tokenNumber || item.token || `TK-${100 + idx}`,
+            patientId: item.patientId || item.patient?.id || `P-${idx + 1}`,
+            patientName:
+              item.patientName ||
+              item.patient?.name ||
+              item.patient?.fullName ||
+              "Patient",
+            patientAge: Number(item.age || item.patient?.age || 30),
+            patientGender: (item.gender ||
+              item.patient?.gender ||
+              "Male") as AppointmentRecord["patientGender"],
+            patientPhone:
+              item.contact || item.patient?.contact || item.phone || "N/A",
+            mrn: item.mrn || item.patient?.mrn || `MRN-${1000 + idx}`,
+            doctorId: item.doctorId || item.doctor?.doctorId || 1,
+            doctorName: item.doctorName || item.doctor?.name || "Duty Doctor",
+            department:
+              item.departmentName ||
+              (typeof item.department === "object"
+                ? item.department?.departmentName ||
+                  item.department?.name ||
+                  item.department?.departmentCode
+                : undefined) ||
+              (typeof item.department === "string"
+                ? item.department
+                : undefined) ||
+              item.doctor?.departmentName ||
+              item.doctor?.department ||
+              "Cardiology",
+            departmentName:
+              item.departmentName ||
+              (typeof item.department === "object"
+                ? item.department?.departmentName ||
+                  item.department?.name ||
+                  item.department?.departmentCode
+                : undefined) ||
+              (typeof item.department === "string"
+                ? item.department
+                : undefined) ||
+              item.doctor?.departmentName ||
+              item.doctor?.department ||
+              "Cardiology",
 
-              appointmentDate: new Date().toISOString().split("T")[0],
-              appointmentTime: item.checkInTime || "Now",
-              timeSlot: item.checkInTime || "Now",
-              status: toDisplayStatus(item.status),
-              queueStatus: item.status || "WAITING_FOR_VITALS",
-              visitType: "Regular",
-              reason: "Pre-consultation Vitals Check",
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            }),
-          );
-          setAppointments(mapped);
-        }
+            appointmentDate: new Date().toISOString().split("T")[0],
+            appointmentTime: item.checkInTime || "Now",
+            timeSlot: item.checkInTime || "Now",
+            status: toDisplayStatus(item.status),
+            queueStatus: item.status || "WAITING_FOR_VITALS",
+            visitType: "Regular",
+            reason: "Pre-consultation Vitals Check",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }),
+        );
+        setAppointments(mapped);
+      }
     } catch (err) {
       console.warn("Waiting list fetch warning:", err);
     }
@@ -1256,7 +1256,9 @@ export function RecordPatientVitalsScreen({
   }, [appointments, selectedAptId]);
 
   // Fetched vitals data for details view
-  const [detailsVitals, setDetailsVitals] = useState<RecordedVitalsData | null>(null);
+  const [detailsVitals, setDetailsVitals] = useState<RecordedVitalsData | null>(
+    null,
+  );
 
   const fetchVitalsForDetails = useCallback(async (aptId: string | number) => {
     try {
@@ -1275,10 +1277,7 @@ export function RecordPatientVitalsScreen({
 
   // Status map helper to determine vitals status string for an appointment
   const getVitalsStatus = (apt: AppointmentRecord) => {
-    if (
-      apt.status === "Checked-In" ||
-      apt.status === "Waiting for Vitals"
-    )
+    if (apt.status === "Checked-In" || apt.status === "Waiting for Vitals")
       return "Waiting for Vitals";
     if (apt.notes?.includes("vitals in progress"))
       return "Recording In Progress";
@@ -1372,7 +1371,9 @@ export function RecordPatientVitalsScreen({
   // Pagination for queue table
   const [queuePage, setQueuePage] = useState(1);
   const queuePageSize = 10;
-  const queueTotalPages = Math.ceil(filteredAppointments.length / queuePageSize);
+  const queueTotalPages = Math.ceil(
+    filteredAppointments.length / queuePageSize,
+  );
   const paginatedAppointments = filteredAppointments.slice(
     (queuePage - 1) * queuePageSize,
     queuePage * queuePageSize,

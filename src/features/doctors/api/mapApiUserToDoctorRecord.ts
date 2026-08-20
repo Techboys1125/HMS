@@ -130,6 +130,7 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
   const finalDoctorId = hasExplicitDoctorId ? rawDoctorId : rawUserId;
 
   return {
+    fullName: u.fullName || u.name || anyProfile?.name || "",
     id: `DOC-${finalDoctorId || rawUserId}`,
     userId: Number(rawUserId),
     doctorId: Number(finalDoctorId),
