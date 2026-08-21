@@ -147,8 +147,17 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
               className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
               style={{ fontFamily: RB }}
             >
+<<<<<<< HEAD
               <option value="All">All Doctor Statuses</option>
               <option value="WAITING_FOR_DOCTOR">Waiting for Doctor</option>
+=======
+              <option value="All">All Statuses</option>
+              <option value="BOOKED">Booked</option>
+              <option value="WAITING_FOR_VITALS">Waiting for Vitals</option>
+              <option value="WAITING_FOR_DOCTOR_CALL">
+                Waiting for Doctor
+              </option>
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
               <option value="CALLED">Called</option>
               <option value="IN_CONSULTATION">In Consultation</option>
               <option value="COMPLETED">Completed</option>

@@ -51,8 +51,12 @@ export function PatientQueueCard({
             <Ticket size={18} />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-[#111827]">My Queue Status</h3>
-            <p className="text-xs text-[#64748B]">No active OPD queue ticket for today</p>
+            <h3 className="text-sm font-bold text-[#111827]">
+              My Queue Status
+            </h3>
+            <p className="text-xs text-[#64748B]">
+              No active OPD queue ticket for today
+            </p>
           </div>
         </div>
         {onViewQueue && (

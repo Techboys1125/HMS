@@ -35,7 +35,6 @@ import {
   Tooltip,
 } from "../../../common/components/recharts-lazy";
 
-
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
 

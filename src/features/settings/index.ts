@@ -19,7 +19,6 @@ export { useHospitalConfiguration } from "./hooks/useHospitalConfiguration";
 export { useOpdConfiguration } from "./hooks/useOpdConfiguration";
 export {
   fetchHospitalConfiguration,
-  createHospitalConfiguration,
   saveHospitalConfiguration,
   uploadHospitalLogo,
   uploadHospitalHeaderBanner,
@@ -37,8 +36,3 @@ export {
   mapConfigurationToForm,
   mapFormToConfiguration,
 } from "./services/settings.service";
-export {
-  canAccessSettings,
-  canManageSettings,
-  getSettingsPermission,
-} from "./permissions/settings.permissions";

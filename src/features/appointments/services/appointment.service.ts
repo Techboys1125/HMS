@@ -6,7 +6,6 @@ import type {
   RescheduleAppointmentRequest,
   CancelAppointmentRequest,
   LinkedPatient,
-  UserRole,
   DoctorSummary,
   PatientSummary,
   Department,
@@ -154,6 +153,7 @@ export const normalizeAppointmentRecord = (
       string | undefined,
     notes: item?.notes as string | undefined,
     arrivalTime: "",
+    time: "",
   };
 };
 
@@ -514,11 +514,21 @@ export const appointmentService = {
 
   async listDepartments(): Promise<Department[]> {
     const data = await departmentsApi.getDepartments();
-    return (data || []).map((d) => ({
-      id: d.departmentId ?? d.id ?? "",
-      departmentName: d.departmentName ?? d.name ?? "",
-      departmentCode: d.departmentCode ?? d.code ?? "",
-    }));
+    const items = data?.content || (Array.isArray(data) ? data : []);
+    return items.map(
+      (d: {
+        departmentId?: string | number;
+        id?: string | number;
+        departmentName?: string;
+        name?: string;
+        departmentCode?: string;
+        code?: string;
+      }) => ({
+        id: String(d.departmentId ?? d.id ?? ""),
+        departmentName: d.departmentName ?? d.name ?? "",
+        departmentCode: d.departmentCode ?? d.code ?? "",
+      }),
+    );
   },
 
   async listDoctors(departmentId?: string | number): Promise<DoctorSummary[]> {
@@ -654,6 +664,7 @@ export const appointmentService = {
         ),
         doctorId: d.doctorId ?? d.doctorProfile?.doctorId ?? d.id ?? "",
         name: String(d.doctorName ?? d.fullName ?? d.name ?? ""),
+        fullName: String(d.doctorName ?? d.fullName ?? d.name ?? ""),
         departmentName:
           d.departmentName ??
           d.department ??
@@ -707,19 +718,31 @@ export const appointmentService = {
     doctorId: string | number,
     date: string,
   ): Promise<unknown[]> {
+    type AppointmentSlot = {
+      time: string;
+      startTime?: string;
+      endTime?: string;
+      slot?: string;
+      available: boolean;
+      [key: string]: unknown;
+    };
+
     const res = await appointmentsApi.getAvailableSlots(doctorId, date);
     const availabilitySlots = Array.isArray(res?.data?.slots)
       ? res.data.slots
       : [];
-    let slots = availabilitySlots.map((s: Record<string, unknown>) => {
-      const statusUpper = String(s.status || "").toUpperCase();
-      const available = ["AVAILABLE", "OPEN", "FREE"].includes(statusUpper);
-      return {
-        ...s,
-        time: s.startTime || s.endTime || "",
-        available,
-      };
-    });
+
+    let slots: AppointmentSlot[] = availabilitySlots.map(
+      (s: Record<string, unknown>): AppointmentSlot => {
+        const statusUpper = String(s.status || "").toUpperCase();
+        const available = ["AVAILABLE", "OPEN", "FREE"].includes(statusUpper);
+        return {
+          ...s,
+          time: String(s.startTime || s.endTime || ""),
+          available,
+        };
+      },
+    );
 
     try {
       const apptRes = await appointmentsApi.getAppointments({ doctorId, date });
@@ -766,6 +789,7 @@ export const appointmentService = {
         }
       });
 
+<<<<<<< HEAD
       slots = slots.map(
         (s: {
           time?: string;
@@ -780,6 +804,15 @@ export const appointmentService = {
           return s;
         },
       );
+=======
+      slots = slots.map((s) => {
+        const slotTime = s.time || s.startTime || s.slot;
+        if (slotTime && occupiedSlots.has(normalizeTimeFormat(slotTime))) {
+          return { ...s, available: false };
+        }
+        return s;
+      });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
     } catch (err) {
       console.warn("Failed to block slots dynamically based on status:", err);
     }
@@ -898,15 +931,3 @@ export const appointmentService = {
 };
 
 export type AppointmentService = typeof appointmentService;
-
-export const isUserRole = (role?: string | null): role is UserRole =>
-  Boolean(role) &&
-  [
-    "Receptionist",
-    "Admin",
-    "Hospital Admin",
-    "Super Admin",
-    "Doctor",
-    "Nurse",
-    "Patient",
-  ].includes(role as UserRole);

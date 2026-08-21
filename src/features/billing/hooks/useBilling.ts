@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { billingService } from "../services/billing.service";
 import type {
-  InvoiceRecord,
   BillingConfiguration,
   BillDiscountPayload,
   BillItemPayload,
@@ -94,44 +93,6 @@ export function useBillingList(params?: {
     ),
     queryFn: () => billingService.searchBills(queryParams),
     enabled: isAllowed && paramEnabled !== false,
-  });
-}
-
-// ── usePendingBilling ────────────────────────────────────────────────────────
-
-export function usePendingBilling(params?: {
-  page?: number;
-  size?: number;
-  search?: string;
-  billingStatus?: string;
-  date?: string;
-  fromDate?: string;
-  toDate?: string;
-  enabled?: boolean;
-}) {
-  const { enabled: paramEnabled, ...queryParams } = params ?? {};
-  const isAllowed = isStaffBillingAllowed();
-  return useQuery({
-    queryKey: billingKeys.pendingBilling(queryParams),
-    queryFn: () => billingService.searchPendingBilling(queryParams),
-    enabled: isAllowed && paramEnabled !== false,
-    staleTime: 60_000,
-  });
-}
-
-// ── useBillingPatientSearch ─────────────────────────────────────────────────
-
-export function useBillingPatientSearch(
-  query: string,
-  options?: { enabled?: boolean },
-) {
-  const isAllowed = isStaffBillingAllowed();
-  return useQuery({
-    queryKey: billingKeys.billingSearch(query),
-    queryFn: () => billingService.searchBillingPatients(query),
-    enabled:
-      isAllowed && options?.enabled !== false && query.trim().length >= 2,
-    staleTime: 30_000,
   });
 }
 
@@ -512,8 +473,9 @@ function saveBillingConfig(config: BillingConfiguration) {
 }
 
 export function useBillingConfiguration() {
-  const [configuration, setConfiguration] =
-    useState<BillingConfiguration>(() => loadBillingConfig() || DEFAULT_CONFIGURATION);
+  const [configuration, setConfiguration] = useState<BillingConfiguration>(
+    () => loadBillingConfig() || DEFAULT_CONFIGURATION,
+  );
 
   const saveConfiguration = (config: BillingConfiguration) => {
     saveBillingConfig(config);
@@ -523,34 +485,5 @@ export function useBillingConfiguration() {
   return {
     configuration,
     saveConfiguration,
-  };
-}
-
-// ── useBillingReport ────────────────────────────────────────────────────────
-
-export function useBillingReport(invoices: InvoiceRecord[]) {
-  const summary = billingService.calculateSummary(invoices);
-
-  const totalBilled = summary.totalBilled;
-  const totalPaid = summary.totalPaid;
-  const totalPending = summary.totalPending;
-
-  const byDepartment: { [key: string]: number } = {};
-  const byPaymentMethod: { [key: string]: number } = {};
-
-  invoices.forEach((inv) => {
-    byDepartment[inv.department] =
-      (byDepartment[inv.department] || 0) + inv.invoiceAmount;
-    byPaymentMethod[inv.paymentMethod] =
-      (byPaymentMethod[inv.paymentMethod] || 0) + inv.paidAmount;
-  });
-
-  return {
-    summary,
-    totalBilled,
-    totalPaid,
-    totalPending,
-    byDepartment,
-    byPaymentMethod,
   };
 }

@@ -1,4 +1,5 @@
-export type RxStatus = "Draft" | "Issued" | "Completed" | "Cancelled" | "Archived";
+export type RxStatus =
+  "Draft" | "Issued" | "Completed" | "Cancelled" | "Archived";
 
 export interface EditableMedicine {
   id: string;

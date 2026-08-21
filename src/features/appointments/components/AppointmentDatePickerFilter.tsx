@@ -38,17 +38,30 @@ export function AppointmentDatePickerFilter({
 
   const [viewYear, setViewYear] = useState<number>(activeDate.getFullYear());
   const [viewMonth, setViewMonth] = useState<number>(activeDate.getMonth());
+  const [prevSelectedDate, setPrevSelectedDate] = useState(selectedDate);
 
+<<<<<<< HEAD
   const handleToggleOpen = () => {
     if (!isOpen) {
       const d = selectedDate ? new Date(selectedDate) : new Date();
+=======
+  // Keep view month/year in sync if selectedDate changes externally
+  if (selectedDate !== prevSelectedDate) {
+    setPrevSelectedDate(selectedDate);
+    if (selectedDate) {
+      const d = new Date(selectedDate);
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
       if (!isNaN(d.getTime())) {
         setViewYear(d.getFullYear());
         setViewMonth(d.getMonth());
       }
     }
+<<<<<<< HEAD
     setIsOpen((prev) => !prev);
   };
+=======
+  }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
 
   // Click outside listener
   useEffect(() => {
@@ -99,7 +112,11 @@ export function AppointmentDatePickerFilter({
   const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
 
   // Previous month trailing days
-  const prevMonthDays: Array<{ day: number; isCurrentMonth: boolean; dateStr: string }> = [];
+  const prevMonthDays: Array<{
+    day: number;
+    isCurrentMonth: boolean;
+    dateStr: string;
+  }> = [];
   for (let i = firstDayOfMonth - 1; i >= 0; i--) {
     const pDay = daysInPrevMonth - i;
     const pMonth = viewMonth === 0 ? 11 : viewMonth - 1;
@@ -114,7 +131,11 @@ export function AppointmentDatePickerFilter({
   }
 
   // Current month days
-  const currentMonthDays: Array<{ day: number; isCurrentMonth: boolean; dateStr: string }> = [];
+  const currentMonthDays: Array<{
+    day: number;
+    isCurrentMonth: boolean;
+    dateStr: string;
+  }> = [];
   for (let d = 1; d <= daysInMonth; d++) {
     const mStr = String(viewMonth + 1).padStart(2, "0");
     const dStr = String(d).padStart(2, "0");
@@ -126,9 +147,15 @@ export function AppointmentDatePickerFilter({
   }
 
   // Next month leading days to fill 35 or 42 grid cells
-  const totalGridCells = (prevMonthDays.length + currentMonthDays.length) <= 35 ? 35 : 42;
-  const remainingCells = totalGridCells - (prevMonthDays.length + currentMonthDays.length);
-  const nextMonthDays: Array<{ day: number; isCurrentMonth: boolean; dateStr: string }> = [];
+  const totalGridCells =
+    prevMonthDays.length + currentMonthDays.length <= 35 ? 35 : 42;
+  const remainingCells =
+    totalGridCells - (prevMonthDays.length + currentMonthDays.length);
+  const nextMonthDays: Array<{
+    day: number;
+    isCurrentMonth: boolean;
+    dateStr: string;
+  }> = [];
   for (let n = 1; n <= remainingCells; n++) {
     const nMonth = viewMonth === 11 ? 0 : viewMonth + 1;
     const nYear = viewMonth === 11 ? viewYear + 1 : viewYear;
@@ -166,9 +193,15 @@ export function AppointmentDatePickerFilter({
   };
 
   return (
-    <div ref={containerRef} className="relative inline-block text-xs" style={{ fontFamily: RB }}>
+    <div
+      ref={containerRef}
+      className="relative inline-block text-xs"
+      style={{ fontFamily: RB }}
+    >
       {/* Label above */}
-      <span className="block text-[11px] font-bold text-[#64748B] mb-1">Date</span>
+      <span className="block text-[11px] font-bold text-[#64748B] mb-1">
+        Date
+      </span>
 
       {/* Input Box Trigger */}
       <div
@@ -186,7 +219,10 @@ export function AppointmentDatePickerFilter({
         <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-[#E5E7EB] rounded-2xl shadow-xl p-4 w-72 animate-in zoom-in-95 duration-150">
           {/* Month / Year Header & Navigation */}
           <div className="flex items-center justify-between mb-3 px-1">
-            <div className="flex items-center gap-1 font-bold text-sm text-[#111827]" style={{ fontFamily: PP }}>
+            <div
+              className="flex items-center gap-1 font-bold text-sm text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
               <span>
                 {MONTH_NAMES[viewMonth]}, {viewYear}
               </span>

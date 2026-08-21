@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { usePrescriptionStore, prescriptionStoreActions } from "../store/prescription.store";
+import {
+  usePrescriptionStore,
+  prescriptionStoreActions,
+} from "../store/prescription.store";
 import { prescriptionService } from "../services/prescription.service";
 import { useAuthStore } from "../../auth/store/auth.store";
 
@@ -19,14 +22,18 @@ export function usePrescription(mrn?: string, doctorNameFilter?: string) {
   useEffect(() => {
     if (isPatient && mrn) {
       prescriptionService.loadPatientPrescriptions(mrn).catch((err) => {
-        const message = err instanceof Error ? err.message : "Failed to load prescriptions";
+        const message =
+          err instanceof Error ? err.message : "Failed to load prescriptions";
         showToast(message);
       });
     } else if (mrn) {
-      prescriptionService.loadPrescriptions(mrn, doctorNameFilter).catch((err) => {
-        const message = err instanceof Error ? err.message : "Failed to load prescriptions";
-        showToast(message);
-      });
+      prescriptionService
+        .loadPrescriptions(mrn, doctorNameFilter)
+        .catch((err) => {
+          const message =
+            err instanceof Error ? err.message : "Failed to load prescriptions";
+          showToast(message);
+        });
     } else {
       prescriptionStoreActions.setPrescriptions([]);
       prescriptionStoreActions.setLoading(false);
@@ -45,10 +52,12 @@ export function usePrescription(mrn?: string, doctorNameFilter?: string) {
         rx.medicines.some((m) => m.name.toLowerCase().includes(query));
 
       const matchesStatus =
-        filters.status === "All" || rx.status.toLowerCase() === filters.status.toLowerCase();
+        filters.status === "All" ||
+        rx.status.toLowerCase() === filters.status.toLowerCase();
 
       const matchesDept =
-        filters.dept === "All" || rx.department.toLowerCase() === filters.dept.toLowerCase();
+        filters.dept === "All" ||
+        rx.department.toLowerCase() === filters.dept.toLowerCase();
 
       return matchesSearch && matchesStatus && matchesDept;
     });
@@ -57,14 +66,22 @@ export function usePrescription(mrn?: string, doctorNameFilter?: string) {
   const triggerRefresh = () => {
     if (isPatient && mrn) {
       prescriptionService.loadPatientPrescriptions(mrn).catch((err) => {
-        const message = err instanceof Error ? err.message : "Failed to refresh prescriptions";
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Failed to refresh prescriptions";
         showToast(message);
       });
     } else if (mrn) {
-      prescriptionService.loadPrescriptions(mrn, doctorNameFilter).catch((err) => {
-        const message = err instanceof Error ? err.message : "Failed to refresh prescriptions";
-        showToast(message);
-      });
+      prescriptionService
+        .loadPrescriptions(mrn, doctorNameFilter)
+        .catch((err) => {
+          const message =
+            err instanceof Error
+              ? err.message
+              : "Failed to refresh prescriptions";
+          showToast(message);
+        });
     }
   };
 
@@ -82,11 +99,17 @@ export function usePrescription(mrn?: string, doctorNameFilter?: string) {
 export function usePrescriptionDetails() {
   const { selectedPrescription, loading } = usePrescriptionStore();
 
-  const loadDetails = async (id: string | number, onError?: (msg: string) => void) => {
+  const loadDetails = async (
+    id: string | number,
+    onError?: (msg: string) => void,
+  ) => {
     try {
       return await prescriptionService.getPrescriptionDetails(id);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load prescription details";
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to load prescription details";
       onError?.(message);
       return null;
     }
@@ -179,7 +202,10 @@ export function usePrescriptionActions(showToast: (msg: string) => void) {
       }
       return success;
     } catch (err) {
-      const message = err instanceof Error ? err.message : `Failed to finalize prescription ${rxId}`;
+      const message =
+        err instanceof Error
+          ? err.message
+          : `Failed to finalize prescription ${rxId}`;
       showToast(message);
       return false;
     }
@@ -187,20 +213,30 @@ export function usePrescriptionActions(showToast: (msg: string) => void) {
 
   const handleDuplicate = async (rxId: string | number) => {
     try {
-      await prescriptionService.createAmendment(rxId, { reason: "Patient requested duplicate" });
+      await prescriptionService.createAmendment(rxId, {
+        reason: "Patient requested duplicate",
+      });
       showToast(`Duplicated prescription ${rxId}`);
     } catch (err) {
-      const message = err instanceof Error ? err.message : `Failed to duplicate prescription ${rxId}`;
+      const message =
+        err instanceof Error
+          ? err.message
+          : `Failed to duplicate prescription ${rxId}`;
       showToast(message);
     }
   };
 
   const handleReprint = async (rxId: string | number) => {
     try {
-      await prescriptionService.reprintPrescription(rxId, { reason: "Reprint request" });
+      await prescriptionService.reprintPrescription(rxId, {
+        reason: "Reprint request",
+      });
       showToast(`Reprinted prescription ${rxId}`);
     } catch (err) {
-      const message = err instanceof Error ? err.message : `Failed to reprint prescription ${rxId}`;
+      const message =
+        err instanceof Error
+          ? err.message
+          : `Failed to reprint prescription ${rxId}`;
       showToast(message);
     }
   };

@@ -12,13 +12,11 @@ import {
   fetchNotificationPreferences,
   updateNotificationPreferences,
   fetchNotifications,
-  fetchNotificationDetail,
   fetchUnreadCount,
   markNotificationAsRead,
   markNotificationAsUnread,
   markAllNotificationsAsRead,
   deleteNotification,
-  triggerInternalNotification,
 } from "../services/notifications.service";
 import { normalizeRole } from "../services/role.mapper";
 import type { UserRole } from "../types/notifications.types";
@@ -97,16 +95,6 @@ export function useSendTestNotification() {
   });
 }
 
-export function useTriggerInternalNotification() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: triggerInternalNotification,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: notificationKeys.all });
-    },
-  });
-}
-
 export function useNotificationFailures() {
   return useQuery({
     queryKey: notificationKeys.failures(),
@@ -150,14 +138,6 @@ export function useNotifications(
     queryFn: () => fetchNotifications(page, size, type, isRead),
     staleTime: 0,
     refetchOnMount: "always",
-  });
-}
-
-export function useNotificationDetail(id: string) {
-  return useQuery({
-    queryKey: notificationKeys.detail(id),
-    queryFn: () => fetchNotificationDetail(id),
-    enabled: !!id,
   });
 }
 
@@ -234,16 +214,25 @@ export function useNotificationSettingsState() {
   });
 
   const [localOverrides, setLocalOverrides] = useState<
-    Partial<Pick<NotificationSettings, "emailNotifs" | "pushNotifs" | "securityAlerts">>
+    Partial<
+      Pick<
+        NotificationSettings,
+        "emailNotifs" | "pushNotifs" | "securityAlerts"
+      >
+    >
   >({});
 
   const settings: NotificationSettings = useMemo(
     () => ({
       ...localSettings,
-      emailNotifs: localOverrides.emailNotifs ?? preferences?.emailEnabled ?? true,
-      pushNotifs: localOverrides.pushNotifs ?? preferences?.inAppEnabled ?? true,
+      emailNotifs:
+        localOverrides.emailNotifs ?? preferences?.emailEnabled ?? true,
+      pushNotifs:
+        localOverrides.pushNotifs ?? preferences?.inAppEnabled ?? true,
       securityAlerts:
-        localOverrides.securityAlerts ?? preferences?.criticalAlertsEnabled ?? true,
+        localOverrides.securityAlerts ??
+        preferences?.criticalAlertsEnabled ??
+        true,
     }),
     [localSettings, localOverrides, preferences],
   );

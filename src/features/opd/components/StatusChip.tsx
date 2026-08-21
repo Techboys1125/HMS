@@ -120,6 +120,4 @@ export const StatusChip: React.FC<StatusChipProps> = ({ status }) => {
   );
 };
 
-export const ConsultationStatusBadge = StatusChip;
-
 export default StatusChip;

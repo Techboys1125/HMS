@@ -198,7 +198,10 @@ export const LoginPage: React.FC = () => {
               message={successInfo?.message || "Operation successful."}
               onContinue={() => {
                 if (pendingUserRef.current && pendingTokensRef.current) {
-                  useAuthStore.login(pendingUserRef.current, pendingTokensRef.current);
+                  useAuthStore.login(
+                    pendingUserRef.current,
+                    pendingTokensRef.current,
+                  );
                   pendingUserRef.current = null;
                   pendingTokensRef.current = null;
                 }

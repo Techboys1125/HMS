@@ -60,8 +60,8 @@ export function BackupSubHeader({
             margin: "2px 0 0 0",
           }}
         >
-          Manage backup schedules, monitor system health, configure
-          maintenance windows, and review backup history.
+          Manage backup schedules, monitor system health, configure maintenance
+          windows, and review backup history.
         </p>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -83,8 +83,7 @@ export function BackupSubHeader({
             boxShadow: "0 2px 4px rgba(13,71,161,0.2)",
           }}
         >
-          <Play size={14} />{" "}
-          {isBackingUp ? "Backing Up..." : "Run Backup Now"}
+          <Play size={14} /> {isBackingUp ? "Backing Up..." : "Run Backup Now"}
         </button>
         <button
           onClick={onToggleMaintenance}

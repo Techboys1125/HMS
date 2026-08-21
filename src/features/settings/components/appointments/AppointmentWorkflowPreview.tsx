@@ -27,8 +27,8 @@ export function AppointmentWorkflowPreview() {
           gap: "8px",
         }}
       >
-        <Eye size={18} style={{ color: "#0D47A1" }} /> Section 08:
-        Configured Appointment Lifecycle Flow
+        <Eye size={18} style={{ color: "#0D47A1" }} /> Section 08: Configured
+        Appointment Lifecycle Flow
       </h3>
 
       <div
@@ -69,9 +69,7 @@ export function AppointmentWorkflowPreview() {
             >
               {st.step}
             </div>
-            <div style={{ fontSize: "10px", color: "#64748B" }}>
-              {st.sub}
-            </div>
+            <div style={{ fontSize: "10px", color: "#64748B" }}>{st.sub}</div>
           </div>
         ))}
       </div>

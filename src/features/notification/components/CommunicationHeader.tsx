@@ -48,7 +48,12 @@ export function CommunicationHeader({
         </p>
       </div>
       <div
-        style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          flexWrap: "wrap",
+        }}
       >
         <button
           onClick={onPreview}

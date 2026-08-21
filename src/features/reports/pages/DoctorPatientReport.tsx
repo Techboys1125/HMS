@@ -156,6 +156,7 @@ export function DoctorPatientReportScreen({
         diagnosis: "Routine OPD",
         followUpDate: item.nextFollowUpDate,
         status: item.followUpStatus,
+<<<<<<< HEAD
       };
       const matchesSearch =
         !lowerSearch ||
@@ -174,6 +175,24 @@ export function DoctorPatientReportScreen({
       }
       return [];
     });
+=======
+      }))
+      .filter((item) => {
+        const matchesSearch =
+          (item.patientName || "")
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          (item.mrn || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.mobileNumber || "").includes(searchQuery);
+        const matchesVisit =
+          visitTypeFilter === "All Visit Types" ||
+          item.visitType === visitTypeFilter;
+        const matchesStatus =
+          consultStatusFilter === "All Statuses" ||
+          item.status === consultStatusFilter;
+        return matchesSearch && matchesVisit && matchesStatus;
+      });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
   }, [registerData, searchQuery, visitTypeFilter, consultStatusFilter]);
 
   return (

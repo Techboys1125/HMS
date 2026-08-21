@@ -23,7 +23,10 @@ import type {
 } from "../types/appointment-screen.types";
 import type { AppointmentRecord } from "../types/appointment.types";
 import { Pagination } from "../../../common/components/Pagination";
-import { getTodayDateString, normalizeDateString } from "../../../lib/time-utils";
+import {
+  getTodayDateString,
+  normalizeDateString,
+} from "../../../lib/time-utils";
 
 export function DockableQueueWorkspace({
   appointments,
@@ -73,7 +76,9 @@ export function DockableQueueWorkspace({
       "Completed",
     ]);
 
-    let list = appointments.filter((a) => normalizeDateString(a.appointmentDate) === todayStr);
+    let list = appointments.filter(
+      (a) => normalizeDateString(a.appointmentDate) === todayStr,
+    );
     if (isDoctor) {
       // Doctors only see patients ready for consultation — NOT waiting for vitals or just checked-in
       // Filter by current user's doctorId when available, otherwise show all eligible
@@ -83,9 +88,7 @@ export function DockableQueueWorkspace({
   }, [appointments, todayStr, isDoctor]);
 
   const waitingPatients = todayQueue.filter(
-    (a) =>
-      a.status === "Waiting for Doctor" ||
-      a.status === "Waiting",
+    (a) => a.status === "Waiting for Doctor" || a.status === "Waiting",
   );
   const checkedInPatients = todayQueue.filter(
     (a) => a.status === "Checked-In" || a.status === "Waiting for Vitals",

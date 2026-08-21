@@ -1,4 +1,11 @@
-export type QueueStatus = "WAITING" | "WAITING_FOR_VITALS" | "WAITING_FOR_DOCTOR" | "WAITING_FOR_DOCTOR_CALL" | "CALLED" | "IN_CONSULTATION" | "COMPLETED";
+export type QueueStatus =
+  | "WAITING"
+  | "WAITING_FOR_VITALS"
+  | "WAITING_FOR_DOCTOR"
+  | "WAITING_FOR_DOCTOR_CALL"
+  | "CALLED"
+  | "IN_CONSULTATION"
+  | "COMPLETED";
 
 export interface QueuePatient {
   name: string;

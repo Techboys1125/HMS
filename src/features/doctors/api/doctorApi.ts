@@ -179,8 +179,10 @@ export const doctorApi = {
       const rawData = response.data?.data || response.data;
       const list = Array.isArray(rawData)
         ? rawData
-        : Array.isArray((rawData as unknown as { content?: unknown[] })?.content)
-          ? ((rawData as unknown as { content: unknown[] }).content)
+        : Array.isArray(
+              (rawData as unknown as { content?: unknown[] })?.content,
+            )
+          ? (rawData as unknown as { content: unknown[] }).content
           : [];
       return list.map((item: ApiScheduleExceptionItem) => ({
         id: item.id || Number(doctorId),
@@ -190,8 +192,7 @@ export const doctorApi = {
         startDate: item.startDate || "",
         endDate: item.endDate || "",
         reason: item.reason || "",
-        exceptionType:
-          item.exceptionType || item.type || "OTHER",
+        exceptionType: item.exceptionType || item.type || "OTHER",
         isFullDay: item.isFullDay ?? item.fullDay ?? true,
         action: item.action || "BLOCK_APPOINTMENTS",
         status: item.status || "ACTIVE",
@@ -308,8 +309,10 @@ export const doctorApi = {
       const rawData = response.data?.data || response.data;
       const list = Array.isArray(rawData)
         ? rawData
-        : Array.isArray((rawData as unknown as { content?: unknown[] })?.content)
-          ? ((rawData as unknown as { content: unknown[] }).content)
+        : Array.isArray(
+              (rawData as unknown as { content?: unknown[] })?.content,
+            )
+          ? (rawData as unknown as { content: unknown[] }).content
           : [];
       return list.map((item: DoctorAppointment) => ({
         id: String(item.id || ""),

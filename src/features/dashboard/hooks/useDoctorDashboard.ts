@@ -43,14 +43,6 @@ export function useDoctorTodayAppointments() {
   });
 }
 
-export function useDoctorMeAppointments() {
-  return useQuery({
-    queryKey: doctorKeys.meAppointments(),
-    queryFn: doctorDashboardApi.getMeAppointments,
-    refetchInterval: 60000,
-  });
-}
-
 export function useDoctorConsultationQueue() {
   return useQuery({
     queryKey: doctorKeys.consultationQueue(),

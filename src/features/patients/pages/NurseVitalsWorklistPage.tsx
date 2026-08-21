@@ -31,8 +31,12 @@ const toAppointmentRecord = (item: VitalsWaitingItem): AppointmentRecord => ({
   appointmentDate: item.checkInTime || "",
   status: item.status || "WAITING_FOR_VITALS",
   department: getDepartmentName(item),
-  patientAge: item.age,
+  patientAge:
+    typeof item.age === "number"
+      ? item.age
+      : Number.parseInt(item.age, 10) || 0,
   patientGender: item.gender,
+  time: "",
 });
 
 export function NurseVitalsWorklistPage() {

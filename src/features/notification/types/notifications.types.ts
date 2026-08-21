@@ -245,7 +245,10 @@ export type RolePreferenceKey =
   | "billing"
   | "system";
 
-export type RolePreferenceMatrix = Record<UserRole, Record<RolePreferenceKey, boolean>>;
+export type RolePreferenceMatrix = Record<
+  UserRole,
+  Record<RolePreferenceKey, boolean>
+>;
 
 export interface ReminderConfig {
   appointmentReminderTime: string;

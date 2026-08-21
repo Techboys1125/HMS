@@ -38,7 +38,6 @@ import {
   Tooltip,
 } from "../../../common/components/recharts-lazy";
 
-
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
 
@@ -147,7 +146,8 @@ function Av({
     "bg-rose-500",
     "bg-amber-600",
   ];
-  const bg = palette[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % palette.length];
+  const bg =
+    palette[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % palette.length];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -284,16 +284,51 @@ export function NurseDashboard({
   const performance = performanceQuery.data;
 
   const pipelineData = [
-    { name: "Waiting Vitals", value: prepStatus?.waitingForVitals ?? 0, color: "#F59E0B" },
-    { name: "Vitals Done", value: prepStatus?.vitalsCompleted ?? 0, color: "#009688" },
-    { name: "Ready for Dr", value: prepStatus?.readyForConsultation ?? 0, color: "#0D47A1" },
-    { name: "Completed", value: prepStatus?.consultationCompleted ?? 0, color: "#66BB6A" },
+    {
+      name: "Waiting Vitals",
+      value: prepStatus?.waitingForVitals ?? 0,
+      color: "#F59E0B",
+    },
+    {
+      name: "Vitals Done",
+      value: prepStatus?.vitalsCompleted ?? 0,
+      color: "#009688",
+    },
+    {
+      name: "Ready for Dr",
+      value: prepStatus?.readyForConsultation ?? 0,
+      color: "#0D47A1",
+    },
+    {
+      name: "Completed",
+      value: prepStatus?.consultationCompleted ?? 0,
+      color: "#66BB6A",
+    },
   ].filter((d) => d.value > 0);
 
   const visitTypeData = [
-    { name: "New Patients", value: performance?.today.patientsAssisted ?? 0, percentage: "N/A", color: "#0D47A1" },
-    { name: "Follow-up", value: performance?.yesterday.patientsAssisted ?? 0, percentage: "N/A", color: "#009688" },
-    { name: "Walk-in", value: Math.max(0, (performance?.today.patientsAssisted ?? 0) - (performance?.yesterday.patientsAssisted ?? 0)), percentage: "N/A", color: "#F59E0B" },
+    {
+      name: "New Patients",
+      value: performance?.today.patientsAssisted ?? 0,
+      percentage: "N/A",
+      color: "#0D47A1",
+    },
+    {
+      name: "Follow-up",
+      value: performance?.yesterday.patientsAssisted ?? 0,
+      percentage: "N/A",
+      color: "#009688",
+    },
+    {
+      name: "Walk-in",
+      value: Math.max(
+        0,
+        (performance?.today.patientsAssisted ?? 0) -
+          (performance?.yesterday.patientsAssisted ?? 0),
+      ),
+      percentage: "N/A",
+      color: "#F59E0B",
+    },
   ].filter((d) => d.value > 0);
 
   const deptDist = (deptData?.departments || []).map((d) => ({
@@ -371,7 +406,11 @@ export function NurseDashboard({
           sub={summaryQuery.isLoading ? "Loading..." : "Total assigned today"}
           trend="--"
           up={true}
-          data={vitalsTrend?.hours?.slice(-6).map((h) => ({ v: h.count })) || [{ v: 0 }]}
+          data={
+            vitalsTrend?.hours?.slice(-6).map((h) => ({ v: h.count })) || [
+              { v: 0 },
+            ]
+          }
           color="#0D47A1"
           gid="nr1"
           Icon={Users}
@@ -382,7 +421,11 @@ export function NurseDashboard({
           sub={summaryQuery.isLoading ? "Loading..." : "Completed today"}
           trend={vitalsStatus && vitalsStatus.completed > 0 ? "Active" : "--"}
           up={true}
-          data={vitalsTrend?.hours?.slice(-6).map((h) => ({ v: h.count })) || [{ v: 0 }]}
+          data={
+            vitalsTrend?.hours?.slice(-6).map((h) => ({ v: h.count })) || [
+              { v: 0 },
+            ]
+          }
           color="#009688"
           gid="nr2"
           Icon={Activity}
@@ -391,7 +434,11 @@ export function NurseDashboard({
           title="Waiting for Vitals"
           value={String(summary?.waitingForVitals ?? 0)}
           sub={summaryQuery.isLoading ? "Loading..." : "Pending recording"}
-          trend={summary && summary.waitingForVitals > 0 ? "Action Required" : "All Clear"}
+          trend={
+            summary && summary.waitingForVitals > 0
+              ? "Action Required"
+              : "All Clear"
+          }
           up={summary ? summary.waitingForVitals === 0 : true}
           data={[{ v: summary?.waitingForVitals ?? 0 }]}
           color="#F59E0B"
@@ -402,7 +449,9 @@ export function NurseDashboard({
           title="Doctor Assistances"
           value={String(doctorAssist?.doctorsAssistedToday ?? 0)}
           sub={summaryQuery.isLoading ? "Loading..." : "Today"}
-          trend={doctorAssist && doctorAssist.doctorAssistances > 0 ? "Active" : "--"}
+          trend={
+            doctorAssist && doctorAssist.doctorAssistances > 0 ? "Active" : "--"
+          }
           up={true}
           data={[{ v: doctorAssist?.doctorsAssistedToday ?? 0 }]}
           color="#009688"
@@ -498,9 +547,7 @@ export function NurseDashboard({
               >
                 {vitalsTrend?.completed ?? 0}
               </strong>
-              <span className="text-[10px] text-[#64748B] block">
-                Today
-              </span>
+              <span className="text-[10px] text-[#64748B] block">Today</span>
             </div>
             <div className="bg-slate-50 p-2 rounded-xl text-center">
               <span className="text-[#64748B] text-[10px] block">
@@ -511,7 +558,9 @@ export function NurseDashboard({
                 style={{ fontFamily: PP }}
               >
                 {vitalsTrend?.hours && vitalsTrend.hours.length > 0
-                  ? (vitalsTrend.completed / vitalsTrend.hours.length).toFixed(1)
+                  ? (vitalsTrend.completed / vitalsTrend.hours.length).toFixed(
+                      1,
+                    )
                   : "0"}
                 / Hour
               </strong>
@@ -529,9 +578,7 @@ export function NurseDashboard({
               >
                 {vitalsStatus?.pending ?? 0}
               </strong>
-              <span className="text-[10px] text-[#66BB6A] block">
-                Awaiting
-              </span>
+              <span className="text-[10px] text-[#66BB6A] block">Awaiting</span>
             </div>
           </div>
         </div>
@@ -588,25 +635,33 @@ export function NurseDashboard({
               <span className="text-[#64748B] text-[10px]">
                 Waiting For Vitals:
               </span>
-              <span className="font-bold text-[#F59E0B]">{prepStatus?.waitingForVitals ?? 0}</span>
+              <span className="font-bold text-[#F59E0B]">
+                {prepStatus?.waitingForVitals ?? 0}
+              </span>
             </div>
             <div className="flex items-center justify-between p-1.5 rounded-lg bg-teal-50/60 border border-teal-100">
               <span className="text-[#64748B] text-[10px]">
                 Patients Recorded:
               </span>
-              <span className="font-bold text-[#4DB6AC]">{prepStatus?.vitalsCompleted ?? 0}</span>
+              <span className="font-bold text-[#4DB6AC]">
+                {prepStatus?.vitalsCompleted ?? 0}
+              </span>
             </div>
             <div className="flex items-center justify-between p-1.5 rounded-lg bg-blue-50/60 border border-blue-100">
               <span className="text-[#64748B] text-[10px]">
                 Ready for Doctor:
               </span>
-              <span className="font-bold text-[#0D47A1]">{prepStatus?.readyForConsultation ?? 0}</span>
+              <span className="font-bold text-[#0D47A1]">
+                {prepStatus?.readyForConsultation ?? 0}
+              </span>
             </div>
             <div className="flex items-center justify-between p-1.5 rounded-lg bg-green-50/60 border border-green-100">
               <span className="text-[#64748B] text-[10px]">
                 Completed Today:
               </span>
-              <span className="font-bold text-[#66BB6A]">{prepStatus?.consultationCompleted ?? 0}</span>
+              <span className="font-bold text-[#66BB6A]">
+                {prepStatus?.consultationCompleted ?? 0}
+              </span>
             </div>
           </div>
 
@@ -614,7 +669,8 @@ export function NurseDashboard({
             className="mt-2 text-[11px] text-center font-medium text-[#0D47A1]"
             style={{ fontFamily: PP }}
           >
-            Total Patients in Queue: {prepStatus?.totalPatients ?? 0} (Active OPD)
+            Total Patients in Queue: {prepStatus?.totalPatients ?? 0} (Active
+            OPD)
           </div>
         </div>
       </div>
@@ -713,13 +769,23 @@ export function NurseDashboard({
                     <td className="px-5 py-3">
                       <Chip
                         label={q.status || q.queueStatus || "Waiting"}
-                        variant={q.status === "COMPLETED" ? "success" : q.status === "IN_CONSULTATION" ? "teal" : "warning"}
+                        variant={
+                          q.status === "COMPLETED"
+                            ? "success"
+                            : q.status === "IN_CONSULTATION"
+                              ? "teal"
+                              : "warning"
+                        }
                       />
                     </td>
                     <td className="px-5 py-3">
                       <Chip
                         label={q.priority || "NORMAL"}
-                        variant={q.priority === "URGENT" || q.priority === "HIGH" ? "error" : "default"}
+                        variant={
+                          q.priority === "URGENT" || q.priority === "HIGH"
+                            ? "error"
+                            : "default"
+                        }
                       />
                     </td>
                   </tr>

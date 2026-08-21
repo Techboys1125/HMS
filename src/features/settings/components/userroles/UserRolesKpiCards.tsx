@@ -34,9 +34,7 @@ export function UserRolesKpiCards() {
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             Total Roles
           </span>
           <div
@@ -106,9 +104,7 @@ export function UserRolesKpiCards() {
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             System Default Roles
           </span>
           <div
@@ -178,9 +174,7 @@ export function UserRolesKpiCards() {
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             Custom Hospital Roles
           </span>
           <div
@@ -250,9 +244,7 @@ export function UserRolesKpiCards() {
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             Active Permission Sets
           </span>
           <div

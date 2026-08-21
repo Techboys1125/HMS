@@ -394,7 +394,16 @@ export function DoctorQueueScreen() {
 
               return (
                 <div
+<<<<<<< HEAD
                   key={patient.queueId || patient.appointmentId || patient.appointmentNumber || `patient-${patient.patientName}-${patient.departmentName}`}
+=======
+                  key={
+                    patient.queueId ||
+                    patient.appointmentId ||
+                    patient.appointmentNumber ||
+                    idx
+                  }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 ${meta.row}`}
                 >
                   <div className="flex items-center gap-4">

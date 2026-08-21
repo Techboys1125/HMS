@@ -1,4 +1,106 @@
+<<<<<<< HEAD
 import React, { useState, useMemo, useReducer, useTransition } from "react";
+=======
+import React, { useState, useMemo, useReducer } from "react";
+
+type ReportState = {
+  searchQuery: string;
+  dateRange: string;
+  genderFilter: string;
+  ageGroupFilter: string;
+  deptFilter: string;
+  doctorFilter: string;
+  visitTypeFilter: string;
+  regStatusFilter: string;
+  appliedFilters: {
+    dateRange: string;
+    gender: string;
+    ageGroup: string;
+    dept: string;
+    doctor: string;
+    visitType: string;
+    regStatus: string;
+  };
+  isLoading: boolean;
+  hasError: boolean;
+};
+
+type ReportAction =
+  | { type: "SET_SEARCH"; payload: string }
+  | { type: "SET_FILTER"; field: string; value: string }
+  | {
+      type: "SET_APPLIED_FILTER";
+      field: keyof ReportState["appliedFilters"];
+      value: string;
+    }
+  | { type: "LOAD_START" }
+  | { type: "LOAD_SUCCESS"; payload: ReportState["appliedFilters"] }
+  | { type: "LOAD_ERROR" }
+  | { type: "RESET_FILTERS" }
+  | { type: "RESET_FILTERS_SUCCESS"; payload: ReportState["appliedFilters"] }
+  | { type: "SET_ERROR"; payload: boolean };
+
+const initialState: ReportState = {
+  searchQuery: "",
+  dateRange: "Today",
+  genderFilter: "All Genders",
+  ageGroupFilter: "All Age Groups",
+  deptFilter: "All Departments",
+  doctorFilter: "All Doctors",
+  visitTypeFilter: "All Visit Types",
+  regStatusFilter: "All Statuses",
+  appliedFilters: {
+    dateRange: "Today",
+    gender: "All Genders",
+    ageGroup: "All Age Groups",
+    dept: "All Departments",
+    doctor: "All Doctors",
+    visitType: "All Visit Types",
+    regStatus: "All Statuses",
+  },
+  isLoading: false,
+  hasError: false,
+};
+
+function reducer(state: ReportState, action: ReportAction): ReportState {
+  switch (action.type) {
+    case "SET_SEARCH":
+      return { ...state, searchQuery: action.payload };
+    case "SET_FILTER":
+      return { ...state, [action.field]: action.value };
+    case "SET_APPLIED_FILTER":
+      return {
+        ...state,
+        appliedFilters: {
+          ...state.appliedFilters,
+          [action.field]: action.value,
+        },
+      };
+    case "LOAD_START":
+      return { ...state, isLoading: true, hasError: false };
+    case "LOAD_SUCCESS":
+      return { ...state, isLoading: false, appliedFilters: action.payload };
+    case "LOAD_ERROR":
+      return { ...state, isLoading: false, hasError: true };
+    case "SET_ERROR":
+      return { ...state, hasError: action.payload };
+    case "RESET_FILTERS":
+      return {
+        ...initialState,
+        isLoading: true,
+      };
+    case "RESET_FILTERS_SUCCESS":
+      return {
+        ...state,
+        isLoading: false,
+        appliedFilters: action.payload,
+      };
+    default:
+      return state;
+  }
+}
+
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
 import {
   Calendar,
   Download,
@@ -127,6 +229,7 @@ export function PatientReportScreen({
   onOpenDoctorReport?: () => void;
 }) {
   // State
+<<<<<<< HEAD
   const [filterState, dispatch] = useReducer(filterReducer, {
     searchQuery: "",
     dateRange: "Today",
@@ -141,6 +244,9 @@ export function PatientReportScreen({
   const setFilter = (field: keyof FilterState, value: string) =>
     dispatch({ type: "SET_FIELD", field, value });
 
+=======
+  const [state, dispatch] = useReducer(reducer, initialState);
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
   const {
     searchQuery,
     dateRange,
@@ -150,6 +256,7 @@ export function PatientReportScreen({
     doctorFilter,
     visitTypeFilter,
     regStatusFilter,
+<<<<<<< HEAD
   } = filterState;
 
   const [appliedFilters, setAppliedFilters] = useState({
@@ -161,6 +268,12 @@ export function PatientReportScreen({
     visitType: "All Visit Types",
     regStatus: "All Statuses",
   });
+=======
+    appliedFilters,
+    isLoading,
+    hasError,
+  } = state;
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
 
   // ─── API Data Hooks ──────────────────────────────────────────────────────
   const today = new Date().toISOString().slice(0, 10);
@@ -216,7 +329,11 @@ export function PatientReportScreen({
     const now = new Date();
     return now.toISOString().slice(0, 16).replace("T", " ");
   });
+<<<<<<< HEAD
   const [hasError, setHasError] = useState(false);
+=======
+
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
   const [trendDays, setTrendDays] = useState<"7 Days" | "30 Days" | "90 Days">(
     "7 Days",
   );
@@ -231,6 +348,7 @@ export function PatientReportScreen({
   };
 
   const handleApplyFilters = () => {
+<<<<<<< HEAD
     startTransition(async () => {
       await new Promise((r) => setTimeout(r, 300));
       setAppliedFilters({
@@ -272,6 +390,41 @@ export function PatientReportScreen({
         regStatus: "All Statuses",
       });
     });
+=======
+    dispatch({ type: "LOAD_START" });
+    setTimeout(() => {
+      dispatch({
+        type: "LOAD_SUCCESS",
+        payload: {
+          dateRange,
+          gender: genderFilter,
+          ageGroup: ageGroupFilter,
+          dept: deptFilter,
+          doctor: doctorFilter,
+          visitType: visitTypeFilter,
+          regStatus: regStatusFilter,
+        },
+      });
+    }, 300);
+  };
+
+  const handleResetFilters = () => {
+    dispatch({ type: "RESET_FILTERS" });
+    setTimeout(() => {
+      dispatch({
+        type: "RESET_FILTERS_SUCCESS",
+        payload: {
+          dateRange: "Today",
+          gender: "All Genders",
+          ageGroup: "All Age Groups",
+          dept: "All Departments",
+          doctor: "All Doctors",
+          visitType: "All Visit Types",
+          regStatus: "All Statuses",
+        },
+      });
+    }, 300);
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
   };
 
   const patientMasterList = useMemo(
@@ -496,13 +649,23 @@ export function PatientReportScreen({
             <input
               type="text"
               value={searchQuery}
+<<<<<<< HEAD
               onChange={(e) => setFilter("searchQuery", e.target.value)}
+=======
+              onChange={(e) =>
+                dispatch({ type: "SET_SEARCH", payload: e.target.value })
+              }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
               placeholder="Search Patient Name, MRN, Mobile Number, Doctor, Department..."
               className="w-full pl-10 pr-4 py-2.5 bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs text-[#111827] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
             />
             {searchQuery && (
               <button
+<<<<<<< HEAD
                 onClick={() => setFilter("searchQuery", "")}
+=======
+                onClick={() => dispatch({ type: "SET_SEARCH", payload: "" })}
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#64748B] hover:text-[#111827]"
               >
                 Clear
@@ -528,7 +691,17 @@ export function PatientReportScreen({
               </label>
               <select
                 value={dateRange}
+<<<<<<< HEAD
                 onChange={(e) => setFilter("dateRange", e.target.value)}
+=======
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "dateRange",
+                    value: e.target.value,
+                  })
+                }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>Today</option>
@@ -544,7 +717,17 @@ export function PatientReportScreen({
               </label>
               <select
                 value={genderFilter}
+<<<<<<< HEAD
                 onChange={(e) => setFilter("genderFilter", e.target.value)}
+=======
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "genderFilter",
+                    value: e.target.value,
+                  })
+                }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Genders</option>
@@ -560,7 +743,17 @@ export function PatientReportScreen({
               </label>
               <select
                 value={ageGroupFilter}
+<<<<<<< HEAD
                 onChange={(e) => setFilter("ageGroupFilter", e.target.value)}
+=======
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "ageGroupFilter",
+                    value: e.target.value,
+                  })
+                }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Age Groups</option>
@@ -579,7 +772,17 @@ export function PatientReportScreen({
               </label>
               <select
                 value={deptFilter}
+<<<<<<< HEAD
                 onChange={(e) => setFilter("deptFilter", e.target.value)}
+=======
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "deptFilter",
+                    value: e.target.value,
+                  })
+                }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Departments</option>
@@ -598,7 +801,17 @@ export function PatientReportScreen({
               </label>
               <select
                 value={doctorFilter}
+<<<<<<< HEAD
                 onChange={(e) => setFilter("doctorFilter", e.target.value)}
+=======
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "doctorFilter",
+                    value: e.target.value,
+                  })
+                }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Doctors</option>
@@ -616,7 +829,17 @@ export function PatientReportScreen({
               </label>
               <select
                 value={visitTypeFilter}
+<<<<<<< HEAD
                 onChange={(e) => setFilter("visitTypeFilter", e.target.value)}
+=======
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "visitTypeFilter",
+                    value: e.target.value,
+                  })
+                }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Visit Types</option>
@@ -633,7 +856,17 @@ export function PatientReportScreen({
               </label>
               <select
                 value={regStatusFilter}
+<<<<<<< HEAD
                 onChange={(e) => setFilter("regStatusFilter", e.target.value)}
+=======
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "regStatusFilter",
+                    value: e.target.value,
+                  })
+                }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Statuses</option>
@@ -681,11 +914,24 @@ export function PatientReportScreen({
                 Period: {appliedFilters.dateRange}
                 <button
                   onClick={() => {
+<<<<<<< HEAD
                     setFilter("dateRange", "Today");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       dateRange: "Today",
                     }));
+=======
+                    dispatch({
+                      type: "SET_FILTER",
+                      field: "dateRange",
+                      value: "Today",
+                    });
+                    dispatch({
+                      type: "SET_APPLIED_FILTER",
+                      field: "dateRange",
+                      value: "Today",
+                    });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -698,11 +944,24 @@ export function PatientReportScreen({
                 Dept: {appliedFilters.dept}
                 <button
                   onClick={() => {
+<<<<<<< HEAD
                     setFilter("deptFilter", "All Departments");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       dept: "All Departments",
                     }));
+=======
+                    dispatch({
+                      type: "SET_FILTER",
+                      field: "deptFilter",
+                      value: "All Departments",
+                    });
+                    dispatch({
+                      type: "SET_APPLIED_FILTER",
+                      field: "dept",
+                      value: "All Departments",
+                    });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -715,11 +974,24 @@ export function PatientReportScreen({
                 Doctor: {appliedFilters.doctor}
                 <button
                   onClick={() => {
+<<<<<<< HEAD
                     setFilter("doctorFilter", "All Doctors");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       doctor: "All Doctors",
                     }));
+=======
+                    dispatch({
+                      type: "SET_FILTER",
+                      field: "doctorFilter",
+                      value: "All Doctors",
+                    });
+                    dispatch({
+                      type: "SET_APPLIED_FILTER",
+                      field: "doctor",
+                      value: "All Doctors",
+                    });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -732,11 +1004,24 @@ export function PatientReportScreen({
                 Gender: {appliedFilters.gender}
                 <button
                   onClick={() => {
+<<<<<<< HEAD
                     setFilter("genderFilter", "All Genders");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       gender: "All Genders",
                     }));
+=======
+                    dispatch({
+                      type: "SET_FILTER",
+                      field: "genderFilter",
+                      value: "All Genders",
+                    });
+                    dispatch({
+                      type: "SET_APPLIED_FILTER",
+                      field: "gender",
+                      value: "All Genders",
+                    });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -749,11 +1034,24 @@ export function PatientReportScreen({
                 Type: {appliedFilters.visitType}
                 <button
                   onClick={() => {
+<<<<<<< HEAD
                     setFilter("visitTypeFilter", "All Visit Types");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       visitType: "All Visit Types",
                     }));
+=======
+                    dispatch({
+                      type: "SET_FILTER",
+                      field: "visitTypeFilter",
+                      value: "All Visit Types",
+                    });
+                    dispatch({
+                      type: "SET_APPLIED_FILTER",
+                      field: "visitType",
+                      value: "All Visit Types",
+                    });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -765,7 +1063,11 @@ export function PatientReportScreen({
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-[#111827] border border-slate-300 font-medium">
                 Search: "{searchQuery}"
                 <button
+<<<<<<< HEAD
                   onClick={() => setFilter("searchQuery", "")}
+=======
+                  onClick={() => dispatch({ type: "SET_SEARCH", payload: "" })}
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   className="hover:text-red-500 font-bold ml-1"
                 >
                   Ã—
@@ -789,8 +1091,8 @@ export function PatientReportScreen({
             </span>
             <button
               onClick={() => {
-                setIsLoading(!isLoading);
-                setHasError(false);
+                dispatch({ type: "LOAD_START" });
+                dispatch({ type: "SET_ERROR", payload: false });
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
             >
@@ -798,8 +1100,7 @@ export function PatientReportScreen({
             </button>
             <button
               onClick={() => {
-                setHasError(!hasError);
-                setIsLoading(false);
+                dispatch({ type: "SET_ERROR", payload: !hasError });
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${hasError ? "bg-red-50 border-red-300 text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
             >
@@ -826,7 +1127,7 @@ export function PatientReportScreen({
               Please retry.
             </p>
             <button
-              onClick={() => setHasError(false)}
+              onClick={() => dispatch({ type: "SET_ERROR", payload: false })}
               className="mt-4 px-4 py-2 bg-[#EF4444] text-white rounded-xl text-xs font-semibold hover:bg-red-600 transition"
             >
               Retry Loading

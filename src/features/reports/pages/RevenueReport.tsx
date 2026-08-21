@@ -1,4 +1,107 @@
+<<<<<<< HEAD
 import React, { useReducer, useMemo } from "react";
+=======
+import React, { useState, useMemo, useReducer } from "react";
+
+type ReportState = {
+  searchQuery: string;
+  dateRange: string;
+  deptFilter: string;
+  doctorFilter: string;
+  paymentStatusFilter: string;
+  paymentMethodFilter: string;
+  reportPeriodFilter: string;
+  appliedFilters: {
+    dateRange: string;
+    dept: string;
+    doctor: string;
+    paymentStatus: string;
+    paymentMethod: string;
+    reportPeriod: string;
+  };
+  isLoading: boolean;
+  hasError: boolean;
+};
+
+type FilterField = Exclude<
+  keyof ReportState,
+  "searchQuery" | "appliedFilters" | "isLoading" | "hasError"
+>;
+
+type ReportAction =
+  | { type: "SET_SEARCH"; payload: string }
+  | { type: "SET_FILTER"; field: FilterField; value: string }
+  | {
+      type: "SET_APPLIED_FILTER";
+      field: keyof ReportState["appliedFilters"];
+      value: string;
+    }
+  | { type: "LOAD_START" }
+  | { type: "LOAD_SUCCESS"; payload: ReportState["appliedFilters"] }
+  | { type: "LOAD_ERROR" }
+  | { type: "RESET_FILTERS" }
+  | { type: "RESET_FILTERS_SUCCESS"; payload: ReportState["appliedFilters"] }
+  | { type: "SET_ERROR"; payload: boolean };
+
+const initialState: ReportState = {
+  searchQuery: "",
+  dateRange: "Today",
+  deptFilter: "All Departments",
+  doctorFilter: "All Doctors",
+  paymentStatusFilter: "All Statuses",
+  paymentMethodFilter: "All Methods",
+  reportPeriodFilter: "Daily",
+  appliedFilters: {
+    dateRange: "Today",
+    dept: "All Departments",
+    doctor: "All Doctors",
+    paymentStatus: "All Statuses",
+    paymentMethod: "All Methods",
+    reportPeriod: "Daily",
+  },
+  isLoading: false,
+  hasError: false,
+};
+
+function reducer(state: ReportState, action: ReportAction): ReportState {
+  switch (action.type) {
+    case "SET_SEARCH":
+      return { ...state, searchQuery: action.payload };
+    case "SET_FILTER":
+      return { ...state, [action.field]: action.value };
+    case "SET_APPLIED_FILTER":
+      return {
+        ...state,
+        appliedFilters: {
+          ...state.appliedFilters,
+          [action.field]: action.value,
+        },
+      };
+    case "LOAD_START":
+      return { ...state, isLoading: true, hasError: false };
+    case "LOAD_SUCCESS":
+      return { ...state, isLoading: false, appliedFilters: action.payload };
+    case "LOAD_ERROR":
+      return { ...state, isLoading: false, hasError: true };
+    case "SET_ERROR":
+      return { ...state, hasError: action.payload };
+    case "RESET_FILTERS":
+      return {
+        ...initialState,
+        isLoading: true,
+      };
+    case "RESET_FILTERS_SUCCESS":
+      return {
+        ...state,
+        isLoading: false,
+        appliedFilters: action.payload,
+      };
+    default:
+      return state;
+  }
+}
+
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
 import {
   Download,
   RefreshCw,
@@ -49,6 +152,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "../../../common/components/recharts-lazy";
+<<<<<<< HEAD
 
 type IncludeOptions = {
   kpi: boolean;
@@ -185,6 +289,8 @@ function revenueReportReducer(
       return state;
   }
 }
+=======
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
 
 function CircularProgress({
   percentage,
@@ -239,7 +345,12 @@ export function DailyRevenueReportScreen({
   onBack?: () => void;
   onOpenBillingReport?: () => void;
 }) {
+<<<<<<< HEAD
   const [state, dispatch] = useReducer(revenueReportReducer, DEFAULT_STATE);
+=======
+  // State
+  const [state, dispatch] = useReducer(reducer, initialState);
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
   const {
     searchQuery,
     dateRange,
@@ -248,6 +359,7 @@ export function DailyRevenueReportScreen({
     paymentStatusFilter,
     paymentMethodFilter,
     reportPeriodFilter,
+<<<<<<< HEAD
     isRefreshing,
     isLoading,
     hasError,
@@ -257,6 +369,11 @@ export function DailyRevenueReportScreen({
     trendDays,
     sortField,
     sortOrder,
+=======
+    appliedFilters,
+    isLoading,
+    hasError,
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
   } = state;
 
   // ─── API Data Hooks ──────────────────────────────────────────────────────
@@ -391,6 +508,7 @@ export function DailyRevenueReportScreen({
     });
     return `${day}, ${time}`;
   });
+<<<<<<< HEAD
   const [appliedFilters, setAppliedFilters] = useState({
     dateRange: "Today",
     dept: "All Departments",
@@ -399,6 +517,30 @@ export function DailyRevenueReportScreen({
     paymentMethod: "All Methods",
     reportPeriod: "Daily",
   });
+=======
+
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | "csv">(
+    "pdf",
+  );
+  const [exportScope, setExportScope] = useState<
+    "page" | "filtered" | "complete"
+  >("filtered");
+  const [includeOptions, setIncludeOptions] = useState({
+    kpi: true,
+    charts: true,
+    tables: true,
+    filters: true,
+  });
+  const [trendDays, setTrendDays] = useState<
+    "Today" | "7 Days" | "30 Days" | "90 Days"
+  >("7 Days");
+
+  // Table sorting & pagination
+  const [sortField, setSortField] =
+    useState<keyof RevenueReportRecord>("invoiceDate");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
 
   const handleRefresh = () => {
     dispatch({ type: "SET_REFRESHING", payload: true });
@@ -406,6 +548,7 @@ export function DailyRevenueReportScreen({
   };
 
   const handleApplyFilters = () => {
+<<<<<<< HEAD
     dispatch({ type: "SET_LOADING", payload: true });
     setTimeout(() => {
       setAppliedFilters({
@@ -417,22 +560,46 @@ export function DailyRevenueReportScreen({
         reportPeriod: state.reportPeriodFilter,
       });
       dispatch({ type: "SET_LOADING", payload: false });
+=======
+    dispatch({ type: "LOAD_START" });
+    setTimeout(() => {
+      dispatch({
+        type: "LOAD_SUCCESS",
+        payload: {
+          dateRange,
+          dept: deptFilter,
+          doctor: doctorFilter,
+          paymentStatus: paymentStatusFilter,
+          paymentMethod: paymentMethodFilter,
+          reportPeriod: reportPeriodFilter,
+        },
+      });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
     }, 300);
   };
 
   const handleResetFilters = () => {
     dispatch({ type: "RESET_FILTERS" });
+<<<<<<< HEAD
     dispatch({ type: "SET_LOADING", payload: true });
+=======
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
     setTimeout(() => {
-      setAppliedFilters({
-        dateRange: "Today",
-        dept: "All Departments",
-        doctor: "All Doctors",
-        paymentStatus: "All Statuses",
-        paymentMethod: "All Methods",
-        reportPeriod: "Daily",
+      dispatch({
+        type: "RESET_FILTERS_SUCCESS",
+        payload: {
+          dateRange: "Today",
+          dept: "All Departments",
+          doctor: "All Doctors",
+          paymentStatus: "All Statuses",
+          paymentMethod: "All Methods",
+          reportPeriod: "Daily",
+        },
       });
+<<<<<<< HEAD
       dispatch({ type: "SET_LOADING", payload: false });
+=======
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
     }, 300);
   };
 
@@ -693,7 +860,11 @@ export function DailyRevenueReportScreen({
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
             <input
               type="text"
+<<<<<<< HEAD
               value={state.searchQuery}
+=======
+              value={searchQuery}
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
               onChange={(e) =>
                 dispatch({ type: "SET_SEARCH", payload: e.target.value })
               }
@@ -731,7 +902,12 @@ export function DailyRevenueReportScreen({
                 onChange={(e) =>
                   dispatch({
                     type: "SET_FILTER",
+<<<<<<< HEAD
                     payload: { key: "dateRange", value: e.target.value },
+=======
+                    field: "dateRange",
+                    value: e.target.value,
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   })
                 }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -752,7 +928,12 @@ export function DailyRevenueReportScreen({
                 onChange={(e) =>
                   dispatch({
                     type: "SET_FILTER",
+<<<<<<< HEAD
                     payload: { key: "deptFilter", value: e.target.value },
+=======
+                    field: "deptFilter",
+                    value: e.target.value,
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   })
                 }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -776,7 +957,12 @@ export function DailyRevenueReportScreen({
                 onChange={(e) =>
                   dispatch({
                     type: "SET_FILTER",
+<<<<<<< HEAD
                     payload: { key: "doctorFilter", value: e.target.value },
+=======
+                    field: "doctorFilter",
+                    value: e.target.value,
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   })
                 }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -799,10 +985,15 @@ export function DailyRevenueReportScreen({
                 onChange={(e) =>
                   dispatch({
                     type: "SET_FILTER",
+<<<<<<< HEAD
                     payload: {
                       key: "paymentStatusFilter",
                       value: e.target.value,
                     },
+=======
+                    field: "paymentStatusFilter",
+                    value: e.target.value,
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   })
                 }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -824,10 +1015,15 @@ export function DailyRevenueReportScreen({
                 onChange={(e) =>
                   dispatch({
                     type: "SET_FILTER",
+<<<<<<< HEAD
                     payload: {
                       key: "paymentMethodFilter",
                       value: e.target.value,
                     },
+=======
+                    field: "paymentMethodFilter",
+                    value: e.target.value,
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   })
                 }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -849,10 +1045,15 @@ export function DailyRevenueReportScreen({
                 onChange={(e) =>
                   dispatch({
                     type: "SET_FILTER",
+<<<<<<< HEAD
                     payload: {
                       key: "reportPeriodFilter",
                       value: e.target.value,
                     },
+=======
+                    field: "reportPeriodFilter",
+                    value: e.target.value,
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   })
                 }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -901,12 +1102,23 @@ export function DailyRevenueReportScreen({
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
+<<<<<<< HEAD
                       payload: { key: "dateRange", value: "Today" },
                     });
                     setAppliedFilters((prev) => ({
                       ...prev,
                       dateRange: "Today",
                     }));
+=======
+                      field: "dateRange",
+                      value: "Today",
+                    });
+                    dispatch({
+                      type: "SET_APPLIED_FILTER",
+                      field: "dateRange",
+                      value: "Today",
+                    });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -921,12 +1133,23 @@ export function DailyRevenueReportScreen({
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
+<<<<<<< HEAD
                       payload: { key: "deptFilter", value: "All Departments" },
                     });
                     setAppliedFilters((prev) => ({
                       ...prev,
                       dept: "All Departments",
                     }));
+=======
+                      field: "deptFilter",
+                      value: "All Departments",
+                    });
+                    dispatch({
+                      type: "SET_APPLIED_FILTER",
+                      field: "dept",
+                      value: "All Departments",
+                    });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -941,12 +1164,23 @@ export function DailyRevenueReportScreen({
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
+<<<<<<< HEAD
                       payload: { key: "doctorFilter", value: "All Doctors" },
                     });
                     setAppliedFilters((prev) => ({
                       ...prev,
                       doctor: "All Doctors",
                     }));
+=======
+                      field: "doctorFilter",
+                      value: "All Doctors",
+                    });
+                    dispatch({
+                      type: "SET_APPLIED_FILTER",
+                      field: "doctor",
+                      value: "All Doctors",
+                    });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -961,6 +1195,7 @@ export function DailyRevenueReportScreen({
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
+<<<<<<< HEAD
                       payload: {
                         key: "paymentStatusFilter",
                         value: "All Statuses",
@@ -970,6 +1205,16 @@ export function DailyRevenueReportScreen({
                       ...prev,
                       paymentStatus: "All Statuses",
                     }));
+=======
+                      field: "paymentStatusFilter",
+                      value: "All Statuses",
+                    });
+                    dispatch({
+                      type: "SET_APPLIED_FILTER",
+                      field: "paymentStatus",
+                      value: "All Statuses",
+                    });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -984,6 +1229,7 @@ export function DailyRevenueReportScreen({
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
+<<<<<<< HEAD
                       payload: {
                         key: "paymentMethodFilter",
                         value: "All Methods",
@@ -993,6 +1239,16 @@ export function DailyRevenueReportScreen({
                       ...prev,
                       paymentMethod: "All Methods",
                     }));
+=======
+                      field: "paymentMethodFilter",
+                      value: "All Methods",
+                    });
+                    dispatch({
+                      type: "SET_APPLIED_FILTER",
+                      field: "paymentMethod",
+                      value: "All Methods",
+                    });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -1028,7 +1284,11 @@ export function DailyRevenueReportScreen({
             </span>
             <button
               onClick={() => {
+<<<<<<< HEAD
                 dispatch({ type: "SET_LOADING", payload: !state.isLoading });
+=======
+                dispatch({ type: "LOAD_START" });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 dispatch({ type: "SET_ERROR", payload: false });
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${state.isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
@@ -1037,8 +1297,12 @@ export function DailyRevenueReportScreen({
             </button>
             <button
               onClick={() => {
+<<<<<<< HEAD
                 dispatch({ type: "SET_ERROR", payload: !state.hasError });
                 dispatch({ type: "SET_LOADING", payload: false });
+=======
+                dispatch({ type: "SET_ERROR", payload: !hasError });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${state.hasError ? "bg-red-50 border-red-300 text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
             >

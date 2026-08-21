@@ -79,7 +79,9 @@ export function Header({
 
   const displayName =
     role === "patient"
-      ? (isSelfActive ? activePatientName : customSelfName || user?.fullName || user?.name || "Patient")
+      ? isSelfActive
+        ? activePatientName
+        : customSelfName || user?.fullName || user?.name || "Patient"
       : user?.fullName || user?.name || "Staff";
   const displayEmail =
     user?.email ||

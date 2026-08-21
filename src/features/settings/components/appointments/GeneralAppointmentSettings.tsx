@@ -38,8 +38,8 @@ export function GeneralAppointmentSettings() {
           gap: "8px",
         }}
       >
-        <Calendar size={18} style={{ color: "#0D47A1" }} /> Section 01:
-        General Appointment Rules
+        <Calendar size={18} style={{ color: "#0D47A1" }} /> Section 01: General
+        Appointment Rules
       </h3>
 
       <div
@@ -106,9 +106,7 @@ export function GeneralAppointmentSettings() {
             <input
               type="checkbox"
               checked={
-                (generalConfig as unknown as Record<string, boolean>)[
-                  item.key
-                ]
+                (generalConfig as unknown as Record<string, boolean>)[item.key]
               }
               onChange={(e) =>
                 setGeneralConfig((prev) => ({

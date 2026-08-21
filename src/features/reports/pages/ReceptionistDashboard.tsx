@@ -30,7 +30,11 @@ import {
   useReceptionCheckinAnalytics,
   useReceptionRegistrationTrend,
   useReceptionQueuePerformance,
+<<<<<<< HEAD
 } from "../../reception/hooks/useReceptionReports";
+=======
+} from "../../reception";
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
 
 import {
   AreaChart,

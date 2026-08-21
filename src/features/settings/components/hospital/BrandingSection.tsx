@@ -266,9 +266,7 @@ export function BrandingSection({
               color: "#374151",
               marginBottom: "6px",
             }}
-          >
-            
-          </label>
+          ></label>
           <input
             type="text"
             value={form.hospitalName}

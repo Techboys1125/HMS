@@ -42,7 +42,8 @@ export const hospitalAdminDashboardApi = {
       ),
     ]);
 
-    const summary = unwrap(summaryRes) || ({} as Partial<AdminDashboardSummary>);
+    const summary =
+      unwrap(summaryRes) || ({} as Partial<AdminDashboardSummary>);
     const status = unwrap(statusRes) || ({} as Partial<AdminPatientStatus>);
 
     const scheduled = Number(status.scheduled ?? 0) || 0;
@@ -50,9 +51,13 @@ export const hospitalAdminDashboardApi = {
     const inConsultation = Number(status.inConsultation ?? 0) || 0;
     const completed = Number(status.completed ?? 0) || 0;
 
-    const opdCount = summary.opdPatients?.today ?? summary.totalPatientsToday ?? 0;
-    const apptCount = summary.appointments?.today ?? (scheduled + checkedIn + inConsultation + completed);
-    const revenueCount = summary.revenue?.today ?? summary.totalRevenueToday ?? 0;
+    const opdCount =
+      summary.opdPatients?.today ?? summary.totalPatientsToday ?? 0;
+    const apptCount =
+      summary.appointments?.today ??
+      scheduled + checkedIn + inConsultation + completed;
+    const revenueCount =
+      summary.revenue?.today ?? summary.totalRevenueToday ?? 0;
     const docCount = summary.doctors?.available ?? summary.activeDoctors ?? 0;
 
     return {
@@ -70,10 +75,11 @@ export const hospitalAdminDashboardApi = {
   },
 
   async getAppointmentFlow(): Promise<HospitalAdminAppointmentFlow> {
-    const res = await apiClient.get<DashboardApiResponse<AdminAppointmentFlowResponse>>(
-      "/api/v1/admin/dashboard/appointment-flow",
-    );
-    const flowData = unwrap(res) || ({} as Partial<AdminAppointmentFlowResponse>);
+    const res = await apiClient.get<
+      DashboardApiResponse<AdminAppointmentFlowResponse>
+    >("/api/v1/admin/dashboard/appointment-flow");
+    const flowData =
+      unwrap(res) || ({} as Partial<AdminAppointmentFlowResponse>);
 
     return {
       startTime: flowData.startTime || "08:00",
@@ -95,12 +101,36 @@ export const hospitalAdminDashboardApi = {
     const status = unwrap(res) || ({} as Partial<AdminPatientStatus>);
 
     return [
-      { name: "Scheduled", value: Number(status.scheduled ?? 0) || 0, color: "#0D47A1" },
-      { name: "Checked In", value: Number(status.checkedIn ?? 0) || 0, color: "#009688" },
-      { name: "In Consultation", value: Number(status.inConsultation ?? 0) || 0, color: "#F59E0B" },
-      { name: "Completed", value: Number(status.completed ?? 0) || 0, color: "#66BB6A" },
-      { name: "Cancelled", value: Number(status.cancelled ?? 0) || 0, color: "#EF4444" },
-      { name: "No Show", value: Number(status.noShow ?? 0) || 0, color: "#64748B" },
+      {
+        name: "Scheduled",
+        value: Number(status.scheduled ?? 0) || 0,
+        color: "#0D47A1",
+      },
+      {
+        name: "Checked In",
+        value: Number(status.checkedIn ?? 0) || 0,
+        color: "#009688",
+      },
+      {
+        name: "In Consultation",
+        value: Number(status.inConsultation ?? 0) || 0,
+        color: "#F59E0B",
+      },
+      {
+        name: "Completed",
+        value: Number(status.completed ?? 0) || 0,
+        color: "#66BB6A",
+      },
+      {
+        name: "Cancelled",
+        value: Number(status.cancelled ?? 0) || 0,
+        color: "#EF4444",
+      },
+      {
+        name: "No Show",
+        value: Number(status.noShow ?? 0) || 0,
+        color: "#64748B",
+      },
     ];
   },
 
@@ -131,23 +161,33 @@ export const hospitalAdminDashboardApi = {
   },
 
   async getDoctorAvailability(): Promise<HospitalAdminDoctorAvailability[]> {
-    const res = await apiClient.get<DashboardApiResponse<AdminDoctorAvailability>>(
-      "/api/v1/admin/dashboard/doctors/availability",
-    );
+    const res = await apiClient.get<
+      DashboardApiResponse<AdminDoctorAvailability>
+    >("/api/v1/admin/dashboard/doctors/availability");
     const availability = unwrap(res);
 
     return [
       { status: "Available", count: availability.available, color: "#66BB6A" },
-      { status: "In Consultation", count: availability.inConsultation, color: "#009688" },
+      {
+        status: "In Consultation",
+        count: availability.inConsultation,
+        color: "#009688",
+      },
       { status: "On Leave", count: availability.onLeave, color: "#EF4444" },
     ];
   },
 
   async getTodayTimeline(): Promise<HospitalAdminTimelineItem[]> {
-    const res = await appointmentsApi.getAppointments({ date: today(), page: 0, size: 500 });
+    const res = await appointmentsApi.getAppointments({
+      date: today(),
+      page: 0,
+      size: 500,
+    });
     const appointments = (res.data as { content?: unknown[] })?.content || [];
     const todayAppointments = appointments
-      .filter((a: Record<string, unknown>) => String(a.appointmentDate) === today())
+      .filter(
+        (a: Record<string, unknown>) => String(a.appointmentDate) === today(),
+      )
       .sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
         const timeA = String(a.startTime || "99:99");
         const timeB = String(b.startTime || "99:99");
@@ -176,10 +216,18 @@ export const hospitalAdminDashboardApi = {
         time: String(a.startTime || "--:--"),
         patient: String(a.patientName || "Unknown"),
         doctor: String(a.doctorName || "Unknown"),
-        dept: String((a as Record<string, unknown>).departmentName || (a as Record<string, unknown>).department || "General"),
+        dept: String(
+          (a as Record<string, unknown>).departmentName ||
+            (a as Record<string, unknown>).department ||
+            "General",
+        ),
         status: labelMap[status] || status,
         token: String(a.queueToken || a.appointmentNumber || "--"),
-        room: String((a as Record<string, unknown>).opdRoom || (a as Record<string, unknown>).roomNumber || "--"),
+        room: String(
+          (a as Record<string, unknown>).opdRoom ||
+            (a as Record<string, unknown>).roomNumber ||
+            "--",
+        ),
         stage: String(a.queueStatus || status || "Scheduled"),
       };
     });

@@ -30,11 +30,7 @@ export interface ProfileTabProps {
   onSave?: (updated: DoctorRecord) => void;
 }
 
-export function ProfileTab({
-  doctor,
-  canEdit,
-  onSave,
-}: ProfileTabProps) {
+export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState<DoctorRecord>(doctor);
   const [saving, setSaving] = useState(false);
@@ -438,7 +434,10 @@ export function ProfileTab({
 
           <div>
             <label className="block text-[11px] font-bold text-[#64748B] mb-1">
-              <GraduationCap size={12} className="inline mr-1 text-purple-600" />
+              <GraduationCap
+                size={12}
+                className="inline mr-1 text-purple-600"
+              />
               Qualification
             </label>
             <div className={fieldStyle(false)}>
@@ -471,9 +470,7 @@ export function ProfileTab({
               <Hash size={12} className="inline mr-1 text-indigo-600" />
               Specialty
             </label>
-            <div className={fieldStyle(false)}>
-              {formData.specialty || "—"}
-            </div>
+            <div className={fieldStyle(false)}>{formData.specialty || "—"}</div>
           </div>
 
           <div>
@@ -482,9 +479,7 @@ export function ProfileTab({
               Consultation Fee
             </label>
             <div className={fieldStyle(false)}>
-              {formData.consultationFee
-                ? `₹${formData.consultationFee}`
-                : "—"}
+              {formData.consultationFee ? `₹${formData.consultationFee}` : "—"}
             </div>
           </div>
 

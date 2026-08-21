@@ -66,10 +66,7 @@ export function BrandingPanel() {
             "Billing & Insurance",
             "Clinical Workflows",
           ].map((feature) => (
-            <div
-              key={feature}
-              className="flex items-center gap-2.5"
-            >
+            <div key={feature} className="flex items-center gap-2.5">
               <div className="w-5 h-5 rounded-full bg-secondary/30 border border-accent/40 flex items-center justify-center shrink-0">
                 <Check className="w-3.5 h-3.5 text-green stroke-3" />
               </div>

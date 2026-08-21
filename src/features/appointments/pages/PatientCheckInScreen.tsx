@@ -36,7 +36,10 @@ export function PatientCheckInScreen({
 
   useEffect(() => {
     let cancelled = false;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
     const load = async () => {
       try {
         const data = await appointmentService.listAppointments({
@@ -59,6 +62,7 @@ export function PatientCheckInScreen({
           }
         }
       } catch {
+<<<<<<< HEAD
         if (cancelled) return;
         setAppointments([]);
       }
@@ -66,6 +70,12 @@ export function PatientCheckInScreen({
 
     void load();
 
+=======
+        if (!cancelled) setAppointments([]);
+      }
+    };
+    load();
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
     return () => {
       cancelled = true;
     };

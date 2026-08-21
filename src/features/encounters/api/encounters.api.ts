@@ -110,9 +110,10 @@ export const encountersApi = {
     payload: FinalizeEncounterRequest,
   ): Promise<Encounter> => {
     try {
-      const idempotencyKey = typeof crypto !== "undefined" && crypto.randomUUID 
-        ? crypto.randomUUID() 
-        : `idemp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      const idempotencyKey =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `idemp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       const response = await apiClient.post<ApiEnvelope<Encounter> | Encounter>(
         `/api/v1/encounters/${encounterId}/finalize`,
         payload,
@@ -120,7 +121,7 @@ export const encountersApi = {
           headers: {
             "Idempotency-Key": idempotencyKey,
           },
-        }
+        },
       );
       return unwrap<Encounter>(response.data);
     } catch (error: unknown) {
@@ -191,10 +192,10 @@ export const encountersApi = {
     },
   ): Promise<Prescription | null> => {
     try {
-      const response = await apiClient.put<{ data?: Prescription; status?: number }>(
-        `/api/v1/prescriptions/${prescriptionId}/advice`,
-        payload,
-      );
+      const response = await apiClient.put<{
+        data?: Prescription;
+        status?: number;
+      }>(`/api/v1/prescriptions/${prescriptionId}/advice`, payload);
       return response.data?.data || null;
     } catch (error: unknown) {
       return handleApiError(error);
@@ -206,7 +207,11 @@ export const encountersApi = {
    */
   validatePrescription: async (
     prescriptionId: string | number,
-  ): Promise<{ valid: boolean; errors: string[]; warnings: string[] } | null> => {
+  ): Promise<{
+    valid: boolean;
+    errors: string[];
+    warnings: string[];
+  } | null> => {
     try {
       const response = await apiClient.post<
         ApiEnvelope<{ valid: boolean; errors: string[]; warnings: string[] }>
@@ -222,10 +227,16 @@ export const encountersApi = {
    */
   getFinalizationCheck: async (
     encounterId: string | number,
-  ): Promise<{ ready: boolean; checks: { code: string; passed: boolean }[] } | null> => {
+  ): Promise<{
+    ready: boolean;
+    checks: { code: string; passed: boolean }[];
+  } | null> => {
     try {
       const response = await apiClient.get<
-        ApiEnvelope<{ ready: boolean; checks: { code: string; passed: boolean }[] }>
+        ApiEnvelope<{
+          ready: boolean;
+          checks: { code: string; passed: boolean }[];
+        }>
       >(`/api/v1/encounters/${encounterId}/finalization-check`);
       return unwrap(response.data);
     } catch {

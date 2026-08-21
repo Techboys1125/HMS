@@ -52,9 +52,13 @@ export function usePatientQueue() {
           }
         }
       } finally {
+<<<<<<< HEAD
         if (!cancelled) {
           setLoading(false);
         }
+=======
+        setLoading(false);
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
       }
     }
 

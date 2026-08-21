@@ -137,12 +137,17 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
     // Registration Type filter (normalized matching)
     let matchesRegType = true;
     if (filters.registrationTypeFilter !== "All") {
-      const pReg = (p.registrationType || "").toUpperCase().replace(/[\s_-]/g, "");
-      const fReg = filters.registrationTypeFilter.toUpperCase().replace(/[\s_-]/g, "");
+      const pReg = (p.registrationType || "")
+        .toUpperCase()
+        .replace(/[\s_-]/g, "");
+      const fReg = filters.registrationTypeFilter
+        .toUpperCase()
+        .replace(/[\s_-]/g, "");
       matchesRegType =
         pReg === fReg ||
         (fReg.includes("ONLINE") && pReg.includes("ONLINE")) ||
-        (fReg.includes("WALK") && (pReg.includes("WALK") || pReg.includes("IN")));
+        (fReg.includes("WALK") &&
+          (pReg.includes("WALK") || pReg.includes("IN")));
     }
 
     return matchesSearch && matchesGender && matchesStatus && matchesRegType;
@@ -161,7 +166,8 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
     if (!activatePatient) return;
     setIsUpdatingStatus(true);
     try {
-      const targetId = (activatePatient.mrn || activatePatient.id) as string | number;
+      const targetId = (activatePatient.mrn || activatePatient.id) as
+        string | number;
       await patientsApi.update(targetId, { status: "ACTIVE" });
       setActivatePatient(null);
       fetchPatients();
@@ -176,7 +182,8 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
     if (!deactivatePatient) return;
     setIsUpdatingStatus(true);
     try {
-      const targetId = (deactivatePatient.mrn || deactivatePatient.id) as string | number;
+      const targetId = (deactivatePatient.mrn || deactivatePatient.id) as
+        string | number;
       await patientsApi.update(targetId, { status: "INACTIVE" });
       setDeactivatePatient(null);
       fetchPatients();

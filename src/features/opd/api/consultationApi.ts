@@ -128,7 +128,10 @@ export const consultationApi = {
 
     const endpoints = [
       { url: `/api/v1/queue/${appointmentId}/complete-consultation`, body: {} },
-      { url: `/api/v1/doctor/appointments/${appointmentId}/complete`, body: {} },
+      {
+        url: `/api/v1/doctor/appointments/${appointmentId}/complete`,
+        body: {},
+      },
       {
         url: `/api/v1/appointments/${appointmentId}/status`,
         body: { status: "COMPLETED", reason: "Consultation completed" },
@@ -139,7 +142,8 @@ export const consultationApi = {
     for (const endpoint of endpoints) {
       try {
         const response = await apiClient.patch<
-          ApiEnvelope<{ success: boolean; status: string }> | { success: boolean; status: string }
+          | ApiEnvelope<{ success: boolean; status: string }>
+          | { success: boolean; status: string }
         >(endpoint.url, endpoint.body);
         return unwrap(response.data);
       } catch (err: unknown) {
@@ -256,7 +260,11 @@ export const consultationApi = {
       return undefined;
     };
 
-    const dto: Record<string, { value: number; unit: string } | { systolic: number; diastolic: number; unit: string }> = {};
+    const dto: Record<
+      string,
+      | { value: number; unit: string }
+      | { systolic: number; diastolic: number; unit: string }
+    > = {};
     const temp = stripUnit(vitals.temp);
     if (temp !== undefined)
       dto.temperature = { value: temp, unit: "FAHRENHEIT" };
@@ -342,7 +350,8 @@ export const consultationApi = {
         // 2. Fallback: GET /api/v1/encounters/{encounterId}/workspace
         try {
           const response = await apiClient.get<
-            ApiEnvelope<{ consultation?: Consultation }> | { consultation?: Consultation }
+            | ApiEnvelope<{ consultation?: Consultation }>
+            | { consultation?: Consultation }
           >(`/api/v1/encounters/${consultationId}/workspace`);
           const data = unwrap<{ consultation?: Consultation }>(response.data);
           if (data?.consultation) return data.consultation;
@@ -596,7 +605,10 @@ export const consultationApi = {
    * PUT /api/v1/encounters/{encounterId}/draft
    * Save encounter draft
    */
-  saveDraft: async (encounterId: string | number, draft: Record<string, unknown>) => {
+  saveDraft: async (
+    encounterId: string | number,
+    draft: Record<string, unknown>,
+  ) => {
     try {
       const response = await apiClient.post<
         ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
@@ -642,7 +654,10 @@ export const consultationApi = {
    * PUT /api/v1/encounters/{encounterId}/vitals
    * Update raw vitals DTO
    */
-  updateVitalsRaw: async (encounterId: string | number, vitals: Record<string, unknown>) => {
+  updateVitalsRaw: async (
+    encounterId: string | number,
+    vitals: Record<string, unknown>,
+  ) => {
     try {
       const response = await apiClient.put<
         ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
@@ -657,7 +672,10 @@ export const consultationApi = {
    * PATCH /api/v1/encounters/{encounterId}/vitals
    * Partially update vitals
    */
-  patchVitals: async (encounterId: string | number, vitals: Record<string, unknown>) => {
+  patchVitals: async (
+    encounterId: string | number,
+    vitals: Record<string, unknown>,
+  ) => {
     try {
       const response = await apiClient.patch<
         ApiEnvelope<Record<string, unknown>> | Record<string, unknown>
@@ -672,7 +690,10 @@ export const consultationApi = {
    * POST /api/v1/encounters/{encounterId}/amendments
    * Create post-finalization amendment
    */
-  createAmendment: async (encounterId: string | number, amendment: Record<string, unknown>) => {
+  createAmendment: async (
+    encounterId: string | number,
+    amendment: Record<string, unknown>,
+  ) => {
     try {
       const response = await apiClient.post<
         ApiEnvelope<Record<string, unknown>> | Record<string, unknown>

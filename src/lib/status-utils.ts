@@ -37,16 +37,6 @@ export const normalizeStatus = (status?: string | null): string =>
     .toUpperCase()
     .replace(/[\s-]+/g, "_");
 
-// ── Nurse Eligibility ─────────────────────────────────────────────────────────
-/** Patients the nurse should see in the vitals queue */
-export const NURSE_WAITING_STATUSES: readonly string[] = [
-  APPOINTMENT_STATUS.WAITING_FOR_VITALS,
-  APPOINTMENT_STATUS.CHECKED_IN,
-] as const;
-
-export const isNurseEligibleStatus = (status?: string): boolean =>
-  NURSE_WAITING_STATUSES.includes(normalizeStatus(status));
-
 // ── Doctor Consultation Eligibility ───────────────────────────────────────────
 /** Patients eligible for doctor consultation (active queue) */
 export const DOCTOR_CONSULTATION_ACTIVE_STATUSES: readonly string[] = [
@@ -73,117 +63,9 @@ export const DOCTOR_CONSULTATION_LIST_STATUSES: readonly string[] = [
   "DONE",
 ] as const;
 
-/** Waiting tab statuses for doctor consultation */
-export const DOCTOR_WAITING_STATUSES: readonly string[] = [
-  APPOINTMENT_STATUS.WAITING_FOR_DOCTOR,
-  APPOINTMENT_STATUS.WAITING_FOR_DOCTOR_CALL,
-  "WAITING",
-] as const;
-
 export const isDoctorConsultationStatus = (status?: string): boolean => {
   const normalized = normalizeStatus(status);
   return (DOCTOR_CONSULTATION_LIST_STATUSES as readonly string[]).includes(
     normalized,
   );
-};
-
-export const isDoctorActiveStatus = (status?: string): boolean => {
-  const normalized = normalizeStatus(status);
-  return (
-    DOCTOR_CONSULTATION_ACTIVE_STATUSES as readonly string[]
-  ).includes(normalized);
-};
-
-export const isDoctorWaitingStatus = (status?: string): boolean => {
-  const normalized = normalizeStatus(status);
-  return (DOCTOR_WAITING_STATUSES as readonly string[]).includes(normalized);
-};
-
-// ── Encounter Status ──────────────────────────────────────────────────────────
-export const ENCOUNTER_STATUS = {
-  CREATED: "CREATED",
-  IN_PROGRESS: "IN_PROGRESS",
-  COMPLETED: "COMPLETED",
-  FINALIZED: "FINALIZED",
-} as const;
-
-export const isEncounterEditable = (status?: string): boolean => {
-  const normalized = normalizeStatus(status);
-  return (
-    normalized === ENCOUNTER_STATUS.CREATED ||
-    normalized === ENCOUNTER_STATUS.IN_PROGRESS
-  );
-};
-
-// ── Billing Status ────────────────────────────────────────────────────────────
-export const BILLING_READY_STATUSES: readonly string[] = [
-  APPOINTMENT_STATUS.READY_FOR_BILLING,
-  APPOINTMENT_STATUS.COMPLETED,
-  APPOINTMENT_STATUS.CONSULTATION_COMPLETED,
-] as const;
-
-export const isBillingReadyStatus = (status?: string): boolean => {
-  const normalized = normalizeStatus(status);
-  return (BILLING_READY_STATUSES as readonly string[]).includes(normalized);
-};
-
-// ── Display Labels ────────────────────────────────────────────────────────────
-export const STATUS_DISPLAY_LABELS: Record<string, string> = {
-  BOOKED: "Booked",
-  CONFIRMED: "Confirmed",
-  SCHEDULED: "Scheduled",
-  CHECKED_IN: "Checked-In",
-  WAITING_FOR_VITALS: "Waiting for Vitals",
-  WAITING_FOR_DOCTOR: "Waiting for Doctor",
-  WAITING_FOR_DOCTOR_CALL: "Waiting for Doctor",
-  CALLED: "Called",
-  IN_CONSULTATION: "In Consultation",
-  CONSULTATION_COMPLETED: "Consultation Completed",
-  COMPLETED: "Completed",
-  BILLING_PENDING: "Billing Pending",
-  PAYMENT_COMPLETED: "Payment Completed",
-  CANCELLED: "Cancelled",
-  NO_SHOW: "No Show",
-  RESCHEDULED: "Rescheduled",
-};
-
-export const getDisplayLabel = (status?: string): string => {
-  const normalized = normalizeStatus(status);
-  return STATUS_DISPLAY_LABELS[normalized] || status || "Unknown";
-};
-
-// ── Backend Error Mapping ─────────────────────────────────────────────────────
-export const BACKEND_ERROR_MESSAGES: Record<string, string> = {
-  APPOINTMENT_NOT_CHECKED_IN:
-    "Patient has not been checked in. Please check in the patient first.",
-  ENCOUNTER_NOT_EDITABLE:
-    "This encounter is already finalized and cannot be edited.",
-  PRESCRIPTION_RESOLUTION_REQUIRED:
-    "Please complete prescription resolution before finalizing.",
-  VR_CON_003:
-    "At least one diagnosis or clinical conclusion is required.",
-  VR_CON_001:
-    "Encounter vitals are required before consultation.",
-  ENCOUNTER_NOT_FOUND:
-    "Encounter not found. Please try again.",
-  APPOINTMENT_NOT_FOUND:
-    "Appointment not found. Please refresh and try again.",
-  CONSULTATION_ALREADY_STARTED:
-    "Consultation is already in progress for this patient.",
-  PATIENT_NOT_IN_QUEUE:
-    "Patient is not currently in the queue.",
-};
-
-export const mapBackendError = (error: unknown): string => {
-  if (error instanceof Error) {
-    const message = error.message;
-    // Check if the message contains a known backend error code
-    for (const [code, userMessage] of Object.entries(BACKEND_ERROR_MESSAGES)) {
-      if (message.includes(code)) {
-        return userMessage;
-      }
-    }
-    return message;
-  }
-  return "An unexpected error occurred. Please try again.";
 };

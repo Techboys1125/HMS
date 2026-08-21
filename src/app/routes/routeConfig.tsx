@@ -3,7 +3,7 @@ import { useState, useCallback } from "react";
 import { ROUTES } from "./routes";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
-import { RouteGuard } from "../../permissions/guards";
+import { RouteGuard } from "../../permissions/guards.tsx";
 
 // Auth Feature Pages
 import { LoginPage } from "../../features/auth/pages/LoginPage";
@@ -35,11 +35,15 @@ import { QueueManagementScreen } from "../../features/appointments/pages/QueueMa
 import { BookAppointmentScreen } from "../../features/appointments/pages/BookAppointmentScreen";
 import { PatientCheckInScreen } from "../../features/appointments/pages/PatientCheckInScreen";
 import { AppointmentDetailPage } from "../../features/appointments/pages/AppointmentDetailPage";
-import { RecordPatientVitalsScreen } from "../../features/vitals/pages/VitalsManagementScreen";
-import { OpdConsultationCenterScreen } from "../../features/opd/pages/OpdConsultationCenterScreen";
-import { StartConsultationPage as StartOpdConsultationWorkspaceScreen } from "../../features/opd/pages/StartConsultationPage";
-import { PrescriptionManagementPage } from "../../features/prescriptions/pages/PrescriptionManagementPage";
-import { EncounterPrescriptionPage } from "../../features/prescriptions/pages/EncounterPrescriptionPage";
+import { RecordPatientVitalsScreen } from "../../features/vitals";
+import {
+  OpdConsultationCenterScreen,
+  StartOpdConsultationWorkspaceScreen,
+} from "../../features/opd";
+import {
+  PrescriptionManagementPage,
+  EncounterPrescriptionPage,
+} from "../../features/prescriptions";
 import { DoctorManagementPage } from "../../features/doctors/pages/DoctorManagementPage";
 import { DoctorProfileRoute } from "../../features/doctors/pages/DoctorProfileRoute";
 import { DoctorDirectoryPage } from "../../features/doctors/pages/DoctorDirectoryPage";

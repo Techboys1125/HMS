@@ -325,7 +325,9 @@ export const doctorsApi = {
         ...(authMeData || {}),
       };
 
-      const myEmail = String(mergedUser.email || "").toLowerCase().trim();
+      const myEmail = String(mergedUser.email || "")
+        .toLowerCase()
+        .trim();
       const myId = String(
         mergedUser.id || mergedUser.userId || numericUserId || "",
       );
@@ -349,11 +351,15 @@ export const doctorsApi = {
 
         for (const item of docItems) {
           const rec = mapDoctorSummaryToDoctorRecord(item);
-          const recEmail = String(rec.email || "").toLowerCase().trim();
+          const recEmail = String(rec.email || "")
+            .toLowerCase()
+            .trim();
           const recUserId = String(rec.userId || "");
           const recDoctorId = String(rec.doctorId || "");
           const recEmpId = String(rec.empId || "").trim();
-          const recCleanId = String(rec.id || "").replace(/^DOC-/, "").trim();
+          const recCleanId = String(rec.id || "")
+            .replace(/^DOC-/, "")
+            .trim();
 
           const matches =
             (myEmail && recEmail === myEmail) ||
@@ -381,25 +387,19 @@ export const doctorsApi = {
           ...professionalRecord,
           ...baseMapped,
           qualification:
-            baseMapped.qualification ||
-            professionalRecord.qualification ||
-            "",
+            baseMapped.qualification || professionalRecord.qualification || "",
           experienceYrs:
-            baseMapped.experienceYrs ||
-            professionalRecord.experienceYrs ||
-            0,
+            baseMapped.experienceYrs || professionalRecord.experienceYrs || 0,
           department:
             baseMapped.department || professionalRecord.department || "",
           primaryDepartmentId:
             baseMapped.primaryDepartmentId ||
             professionalRecord.primaryDepartmentId,
-          specialty:
-            baseMapped.specialty || professionalRecord.specialty || "",
+          specialty: baseMapped.specialty || professionalRecord.specialty || "",
           primarySpecialtyId:
             baseMapped.primarySpecialtyId ||
             professionalRecord.primarySpecialtyId,
-          regNumber:
-            baseMapped.regNumber || professionalRecord.regNumber || "",
+          regNumber: baseMapped.regNumber || professionalRecord.regNumber || "",
           consultationFee:
             baseMapped.consultationFee ||
             professionalRecord.consultationFee ||
@@ -414,8 +414,7 @@ export const doctorsApi = {
             baseMapped.slotDurationMinutes ||
             professionalRecord.slotDurationMinutes ||
             15,
-          photoUrl:
-            baseMapped.photoUrl || professionalRecord.photoUrl || "",
+          photoUrl: baseMapped.photoUrl || professionalRecord.photoUrl || "",
           photo: baseMapped.photo || professionalRecord.photo || "",
         };
       }
@@ -441,6 +440,19 @@ export const doctorsApi = {
       throw new Error(`User ${id} not found in response`);
     };
 
+    const isApiUserDoctorRecord = (
+      value: unknown,
+    ): value is ApiUserDoctorRecord => {
+      return (
+        typeof value === "object" &&
+        value !== null &&
+        ("userId" in value ||
+          "id" in value ||
+          "fullName" in value ||
+          "name" in value)
+      );
+    };
+
     const fetchDoctorFacing = async (): Promise<DoctorRecord> => {
       try {
         const response = await apiClient.get<
@@ -448,9 +460,9 @@ export const doctorsApi = {
         >(`/api/v1/doctors/${numericUserId}`);
         const rawData = response.data;
         const data: ApiUserDoctorRecord | undefined =
-          rawData && "data" in rawData && rawData.data
+          rawData && "data" in rawData && isApiUserDoctorRecord(rawData.data)
             ? rawData.data
-            : rawData && !("data" in rawData)
+            : isApiUserDoctorRecord(rawData)
               ? rawData
               : undefined;
         if (data && (data.userId || data.fullName || data.name || data.id)) {
@@ -476,7 +488,9 @@ export const doctorsApi = {
           const rec = mapDoctorSummaryToDoctorRecord(item);
           const recUserId = String(rec.userId || "");
           const recDoctorId = String(rec.doctorId || "");
-          const recCleanId = String(rec.id || "").replace(/^DOC-/, "").trim();
+          const recCleanId = String(rec.id || "")
+            .replace(/^DOC-/, "")
+            .trim();
           if (
             recUserId === numericUserId ||
             recDoctorId === numericUserId ||
@@ -608,7 +622,10 @@ export const doctorsApi = {
           return await putDoctor(idForDoctor, payload);
         } catch (adminErr) {
           console.warn("Admin doctor update failed:", adminErr);
-          return { success: false, data: payload } as DoctorApiResponse<unknown>;
+          return {
+            success: false,
+            data: payload,
+          } as DoctorApiResponse<unknown>;
         }
       }
     }
@@ -683,10 +700,7 @@ export const doctorsApi = {
         startDate: item.startDate || "",
         endDate: item.endDate || "",
         reason: item.reason || "",
-        exceptionType:
-          item.exceptionType ||
-          item.type ||
-          "OTHER",
+        exceptionType: item.exceptionType || item.type || "OTHER",
         isFullDay: item.isFullDay ?? item.fullDay ?? true,
         action: item.action || "BLOCK_APPOINTMENTS",
         status: item.status || "ACTIVE",

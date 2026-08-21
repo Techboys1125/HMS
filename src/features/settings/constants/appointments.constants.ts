@@ -7,16 +7,6 @@ export interface WorkingHourRow {
   enabled: boolean;
 }
 
-export const DEFAULT_WORKING_HOURS: WorkingHourRow[] = [
-  { day: "Monday", open: "08:00 AM", close: "08:00 PM", breakStart: "01:00 PM", breakEnd: "02:00 PM", enabled: true },
-  { day: "Tuesday", open: "08:00 AM", close: "08:00 PM", breakStart: "01:00 PM", breakEnd: "02:00 PM", enabled: true },
-  { day: "Wednesday", open: "08:00 AM", close: "08:00 PM", breakStart: "01:00 PM", breakEnd: "02:00 PM", enabled: true },
-  { day: "Thursday", open: "08:00 AM", close: "08:00 PM", breakStart: "01:00 PM", breakEnd: "02:00 PM", enabled: true },
-  { day: "Friday", open: "08:00 AM", close: "08:00 PM", breakStart: "01:00 PM", breakEnd: "02:00 PM", enabled: true },
-  { day: "Saturday", open: "08:00 AM", close: "05:00 PM", breakStart: "01:00 PM", breakEnd: "02:00 PM", enabled: true },
-  { day: "Sunday", open: "09:00 AM", close: "02:00 PM", breakStart: "None", breakEnd: "None", enabled: false },
-];
-
 export interface Holiday {
   id: string;
   name: string;
@@ -25,10 +15,30 @@ export interface Holiday {
 }
 
 export const DEFAULT_HOLIDAYS: Holiday[] = [
-  { id: "1", name: "New Year Day", date: "2026-01-01", type: "Hospital Closed" },
-  { id: "2", name: "National Independence Day", date: "2026-07-04", type: "Hospital Closed" },
-  { id: "3", name: "Labor Day", date: "2026-09-07", type: "Special Working Hours" },
-  { id: "4", name: "Christmas Day", date: "2026-12-25", type: "Emergency OPD Only" },
+  {
+    id: "1",
+    name: "New Year Day",
+    date: "2026-01-01",
+    type: "Hospital Closed",
+  },
+  {
+    id: "2",
+    name: "National Independence Day",
+    date: "2026-07-04",
+    type: "Hospital Closed",
+  },
+  {
+    id: "3",
+    name: "Labor Day",
+    date: "2026-09-07",
+    type: "Special Working Hours",
+  },
+  {
+    id: "4",
+    name: "Christmas Day",
+    date: "2026-12-25",
+    type: "Emergency OPD Only",
+  },
 ];
 
 export interface AppointmentStatus {

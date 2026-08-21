@@ -5,13 +5,9 @@ export { NotificationQuickFilters } from "./NotificationQuickFilters";
 export { NotificationFilterBar } from "./NotificationFilterBar";
 export { NotificationList } from "./NotificationList";
 export { NotificationSettingsDrawer } from "./NotificationSettingsDrawer";
-
 export { CommunicationHeader } from "./CommunicationHeader";
 export { CommunicationKpiCards } from "./CommunicationKpiCards";
 export { CommunicationToast } from "./CommunicationToast";
-export { DeliveryChannelsSection } from "./DeliveryChannelsSection";
-export { RolePreferencesSection } from "./RolePreferencesSection";
-export { ReminderConfigSection } from "./ReminderConfigSection";
 export { TemplatesSection } from "./TemplatesSection";
 export type { TemplateRow } from "./TemplatesSection";
 export { TriggersSection } from "./TriggersSection";

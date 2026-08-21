@@ -184,6 +184,7 @@ export const UserManagement: React.FC = () => {
       } else {
         departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
           const items = Array.isArray(list) ? list : list?.content || [];
+<<<<<<< HEAD
           const mapped = items.flatMap(
             (d: {
               departmentId?: string | number;
@@ -202,6 +203,21 @@ export const UserManagement: React.FC = () => {
                 : [];
             },
           );
+=======
+          const mapped = items
+            .map(
+              (d: {
+                departmentId?: string | number;
+                id?: string | number;
+                departmentName?: string;
+                name?: string;
+              }) => ({
+                id: d.departmentId ?? d.id ?? "",
+                name: d.departmentName || d.name || "",
+              }),
+            )
+            .filter((d: { name: string }) => Boolean(d.name));
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
           if (mapped.length > 0) setApiDepartments(mapped);
         });
       }

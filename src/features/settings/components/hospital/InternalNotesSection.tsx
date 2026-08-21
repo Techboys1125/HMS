@@ -9,7 +9,10 @@ interface InternalNotesSectionProps {
   onChange: (field: string, value: string | boolean | number) => void;
 }
 
-export function InternalNotesSection({ form, onChange }: InternalNotesSectionProps) {
+export function InternalNotesSection({
+  form,
+  onChange,
+}: InternalNotesSectionProps) {
   return (
     <div
       style={{
@@ -32,15 +35,12 @@ export function InternalNotesSection({ form, onChange }: InternalNotesSectionPro
           gap: "8px",
         }}
       >
-        <Sparkles size={18} style={{ color: "#0D47A1" }} /> Section 07:
-        Internal Administrative Notes
+        <Sparkles size={18} style={{ color: "#0D47A1" }} /> Section 07: Internal
+        Administrative Notes
       </h3>
-      <p
-        style={{ fontSize: "12px", color: "#64748B", margin: "0 0 10px 0" }}
-      >
-        Internal notes regarding accreditation, licensing renewals, and
-        master facility guidelines. Visible only to Super Admins and
-        Hospital Admins.
+      <p style={{ fontSize: "12px", color: "#64748B", margin: "0 0 10px 0" }}>
+        Internal notes regarding accreditation, licensing renewals, and master
+        facility guidelines. Visible only to Super Admins and Hospital Admins.
       </p>
       <textarea
         rows={4}

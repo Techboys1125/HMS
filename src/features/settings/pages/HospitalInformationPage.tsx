@@ -142,20 +142,20 @@ export function HospitalInformationPage() {
         width: "100%",
         gap: "20px",
       }}
-      >
-        {apiError && (
-          <div className="flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            <span>{apiError}</span>
-            <button
-              type="button"
-              className="shrink-0 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-700"
-              onClick={() => void reload().catch(() => undefined)}
-            >
-              Retry
-            </button>
-          </div>
-        )}
-        {/* MAIN CONTENT SECTIONS */}
+    >
+      {apiError && (
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <span>{apiError}</span>
+          <button
+            type="button"
+            className="shrink-0 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-700"
+            onClick={() => void reload().catch(() => undefined)}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+      {/* MAIN CONTENT SECTIONS */}
       <div
         style={{
           display: "flex",

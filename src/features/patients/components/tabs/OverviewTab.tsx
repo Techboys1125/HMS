@@ -11,32 +11,44 @@ interface OverviewTabProps {
 }
 
 function parseAllergies(patient: Patient): string[] {
-  const raw = patient.knownAllergies ?? patient.allergies;
+  const raw: unknown = patient.knownAllergies ?? patient.allergies;
+
   if (!raw) return [];
+
   if (Array.isArray(raw)) {
-    return raw.filter((a): a is string => typeof a === "string" && a.trim().length > 0);
+    return raw.filter(
+      (a): a is string => typeof a === "string" && a.trim().length > 0,
+    );
   }
-  if (typeof raw === "string" && raw.trim().length > 0) {
+
+  if (typeof raw === "string") {
     return raw
       .split(/[,;]/)
       .map((s) => s.trim())
       .filter(Boolean);
   }
+
   return [];
 }
 
 function parseConditions(patient: Patient): string[] {
-  const raw = patient.chronicDiseases ?? patient.medicalHistory;
+  const raw: unknown = patient.chronicDiseases ?? patient.medicalHistory;
+
   if (!raw) return [];
+
   if (Array.isArray(raw)) {
-    return raw.filter((c): c is string => typeof c === "string" && c.trim().length > 0);
+    return raw.filter(
+      (c): c is string => typeof c === "string" && c.trim().length > 0,
+    );
   }
-  if (typeof raw === "string" && raw.trim().length > 0) {
+
+  if (typeof raw === "string") {
     return raw
       .split(/[,;]/)
       .map((s) => s.trim())
       .filter(Boolean);
   }
+
   return [];
 }
 
@@ -66,7 +78,9 @@ function parseEmergencyName(patient: Patient): string {
 function parseEmergencyPhone(patient: Patient): string {
   if (patient.emergencyContact) {
     const ec = patient.emergencyContact;
-    return ec.phone || ec.contactNumber || ec.mobile || ec.mobileNumber || "N/A";
+    return (
+      ec.phone || ec.contactNumber || ec.mobile || ec.mobileNumber || "N/A"
+    );
   }
   return "N/A";
 }
@@ -111,7 +125,9 @@ const APPT_STATUS_STYLE: Record<string, string> = {
 export function OverviewTab({ patient, onNavigateToTab }: OverviewTabProps) {
   const [patientDetail, setPatientDetail] = useState<Patient>(patient);
   const [appointments, setAppointments] = useState<ApiPatientAppointment[]>([]);
-  const [prescriptions, setPrescriptions] = useState<import("../../types/patient.types").ApiPatientPrescription[]>([]);
+  const [prescriptions, setPrescriptions] = useState<
+    import("../../types/patient.types").ApiPatientPrescription[]
+  >([]);
   const [activeScripts, setActiveScripts] = useState(0);
   const [outstandingAmount, setOutstandingAmount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -147,11 +163,13 @@ export function OverviewTab({ patient, onNavigateToTab }: OverviewTabProps) {
             ? apptResult.value
             : [];
         const scripts =
-          scriptResult.status === "fulfilled" && Array.isArray(scriptResult.value)
+          scriptResult.status === "fulfilled" &&
+          Array.isArray(scriptResult.value)
             ? scriptResult.value
             : [];
         const billing =
-          billingResult.status === "fulfilled" && Array.isArray(billingResult.value)
+          billingResult.status === "fulfilled" &&
+          Array.isArray(billingResult.value)
             ? billingResult.value
             : [];
 
@@ -167,7 +185,11 @@ export function OverviewTab({ patient, onNavigateToTab }: OverviewTabProps) {
 
         const outstanding = billing.reduce((sum, inv) => {
           const status = (inv.status ?? "").toLowerCase();
-          if (status === "pending" || status === "overdue" || status === "partial") {
+          if (
+            status === "pending" ||
+            status === "overdue" ||
+            status === "partial"
+          ) {
             return sum + parseNumericAmount(inv.amount);
           }
           return sum;
@@ -192,7 +214,10 @@ export function OverviewTab({ patient, onNavigateToTab }: OverviewTabProps) {
   const address = parseAddress(currentPatient);
   const emergencyName = parseEmergencyName(currentPatient);
   const emergencyPhone = parseEmergencyPhone(currentPatient);
-  const email = currentPatient.email || (currentPatient as Record<string, unknown>).userEmail as string || "N/A";
+  const email =
+    currentPatient.email ||
+    ((currentPatient as Record<string, unknown>).userEmail as string) ||
+    "N/A";
 
   const safeAppointments = Array.isArray(appointments) ? appointments : [];
 
@@ -200,15 +225,18 @@ export function OverviewTab({ patient, onNavigateToTab }: OverviewTabProps) {
     (a) => (a.status ?? "").toLowerCase() === "completed",
   );
   const totalVisits =
-    currentPatient.totalVisits ?? currentPatient.visitCount ?? safeAppointments.length;
+    currentPatient.totalVisits ??
+    currentPatient.visitCount ??
+    safeAppointments.length;
 
   const lastVisit =
-    currentPatient.lastVisit ?? currentPatient.lastVisitDate
+    (currentPatient.lastVisit ?? currentPatient.lastVisitDate)
       ? formatDate(currentPatient.lastVisit ?? currentPatient.lastVisitDate)
       : completedAppointments.length > 0
         ? formatDate(
             completedAppointments[completedAppointments.length - 1].date ??
-              completedAppointments[completedAppointments.length - 1].appointmentDate,
+              completedAppointments[completedAppointments.length - 1]
+                .appointmentDate,
           )
         : safeAppointments.length > 0
           ? formatDate(safeAppointments[0].date)
@@ -487,16 +515,23 @@ export function OverviewTab({ patient, onNavigateToTab }: OverviewTabProps) {
                     </div>
                     <div>
                       <div className="text-[11px] font-bold text-[#111827]">
-                        {rx.doctorName || "Doctor"} · {rx.medicineCount || (Array.isArray(rx.medicines) ? rx.medicines.length : 1)} meds
+                        {rx.doctorName || "Doctor"} ·{" "}
+                        {rx.medicineCount ||
+                          (Array.isArray(rx.medicines)
+                            ? rx.medicines.length
+                            : 1)}{" "}
+                        meds
                       </div>
                       <div className="text-[10px] text-[#64748B]">
-                        {formatDate(rx.date)} · {rx.department || "General Medicine"}
+                        {formatDate(rx.date)} ·{" "}
+                        {rx.department || "General Medicine"}
                       </div>
                     </div>
                   </div>
                   <span
                     className={`px-2 py-0.5 rounded-full text-[9px] font-medium border ${
-                      (rx.status ?? "").toLowerCase() === "active" || (rx.status ?? "").toLowerCase() === "issued"
+                      (rx.status ?? "").toLowerCase() === "active" ||
+                      (rx.status ?? "").toLowerCase() === "issued"
                         ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                         : "bg-blue-50 text-[#0D47A1] border-blue-200"
                     }`}

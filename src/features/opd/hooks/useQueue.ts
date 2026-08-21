@@ -32,19 +32,14 @@ export function useQueue(options: UseQueueOptions = {}) {
     [doctorId, date, status, search, page, size],
   );
 
-  const {
-    data,
-    isLoading,
-    isFetching,
-    error,
-    refetch,
-  } = useQuery<QueueListResult>({
-    queryKey: [...QUEUE_QUERY_KEY, params],
-    queryFn: () => queueApi.getQueueList(params),
-    enabled,
-    staleTime: 30_000,
-    refetchInterval: 15_000,
-  });
+  const { data, isLoading, isFetching, error, refetch } =
+    useQuery<QueueListResult>({
+      queryKey: [...QUEUE_QUERY_KEY, params],
+      queryFn: () => queueApi.getQueueList(params),
+      enabled,
+      staleTime: 30_000,
+      refetchInterval: 15_000,
+    });
 
   const updateParams = useCallback(() => {}, []);
 
@@ -64,7 +59,12 @@ export function useQueue(options: UseQueueOptions = {}) {
 
   return {
     items: data?.content ?? [],
-    summary: data?.summary ?? { completed: 0, waiting: 0, called: 0, inConsultation: 0 },
+    summary: data?.summary ?? {
+      completed: 0,
+      waiting: 0,
+      called: 0,
+      inConsultation: 0,
+    },
     page: data?.page ?? { size: 20, totalElements: 0, page: 0 },
     isLoading,
     isFetching,

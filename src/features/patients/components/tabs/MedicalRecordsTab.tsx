@@ -431,7 +431,8 @@ export function PatientMedicalRecordsTab({ patient }: MedicalRecordsTabProps) {
           Medical Records
         </h3>
         <span className="text-[11px] text-[#64748B]">
-          {summary.totalVisits} visit(s) · {summary.billing.bills.length} bill(s)
+          {summary.totalVisits} visit(s) · {summary.billing.bills.length}{" "}
+          bill(s)
         </span>
       </div>
 
@@ -453,7 +454,8 @@ export function PatientMedicalRecordsTab({ patient }: MedicalRecordsTabProps) {
           <div className="bg-amber-50 rounded-lg px-3 py-2">
             <div className="text-[10px] text-slate-400">Outstanding</div>
             <div className="text-xs font-bold text-amber-700">
-              ₹{(summary.billing.summary.totalOutstanding ?? 0).toLocaleString()}
+              ₹
+              {(summary.billing.summary.totalOutstanding ?? 0).toLocaleString()}
             </div>
           </div>
         </div>

@@ -170,6 +170,7 @@ export function BookAppointmentScreen({
           setDepartments(mapped);
         } else {
           departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
+<<<<<<< HEAD
             const mapped = list.flatMap((d) => {
               const name = d.departmentName || d.name || "";
               return name
@@ -181,6 +182,15 @@ export function BookAppointmentScreen({
                   ]
                 : [];
             });
+=======
+            const content = Array.isArray(list) ? list : list.content || [];
+            const mapped = content
+              .map((d) => ({
+                id: d.departmentId ?? d.id ?? "",
+                departmentName: d.departmentName || d.name || "",
+              }))
+              .filter((d) => d.departmentName);
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
             if (mapped.length > 0) setDepartments(mapped as Department[]);
           });
         }
@@ -678,7 +688,17 @@ export function BookAppointmentScreen({
                 {searchedPatients.length > 0 ? (
                   searchedPatients.map((p) => (
                     <div
+<<<<<<< HEAD
                       key={p.id ? `pat-id-${p.id}` : p.mrn ? `pat-mrn-${p.mrn}` : `pat-name-${p.name}`}
+=======
+                      key={
+                        p.id
+                          ? `pat-id-${p.id}`
+                          : p.mrn
+                            ? `pat-mrn-${p.mrn}`
+                            : `pat-idx-${idx}`
+                      }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                       onClick={() => {
                         setSelectedPatient(p);
                         setPatientQuery("");
@@ -1242,7 +1262,9 @@ export function BookAppointmentScreen({
             <div className="space-y-2 pt-1">
               <button
                 onClick={() => {
-                  console.log(`Printing Appointment Slip for ${confirmedAptId}...`);
+                  console.log(
+                    `Printing Appointment Slip for ${confirmedAptId}...`,
+                  );
                   window.print();
                 }}
                 className="w-full py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-2"

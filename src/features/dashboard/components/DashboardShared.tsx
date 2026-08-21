@@ -1,12 +1,11 @@
 import React from "react";
-import { AlertTriangle, TrendingDown, TrendingUp } from "lucide-react";
+import { TrendingDown, TrendingUp } from "lucide-react";
 
 import {
   AreaChart,
   Area,
   ResponsiveContainer,
 } from "../../../common/components/recharts-lazy";
-
 
 export const PP = "Poppins, system-ui, sans-serif";
 export const RB = "Roboto, system-ui, sans-serif";
@@ -95,44 +94,6 @@ export function DKpi({
   );
 }
 
-export function Av({
-  name,
-  size = "sm",
-}: {
-  name?: string;
-  size?: "sm" | "md" | "lg";
-}) {
-  const safeName = (name || "??").trim() || "??";
-  const initials = safeName
-    .split(" ")
-    .filter(Boolean)
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-  const palette = [
-    "bg-[#0D47A1]",
-    "bg-[#009688]",
-    "bg-violet-600",
-    "bg-rose-500",
-    "bg-amber-600",
-  ];
-  const bg = palette[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % palette.length];
-  const sz = {
-    sm: "w-7 h-7 text-xs",
-    md: "w-9 h-9 text-sm",
-    lg: "w-11 h-11 text-base",
-  }[size];
-  return (
-    <div
-      className={`${sz} ${bg} rounded-full flex items-center justify-center text-white font-semibold shrink-0`}
-      style={{ fontFamily: PP }}
-    >
-      {initials}
-    </div>
-  );
-}
-
 export type ChipVariant =
   "success" | "warning" | "error" | "info" | "teal" | "default";
 export function Chip({
@@ -188,66 +149,6 @@ export function SH({
         )}
       </div>
       {action}
-    </div>
-  );
-}
-
-export function AlertRow({
-  level,
-  msg,
-  time,
-  sub,
-}: {
-  level: "critical" | "warning" | "info";
-  msg: string;
-  time: string;
-  sub?: string;
-}) {
-  const cfg = {
-    critical: {
-      bg: "bg-red-50 border-red-100",
-      icon: "text-[#EF4444]",
-      text: "text-red-800",
-      sub: "text-red-600",
-    },
-    warning: {
-      bg: "bg-amber-50 border-amber-100",
-      icon: "text-[#F59E0B]",
-      text: "text-amber-800",
-      sub: "text-amber-600",
-    },
-    info: {
-      bg: "bg-blue-50 border-blue-100",
-      icon: "text-[#0D47A1]",
-      text: "text-blue-800",
-      sub: "text-blue-600",
-    },
-  }[level];
-  return (
-    <div className={`flex items-start gap-2.5 p-3 rounded-xl border ${cfg.bg}`}>
-      <AlertTriangle size={13} className={`${cfg.icon} shrink-0 mt-0.5`} />
-      <div className="flex-1 min-w-0">
-        <div
-          className={`text-xs font-medium ${cfg.text} leading-snug`}
-          style={{ fontFamily: RB }}
-        >
-          {msg}
-        </div>
-        {sub && (
-          <div
-            className={`text-[10px] mt-0.5 ${cfg.sub}`}
-            style={{ fontFamily: RB }}
-          >
-            {sub}
-          </div>
-        )}
-      </div>
-      <span
-        className="text-[10px] text-slate-400 shrink-0"
-        style={{ fontFamily: RB }}
-      >
-        {time}
-      </span>
     </div>
   );
 }

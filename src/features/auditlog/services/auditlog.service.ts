@@ -50,23 +50,24 @@ function unwrap<T>(response: { data: unknown }): T {
 }
 
 function unwrapPaginated<T>(response: { data: unknown }): PaginatedData<T> {
-  const page = unwrap<Partial<PaginatedData<T>> | T[]>(response);
+  const page = unwrap<unknown>(response);
+
   const content = Array.isArray(page)
     ? page
-    : Array.isArray(page?.content)
+    : isRecord(page) && Array.isArray(page.content)
       ? page.content
       : isRecord(page) && Array.isArray(page.items)
-        ? (page.items as T[])
+        ? page.items
         : isRecord(page) && Array.isArray(page.records)
-          ? (page.records as T[])
+          ? page.records
           : isRecord(page) && Array.isArray(page.logs)
-            ? (page.logs as T[])
+            ? page.logs
             : [];
 
-  const pageObject = Array.isArray(page) ? undefined : page;
+  const pageObject = isRecord(page) ? page : undefined;
 
   return {
-    content,
+    content: content as T[],
     totalElements:
       typeof pageObject?.totalElements === "number"
         ? pageObject.totalElements
@@ -77,11 +78,16 @@ function unwrapPaginated<T>(response: { data: unknown }): PaginatedData<T> {
         : content.length
           ? 1
           : 0,
-    size: typeof pageObject?.size === "number" ? pageObject.size : content.length,
+    size:
+      typeof pageObject?.size === "number" ? pageObject.size : content.length,
     number: typeof pageObject?.number === "number" ? pageObject.number : 0,
-    first: pageObject?.first,
-    last: pageObject?.last,
-    numberOfElements: pageObject?.numberOfElements,
+    first:
+      typeof pageObject?.first === "boolean" ? pageObject.first : undefined,
+    last: typeof pageObject?.last === "boolean" ? pageObject.last : undefined,
+    numberOfElements:
+      typeof pageObject?.numberOfElements === "number"
+        ? pageObject.numberOfElements
+        : undefined,
   };
 }
 
@@ -101,14 +107,16 @@ function buildQuery(params?: AuditLogListParams): string {
 
 function asText(value: unknown): string {
   if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (typeof value === "number" || typeof value === "boolean")
+    return String(value);
   return "";
 }
 
 function formatValue(value: unknown): string {
   if (value === null || value === undefined) return "";
   if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (typeof value === "number" || typeof value === "boolean")
+    return String(value);
 
   try {
     return JSON.stringify(value);
@@ -143,7 +151,9 @@ function normalizeCategory(
 ): AuditCategory {
   if (fallback && fallback !== "All Logs") return fallback;
 
-  const category = asText(value).toUpperCase().replace(/[\s_-]/g, "");
+  const category = asText(value)
+    .toUpperCase()
+    .replace(/[\s_-]/g, "");
   if (category.includes("CRITICAL") || category.includes("SECURITY")) {
     return "Critical Events";
   }
@@ -179,7 +189,9 @@ function getUserRole(user: { role?: string } | undefined): string {
   return user?.role || "—";
 }
 
-function getDepartment(metadata: Record<string, unknown> | undefined): string | undefined {
+function getDepartment(
+  metadata: Record<string, unknown> | undefined,
+): string | undefined {
   const department = metadata?.department;
   return typeof department === "string" && department.trim()
     ? department
@@ -215,7 +227,8 @@ function adaptAuditEvent(
     userRole: getUserRole(user),
     department: getDepartment(raw.metadata),
     action: raw.action || raw.eventType || raw.title || "—",
-    description: raw.description || raw.title || raw.action || raw.eventType || "",
+    description:
+      raw.description || raw.title || raw.action || raw.eventType || "",
     severity: normalizeSeverity(raw.severity),
     severityCode: raw.severity,
     status: normalizeStatus(raw.status),
@@ -264,7 +277,9 @@ function adaptLoginLog(raw: RawLoginLog): AuditRecord {
     userRole: getUserRole(user),
     action: raw.eventType || "LOGIN",
     description: raw.failureReason || raw.eventType || "",
-    severity: normalizeSeverity(raw.status === "SUCCESS" ? "SUCCESS" : "WARNING"),
+    severity: normalizeSeverity(
+      raw.status === "SUCCESS" ? "SUCCESS" : "WARNING",
+    ),
     severityCode: raw.status === "SUCCESS" ? "SUCCESS" : "WARNING",
     status: normalizeStatus(raw.status),
     statusCode: raw.status,
@@ -407,10 +422,15 @@ export async function fetchMainAuditLogs(
     `${AUDIT_API}/logs${buildQuery(params)}`,
   );
   const page = unwrapPaginated<RawAuditEvent>(response);
-  return { ...page, content: page.content.map((event) => adaptAuditEvent(event)) };
+  return {
+    ...page,
+    content: page.content.map((event) => adaptAuditEvent(event)),
+  };
 }
 
-export async function fetchAuditEventDetail(eventId: string): Promise<AuditRecord> {
+export async function fetchAuditEventDetail(
+  eventId: string,
+): Promise<AuditRecord> {
   const response = await apiClient.get(`${AUDIT_API}/logs/${eventId}`);
   return adaptAuditEvent(unwrap<RawAuditEvent>(response));
 }
@@ -461,7 +481,9 @@ export async function fetchFailedLoginAttempts(
 }
 
 export async function fetchLoginHistoryFilterOptions(): Promise<AuditFilterOptions> {
-  const response = await apiClient.get(`${AUDIT_API}/login-history/filter-options`);
+  const response = await apiClient.get(
+    `${AUDIT_API}/login-history/filter-options`,
+  );
   return unwrap(response);
 }
 
@@ -491,7 +513,8 @@ export async function fetchLoginHistoryLogs(
     try {
       const fallback = await fetchMainAuditLogs(params);
       const loginRecords = fallback.content.filter((record) => {
-        const value = `${record.categoryCode || ""} ${record.module} ${record.action} ${record.eventType || ""}`.toUpperCase();
+        const value =
+          `${record.categoryCode || ""} ${record.module} ${record.action} ${record.eventType || ""}`.toUpperCase();
         return (
           record.category === "Login History" ||
           value.includes("LOGIN") ||
@@ -515,7 +538,8 @@ export async function fetchLoginHistoryLogs(
   // from the main stream when that stream contains login/authentication rows.
   const fallback = await fetchMainAuditLogs(params);
   const loginRecords = fallback.content.filter((record) => {
-    const value = `${record.categoryCode || ""} ${record.module} ${record.action} ${record.eventType || ""}`.toUpperCase();
+    const value =
+      `${record.categoryCode || ""} ${record.module} ${record.action} ${record.eventType || ""}`.toUpperCase();
     return (
       record.category === "Login History" ||
       value.includes("LOGIN") ||
@@ -532,8 +556,12 @@ export async function fetchLoginHistoryLogs(
   };
 }
 
-export async function fetchLoginEventDetail(eventId: string): Promise<AuditRecord> {
-  const response = await apiClient.get(`${AUDIT_API}/login-history/logs/${eventId}`);
+export async function fetchLoginEventDetail(
+  eventId: string,
+): Promise<AuditRecord> {
+  const response = await apiClient.get(
+    `${AUDIT_API}/login-history/logs/${eventId}`,
+  );
   return adaptLoginLog(unwrap<RawLoginLog>(response));
 }
 
@@ -562,8 +590,12 @@ export async function fetchUserActivityLogs(
   };
 }
 
-export async function fetchUserActivityDetail(eventId: string): Promise<AuditRecord> {
-  const response = await apiClient.get(`${AUDIT_API}/user-activities/logs/${eventId}`);
+export async function fetchUserActivityDetail(
+  eventId: string,
+): Promise<AuditRecord> {
+  const response = await apiClient.get(
+    `${AUDIT_API}/user-activities/logs/${eventId}`,
+  );
   return adaptAuditEvent(unwrap<RawAuditEvent>(response), "User Activities");
 }
 
@@ -587,8 +619,12 @@ export async function fetchDataChangeLogs(
   return { ...page, content: page.content.map(adaptDataChangeLog) };
 }
 
-export async function fetchDataChangeDetail(eventId: string): Promise<AuditRecord> {
-  const response = await apiClient.get(`${AUDIT_API}/data-changes/logs/${eventId}`);
+export async function fetchDataChangeDetail(
+  eventId: string,
+): Promise<AuditRecord> {
+  const response = await apiClient.get(
+    `${AUDIT_API}/data-changes/logs/${eventId}`,
+  );
   return adaptAuditEvent(unwrap<RawAuditEvent>(response), "Data Changes");
 }
 
@@ -612,8 +648,12 @@ export async function fetchDeletedRecordLogs(
   return { ...page, content: page.content.map(adaptDeletedRecord) };
 }
 
-export async function fetchDeletedRecordDetail(eventId: string): Promise<AuditRecord> {
-  const response = await apiClient.get(`${AUDIT_API}/deleted-records/logs/${eventId}`);
+export async function fetchDeletedRecordDetail(
+  eventId: string,
+): Promise<AuditRecord> {
+  const response = await apiClient.get(
+    `${AUDIT_API}/deleted-records/logs/${eventId}`,
+  );
   return adaptDeletedRecord(unwrap<RawDeletedRecord>(response));
 }
 
@@ -637,8 +677,12 @@ export async function fetchSystemLogLogs(
   return { ...page, content: page.content.map(adaptSystemLog) };
 }
 
-export async function fetchSystemLogDetail(eventId: string): Promise<AuditRecord> {
-  const response = await apiClient.get(`${AUDIT_API}/system-logs/logs/${eventId}`);
+export async function fetchSystemLogDetail(
+  eventId: string,
+): Promise<AuditRecord> {
+  const response = await apiClient.get(
+    `${AUDIT_API}/system-logs/logs/${eventId}`,
+  );
   return adaptSystemLog(unwrap<RawSystemLog>(response));
 }
 

@@ -6,7 +6,8 @@ const nurseKeys = {
   summary: () => [...nurseKeys.all, "summary"] as const,
   vitalsTrend: () => [...nurseKeys.all, "vitals-trend"] as const,
   preparationStatus: () => [...nurseKeys.all, "preparation-status"] as const,
-  queue: (page: number, size: number) => [...nurseKeys.all, "queue", page, size] as const,
+  queue: (page: number, size: number) =>
+    [...nurseKeys.all, "queue", page, size] as const,
   doctorAssistance: () => [...nurseKeys.all, "doctor-assistance"] as const,
   departments: () => [...nurseKeys.all, "departments"] as const,
   vitalsStatus: () => [...nurseKeys.all, "vitals-status"] as const,

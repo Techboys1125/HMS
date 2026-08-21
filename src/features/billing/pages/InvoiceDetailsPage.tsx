@@ -106,9 +106,7 @@ export function InvoiceDetailsPage() {
   const patientName = bill?.patient?.name || "N/A";
   const patientMrn = bill?.patient?.mrn || "N/A";
   const patientPhone =
-    bill?.patient?.phone ||
-    bill?.patient?.registeredMobile ||
-    "";
+    bill?.patient?.phone || bill?.patient?.registeredMobile || "";
   const doctorName = bill?.doctor?.name || "N/A";
   const doctorCode = bill?.doctor?.doctorCode || "";
   const summaryData = bill?.summary;
@@ -120,7 +118,8 @@ export function InvoiceDetailsPage() {
 
   const netAmount = summaryData?.netAmount ?? 0;
   const paidAmount = summaryData?.paidAmount ?? 0;
-  const balanceAmount = summaryData?.balanceAmount ?? Math.max(0, netAmount - paidAmount);
+  const balanceAmount =
+    summaryData?.balanceAmount ?? Math.max(0, netAmount - paidAmount);
   const progressPercent = Math.min(
     100,
     netAmount > 0 ? Math.round((paidAmount / netAmount) * 100) : 0,
@@ -133,12 +132,13 @@ export function InvoiceDetailsPage() {
 
   const capabilities = bill?.capabilities;
   const canCollect =
-    (capabilities?.canCollectPayment ?? (balanceAmount > 0 && !isCancelled && !isVoided)) &&
+    (capabilities?.canCollectPayment ??
+      (balanceAmount > 0 && !isCancelled && !isVoided)) &&
     canCollectRole;
   const canCancelAction = (capabilities?.canCancel ?? isDraft) && canCancel;
   const canVoidAction = (capabilities?.canVoid ?? isFinalized) && canCancel;
   const canRefundAction =
-    (capabilities?.canRefund ?? (paidAmount > 0)) && canRefund;
+    (capabilities?.canRefund ?? paidAmount > 0) && canRefund;
 
   if (isLoading) {
     return (
@@ -160,7 +160,8 @@ export function InvoiceDetailsPage() {
           Invoice Not Found
         </h2>
         <p className="text-sm text-slate-500">
-          The invoice reference "{targetId}" does not exist or you do not have permission to view it.
+          The invoice reference "{targetId}" does not exist or you do not have
+          permission to view it.
         </p>
         <button
           onClick={() => navigate(backUrl)}
@@ -225,7 +226,8 @@ export function InvoiceDetailsPage() {
             className="text-xs md:text-sm text-[#64748B] mt-0.5"
             style={{ fontFamily: RB }}
           >
-            Review invoice details, itemizations, payment receipts, and collection records.
+            Review invoice details, itemizations, payment receipts, and
+            collection records.
           </p>
         </div>
 
@@ -248,63 +250,64 @@ export function InvoiceDetailsPage() {
             <Eye size={14} />
             <span className="hidden sm:inline">Print Preview</span>
           </button>
-          {!isPatient && (canCancelAction || canVoidAction || canRefundAction) && (
-            <div className="relative">
-              <button
-                onClick={() => setShowMoreMenu(!showMoreMenu)}
-                className="p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
-              >
-                <MoreVertical size={16} />
-              </button>
-              {showMoreMenu && (
-                <div
-                  className="absolute right-0 mt-1 w-44 bg-white rounded-xl border border-[#E5E7EB] shadow-lg py-1 z-30 text-left text-xs"
-                  style={{ fontFamily: RB }}
+          {!isPatient &&
+            (canCancelAction || canVoidAction || canRefundAction) && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowMoreMenu(!showMoreMenu)}
+                  className="p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
                 >
-                  <button
-                    onClick={() => {
-                      navigate(`/billing/invoice/${targetId}/print`);
-                      setShowMoreMenu(false);
-                    }}
-                    className="w-full px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium cursor-pointer"
+                  <MoreVertical size={16} />
+                </button>
+                {showMoreMenu && (
+                  <div
+                    className="absolute right-0 mt-1 w-44 bg-white rounded-xl border border-[#E5E7EB] shadow-lg py-1 z-30 text-left text-xs"
+                    style={{ fontFamily: RB }}
                   >
-                    <Eye size={13} />
-                    View Print Preview
-                  </button>
-                  {canCancelAction && (
-                    <button
-                      onClick={handleCancel}
-                      className="w-full px-3 py-2 text-[#EF4444] hover:bg-red-50 flex items-center gap-2 font-medium cursor-pointer"
-                    >
-                      <Ban size={13} />
-                      Cancel Invoice
-                    </button>
-                  )}
-                  {canVoidAction && (
-                    <button
-                      onClick={handleVoid}
-                      className="w-full px-3 py-2 text-[#F59E0B] hover:bg-amber-50 flex items-center gap-2 font-medium cursor-pointer"
-                    >
-                      <Ban size={13} />
-                      Void Invoice
-                    </button>
-                  )}
-                  {canRefundAction && (
                     <button
                       onClick={() => {
-                        setShowRefundModal(true);
+                        navigate(`/billing/invoice/${targetId}/print`);
                         setShowMoreMenu(false);
                       }}
-                      className="w-full px-3 py-2 text-[#F59E0B] hover:bg-amber-50 flex items-center gap-2 font-medium cursor-pointer"
+                      className="w-full px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium cursor-pointer"
                     >
-                      <RotateCcw size={13} />
-                      Process Refund
+                      <Eye size={13} />
+                      View Print Preview
                     </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+                    {canCancelAction && (
+                      <button
+                        onClick={handleCancel}
+                        className="w-full px-3 py-2 text-[#EF4444] hover:bg-red-50 flex items-center gap-2 font-medium cursor-pointer"
+                      >
+                        <Ban size={13} />
+                        Cancel Invoice
+                      </button>
+                    )}
+                    {canVoidAction && (
+                      <button
+                        onClick={handleVoid}
+                        className="w-full px-3 py-2 text-[#F59E0B] hover:bg-amber-50 flex items-center gap-2 font-medium cursor-pointer"
+                      >
+                        <Ban size={13} />
+                        Void Invoice
+                      </button>
+                    )}
+                    {canRefundAction && (
+                      <button
+                        onClick={() => {
+                          setShowRefundModal(true);
+                          setShowMoreMenu(false);
+                        }}
+                        className="w-full px-3 py-2 text-[#F59E0B] hover:bg-amber-50 flex items-center gap-2 font-medium cursor-pointer"
+                      >
+                        <RotateCcw size={13} />
+                        Process Refund
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
         </div>
       </div>
 
@@ -498,9 +501,7 @@ export function InvoiceDetailsPage() {
                       const qty = item.quantity ?? 1;
                       const taxRate = item.taxRate ?? item.taxPercent ?? 0;
                       const totalAmount =
-                        item.totalAmount ??
-                        item.totalPrice ??
-                        qty * unitPrice;
+                        item.totalAmount ?? item.totalPrice ?? qty * unitPrice;
 
                       return (
                         <tr key={item.id}>
@@ -574,7 +575,9 @@ export function InvoiceDetailsPage() {
                     {paymentRecords.map((p: BillPaymentRecord) => (
                       <tr key={p.receiptNumber || p.paymentNumber || p.id}>
                         <td className="py-3 px-3 font-mono font-medium text-[#0D47A1]">
-                          {p.receiptNumber || p.paymentNumber || `PMT-${p.id || ""}`}
+                          {p.receiptNumber ||
+                            p.paymentNumber ||
+                            `PMT-${p.id || ""}`}
                         </td>
                         <td className="py-3 px-3 font-semibold">{p.method}</td>
                         <td className="py-3 px-3 text-right font-bold text-[#66BB6A]">
@@ -613,7 +616,12 @@ export function InvoiceDetailsPage() {
               <div className="flex justify-between">
                 <span className="text-slate-500">Gross Amount:</span>
                 <span className="font-semibold text-slate-800">
-                  ₹{(summaryData?.grossAmount ?? summaryData?.netAmount ?? 0).toLocaleString()}
+                  ₹
+                  {(
+                    summaryData?.grossAmount ??
+                    summaryData?.netAmount ??
+                    0
+                  ).toLocaleString()}
                 </span>
               </div>
               {(summaryData?.discountAmount ?? 0) > 0 && (
@@ -632,11 +640,17 @@ export function InvoiceDetailsPage() {
                   </span>
                 </div>
               )}
-              {((summaryData?.roundOffAmount ?? summaryData?.roundOff ?? 0) !== 0) && (
+              {(summaryData?.roundOffAmount ?? summaryData?.roundOff ?? 0) !==
+                0 && (
                 <div className="flex justify-between text-slate-500">
                   <span>Round Off:</span>
                   <span className="font-semibold">
-                    ₹{(summaryData?.roundOffAmount ?? summaryData?.roundOff ?? 0).toLocaleString()}
+                    ₹
+                    {(
+                      summaryData?.roundOffAmount ??
+                      summaryData?.roundOff ??
+                      0
+                    ).toLocaleString()}
                   </span>
                 </div>
               )}
@@ -663,7 +677,9 @@ export function InvoiceDetailsPage() {
               {(summaryData?.refundedAmount ?? 0) > 0 && (
                 <div className="flex justify-between text-xs font-semibold text-amber-600 border-t border-slate-100 pt-2">
                   <span>Refunded:</span>
-                  <span>₹{(summaryData?.refundedAmount ?? 0).toLocaleString()}</span>
+                  <span>
+                    ₹{(summaryData?.refundedAmount ?? 0).toLocaleString()}
+                  </span>
                 </div>
               )}
             </div>

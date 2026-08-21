@@ -1,4 +1,4 @@
-import type { Patient, ApiPatientFamilyMember } from "../types/patient.types";
+import type { Patient } from "../types/patient.types";
 
 export function mapApiPatientToPatientRecord(
   p: Patient | Record<string, unknown>,
@@ -79,12 +79,18 @@ export function extractDoctorName(
 
   const checkString = (val: unknown): string => {
     if (!val) return "";
-    if (typeof val === "string" && isNaN(Number(val.trim())) && val.trim().length > 1) {
+    if (
+      typeof val === "string" &&
+      isNaN(Number(val.trim())) &&
+      val.trim().length > 1
+    ) {
       return val.trim();
     }
     if (typeof val === "object") {
       const d = val as Record<string, unknown>;
-      const name = String(d.fullName || d.name || d.doctorName || d.nameEn || "").trim();
+      const name = String(
+        d.fullName || d.name || d.doctorName || d.nameEn || "",
+      ).trim();
       if (name) return name;
     }
     return "";
@@ -103,7 +109,10 @@ export function extractDoctorName(
 
   const extractId = (val: unknown): string | number | null => {
     if (!val) return null;
-    if (typeof val === "number" || (typeof val === "string" && !isNaN(Number(val.trim())))) {
+    if (
+      typeof val === "number" ||
+      (typeof val === "string" && !isNaN(Number(val.trim())))
+    ) {
       return val;
     }
     if (typeof val === "object") {
@@ -146,36 +155,4 @@ function calculateAge(dob?: string): number {
     age--;
   }
   return age;
-}
-
-export function mapPatientToUpdatePayload(
-  patient: Patient,
-): Record<string, unknown> {
-  return {
-    fullName: patient.fullName,
-    gender: patient.gender,
-    dateOfBirth: patient.dob,
-    bloodGroup: patient.bloodGroup,
-    phone: patient.phone,
-    mobileNumber: patient.mobileNumber,
-    email: patient.email,
-    address: patient.address,
-    emergencyContact: patient.emergencyContact,
-    maritalStatus: patient.maritalStatus,
-    knownAllergies: patient.knownAllergies,
-    chronicDiseases: patient.chronicDiseases,
-    specialNotes: patient.specialNotes,
-  };
-}
-
-export function mapFamilyMemberToApi(
-  member: ApiPatientFamilyMember,
-): Record<string, unknown> {
-  return {
-    name: member.name,
-    relationship: member.relationship,
-    mobileNumber: member.mobileNumber || member.phone || "",
-    email: member.email || "",
-    isPrimary: member.isPrimary ?? false,
-  };
 }

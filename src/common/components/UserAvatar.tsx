@@ -18,7 +18,9 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   photo,
   className = "",
 }) => {
-  const [failedImageSource, setFailedImageSource] = useState<string | null>(null);
+  const [failedImageSource, setFailedImageSource] = useState<string | null>(
+    null,
+  );
   const rawSource = src || photoUrl || photo;
   const imageSource = normalizeImageUrl(rawSource);
   const imageError = Boolean(imageSource) && failedImageSource === imageSource;

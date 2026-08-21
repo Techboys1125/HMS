@@ -64,7 +64,7 @@ export function DoctorPatientsScreen() {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await patientsApi.getDoctorPatients({ size: 100 });
+      const result = await patientsApi.getDoctorPatients(100);
       setPatients(processDoctorPatients(result));
     } catch {
       setError("Failed to load patients. Please try again.");
@@ -82,7 +82,7 @@ export function DoctorPatientsScreen() {
     let cancelled = false;
 
     patientsApi
-      .getDoctorPatients({ size: 100 })
+      .getDoctorPatients(100)
       .then((result) => {
         if (!cancelled) setPatients(processDoctorPatients(result));
       })

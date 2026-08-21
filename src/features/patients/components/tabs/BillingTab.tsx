@@ -87,7 +87,9 @@ export function PatientBillingTab({ patient }: BillingTabProps) {
             const amountNum =
               typeof invoice.amount === "number"
                 ? invoice.amount
-                : parseFloat(String(invoice.amount || "0").replace(/[^0-9.]/g, "")) || 0;
+                : parseFloat(
+                    String(invoice.amount || "0").replace(/[^0-9.]/g, ""),
+                  ) || 0;
 
             return (
               <div

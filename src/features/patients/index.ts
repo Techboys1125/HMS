@@ -27,51 +27,21 @@ export { DoctorAssignedPatientsRoute } from "./routes/DoctorAssignedPatientsRout
 export { UserProfileRoute } from "./routes/UserProfileRoute";
 
 // Tab Components
-export { PatientProfileTab } from "./components/tabs/ProfileTab";
-export { FamilyMembersTab } from "./components/tabs/FamilyMembersTab";
 export { PatientAppointmentsTab } from "./components/tabs/AppointmentsTab";
-export { PatientQueueTab } from "./components/tabs/QueueTab";
 export { PatientPrescriptionsTab } from "./components/tabs/PrescriptionsTab";
 export { PatientBillingTab } from "./components/tabs/BillingTab";
 export { PatientMedicalRecordsTab } from "./components/tabs/MedicalRecordsTab";
-export { PatientReportsTab } from "./components/tabs/ReportsTab";
 
 // Reusable Components
 export { PatientProfileHeader } from "./components/PatientProfileHeader";
 export { SwitchAccountDialog } from "./components/SwitchAccountDialog";
-export { PatientStatusBadge } from "./components/PatientStatusBadge";
-export { PatientSummaryCard } from "./components/PatientSummaryCard";
-export { PatientActionMenu } from "./components/PatientActionMenu";
-export { PatientSearchBar } from "./components/PatientSearchBar";
 export { PatientTable } from "./components/PatientTable";
 export { PatientFilters } from "./components/PatientFilters";
-export { PatientInfoCard } from "./components/PatientInfoCard";
-export { PatientEmergencyCard } from "./components/PatientEmergencyCard";
-export { PatientInsuranceCard } from "./components/PatientInsuranceCard";
 
 // Hooks
-export {
-  usePatients,
-  usePatient,
-  usePatientSearch,
-  useRegisterPatient,
-  useUpdatePatient,
-  usePatientAudit,
-} from "./hooks/usePatients";
+export { usePatients, usePatient, useUpdatePatient } from "./hooks/usePatients";
 export { useCreatePatient } from "./hooks/useCreatePatient";
-export { usePatientProfile } from "./hooks/usePatientProfile";
-export {
-  useFamilyMembers,
-  useAddFamilyMember,
-  useDeleteFamilyMember,
-} from "./hooks/useFamilyMembers";
-export {
-  usePatientAppointments,
-  useUpcomingAppointments,
-  useAppointmentHistory,
-} from "./hooks/useAppointments";
-export { usePrescriptions } from "./hooks/usePrescriptions";
-export { usePatientBilling } from "./hooks/useBilling";
+export { useFamilyMembers } from "./hooks/useFamilyMembers";
 export { useMedicalRecords } from "./hooks/useMedicalRecords";
 export { useSwitchAccount } from "./hooks/useSwitchAccount";
 export { usePatientQueue } from "./hooks/usePatientQueue";
@@ -79,12 +49,10 @@ export { usePatientQueue } from "./hooks/usePatientQueue";
 // Services
 export { patientService } from "./services/patient.service";
 export { familyService } from "./services/family.service";
-export { appointmentService } from "./services/appointment.service";
 export { medicalRecordService } from "./services/medicalRecord.service";
-export { billingService } from "./services/billing.service";
 
 // Utils
-export { can, ROLE_LABELS } from "./utils/patientPermissions";
+export { can } from "./utils/patientPermissions";
 export type { Role, PatientAction } from "./utils/patientPermissions";
 
 // API

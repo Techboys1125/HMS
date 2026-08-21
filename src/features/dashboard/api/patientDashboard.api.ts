@@ -29,9 +29,9 @@ export const patientDashboardApi = {
   },
 
   getAppointments: async (): Promise<PatientDashboardAppointments> => {
-    const res = await apiClient.get<DashboardApiResponse<PatientDashboardAppointments>>(
-      "/api/v1/patients/me/appointments",
-    );
+    const res = await apiClient.get<
+      DashboardApiResponse<PatientDashboardAppointments>
+    >("/api/v1/patients/me/appointments");
     return unwrap(res);
   },
 
@@ -48,49 +48,60 @@ export const patientDashboardApi = {
     if (params?.limit) query.set("limit", String(params.limit));
     const qs = query.toString();
     const url = `/api/v1/patients/me/appointments/timeline${qs ? `?${qs}` : ""}`;
-    const res = await apiClient.get<DashboardApiResponse<PatientAppointmentsTimeline>>(url);
+    const res =
+      await apiClient.get<DashboardApiResponse<PatientAppointmentsTimeline>>(
+        url,
+      );
     return unwrap(res);
   },
 
-  getAppointmentById: async (appointmentId: string | number): Promise<PatientAppointmentDetail> => {
-    const res = await apiClient.get<DashboardApiResponse<PatientAppointmentDetail>>(
-      `/api/v1/appointments/${appointmentId}`,
-    );
+  getAppointmentById: async (
+    appointmentId: string | number,
+  ): Promise<PatientAppointmentDetail> => {
+    const res = await apiClient.get<
+      DashboardApiResponse<PatientAppointmentDetail>
+    >(`/api/v1/appointments/${appointmentId}`);
     return unwrap(res);
   },
 
   getPrescriptionSummary: async (): Promise<PatientPrescriptionSummary> => {
-    const res = await apiClient.get<DashboardApiResponse<PatientPrescriptionSummary>>(
-      "/api/v1/patients/me/prescriptions/summary",
-    );
+    const res = await apiClient.get<
+      DashboardApiResponse<PatientPrescriptionSummary>
+    >("/api/v1/patients/me/prescriptions/summary");
     return unwrap(res);
   },
 
   getConsultationHistory: async (): Promise<PatientConsultationHistory> => {
-    const res = await apiClient.get<DashboardApiResponse<PatientConsultationHistory>>(
-      "/api/v1/patients/me/consultations/history",
-    );
+    const res = await apiClient.get<
+      DashboardApiResponse<PatientConsultationHistory>
+    >("/api/v1/patients/me/consultations/history");
     return unwrap(res);
   },
 
-  getBillWorkspace: async (billId: string | number): Promise<PatientBillWorkspace> => {
+  getBillWorkspace: async (
+    billId: string | number,
+  ): Promise<PatientBillWorkspace> => {
     const res = await apiClient.get<DashboardApiResponse<PatientBillWorkspace>>(
       `/api/v1/billing/${billId}`,
     );
     return unwrap(res);
   },
 
-  getNotifications: async (page = 0, size = 10): Promise<PatientNotificationsResponse> => {
-    const res = await apiClient.get<DashboardApiResponse<PatientNotificationsResponse>>(
-      `/api/v1/patients/me/notifications?page=${page}&size=${size}`,
-    );
+  getNotifications: async (
+    page = 0,
+    size = 10,
+  ): Promise<PatientNotificationsResponse> => {
+    const res = await apiClient.get<
+      DashboardApiResponse<PatientNotificationsResponse>
+    >(`/api/v1/patients/me/notifications?page=${page}&size=${size}`);
     return unwrap(res);
   },
 
-  getUnreadNotificationsCount: async (): Promise<PatientUnreadNotificationsResponse> => {
-    const res = await apiClient.get<DashboardApiResponse<PatientUnreadNotificationsResponse>>(
-      "/api/v1/patients/me/notifications/unread-count",
-    );
-    return unwrap(res);
-  },
+  getUnreadNotificationsCount:
+    async (): Promise<PatientUnreadNotificationsResponse> => {
+      const res = await apiClient.get<
+        DashboardApiResponse<PatientUnreadNotificationsResponse>
+      >("/api/v1/patients/me/notifications/unread-count");
+      return unwrap(res);
+    },
 };

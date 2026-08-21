@@ -7,7 +7,11 @@ export interface TriggersSectionProps {
   readOnly?: boolean;
 }
 
-export function TriggersSection({ commRules, onToggleRule, readOnly }: TriggersSectionProps) {
+export function TriggersSection({
+  commRules,
+  onToggleRule,
+  readOnly,
+}: TriggersSectionProps) {
   return (
     <div
       style={{

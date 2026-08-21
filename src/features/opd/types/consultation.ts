@@ -16,8 +16,6 @@ export type ConsultationStatus =
 
 import {
   isDoctorConsultationStatus as _isDoctorConsultationStatus,
-  isDoctorActiveStatus as _isDoctorActiveStatus,
-  isDoctorWaitingStatus as _isDoctorWaitingStatus,
   DOCTOR_CONSULTATION_LIST_STATUSES,
 } from "../../../lib/status-utils";
 
@@ -26,27 +24,11 @@ import {
  * the doctor consultation queue. Completed appointments remain available for
  * the consultation history/list, but are never part of the active queue.
  */
-export const DOCTOR_CONSULTATION_WAITING_STATUSES = [
-  "WAITING_FOR_DOCTOR",
-  "WAITING_FOR_DOCTOR_CALL",
-] as const satisfies readonly ConsultationStatus[];
 
 export function isDoctorConsultationStatus(
   status: unknown,
 ): status is (typeof DOCTOR_CONSULTATION_LIST_STATUSES)[number] {
   return _isDoctorConsultationStatus(status as string);
-}
-
-export function isDoctorActiveStatus(
-  status: unknown,
-): boolean {
-  return _isDoctorActiveStatus(status as string);
-}
-
-export function isDoctorWaitingStatus(
-  status: unknown,
-): boolean {
-  return _isDoctorWaitingStatus(status as string);
 }
 
 export const appointmentStatusMap: Record<ConsultationStatus, string> = {
@@ -65,9 +47,6 @@ export const appointmentStatusMap: Record<ConsultationStatus, string> = {
   NO_SHOW: "No Show",
   FOLLOW_UP_SCHEDULED: "Follow-up Scheduled",
 };
-
-export const READY_FOR_BILLING_MAP = "Ready for Billing";
-export const BILLING_PENDING_MAP = "Billing Pending";
 
 export type VisitType =
   "First Visit" | "Follow-up" | "Walk-In" | "New Consultation";

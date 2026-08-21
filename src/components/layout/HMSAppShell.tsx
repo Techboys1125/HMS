@@ -217,6 +217,13 @@ export function HMSAppShell({ onLogout }: { onLogout?: () => void }) {
     verificationStatus: m.verificationStatus,
     isPrimary: m.relationship === "Self",
     status: m.patientStatus,
+    registeredMobile: "",
+    patientStatus: "",
+    lastAppointment: "",
+    upcomingAppointmentsCount: 0,
+    pendingBillsCount: 0,
+    pendingBillsAmount: 0,
+    activePrescriptionsCount: 0,
   });
 
   const familyMembers: HeaderFamilyMember[] = (portal?.familyMembers ?? []).map(

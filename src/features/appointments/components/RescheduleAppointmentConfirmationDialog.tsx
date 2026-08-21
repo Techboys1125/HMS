@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useRef, useEffectEvent, useReducer, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useEffectEvent,
+  useReducer,
+  useCallback,
+} from "react";
 import {
   Calendar as CalendarIcon,
   X,
@@ -118,19 +125,25 @@ export function RescheduleAppointmentConfirmationDialog({
 
   const docAvail = {
     specialty: String(
-      (apt?.doctor as Record<string, unknown>)?.specialty || ""
+      (apt?.doctor as unknown as Record<string, unknown>)?.specialty || "",
     ),
-    department: typeof apt.department === "string"
-      ? apt.department
-      : apt.department?.departmentName || "",
+    department:
+      typeof apt.department === "string"
+        ? apt.department
+        : apt.department?.departmentName || "",
     opdRoom: apt.opdRoom || "",
     slotDuration: "15 Minutes",
-    slots: (apiSlots as { time: string; available: boolean }[] || []).map(
-      (s) => ({
-        time: s.time || s.startTime || s.slot || "",
-        available: s.available !== false,
-      })
-    ),
+    slots: (
+      (apiSlots as {
+        slot: string;
+        startTime: string;
+        time: string;
+        available: boolean;
+      }[]) || []
+    ).map((s) => ({
+      time: s.time || s.startTime || s.slot || "",
+      available: s.available !== false,
+    })),
   };
 
   const handlePrevMonth = () => {
@@ -340,7 +353,7 @@ export function RescheduleAppointmentConfirmationDialog({
                 {Array.from({ length: totalDays }).map((_, i) => {
                   const dayNum = i + 1;
                   const dayStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
-                   const isSelected = form.selectedDate === dayStr;
+                  const isSelected = form.selectedDate === dayStr;
                   const isCurrentAptDate = apt.appointmentDate === dayStr;
                   const isPast = dayStr < todayStr;
                   const isSunday = new Date(year, month, dayNum).getDay() === 0;
@@ -397,7 +410,8 @@ export function RescheduleAppointmentConfirmationDialog({
 
             {slotsLoading ? (
               <div className="flex items-center justify-center py-6 text-xs text-[#64748B]">
-                <Clock size={14} className="animate-spin mr-2" /> Loading available slots...
+                <Clock size={14} className="animate-spin mr-2" /> Loading
+                available slots...
               </div>
             ) : docAvail.slots.length === 0 ? (
               <div className="flex items-center justify-center py-6 text-xs text-[#64748B]">
@@ -406,11 +420,12 @@ export function RescheduleAppointmentConfirmationDialog({
                   : "Select a date to view available time slots."}
               </div>
             ) : (
-            <div className="grid grid-cols-4 gap-2">
-              {docAvail.slots.map((s) => {
-                 const isSelected = form.selectedTimeSlot === s.time;
-                const isAvailable = s.available;
+              <div className="grid grid-cols-4 gap-2">
+                {docAvail.slots.map((s) => {
+                  const isSelected = form.selectedTimeSlot === s.time;
+                  const isAvailable = s.available;
 
+<<<<<<< HEAD
                 return (
                   <button
                     key={s.time}
@@ -436,6 +451,33 @@ export function RescheduleAppointmentConfirmationDialog({
                 );
               })}
             </div>
+=======
+                  return (
+                    <button
+                      key={s.time}
+                      type="button"
+                      disabled={!isAvailable}
+                      onClick={() => {
+                        if (isAvailable) {
+                          setField("selectedTimeSlot", s.time);
+                          if (errors.slot)
+                            setErrors((prev) => ({ ...prev, slot: "" }));
+                        }
+                      }}
+                      className={`py-2 px-1.5 rounded-xl text-xs font-mono font-semibold transition-all border text-center ${
+                        isSelected
+                          ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
+                          : isAvailable
+                            ? "bg-slate-50 text-slate-700 border-[#E5E7EB] hover:bg-blue-50 hover:text-[#0D47A1]"
+                            : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50 line-through"
+                      }`}
+                    >
+                      {s.time}
+                    </button>
+                  );
+                })}
+              </div>
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
             )}
             {errors.slot && (
               <p className="text-[11px] text-[#EF4444] font-medium">
@@ -523,7 +565,7 @@ export function RescheduleAppointmentConfirmationDialog({
                   New Date
                 </span>
                 <span className="font-mono text-[#009688] font-bold">
-                   {form.selectedDate || "Select Date"}
+                  {form.selectedDate || "Select Date"}
                 </span>
               </div>
               <div>
@@ -531,7 +573,7 @@ export function RescheduleAppointmentConfirmationDialog({
                   New Time Slot
                 </span>
                 <span className="font-mono text-[#0D47A1] font-bold">
-                   {form.selectedTimeSlot || "Select Slot"}
+                  {form.selectedTimeSlot || "Select Slot"}
                 </span>
               </div>
             </div>

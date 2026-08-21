@@ -1,9 +1,5 @@
 import type { ReactNode } from "react";
 
-// Typography tokens
-export const PP = "Poppins, system-ui, sans-serif";
-export const RB = "Roboto, system-ui, sans-serif";
-
 // Core shared interfaces
 export interface DoctorSummaryPerformanceRecord {
   id: string;
@@ -378,6 +374,16 @@ export interface PaginatedData<T> {
 
 // 1. Doctor Performance Summary
 export interface DoctorPerformanceSummary {
+  id: string;
+  code: string;
+  name: string;
+  totalAppointments: number;
+  completedAppointments: number;
+  pendingAppointments: number;
+  cancelledAppointments: number;
+  followup: number;
+  avgConsultationTimeMinutes: number;
+  patientRating: number;
   doctorId: string;
   doctorName: string;
   department: string;
@@ -436,6 +442,8 @@ export interface DailyAppointmentSummary {
 
 // 3. Daily Appointments Detail
 export interface DailyAppointmentDetail {
+  visitType: string;
+  date: string;
   appointmentTime: string;
   patientId: string;
   appointmentId: number;
@@ -567,6 +575,20 @@ export interface DailyRevenuePoint {
 
 // 15. Daily Revenue Detail
 export interface DailyRevenueDetail {
+  invoiceNumber: string;
+  patientName: string;
+  mrn: string;
+  patientId: string;
+  doctorName: string;
+  department: string;
+  invoiceDate: string;
+  createdDate: string;
+  billedAmount: number;
+  totalAmount: number;
+  paidAmount: number;
+  collectedAmount: number;
+  outstandingAmount: number;
+  paymentStatus: string;
   id: string;
   paymentId: string;
   receiptNumber: string;

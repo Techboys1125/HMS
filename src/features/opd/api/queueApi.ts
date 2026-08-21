@@ -58,7 +58,15 @@ export const queueApi = {
 
       if (!params) return emptyResult;
 
-      const { doctorId, departmentId, date, status, search, page = 0, size = 50 } = params;
+      const {
+        doctorId,
+        departmentId,
+        date,
+        status,
+        search,
+        page = 0,
+        size = 50,
+      } = params;
 
       if (doctorId) {
         const query = new URLSearchParams();
@@ -91,24 +99,39 @@ export const queueApi = {
           : Array.isArray(data)
             ? data
             : [];
-        const summaryRaw = (data as Record<string, unknown>).summary as Record<string, number> || {};
+        const summaryRaw =
+          ((data as Record<string, unknown>).summary as Record<
+            string,
+            number
+          >) || {};
 
         return {
           summary: {
             completed: summaryRaw.completedCount ?? summaryRaw.completed ?? 0,
             waiting: summaryRaw.waitingCount ?? summaryRaw.waiting ?? 0,
             called: summaryRaw.calledCount ?? summaryRaw.called ?? 0,
-            inConsultation: summaryRaw.inConsultationCount ?? summaryRaw.inConsultation ?? 0,
+            inConsultation:
+              summaryRaw.inConsultationCount ?? summaryRaw.inConsultation ?? 0,
           },
           content,
           page: data.page
-            ? { size: (data.page as Record<string, unknown>).size as number || size, totalElements: (data.page as Record<string, unknown>).totalElements as number || 0, page: (data.page as Record<string, unknown>).page as number || 0 }
+            ? {
+                size:
+                  ((data.page as Record<string, unknown>).size as number) ||
+                  size,
+                totalElements:
+                  ((data.page as Record<string, unknown>)
+                    .totalElements as number) || 0,
+                page:
+                  ((data.page as Record<string, unknown>).page as number) || 0,
+              }
             : { size, totalElements: content.length, page: 0 },
         };
       }
 
       const query = new URLSearchParams();
-      if (departmentId !== undefined) query.set("departmentId", String(departmentId));
+      if (departmentId !== undefined)
+        query.set("departmentId", String(departmentId));
       if (date) query.set("date", date);
       if (status) query.set("status", status);
       if (search) query.set("search", search);
@@ -167,7 +190,8 @@ export const queueApi = {
   ): Promise<{ success: boolean; status: string }> {
     try {
       const response = await apiClient.patch<
-        ApiEnvelope<{ success: boolean; status: string }> | { success: boolean; status: string }
+        | ApiEnvelope<{ success: boolean; status: string }>
+        | { success: boolean; status: string }
       >(`/api/v1/queue/${appointmentId}/call`);
       return unwrap(response.data);
     } catch (error) {
@@ -181,14 +205,24 @@ export const queueApi = {
    */
   async callNext(
     doctorId: number | string,
-  ): Promise<{ action: string; appointmentId: number; tokenNumber: string; queueStatus: string }> {
+  ): Promise<{
+    action: string;
+    appointmentId: number;
+    tokenNumber: string;
+    queueStatus: string;
+  }> {
     try {
       const numericId =
         typeof doctorId === "string" && doctorId.startsWith("DOC-")
           ? doctorId.replace("DOC-", "")
           : doctorId;
       const response = await apiClient.post<
-        ApiEnvelope<{ action: string; appointmentId: number; tokenNumber: string; queueStatus: string }>
+        ApiEnvelope<{
+          action: string;
+          appointmentId: number;
+          tokenNumber: string;
+          queueStatus: string;
+        }>
       >(`/api/v1/doctors/${numericId}/queue/call-next`);
       return unwrap(response.data);
     } catch (error) {

@@ -21,7 +21,12 @@ export function PatientMyBillsPage() {
   const user = useAuthStore((s) => s.user);
   const portal = usePatientPortal();
   const patientMrn = String(
-    portal?.activeMrn || portal?.primaryMrn || user?.patientId || user?.mrn || user?.id || "",
+    portal?.activeMrn ||
+      portal?.primaryMrn ||
+      user?.patientId ||
+      user?.mrn ||
+      user?.id ||
+      "",
   );
 
   const { invoices, loading: isLoading } = useBilling(patientMrn || undefined);

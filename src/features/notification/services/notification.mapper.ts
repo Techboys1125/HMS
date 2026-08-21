@@ -5,7 +5,6 @@ import type {
   NotificationPriority,
 } from "../types/notifications.types";
 import { ALL_ROLES } from "../constants/notifications.constants";
-import { normalizeRole } from "./role.mapper";
 
 const API_STATUS_TO_UI: Record<string, NotificationStatus> = {
   READ: "Read",
@@ -99,5 +98,3 @@ export function mapApiNotificationsToRecords(
 ): NotificationRecord[] {
   return (items ?? []).map((item) => mapApiNotificationToRecord(item));
 }
-
-export { normalizeRole };

@@ -485,6 +485,7 @@ export function OPDConsultationPage({
           doctorName: record.doctor,
           departmentName: record.department,
           appointmentTime: record.appointmentTime,
+          time: record.appointmentTime || "",
           appointmentDate: record.date,
           tokenNumber: record.tokenNo,
           roomNumber: record.opdRoom,
@@ -1031,7 +1032,3 @@ export function OPDConsultationPage({
 
 export const OpdConsultationCenterScreen: React.FC<OPDConsultationPageProps> =
   OPDConsultationPage;
-export const OpdConsultationMonitoringCenterScreen: React.FC<OPDConsultationPageProps> =
-  OPDConsultationPage;
-
-export default OPDConsultationPage;

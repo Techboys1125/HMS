@@ -1,4 +1,11 @@
-import { useReducer, useState, useMemo, useCallback, useEffect, startTransition } from "react";
+import {
+  useReducer,
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  startTransition,
+} from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -109,7 +116,11 @@ type BillingFormAction =
   | { type: "SET_LINE_ITEMS"; payload: BillingLineItem[] }
   | {
       type: "UPDATE_LINE_ITEM";
-      payload: { id: string; field: keyof BillingLineItem; val: string | number };
+      payload: {
+        id: string;
+        field: keyof BillingLineItem;
+        val: string | number;
+      };
     }
   | { type: "ADD_LINE_ITEM"; payload: BillingLineItem }
   | { type: "DUPLICATE_LINE_ITEM"; payload: BillingLineItem }
@@ -174,7 +185,10 @@ function billingFormReducer(
     case "DUPLICATE_LINE_ITEM":
       return {
         ...state,
-        lineItems: [...state.lineItems, { ...action.payload, id: `ITEM-${Date.now()}` }],
+        lineItems: [
+          ...state.lineItems,
+          { ...action.payload, id: `ITEM-${Date.now()}` },
+        ],
       };
     case "REMOVE_LINE_ITEM":
       return {
@@ -194,10 +208,18 @@ function billingFormReducer(
     case "LOAD_BILL_WORKSPACE":
       return {
         ...state,
-        ...(action.payload.lineItems != null && { lineItems: action.payload.lineItems }),
-        ...(action.payload.discountType != null && { discountType: action.payload.discountType }),
-        ...(action.payload.discountValue != null && { discountValue: action.payload.discountValue }),
-        ...(action.payload.billingRemarks != null && { billingRemarks: action.payload.billingRemarks }),
+        ...(action.payload.lineItems != null && {
+          lineItems: action.payload.lineItems,
+        }),
+        ...(action.payload.discountType != null && {
+          discountType: action.payload.discountType,
+        }),
+        ...(action.payload.discountValue != null && {
+          discountValue: action.payload.discountValue,
+        }),
+        ...(action.payload.billingRemarks != null && {
+          billingRemarks: action.payload.billingRemarks,
+        }),
       };
     default:
       return state;
@@ -247,7 +269,10 @@ export function CreateInvoiceWorkspacePage() {
       : null;
 
   // Billing form state (patient search, line items, discounts, taxes, category)
-  const [form, dispatch] = useReducer(billingFormReducer, initialBillingFormState);
+  const [form, dispatch] = useReducer(
+    billingFormReducer,
+    initialBillingFormState,
+  );
   const {
     patientSearch,
     showSearchDropdown,
@@ -361,7 +386,8 @@ export function CreateInvoiceWorkspacePage() {
         if (billWorkspace.items && billWorkspace.items.length > 0) {
           const mappedItems = billWorkspace.items.map((item) => ({
             id: String(item.id),
-            serviceName: item.serviceName || item.itemName || "Consultation Fee",
+            serviceName:
+              item.serviceName || item.itemName || "Consultation Fee",
             category: "Consultation",
             quantity: item.quantity,
             unitPrice: item.unitPrice,
@@ -993,10 +1019,21 @@ export function CreateInvoiceWorkspacePage() {
                 <input
                   type="text"
                   value={patientSearch}
-                  onFocus={() => dispatch({ type: "SET_SHOW_SEARCH_DROPDOWN", payload: true })}
+                  onFocus={() =>
+                    dispatch({
+                      type: "SET_SHOW_SEARCH_DROPDOWN",
+                      payload: true,
+                    })
+                  }
                   onChange={(e) => {
-                    dispatch({ type: "SET_PATIENT_SEARCH", payload: e.target.value });
-                    dispatch({ type: "SET_SHOW_SEARCH_DROPDOWN", payload: true });
+                    dispatch({
+                      type: "SET_PATIENT_SEARCH",
+                      payload: e.target.value,
+                    });
+                    dispatch({
+                      type: "SET_SHOW_SEARCH_DROPDOWN",
+                      payload: true,
+                    });
                   }}
                   placeholder="Search patient by MRN, name, or mobile..."
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs text-[#111827] focus:bg-white focus:border-[#0D47A1] focus:outline-none"
@@ -1013,10 +1050,7 @@ export function CreateInvoiceWorkspacePage() {
                         mobile?: string;
                       };
                       const patientPhone =
-                        b.patientPhone ||
-                        b.phone ||
-                        b.mobile ||
-                        "";
+                        b.patientPhone || b.phone || b.mobile || "";
                       return (
                         <div
                           key={`${bill.billId ?? bill.id ?? bill.billNumber}-${bill.appointmentId}`}
@@ -1047,7 +1081,9 @@ export function CreateInvoiceWorkspacePage() {
                             </div>
                             <div className="text-[11px] text-slate-400 mt-0.5">
                               {bill.billType || ""}{" "}
-                              {bill.billType && <span className="text-slate-300 mx-1">·</span>}
+                              {bill.billType && (
+                                <span className="text-slate-300 mx-1">·</span>
+                              )}
                               OPD
                             </div>
                           </div>
@@ -1099,8 +1135,17 @@ export function CreateInvoiceWorkspacePage() {
                           <button
                             type="button"
                             onClick={() => {
-                              dispatch({ type: "SELECT_BILLING_RECORD", payload: bill });
-                              dispatch({ type: "SELECT_PATIENT", payload: { patient: null, search: bill.patientName || "" } });
+                              dispatch({
+                                type: "SELECT_BILLING_RECORD",
+                                payload: bill,
+                              });
+                              dispatch({
+                                type: "SELECT_PATIENT",
+                                payload: {
+                                  patient: null,
+                                  search: bill.patientName || "",
+                                },
+                              });
                               setAutoLoaded(false);
                             }}
                             className="px-4 py-1.5 rounded-xl border border-blue-200 text-[#0D47A1] text-xs font-semibold hover:bg-blue-50 transition-colors shadow-xs shrink-0 self-start md:self-auto"
@@ -1120,7 +1165,12 @@ export function CreateInvoiceWorkspacePage() {
                     </span>
                     <button
                       type="button"
-                      onClick={() => dispatch({ type: "SET_SHOW_SEARCH_DROPDOWN", payload: false })}
+                      onClick={() =>
+                        dispatch({
+                          type: "SET_SHOW_SEARCH_DROPDOWN",
+                          payload: false,
+                        })
+                      }
                       className="font-semibold text-[#0D47A1] hover:underline"
                     >
                       View all results
@@ -1182,8 +1232,18 @@ export function CreateInvoiceWorkspacePage() {
                       <button
                         key={cat}
                         type="button"
+<<<<<<< HEAD
                         onClick={() => dispatch({ type: "SET_PATIENT_CATEGORY", payload: cat })}
                         className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${patientCategory === cat ? "bg-[#0D47A1] text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"}`}
+=======
+                        onClick={() =>
+                          dispatch({
+                            type: "SET_PATIENT_CATEGORY",
+                            payload: cat,
+                          })
+                        }
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${patientCategory === cat ? "bg-[#0D47A1] text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"}`}
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                       >
                         {cat}
                       </button>
@@ -1524,7 +1584,12 @@ export function CreateInvoiceWorkspacePage() {
                       type="radio"
                       name="discType"
                       checked={discountType === "Fixed"}
-                      onChange={() => dispatch({ type: "SET_DISCOUNT_TYPE", payload: "Fixed" })}
+                      onChange={() =>
+                        dispatch({
+                          type: "SET_DISCOUNT_TYPE",
+                          payload: "Fixed",
+                        })
+                      }
                       className="text-[#0D47A1]"
                     />
                     <span>Fixed (₹)</span>
@@ -1534,7 +1599,12 @@ export function CreateInvoiceWorkspacePage() {
                       type="radio"
                       name="discType"
                       checked={discountType === "Percentage"}
-                      onChange={() => dispatch({ type: "SET_DISCOUNT_TYPE", payload: "Percentage" })}
+                      onChange={() =>
+                        dispatch({
+                          type: "SET_DISCOUNT_TYPE",
+                          payload: "Percentage",
+                        })
+                      }
                       className="text-[#0D47A1]"
                     />
                     <span>Percentage (%)</span>
@@ -1545,7 +1615,10 @@ export function CreateInvoiceWorkspacePage() {
                   value={discountValue}
                   onChange={(e) => {
                     const v = e.currentTarget.valueAsNumber;
-                    dispatch({ type: "SET_DISCOUNT_VALUE", payload: Number.isFinite(v) ? v : 0 });
+                    dispatch({
+                      type: "SET_DISCOUNT_VALUE",
+                      payload: Number.isFinite(v) ? v : 0,
+                    });
                   }}
                   className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
                 />
@@ -1559,7 +1632,10 @@ export function CreateInvoiceWorkspacePage() {
                   value={taxPercentage}
                   onChange={(e) => {
                     const v = e.currentTarget.valueAsNumber;
-                    dispatch({ type: "SET_TAX_PERCENTAGE", payload: Number.isFinite(v) ? v : 0 });
+                    dispatch({
+                      type: "SET_TAX_PERCENTAGE",
+                      payload: Number.isFinite(v) ? v : 0,
+                    });
                   }}
                   className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
                 />
@@ -1573,7 +1649,10 @@ export function CreateInvoiceWorkspacePage() {
                   value={additionalCharges}
                   onChange={(e) => {
                     const v = e.currentTarget.valueAsNumber;
-                    dispatch({ type: "SET_ADDITIONAL_CHARGES", payload: Number.isFinite(v) ? v : 0 });
+                    dispatch({
+                      type: "SET_ADDITIONAL_CHARGES",
+                      payload: Number.isFinite(v) ? v : 0,
+                    });
                   }}
                   placeholder="e.g. PPE / Admin Fee"
                   className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
@@ -1591,7 +1670,12 @@ export function CreateInvoiceWorkspacePage() {
                 <textarea
                   rows={2}
                   value={billingRemarks}
-                  onChange={(e) => dispatch({ type: "SET_BILLING_REMARKS", payload: e.target.value })}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_BILLING_REMARKS",
+                      payload: e.target.value,
+                    })
+                  }
                   placeholder="Notes for accountant or insurance verification..."
                   className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
                 />

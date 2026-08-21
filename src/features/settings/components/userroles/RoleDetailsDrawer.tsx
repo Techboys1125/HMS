@@ -68,8 +68,7 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
                   fontWeight: 600,
                   padding: "2px 8px",
                   borderRadius: "12px",
-                  background:
-                    role.status === "Active" ? "#E8F5E9" : "#FEF3C7",
+                  background: role.status === "Active" ? "#E8F5E9" : "#FEF3C7",
                   color: role.status === "Active" ? "#2E7D32" : "#B45309",
                 }}
               >
@@ -88,9 +87,7 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
             </p>
           </div>
 
-          <div
-            style={{ display: "flex", alignItems: "center", gap: "8px" }}
-          >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <button
               onClick={() => setIsRoleEditMode(!isRoleEditMode)}
               style={{
@@ -350,9 +347,7 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
               >
                 Accessible System Modules ({role.modules.length})
               </label>
-              <div
-                style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}
-              >
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                 {role.modules.map((m) => (
                   <span
                     key={m}

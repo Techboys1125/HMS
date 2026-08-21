@@ -40,8 +40,7 @@ export function useEncounterPrescription(
   encounterId: string | number | null | undefined,
   options?: { enabled?: boolean },
 ) {
-  const queryEnabled =
-    Boolean(encounterId) && (options?.enabled ?? true);
+  const queryEnabled = Boolean(encounterId) && (options?.enabled ?? true);
 
   return useQuery({
     queryKey: encounterPrescriptionKeys.detail(encounterId || ""),

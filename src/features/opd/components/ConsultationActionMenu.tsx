@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Eye,
-  Phone,
-  Stethoscope,
-  FolderOpen,
-  FileText,
-} from "lucide-react";
+import { Eye, Phone, Stethoscope, FolderOpen, FileText } from "lucide-react";
 import type { ConsultationRecord, OauthRole } from "../types/consultation";
 
 const PP = "'Poppins', system-ui, sans-serif";

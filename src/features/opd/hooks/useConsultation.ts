@@ -45,7 +45,9 @@ export const useConsultation = () => {
   const loadFullConsultationDetails = async (
     consultationId: string | number,
   ) => {
-    return await consultationService.loadFullConsultationDetails(consultationId);
+    return await consultationService.loadFullConsultationDetails(
+      consultationId,
+    );
   };
 
   return {

@@ -231,9 +231,13 @@ export function BillingReportScreen({
   const paidInvoices = useMemo(() => {
     if (invoiceSummaryData?.paidInvoices != null)
       return invoiceSummaryData.paidInvoices;
+<<<<<<< HEAD
     return billingTableSource.filter(
       (d) => d.paymentStatus === "Paid" || (d.paymentStatus as string) === "Cleared",
     ).length;
+=======
+    return billingTableSource.filter((d) => d.paymentStatus === "Paid").length;
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
   }, [invoiceSummaryData, billingTableSource]);
 
   const unpaidInvoices = useMemo(() => {

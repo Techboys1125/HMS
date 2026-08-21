@@ -62,7 +62,8 @@ export const receptionService = {
       try {
         const worklist = await receptionApi.getWorklist();
         const idx = worklist.findIndex(
-          (item) => item.appointmentId === appointmentId || item.id === appointmentId,
+          (item) =>
+            item.appointmentId === appointmentId || item.id === appointmentId,
         );
         if (idx >= 0) {
           queueNumber = idx + 1;
@@ -111,7 +112,9 @@ export const receptionService = {
 
   async getAppointmentToken(appointmentId: string | number): Promise<string> {
     const res = await receptionApi.getAppointmentToken(appointmentId);
-    return res?.tokenNumber || res?.token || `TK-${String(appointmentId).slice(-4)}`;
+    return (
+      res?.tokenNumber || res?.token || `TK-${String(appointmentId).slice(-4)}`
+    );
   },
 
   async registerWalkIn(

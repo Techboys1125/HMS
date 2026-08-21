@@ -59,9 +59,7 @@ export function AppointmentStatusSettings() {
               justifyContent: "space-between",
             }}
           >
-            <div
-              style={{ display: "flex", alignItems: "center", gap: "8px" }}
-            >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <div
                 style={{
                   width: "12px",
@@ -75,10 +73,18 @@ export function AppointmentStatusSettings() {
                 value={st.label}
                 onChange={(e) => {
                   const val = e.target.value;
+<<<<<<< HEAD
                   const next = statuses.map((st, idx) =>
                     idx === i ? { ...st, label: val } : st,
                   );
                   setStatuses(next);
+=======
+                  setStatuses((prev) =>
+                    prev.map((status, index) =>
+                      index === i ? { ...status, label: val } : status,
+                    ),
+                  );
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 }}
                 style={{
                   border: "1px solid #D1D5DB",
@@ -94,6 +100,7 @@ export function AppointmentStatusSettings() {
             <input
               type="checkbox"
               checked={st.visible}
+<<<<<<< HEAD
                 onChange={(e) => {
                   const checked = e.target.checked;
                   const next = statuses.map((st, idx) =>
@@ -101,6 +108,16 @@ export function AppointmentStatusSettings() {
                   );
                   setStatuses(next);
                 }}
+=======
+              onChange={(e) => {
+                const checked = e.target.checked;
+                setStatuses((prev) =>
+                  prev.map((status, index) =>
+                    index === i ? { ...status, visible: checked } : status,
+                  ),
+                );
+              }}
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
               style={{ accentColor: "#009688", cursor: "pointer" }}
             />
           </div>

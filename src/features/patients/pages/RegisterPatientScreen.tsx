@@ -491,12 +491,16 @@ export function RegisterPatientScreen({
     touched[field] && errors[field] ? inputError : inputBase;
 
   const handleSubmit = useCallback(async () => {
+<<<<<<< HEAD
     if (submitting) {
       return;
     }
 
     setSubmitting(true);
 
+=======
+    if (createPatient.isPending) return;
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
     setTouched({
       fullName: true,
       gender: true,

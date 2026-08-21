@@ -116,7 +116,8 @@ export const AvailabilityScheduleSection: React.FC<
                     </span>
                     {day.isOpen && interval ? (
                       <span className="text-blue-600 text-[10px]">
-                        {formatTime(interval.startTime)}–{formatTime(interval.endTime)}
+                        {formatTime(interval.startTime)}–
+                        {formatTime(interval.endTime)}
                       </span>
                     ) : (
                       <span className="text-slate-400 text-[10px] italic">
@@ -131,7 +132,12 @@ export const AvailabilityScheduleSection: React.FC<
                           key={`${day.dayOfWeek}-break-${idx}`}
                           className="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 rounded px-1.5 py-0.5 font-medium"
                         >
-                          {(brk as { breakName?: string; label?: string }).breakName || brk.label || "Break"}: {formatTime(brk.startTime)}–{formatTime(brk.endTime)}
+                          {(brk as { breakName?: string; label?: string })
+                            .breakName ||
+                            brk.label ||
+                            "Break"}
+                          : {formatTime(brk.startTime)}–
+                          {formatTime(brk.endTime)}
                         </span>
                       ))}
                     </div>
@@ -195,9 +201,7 @@ export const AvailabilityScheduleSection: React.FC<
                 <TimeSelect
                   disabled={!sched.isAvailable}
                   value={sched.startTime}
-                  onChange={(val) =>
-                    handleTimeChange(day, "startTime", val)
-                  }
+                  onChange={(val) => handleTimeChange(day, "startTime", val)}
                   error={!!dayErrors?.startTime}
                 />
                 {sched.isAvailable && dayErrors?.startTime && (
@@ -215,9 +219,7 @@ export const AvailabilityScheduleSection: React.FC<
                 <TimeSelect
                   disabled={!sched.isAvailable}
                   value={sched.endTime}
-                  onChange={(val) =>
-                    handleTimeChange(day, "endTime", val)
-                  }
+                  onChange={(val) => handleTimeChange(day, "endTime", val)}
                   error={!!dayErrors?.endTime}
                 />
                 {sched.isAvailable && dayErrors?.endTime && (

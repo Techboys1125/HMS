@@ -1580,5 +1580,3 @@ export function AppointmentManagementCenterScreen({
     </div>
   );
 }
-
-export { AppointmentManagementCenterScreen as AppointmentCenterScreen };

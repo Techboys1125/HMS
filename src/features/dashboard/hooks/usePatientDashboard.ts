@@ -6,14 +6,24 @@ const patientKeys = {
   all: ["patient-dashboard"] as const,
   dashboard: () => [...patientKeys.all, "dashboard"] as const,
   appointments: () => [...patientKeys.all, "appointments"] as const,
-  appointmentsTimeline: (params?: { mrn?: string; fromDate?: string; toDate?: string; limit?: number }) =>
-    [...patientKeys.all, "appointments-timeline", params] as const,
-  appointmentDetail: (id: string | number) => [...patientKeys.all, "appointment", id] as const,
-  prescriptionSummary: () => [...patientKeys.all, "prescription-summary"] as const,
-  consultationHistory: () => [...patientKeys.all, "consultation-history"] as const,
-  billWorkspace: (billId: string | number) => [...patientKeys.all, "bill", billId] as const,
-  notifications: (page: number, size: number) => [...patientKeys.all, "notifications", page, size] as const,
-  unreadNotificationsCount: () => [...patientKeys.all, "notifications-unread"] as const,
+  appointmentsTimeline: (params?: {
+    mrn?: string;
+    fromDate?: string;
+    toDate?: string;
+    limit?: number;
+  }) => [...patientKeys.all, "appointments-timeline", params] as const,
+  appointmentDetail: (id: string | number) =>
+    [...patientKeys.all, "appointment", id] as const,
+  prescriptionSummary: () =>
+    [...patientKeys.all, "prescription-summary"] as const,
+  consultationHistory: () =>
+    [...patientKeys.all, "consultation-history"] as const,
+  billWorkspace: (billId: string | number) =>
+    [...patientKeys.all, "bill", billId] as const,
+  notifications: (page: number, size: number) =>
+    [...patientKeys.all, "notifications", page, size] as const,
+  unreadNotificationsCount: () =>
+    [...patientKeys.all, "notifications-unread"] as const,
 };
 
 export function usePatientDashboard() {
@@ -21,14 +31,6 @@ export function usePatientDashboard() {
     queryKey: patientKeys.dashboard(),
     queryFn: patientDashboardApi.getDashboard,
     refetchInterval: 60000,
-  });
-}
-
-export function usePatientAppointments() {
-  return useQuery({
-    queryKey: patientKeys.appointments(),
-    queryFn: patientDashboardApi.getAppointments,
-    refetchInterval: 30000,
   });
 }
 
@@ -41,15 +43,6 @@ export function usePatientAppointmentsTimeline(params?: {
   return useQuery<PatientAppointmentsTimeline>({
     queryKey: patientKeys.appointmentsTimeline(params),
     queryFn: () => patientDashboardApi.getAppointmentsTimeline(params),
-    refetchInterval: 30000,
-  });
-}
-
-export function usePatientAppointmentDetail(appointmentId: string | number) {
-  return useQuery({
-    queryKey: patientKeys.appointmentDetail(appointmentId),
-    queryFn: () => patientDashboardApi.getAppointmentById(appointmentId),
-    enabled: !!appointmentId,
     refetchInterval: 30000,
   });
 }
@@ -67,23 +60,6 @@ export function usePatientConsultationHistory() {
     queryKey: patientKeys.consultationHistory(),
     queryFn: patientDashboardApi.getConsultationHistory,
     refetchInterval: 60000,
-  });
-}
-
-export function usePatientBillWorkspace(billId: string | number) {
-  return useQuery({
-    queryKey: patientKeys.billWorkspace(billId),
-    queryFn: () => patientDashboardApi.getBillWorkspace(billId),
-    enabled: !!billId,
-    refetchInterval: 30000,
-  });
-}
-
-export function usePatientNotifications(page = 0, size = 10) {
-  return useQuery({
-    queryKey: patientKeys.notifications(page, size),
-    queryFn: () => patientDashboardApi.getNotifications(page, size),
-    refetchInterval: 30000,
   });
 }
 

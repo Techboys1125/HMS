@@ -193,6 +193,7 @@ const filterReducer = (
 };
 
 interface ExceptionFormState {
+<<<<<<< HEAD
   open: boolean;
   editingException: ApiScheduleExceptionItem | null;
   exceptionType: ExceptionType;
@@ -212,12 +213,48 @@ type ExceptionFormAction =
   | { type: "CLOSE_FORM" }
   | { type: "SET_FIELD"; field: keyof ExceptionFormState; value: string | boolean | ApiScheduleExceptionItem | null }
   | { type: "SET_SAVING"; value: boolean };
+=======
+  isOpen: boolean;
+  editingException: ApiScheduleExceptionItem | null;
+  type: ExceptionType;
+  startDate: string;
+  endDate: string;
+  fullDay: boolean;
+  startTime: string;
+  endTime: string;
+  reason: string;
+  action: ExceptionAction;
+  isSaving: boolean;
+}
+
+type ExceptionFormAction =
+  | { type: "OPEN_NEW" }
+  | { type: "OPEN_EDIT"; payload: ApiScheduleExceptionItem }
+  | { type: "CLOSE" }
+  | { type: "SET_FIELD"; field: keyof ExceptionFormState; value: unknown }
+  | { type: "SET_SAVING"; isSaving: boolean };
+
+const initialExceptionFormState: ExceptionFormState = {
+  isOpen: false,
+  editingException: null,
+  type: "VACATION",
+  startDate: "",
+  endDate: "",
+  fullDay: true,
+  startTime: "09:00",
+  endTime: "12:00",
+  reason: "",
+  action: "BLOCK_APPOINTMENTS",
+  isSaving: false,
+};
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
 
 const exceptionFormReducer = (
   state: ExceptionFormState,
   action: ExceptionFormAction,
 ): ExceptionFormState => {
   switch (action.type) {
+<<<<<<< HEAD
     case "OPEN_FORM":
       return {
         ...state,
@@ -252,6 +289,50 @@ const exceptionFormReducer = (
       return { ...state, [action.field]: action.value } as ExceptionFormState;
     case "SET_SAVING":
       return { ...state, isSavingException: action.value };
+=======
+    case "OPEN_NEW":
+      return {
+        ...initialExceptionFormState,
+        isOpen: true,
+        startDate:
+          typeof todayKey === "function" ? todayKey() : state.startDate,
+        endDate: typeof todayKey === "function" ? todayKey() : state.endDate,
+      };
+    case "OPEN_EDIT": {
+      const ex = action.payload;
+      const exExt = ex as unknown as Record<string, unknown>;
+      return {
+        ...state,
+        isOpen: true,
+        editingException: ex,
+        type:
+          (exExt.exceptionType as ExceptionType) ||
+          (ex.type as ExceptionType) ||
+          "VACATION",
+        startDate:
+          ex.startDate ||
+          (exExt.exceptionDate as string) ||
+          (typeof todayKey === "function" ? todayKey() : state.startDate),
+        endDate:
+          ex.endDate ||
+          ex.startDate ||
+          (exExt.exceptionDate as string) ||
+          (typeof todayKey === "function" ? todayKey() : state.endDate),
+        fullDay:
+          (exExt.isFullDay as boolean) ?? (exExt.fullDay as boolean) ?? true,
+        startTime: ex.startTime?.slice(0, 5) || "09:00",
+        endTime: ex.endTime?.slice(0, 5) || "12:00",
+        reason: ex.reason || "",
+        action: (ex.action as ExceptionAction) || "BLOCK_APPOINTMENTS",
+      };
+    }
+    case "CLOSE":
+      return { ...state, isOpen: false, editingException: null };
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "SET_SAVING":
+      return { ...state, isSaving: action.isSaving };
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
     default:
       return state;
   }
@@ -383,6 +464,7 @@ export function DoctorProfileScreen({
   const [isLoading, setIsLoading] = useState(true);
   const [isDeactivating, setIsDeactivating] = useState(false);
 
+<<<<<<< HEAD
   const [exceptionForm, exceptionFormDispatch] = useReducer(exceptionFormReducer, {
     open: false,
     editingException: null,
@@ -396,6 +478,16 @@ export function DoctorProfileScreen({
     exceptionAction: "BLOCK_APPOINTMENTS",
     isSavingException: false,
   });
+=======
+  const [exceptionForm, dispatchExceptionForm] = useReducer(
+    exceptionFormReducer,
+    {
+      ...initialExceptionFormState,
+      startDate: todayKey(),
+      endDate: todayKey(),
+    },
+  );
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
 
   const [selectedApptDetail, setSelectedApptDetail] =
     useState<DoctorAppointment | null>(null);
@@ -864,13 +956,22 @@ export function DoctorProfileScreen({
   };
 
   const handleStartEditException = (ex: ApiScheduleExceptionItem) => {
+<<<<<<< HEAD
     exceptionFormDispatch({ type: "START_EDIT", exception: ex });
+=======
+    dispatchExceptionForm({ type: "OPEN_EDIT", payload: ex });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
   };
 
   const handleSaveException = async (e: FormEvent) => {
     e.preventDefault();
+<<<<<<< HEAD
     if (!exceptionForm.exceptionStartDate || !exceptionForm.exceptionEndDate) return;
     exceptionFormDispatch({ type: "SET_SAVING", value: true });
+=======
+    if (!exceptionForm.startDate || !exceptionForm.endDate) return;
+    dispatchExceptionForm({ type: "SET_SAVING", isSaving: true });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
     try {
       const doctorId = resolveDoctorId(docRef.current);
       if (exceptionForm.editingException?.id) {
@@ -878,6 +979,7 @@ export function DoctorProfileScreen({
           doctorId,
           exceptionForm.editingException.id,
           {
+<<<<<<< HEAD
             exceptionType: exceptionForm.exceptionType,
             startDate: exceptionForm.exceptionStartDate,
             endDate: exceptionForm.exceptionEndDate,
@@ -886,11 +988,22 @@ export function DoctorProfileScreen({
             isFullDay: exceptionForm.exceptionFullDay,
             reason: exceptionForm.exceptionReason,
             action: exceptionForm.exceptionAction,
+=======
+            exceptionType: exceptionForm.type,
+            startDate: exceptionForm.startDate,
+            endDate: exceptionForm.endDate,
+            startTime: exceptionForm.fullDay ? null : exceptionForm.startTime,
+            endTime: exceptionForm.fullDay ? null : exceptionForm.endTime,
+            isFullDay: exceptionForm.fullDay,
+            reason: exceptionForm.reason,
+            action: exceptionForm.action,
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
           },
         );
         triggerToast("Schedule exception updated.");
       } else {
         await doctorsService.createScheduleException(doctorId, {
+<<<<<<< HEAD
           exceptionType: exceptionForm.exceptionType,
           startDate: exceptionForm.exceptionStartDate,
           endDate: exceptionForm.exceptionEndDate,
@@ -903,11 +1016,29 @@ export function DoctorProfileScreen({
         triggerToast("Schedule exception created.");
       }
       exceptionFormDispatch({ type: "CLOSE_FORM" });
+=======
+          exceptionType: exceptionForm.type,
+          startDate: exceptionForm.startDate,
+          endDate: exceptionForm.endDate,
+          startTime: exceptionForm.fullDay ? null : exceptionForm.startTime,
+          endTime: exceptionForm.fullDay ? null : exceptionForm.endTime,
+          isFullDay: exceptionForm.fullDay,
+          reason: exceptionForm.reason,
+          action: exceptionForm.action,
+        });
+        triggerToast("Schedule exception created.");
+      }
+      dispatchExceptionForm({ type: "CLOSE" });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
       await loadExceptions();
     } catch {
       triggerToast("Failed to save schedule exception.");
     } finally {
+<<<<<<< HEAD
       exceptionFormDispatch({ type: "SET_SAVING", value: false });
+=======
+      dispatchExceptionForm({ type: "SET_SAVING", isSaving: false });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
     }
   };
 
@@ -1685,7 +1816,11 @@ export function DoctorProfileScreen({
               </div>
               <button
                 onClick={() => {
+<<<<<<< HEAD
                   exceptionFormDispatch({ type: "OPEN_FORM" });
+=======
+                  dispatchExceptionForm({ type: "OPEN_NEW" });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 }}
                 className="px-3.5 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5 shadow-sm shrink-0"
                 style={{ fontFamily: PP }}
@@ -1694,7 +1829,11 @@ export function DoctorProfileScreen({
               </button>
             </div>
 
+<<<<<<< HEAD
             {exceptionForm.open && (
+=======
+            {exceptionForm.isOpen && (
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
               <form
                 onSubmit={handleSaveException}
                 className="bg-slate-50 border border-[#E5E7EB] rounded-2xl p-5 space-y-4"
@@ -1711,7 +1850,11 @@ export function DoctorProfileScreen({
                   <button
                     type="button"
                     onClick={() => {
+<<<<<<< HEAD
                       exceptionFormDispatch({ type: "CLOSE_FORM" });
+=======
+                      dispatchExceptionForm({ type: "CLOSE" });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                     }}
                     className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
                   >
@@ -1725,9 +1868,19 @@ export function DoctorProfileScreen({
                       Exception Type
                     </label>
                     <select
+<<<<<<< HEAD
                       value={exceptionForm.exceptionType}
                       onChange={(e) =>
                         exceptionFormDispatch({ type: "SET_FIELD", field: "exceptionType", value: e.target.value as ExceptionType })
+=======
+                      value={exceptionForm.type}
+                      onChange={(e) =>
+                        dispatchExceptionForm({
+                          type: "SET_FIELD",
+                          field: "type",
+                          value: e.target.value,
+                        })
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                       }
                       className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1]"
                     >
@@ -1753,9 +1906,20 @@ export function DoctorProfileScreen({
                     </label>
                     <input
                       type="date"
+<<<<<<< HEAD
                       value={exceptionForm.exceptionStartDate}
                       onChange={(e) =>
                         e.target.value && exceptionFormDispatch({ type: "SET_FIELD", field: "exceptionStartDate", value: e.target.value })
+=======
+                      value={exceptionForm.startDate}
+                      onChange={(e) =>
+                        e.target.value &&
+                        dispatchExceptionForm({
+                          type: "SET_FIELD",
+                          field: "startDate",
+                          value: e.target.value,
+                        })
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                       }
                       className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
                     />
@@ -1766,9 +1930,20 @@ export function DoctorProfileScreen({
                     </label>
                     <input
                       type="date"
+<<<<<<< HEAD
                       value={exceptionForm.exceptionEndDate}
                       onChange={(e) =>
                         e.target.value && exceptionFormDispatch({ type: "SET_FIELD", field: "exceptionEndDate", value: e.target.value })
+=======
+                      value={exceptionForm.endDate}
+                      onChange={(e) =>
+                        e.target.value &&
+                        dispatchExceptionForm({
+                          type: "SET_FIELD",
+                          field: "endDate",
+                          value: e.target.value,
+                        })
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                       }
                       className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
                     />
@@ -1778,8 +1953,19 @@ export function DoctorProfileScreen({
                 <label className="flex items-center gap-2 cursor-pointer text-xs">
                   <input
                     type="checkbox"
+<<<<<<< HEAD
                     checked={exceptionForm.exceptionFullDay}
                     onChange={(e) => exceptionFormDispatch({ type: "SET_FIELD", field: "exceptionFullDay", value: e.target.checked })}
+=======
+                    checked={exceptionForm.fullDay}
+                    onChange={(e) =>
+                      dispatchExceptionForm({
+                        type: "SET_FIELD",
+                        field: "fullDay",
+                        value: e.target.checked,
+                      })
+                    }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                     className="rounded text-[#0D47A1] focus:ring-[#0D47A1] w-4 h-4"
                   />
                   <span className="font-semibold text-[#111827]">
@@ -1787,27 +1973,59 @@ export function DoctorProfileScreen({
                   </span>
                 </label>
 
+<<<<<<< HEAD
                 {!exceptionForm.exceptionFullDay && (
+=======
+                {!exceptionForm.fullDay && (
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
                       <label className="block font-bold text-[#111827] mb-1">
                         Start Time
                       </label>
+<<<<<<< HEAD
                         <TimeSelect
                           value={exceptionForm.exceptionStartTime}
                           onChange={(value) => exceptionFormDispatch({ type: "SET_FIELD", field: "exceptionStartTime", value })}
                           className="w-full"
                         />
+=======
+                      <TimeSelect
+                        value={exceptionForm.startTime}
+                        onChange={(val) =>
+                          dispatchExceptionForm({
+                            type: "SET_FIELD",
+                            field: "startTime",
+                            value: val,
+                          })
+                        }
+                        className="w-full"
+                      />
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                     </div>
                     <div>
                       <label className="block font-bold text-[#111827] mb-1">
                         End Time
                       </label>
+<<<<<<< HEAD
                         <TimeSelect
                           value={exceptionForm.exceptionEndTime}
                           onChange={(value) => exceptionFormDispatch({ type: "SET_FIELD", field: "exceptionEndTime", value })}
                           className="w-full"
                         />
+=======
+                      <TimeSelect
+                        value={exceptionForm.endTime}
+                        onChange={(val) =>
+                          dispatchExceptionForm({
+                            type: "SET_FIELD",
+                            field: "endTime",
+                            value: val,
+                          })
+                        }
+                        className="w-full"
+                      />
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                     </div>
                   </div>
                 )}
@@ -1816,10 +2034,23 @@ export function DoctorProfileScreen({
                   <label className="block font-bold text-[#111827] mb-1 text-xs">
                     Reason
                   </label>
+<<<<<<< HEAD
                     <textarea
                       rows={2}
                       value={exceptionForm.exceptionReason}
                       onChange={(e) => exceptionFormDispatch({ type: "SET_FIELD", field: "exceptionReason", value: e.target.value })}
+=======
+                  <textarea
+                    rows={2}
+                    value={exceptionForm.reason}
+                    onChange={(e) =>
+                      dispatchExceptionForm({
+                        type: "SET_FIELD",
+                        field: "reason",
+                        value: e.target.value,
+                      })
+                    }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                     placeholder="e.g. Personal leave, surgery block..."
                     className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] resize-none"
                   />
@@ -1829,7 +2060,11 @@ export function DoctorProfileScreen({
                   <button
                     type="button"
                     onClick={() => {
+<<<<<<< HEAD
                       exceptionFormDispatch({ type: "CLOSE_FORM" });
+=======
+                      dispatchExceptionForm({ type: "CLOSE" });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                     }}
                     className="px-3.5 py-2 rounded-xl border border-[#E5E7EB] text-slate-600 hover:bg-slate-100 text-xs font-semibold transition-colors"
                   >
@@ -1837,16 +2072,28 @@ export function DoctorProfileScreen({
                   </button>
                   <button
                     type="submit"
+<<<<<<< HEAD
                     disabled={exceptionForm.isSavingException}
+=======
+                    disabled={exceptionForm.isSaving}
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                     className="px-4 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-[#00796b] transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ fontFamily: PP }}
                   >
                     <CheckCircle2 size={14} />
+<<<<<<< HEAD
                     {exceptionForm.isSavingException
                         ? "Saving..."
                         : exceptionForm.editingException
                           ? "Update Exception"
                           : "Create Exception"}
+=======
+                    {exceptionForm.isSaving
+                      ? "Saving..."
+                      : exceptionForm.editingException
+                        ? "Update Exception"
+                        : "Create Exception"}
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   </button>
                 </div>
               </form>

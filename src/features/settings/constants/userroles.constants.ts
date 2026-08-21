@@ -24,10 +24,7 @@ export interface RolePermission {
   approve: boolean;
 }
 
-export type PermissionState = Record<
-  string,
-  Record<string, RolePermission>
->;
+export type PermissionState = Record<string, Record<string, RolePermission>>;
 
 export interface ModuleAccessRule {
   module: string;

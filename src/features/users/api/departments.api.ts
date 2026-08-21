@@ -45,7 +45,10 @@ const unwrapList = <T>(resData: unknown): T[] => {
 
 const unwrapPaginated = <T>(
   resData: unknown,
-): { items: T[]; pagination: Omit<DepartmentSpecialtiesPageResponse, "content"> } => {
+): {
+  items: T[];
+  pagination: Omit<DepartmentSpecialtiesPageResponse, "content">;
+} => {
   const defaultPagination = {
     totalElements: 0,
     totalPages: 0,
@@ -152,20 +155,23 @@ export const departmentsApi = {
           throw err;
         }
       }
-      const { items, pagination } = unwrapPaginated<ApiDepartmentSpecialtiesItem>(res.data);
-      const normalizedItems = items.map((item: ApiDepartmentSpecialtiesItem) => ({
-        ...item,
-        id: item.id ?? item.departmentId,
-        departmentId: item.departmentId ?? item.id,
-        departmentName: item.departmentName ?? item.name ?? "",
-        name: item.name ?? item.departmentName ?? "",
-        departmentCode: item.departmentCode ?? item.code ?? "",
-        code: item.code ?? item.departmentCode ?? "",
-        specialties: (item.specialties || []).map((s: ApiSpecialtyItem) => ({
-          ...s,
-          id: s.id,
-        })),
-      }));
+      const { items, pagination } =
+        unwrapPaginated<ApiDepartmentSpecialtiesItem>(res.data);
+      const normalizedItems = items.map(
+        (item: ApiDepartmentSpecialtiesItem) => ({
+          ...item,
+          id: item.id ?? item.departmentId,
+          departmentId: item.departmentId ?? item.id,
+          departmentName: item.departmentName ?? item.name ?? "",
+          name: item.name ?? item.departmentName ?? "",
+          departmentCode: item.departmentCode ?? item.code ?? "",
+          code: item.code ?? item.departmentCode ?? "",
+          specialties: (item.specialties || []).map((s: ApiSpecialtyItem) => ({
+            ...s,
+            id: s.id,
+          })),
+        }),
+      );
       return {
         content: normalizedItems,
         totalElements: pagination.totalElements,

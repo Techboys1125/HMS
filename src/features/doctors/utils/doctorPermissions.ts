@@ -127,25 +127,3 @@ export function can(
 
   return permission;
 }
-
-export const ROLE_LABELS: Record<Role, string> = {
-  ADMIN: "Hospital Admin",
-  RECEPTIONIST: "Receptionist",
-  DOCTOR: "Doctor",
-  NURSE: "Nurse",
-  PATIENT: "Patient",
-};
-
-export const DOCTOR_ACTION_LABELS: Record<DoctorAction, string> = {
-  list: "View Doctor List",
-  viewProfile: "View Doctor Profile",
-  editProfile: "Edit Doctor Profile",
-  deactivate: "Activate/Deactivate Doctor",
-  editSchedule: "Edit Weekly Schedule",
-  viewSchedule: "View Weekly Schedule",
-  manageExceptions: "Manage Schedule Exceptions",
-  viewDailyAvailability: "View Daily Availability",
-  viewMonthlyCalendar: "View Monthly Calendar",
-  viewAppointments: "View Appointments",
-  viewAssignedPatients: "View Assigned Patients",
-};

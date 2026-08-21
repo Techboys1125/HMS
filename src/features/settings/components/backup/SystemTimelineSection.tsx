@@ -28,13 +28,11 @@ export function SystemTimelineSection() {
           gap: "8px",
         }}
       >
-        <Activity size={18} style={{ color: "#009688" }} /> Section 06:
-        Recent Maintenance & System Timeline
+        <Activity size={18} style={{ color: "#009688" }} /> Section 06: Recent
+        Maintenance & System Timeline
       </h3>
 
-      <div
-        style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-      >
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {SYSTEM_TIMELINE.map((act) => (
           <div
             key={act.title}
@@ -48,9 +46,7 @@ export function SystemTimelineSection() {
               border: "1px solid #E2E8F0",
             }}
           >
-            <div
-              style={{ display: "flex", alignItems: "center", gap: "10px" }}
-            >
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <div
                 style={{
                   width: "8px",

@@ -1,6 +1,10 @@
 import { useSyncExternalStore } from "react";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
-import type { Encounter, Prescription, Diagnosis } from "../../encounters/types/encounter.types";
+import type {
+  Encounter,
+  Prescription,
+  Diagnosis,
+} from "../../encounters/types/encounter.types";
 import type { ConsultationRecord } from "../types/consultation";
 import type { PatientVitals } from "../types/vitals";
 
@@ -12,7 +16,16 @@ export interface ConsultationState {
   selectedVitals: PatientVitals | null;
   selectedDiagnoses: Diagnosis[];
   consultationStatus:
-    "BOOKED" | "WAITING_FOR_VITALS" | "WAITING_FOR_DOCTOR_CALL" | "CALLED" | "IN_CONSULTATION" | "COMPLETED" | "CANCELLED" | "NO_SHOW" | "FOLLOW_UP_SCHEDULED" | string;
+    | "BOOKED"
+    | "WAITING_FOR_VITALS"
+    | "WAITING_FOR_DOCTOR_CALL"
+    | "CALLED"
+    | "IN_CONSULTATION"
+    | "COMPLETED"
+    | "CANCELLED"
+    | "NO_SHOW"
+    | "FOLLOW_UP_SCHEDULED"
+    | string;
   loading: boolean;
   error: string | null;
 }

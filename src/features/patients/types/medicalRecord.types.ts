@@ -73,7 +73,13 @@ export interface PatientBillingHistory {
 
 export interface MedicalHistoryEntry {
   id: string | number;
-  type: "prescription" | "billing" | "consultation" | "vitals" | "diagnosis" | "lab_result";
+  type:
+    | "prescription"
+    | "billing"
+    | "consultation"
+    | "vitals"
+    | "diagnosis"
+    | "lab_result";
   date: string;
   title: string;
   description: string;

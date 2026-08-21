@@ -16,7 +16,7 @@ import {
   MessageSquare,
   User,
 } from "lucide-react";
-import type { Role, NavGroup, NavItem } from "../types/app.types";
+import type { Role, NavGroup } from "../types/app.types";
 
 export const PP = "'Poppins', system-ui, sans-serif";
 export const RB = "'Roboto', system-ui, sans-serif";
@@ -159,7 +159,7 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "patients", Icon: Users, label: "Patients" },
         { id: "doctors", Icon: UserCheck, label: "Doctors" },
         { id: "appointments", Icon: Calendar, label: "Appointments" },
-       
+
         { id: "billing", Icon: CreditCard, label: "Billing" },
         { id: "reports", Icon: BarChart2, label: "Reports" },
       ],
@@ -207,6 +207,7 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
     },
   ],
 };
+<<<<<<< HEAD
 
 export const ALL_NAV_ITEMS: NavItem[] = Object.values(ROLE_NAV_GROUPS).reduce<
   NavItem[]
@@ -220,3 +221,5 @@ export const ALL_NAV_ITEMS: NavItem[] = Object.values(ROLE_NAV_GROUPS).reduce<
   }
   return acc;
 }, []);
+=======
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)

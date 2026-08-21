@@ -9,10 +9,7 @@ interface AddressSectionProps {
   onChange: (field: string, value: string | boolean | number) => void;
 }
 
-export function AddressSection({
-  form,
-  onChange,
-}: AddressSectionProps) {
+export function AddressSection({ form, onChange }: AddressSectionProps) {
   return (
     <div
       style={{

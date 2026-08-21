@@ -84,9 +84,7 @@ export function useOpdConfiguration(year = new Date().getFullYear()) {
           );
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
     void load();

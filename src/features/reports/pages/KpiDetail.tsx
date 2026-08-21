@@ -1,4 +1,81 @@
+<<<<<<< HEAD
 import React, { useState, useMemo, useReducer, useTransition } from "react";
+=======
+import React, { useState, useMemo, useReducer } from "react";
+
+type ReportState = {
+  searchQuery: string;
+  dateRange: string;
+  deptFilter: string;
+  doctorFilter: string;
+  visitTypeFilter: string;
+  payStatusFilter: string;
+  aptStatusFilter: string;
+  appliedFilters: {
+    dateRange: string;
+    dept: string;
+    doctor: string;
+    visitType: string;
+    payStatus: string;
+    aptStatus: string;
+  };
+  isLoading: boolean;
+};
+
+type ReportAction =
+  | { type: "SET_SEARCH"; payload: string }
+  | { type: "SET_FILTER"; field: string; value: string }
+  | { type: "LOAD_START" }
+  | { type: "LOAD_SUCCESS"; payload: ReportState["appliedFilters"] }
+  | { type: "RESET_FILTERS" }
+  | { type: "RESET_FILTERS_SUCCESS"; payload: ReportState["appliedFilters"] };
+
+const initialState: ReportState = {
+  searchQuery: "",
+  dateRange: "Today",
+  deptFilter: "All Departments",
+  doctorFilter: "All Doctors",
+  visitTypeFilter: "All Visit Types",
+  payStatusFilter: "All Payment Statuses",
+  aptStatusFilter: "All Appointment Statuses",
+  appliedFilters: {
+    dateRange: "Today",
+    dept: "All Departments",
+    doctor: "All Doctors",
+    visitType: "All Visit Types",
+    payStatus: "All Payment Statuses",
+    aptStatus: "All Appointment Statuses",
+  },
+  isLoading: false,
+};
+
+function reducer(state: ReportState, action: ReportAction): ReportState {
+  switch (action.type) {
+    case "SET_SEARCH":
+      return { ...state, searchQuery: action.payload };
+    case "SET_FILTER":
+      return { ...state, [action.field]: action.value };
+    case "LOAD_START":
+      return { ...state, isLoading: true };
+    case "LOAD_SUCCESS":
+      return { ...state, isLoading: false, appliedFilters: action.payload };
+    case "RESET_FILTERS":
+      return {
+        ...initialState,
+        isLoading: true,
+      };
+    case "RESET_FILTERS_SUCCESS":
+      return {
+        ...state,
+        isLoading: false,
+        appliedFilters: action.payload,
+      };
+    default:
+      return state;
+  }
+}
+
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
 import {
   Download,
   RefreshCw,
@@ -50,6 +127,7 @@ import {
   ResponsiveContainer,
 } from "../../../common/components/recharts-lazy";
 
+<<<<<<< HEAD
 type FilterState = {
   searchQuery: string;
   dateRange: string;
@@ -75,6 +153,8 @@ function filterReducer(state: FilterState, action: FilterAction): FilterState {
   }
 }
 
+=======
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
 export function DashboardKpiDetailScreen({
   onBack,
   initialKpi = "Today's Revenue",
@@ -85,6 +165,7 @@ export function DashboardKpiDetailScreen({
 }) {
   // State
   const [selectedKpi, setSelectedKpi] = useState<string>(initialKpi);
+<<<<<<< HEAD
   const [filterState, dispatch] = useReducer(filterReducer, {
     searchQuery: "",
     dateRange: "Today",
@@ -98,6 +179,9 @@ export function DashboardKpiDetailScreen({
   const setFilter = (field: keyof FilterState, value: string) =>
     dispatch({ type: "SET_FIELD", field, value });
 
+=======
+  const [state, dispatch] = useReducer(reducer, initialState);
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
   const {
     searchQuery,
     dateRange,
@@ -106,6 +190,7 @@ export function DashboardKpiDetailScreen({
     visitTypeFilter,
     payStatusFilter,
     aptStatusFilter,
+<<<<<<< HEAD
   } = filterState;
 
   const [appliedFilters, setAppliedFilters] = useState({
@@ -116,6 +201,11 @@ export function DashboardKpiDetailScreen({
     payStatus: "All Payment Statuses",
     aptStatus: "All Appointment Statuses",
   });
+=======
+    appliedFilters,
+    isLoading,
+  } = state;
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
 
   // API Data Hooks
   const today = new Date().toISOString().slice(0, 10);
@@ -160,7 +250,11 @@ export function DashboardKpiDetailScreen({
 
   // Enterprise Export & Print Modal States
   const [isRefreshing, setIsRefreshing] = useState(false);
+<<<<<<< HEAD
   const [isPending, startTransition] = useTransition();
+=======
+
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | "csv">(
     "pdf",
@@ -181,6 +275,7 @@ export function DashboardKpiDetailScreen({
   };
 
   const handleApplyFilters = () => {
+<<<<<<< HEAD
     startTransition(async () => {
       await new Promise((r) => setTimeout(r, 300));
       setAppliedFilters({
@@ -218,6 +313,39 @@ export function DashboardKpiDetailScreen({
         aptStatus: "All Appointment Statuses",
       });
     });
+=======
+    dispatch({ type: "LOAD_START" });
+    setTimeout(() => {
+      dispatch({
+        type: "LOAD_SUCCESS",
+        payload: {
+          dateRange,
+          dept: deptFilter,
+          doctor: doctorFilter,
+          visitType: visitTypeFilter,
+          payStatus: payStatusFilter,
+          aptStatus: aptStatusFilter,
+        },
+      });
+    }, 300);
+  };
+
+  const handleResetFilters = () => {
+    dispatch({ type: "RESET_FILTERS" });
+    setTimeout(() => {
+      dispatch({
+        type: "RESET_FILTERS_SUCCESS",
+        payload: {
+          dateRange: "Today",
+          dept: "All Departments",
+          doctor: "All Doctors",
+          visitType: "All Visit Types",
+          payStatus: "All Payment Statuses",
+          aptStatus: "All Appointment Statuses",
+        },
+      });
+    }, 300);
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
   };
 
   // Determine active KPI category
@@ -1028,7 +1156,13 @@ export function DashboardKpiDetailScreen({
                 <input
                   type="text"
                   value={searchQuery}
+<<<<<<< HEAD
                   onChange={(e) => setFilter("searchQuery", e.target.value)}
+=======
+                  onChange={(e) =>
+                    dispatch({ type: "SET_SEARCH", payload: e.target.value })
+                  }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   placeholder="Name, MRN, ID..."
                   className="w-full pl-8 pr-2.5 py-2 bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs text-[#111827] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
                 />
@@ -1042,7 +1176,17 @@ export function DashboardKpiDetailScreen({
               </label>
               <select
                 value={dateRange}
+<<<<<<< HEAD
                 onChange={(e) => setFilter("dateRange", e.target.value)}
+=======
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "dateRange",
+                    value: e.target.value,
+                  })
+                }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>Today</option>
@@ -1059,7 +1203,17 @@ export function DashboardKpiDetailScreen({
               </label>
               <select
                 value={deptFilter}
+<<<<<<< HEAD
                 onChange={(e) => setFilter("deptFilter", e.target.value)}
+=======
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "deptFilter",
+                    value: e.target.value,
+                  })
+                }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Departments</option>
@@ -1078,7 +1232,17 @@ export function DashboardKpiDetailScreen({
               </label>
               <select
                 value={doctorFilter}
+<<<<<<< HEAD
                 onChange={(e) => setFilter("doctorFilter", e.target.value)}
+=======
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "doctorFilter",
+                    value: e.target.value,
+                  })
+                }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Doctors</option>
@@ -1100,7 +1264,17 @@ export function DashboardKpiDetailScreen({
               <select
                 disabled={!showVisitTypeFilter}
                 value={visitTypeFilter}
+<<<<<<< HEAD
                 onChange={(e) => setFilter("visitTypeFilter", e.target.value)}
+=======
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "visitTypeFilter",
+                    value: e.target.value,
+                  })
+                }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                 className={`w-full border rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1] ${showVisitTypeFilter ? "bg-[#F1F5F9] border-[#E5E7EB]" : "bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed"}`}
               >
                 <option>All Visit Types</option>
@@ -1119,7 +1293,17 @@ export function DashboardKpiDetailScreen({
                 </label>
                 <select
                   value={aptStatusFilter}
+<<<<<<< HEAD
                   onChange={(e) => setFilter("aptStatusFilter", e.target.value)}
+=======
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_FILTER",
+                      field: "aptStatusFilter",
+                      value: e.target.value,
+                    })
+                  }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
                 >
                   <option>All Appointment Statuses</option>
@@ -1139,7 +1323,17 @@ export function DashboardKpiDetailScreen({
                 <select
                   disabled={!showPayStatusFilter}
                   value={payStatusFilter}
+<<<<<<< HEAD
                   onChange={(e) => setFilter("payStatusFilter", e.target.value)}
+=======
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_FILTER",
+                      field: "payStatusFilter",
+                      value: e.target.value,
+                    })
+                  }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   className={`w-full border rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1] ${showPayStatusFilter ? "bg-[#F1F5F9] border-[#E5E7EB]" : "bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed"}`}
                 >
                   <option>All Payment Statuses</option>
@@ -1188,11 +1382,19 @@ export function DashboardKpiDetailScreen({
                 Period: {appliedFilters.dateRange}
                 <button
                   onClick={() => {
+<<<<<<< HEAD
                     setFilter("dateRange", "Today");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       dateRange: "Today",
                     }));
+=======
+                    dispatch({
+                      type: "SET_FILTER",
+                      field: "dateRange",
+                      value: "Today",
+                    });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -1205,11 +1407,19 @@ export function DashboardKpiDetailScreen({
                 Dept: {appliedFilters.dept}
                 <button
                   onClick={() => {
+<<<<<<< HEAD
                     setFilter("deptFilter", "All Departments");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       dept: "All Departments",
                     }));
+=======
+                    dispatch({
+                      type: "SET_FILTER",
+                      field: "deptFilter",
+                      value: "All Departments",
+                    });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -1222,11 +1432,19 @@ export function DashboardKpiDetailScreen({
                 Doctor: {appliedFilters.doctor}
                 <button
                   onClick={() => {
+<<<<<<< HEAD
                     setFilter("doctorFilter", "All Doctors");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       doctor: "All Doctors",
                     }));
+=======
+                    dispatch({
+                      type: "SET_FILTER",
+                      field: "doctorFilter",
+                      value: "All Doctors",
+                    });
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -1238,7 +1456,11 @@ export function DashboardKpiDetailScreen({
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-[#111827] border border-slate-300 font-medium">
                 Search: "{searchQuery}"
                 <button
+<<<<<<< HEAD
                   onClick={() => setFilter("searchQuery", "")}
+=======
+                  onClick={() => dispatch({ type: "SET_SEARCH", payload: "" })}
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
                   className="hover:text-red-500 font-bold ml-1"
                 >
                   Ã—

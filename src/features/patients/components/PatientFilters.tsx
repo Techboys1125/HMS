@@ -24,12 +24,8 @@ export function PatientFilters({
   onReset: () => void;
   hasActiveFilters: boolean;
 }) {
-  const {
-    searchQuery,
-    genderFilter,
-    statusFilter,
-    registrationTypeFilter,
-  } = values;
+  const { searchQuery, genderFilter, statusFilter, registrationTypeFilter } =
+    values;
 
   return (
     <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">

@@ -1,19 +1,10 @@
-import { useState } from "react";
-import {
-  ChevronRight,
-  UserCheck,
-  Search,
-  CheckCircle2,
-  Clock,
-  Printer,
-} from "lucide-react";
-
 export interface PatientCheckInScreenProps {
   onBack?: () => void;
   onConfirmSuccess?: (tokenNumber: string) => void;
   onPatientSearchClick?: () => void;
   initialTokenOrMrn?: string;
 }
+<<<<<<< HEAD
 
 export function PatientCheckInScreen({
   onBack,
@@ -330,3 +321,5 @@ export function PatientCheckInScreen({
 }
 
 export default PatientCheckInScreen;
+=======
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)

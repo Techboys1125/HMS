@@ -110,12 +110,15 @@ export function EditAppointmentDrawer({
           setDepartments(lookupList);
         } else {
           departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
-            const lookupMapped = list.map((d) => ({
-              departmentId: d.departmentId ?? d.id ?? "",
-              departmentName: d.departmentName || d.name || "",
-              active: true,
-              specialties: [],
-            }));
+            const content = Array.isArray(list) ? list : list.content || [];
+            const lookupMapped: ApiDepartmentLookupItem[] = content.map(
+              (d) => ({
+                departmentId: d.departmentId ?? d.id ?? "",
+                departmentName: d.departmentName || d.name || "",
+                active: true,
+                specialties: [],
+              }),
+            );
             setDepartments(lookupMapped);
           });
         }
@@ -348,7 +351,9 @@ export function EditAppointmentDrawer({
                   <input
                     type="date"
                     value={form.appointmentDate}
-                    onChange={(e) => setField("appointmentDate", e.target.value)}
+                    onChange={(e) =>
+                      setField("appointmentDate", e.target.value)
+                    }
                     className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
                   />
                 </div>
@@ -370,11 +375,11 @@ export function EditAppointmentDrawer({
                 <label className="block text-xs font-bold text-[#111827] mb-1">
                   Status Dropdown *
                 </label>
-                  <select
-                    value={form.status}
-                    onChange={(e) =>
-                      setField("status", e.target.value as AppointmentStatus)
-                    }
+                <select
+                  value={form.status}
+                  onChange={(e) =>
+                    setField("status", e.target.value as AppointmentStatus)
+                  }
                   className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1]"
                 >
                   <option value="Scheduled">Scheduled</option>

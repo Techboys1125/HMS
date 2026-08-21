@@ -18,16 +18,14 @@ export type FamilyMemberRelationship =
   | "OTHER";
 
 export interface FamilyMember {
-  verificationStatus: string;
-  patientName?: string | null;
-  id: string | number;
-  mrn?: string;
+  id: string;
   name: string;
-  fullName?: string;
+  patientName: string;
+  mrn: string;
   relationship: FamilyMemberRelationship | string;
   gender?: string;
   dateOfBirth?: string;
-  age?: number;
+  age: number;
   mobileNumber?: string;
   phone?: string;
   email?: string;
@@ -35,6 +33,23 @@ export interface FamilyMember {
   isPrimary?: boolean;
   status?: string;
   photoUrl?: string;
+  fullName?: string;
+
+  // Fields from FamilyMembersManagement
+  knownAllergies?: string[];
+  registeredMobile: string;
+  verificationStatus: string;
+  patientStatus: string;
+  lastAppointment: string;
+  avatarBg?: string;
+  upcomingAppointmentsCount: number;
+  pendingBillsCount: number;
+  pendingBillsAmount: number;
+  activePrescriptionsCount: number;
+  lastConsultationDate?: string;
+  primaryDoctor?: string;
+  latestBillId?: string;
+  latestBillAmount?: number;
 }
 
 export interface AddFamilyMemberRequest {
@@ -84,20 +99,3 @@ export interface FamilyMemberFormData {
   ecRelationship: string;
   ecMobile: string;
 }
-
-export const FAMILY_RELATIONSHIP_OPTIONS: Array<{
-  value: FamilyMemberRelationship;
-  label: string;
-}> = [
-  { value: "FATHER", label: "Father" },
-  { value: "MOTHER", label: "Mother" },
-  { value: "SPOUSE", label: "Spouse" },
-  { value: "SON", label: "Son" },
-  { value: "DAUGHTER", label: "Daughter" },
-  { value: "BROTHER", label: "Brother" },
-  { value: "SISTER", label: "Sister" },
-  { value: "GRANDFATHER", label: "Grandfather" },
-  { value: "GRANDMOTHER", label: "Grandmother" },
-  { value: "GUARDIAN", label: "Guardian" },
-  { value: "OTHER", label: "Other" },
-];

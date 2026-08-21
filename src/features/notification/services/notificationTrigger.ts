@@ -2,7 +2,9 @@ import { triggerInternalNotification } from "../api/notification.api";
 
 export function isEventAlreadyTriggered(eventId: string): boolean {
   try {
-    const list = JSON.parse(localStorage.getItem("hms_triggered_notifications:v1") || "[]");
+    const list = JSON.parse(
+      localStorage.getItem("hms_triggered_notifications:v1") || "[]",
+    );
     return list.includes(eventId);
   } catch {
     return false;
@@ -11,10 +13,15 @@ export function isEventAlreadyTriggered(eventId: string): boolean {
 
 export function markEventAsTriggered(eventId: string): void {
   try {
-    const list = JSON.parse(localStorage.getItem("hms_triggered_notifications:v1") || "[]");
+    const list = JSON.parse(
+      localStorage.getItem("hms_triggered_notifications:v1") || "[]",
+    );
     if (!list.includes(eventId)) {
       list.push(eventId);
-      localStorage.setItem("hms_triggered_notifications:v1", JSON.stringify(list));
+      localStorage.setItem(
+        "hms_triggered_notifications:v1",
+        JSON.stringify(list),
+      );
     }
   } catch (e) {
     console.error("[NotificationTrigger] Failed to save triggered event:", e);
@@ -23,69 +30,71 @@ export function markEventAsTriggered(eventId: string): void {
 
 export function getNotificationType(eventType: string): string {
   const et = String(eventType).toUpperCase();
-  if ([
-    "APPOINTMENT_CREATED_PATIENT",
-    "APPOINTMENT_CREATED_DOCTOR",
-    "APPOINTMENT_CREATED_ADMIN",
-    "APPOINTMENT_RESCHEDULED",
-    "APPOINTMENT_CANCELLED",
-    "APPOINTMENT_NO_SHOW",
-    "APPOINTMENT_REMINDER"
-  ].includes(et)) {
+  if (
+    [
+      "APPOINTMENT_CREATED_PATIENT",
+      "APPOINTMENT_CREATED_DOCTOR",
+      "APPOINTMENT_CREATED_ADMIN",
+      "APPOINTMENT_RESCHEDULED",
+      "APPOINTMENT_CANCELLED",
+      "APPOINTMENT_NO_SHOW",
+      "APPOINTMENT_REMINDER",
+    ].includes(et)
+  ) {
     return "APPOINTMENT";
   }
   if (et === "PRESCRIPTION_CREATED") {
     return "PRESCRIPTION";
   }
-  if ([
-    "INVOICE_GENERATED",
-    "PAYMENT_COMPLETED",
-    "PAYMENT_FAILED",
-    "BILL_FINALIZED",
-    "REFUND_PROCESSED"
-  ].includes(et)) {
+  if (
+    [
+      "INVOICE_GENERATED",
+      "PAYMENT_COMPLETED",
+      "PAYMENT_FAILED",
+      "BILL_FINALIZED",
+      "REFUND_PROCESSED",
+    ].includes(et)
+  ) {
     return "BILLING";
   }
-  if ([
-    "QUEUE_TOKEN_GENERATED",
-    "PATIENT_CALLED",
-    "PATIENT_CHECKED_IN",
-    "PATIENT_SKIPPED"
-  ].includes(et)) {
+  if (
+    [
+      "QUEUE_TOKEN_GENERATED",
+      "PATIENT_CALLED",
+      "PATIENT_CHECKED_IN",
+      "PATIENT_SKIPPED",
+    ].includes(et)
+  ) {
     return "QUEUE";
   }
-  if ([
-    "VITALS_COMPLETED",
-    "VITALS_UPDATED"
-  ].includes(et)) {
+  if (["VITALS_COMPLETED", "VITALS_UPDATED"].includes(et)) {
     return "QUEUE";
   }
-  if ([
-    "CONSULTATION_STARTED",
-    "CONSULTATION_COMPLETED",
-    "FOLLOW_UP_RECOMMENDED"
-  ].includes(et)) {
+  if (
+    [
+      "CONSULTATION_STARTED",
+      "CONSULTATION_COMPLETED",
+      "FOLLOW_UP_RECOMMENDED",
+    ].includes(et)
+  ) {
     return "SYSTEM";
   }
-  if ([
-    "PATIENT_REGISTERED",
-    "PATIENT_UPDATED_PATIENT",
-    "PATIENT_UPDATED_ADMIN",
-    "DOCTOR_SCHEDULE_UPDATED_DOCTOR",
-    "DOCTOR_SCHEDULE_UPDATED_RECEPTIONIST",
-    "DOCTOR_UNAVAILABLE"
-  ].includes(et)) {
+  if (
+    [
+      "PATIENT_REGISTERED",
+      "PATIENT_UPDATED_PATIENT",
+      "PATIENT_UPDATED_ADMIN",
+      "DOCTOR_SCHEDULE_UPDATED_DOCTOR",
+      "DOCTOR_SCHEDULE_UPDATED_RECEPTIONIST",
+      "DOCTOR_UNAVAILABLE",
+    ].includes(et)
+  ) {
     return "SYSTEM";
   }
-  if ([
-    "FAILED_LOGINS",
-    "ACCOUNT_LOCKED"
-  ].includes(et)) {
+  if (["FAILED_LOGINS", "ACCOUNT_LOCKED"].includes(et)) {
     return "CRITICAL_ALERT";
   }
-  if ([
-    "QUEUE_WAITING_THRESHOLD_EXCEEDED"
-  ].includes(et)) {
+  if (["QUEUE_WAITING_THRESHOLD_EXCEEDED"].includes(et)) {
     return "CRITICAL_ALERT";
   }
   return "SYSTEM";
@@ -93,71 +102,77 @@ export function getNotificationType(eventType: string): string {
 
 export function getSourceModule(eventType: string): string {
   const et = String(eventType).toUpperCase();
-  if ([
-    "PATIENT_REGISTERED",
-    "PATIENT_UPDATED_PATIENT",
-    "PATIENT_UPDATED_ADMIN"
-  ].includes(et)) {
+  if (
+    [
+      "PATIENT_REGISTERED",
+      "PATIENT_UPDATED_PATIENT",
+      "PATIENT_UPDATED_ADMIN",
+    ].includes(et)
+  ) {
     return "PATIENT";
   }
-  if ([
-    "DOCTOR_SCHEDULE_UPDATED_DOCTOR",
-    "DOCTOR_SCHEDULE_UPDATED_RECEPTIONIST",
-    "DOCTOR_UNAVAILABLE"
-  ].includes(et)) {
+  if (
+    [
+      "DOCTOR_SCHEDULE_UPDATED_DOCTOR",
+      "DOCTOR_SCHEDULE_UPDATED_RECEPTIONIST",
+      "DOCTOR_UNAVAILABLE",
+    ].includes(et)
+  ) {
     return "DOCTOR";
   }
-  if ([
-    "APPOINTMENT_CREATED_PATIENT",
-    "APPOINTMENT_CREATED_DOCTOR",
-    "APPOINTMENT_CREATED_ADMIN",
-    "APPOINTMENT_RESCHEDULED",
-    "APPOINTMENT_CANCELLED",
-    "APPOINTMENT_NO_SHOW",
-    "APPOINTMENT_REMINDER"
-  ].includes(et)) {
+  if (
+    [
+      "APPOINTMENT_CREATED_PATIENT",
+      "APPOINTMENT_CREATED_DOCTOR",
+      "APPOINTMENT_CREATED_ADMIN",
+      "APPOINTMENT_RESCHEDULED",
+      "APPOINTMENT_CANCELLED",
+      "APPOINTMENT_NO_SHOW",
+      "APPOINTMENT_REMINDER",
+    ].includes(et)
+  ) {
     return "APPOINTMENT";
   }
   if (et === "PATIENT_CHECKED_IN") {
     return "RECEPTION";
   }
-  if ([
-    "QUEUE_TOKEN_GENERATED",
-    "PATIENT_CALLED",
-    "PATIENT_SKIPPED",
-    "QUEUE_WAITING_THRESHOLD_EXCEEDED"
-  ].includes(et)) {
+  if (
+    [
+      "QUEUE_TOKEN_GENERATED",
+      "PATIENT_CALLED",
+      "PATIENT_SKIPPED",
+      "QUEUE_WAITING_THRESHOLD_EXCEEDED",
+    ].includes(et)
+  ) {
     return "QUEUE";
   }
-  if ([
-    "VITALS_COMPLETED",
-    "VITALS_UPDATED"
-  ].includes(et)) {
+  if (["VITALS_COMPLETED", "VITALS_UPDATED"].includes(et)) {
     return "QUEUE";
   }
   if (et === "PRESCRIPTION_CREATED") {
     return "PRESCRIPTION";
   }
-  if ([
-    "INVOICE_GENERATED",
-    "PAYMENT_COMPLETED",
-    "PAYMENT_FAILED",
-    "BILL_FINALIZED",
-    "REFUND_PROCESSED"
-  ].includes(et)) {
+  if (
+    [
+      "INVOICE_GENERATED",
+      "PAYMENT_COMPLETED",
+      "PAYMENT_FAILED",
+      "BILL_FINALIZED",
+      "REFUND_PROCESSED",
+    ].includes(et)
+  ) {
     return "BILLING";
   }
-  if ([
-    "CONSULTATION_STARTED",
-    "CONSULTATION_COMPLETED",
-    "FOLLOW_UP_RECOMMENDED"
-  ].includes(et)) {
+  if (
+    [
+      "CONSULTATION_STARTED",
+      "CONSULTATION_COMPLETED",
+      "FOLLOW_UP_RECOMMENDED",
+    ].includes(et)
+  ) {
     return "CONSULTATION";
   }
-  if ([
-    "FAILED_LOGINS",
-    "ACCOUNT_LOCKED"
-  ].includes(et)) {
+  if (["FAILED_LOGINS", "ACCOUNT_LOCKED"].includes(et)) {
     return "SECURITY";
   }
   return "SYSTEM";
@@ -176,7 +191,13 @@ export interface TriggerNotificationParams {
   actionLabel?: string;
   actionUrl?: string;
   receivers: Array<{
-    role: "Hospital Admin" | "Doctor" | "Receptionist" | "Accountant" | "Nurse" | "Patient Portal";
+    role:
+      | "Hospital Admin"
+      | "Doctor"
+      | "Receptionist"
+      | "Accountant"
+      | "Nurse"
+      | "Patient Portal";
     userId?: number | string;
     messageOverride?: string;
     titleOverride?: string;
@@ -207,6 +228,7 @@ export async function triggerNotificationMatrix(
       const resolvedModule =
         receiver.moduleOverride || params.module || getSourceModule(eventType);
 
+<<<<<<< HEAD
       if (
         receiver.userId !== undefined &&
         receiver.userId !== null &&
@@ -251,8 +273,56 @@ export async function triggerNotificationMatrix(
   );
 
   const anyDeliverySucceeded = results.some(Boolean);
+=======
+    const eventType = receiver.eventTypeOverride || params.eventType;
+    const resolvedType =
+      receiver.typeOverride || params.type || getNotificationType(eventType);
+    const resolvedModule =
+      receiver.moduleOverride || params.module || getSourceModule(eventType);
+
+    if (
+      receiver.userId !== undefined &&
+      receiver.userId !== null &&
+      String(receiver.userId) !== ""
+    ) {
+      if (
+        currentUserId !== undefined &&
+        String(receiver.userId) === String(currentUserId)
+      ) {
+        continue;
+      }
+      try {
+        await triggerInternalNotification({
+          eventId: params.eventId,
+          userId: receiver.userId,
+          title,
+          message,
+          type: resolvedType,
+          priority,
+          referenceType: params.referenceType,
+          referenceId: params.referenceId,
+          sourceModule: resolvedModule,
+          eventType: eventType,
+          receiverRole: receiver.role,
+          actionLabel: params.actionLabel,
+          actionUrl: params.actionUrl,
+        });
+        anyDeliverySucceeded = true;
+      } catch (err) {
+        console.error(
+          `[NotificationTrigger] Failed to send to specific user ${receiver.userId}:`,
+          err,
+        );
+      }
+    } else {
+      console.warn(
+        `[NotificationTrigger] Skipped role-based notification for "${receiver.role}" because recipient resolution requires /api/v1/admin/users.`,
+      );
+    }
+  }
+>>>>>>> 96e9ce1 (refactor: cleanup unused components, hooks, and services while updating core feature modules)
 
   if (anyDeliverySucceeded) {
     markEventAsTriggered(params.eventId);
   }
-};
+}

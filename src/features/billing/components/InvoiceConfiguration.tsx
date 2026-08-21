@@ -1,5 +1,5 @@
 import { FileText, Percent } from "lucide-react";
-import { PP} from "../constants/billing.constants";
+import { PP } from "../constants/billing.constants";
 import type {
   InvoiceConfiguration as InvConfig,
   TaxConfiguration as TaxConfig,

@@ -48,6 +48,7 @@ export interface Address {
  * Patient record returned from GET /api/v1/patients
  */
 export interface Patient {
+  registeredMobile: string;
   userId: number;
   insuranceDetails: {
     provider?: string;
@@ -255,6 +256,7 @@ export type VisitRecord = {
 };
 export type PatientAppointment = {
   id: string;
+  patientName?: string;
   date: string;
   time: string;
   doctorId?: number | string;

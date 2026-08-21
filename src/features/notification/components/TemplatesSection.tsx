@@ -18,7 +18,10 @@ export interface TemplatesSectionProps {
   onViewTemplate: (template: TemplateRow) => void;
 }
 
-export function TemplatesSection({ templates, onViewTemplate }: TemplatesSectionProps) {
+export function TemplatesSection({
+  templates,
+  onViewTemplate,
+}: TemplatesSectionProps) {
   return (
     <div
       style={{

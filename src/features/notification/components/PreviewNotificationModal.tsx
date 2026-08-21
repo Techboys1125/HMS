@@ -23,8 +23,7 @@ export function PreviewNotificationModal({
 
   const title = template?.name || "Notification";
   const body =
-    template?.body ||
-    "This template has no message body defined yet.";
+    template?.body || "This template has no message body defined yet.";
 
   return (
     <div
@@ -149,7 +148,9 @@ export function PreviewNotificationModal({
           </div>
         </div>
 
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+        <div
+          style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}
+        >
           {canSendTest && (
             <button
               onClick={onSendTest}
