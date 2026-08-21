@@ -48,11 +48,12 @@ export function PatientAppointmentsTab({
     };
   }, [patient.mrn]);
 
+  const safeAppointments = Array.isArray(appointments) ? appointments : [];
   const filtered = isOwnProfile
-    ? appointments.filter(
+    ? safeAppointments.filter(
         (a) => a.status !== "Cancelled" && a.status !== "Completed",
       )
-    : appointments;
+    : safeAppointments;
 
   if (loading) {
     return (
@@ -82,34 +83,48 @@ export function PatientAppointmentsTab({
         </div>
       ) : (
         <div className="space-y-2">
-          {filtered.map((appt) => (
-            <div
-              key={appt.id}
-              className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-50 text-[#0D47A1] flex items-center justify-center text-xs font-bold">
-                  {appt.doctor?.charAt(0) || "D"}
+          {filtered.map((appt) => {
+            const rawDoc = appt.doctor ?? (appt as unknown as Record<string, unknown>).doctorName;
+            const doctorName =
+              typeof rawDoc === "string"
+                ? rawDoc
+                : rawDoc && typeof rawDoc === "object"
+                  ? (rawDoc as { fullName?: string; name?: string; doctorName?: string }).fullName ||
+                    (rawDoc as { fullName?: string; name?: string; doctorName?: string }).name ||
+                    (rawDoc as { fullName?: string; name?: string; doctorName?: string }).doctorName ||
+                    "Doctor"
+                  : "Doctor";
+            const initial = String(doctorName).replace(/^Dr\.?\s*/i, "").trim().charAt(0) || "D";
+
+            return (
+              <div
+                key={appt.id}
+                className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-50 text-[#0D47A1] flex items-center justify-center text-xs font-bold">
+                    {initial}
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-[#111827]">
+                      {doctorName}
+                    </div>
+                    <div className="text-[11px] text-[#64748B]">
+                      {appt.date} at {appt.time} · {appt.department}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-xs font-bold text-[#111827]">
-                    {appt.doctor || "—"}
-                  </div>
-                  <div className="text-[11px] text-[#64748B]">
-                    {appt.date} at {appt.time} · {appt.department}
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${APPT_STATUS_STYLE[appt.status ?? ""] || "bg-slate-100 text-slate-600 border-slate-200"}`}
+                  >
+                    {appt.status}
+                  </span>
+                  <ChevronRight size={14} className="text-slate-400" />
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${APPT_STATUS_STYLE[appt.status ?? ""] || "bg-slate-100 text-slate-600 border-slate-200"}`}
-                >
-                  {appt.status}
-                </span>
-                <ChevronRight size={14} className="text-slate-400" />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

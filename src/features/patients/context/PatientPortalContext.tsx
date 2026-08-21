@@ -48,15 +48,64 @@ interface PatientPortalPayload {
   allergies?: string[];
 }
 
-function mapApiToFamilyMember(p: PatientPortalPayload): FamilyMember {
+function mapApiToFamilyMember(
+  p: PatientPortalPayload,
+  currentUser?: {
+    fullName?: string;
+    name?: string;
+    mrn?: string;
+    patientId?: string;
+  } | null,
+): FamilyMember {
+  let customSaved: Record<string, unknown> = {};
+  try {
+    const keys = [
+      p.mrn,
+      p.id,
+      currentUser?.mrn,
+      currentUser?.patientId,
+      "me",
+    ].filter(Boolean);
+    for (const k of keys) {
+      const stored = localStorage.getItem(`patient_profile_custom_${k}`);
+      if (stored) {
+        customSaved = { ...customSaved, ...JSON.parse(stored) };
+      }
+    }
+  } catch {
+    // Ignore
+  }
+
+  const isSelf =
+    String(p.relationship).toUpperCase() === "SELF" ||
+    (currentUser?.mrn && p.mrn === currentUser.mrn) ||
+    (currentUser?.patientId && p.mrn === currentUser.patientId);
+
+  const resolvedName =
+    (isSelf &&
+      ((customSaved.name as string) ||
+        currentUser?.fullName ||
+        currentUser?.name)) ||
+    (customSaved.name as string) ||
+    p.patientName ||
+    p.fullName ||
+    p.name ||
+    "Patient";
+
   return {
     id: String(p.id ?? p.mrn ?? Math.random()),
-    patientName: p.patientName || p.fullName || "Unknown",
+    patientName: resolvedName,
+    name: resolvedName,
     mrn: p.mrn || "",
     relationship: (p.relationship as FamilyMember["relationship"]) || "Self",
     age: p.age ?? 0,
     gender: (p.gender as FamilyMember["gender"]) || "Other",
-    registeredMobile: p.registeredMobile || p.mobileNumber || p.phone || "",
+    registeredMobile:
+      (customSaved.phone as string) ||
+      p.registeredMobile ||
+      p.mobileNumber ||
+      p.phone ||
+      "",
     verificationStatus: "Verified",
     patientStatus: "Active",
     lastAppointment: p.lastAppointment || "",
@@ -84,7 +133,7 @@ export function PatientPortalProvider({ children }: { children: ReactNode }) {
       .then((data) => {
         if (cancelled) return;
         const mapped: FamilyMember[] = (Array.isArray(data) ? data : []).map(
-          (p) => mapApiToFamilyMember(p as PatientPortalPayload),
+          (p) => mapApiToFamilyMember(p as PatientPortalPayload, user),
         );
         const self = mapped.find(
           (member) => String(member.relationship).toUpperCase() === "SELF",
@@ -114,7 +163,7 @@ export function PatientPortalProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [isPatient, user?.patientId]);
+  }, [isPatient, user]);
 
   useEffect(() => {
     let cancelled = false;
@@ -125,7 +174,7 @@ export function PatientPortalProvider({ children }: { children: ReactNode }) {
         const data = await patientsApi.getMyPatients();
         if (cancelled) return;
         const mapped: FamilyMember[] = (Array.isArray(data) ? data : []).map(
-          (p) => mapApiToFamilyMember(p as PatientPortalPayload),
+          (p) => mapApiToFamilyMember(p as PatientPortalPayload, user),
         );
         const self = mapped.find(
           (member) => String(member.relationship).toUpperCase() === "SELF",
@@ -156,7 +205,7 @@ export function PatientPortalProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [isPatient, user?.patientId]);
+  }, [isPatient, user]);
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {

@@ -8,30 +8,12 @@ import {
   TrendingUp,
   Clock,
   UserX,
-  ChevronLeft,
-  ChevronRight,
-  UserCheck,
-  Droplets,
-  Phone,
-  Stethoscope,
-  Edit,
-  Receipt,
-  Printer,
-  Activity,
-  Pill,
-  FileText,
-  MoreVertical,
-  Download,
-  Plus,
-  Eye,
-  AlertTriangle,
-  CheckCircle2,
 } from "lucide-react";
 import { usePatients, useDoctorPatients } from "../hooks/usePatients";
 import { PP, RB } from "../constants/patient.fonts";
 import { PatientTable } from "../components/PatientTable";
 import { usePermissions } from "../../../permissions";
-import type { Patient, ScreenPatient } from "../types/patient.types";
+import type { Patient } from "../types/patient.types";
 import { RegisterPatientScreen } from "./RegisterPatientScreen";
 import { PatientProfileScreen } from "./PatientProfileScreen";
 import { BookAppointmentDrawer } from "../../appointments/components/BookAppointmentDrawer";
@@ -40,200 +22,6 @@ import {
   ActivatePatientDialog,
 } from "../components/PatientStatusDialogs";
 import { patientsApi } from "../api/patient.api";
-import { Avatar } from "../components/Avatar";
-import { StatusBadge } from "../components/StatusBadges";
-import {
-  ProfileBookApptDrawer,
-  ProfileApptDetailsDrawer,
-  ProfileInvoiceDrawer,
-  ProfileDocDrawer,
-  ProfileVisitDetailsDrawer,
-  EditPatientInformationDrawer,
-  RegisterPatientDrawer,
-} from "../components/PatientDrawers";
-
-interface ApptDetail {
-  id?: string;
-  status?: string;
-  doctor?: string;
-  department?: string;
-  date?: string;
-  time?: string;
-  type?: string;
-  notes?: string;
-}
-
-interface InvoiceDetail {
-  id?: string;
-  date?: string;
-  status?: string;
-  description?: string;
-  amount?: number;
-  [key: string]: unknown;
-}
-
-interface DocDetail {
-  title?: string;
-  category?: string;
-  date?: string;
-  size?: string;
-  doctor?: string;
-  [key: string]: unknown;
-}
-
-interface VisitDetail {
-  id?: string;
-  date?: string;
-  time?: string;
-  doctor?: string;
-  department?: string;
-  chiefComplaint?: string;
-  diagnosis?: string;
-  treatmentSummary?: string;
-  rxStatus?: string;
-  billingStatus?: string;
-}
-
-const mockAppointments = [
-  {
-    id: "APT-1024",
-    doctor: "Dr. A. Mehta",
-    department: "Cardiology",
-    date: "2024-03-15",
-    time: "10:30 AM",
-    status: "Scheduled",
-  },
-  {
-    id: "APT-1018",
-    doctor: "Dr. P. Sharma",
-    department: "General Medicine",
-    date: "2024-03-28",
-    time: "02:00 PM",
-    status: "Scheduled",
-  },
-  {
-    id: "APT-0982",
-    doctor: "Dr. A. Mehta",
-    department: "Cardiology",
-    date: "2024-03-12",
-    time: "09:45 AM",
-    status: "Completed",
-  },
-];
-
-const mockPrescriptions = [
-  {
-    id: "RX-89201",
-    doctor: "Dr. A. Mehta",
-    date: "2024-03-12",
-    meds: [
-      {
-        name: "Lisinopril 10mg",
-        dosage: "1 tablet daily",
-        duration: "30 days",
-        instructions: "Take in the morning with water",
-      },
-      {
-        name: "Metformin 500mg",
-        dosage: "1 tablet twice daily",
-        duration: "60 days",
-        instructions: "Take with meals",
-      },
-      {
-        name: "Atorvastatin 20mg",
-        dosage: "1 tablet at bedtime",
-        duration: "30 days",
-        instructions: "Avoid grapefruit juice",
-      },
-    ],
-  },
-];
-
-const mockInvoices = [
-  {
-    id: "INV-80901",
-    date: "2024-03-12",
-    description: "Cardiology OPD Consultation & ECG Test Fee",
-    amount: 125.0,
-    dueDate: "2024-03-26",
-    status: "Pending",
-  },
-  {
-    id: "INV-80842",
-    date: "2024-02-10",
-    description: "General OPD Consultation & Blood Profile",
-    amount: 220.0,
-    dueDate: "2024-02-24",
-    status: "Paid",
-  },
-];
-
-const mockDocuments = [
-  {
-    id: "DOC-001",
-    name: "Patient Registration Form.pdf",
-    title: "Patient Registration Form.pdf",
-    date: "Mar 12, 2024",
-    size: "1.8 MB",
-  },
-  {
-    id: "DOC-002",
-    name: "ECG Report Summary.pdf",
-    title: "ECG Report Summary.pdf",
-    date: "Mar 12, 2024",
-    size: "2.4 MB",
-  },
-  {
-    id: "DOC-003",
-    name: "Lab Results - Blood Profile.pdf",
-    title: "Lab Results - Blood Profile.pdf",
-    date: "Feb 10, 2024",
-    size: "1.2 MB",
-  },
-];
-
-const mockVisits = [
-  {
-    id: "VIS-2024-001",
-    date: "2024-03-12",
-    doctor: "Dr. A. Mehta",
-    department: "Cardiology",
-    diagnosis: "Primary Essential Hypertension",
-    treatmentSummary: "Oral anti-hypertensive daily (Lisinopril 10mg)",
-    rxStatus: "Issued",
-    billingStatus: "Paid",
-  },
-  {
-    id: "VIS-2024-002",
-    date: "2024-02-10",
-    doctor: "Dr. P. Sharma",
-    department: "General Medicine",
-    diagnosis: "Type 2 Diabetes Mellitus",
-    treatmentSummary: "Dietary control & Metformin 500mg BD",
-    rxStatus: "Issued",
-    billingStatus: "Paid",
-  },
-  {
-    id: "VIS-2023-089",
-    date: "2023-11-14",
-    doctor: "Dr. R. Kapoor",
-    department: "Neurology",
-    diagnosis: "Mild Bronchial Asthma",
-    treatmentSummary: "Inhaler PRN during seasonal exacerbation",
-    rxStatus: "Pending",
-    billingStatus: "Paid",
-  },
-  {
-    id: "VIS-2023-045",
-    date: "2023-08-05",
-    doctor: "Dr. S. Patel",
-    department: "Gynecology",
-    diagnosis: "Routine Health Screening",
-    treatmentSummary: "Normal vitals, general wellness guidance",
-    rxStatus: "Pending",
-    billingStatus: "Not Paid",
-  },
-];
 
 export function PatientSearchScreen({
   onPatientSelect,
@@ -273,58 +61,6 @@ export function PatientSearchScreen({
   const [viewingPatientMrn, setViewingPatientMrn] = useState<string | null>(
     null,
   );
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
-  const [isBookDrawerOpen, setIsBookDrawerOpen] = useState(false);
-  const [isRegisterDrawerOpen, setIsRegisterDrawerOpen] = useState(false);
-  const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
-  const [selectedAppt, setSelectedAppt] = useState<ApptDetail | null>(null);
-  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceDetail | null>(
-    null,
-  );
-  const [selectedDoc, setSelectedDoc] = useState<DocDetail | null>(null);
-  const [selectedVisit, setSelectedVisit] = useState<VisitDetail | null>(null);
-  const [isMoreActionsOpen, setIsMoreActionsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("overview");
-
-  // Visit history search/filters
-  const [visitSearch, setVisitSearch] = useState("");
-  const [visitDoctorFilter, setVisitDoctorFilter] = useState("All Doctors");
-  const [visitDeptFilter, setVisitDeptFilter] = useState("All Departments");
-  const [visitDateFilter, setVisitDateFilter] = useState("All Time");
-
-  const triggerToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3000);
-  };
-
-  const tabs = [
-    { id: "overview", label: "Overview" },
-    { id: "appointments", label: "Appointments" },
-    { id: "medical-history", label: "Medical History" },
-    { id: "visit-history", label: "Visit History" },
-    { id: "prescriptions", label: "Prescriptions" },
-    { id: "billing-payments", label: "Billing & Payments" },
-    { id: "documents", label: "Documents" },
-  ];
-
-  const filteredVisits = useMemo(() => {
-    return mockVisits.filter((v) => {
-      const q = visitSearch.toLowerCase().trim();
-      const matchSearch =
-        q === "" ||
-        v.id.toLowerCase().includes(q) ||
-        v.doctor.toLowerCase().includes(q) ||
-        v.diagnosis.toLowerCase().includes(q);
-
-      const matchDoctor =
-        visitDoctorFilter === "All Doctors" || v.doctor === visitDoctorFilter;
-      const matchDept =
-        visitDeptFilter === "All Departments" ||
-        v.department === visitDeptFilter;
-
-      return matchSearch && matchDoctor && matchDept;
-    });
-  }, [visitSearch, visitDoctorFilter, visitDeptFilter]);
 
   const permissions = usePermissions();
   const activeRole = (
@@ -570,22 +306,15 @@ export function PatientSearchScreen({
           if (onBookAppointmentClick) {
             onBookAppointmentClick(mrn || viewingPatientMrn);
           } else {
-            setIsBookDrawerOpen(true);
+            setShowBookDrawer(true);
           }
         }}
         onCheckInClick={(apptId) => {
           if (apptId) {
-            patientsApi.checkInAppointment(apptId).then((ok) => {
-              if (ok) triggerToast("Patient checked in successfully.");
-              else triggerToast("Failed to check-in patient.");
-            });
-          } else {
-            triggerToast("Patient checked in successfully.");
+            patientsApi.checkInAppointment(apptId).catch(() => {});
           }
         }}
-        onEditPatient={() => {
-          setIsEditDrawerOpen(true);
-        }}
+        onEditPatient={() => {}}
       />
     );
 }

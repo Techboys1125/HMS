@@ -1,16 +1,29 @@
+import { useState } from "react";
+
 export function Avatar({
   name,
   size = "sm",
+  src,
+  photoUrl,
 }: {
   name: string;
   size?: "sm" | "md" | "lg";
+  src?: string | null;
+  photoUrl?: string | null;
 }) {
+  const [failedSource, setFailedSource] = useState<string | null>(null);
+  const imageSource = src || photoUrl;
+  const imageError = failedSource === imageSource;
+
   const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+    ? name
+        .trim()
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "?";
 
   const colors = [
     "bg-[#0D47A1]",
@@ -19,13 +32,24 @@ export function Avatar({
     "bg-rose-500",
     "bg-amber-600",
   ];
-  const color = colors[(name.charCodeAt(0) || 0) % colors.length];
+  const color = colors[((name && name.charCodeAt(0)) || 0) % colors.length];
 
   const sizes = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
     lg: "w-11 h-11 text-base",
   };
+
+  if (imageSource && !imageError) {
+    return (
+      <img
+        src={imageSource}
+        alt={name || "Avatar"}
+        onError={() => setFailedSource(imageSource)}
+        className={`${sizes[size].split(" ")[0]} ${sizes[size].split(" ")[1]} rounded-full object-cover shrink-0 border border-slate-200`}
+      />
+    );
+  }
 
   return (
     <div

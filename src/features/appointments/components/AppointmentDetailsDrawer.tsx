@@ -211,7 +211,7 @@ export function AppointmentDetailsDrawer({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="font-mono text-sm font-bold text-[#0D47A1]">
-                  {apt.id}
+                  {apt.appointmentNumber || apt.id}
                 </span>
                 <span className="text-xs text-slate-400 font-mono">
                   ({apt.tokenNo})
@@ -391,7 +391,7 @@ export function AppointmentDetailsDrawer({
                       Appointment ID
                     </span>
                     <strong className="text-[#0D47A1] font-mono">
-                      {apt.id}
+                      {apt.appointmentNumber || apt.id}
                     </strong>
                   </div>
                   <div>

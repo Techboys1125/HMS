@@ -84,14 +84,17 @@ const DAY_UPPER_TO_TITLE: Record<string, string> = {
 const mapHospitalScheduleToFormAvailability = (
   schedule: OpdWeeklySchedule,
 ): typeof INITIAL_AVAILABILITY => {
-  const result = { ...INITIAL_AVAILABILITY };
-  if (!schedule?.weeklySchedule) return result;
+  const result: Record<
+    string,
+    { isAvailable: boolean; startTime: string; endTime: string }
+  > = { ...INITIAL_AVAILABILITY };
+  if (!schedule?.weeklySchedule) return result as typeof INITIAL_AVAILABILITY;
   for (const day of schedule.weeklySchedule) {
     const titleCase = DAY_UPPER_TO_TITLE[day.dayOfWeek.toUpperCase()];
     if (titleCase && result[titleCase] !== undefined) {
       const interval = day.workingIntervals?.[0];
       if (!interval) continue;
-      let startTime = interval.startTime || "";
+      const startTime = interval.startTime || "";
       let endTime = interval.endTime || "";
       if (day.breaks && day.breaks.length > 0) {
         for (const brk of day.breaks) {
@@ -114,7 +117,7 @@ const mapHospitalScheduleToFormAvailability = (
       };
     }
   }
-  return result;
+  return result as typeof INITIAL_AVAILABILITY;
 };
 
 const isTimeWithinWindow = (
@@ -210,6 +213,9 @@ export const useCreateStaffForm = (
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [tempPassword] = useState(
     () => "TempPass#" + Math.floor(1000 + Math.random() * 9000),
   );
@@ -218,7 +224,81 @@ export const useCreateStaffForm = (
   const totalSteps = form.role === "DOCTOR" ? 4 : 3;
   const empIdPreview = `EMP-${getRolePrefix(form.role)}-XXXX`;
 
+  const handlePhotoUpload = async (file: File) => {
+    if (!file) return;
+
+    // 1. Validate file type
+    const validTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "image/svg+xml",
+    ];
+    if (!validTypes.includes(file.type.toLowerCase())) {
+      const err =
+        "Please upload a valid image file (JPG, PNG, WEBP, GIF, SVG).";
+      setPhotoUploadError(err);
+      triggerToast(err, "error");
+      return;
+    }
+
+    // 2. Validate file size (max 5MB)
+    const maxSizeBytes = 5 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      const err = `Image file size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds maximum allowed limit of 5MB.`;
+      setPhotoUploadError(err);
+      triggerToast(err, "error");
+      return;
+    }
+
+    // 3. Local object URL preview
+    const localPreview = URL.createObjectURL(file);
+    setPhotoPreviewUrl(localPreview);
+    setPhotoUploadError(null);
+    setPhotoUploading(true);
+
+    try {
+      const uploadedUrl = await usersApi.uploadPhoto(file);
+      setForm((prev) => ({
+        ...prev,
+        photoUrl: uploadedUrl,
+        photo: uploadedUrl,
+      }));
+      setPhotoPreviewUrl(uploadedUrl);
+      setPhotoUploadError(null);
+      triggerToast("Profile photo uploaded successfully!", "success");
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to upload profile photo.";
+      setPhotoUploadError(msg);
+      triggerToast(msg, "error");
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setForm((prev) => ({
+      ...prev,
+      photoUrl: "",
+      photo: "",
+    }));
+    setPhotoPreviewUrl(null);
+    setPhotoUploadError(null);
+    triggerToast("Profile photo removed.", "success");
+  };
+
   const validateStep = (stepNumber: number): boolean => {
+    if (photoUploading) {
+      triggerToast(
+        "Please wait for the profile photo upload to finish.",
+        "error",
+      );
+      return false;
+    }
+
     const tempErrors: FormErrors = {};
     let isValid = true;
 
@@ -327,8 +407,7 @@ export const useCreateStaffForm = (
         for (const [day, sched] of Object.entries(form.availability)) {
           if (sched.isAvailable) {
             const hospitalDay = hospitalSchedule.weeklySchedule.find(
-              (d) =>
-                d.dayOfWeek.toUpperCase() === day.toUpperCase(),
+              (d) => d.dayOfWeek.toUpperCase() === day.toUpperCase(),
             );
             // Rule 1: Hospital closed day — doctor cannot schedule
             if (hospitalDay && !hospitalDay.isOpen) {
@@ -393,7 +472,7 @@ export const useCreateStaffForm = (
                       ...tempErrors.availabilityDays,
                       [day]: {
                         ...tempErrors.availabilityDays?.[day],
-                        endTime: `Availability cannot overlap hospital break "${brk.breakName || "Break"}" (${brk.startTime}–${brk.endTime}). Adjust your hours to avoid the break period.`,
+                        endTime: `Availability cannot overlap hospital break "${(brk as { breakName?: string; label?: string }).breakName || brk.label || "Break"}" (${brk.startTime}–${brk.endTime}). Adjust your hours to avoid the break period.`,
                       },
                     };
                     isValid = false;
@@ -626,8 +705,7 @@ export const useCreateStaffForm = (
         for (const [day, sched] of Object.entries(form.availability)) {
           if (sched.isAvailable) {
             const hospitalDay = hospitalSchedule.weeklySchedule.find(
-              (d) =>
-                d.dayOfWeek.toUpperCase() === day.toUpperCase(),
+              (d) => d.dayOfWeek.toUpperCase() === day.toUpperCase(),
             );
             // Rule 1: Hospital closed day — doctor cannot schedule
             if (hospitalDay && !hospitalDay.isOpen) {
@@ -692,7 +770,7 @@ export const useCreateStaffForm = (
                       ...tempErrors.availabilityDays,
                       [day]: {
                         ...tempErrors.availabilityDays?.[day],
-                        endTime: `Availability cannot overlap hospital break "${brk.breakName || "Break"}" (${brk.startTime}–${brk.endTime}). Adjust your hours to avoid the break period.`,
+                        endTime: `Availability cannot overlap hospital break "${(brk as { breakName?: string; label?: string }).breakName || brk.label || "Break"}" (${brk.startTime}–${brk.endTime}). Adjust your hours to avoid the break period.`,
                       },
                     };
                     isValid = false;
@@ -711,6 +789,13 @@ export const useCreateStaffForm = (
 
   const handleSaveStaff = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (photoUploading) {
+      triggerToast(
+        "Please wait for profile photo upload to finish before saving.",
+        "error",
+      );
+      return;
+    }
     if (!validateForm()) {
       triggerToast(
         "Please correct the validation errors in the form.",
@@ -929,6 +1014,9 @@ export const useCreateStaffForm = (
     form,
     errors,
     isSubmitting,
+    photoUploading,
+    photoUploadError,
+    photoPreviewUrl,
     tempPassword,
     empIdPreview,
     currentStep,
@@ -940,6 +1028,8 @@ export const useCreateStaffForm = (
     setFieldValue,
     setNestedFieldValue,
     validateField,
+    handlePhotoUpload,
+    handleRemovePhoto,
     copyMondayHoursToWeekdays,
     handleSaveStaff,
   };

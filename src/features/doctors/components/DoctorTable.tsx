@@ -17,6 +17,7 @@ import type {
 import type { AppPermission } from "../../../permissions/types";
 import { usePermissions } from "../../../permissions";
 import { PP } from "../constants/doctors.constants";
+import UserAvatar from "../../../common/components/UserAvatar";
 
 function getAvailabilityBadgeStyle(avail: DoctorAvailability) {
   switch (avail) {
@@ -245,15 +246,6 @@ export function DoctorTable({
               </tr>
             ) : (
               paginatedDoctors.map((doc) => {
-                const initials = doc.name
-                  .replace("Dr. ", "")
-                  .split(" ")
-                  .filter((n) => n.length > 0)
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2);
-
                 const availBadge = getAvailabilityBadgeStyle(doc.availability);
 
                 return (
@@ -273,12 +265,11 @@ export function DoctorTable({
                       className="px-4 py-3.5"
                     >
                       <div className="flex items-center gap-3">
-                        <div
-                          className="w-8 h-8 rounded-xl bg-teal-100 text-[#009688] font-bold text-xs flex items-center justify-center shrink-0 border border-teal-200"
-                          style={{ fontFamily: PP }}
-                        >
-                          {initials}
-                        </div>
+                        <UserAvatar
+                          name={doc.name}
+                          size="sm"
+                          src={doc.photoUrl || doc.photo || undefined}
+                        />
                         <div>
                           <span
                             className="font-bold text-[#111827] block group-hover:text-[#0D47A1] transition-colors"

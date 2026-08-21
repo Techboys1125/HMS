@@ -49,7 +49,11 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
 
   const fetchPatients = async () => {
     try {
-      const response = await patientsApi.listPatients();
+      setLoading(true);
+      const isDoctor = currentRole === "DOCTOR";
+      const response = isDoctor
+        ? await patientsApi.getDoctorPatients(undefined, { page: 0, size: 100 })
+        : await patientsApi.listPatients();
       const records = response.items.map(mapApiPatientToPatientRecord);
       setPatients(records);
       setTotalPatients(response.total);
@@ -63,8 +67,12 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
 
   useEffect(() => {
     let cancelled = false;
-    patientsApi
-      .listPatients()
+    const isDoctor = currentRole === "DOCTOR";
+    const request = isDoctor
+      ? patientsApi.getDoctorPatients(undefined, { page: 0, size: 100 })
+      : patientsApi.listPatients();
+
+    request
       .then((response) => {
         if (cancelled) return;
         const records = response.items.map(mapApiPatientToPatientRecord);
@@ -81,7 +89,7 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [currentRole]);
 
   const hasActiveFilters =
     filters.searchQuery !== "" ||
@@ -90,20 +98,53 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
     filters.registrationTypeFilter !== "All";
 
   const filteredPatients = patients.filter((p) => {
-    const q = filters.searchQuery.toLowerCase();
+    const q = filters.searchQuery.toLowerCase().trim();
     const matchesSearch =
       !q ||
       p.mrn?.toLowerCase().includes(q) ||
       p.fullName?.toLowerCase().includes(q) ||
+      p.name?.toLowerCase().includes(q) ||
+      p.patientName?.toLowerCase().includes(q) ||
       p.phone?.toLowerCase().includes(q) ||
-      p.mobileNumber?.toLowerCase().includes(q);
-    const matchesGender =
-      filters.genderFilter === "All" || p.gender === filters.genderFilter;
-    const matchesStatus =
-      filters.statusFilter === "All" || p.status === filters.statusFilter;
-    const matchesRegType =
-      filters.registrationTypeFilter === "All" ||
-      p.registrationType === filters.registrationTypeFilter;
+      p.mobileNumber?.toLowerCase().includes(q) ||
+      p.email?.toLowerCase().includes(q) ||
+      p.nationalId?.toLowerCase().includes(q);
+
+    // Gender filter (normalized matching)
+    let matchesGender = true;
+    if (filters.genderFilter !== "All") {
+      const pGender = (p.gender || "").toUpperCase();
+      const fGender = filters.genderFilter.toUpperCase();
+      matchesGender =
+        pGender === fGender ||
+        (fGender === "MALE" && (pGender === "MALE" || pGender === "M")) ||
+        (fGender === "FEMALE" && (pGender === "FEMALE" || pGender === "F")) ||
+        (fGender === "OTHER" &&
+          pGender !== "MALE" &&
+          pGender !== "M" &&
+          pGender !== "FEMALE" &&
+          pGender !== "F");
+    }
+
+    // Status filter (normalized matching)
+    let matchesStatus = true;
+    if (filters.statusFilter !== "All") {
+      const pStatus = (p.status || "").toUpperCase();
+      const fStatus = filters.statusFilter.toUpperCase();
+      matchesStatus = pStatus === fStatus;
+    }
+
+    // Registration Type filter (normalized matching)
+    let matchesRegType = true;
+    if (filters.registrationTypeFilter !== "All") {
+      const pReg = (p.registrationType || "").toUpperCase().replace(/[\s_-]/g, "");
+      const fReg = filters.registrationTypeFilter.toUpperCase().replace(/[\s_-]/g, "");
+      matchesRegType =
+        pReg === fReg ||
+        (fReg.includes("ONLINE") && pReg.includes("ONLINE")) ||
+        (fReg.includes("WALK") && (pReg.includes("WALK") || pReg.includes("IN")));
+    }
+
     return matchesSearch && matchesGender && matchesStatus && matchesRegType;
   });
 
@@ -222,13 +263,15 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
             />
             <span>{loading ? "Refreshing..." : "Refresh"}</span>
           </button>
-          <button
-            onClick={() => setShowBookDrawer(true)}
-            className="px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors flex items-center gap-2 shadow-sm shrink-0"
-            style={{ fontFamily: PP }}
-          >
-            <Calendar size={15} /> Book Appointment
-          </button>
+          {currentRole !== "DOCTOR" && (
+            <button
+              onClick={() => setShowBookDrawer(true)}
+              className="px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors flex items-center gap-2 shadow-sm shrink-0"
+              style={{ fontFamily: PP }}
+            >
+              <Calendar size={15} /> Book Appointment
+            </button>
+          )}
           {canRegister && (
             <button
               onClick={() => setRegistering(true)}
@@ -293,7 +336,9 @@ export function PatientListPage({ currentRole }: { currentRole: Role }) {
         onToggleActionMenu={(id) => setActiveActionMenuId(id)}
         onViewProfile={canView ? openPatientProfile : () => {}}
         onEditPatient={canEdit ? (p) => setEditingPatient(p) : undefined}
-        onBookAppointment={() => setShowBookDrawer(true)}
+        onBookAppointment={
+          currentRole !== "DOCTOR" ? () => setShowBookDrawer(true) : undefined
+        }
         onActivatePatient={canEdit ? (p) => setActivatePatient(p) : undefined}
         onDeactivatePatient={
           canEdit ? (p) => setDeactivatePatient(p) : undefined

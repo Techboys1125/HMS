@@ -1,6 +1,7 @@
 import { X, Stethoscope, Eye } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
 import { PP } from "../constants/doctors.constants";
+import UserAvatar from "../../../common/components/UserAvatar";
 
 function getAvailabilityBadgeStyle(avail: string) {
   switch (avail) {
@@ -71,17 +72,11 @@ export function QuickDetailsDrawer({
 
           <div className="p-6 space-y-6">
             <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-[#E5E7EB]">
-              <div
-                className="w-16 h-16 rounded-2xl bg-[#0D47A1] text-white font-bold text-xl flex items-center justify-center shrink-0 border-2 border-white shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                {doctor.name
-                  .replace("Dr. ", "")
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()}
-              </div>
+              <UserAvatar
+                name={doctor.name}
+                size="md"
+                src={doctor.photoUrl || doctor.photo || undefined}
+              />
               <div className="space-y-1 overflow-hidden">
                 <h3
                   className="text-base font-bold text-[#111827] truncate"

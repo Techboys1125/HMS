@@ -39,12 +39,48 @@ export function Header({
   const { logoUrl } = useHospitalBranding();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showPatientSelector, setShowPatientSelector] = useState(false);
+
+  let customSelfName = "";
+  try {
+    const keys = [user?.mrn, user?.patientId, user?.id, "me"].filter(Boolean);
+    for (const k of keys) {
+      const stored =
+        localStorage.getItem(`patient_profile_custom_${k}`) ||
+        localStorage.getItem(`doctor_profile_custom_${k}`) ||
+        localStorage.getItem(`staff_profile_custom_${k}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.name || parsed.fullName) {
+          customSelfName = parsed.name || parsed.fullName;
+          break;
+        }
+      }
+    }
+  } catch {
+    // Ignore
+  }
+
   const currentActive =
     activePatient || (familyMembers.length > 0 ? familyMembers[0] : undefined);
+
+  const isSelfActive =
+    !currentActive ||
+    String(currentActive.relationship).toUpperCase() === "SELF" ||
+    currentActive.mrn === user?.mrn ||
+    currentActive.mrn === user?.patientId;
+
+  const activePatientName =
+    (isSelfActive && (customSelfName || user?.fullName || user?.name)) ||
+    currentActive?.patientName ||
+    currentActive?.name ||
+    user?.fullName ||
+    user?.name ||
+    "Patient";
+
   const displayName =
-    role === "patient" && currentActive
-      ? currentActive.patientName || currentActive.name || "Patient"
-      : user?.fullName || "Patient";
+    role === "patient"
+      ? (isSelfActive ? activePatientName : customSelfName || user?.fullName || user?.name || "Patient")
+      : user?.fullName || user?.name || "Staff";
   const displayEmail =
     user?.email ||
     (role === "patient"
@@ -118,7 +154,7 @@ export function Header({
               className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-blue-50/70 border border-blue-200/80 hover:bg-blue-100/60 transition-all outline-none"
             >
               <div className="w-7 h-7 rounded-full bg-[#0D47A1] text-white flex items-center justify-center font-bold text-xs shrink-0">
-                {(currentActive.patientName || currentActive.name || "P")[0]}
+                {(activePatientName || "P")[0]}
               </div>
               <div className="text-left hidden sm:block">
                 <div className="flex items-center gap-1.5">
@@ -126,9 +162,7 @@ export function Header({
                     className="text-xs font-bold text-[#111827] leading-tight"
                     style={{ fontFamily: PP }}
                   >
-                    {currentActive.patientName ||
-                      currentActive.name ||
-                      "Patient"}
+                    {activePatientName}
                   </span>
                   <span className="px-1.5 py-0.2 bg-blue-100 text-[#0D47A1] text-[9px] font-bold rounded-full">
                     {currentActive.relationship}

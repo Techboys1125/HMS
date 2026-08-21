@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { FormEvent } from "react";
-import { X, Check, Lock, Loader2 } from "lucide-react";
+import { X, Check, Lock, Loader2, Camera, Trash2 } from "lucide-react";
 import type { DoctorRecord } from "../types/doctors.types";
 import { PP } from "../constants/doctors.constants";
+import UserAvatar from "../../../common/components/UserAvatar";
+import { usersApi } from "../../users/api/users.api";
 
 export interface EditDoctorProfileModalProps {
   isOpen: boolean;
@@ -23,6 +25,10 @@ export function EditDoctorProfileModal({
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+
   const isAdmin = role === "ADMIN";
   const isDoctor = role === "DOCTOR";
 
@@ -34,9 +40,38 @@ export function EditDoctorProfileModal({
     setPrevIsOpen(isOpen);
     setFormData(doctor);
     setErrorMsg(null);
+    setPhotoUploadError(null);
   }
 
   if (!isOpen) return null;
+
+  const handlePhotoUpload = async (file: File) => {
+    if (!file) return;
+    setPhotoUploading(true);
+    setPhotoUploadError(null);
+    try {
+      const uploadedUrl = await usersApi.uploadPhoto(file);
+      setFormData((prev) => ({
+        ...prev,
+        photoUrl: uploadedUrl,
+        photo: uploadedUrl,
+      }));
+    } catch (err: unknown) {
+      setPhotoUploadError(
+        err instanceof Error ? err.message : "Failed to upload photo",
+      );
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setFormData((prev) => ({
+      ...prev,
+      photoUrl: "",
+      photo: "",
+    }));
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -57,12 +92,14 @@ export function EditDoctorProfileModal({
   const isFieldDisabled = (fieldName: keyof DoctorRecord) => {
     if (isAdmin) return false;
     if (isDoctor) {
-      // Doctor can ONLY edit phone, email, address, bio
+      // Doctor can ONLY edit phone, email, address, bio, photo
       const editableFields: Array<keyof DoctorRecord> = [
         "phone",
         "email",
         "address",
         "bio",
+        "photoUrl",
+        "photo",
       ];
       return !editableFields.includes(fieldName);
     }
@@ -90,7 +127,7 @@ export function EditDoctorProfileModal({
             <p className="text-xs text-[#64748B]">
               {isAdmin
                 ? "Full administrative edit mode."
-                : "You can update your contact phone, email, residential address, and bio."}
+                : "You can update your profile photo, contact phone, email, residential address, and bio."}
             </p>
           </div>
           <button
@@ -110,6 +147,66 @@ export function EditDoctorProfileModal({
               {errorMsg}
             </div>
           )}
+
+          {/* Profile Photo Upload */}
+          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-4">
+            <UserAvatar
+              name={formData.name || "Doctor"}
+              size="lg"
+              src={formData.photoUrl || formData.photo || undefined}
+            />
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <label className="block font-bold text-[#111827]">
+                Profile Photo{" "}
+                <span className="text-[#0D47A1] font-normal">(Editable)</span>
+              </label>
+              <input
+                type="file"
+                ref={photoInputRef}
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handlePhotoUpload(file);
+                }}
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={photoUploading}
+                  onClick={() => photoInputRef.current?.click()}
+                  className="px-3 py-1.5 bg-white border border-[#CBD5E1] hover:border-[#0D47A1] text-[#0D47A1] rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-60 shadow-xs"
+                >
+                  {photoUploading ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : (
+                    <Camera size={13} />
+                  )}
+                  {formData.photoUrl || formData.photo
+                    ? "Change Photo"
+                    : "Upload Photo"}
+                </button>
+                {(formData.photoUrl || formData.photo) && (
+                  <button
+                    type="button"
+                    onClick={handleRemovePhoto}
+                    className="px-3 py-1.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+                  >
+                    <Trash2 size={13} />
+                    Remove
+                  </button>
+                )}
+              </div>
+              <p className="text-[10px] text-[#64748B]">
+                JPG, PNG, WebP up to 5MB.
+              </p>
+              {photoUploadError && (
+                <p className="text-xs text-red-600 font-medium">
+                  {photoUploadError}
+                </p>
+              )}
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>

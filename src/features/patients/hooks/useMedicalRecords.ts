@@ -1,6 +1,6 @@
 /**
  * useMedicalRecords – React Query hook for patient medical records
- * Fetches from existing OPD/Vitals endpoints
+ * Uses real backend APIs: prescriptions + billing
  */
 import { useQuery } from "@tanstack/react-query";
 import { medicalRecordService } from "../services/medicalRecord.service";
@@ -8,11 +8,10 @@ import { medicalRecordService } from "../services/medicalRecord.service";
 export const medicalRecordKeys = {
   all: ["medicalRecords"] as const,
   summary: (mrn: string) => [...medicalRecordKeys.all, "summary", mrn] as const,
-  consultations: (mrn: string) =>
-    [...medicalRecordKeys.all, "consultations", mrn] as const,
-  vitals: (mrn: string) => [...medicalRecordKeys.all, "vitals", mrn] as const,
-  diagnoses: (mrn: string) =>
-    [...medicalRecordKeys.all, "diagnoses", mrn] as const,
+  prescriptions: (mrn: string) =>
+    [...medicalRecordKeys.all, "prescriptions", mrn] as const,
+  billing: (mrn: string) =>
+    [...medicalRecordKeys.all, "billing", mrn] as const,
 };
 
 export function useMedicalRecords(mrn: string) {
@@ -23,18 +22,18 @@ export function useMedicalRecords(mrn: string) {
   });
 }
 
-export function useConsultations(mrn: string) {
+export function usePrescriptionHistory(mrn: string) {
   return useQuery({
-    queryKey: medicalRecordKeys.consultations(mrn),
-    queryFn: () => medicalRecordService.getConsultations(mrn),
+    queryKey: medicalRecordKeys.prescriptions(mrn),
+    queryFn: () => medicalRecordService.getPrescriptionHistory(mrn),
     enabled: !!mrn,
   });
 }
 
-export function useVitals(mrn: string) {
+export function useBillingHistory(mrn: string) {
   return useQuery({
-    queryKey: medicalRecordKeys.vitals(mrn),
-    queryFn: () => medicalRecordService.getVitals(mrn),
+    queryKey: medicalRecordKeys.billing(mrn),
+    queryFn: () => medicalRecordService.getBillingHistory(mrn),
     enabled: !!mrn,
   });
 }

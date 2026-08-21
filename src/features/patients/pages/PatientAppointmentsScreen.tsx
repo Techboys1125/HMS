@@ -101,7 +101,7 @@ export function PatientAppointmentsScreen({
                 : a.startTime || a.time || "";
 
               const doctorRaw = a.doctor;
-              let doctorName = "Doctor";
+              let doctorName: string;
               if (doctorRaw && typeof doctorRaw === "object" && doctorRaw !== null) {
                 doctorName =
                   (doctorRaw as { name?: string; fullName?: string }).name ||
@@ -114,7 +114,7 @@ export function PatientAppointmentsScreen({
               }
 
               const deptRaw = a.department;
-              let deptName = "General";
+              let deptName: string;
               if (deptRaw && typeof deptRaw === "object" && deptRaw !== null) {
                 deptName =
                   (deptRaw as { departmentName?: string; name?: string }).departmentName ||

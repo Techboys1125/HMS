@@ -67,33 +67,116 @@ export function MyProfilePage({
     );
   }
 
+  let customSaved: Record<string, unknown> = {};
+  try {
+    const keys = [effectiveMrn, user?.mrn, user?.id, "me"].filter(Boolean);
+    for (const k of keys) {
+      const stored = localStorage.getItem(`patient_profile_custom_${k}`);
+      if (stored) {
+        customSaved = { ...customSaved, ...JSON.parse(stored) };
+      }
+    }
+  } catch {
+    // Ignore
+  }
+
   const fallbackPatient: Patient = {
     id: user?.patientId || user?.id || 1,
     mrn: effectiveMrn || user?.mrn || "MRN-2026717666",
-    fullName: user?.name || user?.fullName || "Patient",
-    patientName: user?.name || user?.fullName || "Patient",
-    name: user?.name || user?.fullName || "Patient",
-    email: user?.email || "patient@safehands.org",
-    phone: user?.phone || user?.mobileNumber || user?.mobile || "",
-    gender: (user?.gender || "FEMALE").toUpperCase() as any,
+    fullName:
+      (customSaved.name as string) ||
+      user?.name ||
+      user?.fullName ||
+      "Patient",
+    patientName:
+      (customSaved.name as string) ||
+      user?.name ||
+      user?.fullName ||
+      "Patient",
+    name:
+      (customSaved.name as string) ||
+      user?.name ||
+      user?.fullName ||
+      "Patient",
+    email:
+      (customSaved.email as string) ||
+      user?.email ||
+      "patient@safehands.org",
+    phone:
+      (customSaved.phone as string) ||
+      user?.phone ||
+      user?.mobileNumber ||
+      user?.mobile ||
+      "",
+    gender: (
+      (customSaved.gender as string) ||
+      user?.gender ||
+      "FEMALE"
+    ).toUpperCase(),
     status: "ACTIVE",
-    dob: user?.dob || "2000-02-12",
-    bloodGroup: "A_NEGATIVE",
-    address: user?.address || "Springfield",
+    dob: (customSaved.dob as string) || user?.dob || "2000-02-12",
+    bloodGroup:
+      (customSaved.bloodGroup as string) || "A_NEGATIVE",
+    address:
+      (customSaved.address as string) || user?.address || "Springfield",
     emergencyContact: {
-      name: "Emergency Contact",
-      relationship: "SELF",
-      mobileNumber: "",
+      name:
+        (customSaved.emergencyName as string) || "Emergency Contact",
+      relationship:
+        (customSaved.emergencyRelation as string) || "SELF",
+      mobileNumber: (customSaved.emergencyPhone as string) || "",
     },
   } as unknown as Patient;
 
-  const displayPatient = patient || fallbackPatient;
+  const basePatient = patient || fallbackPatient;
+  const displayPatient: Patient = {
+    ...basePatient,
+    fullName:
+      (customSaved.name as string) ||
+      basePatient.fullName ||
+      basePatient.patientName,
+    patientName:
+      (customSaved.name as string) ||
+      basePatient.patientName ||
+      basePatient.fullName,
+    name:
+      (customSaved.name as string) ||
+      basePatient.name ||
+      basePatient.fullName,
+    email: (customSaved.email as string) || basePatient.email,
+    phone:
+      (customSaved.phone as string) ||
+      basePatient.phone ||
+      basePatient.registeredMobile,
+    registeredMobile:
+      (customSaved.phone as string) ||
+      basePatient.registeredMobile ||
+      basePatient.phone,
+    gender: (customSaved.gender as string) || basePatient.gender,
+    dob: (customSaved.dob as string) || basePatient.dob,
+    bloodGroup:
+      (customSaved.bloodGroup as string) || basePatient.bloodGroup,
+    address: (customSaved.address as string) || basePatient.address,
+    emergencyContact: {
+      name:
+        (customSaved.emergencyName as string) ||
+        basePatient.emergencyContact?.name ||
+        "Emergency Contact",
+      relationship:
+        (customSaved.emergencyRelation as string) ||
+        basePatient.emergencyContact?.relationship ||
+        "SELF",
+      mobileNumber:
+        (customSaved.emergencyPhone as string) ||
+        basePatient.emergencyContact?.mobileNumber ||
+        "",
+    },
+  } as unknown as Patient;
 
   return (
     <>
       <PatientProfileCenterScreen
         activePatient={displayPatient}
-        currentRole={_currentRole}
         onSwitchPatient={
           _currentRole === "PATIENT"
             ? () => setShowSwitchDialog(true)

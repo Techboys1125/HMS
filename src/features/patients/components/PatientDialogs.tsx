@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   RefreshCw,
   ChevronLeft,
@@ -11,7 +11,7 @@ import {
   Info,
   AlertCircle,
 } from "lucide-react";
-import { formatTime, to24Hour } from "../../../lib/time-utils";
+import { formatTime } from "../../../lib/time-utils";
 import type {
   PatientCancelAppointmentDialogProps,
   PatientRescheduleAppointmentDialogProps,
@@ -357,11 +357,7 @@ export function PatientRescheduleAppointmentDialog({
     selectedDate || undefined,
   );
 
-  useEffect(() => {
-    if (selectedDate) {
-      setSelectedTimeSlot("");
-    }
-  }, [selectedDate]);
+
 
   if (!isOpen || !appointment) return null;
 
@@ -689,9 +685,12 @@ export function PatientRescheduleAppointmentDialog({
                         key={item.fullDate || item.day}
                         type="button"
                         disabled={!item.isAvailable}
-                        onClick={() =>
-                          item.fullDate && setSelectedDate(item.fullDate)
-                        }
+                        onClick={() => {
+                          if (item.fullDate) {
+                            setSelectedDate(item.fullDate);
+                            setSelectedTimeSlot("");
+                          }
+                        }}
                         className={`p-2 rounded-xl text-xs font-semibold transition-all relative ${
                           isSelected
                             ? "bg-[#009688] text-white shadow-sm font-bold"

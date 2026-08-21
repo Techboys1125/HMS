@@ -33,13 +33,6 @@ export function usePrescription(mrn?: string, doctorNameFilter?: string) {
     }
   }, [mrn, doctorNameFilter, isPatient]);
 
-  useEffect(() => {
-    if (error) {
-      showToast(error);
-      prescriptionStoreActions.setError(null);
-    }
-  }, [error]);
-
   const filteredPrescriptions = useMemo(() => {
     return prescriptions.filter((rx) => {
       const query = filters.searchTerm.toLowerCase();
@@ -89,12 +82,12 @@ export function usePrescription(mrn?: string, doctorNameFilter?: string) {
 export function usePrescriptionDetails() {
   const { selectedPrescription, loading } = usePrescriptionStore();
 
-  const loadDetails = async (id: string | number) => {
+  const loadDetails = async (id: string | number, onError?: (msg: string) => void) => {
     try {
       return await prescriptionService.getPrescriptionDetails(id);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load prescription details";
-      prescriptionStoreActions.setError(message);
+      onError?.(message);
       return null;
     }
   };

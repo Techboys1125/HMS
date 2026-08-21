@@ -25,7 +25,7 @@ export function formatTime(time?: string | null): string {
 
 export function to24Hour(time?: string | null): string {
   if (!time) return "";
-  let trimmed = String(time).trim();
+  const trimmed = String(time).trim();
   if (!trimmed) return "";
   if (!/AM|PM/i.test(trimmed)) {
     if (/^\d{1}:\d{2}$/.test(trimmed)) {

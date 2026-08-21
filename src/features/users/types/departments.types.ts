@@ -56,7 +56,6 @@ export interface ApiSpecialty {
 }
 
 export interface DepartmentSpecialtiesPageResponse {
-  map: <U>(fn: (item: ApiDepartmentSpecialtiesItem, index: number) => U) => U[];
   totalElements: number;
   totalPages: number;
   size: number;

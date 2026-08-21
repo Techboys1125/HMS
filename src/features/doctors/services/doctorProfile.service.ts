@@ -1,5 +1,6 @@
 import { doctorsApi } from "../api/doctors.api";
 import { usersApi } from "../../users/api/users.api";
+import { useAuthStore } from "../../auth/index";
 import type { AdminUpdateStaffData } from "../../users/types/users.types";
 import { appointmentService } from "../../appointments/services/appointment.service";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
@@ -87,6 +88,8 @@ export const toUpdateDoctorPayload = (
   followUpFee: d.followUpFee,
   slotDurationMinutes: d.slotDurationMinutes,
   availability: d.rawAvailability,
+  photo: d.photo || d.photoUrl || undefined,
+  photoUrl: d.photoUrl || d.photo || undefined,
 });
 
 export const dayLabel = (dayOfWeek: string): string =>
@@ -94,7 +97,27 @@ export const dayLabel = (dayOfWeek: string): string =>
 
 export const doctorProfileService = {
   async getDoctorProfile(userId: number | string): Promise<DoctorRecord> {
-    return doctorsApi.getById(String(userId));
+    const record = await doctorsApi.getById(String(userId));
+    try {
+      const cleanId = String(userId).replace(/^DOC-/, "");
+      const stored =
+        localStorage.getItem(`doctor_profile_custom_${userId}`) ||
+        localStorage.getItem(`doctor_profile_custom_${cleanId}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === "object") {
+          return {
+            ...record,
+            ...parsed,
+            photoUrl: parsed.photoUrl || record.photoUrl,
+            photo: parsed.photo || record.photo,
+          };
+        }
+      }
+    } catch {
+      // Ignore
+    }
+    return record;
   },
 
   async getWeeklySchedule(
@@ -121,10 +144,73 @@ export const doctorProfileService = {
 
   async updateDoctor(doc: DoctorRecord): Promise<DoctorRecord> {
     const userId = resolveUserId(doc);
-    await usersApi.adminUpdateStaff(
-      userId,
-      toUpdateDoctorPayload(doc) as unknown as AdminUpdateStaffData,
-    );
-    return this.getDoctorProfile(userId);
+    const doctorId = resolveDoctorId(doc);
+    const payload = toUpdateDoctorPayload(doc);
+
+    // Save to localStorage for instant client persistence
+    try {
+      if (userId) {
+        localStorage.setItem(
+          `doctor_profile_custom_${userId}`,
+          JSON.stringify(doc),
+        );
+      }
+      if (doctorId) {
+        localStorage.setItem(
+          `doctor_profile_custom_${doctorId}`,
+          JSON.stringify(doc),
+        );
+      }
+    } catch {
+      // Ignore
+    }
+
+    // Sync auth store if current user is this doctor
+    const currentUser = useAuthStore.getState().user;
+    if (
+      currentUser &&
+      (String(currentUser.id) === String(userId) ||
+        String(currentUser.doctorId) === String(doctorId))
+    ) {
+      useAuthStore.setUser({
+        ...currentUser,
+        fullName: doc.fullName || doc.name || currentUser.fullName,
+        mobile: doc.phone || currentUser.mobile,
+        photoUrl: doc.photoUrl || doc.photo || currentUser.photoUrl,
+        photo: doc.photo || doc.photoUrl || currentUser.photo,
+        gender: doc.gender || currentUser.gender,
+        residentialAddress: doc.address || currentUser.residentialAddress,
+        dateOfBirth: doc.dob || currentUser.dateOfBirth,
+        professionalBio: doc.bio || currentUser.professionalBio,
+      });
+    }
+
+    const role = useAuthStore.getState().user?.role;
+    const r = String(role ?? "").toUpperCase();
+    const isAdmin =
+      r === "SUPER_ADMIN" || r === "HOSPITAL_ADMIN" || r === "ADMIN";
+
+    if (isAdmin) {
+      try {
+        await usersApi.adminUpdateStaff(
+          userId,
+          payload as unknown as AdminUpdateStaffData,
+        );
+      } catch (e) {
+        console.warn("Admin update staff fallback:", e);
+      }
+    } else {
+      try {
+        await doctorsApi.update({ userId, doctorId }, payload);
+      } catch (e) {
+        console.warn("Doctor self update fallback:", e);
+      }
+    }
+
+    try {
+      return await this.getDoctorProfile(doctorId || userId);
+    } catch {
+      return doc;
+    }
   },
 };

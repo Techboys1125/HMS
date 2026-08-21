@@ -9,7 +9,11 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
-import type { PatientSummary, Department } from "../types/appointment.types";
+import type {
+  PatientSummary,
+  Department,
+  CreateAppointmentRequest,
+} from "../types/appointment.types";
 import { PP, RB } from "../constants/appointment.constants";
 import type { BookAppointmentScreenProps } from "../types/appointment-screen.types";
 import { appointmentService } from "../services/appointment.service";
@@ -91,8 +95,8 @@ export function BookAppointmentScreen({
       patientsApi
         .getMyPatients()
         .then((data) => {
-          const mapped: PatientSummary[] = data.map((p) => ({
-            id: p.id ?? "",
+          const mapped: PatientSummary[] = data.map((p, idx) => ({
+            id: p.id ?? (p.mrn ? `mrn-${p.mrn}` : `patient-${idx}`),
             mrn: p.mrn,
             name: p.fullName || p.patientName || p.name || "Unknown Patient",
             age: p.age || 0,
@@ -122,8 +126,8 @@ export function BookAppointmentScreen({
       patientsApi
         .getAll()
         .then((data) => {
-          const mapped: PatientSummary[] = data.map((p) => ({
-            id: p.id ?? "",
+          const mapped: PatientSummary[] = data.map((p, idx) => ({
+            id: p.id ?? (p.mrn ? `mrn-${p.mrn}` : `patient-${idx}`),
             mrn: p.mrn,
             name: p.fullName || p.patientName || p.name || "Unknown Patient",
             age: p.age || 0,
@@ -553,7 +557,8 @@ export function BookAppointmentScreen({
     };
 
     try {
-      const payload = {
+      const payload: CreateAppointmentRequest = {
+        patientMrn: selectedPatient.mrn || "",
         mrn: selectedPatient.mrn || "",
         doctorId: currentDoctor.doctorId,
         appointmentDate: selectedDate,
@@ -664,9 +669,9 @@ export function BookAppointmentScreen({
             {patientQuery.trim() !== "" && (
               <div className="max-h-48 overflow-y-auto border border-[#E5E7EB] rounded-xl divide-y divide-gray-100 bg-white shadow-lg">
                 {searchedPatients.length > 0 ? (
-                  searchedPatients.map((p) => (
+                  searchedPatients.map((p, idx) => (
                     <div
-                      key={p.id}
+                      key={p.id ? `pat-id-${p.id}` : p.mrn ? `pat-mrn-${p.mrn}` : `pat-idx-${idx}`}
                       onClick={() => {
                         setSelectedPatient(p);
                         setPatientQuery("");

@@ -17,7 +17,6 @@ import {
 // Application Feature Modules
 import DashboardDispatcher from "./DashboardDispatcher";
 import {
-  PatientProfileCenterScreen,
   RegisterPatientScreen,
   FamilyMembersManagement,
   PatientAppointmentsScreen,

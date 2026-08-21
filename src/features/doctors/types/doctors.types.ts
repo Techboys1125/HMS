@@ -41,6 +41,8 @@ export interface DoctorRecord {
   bio?: string;
   scheduleExceptions?: ApiScheduleExceptionItem[];
   rawAvailability?: ApiAvailabilityItem[];
+  photoUrl?: string;
+  photo?: string;
   effectiveFrom?: string;
   effectiveTo?: string;
   secondarySpecialties?: string[];
@@ -306,6 +308,8 @@ export interface ApiUserDoctorRecord {
   id: number;
   userId: number;
   employeeId: string;
+  empId?: string;
+  doctorId?: number;
   fullName: string;
   email: string;
   mobile: string;

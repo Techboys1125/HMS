@@ -56,6 +56,18 @@ const STATUS_CONFIG: Record<
     dot: "bg-emerald-500",
     border: "border-emerald-200",
   },
+  CONSULTATION_COMPLETED: {
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    dot: "bg-emerald-500",
+    border: "border-emerald-200",
+  },
+  FINALIZED: {
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    dot: "bg-emerald-500",
+    border: "border-emerald-200",
+  },
   READY_FOR_BILLING: {
     bg: "bg-emerald-50",
     text: "text-emerald-700",

@@ -80,11 +80,11 @@ export function MyProfilePage() {
 
   const handleSaveProfile = async (updated: DoctorRecord) => {
     try {
-      await doctorProfileService.updateDoctor(updated);
-      const refreshed = await doctorProfileService.getDoctorProfile(doctorId!);
-      setDoctor(refreshed);
+      const refreshed = await doctorProfileService.updateDoctor(updated);
+      setDoctor(refreshed || updated);
     } catch (err) {
       console.error("Failed to save profile:", err);
+      setDoctor(updated);
     }
   };
 

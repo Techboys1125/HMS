@@ -18,7 +18,7 @@ export const useDepartments = (autoFetch = true) => {
     setError(null);
     try {
       const data = await departmentsService.getDepartments({ search });
-      setDepartments(data);
+      setDepartments(Array.isArray(data) ? data : data?.content || []);
     } catch (err: unknown) {
       setError(
         err instanceof Error ? err.message : "Failed to load departments",
@@ -122,7 +122,7 @@ export const useDepartments = (autoFetch = true) => {
     ])
       .then(([depts, lookup]) => {
         if (!cancelled) {
-          setDepartments(depts);
+          setDepartments(Array.isArray(depts) ? depts : depts?.content || []);
           setLookupList(lookup);
         }
       })

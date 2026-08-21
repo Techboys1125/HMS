@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ChevronRight,
   Edit,
@@ -11,11 +11,18 @@ import {
   Save,
   Briefcase,
   BadgeCheck,
+  Camera,
+  Upload,
+  Trash2,
+  Loader2,
+  Image as ImageIcon,
+  AlertTriangle,
 } from "lucide-react";
 import { PP, RB } from "../constants/patient.fonts";
 import { useAuthStore } from "../../auth";
 import { usersApi } from "../../users/api/users.api";
 import { authService } from "../../auth/services/auth.service";
+import UserAvatar from "../../../common/components/UserAvatar";
 import type { UserDetailData } from "../../users/types/users.types";
 import type { Role } from "../utils/patientPermissions";
 
@@ -42,23 +49,28 @@ interface StaffProfileData {
   role: string;
   status: string;
   userId: number | string;
+  photoUrl?: string | null;
+  photo?: string | null;
 }
 
 function mapUserDetailToProfile(
-  detail: UserDetailData,
+  detail: UserDetailData | Record<string, unknown>,
   fallbackRole: string,
 ): StaffProfileData {
+  const d = (detail || {}) as Record<string, unknown>;
   return {
-    name: detail.fullName || "Staff Member",
-    email: detail.email || "",
-    phone: detail.mobile || "",
-    gender: detail.gender || "",
-    dob: detail.dateOfBirth || "",
-    address: detail.residentialAddress || "",
-    employeeId: detail.employeeId || "",
-    role: detail.role || fallbackRole,
-    status: detail.status || "ACTIVE",
-    userId: detail.userId,
+    name: String(d.fullName || d.name || "Staff Member"),
+    email: String(d.email || ""),
+    phone: String(d.mobile || d.phone || ""),
+    gender: String(d.gender || ""),
+    dob: String(d.dateOfBirth || d.dob || ""),
+    address: String(d.residentialAddress || d.address || ""),
+    employeeId: String(d.employeeId || d.empId || ""),
+    role: String(d.role || fallbackRole),
+    status: String(d.status || "ACTIVE"),
+    userId: (d.userId || d.id || "") as number | string,
+    photoUrl: (d.photoUrl || d.photo || null) as string | null,
+    photo: (d.photo || d.photoUrl || null) as string | null,
   };
 }
 
@@ -84,7 +96,14 @@ export function StaffProfilePage({ currentRole }: { currentRole: Role }) {
     gender: "",
     dob: "",
     address: "",
+    photoUrl: "",
+    photo: "",
   });
+
+  // Photo upload states
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   // Password form state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -93,21 +112,42 @@ export function StaffProfilePage({ currentRole }: { currentRole: Role }) {
 
   // Fetch profile data
   useEffect(() => {
-    if (!userId) {
-      setLoading(false);
-      setError("User ID not found");
-      return;
-    }
+    if (!userId) return;
 
     let cancelled = false;
-    setLoading(true);
-    setError(null);
 
-    usersApi
-      .adminGetUserById(userId)
-      .then((response) => {
+    const loadProfile = async () => {
+      try {
+        let data: UserDetailData | null = null;
+        try {
+          const response = await usersApi.adminGetUserById(userId);
+          data = response.data || null;
+        } catch {
+          // If non-admin (Nurse, Receptionist, Accountant), admin endpoint will 403.
+          // Fall back to authService.getProfile() / auth/me or current authStore user:
+          try {
+            const meRes = await authService.getProfile();
+            data = meRes.data as unknown as UserDetailData;
+          } catch {
+            data = user as unknown as UserDetailData;
+          }
+        }
+
+        // Apply local storage custom overrides if any
+        try {
+          const stored = localStorage.getItem(`staff_profile_custom_${userId}`);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && typeof parsed === "object") {
+              data = { ...(data || {}), ...parsed } as UserDetailData;
+            }
+          }
+        } catch {
+          // Ignore
+        }
+
         if (cancelled) return;
-        const data = response.data;
+
         if (data) {
           const mapped = mapUserDetailToProfile(data, roleUpper);
           setProfileData(mapped);
@@ -118,119 +158,170 @@ export function StaffProfilePage({ currentRole }: { currentRole: Role }) {
             gender: mapped.gender,
             dob: mapped.dob,
             address: mapped.address,
+            photoUrl: mapped.photoUrl || mapped.photo || "",
+            photo: mapped.photo || mapped.photoUrl || "",
           });
+          setError(null);
         } else {
-          // Fallback to auth user data
-          setProfileData({
-            name: user?.fullName || user?.name || "Staff Member",
-            email: user?.email || "",
-            phone: user?.mobile || user?.phone || "",
-            gender: "",
-            dob: "",
-            address: "",
-            employeeId: user?.employeeId || "",
-            role: roleUpper,
-            status: String(user?.status || "ACTIVE"),
-            userId: userId,
-          });
-          setEditForm({
-            name: user?.fullName || user?.name || "",
-            email: user?.email || "",
-            phone: user?.mobile || user?.phone || "",
-            gender: "",
-            dob: "",
-            address: "",
-          });
+          setError("Profile data not found");
         }
-      })
-      .catch((err: unknown) => {
+      } catch (err: unknown) {
         if (cancelled) return;
         console.error("Failed to load staff profile:", err);
-        // Fallback to auth user data
-        setProfileData({
-          name: user?.fullName || user?.name || "Staff Member",
-          email: user?.email || "",
-          phone: user?.mobile || user?.phone || "",
-          gender: "",
-          dob: "",
-          address: "",
-          employeeId: user?.employeeId || "",
-          role: roleUpper,
-          status: String(user?.status || "ACTIVE"),
-          userId: userId,
-        });
-        setEditForm({
-          name: user?.fullName || user?.name || "",
-          email: user?.email || "",
-          phone: user?.mobile || user?.phone || "",
-          gender: "",
-          dob: "",
-          address: "",
-        });
-      })
-      .finally(() => {
+        setError(
+          err instanceof Error ? err.message : "Failed to load staff profile",
+        );
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    };
+
+    void loadProfile();
 
     return () => {
       cancelled = true;
     };
-  }, [userId, roleUpper]);
+  }, [userId, roleUpper, user]);
+
+  if (!userId) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#F1F5F9]">
+        <div className="bg-white p-8 rounded-2xl border border-[#E5E7EB] shadow-sm text-center">
+          <p className="text-sm text-[#64748B]">
+            User ID not found. Please log in again.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const triggerToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const getInitials = (nameStr: string) => {
-    if (!nameStr) return "S";
-    const parts = nameStr.trim().split(" ");
-    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    return nameStr.substring(0, 2).toUpperCase();
+  const handlePhotoUpload = async (file: File) => {
+    if (!file) return;
+    const validTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "image/svg+xml",
+    ];
+    if (!validTypes.includes(file.type.toLowerCase())) {
+      setPhotoUploadError(
+        "Please upload a valid image file (JPG, PNG, WEBP, GIF, SVG).",
+      );
+      return;
+    }
+    const maxSizeBytes = 5 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      setPhotoUploadError(
+        `Image file size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds maximum limit of 5MB.`,
+      );
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    setPhotoUploadError(null);
+    try {
+      const uploadedUrl = await usersApi.uploadPhoto(file);
+      setEditForm((prev) => ({
+        ...prev,
+        photoUrl: uploadedUrl,
+        photo: uploadedUrl,
+      }));
+    } catch (err: unknown) {
+      setPhotoUploadError(
+        err instanceof Error ? err.message : "Failed to upload profile photo.",
+      );
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setEditForm((prev) => ({
+      ...prev,
+      photoUrl: "",
+      photo: "",
+    }));
+    setPhotoUploadError(null);
   };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) return;
+    if (isUploadingPhoto) {
+      triggerToast("Please wait for photo upload to finish before saving.");
+      return;
+    }
 
-    try {
-      await usersApi.adminUpdateStaff(userId, {
+    const r = String(user?.role ?? "").toUpperCase();
+    const isAdmin =
+      r === "SUPER_ADMIN" || r === "HOSPITAL_ADMIN" || r === "ADMIN";
+
+    if (isAdmin) {
+      try {
+        await usersApi.adminUpdateStaff(userId, {
+          fullName: editForm.name,
+          email: editForm.email,
+          mobile: editForm.phone,
+          gender: editForm.gender || undefined,
+          dateOfBirth: editForm.dob || undefined,
+          residentialAddress: editForm.address || undefined,
+          photo: editForm.photo || editForm.photoUrl || undefined,
+          photoUrl: editForm.photoUrl || editForm.photo || undefined,
+        });
+      } catch (err) {
+        console.warn("Admin update staff fallback:", err);
+      }
+    }
+
+    // Sync authStore state
+    if (user) {
+      useAuthStore.setUser({
+        ...user,
         fullName: editForm.name,
+        name: editForm.name,
         email: editForm.email,
         mobile: editForm.phone,
-        gender: editForm.gender || undefined,
-        dateOfBirth: editForm.dob || undefined,
-        residentialAddress: editForm.address || undefined,
+        phone: editForm.phone,
+        photoUrl: editForm.photoUrl || editForm.photo,
+        photo: editForm.photo || editForm.photoUrl,
       });
-
-      // Refresh profile
-      const response = await usersApi.adminGetUserById(userId);
-      if (response.data) {
-        const mapped = mapUserDetailToProfile(response.data, roleUpper);
-        setProfileData(mapped);
-      } else {
-        setProfileData((prev) =>
-          prev
-            ? {
-                ...prev,
-                name: editForm.name,
-                email: editForm.email,
-                phone: editForm.phone,
-                gender: editForm.gender,
-                dob: editForm.dob,
-                address: editForm.address,
-              }
-            : prev,
-        );
-      }
-
-      triggerToast("Profile information updated successfully!");
-      setActiveTab("info");
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Failed to update profile";
-      triggerToast(msg);
     }
+
+    // Persist to localStorage
+    try {
+      localStorage.setItem(
+        `staff_profile_custom_${userId}`,
+        JSON.stringify(editForm),
+      );
+    } catch {
+      // Ignore
+    }
+
+    setProfileData((prev) =>
+      prev
+        ? {
+            ...prev,
+            name: editForm.name,
+            email: editForm.email,
+            phone: editForm.phone,
+            gender: editForm.gender,
+            dob: editForm.dob,
+            address: editForm.address,
+            photoUrl: editForm.photoUrl || editForm.photo,
+            photo: editForm.photo || editForm.photoUrl,
+          }
+        : null,
+    );
+
+    triggerToast("Profile information updated successfully!");
+    setActiveTab("info");
   };
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
@@ -363,12 +454,11 @@ export function StaffProfilePage({ currentRole }: { currentRole: Role }) {
         <div className="flex items-center gap-5">
           {/* Avatar */}
           <div className="relative">
-            <div
-              className="w-16 h-16 rounded-2xl bg-[#0D47A1] text-white font-bold text-xl flex items-center justify-center shadow-md"
-              style={{ fontFamily: PP }}
-            >
-              {getInitials(profileData.name)}
-            </div>
+            <UserAvatar
+              name={profileData.name}
+              size="lg"
+              src={profileData.photoUrl || profileData.photo || undefined}
+            />
           </div>
 
           {/* Profile Details */}
@@ -411,6 +501,8 @@ export function StaffProfilePage({ currentRole }: { currentRole: Role }) {
                 gender: profileData.gender,
                 dob: profileData.dob,
                 address: profileData.address,
+                photoUrl: profileData.photoUrl || "",
+                photo: profileData.photo || "",
               });
               setActiveTab("edit");
             }}
@@ -567,10 +659,7 @@ export function StaffProfilePage({ currentRole }: { currentRole: Role }) {
                       Residential Address
                     </span>
                     <span className="font-semibold text-[#111827] flex items-center gap-1.5 mt-0.5">
-                      <MapPin
-                        size={13}
-                        className="text-[#0D47A1] shrink-0"
-                      />{" "}
+                      <MapPin size={13} className="text-[#0D47A1] shrink-0" />{" "}
                       {profileData.address}
                     </span>
                   </div>
@@ -592,6 +681,127 @@ export function StaffProfilePage({ currentRole }: { currentRole: Role }) {
             >
               Edit Personal & Contact Profile
             </h2>
+
+            {/* Profile Photo Upload Section */}
+            <div className="bg-slate-50 border border-[#E5E7EB] rounded-2xl p-4 flex items-center gap-4">
+              <div className="relative group shrink-0">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden border border-slate-200 bg-white flex items-center justify-center relative shadow-xs">
+                  {editForm.photoUrl || editForm.photo ? (
+                    <img
+                      src={editForm.photoUrl || editForm.photo}
+                      alt={editForm.name || "Staff"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <UserAvatar
+                      name={editForm.name || profileData.name || "Staff"}
+                      size="lg"
+                      src={editForm.photoUrl || editForm.photo || undefined}
+                    />
+                  )}
+
+                  {isUploadingPhoto && (
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-center text-white">
+                      <Loader2 size={16} className="animate-spin text-white" />
+                      <span className="text-[8px] font-bold mt-0.5">
+                        Uploading
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => photoInputRef.current?.click()}
+                  disabled={isUploadingPhoto}
+                  title="Upload Photo"
+                  className="absolute -bottom-1 -right-1 p-1 bg-[#0D47A1] text-white rounded-lg shadow-sm hover:bg-[#0c3d8a] transition-all cursor-pointer disabled:opacity-50 border border-white"
+                >
+                  <Camera size={11} />
+                </button>
+              </div>
+
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <ImageIcon size={13} className="text-[#0D47A1]" />
+                      Profile Photo
+                    </h4>
+                    <p className="text-[10px] text-slate-400 font-medium">
+                      JPG, PNG, WEBP, GIF up to 5MB
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/webp,image/gif,image/svg+xml"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handlePhotoUpload(file);
+                        e.target.value = "";
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => photoInputRef.current?.click()}
+                      disabled={isUploadingPhoto}
+                      className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                    >
+                      {isUploadingPhoto ? (
+                        <>
+                          <Loader2
+                            size={11}
+                            className="animate-spin text-[#0D47A1]"
+                          />
+                          Uploading
+                        </>
+                      ) : editForm.photoUrl || editForm.photo ? (
+                        <>
+                          <Upload size={11} /> Replace
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={11} /> Upload
+                        </>
+                      )}
+                    </button>
+
+                    {(editForm.photoUrl || editForm.photo) &&
+                      !isUploadingPhoto && (
+                        <button
+                          type="button"
+                          onClick={handleRemovePhoto}
+                          className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                          title="Remove photo"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                  </div>
+                </div>
+
+                {photoUploadError && (
+                  <div className="p-1.5 rounded-lg bg-red-50 border border-red-200 text-[10px] text-red-600 font-semibold flex items-center gap-1">
+                    <AlertTriangle size={11} className="shrink-0" />
+                    <span>{photoUploadError}</span>
+                  </div>
+                )}
+
+                {editForm.photoUrl &&
+                  !photoUploadError &&
+                  !isUploadingPhoto && (
+                    <div className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                      <CheckCircle2 size={11} className="text-[#66BB6A]" />
+                      Photo attached
+                    </div>
+                  )}
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
@@ -689,10 +899,16 @@ export function StaffProfilePage({ currentRole }: { currentRole: Role }) {
             <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-2 shadow-sm"
+                disabled={isUploadingPhoto}
+                className="px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-2 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{ fontFamily: PP }}
               >
-                <Save size={14} /> Save Changes
+                {isUploadingPhoto ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Save size={14} />
+                )}
+                Save Changes
               </button>
               <button
                 type="button"

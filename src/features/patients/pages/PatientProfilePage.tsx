@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { Patient } from "../types/patient.types";
 import { PP, RB } from "../../doctors/constants/doctors.constants";
 import { can } from "../utils/patientPermissions";
@@ -11,6 +11,7 @@ import { PatientPrescriptionsTab } from "../components/tabs/PrescriptionsTab";
 import { PatientBillingTab } from "../components/tabs/BillingTab";
 import { PatientDocumentsTab } from "../components/tabs/DocumentsTab";
 import { PatientProfileHeader } from "../components/PatientProfileHeader";
+import { patientsApi } from "../api/patient.api";
 
 type PatientTabId =
   | "overview"
@@ -47,7 +48,23 @@ export function PatientProfilePage({
   onEdit,
 }: PatientProfilePageProps) {
   const [activeTab, setActiveTab] = useState<PatientTabId>("overview");
+  const [profileData, setProfileData] = useState<Patient>(patient);
   const isOwnRecord = currentRole === "PATIENT";
+
+  useEffect(() => {
+    let cancelled = false;
+    patientsApi
+      .getPatientByMrn(patient.mrn)
+      .then((detail) => {
+        if (!cancelled && detail) {
+          setProfileData((prev) => ({ ...prev, ...detail }));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [patient.mrn]);
 
   const handleNavigateToTab = useCallback((tabId: string) => {
     setActiveTab(tabId as PatientTabId);
@@ -74,19 +91,21 @@ export function PatientProfilePage({
     }
   });
 
+  const currentPatient = { ...patient, ...profileData };
+
   const tabContent = (() => {
     switch (activeTab) {
       case "overview":
         return (
           <OverviewTab
-            patient={patient}
+            patient={currentPatient}
             onNavigateToTab={handleNavigateToTab}
           />
         );
       case "appointments":
         return (
           <PatientAppointmentsTab
-            patient={patient}
+            patient={currentPatient}
             canEdit={can(currentRole, "manageAppointments", isOwnRecord)}
             isOwnProfile={isOwnRecord}
           />
@@ -94,7 +113,7 @@ export function PatientProfilePage({
       case "medicalHistory":
         return (
           <PatientMedicalRecordsTab
-            patient={patient}
+            patient={currentPatient}
             canEdit={can(currentRole, "editMedicalRecords", isOwnRecord)}
             isOwnProfile={isOwnRecord}
           />
@@ -102,14 +121,14 @@ export function PatientProfilePage({
       case "visitHistory":
         return (
           <VisitHistoryTab
-            patient={patient}
+            patient={currentPatient}
             isOwnProfile={isOwnRecord}
           />
         );
       case "prescriptions":
         return (
           <PatientPrescriptionsTab
-            patient={patient}
+            patient={currentPatient}
             canEdit={can(currentRole, "editPrescriptions", isOwnRecord)}
             isOwnProfile={isOwnRecord}
           />
@@ -117,7 +136,7 @@ export function PatientProfilePage({
       case "billing":
         return (
           <PatientBillingTab
-            patient={patient}
+            patient={currentPatient}
             canEdit={can(currentRole, "manageBilling", isOwnRecord)}
             isOwnProfile={isOwnRecord}
           />
@@ -125,7 +144,7 @@ export function PatientProfilePage({
       case "documents":
         return (
           <PatientDocumentsTab
-            patient={patient}
+            patient={currentPatient}
             canEdit={can(currentRole, "editProfile", isOwnRecord)}
             isOwnProfile={isOwnRecord}
           />
@@ -143,7 +162,7 @@ export function PatientProfilePage({
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Profile Header */}
         <PatientProfileHeader
-          patient={patient}
+          patient={currentPatient}
           currentRole={currentRole}
           onBack={onBack}
           onEdit={
@@ -152,7 +171,7 @@ export function PatientProfilePage({
           onBookAppointment={
             can(currentRole, "manageAppointments", isOwnRecord) &&
             onBookAppointment
-              ? () => onBookAppointment(patient.mrn)
+              ? () => onBookAppointment(currentPatient.mrn)
               : undefined
           }
         />

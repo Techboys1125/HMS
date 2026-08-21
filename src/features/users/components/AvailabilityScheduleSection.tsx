@@ -131,7 +131,7 @@ export const AvailabilityScheduleSection: React.FC<
                           key={`${day.dayOfWeek}-break-${idx}`}
                           className="text-[9px] bg-amber-50 text-amber-700 border border-amber-200 rounded px-1.5 py-0.5 font-medium"
                         >
-                          {brk.breakName || "Break"}: {formatTime(brk.startTime)}–{formatTime(brk.endTime)}
+                          {(brk as { breakName?: string; label?: string }).breakName || brk.label || "Break"}: {formatTime(brk.startTime)}–{formatTime(brk.endTime)}
                         </span>
                       ))}
                     </div>

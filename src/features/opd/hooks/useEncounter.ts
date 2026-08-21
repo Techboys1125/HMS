@@ -28,9 +28,11 @@ export const useEncounter = () => {
     // Invalidate all related queries so the UI reflects the COMPLETED status
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: QUEUE_QUERY_KEY }),
+      queryClient.invalidateQueries({ queryKey: ["queue"] }),
       queryClient.invalidateQueries({ queryKey: ["appointments"] }),
       queryClient.invalidateQueries({ queryKey: ["encounters"] }),
       queryClient.invalidateQueries({ queryKey: ["consultations"] }),
+      queryClient.invalidateQueries({ queryKey: ["doctor"] }),
       queryClient.invalidateQueries({ queryKey: ["doctor", "appointments"] }),
       queryClient.invalidateQueries({ queryKey: ["nurse"] }),
     ]);

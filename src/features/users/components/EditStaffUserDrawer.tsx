@@ -1,10 +1,23 @@
-import { useState, useEffect, useMemo } from "react";
-import { Edit, X, Check, Loader2, AlertTriangle, Clock } from "lucide-react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import {
+  Edit,
+  X,
+  Check,
+  Loader2,
+  AlertTriangle,
+  Clock,
+  Camera,
+  Upload,
+  Trash2,
+  CheckCircle2,
+  Image as ImageIcon,
+} from "lucide-react";
 import { TimeSelect } from "../../../components/TimeSelect";
 import { usersApi } from "../api/users.api";
 import { departmentsApi } from "../api/departments.api";
 import { doctorsApi } from "../../doctors/api/doctors.api";
 import { to24Hour } from "../../../lib/time-utils";
+import UserAvatar from "../../../common/components/UserAvatar";
 import type {
   BackendAvailabilityItem,
   UserDetailData,
@@ -24,9 +37,11 @@ export interface EditableStaffUser {
   email: string;
   phone: string;
   role: string;
-  department: string;
+  department: string | null;
   status: string;
   doctorId?: number;
+  photoUrl?: string | null;
+  photo?: string | null;
 }
 
 export interface EditStaffUserDrawerProps {
@@ -84,6 +99,8 @@ const createInitialForm = (
       phone: "",
       gender: "MALE",
       dateOfBirth: "",
+      photoUrl: "",
+      photo: "",
       residentialAddress: "",
       professionalBio: "",
       medicalRegistrationNumber: "",
@@ -105,13 +122,15 @@ const createInitialForm = (
     phone: user.phone || "",
     gender: "MALE",
     dateOfBirth: "",
+    photoUrl: user.photoUrl || user.photo || "",
+    photo: user.photo || user.photoUrl || "",
     residentialAddress: "",
     professionalBio: "",
     medicalRegistrationNumber: "",
     qualification: "",
     yearsOfExperience: 0,
     primaryDepartmentId:
-      deptNameToId[user.department] ??
+      (user.department ? deptNameToId[user.department] : undefined) ??
       (departments.length ? Number(departments[0].id) : 2),
     primarySpecialtyId: 1,
     consultationFee: 500,
@@ -144,6 +163,9 @@ export function EditStaffUserDrawer({
 
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [loadWarning, setLoadWarning] = useState<string | null>(null);
   const [doctorSchedule, setDoctorSchedule] =
@@ -158,10 +180,13 @@ export function EditStaffUserDrawer({
   if (user && user.id !== prevUserId) {
     setPrevUserId(user.id);
     setSaveError(null);
+    setPhotoUploadError(null);
     setIsLoadingDetail(true);
     setLoadWarning(null);
     setForm(createInitialForm(user, departments, deptNameToId));
   }
+
+  const isDoctor = (user?.role || "").toUpperCase().includes("DOCTOR");
 
   // Fetch departments (mirrors UserManagement approach)
   useEffect(() => {
@@ -203,6 +228,17 @@ export function EditStaffUserDrawer({
         }
         const detail: UserDetailData = response.data;
         const profile = detail.doctorProfile;
+        const loadedPhoto =
+          detail.photoUrl ||
+          detail.photo ||
+          (profile as { photoUrl?: string; photo?: string } | undefined)
+            ?.photoUrl ||
+          (profile as { photoUrl?: string; photo?: string } | undefined)
+            ?.photo ||
+          user.photoUrl ||
+          user.photo ||
+          "";
+
         setForm((prev) => ({
           ...prev,
           fullName: detail.fullName || user.fullName,
@@ -210,6 +246,8 @@ export function EditStaffUserDrawer({
           phone: detail.mobile || user.phone,
           gender: detail.gender || "MALE",
           dateOfBirth: detail.dateOfBirth || "",
+          photoUrl: String(loadedPhoto || ""),
+          photo: String(loadedPhoto || ""),
           residentialAddress: detail.residentialAddress || "",
           professionalBio: detail.professionalBio || "",
           employeeId: detail.employeeId || user.empId,
@@ -220,7 +258,7 @@ export function EditStaffUserDrawer({
           yearsOfExperience: profile?.yearsOfExperience || 0,
           primaryDepartmentId:
             profile?.primaryDepartment?.departmentId ||
-            deptNameToId[user.department] ||
+            (user.department ? deptNameToId[user.department] : undefined) ||
             (departments.length > 0 ? Number(departments[0].id) : 2),
           primarySpecialtyId: profile?.primarySpecialty?.specialtyId || 1,
           consultationFee: profile?.consultationFee ?? 500,
@@ -314,11 +352,63 @@ export function EditStaffUserDrawer({
 
   if (!user) return null;
 
-  const isDoctor = user.role === "Doctor";
+  const handlePhotoUpload = async (file: File) => {
+    if (!file) return;
+    const validTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "image/svg+xml",
+    ];
+    if (!validTypes.includes(file.type.toLowerCase())) {
+      setPhotoUploadError(
+        "Please upload a valid image file (JPG, PNG, WEBP, GIF, SVG).",
+      );
+      return;
+    }
+    const maxSizeBytes = 5 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      const err = `Image file size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds maximum limit of 5MB.`;
+      setPhotoUploadError(err);
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    setPhotoUploadError(null);
+    try {
+      const uploadedUrl = await usersApi.uploadPhoto(file);
+      setForm((prev) => ({
+        ...prev,
+        photoUrl: uploadedUrl,
+        photo: uploadedUrl,
+      }));
+    } catch (err: unknown) {
+      setPhotoUploadError(
+        err instanceof Error ? err.message : "Failed to upload photo.",
+      );
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setForm((prev) => ({
+      ...prev,
+      photoUrl: "",
+      photo: "",
+    }));
+    setPhotoUploadError(null);
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+    if (isUploadingPhoto) {
+      setSaveError("Please wait for photo upload to finish before saving.");
+      return;
+    }
 
     setIsSubmitting(true);
     setSaveError(null);
@@ -385,6 +475,8 @@ export function EditStaffUserDrawer({
         mobile: form.phone,
         gender: form.gender,
         dateOfBirth: form.dateOfBirth,
+        photo: form.photo || form.photoUrl || undefined,
+        photoUrl: form.photoUrl || form.photo || undefined,
         residentialAddress: form.residentialAddress,
         professionalBio: form.professionalBio,
         medicalRegistrationNumber: form.medicalRegistrationNumber,
@@ -487,6 +579,124 @@ export function EditStaffUserDrawer({
                 <span>{loadWarning}</span>
               </div>
             )}
+
+            {/* Profile Photo Upload Section */}
+            <div className="bg-white border border-[#E5E7EB] rounded-2xl p-4 flex items-center gap-4 shadow-2xs">
+              <div className="relative group shrink-0">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center relative shadow-xs">
+                  {form.photoUrl || form.photo ? (
+                    <img
+                      src={form.photoUrl || form.photo}
+                      alt={form.fullName || "Staff"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <UserAvatar
+                      name={form.fullName || user.fullName || "Staff"}
+                      size="lg"
+                      src={form.photoUrl || form.photo || undefined}
+                    />
+                  )}
+
+                  {isUploadingPhoto && (
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-center text-white">
+                      <Loader2 size={16} className="animate-spin text-white" />
+                      <span className="text-[8px] font-bold mt-0.5">
+                        Uploading
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => photoInputRef.current?.click()}
+                  disabled={isUploadingPhoto}
+                  title="Upload Photo"
+                  className="absolute -bottom-1 -right-1 p-1 bg-[#009688] text-white rounded-lg shadow-sm hover:bg-[#00796B] transition-all cursor-pointer disabled:opacity-50 border border-white"
+                >
+                  <Camera size={11} />
+                </button>
+              </div>
+
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <ImageIcon size={13} className="text-[#009688]" />
+                      Profile Photo
+                    </h4>
+                    <p className="text-[10px] text-slate-400 font-medium">
+                      JPG, PNG, WEBP, GIF up to 5MB
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/webp,image/gif,image/svg+xml"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handlePhotoUpload(file);
+                        e.target.value = "";
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => photoInputRef.current?.click()}
+                      disabled={isUploadingPhoto}
+                      className="px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                    >
+                      {isUploadingPhoto ? (
+                        <>
+                          <Loader2
+                            size={11}
+                            className="animate-spin text-[#009688]"
+                          />
+                          Uploading
+                        </>
+                      ) : form.photoUrl || form.photo ? (
+                        <>
+                          <Upload size={11} /> Replace
+                        </>
+                      ) : (
+                        <>
+                          <Upload size={11} /> Upload
+                        </>
+                      )}
+                    </button>
+
+                    {(form.photoUrl || form.photo) && !isUploadingPhoto && (
+                      <button
+                        type="button"
+                        onClick={handleRemovePhoto}
+                        className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                        title="Remove photo"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {photoUploadError && (
+                  <div className="p-1.5 rounded-lg bg-red-50 border border-red-200 text-[10px] text-red-600 font-semibold flex items-center gap-1">
+                    <AlertTriangle size={11} className="shrink-0" />
+                    <span>{photoUploadError}</span>
+                  </div>
+                )}
+
+                {form.photoUrl && !photoUploadError && !isUploadingPhoto && (
+                  <div className="text-[10px] text-teal-700 font-semibold flex items-center gap-1">
+                    <CheckCircle2 size={11} className="text-[#009688]" />
+                    Photo attached
+                  </div>
+                )}
+              </div>
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -766,19 +976,7 @@ export function EditStaffUserDrawer({
                   <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                     {form.availability.map((item, index) => (
                       <div
-                        key={
-                          item?.id ||
-                          item?._id ||
-                          item?.key ||
-                          item?.value ||
-                          item?.code ||
-                          item?.name ||
-                          item?.title ||
-                          item?.label ||
-                          (typeof item === "object"
-                            ? JSON.stringify(item)
-                            : String(item))
-                        }
+                        key={item.dayOfWeek || item.id || index}
                         className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 text-xs"
                       >
                         <span className="w-20 font-bold text-slate-700">
@@ -816,7 +1014,7 @@ export function EditStaffUserDrawer({
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || isLoadingDetail}
+                disabled={isSubmitting || isLoadingDetail || isUploadingPhoto}
                 className="flex-1 bg-[#009688] hover:bg-[#00796B] text-white py-3 rounded-xl font-heading font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (

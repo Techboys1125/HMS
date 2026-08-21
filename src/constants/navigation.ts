@@ -2,7 +2,6 @@ import {
   LayoutDashboard,
   Users,
   Calendar,
-  CalendarPlus,
   Stethoscope,
   FileText,
   Pill,

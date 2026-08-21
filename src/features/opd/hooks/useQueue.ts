@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useMemo } from "react";
 import { queueApi, type QueueListResult } from "../api/queueApi";
 import type { QueueListParams, QueueStatus } from "../types/queue.types";
 
@@ -27,30 +27,10 @@ export function useQueue(options: UseQueueOptions = {}) {
     enabled = true,
   } = options;
 
-  const [params, setParams] = useState<QueueListParams>({
-    doctorId,
-    date,
-    status,
-    search,
-    page,
-    size,
-  });
-
-  useEffect(() => {
-    setParams((prev) => {
-      if (
-        prev.doctorId === doctorId &&
-        prev.date === date &&
-        prev.status === status &&
-        prev.search === search &&
-        prev.page === page &&
-        prev.size === size
-      ) {
-        return prev;
-      }
-      return { doctorId, date, status, search, page, size };
-    });
-  }, [doctorId, date, status, search, page, size]);
+  const params = useMemo<QueueListParams>(
+    () => ({ doctorId, date, status, search, page, size }),
+    [doctorId, date, status, search, page, size],
+  );
 
   const {
     data,
@@ -66,9 +46,7 @@ export function useQueue(options: UseQueueOptions = {}) {
     refetchInterval: 15_000,
   });
 
-  const updateParams = useCallback((updates: Partial<QueueListParams>) => {
-    setParams((prev) => ({ ...prev, ...updates }));
-  }, []);
+  const updateParams = useCallback(() => {}, []);
 
   const callPatientMutation = useMutation({
     mutationFn: (appointmentId: number) => queueApi.callPatient(appointmentId),

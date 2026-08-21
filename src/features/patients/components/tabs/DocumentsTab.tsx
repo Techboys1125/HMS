@@ -12,10 +12,7 @@ export interface DocumentsTabProps {
   isOwnProfile: boolean;
 }
 
-export function PatientDocumentsTab({
-  patient: _patient,
-  canEdit,
-}: DocumentsTabProps) {
+export function PatientDocumentsTab({ canEdit }: DocumentsTabProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">

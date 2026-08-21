@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useEffectEvent, useReducer } from "react";
+import React, { useState, useEffect, useRef, useEffectEvent, useReducer, useCallback } from "react";
 import {
   Calendar as CalendarIcon,
   X,
@@ -59,8 +59,11 @@ export function RescheduleAppointmentConfirmationDialog({
     rescheduleReason: "Patient Request",
     additionalRemarks: "",
   });
-  const setField = (field: keyof FormState, value: string) =>
-    dispatch({ type: "SET_FIELD", field, value });
+  const setField = useCallback(
+    (field: keyof FormState, value: string) =>
+      dispatch({ type: "SET_FIELD", field, value }),
+    [],
+  );
   const currentMonthDateState = useState(new Date());
   const currentMonthDate = currentMonthDateState[0];
   const setCurrentMonthDate = currentMonthDateState[1];
@@ -91,7 +94,7 @@ export function RescheduleAppointmentConfirmationDialog({
     if (form.selectedDate) {
       setField("selectedTimeSlot", "");
     }
-  }, [form.selectedDate]);
+  }, [form.selectedDate, setField]);
 
   // ESC Key listener
   useEffect(() => {

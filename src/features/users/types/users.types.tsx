@@ -1,12 +1,12 @@
 export interface BackendAvailabilityItem {
-  id?: any;
-  _id?: any;
-  key?: any;
-  value?: any;
-  code?: any;
-  name?: any;
-  title?: any;
-  label?: any;
+  id?: number | string;
+  _id?: string;
+  key?: string;
+  value?: string | number | boolean;
+  code?: string;
+  name?: string;
+  title?: string;
+  label?: string;
   availabilityId?: number;
   dayOfWeek: string;
   startTime: string;
@@ -114,7 +114,7 @@ export interface DoctorProfileDetail {
 }
 
 export interface UserDetailData {
-  lastSuccessfulLogin: any;
+  lastSuccessfulLogin: string | null;
   userId: number;
   employeeId?: string;
   fullName: string;

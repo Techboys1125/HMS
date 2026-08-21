@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   User,
   Phone,
@@ -14,15 +14,23 @@ import {
   Hash,
   CheckCircle2,
   MapPin,
+  Camera,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { useAuthStore } from "../../auth/index";
 import { authApi } from "../../auth/api/auth.api";
 import { apiClient } from "../../../lib/axios";
 import { usersApi } from "../../users/api/users.api";
+import { doctorProfileService } from "../services/doctorProfile.service";
 import { mapApiUserToDoctorRecord } from "../api/mapApiUserToDoctorRecord";
-import type { DoctorRecord, ApiUserDoctorRecord, DoctorApiResponse } from "../types/doctors.types";
-import type { AdminUpdateStaffData } from "../../users/types/users.types";
+import type {
+  DoctorRecord,
+  ApiUserDoctorRecord,
+  DoctorApiResponse,
+} from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
+import UserAvatar from "../../../common/components/UserAvatar";
 
 const GENDER_OPTIONS = ["MALE", "FEMALE", "OTHER"];
 
@@ -35,6 +43,8 @@ interface AuthUser {
   email?: string;
   mobile?: string;
   role?: string;
+  photoUrl?: string;
+  photo?: string;
   doctorProfile?: {
     doctorId?: number;
     [key: string]: unknown;
@@ -57,9 +67,15 @@ export function DoctorProfilePage() {
     dateOfBirth: "",
     address: "",
     bio: "",
+    photoUrl: "",
+    photo: "",
   });
   const [savingPersonal, setSavingPersonal] = useState(false);
   const [personalSuccess, setPersonalSuccess] = useState(false);
+
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -72,7 +88,35 @@ export function DoctorProfilePage() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
 
-  const fetchProfile = useCallback(async () => {
+  const handlePhotoUpload = async (file: File) => {
+    if (!file) return;
+    setPhotoUploading(true);
+    setPhotoUploadError(null);
+    try {
+      const uploadedUrl = await usersApi.uploadPhoto(file);
+      setPersonalForm((prev) => ({
+        ...prev,
+        photoUrl: uploadedUrl,
+        photo: uploadedUrl,
+      }));
+    } catch (err: unknown) {
+      setPhotoUploadError(
+        err instanceof Error ? err.message : "Failed to upload photo",
+      );
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setPersonalForm((prev) => ({
+      ...prev,
+      photoUrl: "",
+      photo: "",
+    }));
+  };
+
+  const fetchProfile = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -81,70 +125,160 @@ export function DoctorProfilePage() {
       const me = meResponse.data as unknown as AuthUser;
       if (me) setAuthUser(me);
 
-      const uid = me?.id || user?.id;
-      const docId = me?.doctorId || me?.doctorProfile?.doctorId || user?.doctorId || user?.doctorProfile?.doctorId;
+      const docId =
+        me?.doctorId ||
+        me?.doctorProfile?.doctorId ||
+        user?.doctorId ||
+        user?.doctorProfile?.doctorId ||
+        me?.id ||
+        user?.id ||
+        "me";
 
-      if (docId) {
-        try {
-          const response = await apiClient.get<
-            DoctorApiResponse<ApiUserDoctorRecord> | ApiUserDoctorRecord
-          >(`/api/v1/doctors/${docId}`);
-          const data =
-            (response.data as DoctorApiResponse<ApiUserDoctorRecord>)?.data ||
-            (response.data as ApiUserDoctorRecord);
-          if (data && (data.fullName || data.name || data.doctorProfile)) {
-            setDoctor(mapApiUserToDoctorRecord(data));
-            return;
-          }
-        } catch {
-          // Fall through to admin endpoint
-        }
-      }
-
-      if (uid) {
-        try {
-          const response = await apiClient.get<
-            DoctorApiResponse<ApiUserDoctorRecord>
-          >(`/api/v1/admin/users/${uid}`);
-          const data =
-            response.data?.data ||
-            (response.data as unknown as ApiUserDoctorRecord);
-          if (data && (data.fullName || data.name || data.doctorProfile)) {
-            setDoctor(mapApiUserToDoctorRecord(data));
-            return;
-          }
-        } catch {
-          // Fall through to basic profile
-        }
-      }
-
-      if (me) {
-        setDoctor(mapApiUserToDoctorRecord(me as unknown as ApiUserDoctorRecord));
-      }
+      const doctorRecord = await doctorProfileService.getDoctorProfile(docId);
+      setDoctor(doctorRecord);
+      setPersonalForm({
+        fullName:
+          doctorRecord.fullName ||
+          doctorRecord.name.replace(/^Dr\.\s*/, ""),
+        email: doctorRecord.email || "",
+        mobile: doctorRecord.phone || "",
+        gender: doctorRecord.gender || "",
+        dateOfBirth: doctorRecord.dob || "",
+        address: doctorRecord.address || "",
+        bio: doctorRecord.bio || "",
+        photoUrl: doctorRecord.photoUrl || doctorRecord.photo || "",
+        photo: doctorRecord.photo || doctorRecord.photoUrl || "",
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load profile");
+      setError(
+        err instanceof Error ? err.message : "Failed to load doctor profile",
+      );
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const meResponse = await authApi.getProfile();
+        const me = meResponse.data as unknown as AuthUser;
+        if (!cancelled && me) setAuthUser(me);
+
+        const uid = me?.id || user?.id;
+        const docId =
+          me?.doctorId ||
+          me?.doctorProfile?.doctorId ||
+          user?.doctorId ||
+          user?.doctorProfile?.doctorId;
+
+        if (docId) {
+          try {
+            const response = await apiClient.get<
+              DoctorApiResponse<ApiUserDoctorRecord> | ApiUserDoctorRecord
+            >(`/api/v1/doctors/${docId}`);
+            const data =
+              (response.data as DoctorApiResponse<ApiUserDoctorRecord>)?.data ||
+              (response.data as ApiUserDoctorRecord);
+            if (
+              !cancelled &&
+              data &&
+              (data.fullName || data.name || data.doctorProfile)
+            ) {
+              const doctorRecord = mapApiUserToDoctorRecord(data);
+              setDoctor(doctorRecord);
+              setPersonalForm({
+                fullName: doctorRecord.name.replace(/^Dr\.\s*/, ""),
+                email: doctorRecord.email || "",
+                mobile: doctorRecord.phone || "",
+                gender: doctorRecord.gender || "",
+                dateOfBirth: doctorRecord.dob || "",
+                address: doctorRecord.address || "",
+                bio: doctorRecord.bio || "",
+                photoUrl: doctorRecord.photoUrl || doctorRecord.photo || "",
+                photo: doctorRecord.photo || doctorRecord.photoUrl || "",
+              });
+              return;
+            }
+          } catch {
+            // Fall through to admin endpoint
+          }
+        }
+
+        if (uid) {
+          try {
+            const response = await apiClient.get<
+              DoctorApiResponse<ApiUserDoctorRecord>
+            >(`/api/v1/admin/users/${uid}`);
+            const data =
+              response.data?.data ||
+              (response.data as unknown as ApiUserDoctorRecord);
+            if (
+              !cancelled &&
+              data &&
+              (data.fullName || data.name || data.doctorProfile)
+            ) {
+              const doctorRecord = mapApiUserToDoctorRecord(data);
+              setDoctor(doctorRecord);
+              setPersonalForm({
+                fullName: doctorRecord.name.replace(/^Dr\.\s*/, ""),
+                email: doctorRecord.email || "",
+                mobile: doctorRecord.phone || "",
+                gender: doctorRecord.gender || "",
+                dateOfBirth: doctorRecord.dob || "",
+                address: doctorRecord.address || "",
+                bio: doctorRecord.bio || "",
+                photoUrl: doctorRecord.photoUrl || doctorRecord.photo || "",
+                photo: doctorRecord.photo || doctorRecord.photoUrl || "",
+              });
+              return;
+            }
+          } catch {
+            // Fall through to basic profile
+          }
+        }
+
+        if (!cancelled && me) {
+          const doctorRecord = mapApiUserToDoctorRecord(
+            me as unknown as ApiUserDoctorRecord,
+          );
+          setDoctor(doctorRecord);
+          setPersonalForm({
+            fullName: doctorRecord.name.replace(/^Dr\.\s*/, ""),
+            email: doctorRecord.email || "",
+            mobile: doctorRecord.phone || "",
+            gender: doctorRecord.gender || "",
+            dateOfBirth: doctorRecord.dob || "",
+            address: doctorRecord.address || "",
+            bio: doctorRecord.bio || "",
+            photoUrl: doctorRecord.photoUrl || doctorRecord.photo || "",
+            photo: doctorRecord.photo || doctorRecord.photoUrl || "",
+          });
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load profile",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadProfile();
+
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id, user?.doctorId, user?.doctorProfile?.doctorId]);
-
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
-
-  useEffect(() => {
-    if (doctor) {
-      setPersonalForm({
-        fullName: doctor.name.replace(/^Dr\.\s*/, ""),
-        email: doctor.email || "",
-        mobile: doctor.phone || "",
-        gender: doctor.gender || "",
-        dateOfBirth: doctor.dob || "",
-        address: doctor.address || "",
-        bio: doctor.bio || "",
-      });
-    }
-  }, [doctor]);
 
   const handleSavePersonal = async () => {
     if (!doctor) return;
@@ -152,19 +286,23 @@ export function DoctorProfilePage() {
     setPersonalSuccess(false);
     setError(null);
     try {
-      const userId = doctor.userId || authUser?.id;
-      if (!userId) throw new Error("User ID not found");
-      const payload: AdminUpdateStaffData & { changeReason?: string } = {
+      const updatedDoctor: DoctorRecord = {
+        ...doctor,
         fullName: personalForm.fullName,
+        name: personalForm.fullName.startsWith("Dr.")
+          ? personalForm.fullName
+          : `Dr. ${personalForm.fullName}`,
         email: personalForm.email,
-        mobile: personalForm.mobile,
-        gender: personalForm.gender,
-        dateOfBirth: personalForm.dateOfBirth || undefined,
-        residentialAddress: personalForm.address || undefined,
-        professionalBio: personalForm.bio || undefined,
-        changeReason: "Profile updated by doctor via self-service",
+        phone: personalForm.mobile,
+        gender: (personalForm.gender as "Male" | "Female" | "Other") || doctor.gender,
+        dob: personalForm.dateOfBirth || doctor.dob,
+        address: personalForm.address || doctor.address,
+        bio: personalForm.bio || doctor.bio,
+        photoUrl: personalForm.photoUrl || personalForm.photo || doctor.photoUrl,
+        photo: personalForm.photo || personalForm.photoUrl || doctor.photo,
       };
-      await usersApi.adminUpdateStaff(userId, payload);
+      await doctorProfileService.updateDoctor(updatedDoctor);
+      setDoctor(updatedDoctor);
       setEditingPersonal(false);
       setPersonalSuccess(true);
       setTimeout(() => setPersonalSuccess(false), 3000);
@@ -180,7 +318,11 @@ export function DoctorProfilePage() {
     setPasswordError(null);
     setPasswordSuccess(false);
 
-    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+    if (
+      !passwordForm.currentPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.confirmPassword
+    ) {
       setPasswordError("All password fields are required");
       return;
     }
@@ -201,30 +343,30 @@ export function DoctorProfilePage() {
         confirmPassword: passwordForm.confirmPassword,
       });
       setPasswordSuccess(true);
-      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
       setTimeout(() => setPasswordSuccess(false), 3000);
     } catch (err) {
-      setPasswordError(err instanceof Error ? err.message : "Failed to change password");
+      setPasswordError(
+        err instanceof Error ? err.message : "Failed to change password",
+      );
     } finally {
       setSavingPassword(false);
     }
   };
-
-  const getInitials = (name: string) =>
-    name
-      .replace(/^Dr\.\s*/, "")
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2) || "DR";
 
   const fmt = (v: string | number | undefined | null, fallback = "—") =>
     v != null && v !== "" ? String(v) : fallback;
 
   if (loading) {
     return (
-      <div className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9]" style={{ fontFamily: RB }}>
+      <div
+        className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9]"
+        style={{ fontFamily: RB }}
+      >
         <div className="flex items-center justify-center p-12">
           <div className="flex items-center gap-2 text-xs text-[#64748B]">
             <span className="w-4 h-4 border-2 border-[#0D47A1] border-t-transparent rounded-full animate-spin" />
@@ -237,9 +379,15 @@ export function DoctorProfilePage() {
 
   if (error && !doctor) {
     return (
-      <div className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9]" style={{ fontFamily: RB }}>
+      <div
+        className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9]"
+        style={{ fontFamily: RB }}
+      >
         <div className="max-w-2xl mx-auto mt-10 bg-white rounded-2xl border border-[#E5E7EB] p-8 shadow-sm text-center">
-          <h2 className="text-lg font-bold text-[#111827] mb-2" style={{ fontFamily: PP }}>
+          <h2
+            className="text-lg font-bold text-[#111827] mb-2"
+            style={{ fontFamily: PP }}
+          >
             Unable to Load Profile
           </h2>
           <p className="text-xs text-[#64748B] mb-4">{error}</p>
@@ -254,21 +402,41 @@ export function DoctorProfilePage() {
     );
   }
 
-  const name = doctor?.name || authUser?.fullName || authUser?.name || user?.fullName || user?.name || "Doctor";
-  const initials = getInitials(name);
+  const name =
+    doctor?.name ||
+    authUser?.fullName ||
+    authUser?.name ||
+    user?.fullName ||
+    user?.name ||
+    "Doctor";
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9]" style={{ fontFamily: RB }}>
+    <div
+      className="flex-1 overflow-y-auto p-6 bg-[#F1F5F9]"
+      style={{ fontFamily: RB }}
+    >
       <div className="max-w-3xl mx-auto space-y-5">
-
         {/* Profile Header */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-[#0D47A1] flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
-              {initials}
-            </div>
+            <UserAvatar
+              name={name}
+              size="lg"
+              src={
+                personalForm.photoUrl ||
+                personalForm.photo ||
+                doctor?.photoUrl ||
+                doctor?.photo ||
+                authUser?.photoUrl ||
+                authUser?.photo ||
+                undefined
+              }
+            />
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-bold text-[#111827] truncate" style={{ fontFamily: PP }}>
+              <h1
+                className="text-lg font-bold text-[#111827] truncate"
+                style={{ fontFamily: PP }}
+              >
                 {name}
               </h1>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -277,7 +445,10 @@ export function DoctorProfilePage() {
                   {fmt(doctor?.specialty, "Doctor")}
                 </span>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-semibold">
-                  {fmt(authUser?.role || user?.role || doctor?.status, "DOCTOR")}
+                  {fmt(
+                    authUser?.role || user?.role || doctor?.status,
+                    "DOCTOR",
+                  )}
                 </span>
                 {doctor?.department && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-semibold">
@@ -293,7 +464,10 @@ export function DoctorProfilePage() {
         {/* Personal Information */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-[#111827]" style={{ fontFamily: PP }}>
+            <h3
+              className="text-sm font-bold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
               Personal Information
             </h3>
             {editingPersonal ? (
@@ -305,7 +479,7 @@ export function DoctorProfilePage() {
                 )}
                 <button
                   onClick={handleSavePersonal}
-                  disabled={savingPersonal}
+                  disabled={savingPersonal || photoUploading}
                   className="px-3 py-1.5 rounded-lg bg-[#0D47A1] text-white text-[11px] font-bold hover:bg-[#0c3d8a] transition-colors disabled:opacity-60 flex items-center gap-1"
                 >
                   <Save size={12} />
@@ -322,6 +496,8 @@ export function DoctorProfilePage() {
                         dateOfBirth: doctor.dob || "",
                         address: doctor.address || "",
                         bio: doctor.bio || "",
+                        photoUrl: doctor.photoUrl || doctor.photo || "",
+                        photo: doctor.photo || doctor.photoUrl || "",
                       });
                     }
                     setEditingPersonal(false);
@@ -342,6 +518,69 @@ export function DoctorProfilePage() {
             )}
           </div>
 
+          {editingPersonal && (
+            <div className="mb-5 p-4 bg-slate-50 border border-[#E2E8F0] rounded-xl">
+              <label className="block text-[11px] font-bold text-[#1E293B] mb-2">
+                Profile Photo
+              </label>
+              <div className="flex items-center gap-4">
+                <UserAvatar
+                  name={personalForm.fullName || name}
+                  size="lg"
+                  src={personalForm.photoUrl || personalForm.photo || undefined}
+                />
+                <div className="space-y-1.5">
+                  <input
+                    type="file"
+                    ref={photoInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handlePhotoUpload(file);
+                    }}
+                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={photoUploading}
+                      onClick={() => photoInputRef.current?.click()}
+                      className="px-3 py-1.5 bg-white border border-[#CBD5E1] hover:border-[#0D47A1] text-[#0D47A1] rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-60 shadow-xs"
+                    >
+                      {photoUploading ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <Camera size={13} />
+                      )}
+                      {personalForm.photoUrl || personalForm.photo
+                        ? "Change Photo"
+                        : "Upload Photo"}
+                    </button>
+                    {(personalForm.photoUrl || personalForm.photo) && (
+                      <button
+                        type="button"
+                        onClick={handleRemovePhoto}
+                        className="px-3 py-1.5 bg-white border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+                      >
+                        <Trash2 size={13} />
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-[#64748B]">
+                    JPG, PNG, WebP up to 5MB. Photo will be saved when you click
+                    Save.
+                  </p>
+                  {photoUploadError && (
+                    <p className="text-xs text-red-600 font-medium">
+                      {photoUploadError}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {error && editingPersonal && (
             <div className="mb-3 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs font-semibold">
               {error}
@@ -358,7 +597,12 @@ export function DoctorProfilePage() {
                 <input
                   type="text"
                   value={personalForm.fullName}
-                  onChange={(e) => setPersonalForm({ ...personalForm, fullName: e.target.value })}
+                  onChange={(e) =>
+                    setPersonalForm({
+                      ...personalForm,
+                      fullName: e.target.value,
+                    })
+                  }
                   className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
                 />
               ) : (
@@ -376,7 +620,9 @@ export function DoctorProfilePage() {
                 <input
                   type="email"
                   value={personalForm.email}
-                  onChange={(e) => setPersonalForm({ ...personalForm, email: e.target.value })}
+                  onChange={(e) =>
+                    setPersonalForm({ ...personalForm, email: e.target.value })
+                  }
                   className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
                 />
               ) : (
@@ -394,7 +640,9 @@ export function DoctorProfilePage() {
                 <input
                   type="text"
                   value={personalForm.mobile}
-                  onChange={(e) => setPersonalForm({ ...personalForm, mobile: e.target.value })}
+                  onChange={(e) =>
+                    setPersonalForm({ ...personalForm, mobile: e.target.value })
+                  }
                   className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
                 />
               ) : (
@@ -404,11 +652,15 @@ export function DoctorProfilePage() {
               )}
             </div>
             <div>
-              <label className="block text-[11px] font-bold text-[#64748B] mb-1">Gender</label>
+              <label className="block text-[11px] font-bold text-[#64748B] mb-1">
+                Gender
+              </label>
               {editingPersonal ? (
                 <select
                   value={personalForm.gender}
-                  onChange={(e) => setPersonalForm({ ...personalForm, gender: e.target.value })}
+                  onChange={(e) =>
+                    setPersonalForm({ ...personalForm, gender: e.target.value })
+                  }
                   className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
                 >
                   <option value="">Select</option>
@@ -432,7 +684,12 @@ export function DoctorProfilePage() {
                 <input
                   type="date"
                   value={personalForm.dateOfBirth}
-                  onChange={(e) => setPersonalForm({ ...personalForm, dateOfBirth: e.target.value })}
+                  onChange={(e) =>
+                    setPersonalForm({
+                      ...personalForm,
+                      dateOfBirth: e.target.value,
+                    })
+                  }
                   className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
                 />
               ) : (
@@ -460,7 +717,9 @@ export function DoctorProfilePage() {
               <input
                 type="text"
                 value={personalForm.address}
-                onChange={(e) => setPersonalForm({ ...personalForm, address: e.target.value })}
+                onChange={(e) =>
+                  setPersonalForm({ ...personalForm, address: e.target.value })
+                }
                 className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
               />
             ) : (
@@ -478,7 +737,9 @@ export function DoctorProfilePage() {
               <textarea
                 rows={3}
                 value={personalForm.bio}
-                onChange={(e) => setPersonalForm({ ...personalForm, bio: e.target.value })}
+                onChange={(e) =>
+                  setPersonalForm({ ...personalForm, bio: e.target.value })
+                }
                 className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
               />
             ) : (
@@ -491,7 +752,10 @@ export function DoctorProfilePage() {
 
         {/* Professional Information */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6">
-          <h3 className="text-sm font-bold text-[#111827] mb-4" style={{ fontFamily: PP }}>
+          <h3
+            className="text-sm font-bold text-[#111827] mb-4"
+            style={{ fontFamily: PP }}
+          >
             Professional Information
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -552,7 +816,10 @@ export function DoctorProfilePage() {
 
         {/* Change Password */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-6">
-          <h3 className="text-sm font-bold text-[#111827] mb-4" style={{ fontFamily: PP }}>
+          <h3
+            className="text-sm font-bold text-[#111827] mb-4"
+            style={{ fontFamily: PP }}
+          >
             <Lock size={14} className="inline mr-1.5 text-[#0D47A1]" />
             Change Password
           </h3>
@@ -579,7 +846,10 @@ export function DoctorProfilePage() {
                   type={showCurrentPw ? "text" : "password"}
                   value={passwordForm.currentPassword}
                   onChange={(e) =>
-                    setPasswordForm({ ...passwordForm, currentPassword: e.target.value })
+                    setPasswordForm({
+                      ...passwordForm,
+                      currentPassword: e.target.value,
+                    })
                   }
                   placeholder="Enter current password"
                   className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 pr-9 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -602,7 +872,10 @@ export function DoctorProfilePage() {
                   type={showNewPw ? "text" : "password"}
                   value={passwordForm.newPassword}
                   onChange={(e) =>
-                    setPasswordForm({ ...passwordForm, newPassword: e.target.value })
+                    setPasswordForm({
+                      ...passwordForm,
+                      newPassword: e.target.value,
+                    })
                   }
                   placeholder="Enter new password"
                   className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 pr-9 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -624,7 +897,10 @@ export function DoctorProfilePage() {
                 type="password"
                 value={passwordForm.confirmPassword}
                 onChange={(e) =>
-                  setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })
+                  setPasswordForm({
+                    ...passwordForm,
+                    confirmPassword: e.target.value,
+                  })
                 }
                 placeholder="Confirm new password"
                 className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"

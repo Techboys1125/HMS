@@ -125,19 +125,17 @@ export function PatientProfileScreen({
   const emergencyContactRelation = patient?.emergencyContact?.relationship || "";
   const emergencyContactPhone = patient?.emergencyContact?.mobile || patient?.emergencyContact?.contactNumber || patient?.emergencyContact?.mobileNumber || "";
 
-  const safeAppointments = Array.isArray(appointments) ? appointments : [];
   const safePrescriptions = Array.isArray(prescriptions) ? prescriptions : [];
   const safeBilling = Array.isArray(billing) ? billing : [];
 
-  const sortedAppointments = useMemo(
-    () =>
-      [...safeAppointments].sort((a, b) => {
-        const da = a.appointmentDate || a.date || "";
-        const db = b.appointmentDate || b.date || "";
-        return db.localeCompare(da);
-      }),
-    [safeAppointments],
-  );
+  const sortedAppointments = useMemo(() => {
+    const safeAppointments = Array.isArray(appointments) ? appointments : [];
+    return [...safeAppointments].sort((a, b) => {
+      const da = a.appointmentDate || a.date || "";
+      const db = b.appointmentDate || b.date || "";
+      return db.localeCompare(da);
+    });
+  }, [appointments]);
 
   const visitHistory = useMemo(
     () =>

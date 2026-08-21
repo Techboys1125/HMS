@@ -87,10 +87,7 @@ export function DepartmentsSpecialtiesWorkspace() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const mapApiToDepartment = (
-    d: ApiDepartment,
-    index: number,
-  ): Department => {
+  const mapApiToDepartment = (d: ApiDepartment, index: number): Department => {
     const deptId = String(d.departmentId || d.id || index + 1);
     const deptName = d.departmentName || d.name || "Department";
     const deptCode =
@@ -112,8 +109,7 @@ export function DepartmentsSpecialtiesWorkspace() {
       name: deptName,
       specialty: specsList || d.description || "General Specialty",
       specialtyCount: d.specialties?.length || 0,
-      doctorsCount:
-        d.doctorCount ?? d.doctorsCount ?? 0,
+      doctorsCount: d.doctorCount ?? d.doctorsCount ?? 0,
       status: isActive ? "Active" : "Inactive",
       lastUpdated: d.updatedAt
         ? new Date(d.updatedAt).toLocaleDateString("en-IN", {
@@ -361,7 +357,10 @@ export function DepartmentsSpecialtiesWorkspace() {
     setIsSubmitting(true);
     try {
       await departmentsApi.deleteDepartment(dept.id);
-      triggerToast(`Department "${dept.name}" deleted successfully!`, "success");
+      triggerToast(
+        `Department "${dept.name}" deleted successfully!`,
+        "success",
+      );
       if (selectedDept?.id === dept.id) setSelectedDept(null);
       setIsLoading(true);
       loadDepartments();
@@ -866,7 +865,7 @@ export function DepartmentsSpecialtiesWorkspace() {
           />
           <input
             type="text"
-                placeholder="Search by department name or code..."
+            placeholder="Search by department name or code..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
@@ -1115,7 +1114,9 @@ export function DepartmentsSpecialtiesWorkspace() {
                           }}
                         >
                           {dept.specialtyCount}{" "}
-                          {dept.specialtyCount === 1 ? "specialty" : "specialties"}
+                          {dept.specialtyCount === 1
+                            ? "specialty"
+                            : "specialties"}
                         </span>
                       </td>
                       <td style={{ padding: "12px 16px" }}>
@@ -1194,9 +1195,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                             <Edit2 size={13} /> Edit
                           </button>
                           <button
-                            onClick={() =>
-                              handleToggleActive(dept)
-                            }
+                            onClick={() => handleToggleActive(dept)}
                             title={dept.active ? "Deactivate" : "Activate"}
                             style={{
                               display: "inline-flex",
@@ -1204,44 +1203,42 @@ export function DepartmentsSpecialtiesWorkspace() {
                               gap: "4px",
                               padding: "6px 10px",
                               borderRadius: "6px",
-                               border: `1px solid ${dept.active ? "#F59E0B" : "#66BB6A"}`,
-                               background: dept.active ? "#FEF3C7" : "#E8F5E9",
-                               color: dept.active ? "#B45309" : "#2E7D32",
-                               fontSize: "11px",
-                               fontWeight: 600,
-                               cursor: "pointer",
-                             }}
-                           >
-                             <Shield size={13} />{" "}
-                             {dept.active ? "Deactivate" : "Activate"}
-                           </button>
-                           <button
-                             onClick={() =>
-                                handleDeleteDepartment(dept)
-                             }
-                             title="Delete Department"
-                             style={{
-                               display: "inline-flex",
-                               alignItems: "center",
-                               gap: "4px",
-                               padding: "6px 10px",
-                               borderRadius: "6px",
-                               border: "1px solid #EF4444",
-                               background: "#FEF2F2",
-                               color: "#EF4444",
-                               fontSize: "11px",
-                               fontWeight: 600,
-                               cursor: "pointer",
-                             }}
-                           >
-                             <Trash2 size={13} /> Delete
-                           </button>
-                         </div>
-                       </td>
-                     </tr>
-                   ))}
-                 </tbody>
-               </table>
+                              border: `1px solid ${dept.active ? "#F59E0B" : "#66BB6A"}`,
+                              background: dept.active ? "#FEF3C7" : "#E8F5E9",
+                              color: dept.active ? "#B45309" : "#2E7D32",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            <Shield size={13} />{" "}
+                            {dept.active ? "Deactivate" : "Activate"}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDepartment(dept)}
+                            title="Delete Department"
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              padding: "6px 10px",
+                              borderRadius: "6px",
+                              border: "1px solid #EF4444",
+                              background: "#FEF2F2",
+                              color: "#EF4444",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            <Trash2 size={13} /> Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
 
               {/* Pagination Controls */}
               <div
@@ -1260,21 +1257,18 @@ export function DepartmentsSpecialtiesWorkspace() {
                     fontFamily: PP,
                   }}
                 >
-                  Showing{" "}
-                  {totalElements === 0
-                    ? 0
-                    : currentPage * pageSize + 1}
+                  Showing {totalElements === 0 ? 0 : currentPage * pageSize + 1}
                   {" – "}
-                  {Math.min((currentPage + 1) * pageSize, totalElements)} of{" "}
-                  {totalElements} departments
+                  {Math.min(
+                    (currentPage + 1) * pageSize,
+                    totalElements,
+                  )} of {totalElements} departments
                 </span>
                 <div
                   style={{ display: "flex", alignItems: "center", gap: "6px" }}
                 >
                   <button
-                    onClick={() =>
-                      setCurrentPage((p) => Math.max(0, p - 1))
-                    }
+                    onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
                     disabled={currentPage === 0}
                     style={{
                       display: "inline-flex",
@@ -1310,7 +1304,8 @@ export function DepartmentsSpecialtiesWorkspace() {
                             pageNum === currentPage ? "#0D47A1" : "#E5E7EB",
                           background:
                             pageNum === currentPage ? "#0D47A1" : "#FFFFFF",
-                          color: pageNum === currentPage ? "#FFFFFF" : "#374151",
+                          color:
+                            pageNum === currentPage ? "#FFFFFF" : "#374151",
                           fontSize: "12px",
                           fontWeight: 600,
                           cursor: "pointer",
@@ -1322,9 +1317,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                   })}
                   <button
                     onClick={() =>
-                      setCurrentPage((p) =>
-                        Math.min(totalPages - 1, p + 1),
-                      )
+                      setCurrentPage((p) => Math.min(totalPages - 1, p + 1))
                     }
                     disabled={currentPage >= totalPages - 1}
                     style={{
@@ -1391,7 +1384,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                 const IconC = sp.icon;
                 return (
                   <div
-                    key={sp?.id || sp?._id || sp?.key || sp?.value || sp?.code || sp?.name || sp?.title || sp?.label || (typeof sp === 'object' ? JSON.stringify(sp) : String(sp))}
+                    key={sp.name}
                     style={{
                       background: "#F8FAFC",
                       borderRadius: "12px",
@@ -2039,7 +2032,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                               const specName = spec.name ?? "";
                               return (
                                 <span
-                                  key={spec?.id || spec?._id || spec?.key || spec?.value || spec?.code || spec?.name || spec?.title || spec?.label || (typeof spec === 'object' ? JSON.stringify(spec) : String(spec))}
+                                  key={spec.id || spec.name || specName}
                                   style={{
                                     display: "inline-flex",
                                     alignItems: "center",
@@ -2102,7 +2095,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                         {(selectedDept.rawSpecialties || []).map(
                           (spec: ApiSpecialtyItem) => (
                             <span
-                              key={spec?.id || spec?._id || spec?.key || spec?.value || spec?.code || spec?.name || spec?.title || spec?.label || (typeof spec === 'object' ? JSON.stringify(spec) : String(spec))}
+                              key={spec.id || spec.name || spec.code}
                               style={{
                                 background: "#E0F2F1",
                                 color: "#009688",
@@ -2156,8 +2149,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                     fontSize: "12px",
                     marginBottom: "12px",
                   }}
-                >
-                </div>
+                ></div>
                 <div>
                   <label
                     style={{
@@ -2493,7 +2485,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                   >
                     {newDeptSpecialties.map((spec) => (
                       <span
-                        key={spec?.id || spec?._id || spec?.key || spec?.value || spec?.code || spec?.name || spec?.title || spec?.label || (typeof spec === 'object' ? JSON.stringify(spec) : String(spec))}
+                        key={spec}
                         style={{
                           display: "inline-flex",
                           alignItems: "center",

@@ -67,10 +67,21 @@ function mapQueueItemToConsultation(item: QueueItem): ConsultationRecord {
     IN_PROGRESS: "IN_CONSULTATION",
     CONSULTATION_COMPLETED: "COMPLETED",
     COMPLETED: "COMPLETED",
+    FINALIZED: "COMPLETED",
+    FINISHED: "COMPLETED",
+    CLOSED: "COMPLETED",
+    READY_FOR_BILLING: "COMPLETED",
+    BILLING_PENDING: "COMPLETED",
+    PAYMENT_COMPLETED: "COMPLETED",
+    CHECKED_OUT: "COMPLETED",
+    DONE: "COMPLETED",
   };
-  const normalizedStatus = normalizeStatus(
-    item.status || item.queueStatus || "",
-  );
+  const rawStatus =
+    (item as { appointmentStatus?: string }).appointmentStatus ||
+    item.status ||
+    item.queueStatus ||
+    "";
+  const normalizedStatus = normalizeStatus(rawStatus);
 
   return {
     id: String(item.appointmentId),
@@ -247,13 +258,21 @@ export function OPDConsultationPage({
           .toUpperCase()
           .replace(/[\s-]/g, "_");
         if (
-          activeTabUpper === "WAITING" ||
-          activeTabUpper === "WAITING_FOR_DOCTOR_CALL" ||
-          activeTabUpper === "WAITING_FOR_DOCTOR"
+          activeTabUpper === "COMPLETED" ||
+          activeTabUpper === "CONSULTATION_COMPLETED"
         ) {
-          if (!waitingStatuses.has(itemStatusUpper as ConsultationStatus)) {
-            return false;
-          }
+          const isComp =
+            itemStatusUpper === "COMPLETED" ||
+            itemStatusUpper === "CONSULTATION_COMPLETED" ||
+            itemStatusUpper === "FINALIZED" ||
+            itemStatusUpper === "FINISHED" ||
+            itemStatusUpper === "CLOSED" ||
+            itemStatusUpper === "READY_FOR_BILLING" ||
+            itemStatusUpper === "BILLING_PENDING" ||
+            itemStatusUpper === "PAYMENT_COMPLETED" ||
+            itemStatusUpper === "CHECKED_OUT" ||
+            itemStatusUpper === "DONE";
+          if (!isComp) return false;
         } else if (itemStatusUpper !== activeTabUpper) {
           return false;
         }
@@ -269,6 +288,22 @@ export function OPDConsultationPage({
         ) {
           if (!waitingStatuses.has(itemStatusUpper as ConsultationStatus))
             return false;
+        } else if (
+          filterStatusUpper === "COMPLETED" ||
+          filterStatusUpper === "CONSULTATION_COMPLETED"
+        ) {
+          const isComp =
+            itemStatusUpper === "COMPLETED" ||
+            itemStatusUpper === "CONSULTATION_COMPLETED" ||
+            itemStatusUpper === "FINALIZED" ||
+            itemStatusUpper === "FINISHED" ||
+            itemStatusUpper === "CLOSED" ||
+            itemStatusUpper === "READY_FOR_BILLING" ||
+            itemStatusUpper === "BILLING_PENDING" ||
+            itemStatusUpper === "PAYMENT_COMPLETED" ||
+            itemStatusUpper === "CHECKED_OUT" ||
+            itemStatusUpper === "DONE";
+          if (!isComp) return false;
         } else if (itemStatusUpper !== filterStatusUpper) {
           return false;
         }
@@ -357,7 +392,18 @@ export function OPDConsultationPage({
         const s = String(c.status || "")
           .toUpperCase()
           .replace(/[\s-]/g, "_");
-        return s === "COMPLETED";
+        return (
+          s === "COMPLETED" ||
+          s === "CONSULTATION_COMPLETED" ||
+          s === "FINALIZED" ||
+          s === "FINISHED" ||
+          s === "CLOSED" ||
+          s === "READY_FOR_BILLING" ||
+          s === "BILLING_PENDING" ||
+          s === "PAYMENT_COMPLETED" ||
+          s === "CHECKED_OUT" ||
+          s === "DONE"
+        );
       }).length,
       Waiting: waitingCount,
     };

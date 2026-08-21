@@ -229,8 +229,11 @@ export function AuditLogManagementPage() {
     selectedStatus: "All",
     selectedEventType: "All",
   });
-  const setFilter = (field: keyof FilterState, value: string) =>
-    dispatch({ type: "SET_FIELD", field, value });
+  const setFilter = useCallback(
+    (field: keyof FilterState, value: string) =>
+      dispatch({ type: "SET_FIELD", field, value }),
+    [],
+  );
 
   const [activeDetailsRecord, setActiveDetailsRecord] =
     useState<AuditRecord | null>(null);
@@ -581,7 +584,7 @@ export function AuditLogManagementPage() {
     setFilter("selectedStatus", "All");
     setFilter("selectedEventType", "All");
     setPage(0);
-  }, []);
+  }, [setFilter, setPage]);
 
   const refreshAuditData = () => {
     void activeQuery.refetch();

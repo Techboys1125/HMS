@@ -35,14 +35,16 @@ export function useAppointments(
       setError(null);
       try {
         let items: AppointmentRecord[] = [];
-        if (userRole === "Doctor") {
+        const roleUpper = String(userRole || "").toUpperCase();
+
+        if (roleUpper === "DOCTOR") {
           items = await appointmentService.listDoctorAppointments(
             params?.doctorId,
             date,
             params?.status,
           );
         } else if (
-          userRole === "Patient" &&
+          roleUpper === "PATIENT" &&
           (params?.patientId || params?.mrn)
         ) {
           items = await appointmentService.listPatientAppointments(
@@ -93,13 +95,14 @@ export function useAppointments(
     setError(null);
     try {
       let items: AppointmentRecord[] = [];
-      if (userRole === "Doctor") {
+      const roleUpper = String(userRole || "").toUpperCase();
+      if (roleUpper === "DOCTOR") {
         items = await appointmentService.listDoctorAppointments(
           params?.doctorId,
           date,
           params?.status,
         );
-      } else if (userRole === "Patient" && (params?.patientId || params?.mrn)) {
+      } else if (roleUpper === "PATIENT" && (params?.patientId || params?.mrn)) {
         items = await appointmentService.listPatientAppointments(
           params.patientId || params.mrn || "",
         );

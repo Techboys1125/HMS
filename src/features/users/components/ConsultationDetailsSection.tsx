@@ -37,8 +37,12 @@ export const ConsultationDetailsSection: React.FC<
       } else {
         // Fallback to full department-specialties list if lookup is empty
         departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
-          const names = list
-            .map((d) => d.departmentName || d.name)
+          const items = Array.isArray(list) ? list : list?.content || [];
+          const names = items
+            .map(
+              (d: { departmentName?: string; name?: string }) =>
+                d.departmentName || d.name,
+            )
             .filter((n): n is string => Boolean(n));
           if (names.length > 0) setApiDepts(names);
         });
@@ -65,23 +69,33 @@ export const ConsultationDetailsSection: React.FC<
     return [];
   }, [form.secondaryDepartment, deptSpecialtiesMap]);
 
-  const handlePrimaryDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handlePrimaryDepartmentChange = (
+    e: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
     const newDept = e.target.value;
     setFieldValue("primaryDepartment", newDept);
 
     const specialties = deptSpecialtiesMap[newDept] || [];
-    if (specialties.length > 0 && !specialties.includes(form.primarySpecialty)) {
+    if (
+      specialties.length > 0 &&
+      !specialties.includes(form.primarySpecialty)
+    ) {
       setFieldValue("primarySpecialty", specialties[0]);
     }
   };
 
-  const handleSecondaryDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSecondaryDepartmentChange = (
+    e: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
     const newDept = e.target.value;
     setFieldValue("secondaryDepartment", newDept);
 
     if (newDept) {
       const specialties = deptSpecialtiesMap[newDept] || [];
-      if (specialties.length > 0 && !specialties.includes(form.secondarySpecialty)) {
+      if (
+        specialties.length > 0 &&
+        !specialties.includes(form.secondarySpecialty)
+      ) {
         setFieldValue("secondarySpecialty", specialties[0]);
       }
     } else {

@@ -34,7 +34,6 @@ export function DockableQueueWorkspace({
   userRole = "Receptionist",
   onStartConsultation,
   onRefresh,
-  isLoading: isRefreshing = false,
 }: {
   appointments: AppointmentRecord[];
   onUpdateStatus: (

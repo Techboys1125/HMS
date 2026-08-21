@@ -3,10 +3,12 @@ import type { User, ApiResponse } from "../../auth/types/auth.types";
 import { to24Hour } from "../../../lib/time-utils";
 import type {
   AdminCreateStaffData,
+  AdminCreateDoctorStaffData,
   AdminCreateStaffResponse,
   AdminUpdateStaffData,
   UserDetailData,
   OpdWeeklySchedule,
+  BackendAvailabilityItem,
 } from "../types/users.types";
 
 export const usersApi = {
@@ -19,27 +21,27 @@ export const usersApi = {
    *   -d '{"email":"<staff-email>","password":"<temporary-password>","fullName":"<staff-full-name>","role":"DOCTOR","mobile":"+919876543210","gender":"MALE","dateOfBirth":"1980-05-15","residentialAddress":"123 Main St, City","doctorProfile":{"medicalRegistrationNumber":"MED12345","qualification":"MBBS, MD","yearsOfExperience":15,"primaryDepartmentId":2,"primarySpecialtyId":1,"consultationFee":800,"followUpFee":500,"slotDurationMinutes":15,"availability":[{"dayOfWeek":"MONDAY","startTime":"09:00","endTime":"17:00"}]}}'
    */
   adminCreateStaff: async (
-    data: AdminCreateStaffData,
+    data: AdminCreateStaffData | AdminCreateDoctorStaffData,
   ): Promise<AdminCreateStaffResponse> => {
     try {
       const formattedData = {
         ...data,
-        availability: data.availability?.map((item: any) => ({
+        availability: data.availability?.map((item) => ({
           ...item,
-          startTime: to24Hour(item.startTime),
-          endTime: to24Hour(item.endTime),
+          startTime: to24Hour((item as BackendAvailabilityItem).startTime),
+          endTime: to24Hour((item as BackendAvailabilityItem).endTime),
         })),
-        ...((data as any).doctorProfile?.availability
+        ...("doctorProfile" in data && data.doctorProfile?.availability
           ? {
               doctorProfile: {
-                ...(data as any).doctorProfile,
-                availability: (data as any).doctorProfile.availability.map(
-                  (item: any) => ({
-                    ...item,
-                    startTime: to24Hour(item.startTime),
-                    endTime: to24Hour(item.endTime),
-                  }),
-                ),
+                ...data.doctorProfile,
+                availability: data.doctorProfile.availability.map((item) => ({
+                  ...item,
+                  startTime: to24Hour(
+                    (item as BackendAvailabilityItem).startTime,
+                  ),
+                  endTime: to24Hour((item as BackendAvailabilityItem).endTime),
+                })),
               },
             }
           : {}),
@@ -221,19 +223,29 @@ export const usersApi = {
     userId: number | string,
   ): Promise<ApiResponse<UserDetailData>> => {
     try {
-      const response = await apiClient.get<ApiResponse<UserDetailData> | { data: UserDetailData }>(
-        `/api/v1/admin/users/${userId}`,
-      );
+      const response = await apiClient.get<
+        ApiResponse<UserDetailData> | { data: UserDetailData }
+      >(`/api/v1/admin/users/${userId}`);
       const res = response.data as Record<string, unknown>;
       if (res && typeof res === "object") {
-        if ("data" in res && res.data && typeof res.data === "object" && "userId" in (res.data as Record<string, unknown>)) {
+        if (
+          "data" in res &&
+          res.data &&
+          typeof res.data === "object" &&
+          "userId" in (res.data as Record<string, unknown>)
+        ) {
           return {
             success: true,
             data: res.data as UserDetailData,
             message: String(res.message || "User fetched successfully"),
           };
         }
-        if ("data" in res && res.data && typeof res.data === "object" && "data" in (res.data as Record<string, unknown>)) {
+        if (
+          "data" in res &&
+          res.data &&
+          typeof res.data === "object" &&
+          "data" in (res.data as Record<string, unknown>)
+        ) {
           return {
             success: true,
             data: (res.data as Record<string, unknown>).data as UserDetailData,
@@ -282,4 +294,72 @@ export const usersApi = {
       throw new Error(msg, { cause: error });
     }
   },
+
+  // 9. Upload Staff Profile Photo (POST /api/v1/upload)
+  uploadPhoto: async (file: File): Promise<string> => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await apiClient.post<Record<string, unknown>>(
+        "/api/v1/upload",
+        formData,
+      );
+      const resData = response.data;
+      const uploadedUrl = extractUploadedUrl(resData);
+      if (!uploadedUrl) {
+        throw new Error(
+          "Upload response did not return a valid file URL/path.",
+        );
+      }
+      return uploadedUrl;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          { message?: string } | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
+      }
+      const msg =
+        error instanceof Error ? error.message : "Failed to upload image";
+      throw new Error(msg, { cause: error });
+    }
+  },
 };
+
+export function extractUploadedUrl(result: unknown): string {
+  if (!result) return "";
+  if (typeof result === "string") return result.trim();
+  if (typeof result === "object") {
+    const res = result as Record<string, unknown>;
+    if (res.data && typeof res.data === "object") {
+      const nested = extractUploadedUrl(res.data);
+      if (nested) return nested;
+    }
+    const candidates = [
+      res.url,
+      res.photoUrl,
+      res.photo,
+      res.fileUrl,
+      res.path,
+      res.filePath,
+      res.uploadUrl,
+      res.publicUrl,
+      res.location,
+      res.logoUrl,
+      res.headerBannerUrl,
+    ];
+    for (const cand of candidates) {
+      if (typeof cand === "string" && cand.trim().length > 0) {
+        return cand.trim();
+      }
+    }
+    for (const val of Object.values(res)) {
+      if (val && typeof val === "object") {
+        const nested = extractUploadedUrl(val);
+        if (nested) return nested;
+      }
+    }
+  }
+  return "";
+}

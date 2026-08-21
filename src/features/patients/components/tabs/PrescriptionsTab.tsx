@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Pill, ChevronRight } from "lucide-react";
+import { Pill, ChevronRight, Eye, Printer } from "lucide-react";
 import type {
   Patient,
   ApiPatientPrescription,
 } from "../../types/patient.types";
 import { PP } from "../../../doctors/constants/doctors.constants";
 import { patientsApi } from "../../api/patient.api";
+import { PrescriptionDetailsModal } from "./PrescriptionDetailsModal";
 
 export interface PrescriptionsTabProps {
   patient: Patient;
@@ -22,6 +23,8 @@ export function PatientPrescriptionsTab({
   );
   const [loading, setLoading] = useState(true);
   const [prevMrn, setPrevMrn] = useState<string | null>(null);
+  const [selectedPrescription, setSelectedPrescription] =
+    useState<ApiPatientPrescription | null>(null);
 
   if (patient.mrn !== prevMrn) {
     setPrevMrn(patient.mrn);
@@ -44,11 +47,12 @@ export function PatientPrescriptionsTab({
     };
   }, [patient.mrn]);
 
+  const safePrescriptions = Array.isArray(prescriptions) ? prescriptions : [];
   const filtered = isOwnProfile
-    ? prescriptions.filter(
+    ? safePrescriptions.filter(
         (p) => p.status !== "Cancelled" && p.status !== "Archived",
       )
-    : prescriptions;
+    : safePrescriptions;
 
   if (loading) {
     return (
@@ -81,33 +85,77 @@ export function PatientPrescriptionsTab({
           {filtered.map((rx) => (
             <div
               key={rx.id}
-              className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/50 transition-colors"
+              onClick={() => setSelectedPrescription(rx)}
+              className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors cursor-pointer group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-purple-50 text-purple-700 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
                   <Pill size={14} />
                 </div>
                 <div>
                   <div className="text-xs font-bold text-[#111827]">
-                    {rx.medicineCount} medicines
+                    {rx.medicineCount != null
+                      ? `${rx.medicineCount} medicines`
+                      : "Prescription"}
                   </div>
                   <div className="text-[11px] text-[#64748B]">
-                    {rx.date} · {rx.doctorName || "—"}
+                    {rx.date || "—"} · {rx.doctorName || "Doctor"}
                   </div>
                 </div>
               </div>
+
               <div className="flex items-center gap-2">
                 <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${rx.status === "Issued" ? "bg-emerald-50 text-[#66BB6A] border-emerald-200" : "bg-slate-100 text-slate-600 border-slate-200"}`}
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${
+                    rx.status === "Issued" ||
+                    rx.status === "FINALIZED" ||
+                    rx.status === "Completed"
+                      ? "bg-emerald-50 text-[#66BB6A] border-emerald-200"
+                      : "bg-slate-100 text-slate-600 border-slate-200"
+                  }`}
                 >
-                  {rx.status}
+                  {rx.status || "Issued"}
                 </span>
+
+                {/* View & Print Action Buttons */}
+                <div
+                  className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    onClick={() => setSelectedPrescription(rx)}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
+                    title="View Prescription"
+                  >
+                    <Eye size={15} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedPrescription(rx);
+                      setTimeout(() => window.print(), 300);
+                    }}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                    title="Print Prescription"
+                  >
+                    <Printer size={15} />
+                  </button>
+                </div>
+
                 <ChevronRight size={14} className="text-slate-400" />
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Prescription Detail & Print Modal */}
+      <PrescriptionDetailsModal
+        prescriptionId={selectedPrescription?.id ?? null}
+        initialData={selectedPrescription}
+        patient={patient}
+        isOpen={Boolean(selectedPrescription)}
+        onClose={() => setSelectedPrescription(null)}
+      />
     </div>
   );
 }

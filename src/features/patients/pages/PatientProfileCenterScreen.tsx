@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { Patient } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.fonts";
+import { useAuthStore } from "../../auth";
 import { PatientSearchScreen } from "./PatientSearchScreen";
 
 interface ActivePatientProfile extends Omit<Patient, "emergencyContact"> {
@@ -35,45 +36,20 @@ export function PatientProfileCenterScreen({
   onSwitchPatient,
   onPatientSelect,
   onRegisterPatient,
-  currentRole = "PATIENT",
 }: {
   activePatient?: ActivePatientProfile | null;
   onAddFamilyMember?: () => void;
   onSwitchPatient?: () => void;
   onPatientSelect?: (id: number | string) => void;
   onRegisterPatient?: () => void;
-  currentRole?: Role;
 }) {
   const [activeTab, setActiveTab] = useState<"info" | "edit" | "password">(
     "info",
   );
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  // Profile Data State
-  const [profileData, setProfileData] = useState({
-    name:
-      activePatient?.patientName ||
-      activePatient?.name ||
-      activePatient?.fullName ||
-      "Patient",
-    patientId: String(
-      activePatient?.mrn || activePatient?.id || "Generating...",
-    ),
-    email: activePatient?.email || "patient@safehands.org",
-    phone: activePatient?.registeredMobile || activePatient?.phone || "",
-    dob: activePatient?.dob || "1990-06-14",
-    gender: activePatient?.gender || "Female",
-    bloodGroup: activePatient?.bloodGroup || "O+",
-    address:
-      typeof activePatient?.address === "string"
-        ? activePatient.address
-        : "Springfield",
-    emergencyName: activePatient?.emergencyContact?.name || "Family Member",
-    emergencyRelation: activePatient?.relationship || "Spouse",
-    emergencyPhone: activePatient?.emergencyContact?.mobileNumber || "",
-  });
+  const user = useAuthStore((s) => s.user);
 
-  const [prevPatientKey, setPrevPatientKey] = useState<string>("");
   const patientKey = activePatient
     ? String(
         activePatient.mrn ||
@@ -85,30 +61,101 @@ export function PatientProfileCenterScreen({
       )
     : "";
 
+  const buildInitialData = () => {
+    let custom: Record<string, unknown> = {};
+    try {
+      const keys = [
+        patientKey,
+        activePatient?.mrn,
+        activePatient?.id,
+        user?.mrn,
+        user?.id,
+        "me",
+      ].filter(Boolean);
+      for (const k of keys) {
+        const stored = localStorage.getItem(`patient_profile_custom_${k}`);
+        if (stored) {
+          custom = { ...custom, ...JSON.parse(stored) };
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
+    return {
+      name: String(
+        custom.name ||
+          activePatient?.patientName ||
+          activePatient?.name ||
+          activePatient?.fullName ||
+          user?.name ||
+          user?.fullName ||
+          "Patient",
+      ),
+      patientId: String(
+        activePatient?.mrn ||
+          activePatient?.id ||
+          user?.mrn ||
+          "Generating...",
+      ),
+      email: String(
+        custom.email ||
+          activePatient?.email ||
+          user?.email ||
+          "patient@safehands.org",
+      ),
+      phone: String(
+        custom.phone ||
+          activePatient?.registeredMobile ||
+          activePatient?.phone ||
+          user?.phone ||
+          user?.mobile ||
+          "",
+      ),
+      dob: String(
+        custom.dob || activePatient?.dob || user?.dob || "1990-06-14",
+      ),
+      gender: String(
+        custom.gender || activePatient?.gender || user?.gender || "Female",
+      ),
+      bloodGroup: String(
+        custom.bloodGroup || activePatient?.bloodGroup || "O+",
+      ),
+      address: String(
+        custom.address ||
+          (typeof activePatient?.address === "string"
+            ? activePatient.address
+            : user?.address || "Springfield"),
+      ),
+      emergencyName: String(
+        custom.emergencyName ||
+          activePatient?.emergencyContact?.name ||
+          "Family Member",
+      ),
+      emergencyRelation: String(
+        custom.emergencyRelation ||
+          activePatient?.relationship ||
+          activePatient?.emergencyContact?.relationship ||
+          "Spouse",
+      ),
+      emergencyPhone: String(
+        custom.emergencyPhone ||
+          activePatient?.emergencyContact?.mobileNumber ||
+          activePatient?.emergencyContact?.phone ||
+          "",
+      ),
+    };
+  };
+
+  // Profile Data State
+  const [profileData, setProfileData] = useState(buildInitialData);
+
+  const [prevPatientKey, setPrevPatientKey] = useState<string>("");
+
   if (patientKey !== prevPatientKey) {
     setPrevPatientKey(patientKey);
     if (activePatient) {
-      setProfileData({
-        name:
-          activePatient.patientName ||
-          activePatient.name ||
-          activePatient.fullName ||
-          "Patient",
-        patientId: String(activePatient.mrn || activePatient.id || ""),
-        email: activePatient.email || "patient@safehands.org",
-        phone: activePatient.registeredMobile || activePatient.phone || "",
-        dob: activePatient.dob || "1990-06-14",
-        gender: activePatient.gender || "Female",
-        bloodGroup: activePatient.bloodGroup || "O+",
-        address:
-          typeof activePatient.address === "string"
-            ? activePatient.address
-            : "Main Street",
-        emergencyName:
-          activePatient.emergencyContact?.name || "Emergency Contact",
-        emergencyRelation: activePatient.relationship || "Family",
-        emergencyPhone: activePatient.emergencyContact?.mobileNumber || "",
-      });
+      setProfileData(buildInitialData());
     }
   }
 
@@ -145,6 +192,32 @@ export function PatientProfileCenterScreen({
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     setProfileData({ ...editForm });
+
+    // Sync authStore state if current user is this patient
+    const user = useAuthStore.getState().user;
+    if (user) {
+      useAuthStore.setUser({
+        ...user,
+        fullName: editForm.name,
+        name: editForm.name,
+        email: editForm.email,
+        mobile: editForm.phone,
+        phone: editForm.phone,
+      });
+    }
+
+    // Persist to localStorage
+    try {
+      if (patientKey) {
+        localStorage.setItem(
+          `patient_profile_custom_${patientKey}`,
+          JSON.stringify(editForm),
+        );
+      }
+    } catch {
+      // Ignore
+    }
+
     triggerToast("Profile information updated successfully!");
     setActiveTab("info");
   };

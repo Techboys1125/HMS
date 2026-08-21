@@ -151,7 +151,25 @@ export const UserDetailsDrawer: React.FC<UserDetailsDrawerProps> = ({
         <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs text-[#64748B] font-medium leading-relaxed">
           {/* Card Top */}
           <div className="flex items-center gap-4 border-b border-gray-100 pb-5">
-            <UserAvatar name={fullDetail?.fullName || user.fullName} size="lg" />
+            <UserAvatar
+              name={fullDetail?.fullName || user.fullName}
+              size="lg"
+              src={
+                fullDetail?.photoUrl ||
+                fullDetail?.photo ||
+                (
+                  fullDetail?.doctorProfile as
+                    { photoUrl?: string; photo?: string } | undefined
+                )?.photoUrl ||
+                (
+                  fullDetail?.doctorProfile as
+                    { photoUrl?: string; photo?: string } | undefined
+                )?.photo ||
+                user.photoUrl ||
+                user.photo ||
+                undefined
+              }
+            />
             <div className="space-y-1">
               <h4
                 className="font-bold text-[#1E293B] text-base"
@@ -182,7 +200,9 @@ export const UserDetailsDrawer: React.FC<UserDetailsDrawerProps> = ({
                 Department
               </span>
               <span className="text-[#1E293B] font-bold">
-                {fullDetail?.doctorProfile?.primaryDepartment?.departmentName || deptName || user.department}
+                {fullDetail?.doctorProfile?.primaryDepartment?.departmentName ||
+                  deptName ||
+                  user.department}
               </span>
             </div>
             <div>
@@ -225,7 +245,9 @@ export const UserDetailsDrawer: React.FC<UserDetailsDrawerProps> = ({
                 <span className="text-slate-400 font-bold block mb-1">
                   Email Address
                 </span>
-                <span className="text-[#1E293B] font-bold">{fullDetail?.email || user.email}</span>
+                <span className="text-[#1E293B] font-bold">
+                  {fullDetail?.email || user.email}
+                </span>
               </div>
               <div>
                 <span className="text-slate-400 font-bold block mb-1">
@@ -293,7 +315,10 @@ export const UserDetailsDrawer: React.FC<UserDetailsDrawerProps> = ({
                         Specialty
                       </span>
                       <span className="text-[#0D47A1] font-bold">
-                        {fullDetail.doctorProfile.primarySpecialty.specialtyName}
+                        {
+                          fullDetail.doctorProfile.primarySpecialty
+                            .specialtyName
+                        }
                       </span>
                     </div>
                   )}

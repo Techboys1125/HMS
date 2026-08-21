@@ -6,11 +6,6 @@ import {
   Printer,
   X,
   FileText,
-  Pill,
-  User,
-  Stethoscope,
-  Calendar,
-  Info,
 } from "lucide-react";
 import { usePermissions } from "../../../permissions";
 import { useConsultation } from "../hooks/useConsultation";
@@ -19,7 +14,7 @@ import { useVitals } from "../hooks/useVitals";
 import { useDiagnosis } from "../hooks/useDiagnosis";
 import { useInvoice } from "../../billing/hooks/useBilling";
 import type { ConsultationFormData, MedicineItem } from "../types/consultation";
-import { encountersApi, type Prescription } from "../../encounters";
+import { encountersApi } from "../../encounters";
 import { consultationApi } from "../api/consultationApi";
 import { ConsultationHeader } from "../components/ConsultationHeader";
 import { PatientSummaryCard } from "../components/PatientSummaryCard";
@@ -211,14 +206,6 @@ export function StartConsultationPage({
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const createdBillIdRef = useRef<string | null>(null);
-  const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
-  const [prescriptionData, setPrescriptionData] = useState<Prescription | null>(
-    null,
-  );
-  const [isLoadingPrescription, setIsLoadingPrescription] = useState(false);
-  const [prescriptionError, setPrescriptionError] = useState<string | null>(
-    null,
-  );
   const [finalizedData, setFinalizedData] = useState<{
     date: string;
     patientName: string;
@@ -255,6 +242,17 @@ export function StartConsultationPage({
 
   const [viewPrescriptionEncounterId, setViewPrescriptionEncounterId] =
     useState<string | number | null>(null);
+
+  const handleCloseCompleteModal = () => {
+    setShowCompleteModal(false);
+    if (onCompleteSuccess) {
+      onCompleteSuccess();
+    } else if (onBack) {
+      onBack();
+    } else {
+      navigate("/consultation", { replace: true });
+    }
+  };
 
   const handleAddMedicine = () => {
     const newMed: MedicineItem = {
@@ -442,7 +440,8 @@ export function StartConsultationPage({
         const patientMrn =
           selectedAppointment?.mrn || selectedConsultation?.mrn || "";
         const doctorId =
-          selectedAppointment?.doctorId || selectedConsultation?.doctorId;
+          selectedAppointment?.doctorId ||
+          (selectedConsultation as { doctorId?: string | number })?.doctorId;
         if (encId && aptId && patientMrn && doctorId) {
           try {
             const bill = await createBill({
@@ -459,11 +458,15 @@ export function StartConsultationPage({
       }
 
       setFinalizedData({
-        encounterId: activeEncounterId,
-        appointmentId: activeAppointmentId,
+        encounterId:
+          activeEncounterId ||
+          selectedConsultation?.encounterId ||
+          selectedConsultation?.id ||
+          "N/A",
+        appointmentId: activeAppointmentId || selectedConsultation?.id || 0,
         patientName,
         mrn: patientMrn,
-        age: patientAge,
+        age: patientAge ?? 0,
         gender: patientGender,
         phone: patientPhone,
         doctor: formData.doctorName,
@@ -868,57 +871,9 @@ export function StartConsultationPage({
                 </div>
               </div>
               <button
-                onClick={() => {
-                  setShowCompleteModal(false);
-                  if (onCompleteSuccess) onCompleteSuccess();
-                  else if (onBack) onBack();
-                  else {
-                    if (createdBillIdRef.current) {
-                      navigate(
-                        `/billing/create?billId=${createdBillIdRef.current}`,
-                        { replace: true },
-                      );
-                    } else {
-                      const aptId =
-                        activeAppointmentId || selectedConsultation?.id || "";
-                      const encId =
-                        activeEncounterId ||
-                        selectedConsultation?.encounterId ||
-                        "";
-                      const patientId =
-                        selectedAppointment?.patientId ||
-                        selectedConsultation?.patientId ||
-                        "";
-                      const patientMrn =
-                        selectedAppointment?.mrn ||
-                        selectedConsultation?.mrn ||
-                        "";
-                      const doctorId =
-                        selectedAppointment?.doctorId ||
-                        selectedConsultation?.doctorId ||
-                        "";
-                      const query = new URLSearchParams();
-                      if (createdBillIdRef.current) {
-                        navigate(
-                          `/billing/create?billId=${createdBillIdRef.current}`,
-                          { replace: true },
-                        );
-                      } else {
-                        if (aptId) query.set("appointmentId", String(aptId));
-                        if (encId) query.set("encounterId", String(encId));
-                        if (patientId)
-                          query.set("patientId", String(patientId));
-                        if (patientMrn)
-                          query.set("patientMrn", String(patientMrn));
-                        if (doctorId) query.set("doctorId", String(doctorId));
-                        navigate(`/billing/create?${query.toString()}`, {
-                          replace: true,
-                        });
-                      }
-                    }
-                  }
-                }}
+                onClick={handleCloseCompleteModal}
                 className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
+                title="Close"
               >
                 <X size={20} />
               </button>
@@ -1204,51 +1159,11 @@ export function StartConsultationPage({
             {/* Modal Actions */}
             <div className="flex items-center justify-between border-t border-slate-100 pt-4 no-print">
               <button
-                onClick={() => {
-                  setShowCompleteModal(false);
-                  if (onCompleteSuccess) onCompleteSuccess();
-                  else if (onBack) onBack();
-                  else {
-                    if (createdBillIdRef.current) {
-                      navigate(
-                        `/billing/create?billId=${createdBillIdRef.current}`,
-                        { replace: true },
-                      );
-                    } else {
-                      const aptId =
-                        activeAppointmentId || selectedConsultation?.id || "";
-                      const encId =
-                        activeEncounterId ||
-                        selectedConsultation?.encounterId ||
-                        "";
-                      const patientId =
-                        selectedAppointment?.patientId ||
-                        selectedConsultation?.patientId ||
-                        "";
-                      const patientMrn =
-                        selectedAppointment?.mrn ||
-                        selectedConsultation?.mrn ||
-                        "";
-                      const doctorId =
-                        selectedAppointment?.doctorId ||
-                        selectedConsultation?.doctorId ||
-                        "";
-                      const query = new URLSearchParams();
-                      if (aptId) query.set("appointmentId", String(aptId));
-                      if (encId) query.set("encounterId", String(encId));
-                      if (patientId) query.set("patientId", String(patientId));
-                      if (patientMrn)
-                        query.set("patientMrn", String(patientMrn));
-                      if (doctorId) query.set("doctorId", String(doctorId));
-                      navigate(`/billing/create?${query.toString()}`, {
-                        replace: true,
-                      });
-                    }
-                  }
-                }}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
+                onClick={handleCloseCompleteModal}
+                className="px-5 py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-all"
+                style={{ fontFamily: PP }}
               >
-                <X size={20} />
+                Close & Exit
               </button>
               <div className="flex items-center gap-3">
                 <button

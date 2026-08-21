@@ -9,6 +9,7 @@ import {
   Check,
 } from "lucide-react";
 import type { FormValues } from "../hooks/useCreateStaffForm";
+import UserAvatar from "../../../common/components/UserAvatar";
 
 interface ReviewInfoSectionProps {
   form: FormValues;
@@ -55,10 +56,17 @@ export const ReviewInfoSection: React.FC<ReviewInfoSectionProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Employment Details Card */}
         <div className="bg-white border border-[#E5E7EB] rounded-2xl p-6 space-y-4 shadow-xs">
-          <h4 className="text-slate-800 font-heading font-bold text-xs border-b border-slate-100 pb-2 flex items-center gap-1.5 uppercase tracking-wide">
-            <User size={14} className="text-[#0D47A1]" />
-            Employment Details
-          </h4>
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h4 className="text-slate-800 font-heading font-bold text-xs flex items-center gap-1.5 uppercase tracking-wide">
+              <User size={14} className="text-[#0D47A1]" />
+              Employment Details
+            </h4>
+            <UserAvatar
+              name={form.fullName || "Staff"}
+              size="md"
+              src={form.photoUrl || undefined}
+            />
+          </div>
 
           <div className="space-y-3 text-xs">
             <div className="flex justify-between items-start py-0.5">

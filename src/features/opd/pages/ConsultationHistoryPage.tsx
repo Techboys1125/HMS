@@ -30,12 +30,6 @@ export function ConsultationHistoryPage({
   const currentRole =
     overrideRole || (userRole ? userRole.toLowerCase() : "doctor");
 
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
-  const triggerToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3000);
-  };
-
   const isReadOnly =
     currentRole === "admin" ||
     currentRole === "nurse" ||
@@ -87,7 +81,6 @@ export function ConsultationHistoryPage({
         const msg = err instanceof Error ? err.message : "Failed to fetch consultation history";
         console.error("Failed to fetch consultation history:", err);
         setError(msg);
-        triggerToast(msg);
       } finally {
         setIsLoading(false);
       }
@@ -154,6 +147,11 @@ export function ConsultationHistoryPage({
 
   return (
     <div className="flex-1 bg-[#F1F5F9] overflow-y-auto flex flex-col font-sans relative pb-24">
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold animate-in fade-in">
+          {toastMsg}
+        </div>
+      )}
       {/* HEADER */}
       <ConsultationHeader
         roleLabel={breadcrumbRoleLabel}

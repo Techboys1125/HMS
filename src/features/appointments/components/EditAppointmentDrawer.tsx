@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer } from "react";
+import React, { useState, useEffect, useReducer, useCallback } from "react";
 import {
   Edit,
   X,
@@ -91,8 +91,11 @@ export function EditAppointmentDrawer({
     reasonForVisit: "",
     additionalNotes: "",
   });
-  const setField = (field: keyof FormState, value: string) =>
-    dispatch({ type: "SET_FIELD", field, value });
+  const setField = useCallback(
+    (field: keyof FormState, value: string) =>
+      dispatch({ type: "SET_FIELD", field, value }),
+    [],
+  );
 
   const [, setErrors] = useState<Record<string, string>>({});
   const [showErrorAlert, setShowErrorAlert] = useState(false);
@@ -139,7 +142,7 @@ export function EditAppointmentDrawer({
         }
       })
       .catch(() => {});
-  }, [departments, form.department, form.doctorName]);
+  }, [departments, form.department, form.doctorName, setField]);
 
   useEffect(() => {
     if (apt) {

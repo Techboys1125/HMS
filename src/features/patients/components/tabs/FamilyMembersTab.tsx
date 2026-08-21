@@ -175,38 +175,44 @@ export function FamilyMembersTab({
         </div>
       )}
 
-      {members.length === 0 ? (
-        <div className="text-center py-8 text-xs text-[#64748B]">
-          No family members on file.
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {members.map((member) => (
-            <div
-              key={member.id}
-              className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3"
-            >
-              <div>
-                <div className="text-xs font-bold text-[#111827]">
-                  {member.name}
-                </div>
-                <div className="text-[11px] text-[#64748B]">
-                  {member.relationship} · {member.mobileNumber || "—"}
-                </div>
-              </div>
-              {canEdit && (
-                <button
-                  type="button"
-                  onClick={() => handleDelete(String(member.id))}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                >
-                  <Trash2 size={14} />
-                </button>
-              )}
+      {(() => {
+        const safeMembers = Array.isArray(members) ? members : [];
+        if (safeMembers.length === 0) {
+          return (
+            <div className="text-center py-8 text-xs text-[#64748B]">
+              No family members on file.
             </div>
-          ))}
-        </div>
-      )}
+          );
+        }
+        return (
+          <div className="space-y-2">
+            {safeMembers.map((member) => (
+              <div
+                key={member.id}
+                className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3"
+              >
+                <div>
+                  <div className="text-xs font-bold text-[#111827]">
+                    {member.name}
+                  </div>
+                  <div className="text-[11px] text-[#64748B]">
+                    {member.relationship} · {member.mobileNumber || "—"}
+                  </div>
+                </div>
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(String(member.id))}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 }

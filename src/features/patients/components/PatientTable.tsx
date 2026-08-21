@@ -1,13 +1,10 @@
 import { useState, useMemo } from "react";
 import {
-  MoreVertical,
   Edit,
   Eye,
   CheckCircle2,
   AlertTriangle,
-  FileText,
   Calendar,
-  Receipt,
   Users,
   UserCheck,
   ArrowUpDown,
@@ -62,7 +59,6 @@ export function PatientTable({
   patients,
   totalCount,
   isLoading,
-  selectedPatientId,
   activeActionMenuId,
   hasActiveFilters,
   onSelectRow,
@@ -72,9 +68,6 @@ export function PatientTable({
   onBookAppointment,
   onActivatePatient,
   onDeactivatePatient,
-  onViewMedicalHistory,
-  onViewAppointments,
-  onGenerateBill,
   onResetFilters,
   userRole,
   doctorMap,
@@ -168,8 +161,16 @@ export function PatientTable({
           valB = (b.registrationType || "").toLowerCase();
           break;
         case "assigned_doctor":
-          valA = (extractDoctorName(a, doctorMap) || a.assignedDoctor || "N/A").toLowerCase();
-          valB = (extractDoctorName(b, doctorMap) || b.assignedDoctor || "N/A").toLowerCase();
+          valA = (
+            extractDoctorName(a, doctorMap) ||
+            a.assignedDoctor ||
+            "N/A"
+          ).toLowerCase();
+          valB = (
+            extractDoctorName(b, doctorMap) ||
+            b.assignedDoctor ||
+            "N/A"
+          ).toLowerCase();
           break;
         case "reg_date":
           valA = a.registrationDate || "";
@@ -199,7 +200,7 @@ export function PatientTable({
       if (valA > valB) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
-  }, [patients, sortColumn, sortDirection]);
+  }, [patients, sortColumn, sortDirection, doctorMap]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -229,7 +230,7 @@ export function PatientTable({
       visible: !isDoctor && !isReceptionist,
     },
     { key: "reg_type", label: "Reg. Type", visible: !isDoctor },
-    { key: "assigned_doctor", label: "Assigned Doctor", visible: true },
+    { key: "assigned_doctor", label: "Assigned Doctor", visible: false },
     { key: "reg_date", label: "Registration Date", visible: !isDoctor },
     { key: "visit_count", label: "Visit Count", visible: isDoctor },
     { key: "last_visit", label: "Last Visit", visible: isDoctor },
@@ -240,13 +241,6 @@ export function PatientTable({
 
   // RBAC Permission checks for Row Actions
   const canEdit = permissions.can("PATIENT_EDIT");
-  const canViewHistory =
-    permissions.can("PATIENT_VIEW_HISTORY") ||
-    isDoctor ||
-    activeRole.includes("ADMIN");
-  const canViewAppointments = permissions.can("APPOINTMENT_VIEW");
-  const canBilling =
-    permissions.can("BILLING_CREATE") || permissions.can("BILLING_VIEW");
 
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
@@ -329,7 +323,6 @@ export function PatientTable({
                 style={{ fontFamily: PP }}
               >
                 {columns.map((col) => {
-                  const isSorted = sortColumn === col.key;
                   const isActions = col.key === "actions";
 
                   return (
@@ -371,10 +364,15 @@ export function PatientTable({
                 const regType = (p.registrationType || "WALK_IN")
                   .replace(/_/g, " ")
                   .replace(/\b\w/g, (c) => c.toUpperCase());
-                const doctor = extractDoctorName(p, doctorMap) || p.assignedDoctor || "N/A";
-                const regDate = p.registrationDate
-                  ? p.registrationDate.split("T")[0]
-                  : "";
+                const rawDate =
+                  p.registrationDate ||
+                  (p as unknown as Record<string, unknown>).registeredDate ||
+                  (p as unknown as Record<string, unknown>).createdAt;
+                const regDate = rawDate
+                  ? typeof rawDate === "string"
+                    ? rawDate.split("T")[0]
+                    : String(rawDate).split("T")[0]
+                  : "-";
                 const status = p.status || "Active";
 
                 return (
@@ -401,9 +399,6 @@ export function PatientTable({
                               style={{ fontFamily: PP }}
                             >
                               {name}
-                            </span>
-                            <span className="text-[11px] text-[#64748B] block capitalize">
-                              {regType}
                             </span>
                           </div>
                         </div>
@@ -448,12 +443,28 @@ export function PatientTable({
                       </td>
                     )}
 
+                    {columns.some((c) => c.key === "reg_type") && (
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                            regType.toUpperCase().includes("ONLINE")
+                              ? "bg-blue-50 text-[#0D47A1] border-blue-200"
+                              : "bg-purple-50 text-purple-700 border-purple-200"
+                          }`}
+                        >
+                          {regType}
+                        </span>
+                      </td>
+                    )}
+
                     {columns.some((c) => c.key === "assigned_doctor") && (
                       <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700">
                         <div className="flex items-center gap-1.5">
                           <UserCheck size={14} className="text-[#009688]" />
                           <span className="font-medium text-[#111827]">
-                            {doctor}
+                            {extractDoctorName(p, doctorMap) ||
+                              p.assignedDoctor ||
+                              "-"}
                           </span>
                         </div>
                       </td>
@@ -514,7 +525,7 @@ export function PatientTable({
                             </button>
                           )}
 
-                          {onBookAppointment && (
+                          {onBookAppointment && !isDoctor && (
                             <button
                               onClick={() => onBookAppointment(p)}
                               className="p-1.5 rounded-lg text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition-colors"
@@ -543,72 +554,6 @@ export function PatientTable({
                                   <AlertTriangle size={15} />
                                 </button>
                               )}
-
-                          <div className="relative">
-                            <button
-                              onClick={() =>
-                                onToggleActionMenu(
-                                  activeActionMenuId === mrn ? null : mrn,
-                                )
-                              }
-                              className="p-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
-                              title="More Options"
-                            >
-                              <MoreVertical size={15} />
-                            </button>
-                            {activeActionMenuId === mrn && (
-                              <div className="absolute right-0 top-8 z-30 w-48 bg-white border border-[#E5E7EB] rounded-xl shadow-xl py-1.5 animate-in fade-in zoom-in-95 duration-150 text-left">
-                                {canViewHistory && (
-                                  <button
-                                    onClick={() => {
-                                      onToggleActionMenu(null);
-                                      if (onViewMedicalHistory)
-                                        onViewMedicalHistory(mrn);
-                                      else onViewProfile(mrn);
-                                    }}
-                                    className="w-full text-left px-3.5 py-2 text-xs text-[#111827] hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
-                                  >
-                                    <FileText
-                                      size={14}
-                                      className="text-[#009688]"
-                                    />{" "}
-                                    Medical History
-                                  </button>
-                                )}
-                                {canViewAppointments && (
-                                  <button
-                                    onClick={() => {
-                                      onToggleActionMenu(null);
-                                      if (onViewAppointments)
-                                        onViewAppointments(mrn);
-                                    }}
-                                    className="w-full text-left px-3.5 py-2 text-xs text-[#111827] hover:bg-blue-50 hover:text-[#0D47A1] flex items-center gap-2 font-medium transition-colors"
-                                  >
-                                    <Calendar
-                                      size={14}
-                                      className="text-purple-600"
-                                    />{" "}
-                                    Appointments
-                                  </button>
-                                )}
-                                {canBilling && (
-                                  <button
-                                    onClick={() => {
-                                      onToggleActionMenu(null);
-                                      if (onGenerateBill) onGenerateBill(mrn);
-                                    }}
-                                    className="w-full text-left px-3.5 py-2 text-xs text-[#111827] hover:bg-[#66BB6A]/10 hover:text-[#66BB6A] flex items-center gap-2 font-medium transition-colors border-t border-gray-100 mt-1 pt-2"
-                                  >
-                                    <Receipt
-                                      size={14}
-                                      className="text-amber-600"
-                                    />{" "}
-                                    Generate Bill
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                          </div>
                         </div>
                       </td>
                     )}

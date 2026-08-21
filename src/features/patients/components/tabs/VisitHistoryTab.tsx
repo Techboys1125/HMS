@@ -84,7 +84,8 @@ export function VisitHistoryTab({ patient, isOwnProfile }: VisitHistoryTabProps)
     };
   }, [patient.mrn]);
 
-  const filtered = appointments.filter((a) => {
+  const safeAppointments = Array.isArray(appointments) ? appointments : [];
+  const filtered = safeAppointments.filter((a) => {
     const status = resolveStatus(a);
     if (isOwnProfile) {
       return isVisitStatus(status) || isCancelledStatus(status);

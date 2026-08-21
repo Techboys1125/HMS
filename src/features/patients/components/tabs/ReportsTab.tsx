@@ -73,8 +73,8 @@ export function PatientReportsTab({ patient }: ReportsTabProps) {
     );
   }
 
-  const apptList = appointments || [];
-  const rxList = prescriptions || [];
+  const apptList = Array.isArray(appointments) ? appointments : [];
+  const rxList = Array.isArray(prescriptions) ? prescriptions : [];
 
   const completedAppointments = apptList.filter(
     (a) => a.status === "Completed",

@@ -261,7 +261,7 @@ export const consultationService = {
   ) => {
     consultationStoreActions.setLoading(true);
     try {
-      const { selectedPrescription, selectedEncounter } =
+      const { selectedPrescription } =
         consultationStoreActions.getState();
       // Use numeric id for API calls (not the string prescriptionId like RX-20260806-2292)
       const rxId = selectedPrescription?.id;
@@ -319,7 +319,7 @@ export const consultationService = {
           // non-blocking
         }
 
-        // Step 20: Finalize encounter (fetch fresh version immediately before each attempt)
+        let encounterFinalized = false;
         const MAX_RETRIES = 3;
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
           try {
@@ -336,6 +336,7 @@ export const consultationService = {
               confirmation: true,
               version: freshVersion,
             });
+            encounterFinalized = true;
             break; // Success — exit retry loop
           } catch (finalizeErr: unknown) {
             const errMsg = String(
@@ -355,10 +356,20 @@ export const consultationService = {
             throw finalizeErr;
           }
         }
-      }
 
-      // Complete appointment using dedicated doctor endpoint
-      if (appointmentId) {
+        // If encounter finalization didn't run or wasn't applicable, complete appointment as fallback
+        if (appointmentId && !encounterFinalized) {
+          try {
+            await consultationApi.completeAppointment(appointmentId);
+          } catch (aptErr) {
+            console.warn(
+              "Non-blocking appointment status completion warning:",
+              aptErr,
+            );
+          }
+        }
+      } else if (appointmentId) {
+        // No encounter exists, complete appointment directly
         try {
           await consultationApi.completeAppointment(appointmentId);
         } catch (aptErr) {
@@ -369,6 +380,19 @@ export const consultationService = {
         }
       }
 
+      const currentStoreState = consultationStoreActions.getState();
+      if (currentStoreState.selectedAppointment) {
+        consultationStoreActions.setAppointment({
+          ...currentStoreState.selectedAppointment,
+          status: "COMPLETED",
+        });
+      }
+      if (currentStoreState.selectedConsultation) {
+        consultationStoreActions.setConsultation({
+          ...currentStoreState.selectedConsultation,
+          status: "COMPLETED",
+        });
+      }
       consultationStoreActions.setStatus("COMPLETED");
     } catch (err) {
       const errorMessage =
@@ -389,7 +413,7 @@ export const consultationService = {
     consultationStoreActions.setLoading(true);
     try {
       // 1. Fetch consultation details
-      let consultation =
+      const consultation =
         await consultationApi.getConsultationDetails(consultationId);
 
       if (!consultation) {
@@ -401,7 +425,7 @@ export const consultationService = {
         throw new Error("Consultation details not found");
       }
 
-      const cnsRecord = consultation as Record<string, any>;
+      const cnsRecord = consultation as Record<string, unknown>;
 
       const encounterId = cnsRecord.encounterId || `ENC-${consultationId}`;
 
@@ -445,7 +469,7 @@ export const consultationService = {
         department: String(cnsRecord.department || cnsRecord.departmentName || ""),
         appointmentTime: String(cnsRecord.appointmentTime || cnsRecord.checkInTime || ""),
         visitType: (cnsRecord.visitType || "First Visit") as "First Visit" | "Follow-up",
-        status: (cnsRecord.status || "IN_CONSULTATION") as any,
+        status: (cnsRecord.status || "IN_CONSULTATION") as ConsultationStatus,
         chiefComplaint: String(cnsRecord.chiefComplaint || ""),
         opdRoom: String(cnsRecord.opdRoom || ""),
         date: String(cnsRecord.date || new Date().toISOString().split("T")[0]),

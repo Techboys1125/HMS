@@ -35,10 +35,10 @@ const PP = "Poppins, sans-serif";
 const RB = "Roboto, sans-serif";
 
 const formatLastLogin = (lastLogin: string | null): string => {
-  if (!lastLogin) return "\u2014";
+  if (!lastLogin) return "—";
   try {
     const date = new Date(lastLogin);
-    if (isNaN(date.getTime())) return "\u2014";
+    if (isNaN(date.getTime())) return "—";
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
@@ -54,7 +54,7 @@ const formatLastLogin = (lastLogin: string | null): string => {
       year: "numeric",
     });
   } catch {
-    return "\u2014";
+    return "—";
   }
 };
 
@@ -83,6 +83,8 @@ export interface UserRecord {
   joinedDate: string;
   twoFactor: boolean;
   departmentId?: number;
+  photoUrl?: string | null;
+  photo?: string | null;
 }
 
 // Map backend roles to frontend display roles
@@ -141,6 +143,10 @@ export const UserManagement: React.FC = () => {
 
   // Toast state
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const triggerToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 4000);
+  };
 
   // Drawer States
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
@@ -177,12 +183,13 @@ export const UserManagement: React.FC = () => {
         setApiDepartments(mapped);
       } else {
         departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
-          const mapped = list
-            .map((d) => ({
+          const items = Array.isArray(list) ? list : list?.content || [];
+          const mapped = items
+            .map((d: { departmentId?: string | number; id?: string | number; departmentName?: string; name?: string }) => ({
               id: d.departmentId ?? d.id ?? "",
               name: d.departmentName || d.name || "",
             }))
-            .filter((d) => d.name);
+            .filter((d: { name: string }) => Boolean(d.name));
           if (mapped.length > 0) setApiDepartments(mapped);
         });
       }
@@ -213,21 +220,27 @@ export const UserManagement: React.FC = () => {
               localStatusOverrides[uid] ||
               BACKEND_TO_DISPLAY_STATUS[String(u.status).toUpperCase()] ||
               "Active";
-            const deptId = Number(
-              u.primaryDepartmentId ?? u.departmentId ?? u.hospitalId,
-            ) || undefined;
+            const deptId =
+              Number(u.primaryDepartmentId ?? u.departmentId ?? u.hospitalId) ||
+              undefined;
 
-            // Extract department name from multiple possible API locations
-            const doctorProfile = (u as Record<string, unknown>)
-              .doctorProfile as Record<string, unknown> | undefined;
+            const uRecord = u as unknown as Record<string, unknown>;
+            const doctorProfile = uRecord.doctorProfile as
+              Record<string, unknown> | undefined;
             const primaryDept = doctorProfile?.primaryDepartment as
-              | Record<string, unknown>
-              | undefined;
+              Record<string, unknown> | undefined;
             const deptName =
               u.departmentName ??
               u.department ??
               (primaryDept?.departmentName as string) ??
-              deptIdToName[deptId] ??
+              (deptId !== undefined ? deptIdToName[deptId] : null) ??
+              null;
+
+            const photoVal =
+              uRecord.photoUrl ||
+              uRecord.photo ||
+              doctorProfile?.photoUrl ||
+              doctorProfile?.photo ||
               null;
 
             return {
@@ -245,10 +258,12 @@ export const UserManagement: React.FC = () => {
               department: deptName,
               departmentId: deptId,
               status: statusDisplay,
-              lastLogin: (u as Record<string, unknown>).lastSuccessfulLogin
-                ? String((u as Record<string, unknown>).lastSuccessfulLogin)
-                : (u as Record<string, unknown>).lastLogin
-                  ? String((u as Record<string, unknown>).lastLogin)
+              photoUrl: photoVal ? String(photoVal) : null,
+              photo: photoVal ? String(photoVal) : null,
+              lastLogin: uRecord.lastSuccessfulLogin
+                ? String(uRecord.lastSuccessfulLogin)
+                : uRecord.lastLogin
+                  ? String(uRecord.lastLogin)
                   : null,
               joinedDate: "2023-11-01",
               twoFactor: false,
@@ -267,96 +282,6 @@ export const UserManagement: React.FC = () => {
       setLoading(false);
     }
   }, [deptIdToName, localStatusOverrides]);
-
-  useEffect(() => {
-    let active = true;
-    usersApi
-      .adminGetUsers()
-      .then((response) => {
-        if (!active) return;
-        const rawList = Array.isArray(response)
-          ? response
-          : Array.isArray(response?.data)
-            ? response.data
-            : [];
-
-        if (rawList.length > 0 || response?.success) {
-          const mappedUsers: UserRecord[] = rawList.map(
-            (u: User & { userId?: number }, index: number) => {
-              const userId = u.userId ?? u.id;
-              const roleDisplay =
-                BACKEND_TO_DISPLAY_ROLE[String(u.role).toUpperCase()] ||
-                "Doctor";
-              const uid = userId ? String(userId) : `user-record-${index}`;
-              const statusDisplay =
-                localStatusOverrides[uid] ||
-                BACKEND_TO_DISPLAY_STATUS[String(u.status).toUpperCase()] ||
-                "Active";
-              const deptId = Number(
-                u.primaryDepartmentId ?? u.departmentId ?? u.hospitalId,
-              ) || undefined;
-
-              // Extract department name from multiple possible API locations
-              const doctorProfile = (u as Record<string, unknown>)
-                .doctorProfile as Record<string, unknown> | undefined;
-              const primaryDept = doctorProfile?.primaryDepartment as
-                | Record<string, unknown>
-                | undefined;
-              const deptName =
-                u.departmentName ??
-                u.department ??
-                (primaryDept?.departmentName as string) ??
-                deptIdToName[deptId] ??
-                null;
-
-              return {
-                id: uid,
-                empId:
-                  u.employeeId ||
-                  `EMP-${roleDisplay.substring(0, 3).toUpperCase()}-${userId ?? index}`,
-                fullName: u.fullName || "Staff User",
-                username: u.email
-                  ? u.email.split("@")[0]
-                  : `user_${userId ?? index}`,
-                email: u.email || "",
-                phone: u.mobile || "+1 (555) 000-0000",
-                role: roleDisplay,
-                department: deptName,
-                departmentId: deptId,
-                status: statusDisplay,
-              lastLogin: (u as Record<string, unknown>).lastSuccessfulLogin
-                ? String((u as Record<string, unknown>).lastSuccessfulLogin)
-                : (u as Record<string, unknown>).lastLogin
-                  ? String((u as Record<string, unknown>).lastLogin)
-                  : null,
-              joinedDate: "2023-11-01",
-              twoFactor: false,
-            };
-          },
-        );
-        setUsers(mappedUsers);
-      } else {
-        setErrorMsg(response?.message || "Failed to retrieve staff list.");
-      }
-    })
-    .catch((err: unknown) => {
-      if (!active) return;
-      const errMsg =
-        err instanceof Error ? err.message : "Error fetching staff accounts";
-      setErrorMsg(errMsg);
-    })
-    .finally(() => {
-      if (active) setLoading(false);
-    });
-  return () => {
-    active = false;
-    };
-  }, [deptIdToName, localStatusOverrides]);
-
-  const triggerToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3000);
-  };
 
   // Open View Details Drawer & fetch full backend record
   const handleOpenDetailsDrawer = async (user: UserRecord) => {
@@ -487,7 +412,7 @@ export const UserManagement: React.FC = () => {
             u.fullName.toLowerCase().includes(q) ||
             u.email.toLowerCase().includes(q) ||
             u.username.toLowerCase().includes(q) ||
-            u.department.toLowerCase().includes(q);
+            (u.department?.toLowerCase() || "").includes(q);
           if (!match) return false;
         }
         // Filters
@@ -504,14 +429,7 @@ export const UserManagement: React.FC = () => {
         if (valA > valB) return sortDirection === "asc" ? 1 : -1;
         return 0;
       });
-  }, [
-    users,
-    searchQuery,
-    roleFilter,
-    statusFilter,
-    sortColumn,
-    sortDirection,
-  ]);
+  }, [users, searchQuery, roleFilter, statusFilter, sortColumn, sortDirection]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -787,7 +705,6 @@ export const UserManagement: React.FC = () => {
                     setSearchQuery("");
                     setRoleFilter("All");
                     setStatusFilter("All");
-                    setDeptFilter("All");
                     triggerToast("Filters reset.");
                   }}
                   className="p-2 rounded-xl border border-[#E5E7EB] bg-white text-slate-500 hover:text-[#0D47A1] hover:bg-slate-50 transition-colors cursor-pointer"

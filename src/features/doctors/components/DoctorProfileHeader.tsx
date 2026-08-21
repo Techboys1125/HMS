@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { DoctorRecord, DoctorAvailability } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
+import UserAvatar from "../../../common/components/UserAvatar";
 
 function DollarSignIcon() {
   return <span className="text-xs font-bold">$</span>;
@@ -47,16 +48,6 @@ export function DoctorProfileHeader({
 }: DoctorProfileHeaderProps) {
   const isAdmin = role === "ADMIN";
   const isDoctor = role === "DOCTOR";
-
-  const initials = doctor.name
-    ? doctor.name
-        .replace(/^Dr\.\s*/, "")
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
-    : "DOC";
 
   const getAvailStyle = (avail: DoctorAvailability) => {
     switch (avail) {
@@ -174,12 +165,11 @@ export function DoctorProfileHeader({
       ) : (
         <div className="bg-white p-6 rounded-2xl border border-[#E5E7EB] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-            <div
-              className="w-20 h-20 rounded-2xl bg-[#0D47A1] text-white font-bold text-2xl flex items-center justify-center shrink-0 border-2 border-white shadow-md"
-              style={{ fontFamily: PP }}
-            >
-              {initials}
-            </div>
+            <UserAvatar
+              name={doctor.name}
+              size="lg"
+              src={doctor.photoUrl || doctor.photo || undefined}
+            />
 
             <div className="space-y-1.5">
               <div className="flex items-center gap-3 flex-wrap">

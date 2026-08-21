@@ -50,6 +50,9 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
     form,
     errors,
     isSubmitting,
+    photoUploading,
+    photoUploadError,
+    photoPreviewUrl,
     empIdPreview,
     currentStep,
     totalSteps,
@@ -59,6 +62,8 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
     setFieldValue,
     setNestedFieldValue,
     validateField,
+    handlePhotoUpload,
+    handleRemovePhoto,
     copyMondayHoursToWeekdays,
     handleSaveStaff,
   } = useCreateStaffForm(triggerToast, onSuccess, onBack);
@@ -196,6 +201,11 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
                 setFieldValue={setFieldValue}
                 validateField={validateField}
                 empIdPreview={empIdPreview}
+                photoUploading={photoUploading}
+                photoUploadError={photoUploadError}
+                photoPreviewUrl={photoPreviewUrl}
+                onPhotoUpload={handlePhotoUpload}
+                onRemovePhoto={handleRemovePhoto}
               />
             </div>
           )}
@@ -234,7 +244,8 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
           <button
             type="button"
             onClick={prevStep}
-            className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            disabled={photoUploading || isSubmitting}
+            className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ fontFamily: PP }}
           >
             {currentStep > 1 ? (
@@ -260,18 +271,28 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
             <button
               type="button"
               onClick={nextStep}
-              className="px-5 py-2.5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+              disabled={photoUploading || isSubmitting}
+              className="px-5 py-2.5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: PP }}
             >
-              Next Step <ArrowRight size={14} />
+              {photoUploading ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" /> Uploading
+                  Photo...
+                </>
+              ) : (
+                <>
+                  Next Step <ArrowRight size={14} />
+                </>
+              )}
             </button>
           ) : (
             <button
               type="button"
               onClick={handleSaveStaff}
-              disabled={isSubmitting || !form.role}
+              disabled={isSubmitting || photoUploading || !form.role}
               className={`px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
-                isSubmitting || !form.role
+                isSubmitting || photoUploading || !form.role
                   ? "bg-slate-350 cursor-not-allowed"
                   : "bg-[#66BB6A] hover:bg-[#52a656]"
               }`}

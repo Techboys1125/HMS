@@ -1,26 +1,31 @@
 /**
  * MedicalRecordsTab – Patient Profile Tab for Medical Records
- * Displays consultations, vitals, diagnoses from existing OPD/Vitals endpoints
- * No duplicate module — reuses existing backend data
+ * Displays prescriptions + billing from real backend endpoints
+ * Sub-tabs: Timeline | Prescriptions | Billing
  */
 import { useState } from "react";
 import {
-  Stethoscope,
-  Heart,
-  Activity,
   FileText,
   Clock,
   ChevronRight,
+  CreditCard,
+  Pill,
+  AlertTriangle,
+  Eye,
+  Printer,
 } from "lucide-react";
 import type { Patient } from "../../types/patient.types";
 import { PP } from "../../../doctors/constants/doctors.constants";
 import { useMedicalRecords } from "../../hooks/useMedicalRecords";
 import type {
-  ConsultationRecord,
-  VitalsRecord,
-  DiagnosisRecord,
+  PrescriptionSummary,
+  BillingSummaryRecord,
   MedicalHistoryEntry,
 } from "../../types/medicalRecord.types";
+import type { InvoiceRecord } from "../../../billing/types/billing.types";
+import { PrescriptionDetailsModal } from "./PrescriptionDetailsModal";
+import { InvoiceDetailsDrawer } from "../../../billing/components/InvoiceDetailsDrawer";
+import { mapApiInvoiceToInvoiceRecord } from "../../../billing/utils/billing.utils";
 
 export interface MedicalRecordsTabProps {
   patient: Patient;
@@ -28,7 +33,7 @@ export interface MedicalRecordsTabProps {
   isOwnProfile: boolean;
 }
 
-type MedicalSubTab = "timeline" | "consultations" | "vitals" | "diagnoses";
+type MedicalSubTab = "timeline" | "prescriptions" | "billing";
 
 const SUB_TABS: Array<{
   id: MedicalSubTab;
@@ -36,22 +41,33 @@ const SUB_TABS: Array<{
   icon: React.ElementType;
 }> = [
   { id: "timeline", label: "Timeline", icon: Clock },
-  { id: "consultations", label: "Consultations", icon: Stethoscope },
-  { id: "vitals", label: "Vitals", icon: Heart },
-  { id: "diagnoses", label: "Diagnoses", icon: Activity },
+  { id: "prescriptions", label: "Prescriptions", icon: Pill },
+  { id: "billing", label: "Billing", icon: CreditCard },
 ];
 
 const STATUS_STYLE: Record<string, string> = {
+  FINALIZED: "bg-emerald-50 text-[#66BB6A] border-emerald-200",
+  ISSUED: "bg-emerald-50 text-[#66BB6A] border-emerald-200",
   Completed: "bg-emerald-50 text-[#66BB6A] border-emerald-200",
-  "In-Progress": "bg-sky-50 text-sky-700 border-sky-200",
-  "Follow-up Required": "bg-amber-50 text-[#F59E0B] border-amber-200",
+  DRAFT: "bg-amber-50 text-[#F59E0B] border-amber-200",
+  PENDING: "bg-amber-50 text-[#F59E0B] border-amber-200",
+  CANCELLED: "bg-red-50 text-[#EF4444] border-red-200",
+  PAID: "bg-emerald-50 text-[#66BB6A] border-emerald-200",
+  UNPAID: "bg-red-50 text-[#EF4444] border-red-200",
+  PARTIALLY_PAID: "bg-amber-50 text-[#F59E0B] border-amber-200",
   Active: "bg-blue-50 text-[#0D47A1] border-blue-200",
-  Resolved: "bg-gray-50 text-gray-600 border-gray-200",
-  Chronic: "bg-purple-50 text-purple-700 border-purple-200",
-  Cancelled: "bg-red-50 text-[#EF4444] border-red-200",
 };
 
-function TimelineView({ entries }: { entries: MedicalHistoryEntry[] }) {
+/* ─── Timeline View ─── */
+function TimelineView({
+  entries,
+  onSelectPrescription,
+  onSelectBill,
+}: {
+  entries: MedicalHistoryEntry[];
+  onSelectPrescription: (id: string) => void;
+  onSelectBill: (id: string | number) => void;
+}) {
   if (entries.length === 0) {
     return (
       <div className="text-center py-8 text-xs text-[#64748B]">
@@ -61,17 +77,13 @@ function TimelineView({ entries }: { entries: MedicalHistoryEntry[] }) {
   }
 
   const iconMap: Record<string, React.ElementType> = {
-    consultation: Stethoscope,
-    vitals: Heart,
-    diagnosis: Activity,
-    prescription: FileText,
+    prescription: Pill,
+    billing: CreditCard,
   };
 
   const colorMap: Record<string, string> = {
-    consultation: "bg-blue-50 text-[#0D47A1]",
-    vitals: "bg-rose-50 text-rose-600",
-    diagnosis: "bg-purple-50 text-purple-700",
     prescription: "bg-emerald-50 text-emerald-700",
+    billing: "bg-sky-50 text-sky-700",
   };
 
   return (
@@ -79,10 +91,19 @@ function TimelineView({ entries }: { entries: MedicalHistoryEntry[] }) {
       {entries.map((entry) => {
         const Icon = iconMap[entry.type] || FileText;
         const colorCls = colorMap[entry.type] || "bg-slate-50 text-slate-600";
+        const handleClick = () => {
+          if (entry.type === "prescription") {
+            onSelectPrescription(String(entry.id));
+          } else if (entry.type === "billing") {
+            onSelectBill(entry.id);
+          }
+        };
+
         return (
           <div
             key={`${entry.type}-${entry.id}`}
-            className="flex items-start gap-3 bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/50 transition-colors"
+            onClick={handleClick}
+            className="flex items-start gap-3 bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors cursor-pointer group"
           >
             <div
               className={`w-8 h-8 rounded-full ${colorCls} flex items-center justify-center shrink-0 mt-0.5`}
@@ -111,6 +132,19 @@ function TimelineView({ entries }: { entries: MedicalHistoryEntry[] }) {
                 {entry.department && <span>· {entry.department}</span>}
               </div>
             </div>
+            <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity self-center">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClick();
+                }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
+                title="View Details"
+              >
+                <Eye size={14} />
+              </button>
+              <ChevronRight size={14} className="text-slate-400" />
+            </div>
           </div>
         );
       })}
@@ -118,188 +152,202 @@ function TimelineView({ entries }: { entries: MedicalHistoryEntry[] }) {
   );
 }
 
-function ConsultationsView({ records }: { records: ConsultationRecord[] }) {
+/* ─── Prescriptions View ─── */
+function PrescriptionsView({
+  records,
+  onSelectPrescription,
+}: {
+  records: PrescriptionSummary[];
+  onSelectPrescription: (id: string) => void;
+}) {
   if (records.length === 0) {
     return (
       <div className="text-center py-8 text-xs text-[#64748B]">
-        No consultation records found.
+        No prescription records found.
       </div>
     );
   }
 
   return (
     <div className="space-y-2">
-      {records.map((c) => (
-        <div
-          key={c.id}
-          className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/50 transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-50 text-[#0D47A1] flex items-center justify-center">
-              <Stethoscope size={14} />
-            </div>
-            <div>
-              <div className="text-xs font-bold text-[#111827]">
-                {c.doctorName}
+      {records.map((rx) => {
+        const status = rx.prescriptionStatus || "FINALIZED";
+        return (
+          <div
+            key={rx.prescriptionId}
+            onClick={() => onSelectPrescription(rx.prescriptionId)}
+            className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors cursor-pointer group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                <Pill size={14} />
               </div>
-              <div className="text-[11px] text-[#64748B]">
-                {c.consultationDate} · {c.department}
-              </div>
-              {c.diagnosis && (
-                <div className="text-[11px] text-slate-500 mt-0.5">
-                  {c.diagnosis}
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${STATUS_STYLE[c.status] || "bg-slate-100 text-slate-600 border-slate-200"}`}
-            >
-              {c.status}
-            </span>
-            <ChevronRight size={14} className="text-slate-400" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function VitalsView({ records }: { records: VitalsRecord[] }) {
-  if (records.length === 0) {
-    return (
-      <div className="text-center py-8 text-xs text-[#64748B]">
-        No vitals records found.
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-2">
-      {records.map((v) => (
-        <div
-          key={v.id}
-          className="bg-white border border-[#E5E7EB] rounded-xl p-3"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-bold text-[#111827]">
-              {v.recordedAt || "—"}
-            </div>
-            {v.recordedBy && (
-              <div className="text-[11px] text-[#64748B]">
-                By: {v.recordedBy}
-              </div>
-            )}
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {v.bloodPressure && (
-              <div className="bg-slate-50 rounded-lg px-2.5 py-1.5">
-                <div className="text-[10px] text-slate-400">BP</div>
+              <div>
                 <div className="text-xs font-bold text-[#111827]">
-                  {v.bloodPressure}
+                  {rx.doctor?.doctorName || "Doctor"}
+                </div>
+                <div className="text-[11px] text-[#64748B]">
+                  {rx.visitDateTime || rx.createdAt || "—"} ·{" "}
+                  {rx.department?.departmentName || "General"}
+                </div>
+                {rx.diagnosis?.primaryDiagnosis && (
+                  <div className="text-[11px] text-slate-500 mt-0.5">
+                    {rx.diagnosis.primaryDiagnosis}
+                    {rx.diagnosis.icd10Code && (
+                      <span className="text-[10px] text-slate-400 ml-1">
+                        ({rx.diagnosis.icd10Code})
+                      </span>
+                    )}
+                  </div>
+                )}
+                <div className="flex items-center gap-2 mt-0.5">
+                  {rx.medications?.totalMedicines != null && (
+                    <span className="text-[10px] text-slate-400">
+                      {rx.medications.totalMedicines} medication(s)
+                    </span>
+                  )}
+                  {rx.medications?.highRiskMedicine && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-600">
+                      <AlertTriangle size={10} /> High-risk
+                    </span>
+                  )}
+                  {rx.followUp?.required && (
+                    <span className="text-[10px] text-blue-500">
+                      Follow-up: {rx.followUp.followUpDate || "Scheduled"}
+                    </span>
+                  )}
                 </div>
               </div>
-            )}
-            {v.heartRate && (
-              <div className="bg-slate-50 rounded-lg px-2.5 py-1.5">
-                <div className="text-[10px] text-slate-400">Heart Rate</div>
-                <div className="text-xs font-bold text-[#111827]">
-                  {v.heartRate}
-                </div>
-              </div>
-            )}
-            {v.temperature && (
-              <div className="bg-slate-50 rounded-lg px-2.5 py-1.5">
-                <div className="text-[10px] text-slate-400">Temperature</div>
-                <div className="text-xs font-bold text-[#111827]">
-                  {v.temperature}
-                </div>
-              </div>
-            )}
-            {v.spo2 && (
-              <div className="bg-slate-50 rounded-lg px-2.5 py-1.5">
-                <div className="text-[10px] text-slate-400">SpO2</div>
-                <div className="text-xs font-bold text-[#111827]">{v.spo2}</div>
-              </div>
-            )}
-            {v.weight && (
-              <div className="bg-slate-50 rounded-lg px-2.5 py-1.5">
-                <div className="text-[10px] text-slate-400">Weight</div>
-                <div className="text-xs font-bold text-[#111827]">
-                  {v.weight}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function DiagnosesView({ records }: { records: DiagnosisRecord[] }) {
-  if (records.length === 0) {
-    return (
-      <div className="text-center py-8 text-xs text-[#64748B]">
-        No diagnosis records found.
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-2">
-      {records.map((d) => (
-        <div
-          key={d.id}
-          className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/50 transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-purple-50 text-purple-700 flex items-center justify-center">
-              <Activity size={14} />
             </div>
-            <div>
-              <div className="text-xs font-bold text-[#111827]">
-                {d.diagnosisName}
-              </div>
-              <div className="text-[11px] text-[#64748B]">
-                {d.date} · {d.doctorName}
-              </div>
-              {d.diagnosisCode && (
-                <div className="text-[10px] text-slate-400 mt-0.5">
-                  ICD: {d.diagnosisCode}
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {d.severity && (
+            <div className="flex items-center gap-2">
               <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${
-                  d.severity === "Critical" || d.severity === "Severe"
-                    ? "bg-red-50 text-red-600 border-red-200"
-                    : d.severity === "Moderate"
-                      ? "bg-amber-50 text-amber-600 border-amber-200"
-                      : "bg-green-50 text-green-600 border-green-200"
-                }`}
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${STATUS_STYLE[status] || "bg-slate-100 text-slate-600 border-slate-200"}`}
               >
-                {d.severity}
+                {status}
               </span>
-            )}
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${STATUS_STYLE[d.status] || "bg-slate-100 text-slate-600 border-slate-200"}`}
-            >
-              {d.status}
-            </span>
+              <div
+                className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => onSelectPrescription(rx.prescriptionId)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
+                  title="View Prescription"
+                >
+                  <Eye size={15} />
+                </button>
+                <button
+                  onClick={() => {
+                    onSelectPrescription(rx.prescriptionId);
+                    setTimeout(() => window.print(), 300);
+                  }}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                  title="Print Prescription"
+                >
+                  <Printer size={15} />
+                </button>
+              </div>
+              <ChevronRight size={14} className="text-slate-400" />
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
+/* ─── Billing View ─── */
+function BillingView({
+  records,
+  onSelectBill,
+}: {
+  records: BillingSummaryRecord[];
+  onSelectBill: (bill: BillingSummaryRecord) => void;
+}) {
+  if (records.length === 0) {
+    return (
+      <div className="text-center py-8 text-xs text-[#64748B]">
+        No billing records found.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {records.map((bill) => {
+        const payStatus = bill.paymentStatus || bill.billStatus || "PENDING";
+        return (
+          <div
+            key={bill.billId}
+            onClick={() => onSelectBill(bill)}
+            className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors cursor-pointer group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
+                <CreditCard size={14} />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-[#111827]">
+                  {bill.billNumber || `Bill #${bill.billId}`}
+                </div>
+                <div className="text-[11px] text-[#64748B]">
+                  {bill.date || "—"}
+                  {bill.doctor && <span> · {bill.doctor}</span>}
+                </div>
+                {bill.amount != null && (
+                  <div className="text-xs font-bold text-[#111827] mt-0.5">
+                    ₹{bill.amount.toLocaleString()}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${STATUS_STYLE[payStatus] || "bg-slate-100 text-slate-600 border-slate-200"}`}
+              >
+                {payStatus}
+              </span>
+              <div
+                className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => onSelectBill(bill)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
+                  title="View Invoice"
+                >
+                  <Eye size={15} />
+                </button>
+                <button
+                  onClick={() => {
+                    onSelectBill(bill);
+                    setTimeout(() => window.print(), 300);
+                  }}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                  title="Print Invoice / Receipt"
+                >
+                  <Printer size={15} />
+                </button>
+              </div>
+              <ChevronRight size={14} className="text-slate-400" />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── Main Component ─── */
 export function PatientMedicalRecordsTab({ patient }: MedicalRecordsTabProps) {
   const [activeSubTab, setActiveSubTab] = useState<MedicalSubTab>("timeline");
+  const [selectedPrescriptionId, setSelectedPrescriptionId] = useState<
+    string | null
+  >(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRecord | null>(
+    null,
+  );
+
   const { data: medicalSummary, isLoading } = useMedicalRecords(patient.mrn);
 
   if (isLoading) {
@@ -311,23 +359,63 @@ export function PatientMedicalRecordsTab({ patient }: MedicalRecordsTabProps) {
   }
 
   const summary = medicalSummary || {
-    consultations: [],
-    vitals: [],
-    diagnoses: [],
+    prescriptions: [],
+    billing: { bills: [] },
     timeline: [],
     totalVisits: 0,
+  };
+
+  const handleSelectBill = (bill: BillingSummaryRecord | string | number) => {
+    const b =
+      typeof bill === "object"
+        ? bill
+        : summary.billing.bills.find(
+            (item) => String(item.billId) === String(bill),
+          ) || {
+            billId: bill,
+            billNumber: String(bill),
+            date: new Date().toISOString().split("T")[0],
+            amount: 0,
+          };
+
+    const invoiceRecord = mapApiInvoiceToInvoiceRecord(
+      {
+        id: b.billId,
+        invoiceNumber: b.billNumber,
+        date: b.date,
+        status: b.paymentStatus || b.billStatus,
+        amount: b.amount,
+      },
+      patient.fullName || patient.name || "Patient",
+      patient.mrn,
+    );
+    setSelectedInvoice(invoiceRecord);
   };
 
   const subTabContent = (() => {
     switch (activeSubTab) {
       case "timeline":
-        return <TimelineView entries={summary.timeline} />;
-      case "consultations":
-        return <ConsultationsView records={summary.consultations} />;
-      case "vitals":
-        return <VitalsView records={summary.vitals} />;
-      case "diagnoses":
-        return <DiagnosesView records={summary.diagnoses} />;
+        return (
+          <TimelineView
+            entries={summary.timeline}
+            onSelectPrescription={(id) => setSelectedPrescriptionId(id)}
+            onSelectBill={(id) => handleSelectBill(id)}
+          />
+        );
+      case "prescriptions":
+        return (
+          <PrescriptionsView
+            records={summary.prescriptions}
+            onSelectPrescription={(id) => setSelectedPrescriptionId(id)}
+          />
+        );
+      case "billing":
+        return (
+          <BillingView
+            records={summary.billing.bills}
+            onSelectBill={(b) => handleSelectBill(b)}
+          />
+        );
       default:
         return null;
     }
@@ -343,9 +431,33 @@ export function PatientMedicalRecordsTab({ patient }: MedicalRecordsTabProps) {
           Medical Records
         </h3>
         <span className="text-[11px] text-[#64748B]">
-          {summary.totalVisits} visits
+          {summary.totalVisits} visit(s) · {summary.billing.bills.length} bill(s)
         </span>
       </div>
+
+      {/* Billing summary cards */}
+      {summary.billing.summary && (
+        <div className="grid grid-cols-3 gap-2">
+          <div className="bg-slate-50 rounded-lg px-3 py-2">
+            <div className="text-[10px] text-slate-400">Total Bills</div>
+            <div className="text-xs font-bold text-[#111827]">
+              {summary.billing.summary.totalBills ?? 0}
+            </div>
+          </div>
+          <div className="bg-emerald-50 rounded-lg px-3 py-2">
+            <div className="text-[10px] text-slate-400">Paid</div>
+            <div className="text-xs font-bold text-emerald-700">
+              ₹{(summary.billing.summary.totalPaid ?? 0).toLocaleString()}
+            </div>
+          </div>
+          <div className="bg-amber-50 rounded-lg px-3 py-2">
+            <div className="text-[10px] text-slate-400">Outstanding</div>
+            <div className="text-xs font-bold text-amber-700">
+              ₹{(summary.billing.summary.totalOutstanding ?? 0).toLocaleString()}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sub-tab navigation */}
       <div className="flex gap-1.5 overflow-x-auto pb-1">
@@ -369,6 +481,21 @@ export function PatientMedicalRecordsTab({ patient }: MedicalRecordsTabProps) {
       </div>
 
       {subTabContent}
+
+      {/* Prescription Detail & Print Modal */}
+      <PrescriptionDetailsModal
+        prescriptionId={selectedPrescriptionId}
+        patient={patient}
+        isOpen={Boolean(selectedPrescriptionId)}
+        onClose={() => setSelectedPrescriptionId(null)}
+      />
+
+      {/* Invoice Details & Receipt Drawer */}
+      <InvoiceDetailsDrawer
+        invoice={selectedInvoice}
+        onClose={() => setSelectedInvoice(null)}
+        onPrint={() => window.print()}
+      />
     </div>
   );
 }

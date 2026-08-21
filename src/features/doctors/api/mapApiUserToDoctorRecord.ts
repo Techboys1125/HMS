@@ -6,12 +6,68 @@ import type {
   ApiDoctorProfile,
   ApiScheduleExceptionItem,
   ApiSpecialtyRef,
+  ApiAvailabilityItem,
 } from "../types/doctors.types";
 
+interface ApiFallbackRecord {
+  profile?: ApiDoctorProfile;
+  doctor?: ApiDoctorProfile;
+  departmentName?: string;
+  department?: string;
+  primaryDepartmentName?: string;
+  deptName?: string;
+  dept?: string;
+  departmentId?: number;
+  specialtyName?: string;
+  specialty?: string;
+  primarySpecialtyName?: string;
+  specName?: string;
+  specialtyId?: number;
+  qualification?: string;
+  yearsOfExperience?: number;
+  experienceYrs?: number;
+  experienceYears?: number;
+  experience?: number;
+  medicalRegistrationNumber?: string;
+  regNumber?: string;
+  empId?: string;
+  employeeId?: string;
+  consultationFee?: number;
+  fees?: { standardConsultationFee?: number; followUpFee?: number };
+  followUpFee?: number;
+  slotDurationMinutes?: number;
+  availability?: ApiAvailabilityItem[];
+  doctorId?: number;
+  userId?: number;
+  id?: number;
+  photoUrl?: string;
+  photo?: string;
+  opdRoom?: string;
+  joinedDate?: string;
+  status?: string;
+  scheduleExceptions?: ApiScheduleExceptionItem[];
+  effectiveFrom?: string;
+  effectiveTo?: string;
+  availabilityTemplate?: string;
+  bio?: string;
+  professionalBio?: string;
+  designation?: string;
+  dateOfBirth?: string;
+  dob?: string;
+  address?: string;
+  residentialAddress?: string;
+  phone?: string;
+  mobile?: string;
+  name?: string;
+}
+
 export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
-  const anyU = u as ApiUserDoctorRecord & Record<string, unknown>;
-  const profile = u.doctorProfile || anyU.profile || anyU.doctor || u;
-  const anyProfile = profile as Record<string, unknown>;
+  const anyU = (u || {}) as ApiFallbackRecord;
+  const profile = (u.doctorProfile ||
+    anyU.profile ||
+    anyU.doctor ||
+    u) as unknown as ApiDoctorProfile;
+  const anyProfile = (profile || {}) as ApiFallbackRecord;
 
   const primaryDept =
     profile?.primaryDepartment?.departmentName ||
@@ -129,30 +185,44 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     : (u.userId ?? u.id ?? anyProfile?.userId ?? anyProfile?.id ?? 0);
   const finalDoctorId = hasExplicitDoctorId ? rawDoctorId : rawUserId;
 
+  const fullName = String(u.fullName || u.name || anyProfile?.name || "");
+  const photoUrl = String(
+    anyU.photoUrl ||
+      anyU.photo ||
+      anyProfile?.photoUrl ||
+      anyProfile?.photo ||
+      "",
+  );
+  const photo = String(
+    anyU.photo ||
+      anyU.photoUrl ||
+      anyProfile?.photo ||
+      anyProfile?.photoUrl ||
+      "",
+  );
+
   return {
-    fullName: u.fullName || u.name || anyProfile?.name || "",
+    fullName,
     id: `DOC-${finalDoctorId || rawUserId}`,
     userId: Number(rawUserId),
     doctorId: Number(finalDoctorId),
-    empId,
-    regNumber,
-    name: (u.fullName || u.name || anyProfile?.name || "").startsWith("Dr.")
-      ? u.fullName || u.name || anyProfile?.name || ""
-      : `Dr. ${u.fullName || u.name || anyProfile?.name || "Doctor"}`,
+    empId: String(empId || ""),
+    regNumber: String(regNumber || ""),
+    name: fullName.startsWith("Dr.") ? fullName : `Dr. ${fullName || "Doctor"}`,
     gender:
       ((u.gender || anyProfile?.gender) as "Male" | "Female" | "Other") ||
       "Male",
-    department: primaryDept,
+    department: String(primaryDept || ""),
     primaryDepartmentId:
       profile?.primaryDepartment?.departmentId ??
       anyProfile?.departmentId ??
       anyU.departmentId,
-    specialty: primarySpec,
+    specialty: String(primarySpec || ""),
     primarySpecialtyId:
       profile?.primarySpecialty?.specialtyId ??
       anyProfile?.specialtyId ??
       anyU.specialtyId,
-    qualification,
+    qualification: String(qualification || ""),
     experienceYrs: Number(experienceYrs),
     consultationFee: Number(consultationFee),
     followUpFee: Number(followUpFee),
@@ -165,28 +235,34 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
           ? "On Leave"
           : "Available Today",
     status,
-    email: u.email || anyProfile?.email || "",
-    phone:
+    email: String(u.email || anyProfile?.email || ""),
+    phone: String(
       u.mobile ||
-      u.phoneNumber ||
-      u.phone ||
-      anyProfile?.phone ||
-      anyProfile?.mobile ||
-      "",
-    address:
+        u.phoneNumber ||
+        u.phone ||
+        anyProfile?.phone ||
+        anyProfile?.mobile ||
+        "",
+    ),
+    address: String(
       u.residentialAddress ||
-      anyProfile?.address ||
-      anyProfile?.residentialAddress ||
-      "",
-    dob: u.dateOfBirth || anyProfile?.dateOfBirth || anyProfile?.dob || "",
-    opdRoom: anyProfile?.opdRoom || anyU.opdRoom || "",
-    joinedDate: anyProfile?.joinedDate || anyU.joinedDate || "",
+        anyProfile?.address ||
+        anyProfile?.residentialAddress ||
+        "",
+    ),
+    dob: String(
+      u.dateOfBirth || anyProfile?.dateOfBirth || anyProfile?.dob || "",
+    ),
+    opdRoom: String(anyProfile?.opdRoom || anyU.opdRoom || ""),
+    joinedDate: String(anyProfile?.joinedDate || anyU.joinedDate || ""),
     shiftTimings,
     workingDays: workingDays.length > 0 ? (workingDays as string[]) : [],
-    bio:
+    bio: String(
       u.professionalBio || anyProfile?.bio || anyProfile?.professionalBio || "",
-    designation:
+    ),
+    designation: String(
       (profile?.designation as string) || anyProfile?.designation || "",
+    ),
     scheduleExceptions:
       profile?.scheduleExceptions || anyProfile?.scheduleExceptions || [],
     rawAvailability: rawAvail,
@@ -194,9 +270,12 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
       profile?.secondarySpecialties?.map(
         (s: ApiSpecialtyRef) => s.specialtyName,
       ) || [],
-    effectiveFrom: anyProfile?.effectiveFrom,
-    effectiveTo: anyProfile?.effectiveTo,
-    availabilityTemplate: anyProfile?.availabilityTemplate,
+    photoUrl,
+    photo,
+    effectiveFrom: anyProfile?.effectiveFrom as string | undefined,
+    effectiveTo: anyProfile?.effectiveTo as string | undefined,
+    availabilityTemplate: anyProfile?.availabilityTemplate as
+      string | undefined,
   };
 }
 

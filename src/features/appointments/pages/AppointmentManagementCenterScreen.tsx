@@ -37,6 +37,7 @@ import { StatusBadge } from "../components/StatusBadge";
 import { Avatar } from "../components/Avatar";
 import { CheckInConfirmationModal } from "../../reception/components/CheckInConfirmationModal";
 import { Pagination } from "../../../common/components/Pagination";
+import { AppointmentDatePickerFilter } from "../components/AppointmentDatePickerFilter";
 
 export interface Props {
   onPatientSelect?: (id: number | string) => void;
@@ -71,12 +72,15 @@ export function AppointmentManagementCenterScreen({
   onRegisterPatientClick,
 }: Props) {
   const todayDateStr = getTodayDateString();
-  const [dateFilter, setDateFilter] = useState<string>("All");
+  const [dateFilter, setDateFilter] = useState<string>(todayDateStr);
+  const normalizedRole = String(userRole || "").toUpperCase();
+  const isDoctor = normalizedRole === "DOCTOR";
+  const isNurse = normalizedRole === "NURSE";
 
   const { appointments, setAppointments, refetch } = useAppointments(
     userRole,
-    dateFilter === "Today" ? todayDateStr : undefined,
-    userRole === "Doctor" && doctorId ? { doctorId } : undefined,
+    dateFilter || undefined,
+    isDoctor && doctorId ? { doctorId } : undefined,
   );
   const [viewMode, setViewMode] = useState<"directory" | "queue">("directory");
 
@@ -244,8 +248,8 @@ export function AppointmentManagementCenterScreen({
       if (filters.deptFilter !== "All" && apt.department !== filters.deptFilter)
         return false;
       if (
-        dateFilter === "Today" &&
-        normalizeDateString(apt.appointmentDate) !== todayDateStr
+        dateFilter &&
+        normalizeDateString(apt.appointmentDate) !== normalizeDateString(dateFilter)
       )
         return false;
       if (
@@ -706,20 +710,12 @@ export function AppointmentManagementCenterScreen({
               </div>
 
               <div className="flex items-center gap-2 flex-wrap text-xs">
-                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
-                  <CalendarIcon size={13} className="text-slate-400" />
-                  <span className="text-slate-500 font-medium">Date:</span>
-                  <select
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value)}
-                    className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
-                  >
-                    <option value="Today">Today Only</option>
-                    <option value="All">All Dates</option>
-                  </select>
-                </div>
+                <AppointmentDatePickerFilter
+                  selectedDate={dateFilter}
+                  onChange={setDateFilter}
+                />
 
-                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
+                <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl self-end">
                   <Filter size={13} className="text-slate-400" />
                   <span className="text-slate-500 font-medium">Status:</span>
                   <select
@@ -823,7 +819,7 @@ export function AppointmentManagementCenterScreen({
                     setFilter("statusFilter", "All");
                     setFilter("doctorFilter", "All");
                     setFilter("deptFilter", "All");
-                    setDateFilter("Today");
+                    setDateFilter(todayDateStr);
                     setFilter("visitTypeFilter", "All");
                     triggerToast("Filters reset.");
                   }}
@@ -1278,10 +1274,10 @@ export function AppointmentManagementCenterScreen({
                             </div>
                           </th>
                           <th className="px-4 py-3.5">MRN</th>
-                          {userRole !== "Doctor" && (
+                          {!isDoctor && (
                             <th className="px-4 py-3.5">Doctor</th>
                           )}
-                          {userRole !== "Doctor" && (
+                          {!isDoctor && (
                             <th className="px-4 py-3.5">Department</th>
                           )}
                           <th
@@ -1296,7 +1292,6 @@ export function AppointmentManagementCenterScreen({
                               />
                             </div>
                           </th>
-                          <th className="px-4 py-3.5">Visit Type</th>
                           <th className="px-4 py-3.5">Status</th>
                           <th className="px-4 py-3.5">Token Number</th>
                           <th className="px-4 py-3.5 text-right">Actions</th>
@@ -1310,7 +1305,7 @@ export function AppointmentManagementCenterScreen({
                             className="hover:bg-slate-50/80 transition-colors"
                           >
                             <td className="px-4 py-3.5 font-mono font-bold text-[#0D47A1]">
-                              {apt.id}
+                              {apt.appointmentNumber || apt.id}
                             </td>
 
                             <td className="px-4 py-3.5">
@@ -1337,7 +1332,7 @@ export function AppointmentManagementCenterScreen({
                               {apt.mrn}
                             </td>
 
-                            {userRole !== "Doctor" && (
+                            {!isDoctor && (
                               <td className="px-4 py-3.5">
                                 <div className="font-semibold text-[#111827]">
                                   {apt.doctorName}
@@ -1348,7 +1343,7 @@ export function AppointmentManagementCenterScreen({
                               </td>
                             )}
 
-                            {userRole !== "Doctor" && (
+                            {!isDoctor && (
                               <td className="px-4 py-3.5 font-medium text-slate-700">
                                 {typeof apt.department === "string"
                                   ? apt.department
@@ -1364,18 +1359,6 @@ export function AppointmentManagementCenterScreen({
                             </td>
 
                             <td className="px-4 py-3.5">
-                              <span
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
-                                  apt.visitType === "Walk-In"
-                                    ? "bg-teal-50 text-[#009688] border-teal-200"
-                                    : "bg-indigo-50 text-indigo-700 border-indigo-200"
-                                }`}
-                              >
-                                {apt.visitType}
-                              </span>
-                            </td>
-
-                            <td className="px-4 py-3.5">
                               <StatusBadge status={apt.status} />
                             </td>
 
@@ -1387,15 +1370,8 @@ export function AppointmentManagementCenterScreen({
 
                             <td className="px-4 py-3.5 text-right">
                               <div className="flex items-center justify-end gap-1.5">
-                                {userRole === "Nurse" ? (
+                                {isNurse ? (
                                   <div className="flex items-center justify-end gap-1.5">
-                                    <button
-                                      onClick={() => setDetailsApt(apt)}
-                                      className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[10px] font-bold border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
-                                      title="View Appointment Details"
-                                    >
-                                      <Eye size={12} /> View
-                                    </button>
                                     {onPatientSelect && (
                                       <button
                                         onClick={() =>
@@ -1407,8 +1383,15 @@ export function AppointmentManagementCenterScreen({
                                         <User size={12} /> Profile
                                       </button>
                                     )}
+                                    <button
+                                      onClick={() => setDetailsApt(apt)}
+                                      className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[10px] font-bold border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
+                                      title="View Appointment Details"
+                                    >
+                                      <Eye size={12} /> View
+                                    </button>
                                   </div>
-                                ) : userRole === "Doctor" ? (
+                                ) : isDoctor ? (
                                   <button
                                     onClick={() => setDetailsApt(apt)}
                                     className="px-2.5 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[10px] font-bold border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
@@ -1418,28 +1401,21 @@ export function AppointmentManagementCenterScreen({
                                   </button>
                                 ) : (
                                   <>
-                                    <button
-                                      onClick={() => setDetailsApt(apt)}
-                                      className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-blue-50 text-[#0D47A1] transition-colors"
-                                      title="View Appointment Details"
-                                    >
-                                      <Eye size={14} />
-                                    </button>
                                     {(apt.status === "Scheduled" ||
                                       apt.status === "Booked" ||
                                       apt.status === "BOOKED" ||
                                       apt.status === "Confirmed" ||
                                       apt.status === "CONFIRMED") && (
-                                        <button
-                                          onClick={() =>
-                                            handleCheckInPatient(apt)
-                                          }
-                                          className="px-2 py-1 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-1 shadow-xs bg-[#0D47A1] text-white hover:bg-[#0c3d8a] cursor-pointer"
-                                          title="Check-In Patient"
-                                        >
-                                          <CheckCircle2 size={12} /> Check-In
-                                        </button>
-                                      )}
+                                      <button
+                                        onClick={() =>
+                                          handleCheckInPatient(apt)
+                                        }
+                                        className="px-2 py-1 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-1 shadow-xs bg-[#0D47A1] text-white hover:bg-[#0c3d8a] cursor-pointer"
+                                        title="Check-In Patient"
+                                      >
+                                        <CheckCircle2 size={12} /> Check-In
+                                      </button>
+                                    )}
 
                                     {(apt.status === "Booked" ||
                                       apt.status === "Confirmed" ||
@@ -1448,7 +1424,7 @@ export function AppointmentManagementCenterScreen({
                                       apt.status === "Scheduled") && (
                                       <button
                                         onClick={() => setRescheduleApt(apt)}
-                                        className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors"
+                                        className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-teal-50 text-[#009688] transition-colors cursor-pointer"
                                         title="Reschedule Appointment"
                                       >
                                         <CalendarIcon size={14} />
@@ -1463,12 +1439,20 @@ export function AppointmentManagementCenterScreen({
                                       apt.status !== "NO_SHOW" && (
                                         <button
                                           onClick={() => setCancelApt(apt)}
-                                          className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-red-50 text-[#EF4444] transition-colors"
+                                          className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-red-50 text-[#EF4444] transition-colors cursor-pointer"
                                           title="Cancel Appointment"
                                         >
                                           <Ban size={14} />
                                         </button>
                                       )}
+
+                                    <button
+                                      onClick={() => setDetailsApt(apt)}
+                                      className="p-1.5 rounded-lg border border-[#E5E7EB] hover:bg-blue-50 text-[#0D47A1] transition-colors cursor-pointer"
+                                      title="View Appointment Details"
+                                    >
+                                      <Eye size={14} />
+                                    </button>
                                   </>
                                 )}
                               </div>
