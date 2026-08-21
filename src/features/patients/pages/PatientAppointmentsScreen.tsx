@@ -108,116 +108,6 @@ const filterReducer = (
     case "SET_TOAST":
       return { ...state, toastMsg: action.msg };
     case "CLEAR_TOAST":
-import { useState, useEffect, useCallback, useReducer } from "react";
-import {
-  Search,
-  Plus,
-  Filter,
-  Download,
-  RefreshCw,
-  ChevronRight,
-  Eye,
-  X,
-  Activity,
-  Calendar,
-  Stethoscope,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  Building2,
-  TrendingUp,
-} from "lucide-react";
-import type { PatientAppointment, ApiPatientAppointment } from "../types/patient.types";
-import { PP, RB } from "../constants/patient.fonts";
-import { usePatientPortal } from "../context/usePatientPortal";
-import type { FamilyMember } from "./FamilyMembersManagement";
-import {
-  PatientCancelAppointmentDialog,
-  PatientRescheduleAppointmentDialog,
-} from "../components/PatientDialogs";
-import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentScreen";
-import { appointmentsApi } from "../../appointments/api/appointments.api";
-import type { ApiResponse } from "../../auth/types/auth.types";
-import { Pagination } from "../../../common/components/Pagination";
-import { to24Hour } from "../../../lib/time-utils";
-
-type AppointmentListState = {
-  appointments: PatientAppointment[];
-  viewMode: "list" | "book";
-};
-type AppointmentListAction =
-  | { type: "SET_VIEW_MODE"; viewMode: "list" | "book" }
-  | { type: "SET_APPOINTMENTS"; appointments: PatientAppointment[] }
-  | { type: "CLEAR_APPOINTMENTS" };
-const appointmentListReducer = (
-  state: AppointmentListState,
-  action: AppointmentListAction,
-): AppointmentListState => {
-  switch (action.type) {
-    case "SET_VIEW_MODE":
-      return { ...state, viewMode: action.viewMode };
-    case "SET_APPOINTMENTS":
-      return { ...state, appointments: action.appointments };
-    case "CLEAR_APPOINTMENTS":
-      return { ...state, appointments: [] };
-  }
-};
-
-type FilterState = {
-  reschedulingAppt: PatientAppointment | null;
-  activeTab: "all" | "upcoming" | "completed" | "cancelled";
-  searchQuery: string;
-  deptFilter: string;
-  doctorFilter: string;
-  statusFilter: string;
-  visitTypeFilter: string;
-  dateRangeFilter: string;
-  toastMsg: string | null;
-};
-
-type FilterAction =
-  | { type: "SET_RESCHEDULING"; appointment: PatientAppointment | null }
-  | { type: "SET_ACTIVE_TAB"; tab: "all" | "upcoming" | "completed" | "cancelled" }
-  | {
-      type: "SET_FILTER";
-      field:
-        | "searchQuery"
-        | "deptFilter"
-        | "doctorFilter"
-        | "statusFilter"
-        | "visitTypeFilter"
-        | "dateRangeFilter";
-      value: string;
-    }
-  | { type: "RESET_FILTERS" }
-  | { type: "SET_TOAST"; msg: string | null }
-  | { type: "CLEAR_TOAST" };
-
-const filterReducer = (
-  state: FilterState,
-  action: FilterAction,
-): FilterState => {
-  switch (action.type) {
-    case "SET_RESCHEDULING":
-      return { ...state, reschedulingAppt: action.appointment };
-    case "SET_ACTIVE_TAB":
-      return { ...state, activeTab: action.tab };
-    case "SET_FILTER":
-      return { ...state, [action.field]: action.value };
-    case "RESET_FILTERS":
-      return {
-        ...state,
-        activeTab: "all",
-        searchQuery: "",
-        deptFilter: "All",
-        doctorFilter: "All",
-        statusFilter: "All",
-        visitTypeFilter: "All",
-        dateRangeFilter: "All",
-      };
-    case "SET_TOAST":
-      return { ...state, toastMsg: action.msg };
-    case "CLEAR_TOAST":
       return { ...state, toastMsg: null };
     default:
       return state;
@@ -1273,9 +1163,11 @@ export function PatientAppointmentsScreen({
                 })}
               </div>
             </>
-          )}
-          </div>
+        )}
+        </div>
 
+        {/* Right Column (4 cols): Stats & Quick Actions */}
+        <div className="lg:col-span-4 space-y-6">
           {/* Card 2: Appointment Statistics */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
             <h3

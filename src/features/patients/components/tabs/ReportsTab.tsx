@@ -5,6 +5,7 @@
 import { BarChart2, FileText, DollarSign, Calendar, Pill } from "lucide-react";
 import type { Patient } from "../../types/patient.types";
 import { PP } from "../../../doctors/constants/doctors.constants";
+import { INR_CURRENCY_FORMATTER } from "../../../lib/intl-formatters";
 import { usePatientBilling } from "../../hooks/useBilling";
 import { usePatientAppointments } from "../../hooks/useAppointments";
 import { usePrescriptions } from "../../hooks/usePrescriptions";
@@ -86,12 +87,7 @@ export function PatientReportsTab({ patient }: ReportsTabProps) {
     (r) => r.status === "Issued" || r.status === "Active",
   ).length;
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(amount);
+  const formatCurrency = (amount: number) => INR_CURRENCY_FORMATTER.format(amount);
 
   return (
     <div className="space-y-4">

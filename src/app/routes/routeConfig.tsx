@@ -30,13 +30,13 @@ import { PatientPortalProvider } from "../../features/patients/context/PatientPo
 import { usePatientPortal } from "../../features/patients/context/usePatientPortal";
 import { PatientOnboardingRoute } from "../../features/patients/routes/PatientOnboardingRoute";
 import { patientsApi } from "../../features/patients/api/patient.api";
-import AppointmentManagementCenterScreen from "../../features/appointments/pages/AppointmentManagementCenterScreen";
+import { AppointmentManagementCenterScreen } from "../../features/appointments";
 import { QueueManagementScreen } from "../../features/appointments/pages/QueueManagementScreen";
 import { BookAppointmentScreen } from "../../features/appointments/pages/BookAppointmentScreen";
 import { PatientCheckInScreen } from "../../features/appointments/pages/PatientCheckInScreen";
 import { AppointmentDetailPage } from "../../features/appointments/pages/AppointmentDetailPage";
 import { RecordPatientVitalsScreen } from "../../features/vitals/pages/VitalsManagementScreen";
-import { OpdConsultationCenterScreen } from "../../features/opd/pages/OpdConsultationCenterScreen";
+import { OpdConsultationCenterScreen } from "../../features/opd";
 import { StartConsultationPage as StartOpdConsultationWorkspaceScreen } from "../../features/opd/pages/StartConsultationPage";
 import { PrescriptionManagementPage } from "../../features/prescriptions/pages/PrescriptionManagementPage";
 import { EncounterPrescriptionPage } from "../../features/prescriptions/pages/EncounterPrescriptionPage";
@@ -56,7 +56,7 @@ import { DoctorQueueScreen } from "../../features/doctors/components/DoctorQueue
 import { DoctorPatientsScreen } from "../../features/doctors/components/DoctorPatientsScreen";
 import { DoctorMedicalRecordsScreen } from "../../features/doctors/components/DoctorMedicalRecordsScreen";
 import { DoctorAppointmentsScreen } from "../../features/doctors/components/DoctorAppointmentsScreen";
-import { UserManagementCenterScreen } from "../../features/users/pages/UserManagementCenterScreen";
+import { UserManagementCenterScreen } from "../../features/users";
 import { BillingManagementPage } from "../../features/billing/pages/BillingManagementPage";
 import { BillingConfigurationPage } from "../../features/billing/pages/BillingConfigurationPage";
 import { InvoiceDetailsPage } from "../../features/billing/pages/InvoiceDetailsPage";

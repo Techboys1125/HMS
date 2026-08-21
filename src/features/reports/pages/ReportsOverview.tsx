@@ -1,4 +1,5 @@
 import React, { useReducer, useMemo, useState } from "react";
+import { INR_CURRENCY_FORMATTER } from "../../../lib/intl-formatters";
 import {
   BarChart2,
   Calendar,
@@ -700,12 +701,7 @@ export function AdminReportsDashboardScreen({
     }
   };
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(amount);
+  const formatCurrency = (amount: number) => INR_CURRENCY_FORMATTER.format(amount);
 
   return (
     <div

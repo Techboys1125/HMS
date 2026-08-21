@@ -18,7 +18,7 @@ import {
   Trash2,
   Loader2,
 } from "lucide-react";
-import { useAuthStore } from "../auth/store/auth.store";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { authApi } from "../../auth/api/auth.api";
 import { apiClient } from "../../../lib/axios";
 import { usersApi } from "../../users/api/users.api";

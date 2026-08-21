@@ -1,5 +1,5 @@
 import { apiClient, axios } from "../../../lib/axios";
-import { useAuthStore } from "../auth/store/auth.store";
+import { useAuthStore } from "../../auth/store/auth.store";
 import type {
   DoctorRecord,
   DoctorApiResponse,

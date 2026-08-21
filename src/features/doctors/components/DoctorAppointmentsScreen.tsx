@@ -1,4 +1,4 @@
-import AppointmentManagementCenterScreen from "../../appointments/pages/AppointmentManagementCenterScreen";
+import { AppointmentManagementCenterScreen } from "../../appointments";
 import { useAuthStore } from "../../auth/store/auth.store";
 
 export function DoctorAppointmentsScreen({

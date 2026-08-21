@@ -4,13 +4,15 @@ import type { FamilyMember } from "../../features/patients/pages/FamilyMembersMa
 import { Header } from "./Header";
 import { NavRail } from "./NavRail";
 
+const EMPTY_FAMILY_MEMBERS: readonly FamilyMember[] = [];
+
 export function MainLayout({
   activeNav,
   role,
   onLogout,
   onNavigateNav,
   activePatient,
-  familyMembers = [],
+  familyMembers = EMPTY_FAMILY_MEMBERS,
   onSwitchActivePatient,
   sidebarTheme = "light",
   onThemeToggle,

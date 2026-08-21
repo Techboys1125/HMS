@@ -35,13 +35,6 @@ export function AddDoctorDrawer({
 }: AddDoctorDrawerProps) {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
-  useEffect(() => {
-    return () => {
-      if (photoPreview) {
-        URL.revokeObjectURL(photoPreview);
-      }
-    };
-  }, [photoPreview]);
   const [fullName, setFullName] = useState("");
   const [gender, setGender] = useState<"Male" | "Female" | "Other">("Male");
   const [dob, setDob] = useState("1985-05-14");
@@ -155,11 +148,11 @@ export function AddDoctorDrawer({
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (photoPreview) {
-        URL.revokeObjectURL(photoPreview);
-      }
-      const url = URL.createObjectURL(file);
-      setPhotoPreview(url);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 

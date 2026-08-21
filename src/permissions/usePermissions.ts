@@ -1,4 +1,4 @@
-import { useAuthStore } from "../features/auth/index";
+import { useAuthStore } from "../features/auth/store/auth.store";
 import type { AppPermission } from "./types";
 import {
   LEGACY_PERMISSION_MAP,

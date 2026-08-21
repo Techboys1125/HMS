@@ -7,7 +7,7 @@ import { doctorsService } from "../services/doctors.service";
 import { doctorProfileService } from "../services/doctorProfile.service";
 import { useDoctorFilters } from "../hooks/useDoctorFilters";
 import { useToast } from "../hooks/useToast";
-import { useAuthStore } from "../auth/store/auth.store";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { KpiCards } from "../components/KpiCards";
 import { DoctorFilterBar } from "../components/DoctorFilterBar";
 import { DoctorTable } from "../components/DoctorTable";

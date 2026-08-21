@@ -1,4 +1,5 @@
 import React, { useReducer, useMemo } from "react";
+import { INR_CURRENCY_FORMATTER } from "../../../lib/intl-formatters";
 import {
   Download,
   RefreshCw,
@@ -455,11 +456,7 @@ export function DailyRevenueReportScreen({
   }, [collectionRateData, revenueDetailsList]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(amount);
+    return INR_CURRENCY_FORMATTER.format(amount);
   };
 
   // Filtered records

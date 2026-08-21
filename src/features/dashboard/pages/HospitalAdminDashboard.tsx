@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
+import { INR_CURRENCY_FORMATTER } from "../../../lib/intl-formatters";
 // React imports
 import {
   Calendar,
@@ -301,7 +302,7 @@ export function HospitalAdminDashboard({
 
   const formatCurrency = (val: unknown) => {
     const num = safeNum(val);
-    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(num);
+    return INR_CURRENCY_FORMATTER.format(num);
   };
 
   const todayStr = summary?.date || new Date().toISOString().split("T")[0];

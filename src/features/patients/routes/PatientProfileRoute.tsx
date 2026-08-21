@@ -1,6 +1,6 @@
 import { useParams } from "react-router";
 import { PatientProfilePage } from "../pages/PatientProfilePage";
-import { useAuthStore } from "../auth/store/auth.store";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { useState, useEffect } from "react";
 import { patientsApi } from "../api/patient.api";
 import { mapApiPatientToPatientRecord } from "../api/mapApiPatientToPatientRecord";

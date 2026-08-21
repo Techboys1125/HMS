@@ -1582,3 +1582,4 @@ export function AppointmentManagementCenterScreen({
 }
 
 export { AppointmentManagementCenterScreen as AppointmentCenterScreen };
+export default AppointmentManagementCenterScreen;

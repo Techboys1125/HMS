@@ -157,11 +157,12 @@ export function DoctorPatientReportScreen({
         followUpDate: item.nextFollowUpDate,
         status: item.followUpStatus,
       };
+      const mobileNumber = mapped.mobileNumber || "";
       const matchesSearch =
         !lowerSearch ||
         (mapped.patientName || "").toLowerCase().includes(lowerSearch) ||
         (mapped.mrn || "").toLowerCase().includes(lowerSearch) ||
-        (mapped.mobileNumber || "").includes(searchQuery);
+        mobileNumber.includes(searchQuery);
       const matchesVisit =
         visitTypeFilter === "All Visit Types" ||
         mapped.visitType === visitTypeFilter;

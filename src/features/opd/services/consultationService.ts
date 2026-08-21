@@ -429,17 +429,12 @@ export const consultationService = {
 
       const encounterId = cnsRecord.encounterId || `ENC-${consultationId}`;
 
-      // 2. Fetch encounter
-      const encounter = await consultationApi.getEncounter(encounterId);
-
-      // 3. Fetch vitals
-      const vitals = await consultationApi.loadEncounterVitals(encounterId);
-
-      // 4. Fetch diagnoses
-      const diagnoses = await consultationApi.getDiagnoses(encounterId);
-
-      // 5. Fetch prescription
-      const prescription = await consultationApi.getPrescription(encounterId);
+      const [encounter, vitals, diagnoses, prescription] = await Promise.all([
+        consultationApi.getEncounter(encounterId),
+        consultationApi.loadEncounterVitals(encounterId),
+        consultationApi.getDiagnoses(encounterId),
+        consultationApi.getPrescription(encounterId),
+      ]);
 
       const normalizedVitals = vitals
         ? {
