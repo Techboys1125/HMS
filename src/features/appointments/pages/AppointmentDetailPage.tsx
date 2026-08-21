@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   Clock,
   Check,
+  Printer,
 } from "lucide-react";
 import { ROUTES } from "../../../app/routes/routes";
 import { PP, RB } from "../constants/appointment.constants";
@@ -47,10 +48,12 @@ export function AppointmentDetailPage() {
       } catch {
         if (!cancelled) setError("Failed to load appointment details.");
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
-    load();
+    void load();
     return () => {
       cancelled = true;
     };

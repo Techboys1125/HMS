@@ -28,7 +28,7 @@ export const PatientRegisterPage: React.FC = () => {
         <div className="absolute top-0 right-0 w-120 h-120 bg-[#0D47A1]/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-120 h-120 bg-secondary/5 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="w-full max-w-3xl bg-white rounded-3xl border border-slate-100/80 shadow-2xl shadow-slate-200/50 p-6 sm:p-8 md:p-10 relative z-10 transition-all duration-300">
+        <div className="w-full max-w-3xl bg-white rounded-3xl border border-slate-100/80 shadow-2xl shadow-slate-200/50 p-6 sm:p-8 md:p-10 relative z-10 transition-colors duration-300">
           {registered ? (
             <SuccessPage
               title="Registration Successful!"

@@ -128,6 +128,13 @@ async function customFetch<T = unknown>(
           body: JSON.stringify({ refreshToken }),
         });
 
+        if (!refreshRes.ok) {
+          throw new ApiError(
+            `Refresh token request failed: ${refreshRes.status} ${refreshRes.statusText}`,
+            refreshRes.status,
+          );
+        }
+
         const refreshData = await refreshRes.json();
         const newAccessToken =
           refreshData?.data?.accessToken || refreshData?.accessToken;

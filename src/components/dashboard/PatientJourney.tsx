@@ -48,7 +48,7 @@ export function PatientJourney() {
                 </div>
                 <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded-full transition-all"
+                    className="h-full rounded-full transition-[width]"
                     style={{
                       width: `${pct}%`,
                       background: isCompleted ? "#009688" : "#0D47A1",

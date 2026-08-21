@@ -19,7 +19,7 @@ export function PatientSummaryCard({
   return (
     <div
       onClick={onClick}
-      className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+      className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${
         onClick ? "cursor-pointer hover:bg-slate-50" : ""
       } ${
         selected

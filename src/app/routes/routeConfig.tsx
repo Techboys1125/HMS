@@ -3,54 +3,47 @@ import { useState, useCallback } from "react";
 import { ROUTES } from "./routes";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
-import { RouteGuard } from "../../permissions";
+import { RouteGuard } from "../../permissions/guards";
 
 // Auth Feature Pages
-import {
-  LoginPage,
-  ForgotPasswordPage,
-  ResetPasswordPage,
-  ChangePasswordPage,
-  PatientRegisterPage,
-} from "../../features/auth";
+import { LoginPage } from "../../features/auth/pages/LoginPage";
+import { ForgotPasswordPage } from "../../features/auth/pages/ForgotPasswordPage";
+import { ResetPasswordPage } from "../../features/auth/pages/ResetPasswordPage";
+import { ChangePasswordPage } from "../../features/auth/pages/ChangePasswordPage";
+import { PatientRegisterPage } from "../../features/auth/pages/PatientRegisterPage";
 
 // Application Feature Modules
 import DashboardDispatcher from "./DashboardDispatcher";
-import {
-  RegisterPatientScreen,
-  FamilyMembersManagement,
-  PatientAppointmentsScreen,
-  PatientMedicalRecordsScreen,
-  PatientDoctorSearchScreen,
-  PatientQueueStatusScreen,
-  PatientListPageRoute,
-  PatientProfileRoute,
-  DoctorAssignedPatientsRoute,
-  NurseVitalsWorklistPage,
-  PatientMyProfileRoute,
-  UserProfileRoute,
-} from "../../features/patients";
+import { RegisterPatientScreen } from "../../features/patients/pages/RegisterPatientScreen";
+import { FamilyMembersManagement } from "../../features/patients/pages/FamilyMembersManagement";
+import { PatientAppointmentsScreen } from "../../features/patients/pages/PatientAppointmentsScreen";
+import { PatientMedicalRecordsScreen } from "../../features/patients/pages/PatientMedicalRecordsScreen";
+import { PatientDoctorSearchScreen } from "../../features/patients/pages/PatientDoctorSearchScreen";
+import { PatientQueueStatusScreen } from "../../features/patients/pages/PatientQueueStatusScreen";
+import { PatientListPageRoute } from "../../features/patients/routes/PatientListPageRoute";
+import { PatientProfileRoute } from "../../features/patients/routes/PatientProfileRoute";
+import { DoctorAssignedPatientsRoute } from "../../features/patients/routes/DoctorAssignedPatientsRoute";
+import { NurseVitalsWorklistPage } from "../../features/patients/pages/NurseVitalsWorklistPage";
+import { PatientMyProfileRoute } from "../../features/patients/routes/PatientMyProfileRoute";
+import { UserProfileRoute } from "../../features/patients/routes/UserProfileRoute";
 import { PatientPortalProvider } from "../../features/patients/context/PatientPortalContext.tsx";
 import { usePatientPortal } from "../../features/patients/context/usePatientPortal";
 import { PatientOnboardingRoute } from "../../features/patients/routes/PatientOnboardingRoute";
 import { patientsApi } from "../../features/patients/api/patient.api";
-import {
-  AppointmentManagementCenterScreen,
-  BookAppointmentScreen,
-  QueueManagementScreen,
-  PatientCheckInScreen,
-} from "../../features/appointments";
+import AppointmentManagementCenterScreen from "../../features/appointments/pages/AppointmentManagementCenterScreen";
+import { QueueManagementScreen } from "../../features/appointments/pages/QueueManagementScreen";
+import { BookAppointmentScreen } from "../../features/appointments/pages/BookAppointmentScreen";
+import { PatientCheckInScreen } from "../../features/appointments/pages/PatientCheckInScreen";
 import { AppointmentDetailPage } from "../../features/appointments/pages/AppointmentDetailPage";
-import { RecordPatientVitalsScreen } from "../../features/vitals";
-import {
-  OpdConsultationCenterScreen,
-  StartOpdConsultationWorkspaceScreen,
-} from "../../features/opd";
-import { PrescriptionManagementPage, EncounterPrescriptionPage } from "../../features/prescriptions";
+import { RecordPatientVitalsScreen } from "../../features/vitals/pages/VitalsManagementScreen";
+import { OpdConsultationCenterScreen } from "../../features/opd/pages/OpdConsultationCenterScreen";
+import { StartConsultationPage as StartOpdConsultationWorkspaceScreen } from "../../features/opd/pages/StartConsultationPage";
+import { PrescriptionManagementPage } from "../../features/prescriptions/pages/PrescriptionManagementPage";
+import { EncounterPrescriptionPage } from "../../features/prescriptions/pages/EncounterPrescriptionPage";
 import { DoctorManagementPage } from "../../features/doctors/pages/DoctorManagementPage";
 import { DoctorProfileRoute } from "../../features/doctors/pages/DoctorProfileRoute";
 import { DoctorDirectoryPage } from "../../features/doctors/pages/DoctorDirectoryPage";
-import { useAuthStore } from "../../features/auth";
+import { useAuthStore } from "../../features/auth/store/auth.store";
 
 function DoctorsRouteDispatcher() {
   const role = useAuthStore((s) => s.user?.role);
@@ -63,22 +56,20 @@ import { DoctorQueueScreen } from "../../features/doctors/components/DoctorQueue
 import { DoctorPatientsScreen } from "../../features/doctors/components/DoctorPatientsScreen";
 import { DoctorMedicalRecordsScreen } from "../../features/doctors/components/DoctorMedicalRecordsScreen";
 import { DoctorAppointmentsScreen } from "../../features/doctors/components/DoctorAppointmentsScreen";
-import { UserManagementCenterScreen } from "../../features/users";
-import {
-  BillingManagementPage,
-  BillingConfigurationPage,
-  InvoiceDetailsPage,
-  PaymentHistoryPage,
-  CreateInvoiceWorkspacePage,
-  CollectPaymentWorkspacePage,
-  InvoicePrintPreviewPage,
-  ReceptionistPaymentCollectionPage,
-  PatientMyBillsPage,
-} from "../../features/billing";
+import { UserManagementCenterScreen } from "../../features/users/pages/UserManagementCenterScreen";
+import { BillingManagementPage } from "../../features/billing/pages/BillingManagementPage";
+import { BillingConfigurationPage } from "../../features/billing/pages/BillingConfigurationPage";
+import { InvoiceDetailsPage } from "../../features/billing/pages/InvoiceDetailsPage";
+import { PaymentHistoryPage } from "../../features/billing/pages/PaymentHistoryPage";
+import { CreateInvoiceWorkspacePage } from "../../features/billing/pages/CreateInvoiceWorkspacePage";
+import { CollectPaymentWorkspacePage } from "../../features/billing/pages/CollectPaymentWorkspacePage";
+import { InvoicePrintPreviewPage } from "../../features/billing/pages/InvoicePrintPreviewPage";
+import { ReceptionistPaymentCollectionPage } from "../../features/billing/pages/ReceptionistPaymentCollectionPage";
+import { PatientMyBillsPage } from "../../features/billing/pages/PatientMyBillsPage";
 import { DailyBillingReportPage } from "../../features/reports/pages/DailyBillingReport";
 import { ReportsDashboardPage as ReportsDashboardScreen } from "../../features/reports/pages/ReportsDashboardPage";
-import { SettingsPage } from "../../features/settings";
-import { AuditLogManagementPage } from "../../features/auditlog";
+import { SettingsPage } from "../../features/settings/pages/SettingsPage";
+import { AuditLogManagementPage } from "../../features/auditlog/pages/AuditLogManagementPage";
 import { NotificationCenterPage } from "../../features/notification/pages/NotificationCenterPage";
 import { PatientNotificationsPage } from "../../features/notification/pages/PatientNotificationsPage";
 

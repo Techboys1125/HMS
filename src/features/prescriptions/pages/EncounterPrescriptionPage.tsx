@@ -191,7 +191,7 @@ export const EncounterPrescriptionPage: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate(-1)}
-              className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              className="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
               style={{ fontFamily: PP }}
             >
               Close & Exit
@@ -199,7 +199,7 @@ export const EncounterPrescriptionPage: React.FC = () => {
             <button
               onClick={handlePrint}
               disabled={isLoading || !prescription}
-              className="inline-flex items-center gap-2 px-5 py-2 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-colors transition-opacity shadow-sm cursor-pointer disabled:opacity-50"
               style={{ fontFamily: PP }}
             >
               <Printer size={15} />
@@ -245,7 +245,7 @@ export const EncounterPrescriptionPage: React.FC = () => {
             </p>
             <button
               onClick={() => refetch()}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
               style={{ fontFamily: PP }}
             >
               <RefreshCw size={13} /> Retry Loading
@@ -453,9 +453,9 @@ export const EncounterPrescriptionPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 bg-white">
-                      {prescription.medications.map((med, idx) => (
+                      {prescription.medications.map((med) => (
                         <tr
-                          key={med.medicationId || med.medicineId || idx}
+                          key={med.medicationId || med.medicineId || `med-${med.medicineName}-${med.dosage}`}
                           className="hover:bg-slate-50/50 transition-colors"
                         >
                           <td className="py-3 px-3 font-mono text-slate-400">

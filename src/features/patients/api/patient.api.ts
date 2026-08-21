@@ -1,5 +1,5 @@
 import { apiClient, axios, ApiError } from "../../../lib/axios";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { triggerNotificationMatrix } from "../../notification/services/notificationTrigger";
 import { billingService } from "../../billing/services/billing.service";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";

@@ -431,7 +431,7 @@ export function RegisterPatientDrawer({
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">Enter demographics for registration</p>
             </div>
-            <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
+            <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
               <X size={18} />
             </button>
           </div>
@@ -555,7 +555,7 @@ export function RegisterPatientDrawer({
             <div className="flex items-center gap-3 pt-4">
               <button
                 type="submit"
-                className="flex-1 py-3 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 py-3 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
                 style={{ fontFamily: PP }}
               >
                 <Save size={15} /> Save Patient
@@ -563,7 +563,7 @@ export function RegisterPatientDrawer({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 py-3 rounded-xl border border-gray-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-all cursor-pointer"
+                className="flex-1 py-3 rounded-xl border border-gray-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 Cancel
               </button>

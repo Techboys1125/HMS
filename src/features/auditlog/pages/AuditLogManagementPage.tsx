@@ -809,7 +809,7 @@ export function AuditLogManagementPage() {
               <button
                 key={card.id}
                 onClick={() => handleWorkspaceChange(card.id)}
-                className={`p-4 rounded-2xl border text-left transition-all duration-200 flex flex-col justify-between group ${isActive ? "bg-blue-900 text-white border-blue-900 shadow-md" : "bg-white text-gray-900 border-gray-200 hover:border-blue-300 hover:shadow-md"}`}
+                className={`p-4 rounded-2xl border text-left transition-colors duration-200 flex flex-col justify-between group ${isActive ? "bg-blue-900 text-white border-blue-900 shadow-md" : "bg-white text-gray-900 border-gray-200 hover:border-blue-300 hover:shadow-md"}`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
@@ -845,7 +845,7 @@ export function AuditLogManagementPage() {
             value={filters.searchQuery}
             onChange={(event) => setFilter("searchQuery", event.target.value)}
             placeholder="Search loaded records by event, user, module, action, or record ID"
-            className="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition-all"
+            className="w-full pl-10 pr-4 py-3 text-sm bg-gray-50 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none transition-colors"
           />
         </div>
         <div className="mt-4 pt-4 border-t border-gray-100">

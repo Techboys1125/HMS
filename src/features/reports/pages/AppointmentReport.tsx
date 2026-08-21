@@ -20,15 +20,34 @@ import {
   Eye,
 } from "lucide-react";
 import { PP, RB } from "../constants/reports.constants";
-import type { AppointmentReportRecord, DailyAppointmentSummary, DailyAppointmentDetail } from "../types/reports.types";
+import type {
+  AppointmentReportRecord,
+  DailyAppointmentSummary,
+  DailyAppointmentDetail,
+} from "../types/reports.types";
 import {
   useDailyAppointments,
   useDailyAppointmentDetails,
   extractList,
 } from "../hooks/useReports";
 
-import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "../../../common/components/recharts-lazy";
-
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "../../../common/components/recharts-lazy";
 
 function CircularProgress({
   percentage,
@@ -125,8 +144,14 @@ export function DailyAppointmentReportScreen({
   const { data: rawSummary } = useDailyAppointments(reportFilters);
   const { data: rawDetails } = useDailyAppointmentDetails(reportFilters);
 
-  const detailList = useMemo(() => extractList<DailyAppointmentDetail>(rawDetails), [rawDetails]);
-  const summaryList = useMemo(() => extractList<DailyAppointmentSummary>(rawSummary), [rawSummary]);
+  const detailList = useMemo(
+    () => extractList<DailyAppointmentDetail>(rawDetails),
+    [rawDetails],
+  );
+  const summaryList = useMemo(
+    () => extractList<DailyAppointmentSummary>(rawSummary),
+    [rawSummary],
+  );
 
   const totalAppointments = useMemo(() => {
     if (summaryList.length > 0) {
@@ -221,7 +246,8 @@ export function DailyAppointmentReportScreen({
         {
           name: "Completed",
           value: summaryList.reduce(
-            (s: number, d: DailyAppointmentSummary) => s + (d.completedAppointments || 0),
+            (s: number, d: DailyAppointmentSummary) =>
+              s + (d.completedAppointments || 0),
             0,
           ),
           color: "#66BB6A",
@@ -229,7 +255,8 @@ export function DailyAppointmentReportScreen({
         {
           name: "Scheduled",
           value: summaryList.reduce(
-            (s: number, d: DailyAppointmentSummary) => s + (d.pendingAppointments || 0),
+            (s: number, d: DailyAppointmentSummary) =>
+              s + (d.pendingAppointments || 0),
             0,
           ),
           color: "#0D47A1",
@@ -238,7 +265,8 @@ export function DailyAppointmentReportScreen({
         {
           name: "Cancelled",
           value: summaryList.reduce(
-            (s: number, d: DailyAppointmentSummary) => s + (d.cancelledAppointments || 0),
+            (s: number, d: DailyAppointmentSummary) =>
+              s + (d.cancelledAppointments || 0),
             0,
           ),
           color: "#EF4444",
@@ -418,7 +446,7 @@ export function DailyAppointmentReportScreen({
   ]);
 
   const sortedData = useMemo(() => {
-    return [...filteredData].sort((a, b) => {
+    return filteredData.toSorted((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
       if (sortOrder === "asc") return aVal.localeCompare(bVal);
@@ -829,7 +857,7 @@ export function DailyAppointmentReportScreen({
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-3 space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Total Appointments
@@ -863,7 +891,7 @@ export function DailyAppointmentReportScreen({
                     </div>
                   )}
                 </div>
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Completed Appointments
@@ -899,7 +927,7 @@ export function DailyAppointmentReportScreen({
                     </div>
                   )}
                 </div>
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Cancelled Appointments
@@ -935,7 +963,7 @@ export function DailyAppointmentReportScreen({
                     </div>
                   )}
                 </div>
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       No Show Patients
@@ -959,7 +987,7 @@ export function DailyAppointmentReportScreen({
                     Missed scheduled slots without cancellation
                   </p>
                 </div>
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Walk-In Patients
@@ -993,7 +1021,7 @@ export function DailyAppointmentReportScreen({
                     )}
                   </div>
                 </div>
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                   <div>
                     <span className="text-xs font-semibold text-[#64748B]">
                       Average Waiting Time

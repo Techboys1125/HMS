@@ -26,7 +26,7 @@ export const ConsultationFooter: React.FC<ConsultationFooterProps> = ({
         type="button"
         onClick={onCancel}
         disabled={disabled}
-        className="px-4 py-2 border border-[#E5E7EB] text-[#64748B] hover:text-[#111827] hover:bg-slate-50 text-xs font-semibold rounded-xl transition-all"
+        className="px-4 py-2 border border-[#E5E7EB] text-[#64748B] hover:text-[#111827] hover:bg-slate-50 text-xs font-semibold rounded-xl transition-colors"
         style={{ fontFamily: PP }}
       >
         Cancel
@@ -38,7 +38,7 @@ export const ConsultationFooter: React.FC<ConsultationFooterProps> = ({
             type="button"
             onClick={onSaveDraft}
             disabled={disabled || isSavingDraft}
-            className="inline-flex items-center gap-1.5 px-4 py-2 border border-[#0D47A1] text-[#0D47A1] hover:bg-blue-50 text-xs font-semibold rounded-xl transition-all"
+            className="inline-flex items-center gap-1.5 px-4 py-2 border border-[#0D47A1] text-[#0D47A1] hover:bg-blue-50 text-xs font-semibold rounded-xl transition-colors"
             style={{ fontFamily: PP }}
           >
             <Save size={14} />
@@ -50,7 +50,7 @@ export const ConsultationFooter: React.FC<ConsultationFooterProps> = ({
           type="button"
           onClick={onFinalize}
           disabled={disabled || isFinalizing}
-          className="inline-flex items-center gap-1.5 px-5 py-2 bg-[#009688] text-white hover:bg-[#00827a] text-xs font-bold rounded-xl shadow-sm transition-all"
+          className="inline-flex items-center gap-1.5 px-5 py-2 bg-[#009688] text-white hover:bg-[#00827a] text-xs font-bold rounded-xl shadow-sm transition-colors"
           style={{ fontFamily: PP }}
         >
           <Check size={14} />

@@ -6,7 +6,7 @@ import {
   PP,
   RB,
 } from "../../constants/navigation";
-import { usePermissions } from "../../permissions";
+import { usePermissions } from "../../permissions/usePermissions";
 
 const navItemPermissions: Record<string, string> = {
   dashboard: "DASHBOARD_VIEW",
@@ -61,19 +61,16 @@ export function NavRail({
   const roleTxt = dk ? "#93C5FD" : "#0D47A1";
   const themeBtnBg = dk ? "rgba(255,255,255,0.08)" : "#F1F5F9";
 
-  const navGroups = (ROLE_NAV_GROUPS[role] || [])
-    .map((group) => {
-      const filteredItems = group.items.filter((item) => {
-        const required = navItemPermissions[item.id];
-        if (!required) return true;
-        return can(required);
-      });
-      return {
-        ...group,
-        items: filteredItems,
-      };
-    })
-    .filter((group) => group.items.length > 0);
+  const navGroups = (ROLE_NAV_GROUPS[role] || []).flatMap((group) => {
+    const filteredItems = group.items.filter((item) => {
+      const required = navItemPermissions[item.id];
+      if (!required) return true;
+      return can(required);
+    });
+    return filteredItems.length > 0
+      ? [{ ...group, items: filteredItems }]
+      : [];
+  });
 
   return (
     <nav
@@ -110,7 +107,7 @@ export function NavRail({
               style={{ background: roleTxt }}
             />
             <span
-              className="text-xs font-semibold whitespace-nowrap overflow-hidden transition-all duration-200"
+              className="text-xs font-semibold whitespace-nowrap overflow-hidden transition-colors duration-200"
               style={{
                 fontFamily: PP,
                 color: roleTxt,
@@ -152,7 +149,7 @@ export function NavRail({
                   key={id}
                   onClick={() => onSelect(id)}
                   title={!expanded ? label : undefined}
-                  className="relative flex items-center rounded-xl w-full transition-all duration-150 mb-0.5 group/navitem"
+                  className="relative flex items-center rounded-xl w-full transition-colors duration-150 mb-0.5 group/navitem"
                   style={{
                     gap: expanded ? 10 : 0,
                     padding: expanded ? "9px 12px" : "9px 0",

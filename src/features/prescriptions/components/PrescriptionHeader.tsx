@@ -84,7 +84,7 @@ export const PrescriptionHeader: React.FC<PrescriptionHeaderProps> = ({
         {role === "doctor" && onNewPrescription && (
           <button
             onClick={onNewPrescription}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm shrink-0"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors shadow-sm shrink-0"
             style={{ fontFamily: PP }}
           >
             <Plus size={15} /> + New Prescription

@@ -22,8 +22,21 @@ import {
 } from "lucide-react";
 import { useAccountantBillingAnalysis } from "../hooks/useReports";
 
-import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "../../../common/components/recharts-lazy";
-
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "../../../common/components/recharts-lazy";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -62,7 +75,7 @@ function CircularProgress({
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          className="transition-all duration-500 ease-out"
+          className="transition-colors duration-500 ease-out"
         />
       </svg>
       <span
@@ -474,7 +487,7 @@ export function AccountantBillingReportScreen({
               {/* TOP 6 ACCOUNTANT BILLING KPI CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Card 1: Total Invoices */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Total Invoices
@@ -507,7 +520,7 @@ export function AccountantBillingReportScreen({
                 </div>
 
                 {/* Card 2: Paid Invoices */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Paid Invoices
@@ -540,7 +553,7 @@ export function AccountantBillingReportScreen({
                 </div>
 
                 {/* Card 3: Pending Payments */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Pending Payments
@@ -571,7 +584,7 @@ export function AccountantBillingReportScreen({
                 </div>
 
                 {/* Card 4: Partially Paid */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Partially Paid
@@ -602,7 +615,7 @@ export function AccountantBillingReportScreen({
                 </div>
 
                 {/* Card 5: Refunded Bills */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Refunded Bills
@@ -635,7 +648,7 @@ export function AccountantBillingReportScreen({
                 </div>
 
                 {/* Card 6: Average Invoice Value */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                   <div>
                     <span className="text-xs font-semibold text-[#64748B]">
                       Average Invoice Value

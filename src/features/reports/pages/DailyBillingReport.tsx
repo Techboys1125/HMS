@@ -24,7 +24,7 @@ export function DailyBillingReportPage() {
   const navigate = useNavigate();
 
   const [reportDate, setReportDate] = useState(
-    new Date().toISOString().split("T")[0],
+    () => new Date().toISOString().split("T")[0],
   );
   const [, setCashierFilter] = useState("All");
   const [methodFilter, setMethodFilter] = useState("All");
@@ -688,7 +688,7 @@ export function DailyBillingReportPage() {
         </button>
         <button
           onClick={() => window.print()}
-          className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-all shadow-sm"
+          className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm"
           style={{ fontFamily: PP }}
         >
           <Printer size={15} /> Print Report

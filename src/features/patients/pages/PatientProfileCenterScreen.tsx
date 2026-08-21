@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import type { Patient } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.fonts";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { PatientSearchScreen } from "./PatientSearchScreen";
 
 interface ActivePatientProfile extends Omit<Patient, "emergencyContact"> {
@@ -722,7 +722,7 @@ export function PatientProfileCenterScreen({
                   </div>
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className={`h-full transition-all duration-300 ${passStrength.color}`}
+                      className={`h-full transition-[width] duration-300 ${passStrength.color}`}
                       style={{ width: `${passStrength.score}%` }}
                     />
                   </div>

@@ -45,7 +45,7 @@ export const PrescriptionFilters: React.FC<PrescriptionFiltersProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by Prescription ID, Doctor, Department, Diagnosis or Medicine name..."
-              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-[#111827]"
+              className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-[#111827]"
               style={{ fontFamily: RB }}
             />
           </div>
@@ -93,7 +93,7 @@ export const PrescriptionFilters: React.FC<PrescriptionFiltersProps> = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by Prescription ID, Patient Name, MRN, or Consultation ID…"
-            className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-[#111827]"
+            className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-[#111827]"
             style={{ fontFamily: RB }}
           />
         </div>

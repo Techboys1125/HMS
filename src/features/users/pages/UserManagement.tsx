@@ -184,19 +184,31 @@ export const UserManagement: React.FC = () => {
       } else {
         departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
           const items = Array.isArray(list) ? list : list?.content || [];
-          const mapped = items
-            .map((d: { departmentId?: string | number; id?: string | number; departmentName?: string; name?: string }) => ({
-              id: d.departmentId ?? d.id ?? "",
-              name: d.departmentName || d.name || "",
-            }))
-            .filter((d: { name: string }) => Boolean(d.name));
+          const mapped = items.flatMap(
+            (d: {
+              departmentId?: string | number;
+              id?: string | number;
+              departmentName?: string;
+              name?: string;
+            }) => {
+              const name = d.departmentName || d.name || "";
+              return name
+                ? [
+                    {
+                      id: d.departmentId ?? d.id ?? "",
+                      name,
+                    },
+                  ]
+                : [];
+            },
+          );
           if (mapped.length > 0) setApiDepartments(mapped);
         });
       }
     });
   }, []);
 
-  // Fetch Users wrapped in useCallback
+  // Fetch Users function
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     setErrorMsg(null);
@@ -281,6 +293,108 @@ export const UserManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  }, [deptIdToName, localStatusOverrides]);
+
+  // Fetch users on mount
+  useEffect(() => {
+    let active = true;
+    const loadData = async () => {
+      setLoading(true);
+      setErrorMsg(null);
+
+      try {
+        const response = await usersApi.adminGetUsers();
+        const rawList = Array.isArray(response)
+          ? response
+          : Array.isArray(response?.data)
+            ? response.data
+            : [];
+
+        if (active) {
+          if (rawList.length > 0 || response?.success) {
+            const mappedUsers: UserRecord[] = rawList.map(
+              (u: User & { userId?: number }, index: number) => {
+                const userId = u.userId ?? u.id;
+                const roleDisplay =
+                  BACKEND_TO_DISPLAY_ROLE[String(u.role).toUpperCase()] || "Doctor";
+                const uid = userId ? String(userId) : `user-record-${index}`;
+                const statusDisplay =
+                  localStatusOverrides[uid] ||
+                  BACKEND_TO_DISPLAY_STATUS[String(u.status).toUpperCase()] ||
+                  "Active";
+                const deptId =
+                  Number(u.primaryDepartmentId ?? u.departmentId ?? u.hospitalId) ||
+                  undefined;
+
+                const uRecord = u as unknown as Record<string, unknown>;
+                const doctorProfile = uRecord.doctorProfile as
+                  Record<string, unknown> | undefined;
+                const primaryDept = doctorProfile?.primaryDepartment as
+                  Record<string, unknown> | undefined;
+                const deptName =
+                  u.departmentName ??
+                  u.department ??
+                  (primaryDept?.departmentName as string) ??
+                  (deptId !== undefined ? deptIdToName[deptId] : null) ??
+                  null;
+
+                const photoVal =
+                  uRecord.photoUrl ||
+                  uRecord.photo ||
+                  doctorProfile?.photoUrl ||
+                  doctorProfile?.photo ||
+                  null;
+
+                return {
+                  id: uid,
+                  empId:
+                    u.employeeId ||
+                    `EMP-${roleDisplay.substring(0, 3).toUpperCase()}-${userId ?? index}`,
+                  fullName: u.fullName || "Staff User",
+                  username: u.email
+                    ? u.email.split("@")[0]
+                    : `user_${userId ?? index}`,
+                  email: u.email || "",
+                  phone: u.mobile || "+1 (555) 000-0000",
+                  role: roleDisplay,
+                  department: deptName,
+                  departmentId: deptId,
+                  status: statusDisplay,
+                  photoUrl: photoVal ? String(photoVal) : null,
+                  photo: photoVal ? String(photoVal) : null,
+                  lastLogin: uRecord.lastSuccessfulLogin
+                    ? String(uRecord.lastSuccessfulLogin)
+                    : uRecord.lastLogin
+                      ? String(uRecord.lastLogin)
+                      : null,
+                  joinedDate: "2023-11-01",
+                  twoFactor: false,
+                };
+              },
+            );
+            setUsers(mappedUsers);
+          } else {
+            setErrorMsg(response?.message || "Failed to retrieve staff list.");
+          }
+        }
+      } catch (err: unknown) {
+        if (active) {
+          const errMsg =
+            err instanceof Error ? err.message : "Error fetching staff accounts";
+          setErrorMsg(errMsg);
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadData();
+
+    return () => {
+      active = false;
+    };
   }, [deptIdToName, localStatusOverrides]);
 
   // Open View Details Drawer & fetch full backend record
@@ -511,7 +625,7 @@ export const UserManagement: React.FC = () => {
                 userMgmtTab === "departments" ? "users" : "departments",
               )
             }
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-sm cursor-pointer ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 shadow-sm cursor-pointer ${
               userMgmtTab === "departments"
                 ? "bg-[#009688] text-white"
                 : "bg-white border border-gray-200 text-[#0D47A1] hover:bg-slate-50"

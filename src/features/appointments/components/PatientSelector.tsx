@@ -27,29 +27,37 @@ export const PatientSelector: React.FC<PatientSelectorProps> = ({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let active = true;
+    let cancelled = false;
+
     const fetchLinkedPatients = async () => {
       setLoading(true);
       try {
         const res = await appointmentsApi.getLinkedPatients();
-        if (active && res.data && res.data.length > 0) {
-          setPatients(res.data);
-          if (!selectedPatientId) {
-            const selfPatient =
-              res.data.find((p) => p.relationship === "SELF") || res.data[0];
-            onSelectPatient(selfPatient);
+        if (!cancelled) {
+          if (res.data && res.data.length > 0) {
+            setPatients(res.data);
+            if (!selectedPatientId) {
+              const selfPatient =
+                res.data.find((p) => p.relationship === "SELF") || res.data[0];
+              onSelectPatient(selfPatient);
+            }
           }
         }
       } catch (err) {
-        console.error("Failed to fetch linked patients:", err);
+        if (!cancelled) {
+          console.error("Failed to fetch linked patients:", err);
+        }
       } finally {
-        if (active) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchLinkedPatients();
+    void fetchLinkedPatients();
+
     return () => {
-      active = false;
+      cancelled = true;
     };
   }, [selectedPatientId, onSelectPatient]);
 
@@ -102,7 +110,7 @@ export const PatientSelector: React.FC<PatientSelectorProps> = ({
             <div
               key={p.id}
               onClick={() => onSelectPatient(p)}
-              className={`p-3.5 rounded-xl border transition-all cursor-pointer relative flex flex-col justify-between ${
+              className={`p-3.5 rounded-xl border transition-colors cursor-pointer relative flex flex-col justify-between ${
                 isSelected
                   ? "bg-blue-50/70 border-[#0D47A1] ring-2 ring-blue-100 shadow-sm"
                   : "bg-white border-slate-200 hover:border-blue-300 hover:bg-slate-50/50"
@@ -160,7 +168,7 @@ export const PatientSelector: React.FC<PatientSelectorProps> = ({
           <button
             type="button"
             onClick={onAddNewFamilyMember}
-            className="p-3.5 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-blue-50/40 hover:border-blue-300 text-slate-600 hover:text-[#0D47A1] transition-all flex flex-col items-center justify-center gap-1 cursor-pointer min-h-22.5"
+            className="p-3.5 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-blue-50/40 hover:border-blue-300 text-slate-600 hover:text-[#0D47A1] transition-colors flex flex-col items-center justify-center gap-1 cursor-pointer min-h-22.5"
           >
             <PlusCircle size={18} />
             <span className="text-xs font-bold" style={{ fontFamily: PP }}>

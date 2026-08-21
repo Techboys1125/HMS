@@ -426,7 +426,7 @@ export function ReceptionQueueManagementScreen({
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => triggerToast("Queue refreshed successfully.")}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-xs cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors shadow-xs cursor-pointer"
             style={{ fontFamily: PP }}
           >
             <RefreshCw size={15} /> Refresh Queue
@@ -443,14 +443,14 @@ export function ReceptionQueueManagementScreen({
                 else triggerToast("No scheduled patients found to check in.");
               }
             }}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-xs cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-xs cursor-pointer"
             style={{ fontFamily: PP }}
           >
             <UserCheck size={15} /> Patient Check-In
           </button>
           <button
             onClick={onPatientSearchClick}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-[#111827] text-xs font-semibold hover:bg-slate-200 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-[#111827] text-xs font-semibold hover:bg-slate-200 transition-colors cursor-pointer"
             style={{ fontFamily: PP }}
           >
             <Search size={15} /> Patient Search
@@ -573,7 +573,7 @@ export function ReceptionQueueManagementScreen({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search queue by Patient Name, MRN, Token Number or Appointment ID..."
-            className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
+            className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-colors shadow-inner"
           />
         </div>
 
@@ -779,7 +779,7 @@ export function ReceptionQueueManagementScreen({
                         </p>
                         <button
                           onClick={onPatientSearchClick}
-                          className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all flex items-center gap-1.5 cursor-pointer"
+                          className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5 cursor-pointer"
                           style={{ fontFamily: PP }}
                         >
                           <Search size={15} /> Patient Search

@@ -24,7 +24,7 @@ export const SuccessModal: React.FC<SuccessModalProps> = ({
         <div className="flex items-center justify-end px-4 py-3 border-b border-gray-50">
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-650 transition-all cursor-pointer"
+            className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-650 transition-colors cursor-pointer"
           >
             <X size={16} />
           </button>

@@ -691,7 +691,7 @@ export function PatientRescheduleAppointmentDialog({
                             setSelectedTimeSlot("");
                           }
                         }}
-                        className={`p-2 rounded-xl text-xs font-semibold transition-all relative ${
+                        className={`p-2 rounded-xl text-xs font-semibold transition-colors relative ${
                           isSelected
                             ? "bg-[#009688] text-white shadow-sm font-bold"
                             : item.isCurrentAppt
@@ -749,7 +749,7 @@ export function PatientRescheduleAppointmentDialog({
                                 type="button"
                                 disabled={isBooked}
                                 onClick={() => setSelectedTimeSlot(s.time)}
-                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center ${
+                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-colors text-center ${
                                   isSelected
                                     ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold"
                                     : isBooked
@@ -780,7 +780,7 @@ export function PatientRescheduleAppointmentDialog({
                                 type="button"
                                 disabled={isBooked}
                                 onClick={() => setSelectedTimeSlot(s.time)}
-                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center ${
+                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-colors text-center ${
                                   isSelected
                                     ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold"
                                     : isBooked
@@ -811,7 +811,7 @@ export function PatientRescheduleAppointmentDialog({
                                 type="button"
                                 disabled={isBooked}
                                 onClick={() => setSelectedTimeSlot(s.time)}
-                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center ${
+                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-colors text-center ${
                                   isSelected
                                     ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold"
                                     : isBooked

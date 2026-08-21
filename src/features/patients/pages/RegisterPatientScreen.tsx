@@ -20,14 +20,14 @@ import type {
   RegistrationType,
 } from "../types/patient.types";
 import { ROLE_FIELD_PERMISSIONS } from "../types/patient.types";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { usePatientPortal } from "../context/usePatientPortal";
 
 /* ─────────────────── Design Tokens ─────────────────── */
 const inputBase =
-  "w-full px-3.5 py-2.5 text-[13px] bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-[#0D47A1]/10 transition-all duration-200 placeholder:text-slate-400";
+  "w-full px-3.5 py-2.5 text-[13px] bg-white border border-gray-200 rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-[#0D47A1]/10 transition-colors duration-200 placeholder:text-slate-400";
 const inputError =
-  "w-full px-3.5 py-2.5 text-[13px] bg-white border border-red-300 rounded-xl text-[#111827] outline-none focus:border-red-400 focus:ring-2 focus:ring-red-400/10 transition-all duration-200 placeholder:text-slate-400";
+  "w-full px-3.5 py-2.5 text-[13px] bg-white border border-red-300 rounded-xl text-[#111827] outline-none focus:border-red-400 focus:ring-2 focus:ring-red-400/10 transition-colors duration-200 placeholder:text-slate-400";
 const inputDisabled =
   "w-full px-3.5 py-2.5 text-[13px] bg-slate-50 border border-gray-200 rounded-xl text-slate-500 font-mono outline-none cursor-not-allowed";
 const labelBase = "block text-xs font-semibold text-slate-600 mb-1.5";
@@ -290,7 +290,7 @@ function RegistrationSuccessDialog({
               {onViewProfile && (
                 <button
                   onClick={() => onViewProfile(mrn)}
-                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-colors shadow-sm"
                   style={{ fontFamily: PP }}
                 >
                   <User size={16} />
@@ -299,7 +299,7 @@ function RegistrationSuccessDialog({
               )}
               <button
                 onClick={onClose}
-                className="w-full px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"
+                className="w-full px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                 style={{ fontFamily: PP }}
               >
                 Return to Family Members
@@ -310,7 +310,7 @@ function RegistrationSuccessDialog({
               {onSwitchToNewPatient && (
                 <button
                   onClick={() => onSwitchToNewPatient(mrn, patientName)}
-                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-colors shadow-sm"
                   style={{ fontFamily: PP }}
                 >
                   <User size={16} />
@@ -320,7 +320,7 @@ function RegistrationSuccessDialog({
               {onBookAppointment && (
                 <button
                   onClick={() => onBookAppointment(mrn)}
-                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#009688] text-white text-sm font-semibold hover:bg-teal-700 transition-all shadow-sm"
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#009688] text-white text-sm font-semibold hover:bg-teal-700 transition-colors shadow-sm"
                   style={{ fontFamily: PP }}
                 >
                   <Calendar size={16} />
@@ -330,7 +330,7 @@ function RegistrationSuccessDialog({
               {onViewProfile && (
                 <button
                   onClick={() => onViewProfile(mrn)}
-                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all"
+                  className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
                   style={{ fontFamily: PP }}
                 >
                   <User size={16} />
@@ -339,7 +339,7 @@ function RegistrationSuccessDialog({
               )}
               <button
                 onClick={onClose}
-                className="w-full px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"
+                className="w-full px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                 style={{ fontFamily: PP }}
               >
                 Register Another Patient
@@ -434,6 +434,8 @@ export function RegisterPatientScreen({
     name: string;
   } | null>(null);
 
+  const [submitting, setSubmitting] = useState(false);
+
   const createPatient = useCreatePatient();
 
   const set = useCallback(
@@ -489,6 +491,12 @@ export function RegisterPatientScreen({
     touched[field] && errors[field] ? inputError : inputBase;
 
   const handleSubmit = useCallback(async () => {
+    if (submitting) {
+      return;
+    }
+
+    setSubmitting(true);
+
     setTouched({
       fullName: true,
       gender: true,
@@ -707,6 +715,8 @@ export function RegisterPatientScreen({
             : "Failed to register patient. Please try again.",
         type: "error",
       });
+    } finally {
+      setSubmitting(false);
     }
   }, [
     form,
@@ -717,6 +727,7 @@ export function RegisterPatientScreen({
     primaryPatientMrn,
     portal,
     user,
+    submitting,
   ]);
 
   const handleClear = useCallback(() => {
@@ -1197,7 +1208,7 @@ export function RegisterPatientScreen({
               <button
                 type="button"
                 onClick={() => onBack?.()}
-                className="px-6 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"
+                className="px-6 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                 style={{ fontFamily: PP }}
               >
                 Cancel
@@ -1206,7 +1217,7 @@ export function RegisterPatientScreen({
               <button
                 type="button"
                 onClick={handleClear}
-                className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"
+                className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl border border-gray-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                 style={{ fontFamily: PP }}
               >
                 <RotateCcw size={14} />
@@ -1216,11 +1227,11 @@ export function RegisterPatientScreen({
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={createPatient.isPending}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-md shadow-[#0D47A1]/20 disabled:opacity-60 disabled:cursor-not-allowed"
+                disabled={submitting || createPatient.isPending}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0c3d8a] transition-colors shadow-md shadow-[#0D47A1]/20 disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{ fontFamily: PP }}
               >
-                {createPatient.isPending ? (
+                {submitting || createPatient.isPending ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
                     Registering…

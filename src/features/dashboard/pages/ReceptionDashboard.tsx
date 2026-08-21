@@ -66,7 +66,7 @@ function DKpi({
       onClick={onClick}
       className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
         onClick
-          ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-all duration-200"
+          ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-colors duration-200"
           : ""
       }`}
     >
@@ -476,7 +476,7 @@ export function ReceptionDashboard({
               else if (action === "checkin" && onNavigateNav)
                 onNavigateNav("checkin");
             }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#0D47A1]/40 hover:text-[#0D47A1] hover:bg-blue-50 transition-all shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#0D47A1]/40 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors shadow-sm"
             style={{ fontFamily: RB }}
           >
             <Icon size={13} style={{ color }} />

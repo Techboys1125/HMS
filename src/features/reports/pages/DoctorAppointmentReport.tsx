@@ -27,8 +27,21 @@ import {
   useDoctorSelfDailyAppointmentRegister,
 } from "../hooks/useReports";
 
-import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "../../../common/components/recharts-lazy";
-
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "../../../common/components/recharts-lazy";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -67,7 +80,7 @@ function CircularProgress({
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          className="transition-all duration-500 ease-out"
+          className="transition-colors duration-500 ease-out"
         />
       </svg>
       <span
@@ -136,8 +149,8 @@ export function DoctorDailyAppointmentReportScreen({
 
   const filteredAppointments = useMemo(() => {
     const rawList = registerData?.content || [];
-    return rawList
-      .map((item) => ({
+    return rawList.flatMap((item) => {
+      const mapped = {
         id: item.appointmentId,
         patientName: item.patientName,
         mrn: item.mrn,
@@ -146,21 +159,24 @@ export function DoctorDailyAppointmentReportScreen({
         visitType: item.visitType,
         status: item.appointmentStatus,
         consultationStatus: item.consultationStatus,
-      }))
-      .filter((item) => {
-        const matchesSearch =
-          (item.patientName || "")
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          (item.mrn || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (item.id || "").toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus =
-          statusFilter === "All Statuses" || item.status === statusFilter;
-        const matchesVisit =
-          visitTypeFilter === "All Visit Types" ||
-          item.visitType === visitTypeFilter;
-        return matchesSearch && matchesStatus && matchesVisit;
-      });
+      };
+      const matchesSearch =
+        (mapped.patientName || "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        (mapped.mrn || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (mapped.id || "").toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus =
+        statusFilter === "All Statuses" || mapped.status === statusFilter;
+      const matchesVisit =
+        visitTypeFilter === "All Visit Types" ||
+        mapped.visitType === visitTypeFilter;
+
+      if (matchesSearch && matchesStatus && matchesVisit) {
+        return [mapped];
+      }
+      return [];
+    });
   }, [registerData, searchQuery, statusFilter, visitTypeFilter]);
 
   return (
@@ -455,7 +471,7 @@ export function DoctorDailyAppointmentReportScreen({
               {/* TOP 6 DOCTOR APPOINTMENT KPI CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Card 1: Today's Appointments */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Today's Appointments
@@ -489,7 +505,7 @@ export function DoctorDailyAppointmentReportScreen({
                 </div>
 
                 {/* Card 2: Completed Consultations */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Completed Consultations
@@ -522,7 +538,7 @@ export function DoctorDailyAppointmentReportScreen({
                 </div>
 
                 {/* Card 3: Cancelled Appointments */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Cancelled Appointments
@@ -555,7 +571,7 @@ export function DoctorDailyAppointmentReportScreen({
                 </div>
 
                 {/* Card 4: No Show Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       No Show Patients
@@ -588,7 +604,7 @@ export function DoctorDailyAppointmentReportScreen({
                 </div>
 
                 {/* Card 5: Follow-up Appointments */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Follow-up Appointments
@@ -621,7 +637,7 @@ export function DoctorDailyAppointmentReportScreen({
                 </div>
 
                 {/* Card 6: Average Waiting Time */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                   <div>
                     <span className="text-xs font-semibold text-[#64748B]">
                       Average Waiting Time

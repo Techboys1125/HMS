@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import {
   useBillingList,
   useBillingDashboard,
@@ -231,7 +231,7 @@ export function BillingManagementPage() {
               setActiveTab(tab.id);
               setCurrentPage(1);
             }}
-            className={`px-5 py-2.5 text-xs font-semibold border-b-2 transition-all ${
+            className={`px-5 py-2.5 text-xs font-semibold border-b-2 transition-colors ${
               activeTab === tab.id
                 ? "border-[#0D47A1] text-[#0D47A1]"
                 : "border-transparent text-slate-500 hover:text-slate-700"

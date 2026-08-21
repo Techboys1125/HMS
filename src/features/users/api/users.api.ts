@@ -11,6 +11,25 @@ import type {
   BackendAvailabilityItem,
 } from "../types/users.types";
 
+const unwrapUserCollection = (body: unknown): User[] => {
+  if (Array.isArray(body)) return body as User[];
+  if (!body || typeof body !== "object") return [];
+  const obj = body as Record<string, unknown>;
+
+  if (Array.isArray(obj.data)) return obj.data as User[];
+  if (Array.isArray(obj.content)) return obj.content as User[];
+  if (Array.isArray(obj.users)) return obj.users as User[];
+
+  const innerData = obj.data as Record<string, unknown> | null | undefined;
+  if (innerData && typeof innerData === "object") {
+    if (Array.isArray(innerData.content)) return innerData.content as User[];
+    if (Array.isArray(innerData.users)) return innerData.users as User[];
+    if (Array.isArray(innerData.data)) return innerData.data as User[];
+  }
+
+  return [];
+};
+
 export const usersApi = {
   // 1. Admin Creates Staff User (POST /api/v1/admin/users)
   /**
@@ -170,36 +189,36 @@ export const usersApi = {
       throw new Error(msg, { cause: error });
     }
   },
-
   // 6. Admin Gets All Users (GET /api/v1/admin/users)
   adminGetUsers: async (): Promise<ApiResponse<User[]>> => {
     try {
-      const response = await apiClient.get<ApiResponse<User[]> | User[]>(
-        "/api/v1/admin/users",
-      );
-      const resData = response.data;
-      if (Array.isArray(resData)) {
-        return {
-          success: true,
-          data: resData,
-          message: "",
-        };
+      let response;
+      try {
+        response = await apiClient.get<ApiResponse<User[]> | User[]>(
+          "/api/v1/admin/users",
+        );
+      } catch (e) {
+        console.warn("Primary GET /api/v1/admin/users failed, trying fallback /api/v1/users...", e);
+        response = await apiClient.get<ApiResponse<User[]> | User[]>("/api/v1/users");
       }
-      if (
-        resData &&
-        typeof resData === "object" &&
-        "data" in resData &&
-        Array.isArray(resData.data)
-      ) {
-        return {
-          success: resData.success !== false,
-          data: resData.data,
-          message: resData.message,
-        };
+
+      let usersList = unwrapUserCollection(response.data);
+
+      if (usersList.length === 0) {
+        try {
+          const fallbackRes = await apiClient.get<ApiResponse<User[]> | User[]>("/api/v1/users");
+          const fallbackUsers = unwrapUserCollection(fallbackRes.data);
+          if (fallbackUsers.length > 0) {
+            usersList = fallbackUsers;
+          }
+        } catch {
+          // ignore fallback error
+        }
       }
+
       return {
         success: true,
-        data: [],
+        data: usersList,
         message: "",
       };
     } catch (error: unknown) {

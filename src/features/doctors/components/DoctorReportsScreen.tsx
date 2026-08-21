@@ -32,7 +32,7 @@ export function DoctorReportsScreen() {
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all capitalize ${period === p ? "bg-[#0D47A1] text-white" : "text-slate-500 hover:text-slate-700"}`}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors capitalize ${period === p ? "bg-[#0D47A1] text-white" : "text-slate-500 hover:text-slate-700"}`}
                 style={{ fontFamily: RB }}
               >
                 This {p}

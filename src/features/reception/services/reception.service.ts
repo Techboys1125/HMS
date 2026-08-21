@@ -1,4 +1,4 @@
-import { appointmentsApi } from "../../appointments";
+import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { receptionApi } from "../api/reception.api";
 import type {
   ReceptionQueueItem,

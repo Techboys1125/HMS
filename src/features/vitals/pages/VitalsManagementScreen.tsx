@@ -31,7 +31,7 @@ import type {
   NurseWaitingPatient,
 } from "../types/vitals.types";
 import { Avatar } from "../../../common/components/Avatar";
-import { usePermissions } from "../../../permissions";
+import { usePermissions } from "../../../permissions/usePermissions";
 
 // --- Typography Tokens ---
 const PP = "Poppins, sans-serif";

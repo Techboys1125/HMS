@@ -393,7 +393,7 @@ export const GeneralSettingsContent = forwardRef<
                 : "1px solid #E5E7EB",
             overflow: "hidden",
             boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-            transition: "all 0.2s ease",
+            transition: "background-color 0.2s ease, border-color 0.2s ease",
           }}
         >
           <div
@@ -690,7 +690,7 @@ export const GeneralSettingsContent = forwardRef<
                 : "1px solid #E5E7EB",
             overflow: "hidden",
             boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-            transition: "all 0.2s ease",
+            transition: "background-color 0.2s ease, border-color 0.2s ease",
           }}
         >
           <div
@@ -1057,7 +1057,7 @@ export const GeneralSettingsContent = forwardRef<
                 : "1px solid #E5E7EB",
             overflow: "hidden",
             boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-            transition: "all 0.2s ease",
+            transition: "background-color 0.2s ease, border-color 0.2s ease",
           }}
         >
           <div
@@ -1285,7 +1285,7 @@ export const GeneralSettingsContent = forwardRef<
                 : "1px solid #E5E7EB",
             overflow: "hidden",
             boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-            transition: "all 0.2s ease",
+            transition: "background-color 0.2s ease, border-color 0.2s ease",
           }}
         >
           <div

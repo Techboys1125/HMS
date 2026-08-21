@@ -17,7 +17,7 @@ import {
   useReceipt,
   useBillingConfiguration,
 } from "../hooks/useBilling";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import type { BillPaymentRecord } from "../types/billing.types";
 import { ROUTES } from "../../../app/routes/routes";
 
@@ -346,7 +346,7 @@ export function InvoicePrintPreviewPage() {
           </button>
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm active:scale-95 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors transition-transform shadow-sm active:scale-95 cursor-pointer"
             style={{ fontFamily: PP }}
           >
             <Printer size={15} />
@@ -893,14 +893,14 @@ export function InvoicePrintPreviewPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={handlePrint}
-            className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-all shadow-sm cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm cursor-pointer"
             style={{ fontFamily: PP }}
           >
             Download PDF
           </button>
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-all shadow-sm cursor-pointer"
+            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors shadow-sm cursor-pointer"
             style={{ fontFamily: PP }}
           >
             <Printer size={15} />

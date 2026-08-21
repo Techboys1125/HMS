@@ -37,7 +37,7 @@ export function TemplateDetailsDrawer({
         display: "flex",
         justifyContent: "flex-end",
         zIndex: 100,
-        transition: "all 0.3s ease-in-out",
+        transition: "transform 0.3s ease-in-out, opacity 0.3s ease-in-out",
       }}
     >
       <div
@@ -117,7 +117,7 @@ export function TemplateDetailsDrawer({
                   fontSize: "12px",
                   fontWeight: 600,
                   cursor: "pointer",
-                  transition: "all 0.2s ease",
+                  transition: "background-color 0.2s ease, border-color 0.2s ease",
                 }}
               >
                 <Edit2 size={14} /> {isEditMode ? "Cancel Edit" : "Edit"}

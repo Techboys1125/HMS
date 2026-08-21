@@ -1,4 +1,4 @@
-import { usePermissions } from "../../../permissions";
+import { usePermissions } from "../../../permissions/usePermissions";
 
 export const appointmentPermissionMap = {
   view: "APPOINTMENT_VIEW",

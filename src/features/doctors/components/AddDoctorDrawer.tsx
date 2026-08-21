@@ -34,6 +34,14 @@ export function AddDoctorDrawer({
   totalDoctorCount,
 }: AddDoctorDrawerProps) {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (photoPreview) {
+        URL.revokeObjectURL(photoPreview);
+      }
+    };
+  }, [photoPreview]);
   const [fullName, setFullName] = useState("");
   const [gender, setGender] = useState<"Male" | "Female" | "Other">("Male");
   const [dob, setDob] = useState("1985-05-14");
@@ -147,6 +155,9 @@ export function AddDoctorDrawer({
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (photoPreview) {
+        URL.revokeObjectURL(photoPreview);
+      }
       const url = URL.createObjectURL(file);
       setPhotoPreview(url);
     }
@@ -223,13 +234,17 @@ export function AddDoctorDrawer({
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    const activeAvailability = schedule
-      .filter((s) => s.available)
-      .map((s) => ({
-        dayOfWeek: s.day.toUpperCase(),
-        startTime: to24HourHHMM(s.startTime),
-        endTime: to24HourHHMM(s.endTime),
-      }));
+    const activeAvailability = schedule.flatMap((s) =>
+      s.available
+        ? [
+            {
+              dayOfWeek: s.day.toUpperCase(),
+              startTime: to24HourHHMM(s.startTime),
+              endTime: to24HourHHMM(s.endTime),
+            },
+          ]
+        : [],
+    );
 
     const slotMins = parseInt(slotDuration) || 15;
 
@@ -284,9 +299,9 @@ export function AddDoctorDrawer({
     };
 
     try {
-      const activeWorkingDays = schedule
-        .filter((s) => s.available)
-        .map((s) => s.day.slice(0, 3));
+      const activeWorkingDays = schedule.flatMap((s) =>
+        s.available ? [s.day.slice(0, 3)] : [],
+      );
 
       const newDoctor: DoctorRecord = {
         id: `DOC-10${totalDoctorCount + 1}`,
@@ -864,7 +879,7 @@ export function AddDoctorDrawer({
                             onChange={() => handleToggleScheduleDay(idx)}
                             className="sr-only peer"
                           />
-                          <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#009688]" />
+                          <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-colors peer-checked:bg-[#009688]" />
                         </label>
                       </td>
                       <td className="px-3.5 py-2.5">

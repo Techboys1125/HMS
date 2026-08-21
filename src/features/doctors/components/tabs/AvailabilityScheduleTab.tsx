@@ -88,23 +88,25 @@ export function AvailabilityScheduleTab({
       // PUT /api/v1/doctors/{doctorId}/schedules/{dayOfWeek} replaces the whole
       // day config, so each day must be submitted — including days toggled OFF
       // so the backend persists isWorkingDay=false.
-      for (const day of schedule) {
-        const payload: UpdateScheduleDayPayload = {
-          isWorkingDay: day.workingDay,
-          workingPeriods: day.workingPeriods.map((p) => ({
-            startTime: p.startTime,
-            endTime: p.endTime,
-            slotDurationMinutes: p.slotDurationMinutes,
-          })),
-        };
-        const targetId = resolveDoctorId(doctor);
-        const ok = await doctorsService.updateWeeklyScheduleDay(
-          targetId,
-          day.dayOfWeek as DayOfWeek,
-          payload,
-        );
-        if (!ok) throw new Error(`Failed to update ${day.dayOfWeek}`);
-      }
+      const targetId = resolveDoctorId(doctor);
+      await Promise.all(
+        schedule.map(async (day) => {
+          const payload: UpdateScheduleDayPayload = {
+            isWorkingDay: day.workingDay,
+            workingPeriods: day.workingPeriods.map((p) => ({
+              startTime: p.startTime,
+              endTime: p.endTime,
+              slotDurationMinutes: p.slotDurationMinutes,
+            })),
+          };
+          const ok = await doctorsService.updateWeeklyScheduleDay(
+            targetId,
+            day.dayOfWeek as DayOfWeek,
+            payload,
+          );
+          if (!ok) throw new Error(`Failed to update ${day.dayOfWeek}`);
+        }),
+      );
       onClose?.();
     } catch (err) {
       console.warn("[AvailabilityScheduleTab] Failed to save schedule:", err);
@@ -263,7 +265,7 @@ export function AvailabilityScheduleTab({
                         onChange={() => toggleWorkingDay(idx)}
                         className="sr-only peer"
                       />
-                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#009688]" />
+                      <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-colors peer-checked:bg-[#009688]" />
                     </label>
                   ) : (
                     <span

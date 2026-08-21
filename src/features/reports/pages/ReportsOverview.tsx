@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useReducer, useMemo, useState } from "react";
 import {
   BarChart2,
   Calendar,
@@ -54,8 +54,21 @@ import {
   useCollectionRateSummary,
 } from "../hooks/useReports";
 
-import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "../../../common/components/recharts-lazy";
-
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "../../../common/components/recharts-lazy";
 
 // ─── Custom Circular Progress Component ──────────────────────────────────────
 function CircularProgress({
@@ -92,7 +105,7 @@ function CircularProgress({
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          className="transition-all duration-500 ease-out"
+          className="transition-colors duration-500 ease-out"
         />
       </svg>
       <span
@@ -120,16 +133,82 @@ export function AdminReportsDashboardScreen({
   onOpenReport,
 }: {
   onOpenReport?: (reportId: string) => void;
+  onOpenKpiDetail?: (kpi?: string) => void;
 }) {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [, setBranchFilter] = useState("Main Branch");
-  const [deptFilter, setDeptFilter] = useState("All Departments");
-  const [doctorFilter, setDoctorFilter] = useState("All Doctors");
-  const [dateRangeFilter, setDateRangeFilter] = useState("Today");
-  const [typeFilter, setTypeFilter] = useState("All Types");
-  const [statusFilter, setStatusFilter] = useState("All Statuses");
-  const [visitTypeFilter, setVisitTypeFilter] = useState("All Visit Types");
+
+  type FilterState = {
+    searchQuery: string;
+    branchFilter: string;
+    deptFilter: string;
+    doctorFilter: string;
+    dateRangeFilter: string;
+    typeFilter: string;
+    statusFilter: string;
+    visitTypeFilter: string;
+    trendDays: "7" | "30" | "90";
+    isRefreshing: boolean;
+    isLoading: boolean;
+    hasError: boolean;
+  };
+
+  type FilterAction =
+    | { type: "SET_SEARCH"; payload: string }
+    | {
+        type: "SET_FILTER";
+        field: keyof Omit<
+          FilterState,
+          | "searchQuery"
+          | "trendDays"
+          | "isRefreshing"
+          | "isLoading"
+          | "hasError"
+        >;
+        payload: string;
+      }
+    | { type: "RESET_FILTERS" }
+    | { type: "SET_TREND_DAYS"; payload: "7" | "30" | "90" }
+    | { type: "SET_REFRESHING"; payload: boolean }
+    | { type: "SET_LOADING"; payload: boolean }
+    | { type: "SET_ERROR"; payload: boolean };
+
+  const initialState: FilterState = {
+    searchQuery: "",
+    branchFilter: "Main Branch",
+    deptFilter: "All Departments",
+    doctorFilter: "All Doctors",
+    dateRangeFilter: "Today",
+    typeFilter: "All Types",
+    statusFilter: "All Statuses",
+    visitTypeFilter: "All Visit Types",
+    trendDays: "7",
+    isRefreshing: false,
+    isLoading: false,
+    hasError: false,
+  };
+
+  function reducer(state: FilterState, action: FilterAction): FilterState {
+    switch (action.type) {
+      case "SET_SEARCH":
+        return { ...state, searchQuery: action.payload };
+      case "SET_FILTER":
+        return { ...state, [action.field]: action.payload };
+      case "RESET_FILTERS":
+        return { ...initialState };
+      case "SET_TREND_DAYS":
+        return { ...state, trendDays: action.payload };
+      case "SET_REFRESHING":
+        return { ...state, isRefreshing: action.payload };
+      case "SET_LOADING":
+        return { ...state, isLoading: action.payload };
+      case "SET_ERROR":
+        return { ...state, hasError: action.payload };
+      default:
+        return state;
+    }
+  }
+
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   const [appliedFilters, setAppliedFilters] = useState({
     dept: "All Departments",
@@ -140,10 +219,6 @@ export function AdminReportsDashboardScreen({
     visitType: "All Visit Types",
   });
 
-  const [trendDays, setTrendDays] = useState<"7" | "30" | "90">("7");
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
   const [selectedReportModal, setSelectedReportModal] =
     useState<AvailableReportCard | null>(null);
 
@@ -172,8 +247,7 @@ export function AdminReportsDashboardScreen({
       `Exporting report as ${fileName}\nFormat: ${exportFormat.toUpperCase()}\nScope: ${exportScope}\nIncludes: ${Object.entries(
         includeOptions,
       )
-        .filter(([, v]) => v)
-        .map(([k]) => k.toUpperCase())
+        .flatMap(([k, v]) => (v ? [k.toUpperCase()] : []))
         .join(", ")}`,
     );
     setShowExportModal(false);
@@ -184,35 +258,28 @@ export function AdminReportsDashboardScreen({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const handleApplyFilters = () => {
-    setIsLoading(true);
+    dispatch({ type: "SET_LOADING", payload: true });
     setTimeout(() => {
       setAppliedFilters({
-        dept: deptFilter,
-        doctor: doctorFilter,
-        dateRange: dateRangeFilter,
-        type: typeFilter,
-        status: statusFilter,
-        visitType: visitTypeFilter,
+        dept: state.deptFilter,
+        doctor: state.doctorFilter,
+        dateRange: state.dateRangeFilter,
+        type: state.typeFilter,
+        status: state.statusFilter,
+        visitType: state.visitTypeFilter,
       });
-      setIsLoading(false);
+      dispatch({ type: "SET_LOADING", payload: false });
     }, 400);
   };
 
   const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 500);
+    dispatch({ type: "SET_REFRESHING", payload: true });
+    setTimeout(() => dispatch({ type: "SET_REFRESHING", payload: false }), 500);
   };
 
   const handleResetFilters = () => {
-    setSearchQuery("");
-    setBranchFilter("Main Branch");
-    setDeptFilter("All Departments");
-    setDoctorFilter("All Doctors");
-    setDateRangeFilter("Today");
-    setTypeFilter("All Types");
-    setStatusFilter("All Statuses");
-    setVisitTypeFilter("All Visit Types");
-    setIsLoading(true);
+    dispatch({ type: "RESET_FILTERS" });
+    dispatch({ type: "SET_LOADING", payload: true });
     setTimeout(() => {
       setAppliedFilters({
         dept: "All Departments",
@@ -222,7 +289,7 @@ export function AdminReportsDashboardScreen({
         status: "All Statuses",
         visitType: "All Visit Types",
       });
-      setIsLoading(false);
+      dispatch({ type: "SET_LOADING", payload: false });
     }, 300);
   };
 
@@ -279,7 +346,7 @@ export function AdminReportsDashboardScreen({
     isPatLoading ||
     isRevLoading ||
     isInvLoading ||
-    isLoading;
+    state.isLoading;
   const isDataError =
     isDashError &&
     isDocError &&
@@ -342,13 +409,13 @@ export function AdminReportsDashboardScreen({
 
   const computedKpis = useMemo(() => {
     const rawAppts = Number(
-      (((Array.isArray(dailyAppts)
-          ? dailyAppts.reduce(
-              (acc: number, item: DailyAppointmentSummary) =>
-                acc + (item.totalAppointments || 0),
-              0,
-            )
-          : 0)) ||
+      ((Array.isArray(dailyAppts)
+        ? dailyAppts.reduce(
+            (acc: number, item: DailyAppointmentSummary) =>
+              acc + (item.totalAppointments || 0),
+            0,
+          )
+        : 0) ||
         hospitalDashboard?.totalAppointments) ??
         adminDash?.totalAppointments ??
         0,
@@ -360,54 +427,51 @@ export function AdminReportsDashboardScreen({
         0,
     );
     const rawRev = Number(
-      (((Array.isArray(dailyRev)
-          ? dailyRev.reduce(
-              (acc: number, item: DailyRevenuePoint) =>
-                acc + (item.amount || 0),
-              0,
-            )
-          : 0)) ||
+      ((Array.isArray(dailyRev)
+        ? dailyRev.reduce(
+            (acc: number, item: DailyRevenuePoint) => acc + (item.amount || 0),
+            0,
+          )
+        : 0) ||
         hospitalDashboard?.totalRevenue) ??
         adminDash?.totalRevenue ??
         0,
     );
     const rawInvoices = Number(
-      invSum?.totalInvoices ??
-        hospitalDashboard?.totalAppointments ??
-        rawAppts,
+      invSum?.totalInvoices ?? hospitalDashboard?.totalAppointments ?? rawAppts,
     );
     const rawCompleted = Number(
-      (((Array.isArray(dailyAppts)
-          ? dailyAppts.reduce(
-              (acc: number, item: DailyAppointmentSummary) =>
-                acc + (item.completedAppointments || 0),
-              0,
-            )
-          : 0)) ||
+      ((Array.isArray(dailyAppts)
+        ? dailyAppts.reduce(
+            (acc: number, item: DailyAppointmentSummary) =>
+              acc + (item.completedAppointments || 0),
+            0,
+          )
+        : 0) ||
         hospitalDashboard?.completedConsultations) ??
         adminDash?.completedConsultations ??
         0,
     );
     const rawCancelled = Number(
-      (((Array.isArray(dailyAppts)
-          ? dailyAppts.reduce(
-              (acc: number, item: DailyAppointmentSummary) =>
-                acc + (item.cancelledAppointments || 0),
-              0,
-            )
-          : 0)) ||
+      ((Array.isArray(dailyAppts)
+        ? dailyAppts.reduce(
+            (acc: number, item: DailyAppointmentSummary) =>
+              acc + (item.cancelledAppointments || 0),
+            0,
+          )
+        : 0) ||
         hospitalDashboard?.cancelledConsultations) ??
         adminDash?.cancelledConsultations ??
         0,
     );
     const rawPending = Number(
-      (((Array.isArray(dailyAppts)
-          ? dailyAppts.reduce(
-              (acc: number, item: DailyAppointmentSummary) =>
-                acc + (item.pendingAppointments || 0),
-              0,
-            )
-          : 0)) ||
+      ((Array.isArray(dailyAppts)
+        ? dailyAppts.reduce(
+            (acc: number, item: DailyAppointmentSummary) =>
+              acc + (item.pendingAppointments || 0),
+            0,
+          )
+        : 0) ||
         hospitalDashboard?.pendingConsultations) ??
         adminDash?.pendingConsultations ??
         0,
@@ -459,15 +523,17 @@ export function AdminReportsDashboardScreen({
           .toLowerCase()
           .includes(doc.doctorName.toLowerCase());
       const matchesSearch =
-        !searchQuery ||
-        doc.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        doc.department.toLowerCase().includes(searchQuery.toLowerCase());
+        !state.searchQuery ||
+        doc.doctorName
+          .toLowerCase()
+          .includes(state.searchQuery.toLowerCase()) ||
+        doc.department.toLowerCase().includes(state.searchQuery.toLowerCase());
       return matchesDept && matchesDoc && matchesSearch;
     });
-  }, [appliedFilters, searchQuery, doctorSource]);
+  }, [appliedFilters, state.searchQuery, doctorSource]);
 
   const sortedDoctors = useMemo(() => {
-    return [...filteredDoctors].sort((a, b) => {
+    return filteredDoctors.toSorted((a, b) => {
       const aVal = a[sortField],
         bVal = b[sortField];
       if (typeof aVal === "string" && typeof bVal === "string")
@@ -613,16 +679,18 @@ export function AdminReportsDashboardScreen({
   const filteredReports = useMemo(() => {
     return AVAILABLE_REPORTS_LIST.filter((rep) => {
       const matchesSearch =
-        !searchQuery ||
-        rep.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        rep.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        rep.category.toLowerCase().includes(searchQuery.toLowerCase());
+        !state.searchQuery ||
+        rep.name.toLowerCase().includes(state.searchQuery.toLowerCase()) ||
+        rep.description
+          .toLowerCase()
+          .includes(state.searchQuery.toLowerCase()) ||
+        rep.category.toLowerCase().includes(state.searchQuery.toLowerCase());
       const matchesType =
-        typeFilter === "All Types" ||
-        rep.category.toLowerCase() === typeFilter.toLowerCase();
+        state.typeFilter === "All Types" ||
+        rep.category.toLowerCase() === state.typeFilter.toLowerCase();
       return matchesSearch && matchesType;
     });
-  }, [AVAILABLE_REPORTS_LIST, searchQuery, typeFilter]);
+  }, [AVAILABLE_REPORTS_LIST, state.searchQuery, state.typeFilter]);
 
   const handleSort = (field: keyof DoctorSummaryPerformanceRecord) => {
     if (sortField === field) setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -693,7 +761,7 @@ export function AdminReportsDashboardScreen({
                 className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-medium text-[#111827] bg-white border border-[#E5E7EB] hover:bg-slate-50 transition shadow-sm"
               >
                 <RefreshCw
-                  className={`w-3.5 h-3.5 text-[#0D47A1] ${isRefreshing ? "animate-spin" : ""}`}
+                  className={`w-3.5 h-3.5 text-[#0D47A1] ${state.isRefreshing ? "animate-spin" : ""}`}
                 />
                 <span>Refresh</span>
               </button>
@@ -724,14 +792,16 @@ export function AdminReportsDashboardScreen({
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
             <input
               type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={state.searchQuery}
+              onChange={(e) =>
+                dispatch({ type: "SET_SEARCH", payload: e.target.value })
+              }
               placeholder="Search reports, patients, doctors, invoices..."
               className="w-full pl-10 pr-4 py-2.5 bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs text-[#111827] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
             />
-            {searchQuery && (
+            {state.searchQuery && (
               <button
-                onClick={() => setSearchQuery("")}
+                onClick={() => dispatch({ type: "SET_SEARCH", payload: "" })}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#64748B] hover:text-[#111827]"
               >
                 Clear
@@ -752,7 +822,7 @@ export function AdminReportsDashboardScreen({
             {/* Card 1: Daily Appointments */}
             <div
               onClick={() => navigate(ROUTES.APPOINTMENTS)}
-              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
@@ -801,7 +871,7 @@ export function AdminReportsDashboardScreen({
             {/* Card 2: Patient Registrations */}
             <div
               onClick={() => navigate(ROUTES.PATIENTS)}
-              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
@@ -850,7 +920,7 @@ export function AdminReportsDashboardScreen({
             {/* Card 3: Daily Revenue */}
             <div
               onClick={() => navigate(ROUTES.BILLING)}
-              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition">
@@ -893,7 +963,7 @@ export function AdminReportsDashboardScreen({
             {/* Card 4: Invoices Summary */}
             <div
               onClick={() => navigate(ROUTES.BILLING)}
-              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#F59E0B] transition">
@@ -944,7 +1014,7 @@ export function AdminReportsDashboardScreen({
             {/* Card 5: Doctor Performance */}
             <div
               onClick={() => navigate(ROUTES.DOCTORS)}
-              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
@@ -993,7 +1063,7 @@ export function AdminReportsDashboardScreen({
             {/* Card 6: Collection Rate Circular */}
             <div
               onClick={() => navigate(ROUTES.BILLING)}
-              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between cursor-pointer group"
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between cursor-pointer group"
             >
               <div>
                 <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
@@ -1048,8 +1118,14 @@ export function AdminReportsDashboardScreen({
                 Date Range
               </label>
               <select
-                value={dateRangeFilter}
-                onChange={(e) => setDateRangeFilter(e.target.value)}
+                value={state.dateRangeFilter}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "dateRangeFilter",
+                    payload: e.target.value,
+                  })
+                }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>Today</option>
@@ -1064,8 +1140,14 @@ export function AdminReportsDashboardScreen({
                 Department
               </label>
               <select
-                value={deptFilter}
-                onChange={(e) => setDeptFilter(e.target.value)}
+                value={state.deptFilter}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "deptFilter",
+                    payload: e.target.value,
+                  })
+                }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Departments</option>
@@ -1082,8 +1164,14 @@ export function AdminReportsDashboardScreen({
                 Doctor
               </label>
               <select
-                value={doctorFilter}
-                onChange={(e) => setDoctorFilter(e.target.value)}
+                value={state.doctorFilter}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "doctorFilter",
+                    payload: e.target.value,
+                  })
+                }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Doctors</option>
@@ -1098,8 +1186,14 @@ export function AdminReportsDashboardScreen({
                 Visit Type
               </label>
               <select
-                value={visitTypeFilter}
-                onChange={(e) => setVisitTypeFilter(e.target.value)}
+                value={state.visitTypeFilter}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "visitTypeFilter",
+                    payload: e.target.value,
+                  })
+                }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Visit Types</option>
@@ -1112,8 +1206,14 @@ export function AdminReportsDashboardScreen({
                 Appointment Status
               </label>
               <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                value={state.statusFilter}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    field: "statusFilter",
+                    payload: e.target.value,
+                  })
+                }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Statuses</option>
@@ -1146,7 +1246,7 @@ export function AdminReportsDashboardScreen({
           appliedFilters.doctor !== "All Doctors" ||
           appliedFilters.visitType !== "All Visit Types" ||
           appliedFilters.status !== "All Statuses" ||
-          searchQuery) && (
+          state.searchQuery) && (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-3.5 shadow-sm mb-6 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span
@@ -1160,7 +1260,11 @@ export function AdminReportsDashboardScreen({
                   Date: {appliedFilters.dateRange}
                   <button
                     onClick={() => {
-                      setDateRangeFilter("Today");
+                      dispatch({
+                        type: "SET_FILTER",
+                        field: "dateRangeFilter",
+                        payload: "Today",
+                      });
                       setAppliedFilters((prev) => ({
                         ...prev,
                         dateRange: "Today",
@@ -1177,7 +1281,11 @@ export function AdminReportsDashboardScreen({
                   Dept: {appliedFilters.dept}
                   <button
                     onClick={() => {
-                      setDeptFilter("All Departments");
+                      dispatch({
+                        type: "SET_FILTER",
+                        field: "deptFilter",
+                        payload: "All Departments",
+                      });
                       setAppliedFilters((prev) => ({
                         ...prev,
                         dept: "All Departments",
@@ -1194,7 +1302,11 @@ export function AdminReportsDashboardScreen({
                   Doctor: {appliedFilters.doctor}
                   <button
                     onClick={() => {
-                      setDoctorFilter("All Doctors");
+                      dispatch({
+                        type: "SET_FILTER",
+                        field: "doctorFilter",
+                        payload: "All Doctors",
+                      });
                       setAppliedFilters((prev) => ({
                         ...prev,
                         doctor: "All Doctors",
@@ -1211,7 +1323,11 @@ export function AdminReportsDashboardScreen({
                   Visit: {appliedFilters.visitType}
                   <button
                     onClick={() => {
-                      setVisitTypeFilter("All Visit Types");
+                      dispatch({
+                        type: "SET_FILTER",
+                        field: "visitTypeFilter",
+                        payload: "All Visit Types",
+                      });
                       setAppliedFilters((prev) => ({
                         ...prev,
                         visitType: "All Visit Types",
@@ -1228,7 +1344,11 @@ export function AdminReportsDashboardScreen({
                   Status: {appliedFilters.status}
                   <button
                     onClick={() => {
-                      setStatusFilter("All Statuses");
+                      dispatch({
+                        type: "SET_FILTER",
+                        field: "statusFilter",
+                        payload: "All Statuses",
+                      });
                       setAppliedFilters((prev) => ({
                         ...prev,
                         status: "All Statuses",
@@ -1240,11 +1360,13 @@ export function AdminReportsDashboardScreen({
                   </button>
                 </span>
               )}
-              {searchQuery && (
+              {state.searchQuery && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-[#111827] border border-slate-300 font-medium">
-                  Search: "{searchQuery}"
+                  Search: "{state.searchQuery}"
                   <button
-                    onClick={() => setSearchQuery("")}
+                    onClick={() =>
+                      dispatch({ type: "SET_SEARCH", payload: "" })
+                    }
                     className="hover:text-red-500 font-bold ml-1"
                   >
                     ×
@@ -1270,19 +1392,19 @@ export function AdminReportsDashboardScreen({
             </span>
             <button
               onClick={() => {
-                setIsLoading(!isLoading);
-                setHasError(false);
+                dispatch({ type: "SET_LOADING", payload: !state.isLoading });
+                dispatch({ type: "SET_ERROR", payload: false });
               }}
-              className={`px-2.5 py-1 rounded-lg border text-xs ${isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
+              className={`px-2.5 py-1 rounded-lg border text-xs ${state.isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
             >
               Toggle Loading Skeleton
             </button>
             <button
               onClick={() => {
-                setHasError(!hasError);
-                setIsLoading(false);
+                dispatch({ type: "SET_ERROR", payload: !state.hasError });
+                dispatch({ type: "SET_LOADING", payload: false });
               }}
-              className={`px-2.5 py-1 rounded-lg border text-xs ${hasError ? "bg-red-50 border-red-300 text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
+              className={`px-2.5 py-1 rounded-lg border text-xs ${state.hasError ? "bg-red-50 border-red-300 text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
             >
               Toggle Error State
             </button>
@@ -1293,7 +1415,7 @@ export function AdminReportsDashboardScreen({
         </div>
 
         {/* ERROR STATE DISPLAY */}
-        {hasError && (
+        {state.hasError && (
           <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-6 text-center">
             <AlertCircle className="w-10 h-10 text-[#EF4444] mx-auto mb-2" />
             <h3
@@ -1307,7 +1429,7 @@ export function AdminReportsDashboardScreen({
               analytics. Please retry or contact system admin.
             </p>
             <button
-              onClick={() => setHasError(false)}
+              onClick={() => dispatch({ type: "SET_ERROR", payload: false })}
               className="mt-4 px-4 py-2 bg-[#EF4444] text-white rounded-xl text-xs font-semibold hover:bg-red-600 transition"
             >
               Retry Loading
@@ -1316,7 +1438,7 @@ export function AdminReportsDashboardScreen({
         )}
 
         {/* LOADING SKELETON STATE */}
-        {isLoading && (
+        {state.isLoading && (
           <div className="space-y-6 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -1334,7 +1456,7 @@ export function AdminReportsDashboardScreen({
           </div>
         )}
 
-        {!isLoading && !hasError && (
+        {!state.isLoading && !state.hasError && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-4 space-y-6">
               {/* AVAILABLE REPORTS (PHASE 1 GRID) */}
@@ -1379,7 +1501,7 @@ export function AdminReportsDashboardScreen({
                       return (
                         <div
                           key={report.id}
-                          className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#0D47A1] hover:shadow-md transition-all flex flex-col justify-between group bg-white"
+                          className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#0D47A1] hover:shadow-md transition-colors transition-shadow flex flex-col justify-between group bg-white"
                         >
                           <div>
                             <div className="flex items-center justify-between mb-3">
@@ -1553,20 +1675,26 @@ export function AdminReportsDashboardScreen({
                   </div>
                   <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E5E7EB] text-xs">
                     <button
-                      onClick={() => setTrendDays("7")}
-                      className={`px-3 py-1 rounded-lg font-medium transition ${trendDays === "7" ? "bg-white text-[#0D47A1] shadow-sm" : "text-[#64748B]"}`}
+                      onClick={() =>
+                        dispatch({ type: "SET_TREND_DAYS", payload: "7" })
+                      }
+                      className={`px-3 py-1 rounded-lg font-medium transition ${state.trendDays === "7" ? "bg-white text-[#0D47A1] shadow-sm" : "text-[#64748B]"}`}
                     >
                       7 Days
                     </button>
                     <button
-                      onClick={() => setTrendDays("30")}
-                      className={`px-3 py-1 rounded-lg font-medium transition ${trendDays === "30" ? "bg-white text-[#0D47A1] shadow-sm" : "text-[#64748B]"}`}
+                      onClick={() =>
+                        dispatch({ type: "SET_TREND_DAYS", payload: "30" })
+                      }
+                      className={`px-3 py-1 rounded-lg font-medium transition ${state.trendDays === "30" ? "bg-white text-[#0D47A1] shadow-sm" : "text-[#64748B]"}`}
                     >
                       30 Days
                     </button>
                     <button
-                      onClick={() => setTrendDays("90")}
-                      className={`px-3 py-1 rounded-lg font-medium transition ${trendDays === "90" ? "bg-white text-[#0D47A1] shadow-sm" : "text-[#64748B]"}`}
+                      onClick={() =>
+                        dispatch({ type: "SET_TREND_DAYS", payload: "90" })
+                      }
+                      className={`px-3 py-1 rounded-lg font-medium transition ${state.trendDays === "90" ? "bg-white text-[#0D47A1] shadow-sm" : "text-[#64748B]"}`}
                     >
                       90 Days
                     </button>

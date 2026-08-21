@@ -54,7 +54,7 @@ export function QuickActionsCards() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                transition: "all 0.15s ease",
+                transition: "background-color 0.15s ease, border-color 0.15s ease",
                 boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
               }}
             >

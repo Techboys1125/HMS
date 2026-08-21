@@ -404,7 +404,7 @@ export function CollectPaymentWorkspacePage() {
                         key={pm.value}
                         type="button"
                         onClick={() => setPaymentMethod(pm.value)}
-                        className={`p-3 rounded-xl border text-left transition-all ${paymentMethod === pm.value ? "border-[#0D47A1] bg-blue-50 shadow-sm" : "border-[#E5E7EB] bg-white hover:bg-slate-50"}`}
+                        className={`p-3 rounded-xl border text-left transition-colors ${paymentMethod === pm.value ? "border-[#0D47A1] bg-blue-50 shadow-sm" : "border-[#E5E7EB] bg-white hover:bg-slate-50"}`}
                       >
                         <div className="text-lg mb-1">{pm.icon}</div>
                         <div className="text-[11px] font-bold text-[#111827]">
@@ -625,7 +625,7 @@ export function CollectPaymentWorkspacePage() {
           <button
             onClick={handleCollectPayment}
             disabled={isReceiving || amount <= 0 || amount > balanceAmount}
-            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-all shadow-sm disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors transition-opacity shadow-sm disabled:opacity-50"
             style={{ fontFamily: PP }}
           >
             <DollarSign size={15} />

@@ -18,7 +18,7 @@ import {
   Trash2,
   Loader2,
 } from "lucide-react";
-import { useAuthStore } from "../../auth/index";
+import { useAuthStore } from "../auth/store/auth.store";
 import { authApi } from "../../auth/api/auth.api";
 import { apiClient } from "../../../lib/axios";
 import { usersApi } from "../../users/api/users.api";
@@ -162,103 +162,107 @@ export function DoctorProfilePage() {
     let cancelled = false;
 
     const loadProfile = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        setLoading(true);
-        setError(null);
-
         const meResponse = await authApi.getProfile();
-        const me = meResponse.data as unknown as AuthUser;
-        if (!cancelled && me) setAuthUser(me);
+        if (!cancelled) {
+          const me = meResponse.data as unknown as AuthUser;
+          if (me) setAuthUser(me);
 
-        const uid = me?.id || user?.id;
-        const docId =
-          me?.doctorId ||
-          me?.doctorProfile?.doctorId ||
-          user?.doctorId ||
-          user?.doctorProfile?.doctorId;
+          const uid = me?.id || user?.id;
+          const docId =
+            me?.doctorId ||
+            me?.doctorProfile?.doctorId ||
+            user?.doctorId ||
+            user?.doctorProfile?.doctorId;
 
-        if (docId) {
-          try {
-            const response = await apiClient.get<
-              DoctorApiResponse<ApiUserDoctorRecord> | ApiUserDoctorRecord
-            >(`/api/v1/doctors/${docId}`);
-            const data =
-              (response.data as DoctorApiResponse<ApiUserDoctorRecord>)?.data ||
-              (response.data as ApiUserDoctorRecord);
-            if (
-              !cancelled &&
-              data &&
-              (data.fullName || data.name || data.doctorProfile)
-            ) {
-              const doctorRecord = mapApiUserToDoctorRecord(data);
-              setDoctor(doctorRecord);
-              setPersonalForm({
-                fullName: doctorRecord.name.replace(/^Dr\.\s*/, ""),
-                email: doctorRecord.email || "",
-                mobile: doctorRecord.phone || "",
-                gender: doctorRecord.gender || "",
-                dateOfBirth: doctorRecord.dob || "",
-                address: doctorRecord.address || "",
-                bio: doctorRecord.bio || "",
-                photoUrl: doctorRecord.photoUrl || doctorRecord.photo || "",
-                photo: doctorRecord.photo || doctorRecord.photoUrl || "",
-              });
-              return;
+          let loaded = false;
+          if (docId) {
+            try {
+              const response = await apiClient.get<
+                DoctorApiResponse<ApiUserDoctorRecord> | ApiUserDoctorRecord
+              >(`/api/v1/doctors/${docId}`);
+              if (!cancelled) {
+                const data =
+                  (response.data as DoctorApiResponse<ApiUserDoctorRecord>)?.data ||
+                  (response.data as ApiUserDoctorRecord);
+                if (
+                  data &&
+                  (data.fullName || data.name || data.doctorProfile)
+                ) {
+                  const doctorRecord = mapApiUserToDoctorRecord(data);
+                  setDoctor(doctorRecord);
+                  setPersonalForm({
+                    fullName: doctorRecord.name.replace(/^Dr\.\s*/, ""),
+                    email: doctorRecord.email || "",
+                    mobile: doctorRecord.phone || "",
+                    gender: doctorRecord.gender || "",
+                    dateOfBirth: doctorRecord.dob || "",
+                    address: doctorRecord.address || "",
+                    bio: doctorRecord.bio || "",
+                    photoUrl: doctorRecord.photoUrl || doctorRecord.photo || "",
+                    photo: doctorRecord.photo || doctorRecord.photoUrl || "",
+                  });
+                  loaded = true;
+                }
+              }
+            } catch {
+              // Fall through to admin endpoint
             }
-          } catch {
-            // Fall through to admin endpoint
           }
-        }
 
-        if (uid) {
-          try {
-            const response = await apiClient.get<
-              DoctorApiResponse<ApiUserDoctorRecord>
-            >(`/api/v1/admin/users/${uid}`);
-            const data =
-              response.data?.data ||
-              (response.data as unknown as ApiUserDoctorRecord);
-            if (
-              !cancelled &&
-              data &&
-              (data.fullName || data.name || data.doctorProfile)
-            ) {
-              const doctorRecord = mapApiUserToDoctorRecord(data);
-              setDoctor(doctorRecord);
-              setPersonalForm({
-                fullName: doctorRecord.name.replace(/^Dr\.\s*/, ""),
-                email: doctorRecord.email || "",
-                mobile: doctorRecord.phone || "",
-                gender: doctorRecord.gender || "",
-                dateOfBirth: doctorRecord.dob || "",
-                address: doctorRecord.address || "",
-                bio: doctorRecord.bio || "",
-                photoUrl: doctorRecord.photoUrl || doctorRecord.photo || "",
-                photo: doctorRecord.photo || doctorRecord.photoUrl || "",
-              });
-              return;
+          if (!loaded && uid && !cancelled) {
+            try {
+              const response = await apiClient.get<
+                DoctorApiResponse<ApiUserDoctorRecord>
+              >(`/api/v1/admin/users/${uid}`);
+              if (!cancelled) {
+                const data =
+                  response.data?.data ||
+                  (response.data as unknown as ApiUserDoctorRecord);
+                if (
+                  data &&
+                  (data.fullName || data.name || data.doctorProfile)
+                ) {
+                  const doctorRecord = mapApiUserToDoctorRecord(data);
+                  setDoctor(doctorRecord);
+                  setPersonalForm({
+                    fullName: doctorRecord.name.replace(/^Dr\.\s*/, ""),
+                    email: doctorRecord.email || "",
+                    mobile: doctorRecord.phone || "",
+                    gender: doctorRecord.gender || "",
+                    dateOfBirth: doctorRecord.dob || "",
+                    address: doctorRecord.address || "",
+                    bio: doctorRecord.bio || "",
+                    photoUrl: doctorRecord.photoUrl || doctorRecord.photo || "",
+                    photo: doctorRecord.photo || doctorRecord.photoUrl || "",
+                  });
+                  loaded = true;
+                }
+              }
+            } catch {
+              // Fall through to basic profile
             }
-          } catch {
-            // Fall through to basic profile
           }
-        }
 
-        if (!cancelled && me) {
-          const doctorRecord = mapApiUserToDoctorRecord(
-            me as unknown as ApiUserDoctorRecord,
-          );
-          setDoctor(doctorRecord);
-          setPersonalForm({
-            fullName: doctorRecord.name.replace(/^Dr\.\s*/, ""),
-            email: doctorRecord.email || "",
-            mobile: doctorRecord.phone || "",
-            gender: doctorRecord.gender || "",
-            dateOfBirth: doctorRecord.dob || "",
-            address: doctorRecord.address || "",
-            bio: doctorRecord.bio || "",
-            photoUrl: doctorRecord.photoUrl || doctorRecord.photo || "",
-            photo: doctorRecord.photo || doctorRecord.photoUrl || "",
-          });
+          if (!loaded && me && !cancelled) {
+            const doctorRecord = mapApiUserToDoctorRecord(
+              me as unknown as ApiUserDoctorRecord,
+            );
+            setDoctor(doctorRecord);
+            setPersonalForm({
+              fullName: doctorRecord.name.replace(/^Dr\.\s*/, ""),
+              email: doctorRecord.email || "",
+              mobile: doctorRecord.phone || "",
+              gender: doctorRecord.gender || "",
+              dateOfBirth: doctorRecord.dob || "",
+              address: doctorRecord.address || "",
+              bio: doctorRecord.bio || "",
+              photoUrl: doctorRecord.photoUrl || doctorRecord.photo || "",
+              photo: doctorRecord.photo || doctorRecord.photoUrl || "",
+            });
+          }
         }
       } catch (err) {
         if (!cancelled) {

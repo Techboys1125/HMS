@@ -1,5 +1,5 @@
 import { apiClient, axios } from "../../../lib/axios";
-import { useAuthStore } from "../../auth/index";
+import { useAuthStore } from "../auth/store/auth.store";
 import type {
   DoctorRecord,
   DoctorApiResponse,
@@ -79,13 +79,12 @@ export const mapDoctorSummaryToDoctorRecord = (u: unknown): DoctorRecord => {
 
   const workingDays: string[] = Array.from(
     new Set(
-      rawAvail
-        .map((a) =>
-          String(a?.dayOfWeek ?? "")
-            .substring(0, 3)
-            .toUpperCase(),
-        )
-        .filter(Boolean),
+      rawAvail.flatMap((a) => {
+        const day = String(a?.dayOfWeek ?? "")
+          .substring(0, 3)
+          .toUpperCase();
+        return day ? [day] : [];
+      }),
     ),
   );
 

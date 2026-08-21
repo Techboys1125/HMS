@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { CheckCircle2, AlertCircle, ChevronDown } from "lucide-react";
-import { usePermissions } from "../../../permissions";
+import { usePermissions } from "../../../permissions/usePermissions";
 import { useVitals } from "../hooks/useVitals";
 import { useDiagnosis } from "../hooks/useDiagnosis";
 import type { ConsultationFormData, MedicineItem } from "../types/consultation";
@@ -297,7 +297,7 @@ export function EditConsultationPage({
           onBack && (
             <button
               onClick={onBack}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-colors shadow-sm"
               style={{ fontFamily: PP }}
             >
               Back

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { PP, RB } from "../constants/billing.constants";
 import { useBilling } from "../hooks/useBilling";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { usePatientPortal } from "../../patients/context/usePatientPortal";
 import { BillingStatusBadge } from "../components/BillingStatusBadge";
 import { ROUTES } from "../../../app/routes/routes";
@@ -394,7 +394,7 @@ export function PatientMyBillsPage() {
         </button>
         <button
           onClick={() => window.print()}
-          className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-all shadow-sm"
+          className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm"
           style={{ fontFamily: PP }}
         >
           <Printer size={15} /> Print Summary

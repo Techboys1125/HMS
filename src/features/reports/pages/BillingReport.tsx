@@ -26,8 +26,23 @@ import {
   extractList,
 } from "../hooks/useReports";
 
-import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "../../../common/components/recharts-lazy";
-
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "../../../common/components/recharts-lazy";
 
 interface ApiInvoiceRegisterItem {
   id?: string | number;
@@ -119,27 +134,47 @@ export function BillingReportScreen({
     const now = new Date();
     if (range === "Today") return { fromDate: today, toDate: today };
     if (range === "7 Days") {
-      const from = new Date(now);
-      from.setDate(now.getDate() - 7);
-      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+      const past = new Date(now.getTime() - 7 * 86400000);
+      return {
+        fromDate: past.toISOString().slice(0, 10),
+        toDate: today,
+      };
     }
     if (range === "30 Days") {
-      const from = new Date(now);
-      from.setDate(now.getDate() - 30);
-      return { fromDate: from.toISOString().slice(0, 10), toDate: today };
+      const past = new Date(now.getTime() - 30 * 86400000);
+      return {
+        fromDate: past.toISOString().slice(0, 10),
+        toDate: today,
+      };
     }
-    return { fromDate: "2025-01-01", toDate: today };
+    return { fromDate: today, toDate: today };
   };
-  const reportFilters = getDateRange(dateRange);
-  const { data: rawInvoiceRegister } = useInvoiceRegister(reportFilters);
-  const { data: invoiceSummaryData } = useInvoiceSummary(reportFilters);
 
-  const invoiceList = useMemo(
-    () => extractList<ApiInvoiceRegisterItem>(rawInvoiceRegister),
-    [rawInvoiceRegister],
-  );
+  const { fromDate, toDate } = getDateRange(dateRange);
 
-  // Map API invoice register to table format
+  const { data: rawInvoiceData } = useInvoiceRegister({
+    fromDate,
+    toDate,
+    paymentStatus:
+      payStatusFilter !== "All Statuses"
+        ? payStatusFilter.toUpperCase()
+        : undefined,
+    paymentMethod:
+      payMethodFilter !== "All Methods"
+        ? payMethodFilter.toUpperCase()
+        : undefined,
+  });
+
+  const { data: invoiceSummaryData } = useInvoiceSummary({
+    fromDate,
+    toDate,
+  });
+
+  const invoiceList = useMemo(() => {
+    return extractList<ApiInvoiceRegisterItem>(rawInvoiceData);
+  }, [rawInvoiceData]);
+
+  // Transform raw API invoice items to table data source
   const billingTableSource = useMemo(() => {
     return invoiceList.map((d: ApiInvoiceRegisterItem) => ({
       invoiceId:
@@ -197,7 +232,7 @@ export function BillingReportScreen({
     if (invoiceSummaryData?.paidInvoices != null)
       return invoiceSummaryData.paidInvoices;
     return billingTableSource.filter(
-      (d) => d.paymentStatus === "Paid" || d.paymentStatus === "Cleared",
+      (d) => d.paymentStatus === "Paid" || (d.paymentStatus as string) === "Cleared",
     ).length;
   }, [invoiceSummaryData, billingTableSource]);
 
@@ -346,7 +381,7 @@ export function BillingReportScreen({
 
   // Sorted records
   const sortedData = useMemo(() => {
-    return [...filteredData].sort((a, b) => {
+    return filteredData.toSorted((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
       if (typeof aVal === "number" && typeof bVal === "number") {
@@ -703,7 +738,7 @@ export function BillingReportScreen({
               {/* TOP 6 KPI CARDS SECTION */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Card 1: Total Revenue */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Total Revenue
@@ -737,7 +772,7 @@ export function BillingReportScreen({
                 </div>
 
                 {/* Card 2: Invoices Generated */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Invoices Generated
@@ -773,7 +808,7 @@ export function BillingReportScreen({
                 </div>
 
                 {/* Card 3: Collected Payments */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Collected Payments
@@ -809,7 +844,7 @@ export function BillingReportScreen({
                 </div>
 
                 {/* Card 4: Outstanding Payments */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Outstanding Payments
@@ -844,7 +879,7 @@ export function BillingReportScreen({
                 </div>
 
                 {/* Card 5: Paid Invoices */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Paid Invoices
@@ -879,7 +914,7 @@ export function BillingReportScreen({
                 </div>
 
                 {/* Card 6: Average Invoice Value */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                   <div>
                     <span className="text-xs font-semibold text-[#64748B]">
                       Avg Invoice Value

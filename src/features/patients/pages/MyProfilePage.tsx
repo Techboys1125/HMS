@@ -9,7 +9,7 @@ import { SwitchAccountDialog } from "../components/SwitchAccountDialog";
 import { useSwitchAccount } from "../hooks/useSwitchAccount";
 import { useFamilyMembers } from "../hooks/useFamilyMembers";
 import { usePatientPortal } from "../context/usePatientPortal";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 
 export function MyProfilePage({
   currentRole: _currentRole,

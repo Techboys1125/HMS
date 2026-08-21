@@ -70,7 +70,7 @@ function DKpi({
       onClick={onClick}
       className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
         onClick
-          ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-all duration-200"
+          ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-colors duration-200"
           : ""
       }`}
     >
@@ -322,7 +322,7 @@ export function HospitalAdminDashboard({
         {onRegisterPatient && (
           <button
             onClick={onRegisterPatient}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#1565C0] transition-all shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#1565C0] transition-colors shadow-sm"
             style={{ fontFamily: PP }}
           >
             <UserPlus size={13} />
@@ -343,7 +343,7 @@ export function HospitalAdminDashboard({
                 onNavigateNav(nav);
               }
             }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#0D47A1]/40 hover:text-[#0D47A1] hover:bg-blue-50 transition-all shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#0D47A1]/40 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors shadow-sm"
             style={{ fontFamily: RB }}
           >
             <Icon size={13} style={{ color }} />
@@ -658,7 +658,7 @@ export function HospitalAdminDashboard({
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full transition-all"
+                      className="h-full rounded-full transition-colors"
                       style={{ width: `${pct}%`, background: d.color }}
                     />
                   </div>

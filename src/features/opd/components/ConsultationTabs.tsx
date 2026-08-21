@@ -27,7 +27,7 @@ export const ConsultationTabs: React.FC<ConsultationTabsProps> = ({
           <button
             key={t.id}
             onClick={() => onTabChange(t.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 transition-all shrink-0 ${
+            className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl border-b-2 transition-colors shrink-0 ${
               isActive
                 ? "border-[#0D47A1] text-[#0D47A1] bg-white shadow-sm"
                 : "border-transparent text-[#64748B] hover:text-[#111827] hover:bg-white/50"

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { NavId, Role } from "../../types/app.types";
-import type { FamilyMember } from "../../features/patients";
+import type { FamilyMember } from "../../features/patients/pages/FamilyMembersManagement";
 import { Header } from "./Header";
 import { NavRail } from "./NavRail";
 

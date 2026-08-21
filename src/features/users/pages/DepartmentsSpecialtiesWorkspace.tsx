@@ -65,7 +65,7 @@ export function DepartmentsSpecialtiesWorkspace() {
   // Form State for Add
   const [newDeptName, setNewDeptName] = useState("");
   const [newDeptCode, setNewDeptCode] = useState("");
-  const [newDeptDescription, setNewDeptDescription] = useState("");
+  const newDeptDescription = useRef("");
   const [newDeptSpecialties, setNewDeptSpecialties] = useState<string[]>([]);
   const [newSpecialtyInput, setNewSpecialtyInput] = useState("");
   const [editSpecialtyInput, setEditSpecialtyInput] = useState("");
@@ -95,8 +95,7 @@ export function DepartmentsSpecialtiesWorkspace() {
       d.code ||
       `DEP-${deptName.substring(0, 4).toUpperCase()}-0${index + 1}`;
     const specsList = d.specialties
-      ?.map((s) => s.name)
-      .filter(Boolean)
+      ?.flatMap((s) => (s.name ? [s.name] : []))
       .join(", ");
     const isActive =
       d.active !== undefined
@@ -230,7 +229,7 @@ export function DepartmentsSpecialtiesWorkspace() {
         departmentName: newDeptName,
         departmentCode: cleanDeptCode,
         description:
-          newDeptDescription ||
+          newDeptDescription.current ||
           (newDeptSpecialties.length > 0 ? newDeptSpecialties.join(", ") : ""),
         active: true,
         specialties: newDeptSpecialties.map((spec, idx) => ({
@@ -250,7 +249,7 @@ export function DepartmentsSpecialtiesWorkspace() {
       setNewDeptCode("");
       setNewDeptSpecialties([]);
       setNewSpecialtyInput("");
-      setNewDeptDescription("");
+      newDeptDescription.current = "";
       setIsLoading(true);
       loadDepartments();
     } catch (err: unknown) {
@@ -1738,7 +1737,7 @@ export function DepartmentsSpecialtiesWorkspace() {
             display: "flex",
             justifyContent: "flex-end",
             zIndex: 100,
-            transition: "all 0.3s ease-in-out",
+            transition: "transform 0.3s ease-in-out, opacity 0.3s ease-in-out",
           }}
         >
           <div
@@ -1849,7 +1848,7 @@ export function DepartmentsSpecialtiesWorkspace() {
                     fontSize: "12px",
                     fontWeight: 600,
                     cursor: "pointer",
-                    transition: "all 0.2s ease",
+                    transition: "background-color 0.2s ease, border-color 0.2s ease",
                   }}
                 >
                   <Edit2 size={14} /> {isEditMode ? "Cancel Edit" : "Edit"}

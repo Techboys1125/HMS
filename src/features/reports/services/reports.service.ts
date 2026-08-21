@@ -95,6 +95,12 @@ export interface ReportFilters {
   page?: number;
   size?: number;
   period?: string;
+  paymentStatus?: string;
+  paymentMethod?: string;
+  status?: string;
+  departmentId?: string | number;
+  doctorId?: string | number;
+  search?: string;
 }
 
 // ─── 1. Doctor Performance Summary ──────────────────────────────────────────
@@ -587,6 +593,11 @@ async function fetchBlob(path: string): Promise<Blob> {
     headers.Authorization = `Bearer ${token}`;
   }
   const response = await fetch(fullUrl, { headers });
+
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+  }
+
   return await response.blob();
 }
 

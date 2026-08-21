@@ -7,7 +7,7 @@ import type {
   VisitType,
   ConsultationStatus,
 } from "../types/consultation";
-import { encountersApi } from "../../encounters";
+import { encountersApi } from "../../encounters/api/encounters.api";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
 
 export const consultationService = {

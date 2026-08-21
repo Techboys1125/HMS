@@ -32,7 +32,14 @@ import { AccountantDashboardKpiDetailScreen } from "./AccountantKpiDetail";
 import type { DoctorKpiKey } from "../types/reports.types";
 
 export function ReportsDashboardPage() {
-  const { role, activeView, activeKpi, handleOpenReport, handleOpenKpi, handleBack } = useReports();
+  const {
+    role,
+    activeView,
+    activeKpi,
+    handleOpenReport,
+    handleOpenKpi,
+    handleBack,
+  } = useReports();
 
   // Doctor role
   if (role === "DOCTOR") {
@@ -147,7 +154,11 @@ export function ReportsDashboardPage() {
       />
     );
   }
-  if (activeView === "REP-005" || activeView === "invoices-summary" || activeView === "billing-report") {
+  if (
+    activeView === "REP-005" ||
+    activeView === "invoices-summary" ||
+    activeView === "billing-report"
+  ) {
     return (
       <BillingReportScreen
         onBack={handleBack}
@@ -155,7 +166,12 @@ export function ReportsDashboardPage() {
       />
     );
   }
-  if (activeKpi || activeView === "KPI" || activeView === "collection-rate" || activeView === "REP-006") {
+  if (
+    activeKpi ||
+    activeView === "KPI" ||
+    activeView === "collection-rate" ||
+    activeView === "REP-006"
+  ) {
     return (
       <DashboardKpiDetailScreen
         onBack={handleBack}

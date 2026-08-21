@@ -67,7 +67,7 @@ export function AppointmentQueue({
               <button
                 key={s}
                 onClick={() => setFilter(s)}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${filter === s ? "bg-white text-[#0D47A1] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${filter === s ? "bg-white text-[#0D47A1] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
               >
                 {s === "all"
                   ? "All"

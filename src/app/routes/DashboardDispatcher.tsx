@@ -1,13 +1,11 @@
-import { useAuthStore } from "../../features/auth";
-import {
-  SuperAdminDashboard,
-  HospitalAdminDashboard,
-  DoctorDashboard,
-  NurseDashboard,
-  ReceptionDashboard,
-  AccountantDashboard,
-  PatientDashboard,
-} from "../../features/dashboard";
+import { useAuthStore } from "../../features/auth/store/auth.store";
+import { SuperAdminDashboard } from "../../features/dashboard/pages/SuperAdminDashboard";
+import { HospitalAdminDashboard } from "../../features/dashboard/pages/HospitalAdminDashboard";
+import { DoctorDashboard } from "../../features/dashboard/pages/DoctorDashboard";
+import { NurseDashboard } from "../../features/dashboard/pages/NurseDashboard";
+import { ReceptionDashboard } from "../../features/dashboard/pages/ReceptionDashboard";
+import { AccountantDashboard } from "../../features/dashboard/pages/AccountantDashboard";
+import { PatientDashboard } from "../../features/dashboard/pages/PatientDashboard";
 import { usePatientPortal } from "../../features/patients/context/usePatientPortal";
 
 export function DashboardDispatcher() {

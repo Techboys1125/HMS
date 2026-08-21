@@ -97,7 +97,7 @@ export function InvoiceRow({
           invoice.status?.toUpperCase() === "PENDING_BILLING" ? (
             <button
               onClick={() => onGenerateInvoiceClick?.(invoice)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white text-[11px] font-semibold hover:bg-blue-900 transition-all shadow-xs whitespace-nowrap cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white text-[11px] font-semibold hover:bg-blue-900 transition-colors shadow-xs whitespace-nowrap cursor-pointer"
               title="Generate Invoice"
             >
               <Zap size={12} />
@@ -106,7 +106,7 @@ export function InvoiceRow({
           ) : invoice.status?.toUpperCase() === "DRAFT" ? (
             <button
               onClick={() => onGenerateInvoiceClick?.(invoice)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white text-[11px] font-semibold hover:bg-blue-900 transition-all shadow-xs whitespace-nowrap cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white text-[11px] font-semibold hover:bg-blue-900 transition-colors shadow-xs whitespace-nowrap cursor-pointer"
               title="Edit Invoice"
             >
               <FileText size={12} />
@@ -115,7 +115,7 @@ export function InvoiceRow({
           ) : (
             <button
               onClick={() => onViewInvoiceDetailsClick?.(invoice)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-[11px] font-semibold hover:bg-slate-50 transition-all shadow-xs whitespace-nowrap cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-[11px] font-semibold hover:bg-slate-50 transition-colors shadow-xs whitespace-nowrap cursor-pointer"
               title="View Invoice"
             >
               <FileText size={12} className="text-slate-400" />

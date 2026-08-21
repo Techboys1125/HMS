@@ -1,14 +1,12 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { RB } from "../constants/notifications.constants";
-import {
-  NotificationPageHeader,
-  NotificationKpiCards,
-  NotificationQuickFilters,
-  NotificationFilterBar,
-  NotificationList,
-  NotificationSettingsDrawer,
-} from "../components";
+import { NotificationPageHeader } from "../components/NotificationPageHeader";
+import { NotificationKpiCards } from "../components/NotificationKpiCards";
+import { NotificationQuickFilters } from "../components/NotificationQuickFilters";
+import { NotificationFilterBar } from "../components/NotificationFilterBar";
+import { NotificationList } from "../components/NotificationList";
+import { NotificationSettingsDrawer } from "../components/NotificationSettingsDrawer";
 import {
   useNotifications,
   useMarkAllNotificationsAsRead,
@@ -18,7 +16,7 @@ import {
   useCurrentRole,
   useNotificationSettingsState,
 } from "../hooks/useNotifications";
-import { getNotificationPermission } from "../permissions";
+import { getNotificationPermission } from "../permissions/notifications.permissions";
 import { mapApiNotificationsToRecords } from "../services/notification.mapper";
 import { ROLE_QUICK_FILTERS } from "../constants/notifications.constants";
 import { ROUTES } from "../../../app/routes/routes";

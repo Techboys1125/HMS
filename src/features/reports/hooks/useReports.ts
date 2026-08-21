@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useSearchParams } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import type { ReportFilters } from "../services/reports.service";
 import {
   fetchDoctorPerformance,

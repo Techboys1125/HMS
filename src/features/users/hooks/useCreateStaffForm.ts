@@ -849,13 +849,18 @@ export const useCreateStaffForm = (
 
       let response;
       if (form.role === "DOCTOR") {
-        const backendAvailabilityList = Object.entries(form.availability)
-          .filter(([, sched]) => sched.isAvailable)
-          .map(([day, sched]) => ({
-            dayOfWeek: day.toUpperCase(),
-            startTime: (sched.startTime || "").slice(0, 5),
-            endTime: (sched.endTime || "").slice(0, 5),
-          }));
+        const backendAvailabilityList = Object.entries(form.availability).flatMap(
+          ([day, sched]) =>
+            sched.isAvailable
+              ? [
+                  {
+                    dayOfWeek: day.toUpperCase(),
+                    startTime: (sched.startTime || "").slice(0, 5),
+                    endTime: (sched.endTime || "").slice(0, 5),
+                  },
+                ]
+              : [],
+        );
 
         const legacyAvailabilityList = Object.entries(form.availability).map(
           ([day, sched]) => ({

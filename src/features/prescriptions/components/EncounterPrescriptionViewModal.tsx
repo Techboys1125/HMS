@@ -200,7 +200,7 @@ export const EncounterPrescriptionViewModal: React.FC<
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all cursor-pointer"
+            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
             title="Close"
           >
             <X size={20} />
@@ -239,7 +239,7 @@ export const EncounterPrescriptionViewModal: React.FC<
               </p>
               <button
                 onClick={() => refetch()}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
                 style={{ fontFamily: PP }}
               >
                 <RefreshCw size={13} /> Retry Loading
@@ -447,9 +447,9 @@ export const EncounterPrescriptionViewModal: React.FC<
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 bg-white">
-                        {prescription.medications.map((med, idx) => (
+                        {prescription.medications.map((med) => (
                           <tr
-                            key={med.medicationId || med.medicineId || idx}
+                            key={med.medicationId || med.medicineId || `med-${med.medicineName}-${med.dosage}`}
                             className="hover:bg-slate-50/50 transition-colors"
                           >
                             <td className="py-3 px-3 font-mono text-slate-400">
@@ -658,7 +658,7 @@ export const EncounterPrescriptionViewModal: React.FC<
         <div className="pt-5 mt-6 border-t border-slate-100 flex items-center justify-between no-print">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition-all cursor-pointer"
+            className="px-5 py-2.5 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors cursor-pointer"
             style={{ fontFamily: PP }}
           >
             Close & Exit
@@ -669,7 +669,7 @@ export const EncounterPrescriptionViewModal: React.FC<
               type="button"
               onClick={handlePrint}
               disabled={isLoading || !prescription}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-colors transition-opacity shadow-sm cursor-pointer disabled:opacity-50"
               style={{ fontFamily: PP }}
             >
               <Printer size={15} />

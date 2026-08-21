@@ -102,7 +102,7 @@ export const OTPPage: React.FC<OTPPageProps> = ({
               value={otp[idx] || ""}
               onChange={(e) => handleChange(idx, e.target.value)}
               onKeyDown={(e) => handleKeyDown(idx, e)}
-              className="flex-1 h-14 text-center text-xl font-heading font-bold rounded-xl border border-slate-200 bg-white text-[#1E293B] focus:border-[#0D47A1] focus:ring-2 focus:ring-[#0D47A1]/10 outline-none transition-all"
+              className="flex-1 h-14 text-center text-xl font-heading font-bold rounded-xl border border-slate-200 bg-white text-[#1E293B] focus:border-[#0D47A1] focus:ring-2 focus:ring-[#0D47A1]/10 outline-none transition-colors"
             />
           ))}
         </div>
@@ -127,7 +127,7 @@ export const OTPPage: React.FC<OTPPageProps> = ({
         <button
           type="submit"
           disabled={loading || otp.join("").length < 6}
-          className="w-full py-3.5 px-6 bg-[#0D47A1] hover:bg-[#1565C0] text-white font-heading font-semibold text-sm sm:text-base rounded-xl shadow-md transition-all active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-3.5 px-6 bg-[#0D47A1] hover:bg-[#1565C0] text-white font-heading font-semibold text-sm sm:text-base rounded-xl shadow-md transition-colors transition-transform active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {loading ? (
             <>

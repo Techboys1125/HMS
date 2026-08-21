@@ -8,7 +8,7 @@ import { appointmentService } from "../../appointments/services/appointment.serv
 import { departmentsApi } from "../../users/api/departments.api";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
 import { type QueueManagementScreenProps } from "../types/appointment-screen.types";
-import { usePermissions } from "../../../permissions";
+import { usePermissions } from "../../../permissions/usePermissions";
 import {
   ChevronRight,
   RefreshCw,
@@ -55,13 +55,16 @@ export function QueueManagementScreen({
       .getDepartmentLookup(true)
       .then((lookupList) => {
         if (lookupList && lookupList.length > 0) {
-          const names = lookupList.map((d) => d.departmentName).filter(Boolean);
+          const names = lookupList.flatMap((d) =>
+            d.departmentName ? [d.departmentName] : [],
+          );
           setApiDepts(names);
         } else {
           departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
-            const names = list
-              .map((d) => d.departmentName || d.name)
-              .filter((n): n is string => Boolean(n));
+            const names = list.flatMap((d) => {
+              const n = d.departmentName || d.name;
+              return n ? [n] : [];
+            });
             if (names.length > 0) setApiDepts(names);
           });
         }
@@ -310,21 +313,21 @@ export function QueueManagementScreen({
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => fetchQueue()}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors shadow-sm"
             style={{ fontFamily: PP }}
           >
             <RefreshCw size={15} /> Refresh Queue
           </button>
           <button
             onClick={() => onCheckInClick && onCheckInClick()}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-sm"
             style={{ fontFamily: PP }}
           >
             <UserCheck size={15} /> Patient Check-In
           </button>
           <button
             onClick={onPatientSearchClick}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-[#111827] text-xs font-semibold hover:bg-slate-200 transition-all"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-[#111827] text-xs font-semibold hover:bg-slate-200 transition-colors"
             style={{ fontFamily: PP }}
           >
             <Search size={15} /> Patient Search
@@ -344,7 +347,7 @@ export function QueueManagementScreen({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search queue by Patient Name, MRN, Token Number or Appointment ID..."
-            className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
+            className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-colors shadow-inner"
           />
         </div>
 
@@ -688,7 +691,7 @@ export function QueueManagementScreen({
                           </p>
                           <button
                             onClick={onPatientSearchClick}
-                            className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all flex items-center gap-1.5"
+                            className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5"
                             style={{ fontFamily: PP }}
                           >
                             <Search size={15} /> Patient Search

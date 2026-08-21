@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useTransition } from "react";
 import {
   ArrowLeft,
   Calendar,
@@ -48,15 +48,14 @@ export function DockableQueueWorkspace({
   userRole?: UserRole;
   onStartConsultation?: (apt?: AppointmentRecord | null) => void;
   onRefresh?: () => void;
-  isLoading?: boolean;
 }) {
+  const [isPending, startTransition] = useTransition();
   const [searchQuery, setSearchQuery] = useState("");
   const [doctorFilter] = useState("All");
   const [deptFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [visitTypeFilter, setVisitTypeFilter] = useState("All");
   const [timeFilter, setTimeFilter] = useState("All");
-  const [isLoading, setIsLoading] = useState(false);
 
   const isDoctor = userRole === "Doctor";
   const isNurse = userRole === "Nurse";
@@ -246,13 +245,14 @@ export function DockableQueueWorkspace({
               if (onRefresh) {
                 onRefresh();
               } else {
-                setIsLoading(true);
-                setTimeout(() => setIsLoading(false), 500);
+                startTransition(async () => {
+                  await new Promise((r) => setTimeout(r, 500));
+                });
               }
             }}
             className="px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
           >
-            <RefreshCw size={13} className={isLoading ? "animate-spin" : ""} />{" "}
+            <RefreshCw size={13} className={isPending ? "animate-spin" : ""} />{" "}
             Refresh Queue
           </button>
 

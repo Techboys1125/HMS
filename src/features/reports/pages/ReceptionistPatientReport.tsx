@@ -21,8 +21,21 @@ import {
   Shield,
 } from "lucide-react";
 
-import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "../../../common/components/recharts-lazy";
-
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "../../../common/components/recharts-lazy";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -61,7 +74,7 @@ function CircularProgress({
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          className="transition-all duration-500 ease-out"
+          className="transition-colors duration-500 ease-out"
         />
       </svg>
       <span
@@ -457,7 +470,7 @@ export function ReceptionistPatientReportScreen({
               {/* TOP 6 RECEPTIONIST KPI CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Card 1: Today's Registrations */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Today's Registrations
@@ -491,7 +504,7 @@ export function ReceptionistPatientReportScreen({
                 </div>
 
                 {/* Card 2: Walk-In Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Walk-In Patients
@@ -524,7 +537,7 @@ export function ReceptionistPatientReportScreen({
                 </div>
 
                 {/* Card 3: Appointment Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Appointment Patients
@@ -557,7 +570,7 @@ export function ReceptionistPatientReportScreen({
                 </div>
 
                 {/* Card 4: Checked-In Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Checked-In Patients
@@ -590,7 +603,7 @@ export function ReceptionistPatientReportScreen({
                 </div>
 
                 {/* Card 5: Returning Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Returning Patients
@@ -623,7 +636,7 @@ export function ReceptionistPatientReportScreen({
                 </div>
 
                 {/* Card 6: Average Registration Time */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                   <div>
                     <span className="text-xs font-semibold text-[#64748B]">
                       Average Registration Time

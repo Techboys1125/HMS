@@ -228,20 +228,27 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
     if (!doctorId || !editingDay || !draft) return;
     const cleaned: UpdateScheduleDayPayload = {
       isWorkingDay: draft.isWorkingDay,
-      workingPeriods: draft.workingPeriods
-        .map((p) => ({
-          startTime: p.startTime,
-          endTime: p.endTime,
-          slotDurationMinutes: p.slotDurationMinutes || 15,
-          breaks: (p.breaks || [])
-            .filter((b) => b.startTime && b.endTime)
-            .map((b) => ({
-              startTime: b.startTime,
-              endTime: b.endTime,
-              breakType: b.breakType,
-            })),
-        }))
-        .filter((p) => p.startTime && p.endTime),
+      workingPeriods: draft.workingPeriods.flatMap((p) => {
+        if (!p.startTime || !p.endTime) return [];
+        return [
+          {
+            startTime: p.startTime,
+            endTime: p.endTime,
+            slotDurationMinutes: p.slotDurationMinutes || 15,
+            breaks: (p.breaks || []).flatMap((b) =>
+              b.startTime && b.endTime
+                ? [
+                    {
+                      startTime: b.startTime,
+                      endTime: b.endTime,
+                      breakType: b.breakType,
+                    },
+                  ]
+                : [],
+            ),
+          },
+        ];
+      }),
     };
     setIsSaving(true);
     try {

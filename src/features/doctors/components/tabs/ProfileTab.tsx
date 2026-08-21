@@ -98,7 +98,7 @@ export function ProfileTab({
 
   const fieldStyle = (editable: boolean) =>
     editable
-      ? "bg-white border border-[#CBD5E1] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] w-full transition-all"
+      ? "bg-white border border-[#CBD5E1] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] w-full transition-colors"
       : "bg-slate-50 border border-slate-200/60 rounded-lg px-3 py-2 text-xs text-[#111827] w-full";
 
   const displayPhoto = photoPreviewUrl || formData.photoUrl || formData.photo;

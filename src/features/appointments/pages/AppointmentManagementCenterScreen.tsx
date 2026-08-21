@@ -24,7 +24,12 @@ import {
 import { PP, RB } from "../constants/appointment.constants";
 import { appointmentService } from "../services/appointment.service";
 import { useAppointments } from "../hooks/useAppointments";
-import { formatTime, to24Hour, getTodayDateString, normalizeDateString } from "../../../lib/time-utils";
+import {
+  formatTime,
+  to24Hour,
+  getTodayDateString,
+  normalizeDateString,
+} from "../../../lib/time-utils";
 import type { AppointmentRecord } from "../types/appointment.types";
 import type { UserRole } from "../types/appointment-screen.types";
 import { DockableQueueWorkspace } from "../components/DockableQueueWorkspace";
@@ -119,7 +124,9 @@ export function AppointmentManagementCenterScreen({
     appointmentService
       .listDepartments()
       .then((data) => {
-        const names = data.map((d) => d.departmentName).filter(Boolean);
+        const names = data.flatMap((d) =>
+          d.departmentName ? [d.departmentName] : [],
+        );
         setDeptOptions(names);
       })
       .catch(() => {});
@@ -159,19 +166,8 @@ export function AppointmentManagementCenterScreen({
 
   // --- ROLE-BASED APPOINTMENT FILTERING ---
   const roleAppointments = useMemo(() => {
-    if (userRole === "Doctor") {
-      return appointments.filter((a) => {
-        const st = String(a.status || "").toUpperCase();
-        return (
-          st !== "WAITING_FOR_VITALS" &&
-          st !== "WAITING FOR VITALS" &&
-          st !== "CHECKED_IN" &&
-          st !== "CHECKED-IN"
-        );
-      });
-    }
     return appointments;
-  }, [appointments, userRole]);
+  }, [appointments]);
 
   // --- SUMMARY KPI COUNTS ---
   const todayAppointments = roleAppointments.filter(
@@ -249,7 +245,8 @@ export function AppointmentManagementCenterScreen({
         return false;
       if (
         dateFilter &&
-        normalizeDateString(apt.appointmentDate) !== normalizeDateString(dateFilter)
+        normalizeDateString(apt.appointmentDate) !==
+          normalizeDateString(dateFilter)
       )
         return false;
       if (
@@ -260,7 +257,7 @@ export function AppointmentManagementCenterScreen({
       return true;
     });
 
-    return [...filtered].sort((a, b) => {
+    return filtered.toSorted((a, b) => {
       let valA = (a as unknown as Record<string, unknown>)[sortColumn];
       let valB = (b as unknown as Record<string, unknown>)[sortColumn];
       if (typeof valA === "string") valA = valA.toLowerCase();
@@ -269,14 +266,7 @@ export function AppointmentManagementCenterScreen({
       if ((valA ?? "") > (valB ?? "")) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
-  }, [
-    roleAppointments,
-    filters,
-    dateFilter,
-    sortColumn,
-    sortDirection,
-    todayDateStr,
-  ]);
+  }, [roleAppointments, filters, dateFilter, sortColumn, sortDirection]);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -886,7 +876,7 @@ export function AppointmentManagementCenterScreen({
                 <button
                   key={tab.id}
                   onClick={() => setFilter("statusFilter", tab.id)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap ${
                     filters.statusFilter === tab.id
                       ? "bg-[#0D47A1] text-white shadow-xs"
                       : "bg-slate-50 text-[#64748B] hover:bg-slate-100 hover:text-[#111827]"
@@ -1274,9 +1264,7 @@ export function AppointmentManagementCenterScreen({
                             </div>
                           </th>
                           <th className="px-4 py-3.5">MRN</th>
-                          {!isDoctor && (
-                            <th className="px-4 py-3.5">Doctor</th>
-                          )}
+                          {!isDoctor && <th className="px-4 py-3.5">Doctor</th>}
                           {!isDoctor && (
                             <th className="px-4 py-3.5">Department</th>
                           )}

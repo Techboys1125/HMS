@@ -118,7 +118,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             <button
               type="button"
               onClick={onForgotPassword}
-              className="font-semibold text-[#0D47A1] hover:underline transition-all"
+              className="font-semibold text-[#0D47A1] hover:underline transition-colors"
             >
               Forgot password?
             </button>
@@ -128,7 +128,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-5.5 sm:py-6 px-8 bg-[#0D47A1] hover:bg-[#1565C0] text-white font-heading font-bold text-base sm:text-lg rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-8 sm:mt-10"
+            className="w-full py-5.5 sm:py-6 px-8 bg-[#0D47A1] hover:bg-[#1565C0] text-white font-heading font-bold text-base sm:text-lg rounded-2xl shadow-lg hover:shadow-xl transition-colors transition-transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-8 sm:mt-10"
           >
             {loading ? (
               <>
@@ -149,7 +149,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           <button
             type="button"
             onClick={onGoToRegister}
-            className="font-bold text-[#0D47A1] hover:underline transition-all"
+            className="font-bold text-[#0D47A1] hover:underline transition-colors"
           >
             Register here
           </button>

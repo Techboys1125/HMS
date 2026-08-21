@@ -12,7 +12,7 @@ import {
 import { usePatients, useDoctorPatients } from "../hooks/usePatients";
 import { PP, RB } from "../constants/patient.fonts";
 import { PatientTable } from "../components/PatientTable";
-import { usePermissions } from "../../../permissions";
+import { usePermissions } from "../../../permissions/usePermissions";
 import type { Patient } from "../types/patient.types";
 import { RegisterPatientScreen } from "./RegisterPatientScreen";
 import { PatientProfileScreen } from "./PatientProfileScreen";
@@ -357,7 +357,7 @@ export function PatientSearchScreen({
           {canBook && (
             <button
               onClick={handleBookClick}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-sm cursor-pointer"
               style={{ fontFamily: PP }}
             >
               <Calendar size={15} />
@@ -367,7 +367,7 @@ export function PatientSearchScreen({
           {canRegister && (
             <button
               onClick={handleRegisterClick}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors shadow-sm cursor-pointer"
               style={{ fontFamily: PP }}
             >
               <UserPlus size={15} />
@@ -391,7 +391,7 @@ export function PatientSearchScreen({
           ))
         ) : (
           <>
-            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm relative overflow-hidden group hover:border-[#0D47A1]/30 transition-all">
+            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm relative overflow-hidden group hover:border-[#0D47A1]/30 transition-colors">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
                   Total DB Patients
@@ -416,7 +416,7 @@ export function PatientSearchScreen({
               </p>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-all">
+            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition-colors">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
                   New Registrations
@@ -441,7 +441,7 @@ export function PatientSearchScreen({
               </p>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm relative overflow-hidden group hover:border-teal-500/30 transition-all">
+            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm relative overflow-hidden group hover:border-teal-500/30 transition-colors">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
                   Active Patients
@@ -463,7 +463,7 @@ export function PatientSearchScreen({
               </p>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm relative overflow-hidden group hover:border-slate-300 transition-all">
+            <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm relative overflow-hidden group hover:border-slate-300 transition-colors">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
                   Inactive Records
@@ -500,7 +500,7 @@ export function PatientSearchScreen({
             placeholder="Search by MRN, Name, or Phone..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-all placeholder:text-slate-400"
+            className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors placeholder:text-slate-400"
           />
         </div>
 

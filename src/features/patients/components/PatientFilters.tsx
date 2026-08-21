@@ -45,7 +45,7 @@ export function PatientFilters({
             value={searchQuery}
             onChange={(e) => onChange({ searchQuery: e.target.value })}
             placeholder="Search by Patient ID, Patient Name, or Phone Number..."
-            className="w-full pl-10 pr-9 py-2.5 text-xs bg-[#F1F5F9]/60 border border-[#E5E7EB] rounded-xl text-[#111827] placeholder:text-[#64748B] outline-none focus:border-[#0D47A1] focus:bg-white transition-all"
+            className="w-full pl-10 pr-9 py-2.5 text-xs bg-[#F1F5F9]/60 border border-[#E5E7EB] rounded-xl text-[#111827] placeholder:text-[#64748B] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
             style={{ fontFamily: RB }}
           />
           {searchQuery && (

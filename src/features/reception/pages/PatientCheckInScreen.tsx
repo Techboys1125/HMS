@@ -68,7 +68,7 @@ export function PatientCheckInScreen({
         <div className="flex items-center gap-2">
           <button
             onClick={onPatientSearchClick}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-[#111827] text-xs font-semibold hover:bg-slate-200 transition-all cursor-pointer font-heading"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 border border-[#E5E7EB] text-[#111827] text-xs font-semibold hover:bg-slate-200 transition-colors cursor-pointer font-heading"
           >
             <Search size={15} /> Search Patient
           </button>
@@ -99,7 +99,7 @@ export function PatientCheckInScreen({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search patient by MRN, Appointment ID, Mobile Number or Token..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-hidden focus:border-[#009688] focus:bg-white transition-all shadow-inner"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-hidden focus:border-[#009688] focus:bg-white transition-colors shadow-inner"
               />
             </div>
 
@@ -283,7 +283,7 @@ export function PatientCheckInScreen({
             <button
               type="button"
               onClick={handleConfirmCheckIn}
-              className="w-full mt-3 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-[#00796B] transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer font-heading"
+              className="w-full mt-3 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-[#00796B] transition-colors shadow-xs flex items-center justify-center gap-2 cursor-pointer font-heading"
             >
               <UserCheck size={16} /> Confirm Arrival Check-In
             </button>
@@ -317,7 +317,7 @@ export function PatientCheckInScreen({
                   if (onConfirmSuccess) onConfirmSuccess(generatedToken);
                   else if (onBack) onBack();
                 }}
-                className="w-full py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-[#00796B] transition-all flex items-center justify-center gap-2 cursor-pointer font-heading"
+                className="w-full py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-[#00796B] transition-colors flex items-center justify-center gap-2 cursor-pointer font-heading"
               >
                 <Printer size={15} /> Print Visit Slip
               </button>

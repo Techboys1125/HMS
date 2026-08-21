@@ -150,7 +150,7 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
                 >
                   {/* Step Bubble */}
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center font-heading font-bold text-xs border transition-all duration-300 ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center font-heading font-bold text-xs border transition-colors duration-300 ${
                       isCompleted
                         ? "bg-[#66BB6A] border-[#66BB6A] text-white"
                         : isActive
@@ -245,7 +245,7 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
             type="button"
             onClick={prevStep}
             disabled={photoUploading || isSubmitting}
-            className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ fontFamily: PP }}
           >
             {currentStep > 1 ? (
@@ -272,7 +272,7 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
               type="button"
               onClick={nextStep}
               disabled={photoUploading || isSubmitting}
-              className="px-5 py-2.5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ fontFamily: PP }}
             >
               {photoUploading ? (
@@ -291,7 +291,7 @@ export const CreateStaffPage: React.FC<CreateStaffPageProps> = ({
               type="button"
               onClick={handleSaveStaff}
               disabled={isSubmitting || photoUploading || !form.role}
-              className={`px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
+              className={`px-5 py-2.5 rounded-xl text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer ${
                 isSubmitting || photoUploading || !form.role
                   ? "bg-slate-350 cursor-not-allowed"
                   : "bg-[#66BB6A] hover:bg-[#52a656]"

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { ChevronDown, Plus, Eye, ArrowLeft } from "lucide-react";
-import { usePermissions } from "../../../permissions";
+import { usePermissions } from "../../../permissions/usePermissions";
 import type { TimelineConsultationItem } from "../types/consultation";
 import { formatTime } from "../../../lib/time-utils";
 import { consultationApi } from "../api/consultationApi";
@@ -42,51 +42,63 @@ export function ConsultationHistoryPage({
 
   // Fetch consultation history from API
   useEffect(() => {
+    let cancelled = false;
+
     const fetchHistory = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
-        setIsLoading(true);
-        setError(null);
         // Use the consultation queue API to fetch completed consultations
         const queueData = await consultationApi.getConsultationQueue();
-        const completedConsultations = (queueData || []).filter(
-          (item: Record<string, unknown>) => 
-            String(item.status || "").toUpperCase() === "COMPLETED"
-        );
-        
-        // Map API data to TimelineConsultationItem format
-        const mapped: TimelineConsultationItem[] = completedConsultations.map((item: Record<string, unknown>) => ({
-          id: String(item.consultationId || item.id || ""),
-          date: String(item.appointmentDate || item.date || ""),
-          time: String(item.startTime || item.time || ""),
-          doctor: String(item.doctorName || item.doctor?.name || ""),
-          department: String(item.departmentName || item.department || ""),
-          visitType: String(item.visitType || item.appointmentType || "First Visit"),
-          status: "Completed",
-          chiefComplaint: String(item.chiefComplaint || item.reason || ""),
-          diagnosis: String(item.diagnosis || ""),
-          icdCode: String(item.icdCode || ""),
-          medicinesCount: Number(item.medicinesCount || 0),
-          investigationsCount: Number(item.investigationsCount || 0),
-          followupStatus: String(item.followupStatus || ""),
-          nextFollowupDate: String(item.nextFollowupDate || ""),
-          vitals: item.vitals as TimelineConsultationItem["vitals"],
-          medicines: item.medicines as TimelineConsultationItem["medicines"],
-          investigations: item.investigations as string[],
-          examinationFindings: String(item.examinationFindings || ""),
-          clinicalNotes: String(item.clinicalNotes || ""),
-        }));
-        
-        setHistoricalConsultations(mapped);
+        if (!cancelled) {
+          const completedConsultations = (queueData || []).filter(
+            (item: Record<string, unknown>) => 
+              String(item.status || "").toUpperCase() === "COMPLETED"
+          );
+          
+          // Map API data to TimelineConsultationItem format
+          const mapped: TimelineConsultationItem[] = completedConsultations.map((item: Record<string, unknown>) => ({
+            id: String(item.consultationId || item.id || ""),
+            date: String(item.appointmentDate || item.date || ""),
+            time: String(item.startTime || item.time || ""),
+            doctor: String(item.doctorName || item.doctor?.name || ""),
+            department: String(item.departmentName || item.department || ""),
+            visitType: String(item.visitType || item.appointmentType || "First Visit"),
+            status: "Completed",
+            chiefComplaint: String(item.chiefComplaint || item.reason || ""),
+            diagnosis: String(item.diagnosis || ""),
+            icdCode: String(item.icdCode || ""),
+            medicinesCount: Number(item.medicinesCount || 0),
+            investigationsCount: Number(item.investigationsCount || 0),
+            followupStatus: String(item.followupStatus || ""),
+            nextFollowupDate: String(item.nextFollowupDate || ""),
+            vitals: item.vitals as TimelineConsultationItem["vitals"],
+            medicines: item.medicines as TimelineConsultationItem["medicines"],
+            investigations: item.investigations as string[],
+            examinationFindings: String(item.examinationFindings || ""),
+            clinicalNotes: String(item.clinicalNotes || ""),
+          }));
+          
+          setHistoricalConsultations(mapped);
+        }
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Failed to fetch consultation history";
-        console.error("Failed to fetch consultation history:", err);
-        setError(msg);
+        if (!cancelled) {
+          const msg = err instanceof Error ? err.message : "Failed to fetch consultation history";
+          console.error("Failed to fetch consultation history:", err);
+          setError(msg);
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
-    fetchHistory();
+    void fetchHistory();
+
+    return () => {
+      cancelled = true;
+    };
   }, [patientId]);
 
   // Search & Filter States
@@ -179,7 +191,7 @@ export function ConsultationHistoryPage({
             {onBack && (
               <button
                 onClick={onBack}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-all shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-colors shadow-sm"
                 style={{ fontFamily: PP }}
               >
                 <ArrowLeft size={14} />
@@ -191,14 +203,14 @@ export function ConsultationHistoryPage({
               <>
                 <button
                   onClick={() => alert("Printing Medical History")}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#0D47A1] hover:bg-blue-50 text-xs font-semibold transition-all shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#0D47A1] hover:bg-blue-50 text-xs font-semibold transition-colors shadow-sm"
                   style={{ fontFamily: PP }}
                 >
                   Print History
                 </button>
                 <button
                   onClick={() => alert("Exporting Consultation History PDF")}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold transition-all shadow-sm"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold transition-colors shadow-sm"
                   style={{ fontFamily: PP }}
                 >
                   Download PDF
@@ -208,7 +220,7 @@ export function ConsultationHistoryPage({
               onStartNewConsultation && (
                 <button
                   onClick={onStartNewConsultation}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold transition-all shadow-sm"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold transition-colors shadow-sm"
                   style={{ fontFamily: PP }}
                 >
                   <Plus size={15} />

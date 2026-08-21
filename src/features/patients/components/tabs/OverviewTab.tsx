@@ -226,8 +226,8 @@ export function OverviewTab({ patient, onNavigateToTab }: OverviewTabProps) {
     );
   });
 
-  const recentAppointments = [...safeAppointments]
-    .sort((a, b) => {
+  const recentAppointments = safeAppointments
+    .toSorted((a, b) => {
       const da = a.date ?? a.appointmentDate ?? "";
       const db = b.date ?? b.appointmentDate ?? "";
       return da > db ? -1 : da < db ? 1 : 0;

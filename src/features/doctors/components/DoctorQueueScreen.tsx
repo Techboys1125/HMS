@@ -9,9 +9,9 @@ import {
   PlayCircle,
   Flag,
 } from "lucide-react";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { doctorsApi } from "../api/doctors.api";
-import { appointmentService } from "../../appointments";
+import { appointmentService } from "../../appointments/services/appointment.service";
 import { PP, RB } from "../constants/doctors.constants";
 import { Pagination } from "../../../common/components/Pagination";
 import type {
@@ -274,7 +274,7 @@ export function DoctorQueueScreen() {
           disabled={
             callingNext || waitingCount === 0 || !isDoctor || isCallNextBlocked
           }
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm shadow-[#0D47A1]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-colors transition-opacity shadow-sm shadow-[#0D47A1]/20 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ fontFamily: PP }}
           title={
             isCallNextBlocked ? "Next patient is waiting for vitals" : undefined
@@ -394,7 +394,7 @@ export function DoctorQueueScreen() {
 
               return (
                 <div
-                  key={patient.queueId || patient.appointmentId || patient.appointmentNumber || idx}
+                  key={patient.queueId || patient.appointmentId || patient.appointmentNumber || `patient-${patient.patientName}-${patient.departmentName}`}
                   className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 ${meta.row}`}
                 >
                   <div className="flex items-center gap-4">

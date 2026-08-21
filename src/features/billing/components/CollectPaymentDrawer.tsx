@@ -123,7 +123,7 @@ export function CollectPaymentDrawer({
                     key={m}
                     type="button"
                     onClick={() => setCollectMethod(m)}
-                    className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                    className={`py-2 px-3 rounded-xl border text-xs font-semibold transition-colors cursor-pointer ${
                       collectMethod === m
                         ? "bg-[#009688] text-white border-[#009688] shadow-sm"
                         : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"

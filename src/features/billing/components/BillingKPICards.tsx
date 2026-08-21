@@ -34,7 +34,7 @@ export function BillingKpiCard({
   bgTint,
 }: KpiCardProps) {
   return (
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200 group">
+    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-colors duration-200 group">
       <div>
         <div className="flex items-center justify-between mb-2">
           <span

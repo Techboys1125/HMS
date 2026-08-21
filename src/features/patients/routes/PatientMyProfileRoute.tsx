@@ -1,4 +1,4 @@
-import { useAuthStore } from "../../auth/index";
+import { useAuthStore } from "../auth/store/auth.store";
 import { MyProfilePage } from "../pages/MyProfilePage";
 import { usePatientPortal } from "../context/usePatientPortal";
 import type { Role } from "../utils/patientPermissions";

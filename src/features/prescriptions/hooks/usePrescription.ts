@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePrescriptionStore, prescriptionStoreActions } from "../store/prescription.store";
 import { prescriptionService } from "../services/prescription.service";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 
 export function usePrescription(mrn?: string, doctorNameFilter?: string) {
   const { prescriptions, loading, error, filters } = usePrescriptionStore();

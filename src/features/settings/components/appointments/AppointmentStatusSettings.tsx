@@ -75,11 +75,10 @@ export function AppointmentStatusSettings() {
                 value={st.label}
                 onChange={(e) => {
                   const val = e.target.value;
-                  setStatuses((prev) => {
-                    const copy = [...prev];
-                    copy[i].label = val;
-                    return copy;
-                  });
+                  const next = statuses.map((st, idx) =>
+                    idx === i ? { ...st, label: val } : st,
+                  );
+                  setStatuses(next);
                 }}
                 style={{
                   border: "1px solid #D1D5DB",
@@ -95,14 +94,13 @@ export function AppointmentStatusSettings() {
             <input
               type="checkbox"
               checked={st.visible}
-              onChange={(e) => {
-                const checked = e.target.checked;
-                setStatuses((prev) => {
-                  const copy = [...prev];
-                  copy[i].visible = checked;
-                  return copy;
-                });
-              }}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  const next = statuses.map((st, idx) =>
+                    idx === i ? { ...st, visible: checked } : st,
+                  );
+                  setStatuses(next);
+                }}
               style={{ accentColor: "#009688", cursor: "pointer" }}
             />
           </div>

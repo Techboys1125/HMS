@@ -79,7 +79,7 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({
         <button
           type="submit"
           disabled={loading || !email}
-          className="w-full py-4 px-6 bg-[#0D47A1] hover:bg-[#1565C0] text-white font-heading font-semibold text-base sm:text-lg rounded-2xl shadow-lg transition-all active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-4 px-6 bg-[#0D47A1] hover:bg-[#1565C0] text-white font-heading font-semibold text-base sm:text-lg rounded-2xl shadow-lg transition-colors transition-transform active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {loading ? (
             <>

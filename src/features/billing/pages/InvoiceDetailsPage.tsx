@@ -15,7 +15,7 @@ import { PP, RB } from "../constants/billing.constants";
 import { useInvoice, usePayment } from "../hooks/useBilling";
 import { BillingStatusBadge } from "../components/BillingStatusBadge";
 import { checkBillingPermission } from "../permissions/billing.permissions";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import type { BillPaymentRecord } from "../types/billing.types";
 
 export function InvoiceDetailsPage() {
@@ -233,7 +233,7 @@ export function InvoiceDetailsPage() {
           {canCollect && canEdit && (
             <button
               onClick={handleCollectPayment}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors transition-transform shadow-sm active:scale-95 cursor-pointer"
               style={{ fontFamily: PP }}
             >
               <DollarSign size={15} />
@@ -674,7 +674,7 @@ export function InvoiceDetailsPage() {
             <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
               <button
                 onClick={handleCollectPayment}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-sm active:scale-95 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors transition-transform shadow-sm active:scale-95 cursor-pointer"
                 style={{ fontFamily: PP }}
               >
                 <DollarSign size={15} />

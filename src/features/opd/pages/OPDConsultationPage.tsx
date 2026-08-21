@@ -17,7 +17,7 @@ import {
   Printer,
   FileText,
 } from "lucide-react";
-import { usePermissions } from "../../../permissions";
+import { usePermissions } from "../../../permissions/usePermissions";
 import { useConsultation } from "../hooks/useConsultation";
 import { useQueue } from "../hooks/useQueue";
 import {
@@ -30,10 +30,10 @@ import {
 } from "../types/consultation";
 import type { QueueItem } from "../types/queue.types";
 import type { AppointmentStatus } from "../../appointments/types/appointment.types";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { normalizeStatus } from "../../../lib/status-utils";
 import { getTodayDateString } from "../../../lib/time-utils";
-import { EncounterPrescriptionViewModal } from "../../prescriptions";
+import { EncounterPrescriptionViewModal } from "../../prescriptions/components/EncounterPrescriptionViewModal";
 
 import { ConsultationHeader } from "../components/ConsultationHeader";
 import { ConsultationKPICards } from "../components/ConsultationKPICards";
@@ -142,10 +142,10 @@ export function OPDConsultationPage({
     startConsultation: apiStartConsultation,
   } = useConsultation();
 
+  const userRoleUpper = String(user?.role || "").toUpperCase();
   const isDoctor = overrideRole
     ? overrideRole === "doctor"
-    : String(user?.role || "").toUpperCase() === "DOCTOR" ||
-      can("CONSULTATION_START");
+    : userRoleUpper === "DOCTOR" || userRoleUpper === "ROLE_DOCTOR";
   const resolvedRole: OauthRole = isDoctor ? "doctor" : "admin";
 
   // Resolve doctorId: parse out DOC- prefix so NaN is never passed
@@ -180,9 +180,8 @@ export function OPDConsultationPage({
     return queueItems.map(mapQueueItemToConsultation);
   }, [queueItems]);
 
-  // The queue endpoint can return appointments from earlier workflow stages.
-  // Keep the backend status as the source of truth and admit only consultations
-  // that have reached the doctor stage (plus completed history).
+  // Both Admin and Doctor roles on the Consultation page show queue items across the hospital / doctor
+  // that have reached the doctor consultation stage (or completed history), excluding pre-vitals statuses.
   const consultations = useMemo(() => {
     return mappedConsultations.filter((item) =>
       isDoctorConsultationStatus(item.status),
@@ -243,6 +242,26 @@ export function OPDConsultationPage({
       ]),
     [],
   );
+
+  const doctorOptions = useMemo(() => {
+    const docs = Array.from(
+      new Set(consultations.flatMap((c) => (c.doctor ? [c.doctor] : []))),
+    );
+    return [
+      { value: "All", label: "All Doctors" },
+      ...docs.map((d) => ({ value: d, label: d })),
+    ];
+  }, [consultations]);
+
+  const departmentOptions = useMemo(() => {
+    const depts = Array.from(
+      new Set(consultations.flatMap((c) => (c.department ? [c.department] : []))),
+    );
+    return [
+      { value: "All", label: "All Departments" },
+      ...depts.map((d) => ({ value: d, label: d })),
+    ];
+  }, [consultations]);
 
   const filteredConsultations = useMemo(() => {
     return consultations.filter((item) => {
@@ -548,7 +567,7 @@ export function OPDConsultationPage({
             <>
               <button
                 onClick={() => setShowSummaryModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-sm font-semibold transition-all shadow-sm"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-sm font-semibold transition-colors shadow-sm"
                 style={{ fontFamily: PP }}
               >
                 <Clock size={16} className="text-[#0D47A1]" />
@@ -556,7 +575,7 @@ export function OPDConsultationPage({
               </button>
               <button
                 onClick={handleExportReport}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-sm font-semibold transition-all shadow-sm"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-sm font-semibold transition-colors shadow-sm"
                 style={{ fontFamily: PP }}
               >
                 <Download size={16} />
@@ -567,7 +586,7 @@ export function OPDConsultationPage({
             <>
               <button
                 onClick={onNavigateAppointments}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-sm font-semibold transition-all shadow-sm"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-sm font-semibold transition-colors shadow-sm"
                 style={{ fontFamily: PP }}
               >
                 <Clock size={16} className="text-[#0D47A1]" />
@@ -576,7 +595,7 @@ export function OPDConsultationPage({
               {can("CONSULTATION_START") && hasCalledPatient && (
                 <button
                   onClick={() => handleStartConsultation(calledPatient)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] hover:bg-[#00796B] text-white text-sm font-semibold transition-all shadow-sm"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] hover:bg-[#00796B] text-white text-sm font-semibold transition-colors shadow-sm"
                   style={{ fontFamily: PP }}
                 >
                   <Plus size={16} /> Start Consultation
@@ -587,7 +606,7 @@ export function OPDConsultationPage({
                 nextPatient && (
                   <button
                     onClick={() => handleCallPatient(nextPatient)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold transition-all shadow-sm"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold transition-colors shadow-sm"
                     style={{ fontFamily: PP }}
                   >
                     <Phone size={16} /> Call Next Patient
@@ -596,7 +615,7 @@ export function OPDConsultationPage({
               {can("CONSULTATION_START") && currentPatient && (
                 <button
                   onClick={() => handleOpenConsultation(currentPatient.id)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-sm font-semibold transition-all shadow-sm"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-sm font-semibold transition-colors shadow-sm"
                   style={{ fontFamily: PP }}
                 >
                   <FolderOpen size={16} /> Open Consultation
@@ -652,6 +671,8 @@ export function OPDConsultationPage({
                 ? "Search by Patient Name, MRN, Consultation ID or Mobile Number..."
                 : "Search by Patient Name, MRN, Consultation ID or Doctor Name..."
             }
+            doctorOptions={doctorOptions}
+            departmentOptions={departmentOptions}
             showStatusFilter={true}
             showVisitTypeFilter={true}
           />
@@ -726,7 +747,7 @@ export function OPDConsultationPage({
               </div>
               <button
                 onClick={() => setSelectedPrescriptionRecord(null)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
               >
                 <X size={20} />
               </button>
@@ -967,7 +988,7 @@ export function OPDConsultationPage({
             <div className="pt-6 mt-6 border-t border-slate-100 flex items-center justify-between no-print">
               <button
                 onClick={() => setSelectedPrescriptionRecord(null)}
-                className="px-5 py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-all"
+                className="px-5 py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors"
                 style={{ fontFamily: PP }}
               >
                 Close & Exit
@@ -980,14 +1001,14 @@ export function OPDConsultationPage({
                       selectedPrescriptionRecord?.id;
                     if (encId) setViewPrescriptionEncounterId(encId);
                   }}
-                  className="px-6 py-2.5 bg-[#009688] hover:bg-[#00796B] text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2"
+                  className="px-6 py-2.5 bg-[#009688] hover:bg-[#00796B] text-white rounded-xl text-xs font-bold transition-colors shadow-md flex items-center gap-2"
                   style={{ fontFamily: PP }}
                 >
                   <FileText size={16} /> View Prescription
                 </button>
                 <button
                   onClick={() => window.print()}
-                  className="px-6 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2"
+                  className="px-6 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-colors shadow-md flex items-center gap-2"
                   style={{ fontFamily: PP }}
                 >
                   <Printer size={16} /> Print Summary

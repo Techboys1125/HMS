@@ -10,7 +10,7 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 import type { Patient } from "../types/patient.types";
-import { usePermissions } from "../../../permissions";
+import { usePermissions } from "../../../permissions/usePermissions";
 import { extractDoctorName } from "../api/mapApiPatientToPatientRecord";
 
 const PP = "'Poppins', system-ui, sans-serif";
@@ -123,7 +123,7 @@ export function PatientTable({
   const sortedPatients = useMemo(() => {
     if (!sortColumn) return patients;
 
-    return [...patients].sort((a, b) => {
+    return patients.toSorted((a, b) => {
       let valA: string | number;
       let valB: string | number;
 

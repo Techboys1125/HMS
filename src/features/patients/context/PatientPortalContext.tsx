@@ -12,7 +12,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { patientsApi } from "../api/patient.api";
 import type { FamilyMember } from "../pages/FamilyMembersManagement";
 import {

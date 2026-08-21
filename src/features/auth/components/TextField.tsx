@@ -49,7 +49,7 @@ export const TextField: React.FC<TextFieldProps> = ({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          className={`w-full py-5.5 text-base font-body rounded-2xl border outline-none transition-all duration-200 placeholder:text-slate-400 ${
+          className={`w-full py-5.5 text-base font-body rounded-2xl border outline-none transition-colors duration-200 placeholder:text-slate-400 ${
             Icon ? "pl-14 sm:pl-16" : "pl-6"
           } ${rightElement ? "pr-14 sm:pr-16" : "pr-6"} ${
             hasError

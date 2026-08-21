@@ -7,7 +7,7 @@ import { doctorsService } from "../services/doctors.service";
 import { doctorProfileService } from "../services/doctorProfile.service";
 import { useDoctorFilters } from "../hooks/useDoctorFilters";
 import { useToast } from "../hooks/useToast";
-import { useAuthStore } from "../../auth/index";
+import { useAuthStore } from "../auth/store/auth.store";
 import { KpiCards } from "../components/KpiCards";
 import { DoctorFilterBar } from "../components/DoctorFilterBar";
 import { DoctorTable } from "../components/DoctorTable";
@@ -101,7 +101,6 @@ export function DoctorManagementPage() {
   };
 
   useEffect(() => {
-    if (isDoctor) return;
     let cancelled = false;
 
     const loadData = async () => {
@@ -111,13 +110,16 @@ export function DoctorManagementPage() {
           fetchDoctors(),
           departmentsApi.getDepartmentLookup(true),
         ]);
-        if (cancelled) return;
-        setDoctors(doctorsData);
-        setDepartments(deptList.map((d) => d.departmentName));
+        if (!cancelled) {
+          setDoctors(doctorsData);
+          setDepartments(deptList.map((d) => d.departmentName));
+        }
       } catch (err) {
         console.error("Failed to load doctor management data:", err);
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 

@@ -11,9 +11,9 @@ import {
   Clock,
 } from "lucide-react";
 import safeHandsLogo from "../../assets/safehandshospital_logo.webp";
-import { useAuthStore } from "../../features/auth";
+import { useAuthStore } from "../../features/auth/store/auth.store";
 import { useUnreadCount } from "../../features/notification/hooks/useNotifications";
-import type { FamilyMember } from "../../features/patients";
+import type { FamilyMember } from "../../features/patients/pages/FamilyMembersManagement";
 import type { NavId, Role } from "../../types/app.types";
 import { ROLE_LABEL, PP, RB } from "../../constants/navigation";
 import { Avatar } from "../../common/components/Avatar";
@@ -151,7 +151,7 @@ export function Header({
                 setShowPatientSelector((v) => !v);
                 setShowProfileMenu(false);
               }}
-              className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-blue-50/70 border border-blue-200/80 hover:bg-blue-100/60 transition-all outline-none"
+              className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-blue-50/70 border border-blue-200/80 hover:bg-blue-100/60 transition-colors outline-none"
             >
               <div className="w-7 h-7 rounded-full bg-[#0D47A1] text-white flex items-center justify-center font-bold text-xs shrink-0">
                 {(activePatientName || "P")[0]}
@@ -209,7 +209,7 @@ export function Header({
                           }
                           setPendingSwitchMember(member);
                         }}
-                        className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-all ${
+                        className={`w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-colors ${
                           isActive
                             ? "bg-blue-50/90 border-[#0D47A1] shadow-sm"
                             : isVerified
@@ -483,7 +483,7 @@ export function Header({
               <button
                 onClick={() => confirmSwitch(pendingSwitchMember)}
                 disabled={isSwitching}
-                className="px-5 py-2 bg-[#0D47A1] text-white rounded-xl text-xs font-semibold hover:bg-blue-800 transition-all shadow-sm flex items-center gap-2"
+                className="px-5 py-2 bg-[#0D47A1] text-white rounded-xl text-xs font-semibold hover:bg-blue-800 transition-colors shadow-sm flex items-center gap-2"
                 style={{ fontFamily: PP }}
               >
                 {isSwitching ? (

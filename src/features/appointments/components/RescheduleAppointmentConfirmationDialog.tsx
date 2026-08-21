@@ -357,7 +357,7 @@ export function RescheduleAppointmentConfirmationDialog({
                         if (errors.date)
                           setErrors((prev) => ({ ...prev, date: "" }));
                       }}
-                      className={`py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      className={`py-1.5 rounded-lg text-xs font-medium transition-colors ${
                         isSelected
                           ? "bg-[#009688] text-white font-bold shadow-xs"
                           : isCurrentAptDate
@@ -423,7 +423,7 @@ export function RescheduleAppointmentConfirmationDialog({
                           setErrors((prev) => ({ ...prev, slot: "" }));
                       }
                     }}
-                    className={`py-2 px-1.5 rounded-xl text-xs font-mono font-semibold transition-all border text-center ${
+                    className={`py-2 px-1.5 rounded-xl text-xs font-mono font-semibold transition-colors border text-center ${
                       isSelected
                         ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
                         : isAvailable

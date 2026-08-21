@@ -228,7 +228,7 @@ export function DoctorPrescriptionDetailsScreen({
             {onBack && (
               <button
                 onClick={onBack}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-all shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-colors shadow-sm"
                 style={{ fontFamily: PP }}
               >
                 <ChevronLeft size={14} />
@@ -238,7 +238,7 @@ export function DoctorPrescriptionDetailsScreen({
             {rxRecord.status === "Draft" ? (
               <button
                 onClick={() => onEditPrescription?.(rxRecord.id)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition-all shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition-colors shadow-sm"
                 style={{ fontFamily: PP }}
               >
                 <Edit3 size={14} /> Edit Prescription
@@ -261,14 +261,14 @@ export function DoctorPrescriptionDetailsScreen({
                   setPrintModalOpen(true);
                 }
               }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#009688] hover:bg-teal-50 text-xs font-semibold transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#009688] hover:bg-teal-50 text-xs font-semibold transition-colors shadow-sm"
               style={{ fontFamily: PP }}
             >
               <Printer size={14} /> Print Prescription
             </button>
             <button
               onClick={() => showToast(`Downloaded PDF for ${rxRecord.id}`)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-semibold transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-semibold transition-colors shadow-sm"
               style={{ fontFamily: PP }}
             >
               <Download size={14} /> Download PDF

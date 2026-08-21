@@ -19,12 +19,23 @@ import {
   AlertCircle,
   Shield,
 } from "lucide-react";
+import { useDoctorSelfPatientRegister } from "../hooks/useReports";
+
 import {
-  useDoctorSelfPatientRegister,
-} from "../hooks/useReports";
-
-import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "../../../common/components/recharts-lazy";
-
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "../../../common/components/recharts-lazy";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -63,7 +74,7 @@ function CircularProgress({
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          className="transition-all duration-500 ease-out"
+          className="transition-colors duration-500 ease-out"
         />
       </svg>
       <span
@@ -110,11 +121,11 @@ export function DoctorPatientReportScreen({
     "7 Days",
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
   // React Query Hooks for Doctor Personal Patient Reports
-  const { data: registerData, refetch: refetchRegister } = useDoctorSelfPatientRegister({ size: 20 });
+  const { data: registerData, refetch: refetchRegister } =
+    useDoctorSelfPatientRegister({ size: 20 });
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -132,8 +143,9 @@ export function DoctorPatientReportScreen({
 
   const filteredPatients = useMemo(() => {
     const rawList = registerData?.content || [];
-    return rawList
-      .map((item) => ({
+    const lowerSearch = searchQuery.toLowerCase();
+    return rawList.flatMap((item) => {
+      const mapped = {
         mrn: item.mrn,
         patientName: item.patientName,
         age: 30,
@@ -144,20 +156,24 @@ export function DoctorPatientReportScreen({
         diagnosis: "Routine OPD",
         followUpDate: item.nextFollowUpDate,
         status: item.followUpStatus,
-      }))
-      .filter((item) => {
-        const matchesSearch =
-          (item.patientName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (item.mrn || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (item.mobileNumber || "").includes(searchQuery);
-        const matchesVisit =
-          visitTypeFilter === "All Visit Types" ||
-          item.visitType === visitTypeFilter;
-        const matchesStatus =
-          consultStatusFilter === "All Statuses" ||
-          item.status === consultStatusFilter;
-        return matchesSearch && matchesVisit && matchesStatus;
-      });
+      };
+      const matchesSearch =
+        !lowerSearch ||
+        (mapped.patientName || "").toLowerCase().includes(lowerSearch) ||
+        (mapped.mrn || "").toLowerCase().includes(lowerSearch) ||
+        (mapped.mobileNumber || "").includes(searchQuery);
+      const matchesVisit =
+        visitTypeFilter === "All Visit Types" ||
+        mapped.visitType === visitTypeFilter;
+      const matchesStatus =
+        consultStatusFilter === "All Statuses" ||
+        mapped.status === consultStatusFilter;
+
+      if (matchesSearch && matchesVisit && matchesStatus) {
+        return [mapped];
+      }
+      return [];
+    });
   }, [registerData, searchQuery, visitTypeFilter, consultStatusFilter]);
 
   return (
@@ -449,7 +465,7 @@ export function DoctorPatientReportScreen({
               {/* TOP 6 DOCTOR PATIENT KPI CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Card 1: My Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       My Patients
@@ -482,7 +498,7 @@ export function DoctorPatientReportScreen({
                 </div>
 
                 {/* Card 2: New Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       New Patients
@@ -515,7 +531,7 @@ export function DoctorPatientReportScreen({
                 </div>
 
                 {/* Card 3: Returning Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Returning Patients
@@ -548,7 +564,7 @@ export function DoctorPatientReportScreen({
                 </div>
 
                 {/* Card 4: Completed Consultations */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Completed Consultations
@@ -581,7 +597,7 @@ export function DoctorPatientReportScreen({
                 </div>
 
                 {/* Card 5: Scheduled Follow-ups */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Scheduled Follow-ups
@@ -614,7 +630,7 @@ export function DoctorPatientReportScreen({
                 </div>
 
                 {/* Card 6: Average Patients Per Day */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                   <div>
                     <span className="text-xs font-semibold text-[#64748B]">
                       Avg Patients / Day

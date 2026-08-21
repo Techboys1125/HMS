@@ -43,7 +43,7 @@ export const MedicineTable: React.FC<MedicineTableProps> = ({
         <button
           type="button"
           onClick={onAdd}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white hover:bg-[#0a3880] text-xs font-semibold shadow-sm transition-all"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white hover:bg-[#0a3880] text-xs font-semibold shadow-sm transition-colors"
           style={{ fontFamily: PP }}
         >
           <Plus size={14} /> Add Medicine

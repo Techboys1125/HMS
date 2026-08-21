@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { HospitalInformationPage } from "./HospitalInformationPage";
 import { UserRolesPermissionsPage } from "./UserRolesPermissionsPage";
 import { AppointmentConfigurationPage } from "./AppointmentConfigurationPage";
-import { BillingConfigurationPage } from "../../billing";
+import { BillingConfigurationPage } from "../../billing/pages/BillingConfigurationPage";
 import { NotificationCommunicationPage } from "../../notification/pages/NotificationCommunicationPage";
 import { SecuritySettingsPage } from "./SecuritySettingsPage";
 import { BackupMaintenancePage } from "./BackupMaintenancePage";

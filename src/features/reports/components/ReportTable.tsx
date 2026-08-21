@@ -70,7 +70,7 @@ export function ReportTable<T extends Record<string, unknown>>({
       );
     }
     if (sortKey) {
-      result = [...result].sort((a, b) => {
+      result = result.toSorted((a, b) => {
         const aVal = a[sortKey] ?? "";
         const bVal = b[sortKey] ?? "";
         if (typeof aVal === "number" && typeof bVal === "number") {

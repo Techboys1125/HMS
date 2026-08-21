@@ -208,6 +208,15 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
   ],
 };
 
-export const ALL_NAV_ITEMS: NavItem[] = Object.values(ROLE_NAV_GROUPS)
-  .flatMap((groups) => groups.flatMap((g) => g.items))
-  .filter((item, i, arr) => arr.findIndex((x) => x.id === item.id) === i);
+export const ALL_NAV_ITEMS: NavItem[] = Object.values(ROLE_NAV_GROUPS).reduce<
+  NavItem[]
+>((acc, groups) => {
+  for (const g of groups) {
+    for (const item of g.items) {
+      if (!acc.some((x) => x.id === item.id)) {
+        acc.push(item);
+      }
+    }
+  }
+  return acc;
+}, []);

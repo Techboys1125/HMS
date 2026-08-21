@@ -335,38 +335,37 @@ export const appointmentService = {
       normalizeAppointmentRecord(item, doctorsMap),
     );
 
-    return items
-      .filter((item) =>
-        !status
-          ? true
-          : String(item?.status || "").toUpperCase() === status.toUpperCase(),
-      )
-      .map((item) => {
-        const docObj =
-          (item?.doctor as unknown as Record<string, unknown>) || {};
-        const docId = String(
-          item?.doctorId || docObj?.id || docObj?.doctorId || "",
-        );
-        const knownDoc = docId ? doctorsMap.get(docId) : null;
+    return items.flatMap((item) => {
+      const matchesStatus = !status
+        ? true
+        : String(item?.status || "").toUpperCase() === status.toUpperCase();
+      if (!matchesStatus) return [];
 
-        const updatedItem = { ...item };
-        if (knownDoc) {
-          if (
-            (!updatedItem.departmentName ||
-              updatedItem.departmentName === "") &&
-            knownDoc.departmentName
-          ) {
-            updatedItem.departmentName = knownDoc.departmentName;
-          }
-          if (
-            (!updatedItem.departmentId || updatedItem.departmentId === 0) &&
-            knownDoc.departmentId
-          ) {
-            updatedItem.departmentId = Number(knownDoc.departmentId);
-          }
+      const docObj =
+        (item?.doctor as unknown as Record<string, unknown>) || {};
+      const docId = String(
+        item?.doctorId || docObj?.id || docObj?.doctorId || "",
+      );
+      const knownDoc = docId ? doctorsMap.get(docId) : null;
+
+      const updatedItem = { ...item };
+      if (knownDoc) {
+        if (
+          (!updatedItem.departmentName ||
+            updatedItem.departmentName === "") &&
+          knownDoc.departmentName
+        ) {
+          updatedItem.departmentName = knownDoc.departmentName;
         }
-        return normalizeAppointmentRecord(updatedItem);
-      });
+        if (
+          (!updatedItem.departmentId || updatedItem.departmentId === 0) &&
+          knownDoc.departmentId
+        ) {
+          updatedItem.departmentId = Number(knownDoc.departmentId);
+        }
+      }
+      return [normalizeAppointmentRecord(updatedItem)];
+    });
   },
 
   async listPatientAppointments(
@@ -470,10 +469,7 @@ export const appointmentService = {
 
   async getAppointmentToken(appointmentId: string | number) {
     const res = await appointmentsApi.getAppointmentToken(appointmentId);
-    return (
-      res?.data?.tokenNumber ||
-      `TK-${String(appointmentId).slice(-4)}`
-    );
+    return res?.data?.tokenNumber || `TK-${String(appointmentId).slice(-4)}`;
   },
 
   async getTokenDetails(appointmentId: string | number) {
@@ -770,13 +766,20 @@ export const appointmentService = {
         }
       });
 
-      slots = slots.map((s: { time?: string; startTime?: string; slot?: string; available?: boolean }) => {
-        const slotTime = s.time || s.startTime || s.slot;
-        if (slotTime && occupiedSlots.has(normalizeTimeFormat(slotTime))) {
-          return { ...s, available: false };
-        }
-        return s;
-      });
+      slots = slots.map(
+        (s: {
+          time?: string;
+          startTime?: string;
+          slot?: string;
+          available?: boolean;
+        }) => {
+          const slotTime = s.time || s.startTime || s.slot;
+          if (slotTime && occupiedSlots.has(normalizeTimeFormat(slotTime))) {
+            return { ...s, available: false };
+          }
+          return s;
+        },
+      );
     } catch (err) {
       console.warn("Failed to block slots dynamically based on status:", err);
     }
@@ -820,12 +823,12 @@ export const appointmentService = {
       "PAYMENT_COMPLETED",
       "COMPLETED",
     ];
-    const allItems: AppointmentRecord[] = [];
-    for (const status of activeStatuses) {
-      const items = await this.getAppointmentsByStatus(status, params);
-      allItems.push(...items);
-    }
-    return allItems;
+    const results = await Promise.all(
+      activeStatuses.map((status) =>
+        this.getAppointmentsByStatus(status, params),
+      ),
+    );
+    return results.flat();
   },
 
   async isSlotAvailable(

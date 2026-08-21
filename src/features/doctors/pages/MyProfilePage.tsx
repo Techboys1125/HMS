@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { ChevronLeft } from "lucide-react";
-import { useAuthStore } from "../../auth/index";
+import { useAuthStore } from "../auth/store/auth.store";
 import { ROUTES } from "../../../app/routes/routes";
 import { doctorProfileService } from "../services/doctorProfile.service";
 import { ProfileTab } from "../components/tabs/ProfileTab";

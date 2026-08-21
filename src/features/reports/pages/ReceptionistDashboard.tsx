@@ -30,10 +30,23 @@ import {
   useReceptionCheckinAnalytics,
   useReceptionRegistrationTrend,
   useReceptionQueuePerformance,
-} from "../../reception";
+} from "../../reception/hooks/useReceptionReports";
 
-import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "../../../common/components/recharts-lazy";
-
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "../../../common/components/recharts-lazy";
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -72,7 +85,7 @@ function CircularProgress({
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          className="transition-all duration-500 ease-out"
+          className="transition-colors duration-500 ease-out"
         />
       </svg>
       <span
@@ -503,7 +516,7 @@ export function ReceptionistReportsDashboardScreen({
                 {/* Card 1: Today's Registrations */}
                 <div
                   onClick={() => navigate(ROUTES.PATIENTS)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
@@ -542,7 +555,7 @@ export function ReceptionistReportsDashboardScreen({
                 {/* Card 2: Today's Appointments */}
                 <div
                   onClick={() => navigate(ROUTES.APPOINTMENTS)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
@@ -581,7 +594,7 @@ export function ReceptionistReportsDashboardScreen({
                 {/* Card 3: Checked-In Patients */}
                 <div
                   onClick={() => navigate(ROUTES.QUEUE)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition">
@@ -618,7 +631,7 @@ export function ReceptionistReportsDashboardScreen({
                 </div>
 
                 {/* Card 4: Reception Queue */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Reception Queue
@@ -651,7 +664,7 @@ export function ReceptionistReportsDashboardScreen({
                 </div>
 
                 {/* Card 5: Completed Check-Ins */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Completed Check-Ins
@@ -684,7 +697,7 @@ export function ReceptionistReportsDashboardScreen({
                 </div>
 
                 {/* Card 6: Average Waiting Time */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                   <div>
                     <span className="text-xs font-semibold text-[#64748B]">
                       Average Waiting Time

@@ -26,7 +26,7 @@ export function ReportKpiCards({ kpis, onKpiClick }: ReportKpiCardsProps) {
           <div
             key={kpi?.id || kpi?._id || kpi?.key || kpi?.value || kpi?.code || kpi?.name || kpi?.title || kpi?.label || (typeof kpi === 'object' ? JSON.stringify(kpi) : String(kpi))}
             onClick={() => onKpiClick?.(idx)}
-            className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm ${onKpiClick ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-all" : ""}`}
+            className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm ${onKpiClick ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-colors transition-shadow" : ""}`}
           >
             <div className="flex items-start justify-between">
               <div>

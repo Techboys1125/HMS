@@ -7,14 +7,14 @@ import {
   X,
   FileText,
 } from "lucide-react";
-import { usePermissions } from "../../../permissions";
+import { usePermissions } from "../../../permissions/usePermissions";
 import { useConsultation } from "../hooks/useConsultation";
 import { useEncounter } from "../hooks/useEncounter";
 import { useVitals } from "../hooks/useVitals";
 import { useDiagnosis } from "../hooks/useDiagnosis";
 import { useInvoice } from "../../billing/hooks/useBilling";
 import type { ConsultationFormData, MedicineItem } from "../types/consultation";
-import { encountersApi } from "../../encounters";
+import { encountersApi } from "../../encounters/api/encounters.api";
 import { consultationApi } from "../api/consultationApi";
 import { ConsultationHeader } from "../components/ConsultationHeader";
 import { PatientSummaryCard } from "../components/PatientSummaryCard";
@@ -25,7 +25,7 @@ import { MedicineTable } from "../components/MedicineTable";
 import { InvestigationTable } from "../components/InvestigationTable";
 import { FollowupForm } from "../components/FollowupForm";
 import { ConsultationFooter } from "../components/ConsultationFooter";
-import { EncounterPrescriptionViewModal } from "../../prescriptions";
+import { EncounterPrescriptionViewModal } from "../../prescriptions/components/EncounterPrescriptionViewModal";
 import { useNavigate } from "react-router";
 
 const PP = "'Poppins', system-ui, sans-serif";
@@ -558,7 +558,7 @@ export function StartConsultationPage({
           onBack && (
             <button
               onClick={onBack}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-colors shadow-sm"
               style={{ fontFamily: PP }}
             >
               Back
@@ -872,7 +872,7 @@ export function StartConsultationPage({
               </div>
               <button
                 onClick={handleCloseCompleteModal}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
                 title="Close"
               >
                 <X size={20} />
@@ -1160,7 +1160,7 @@ export function StartConsultationPage({
             <div className="flex items-center justify-between border-t border-slate-100 pt-4 no-print">
               <button
                 onClick={handleCloseCompleteModal}
-                className="px-5 py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-all"
+                className="px-5 py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors"
                 style={{ fontFamily: PP }}
               >
                 Close & Exit
@@ -1168,7 +1168,7 @@ export function StartConsultationPage({
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleViewPrescription}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#009688] hover:bg-[#00796B] text-white text-xs font-bold rounded-xl shadow-md transition-all"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#009688] hover:bg-[#00796B] text-white text-xs font-bold rounded-xl shadow-md transition-colors"
                   style={{ fontFamily: PP }}
                 >
                   <FileText size={14} />
@@ -1176,7 +1176,7 @@ export function StartConsultationPage({
                 </button>
                 <button
                   onClick={() => window.print()}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-bold rounded-xl shadow-md transition-all"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-bold rounded-xl shadow-md transition-colors"
                   style={{ fontFamily: PP }}
                 >
                   <Printer size={14} />

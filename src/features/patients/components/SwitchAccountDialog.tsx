@@ -91,7 +91,7 @@ export function SwitchAccountDialog({
           <button
             onClick={handleSwitchToPrimary}
             disabled={isPrimaryActive || switching}
-            className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+            className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-left ${
               isPrimaryActive
                 ? "bg-blue-50 border-[#0D47A1]/20 ring-1 ring-[#0D47A1]/10"
                 : "bg-white border-[#E5E7EB] hover:bg-slate-50 hover:border-[#0D47A1]/30"
@@ -133,7 +133,7 @@ export function SwitchAccountDialog({
                   key={member.id}
                   onClick={() => handleSwitch(member)}
                   disabled={isActive || switching}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors text-left ${
                     isActive
                       ? "bg-blue-50 border-[#0D47A1]/20 ring-1 ring-[#0D47A1]/10"
                       : "bg-white border-[#E5E7EB] hover:bg-slate-50 hover:border-[#0D47A1]/30"

@@ -81,7 +81,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
             onClick={() => fileInputRef.current?.click()}
             disabled={photoUploading}
             title="Change Photo"
-            className="absolute -bottom-1.5 -right-1.5 p-1.5 bg-[#0D47A1] text-white rounded-xl shadow-md hover:bg-[#0c3d8a] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border-2 border-white"
+            className="absolute -bottom-1.5 -right-1.5 p-1.5 bg-[#0D47A1] text-white rounded-xl shadow-md hover:bg-[#0c3d8a] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border-2 border-white"
           >
             <Camera size={13} />
           </button>
@@ -120,7 +120,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={photoUploading}
-                className="px-3.5 py-1.5 bg-white border border-[#E5E7EB] hover:border-[#0D47A1] hover:text-[#0D47A1] text-slate-700 text-xs font-bold rounded-xl transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="px-3.5 py-1.5 bg-white border border-[#E5E7EB] hover:border-[#0D47A1] hover:text-[#0D47A1] text-slate-700 text-xs font-bold rounded-xl transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 {photoUploading ? (
                   <>
@@ -145,7 +145,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
                 <button
                   type="button"
                   onClick={onRemovePhoto}
-                  className="px-3 py-1.5 bg-red-50 text-[#EF4444] hover:bg-red-100 text-xs font-bold rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+                  className="px-3 py-1.5 bg-red-50 text-[#EF4444] hover:bg-red-100 text-xs font-bold rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
                 >
                   <Trash2 size={13} /> Remove
                 </button>
@@ -186,7 +186,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               onChange={(e) => setFieldValue("fullName", e.target.value)}
               onBlur={() => validateField("fullName", form.fullName)}
               placeholder="e.g. Dr. Robert Vance"
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-colors text-text-body ${
                 errors.fullName
                   ? "border-red-500 bg-red-50/50"
                   : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
@@ -216,7 +216,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               onChange={(e) => setFieldValue("email", e.target.value)}
               onBlur={() => validateField("email", form.email)}
               placeholder="e.g. robert.vance@hospital.org"
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-colors text-text-body ${
                 errors.email
                   ? "border-red-500 bg-red-50/50"
                   : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
@@ -246,7 +246,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               onChange={(e) => setFieldValue("phone", e.target.value)}
               onBlur={() => validateField("phone", form.phone)}
               placeholder="e.g. +1 (555) 234-5678"
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-colors text-text-body ${
                 errors.phone
                   ? "border-red-500 bg-red-50/50"
                   : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
@@ -268,7 +268,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
           <select
             value={form.gender}
             onChange={(e) => setFieldValue("gender", e.target.value)}
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body cursor-pointer"
+            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body cursor-pointer"
           >
             <option value="Male">Male</option>
             <option value="Female">Female</option>
@@ -291,7 +291,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               type="date"
               value={form.dob}
               onChange={(e) => setFieldValue("dob", e.target.value)}
-              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body cursor-pointer"
+              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body cursor-pointer"
             />
           </div>
         </div>
@@ -333,7 +333,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
                   setFieldValue("registrationNumber", e.target.value)
                 }
                 placeholder="e.g. REG123456"
-                className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${
+                className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-colors text-text-body ${
                   errors.registrationNumber
                     ? "border-red-500 bg-red-50/50"
                     : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
@@ -366,7 +366,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
                   setFieldValue("professionalIdentity", e.target.value)
                 }
                 placeholder="e.g. Associate Professor"
-                className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body"
+                className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body"
               />
             </div>
           </div>
@@ -385,7 +385,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               setFieldValue("residentialAddress", e.target.value)
             }
             placeholder="e.g. 123 Healthcare Avenue, Suite 400, City, Country"
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body"
+            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body"
           />
         </div>
 
@@ -401,7 +401,7 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               value={form.professionalBio}
               onChange={(e) => setFieldValue("professionalBio", e.target.value)}
               placeholder="Summary of clinical expertise, achievements, and patient care philosophy..."
-              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl p-3 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body resize-none"
+              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl p-3 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body resize-none"
             />
           </div>
         )}

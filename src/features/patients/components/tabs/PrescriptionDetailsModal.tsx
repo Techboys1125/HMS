@@ -49,8 +49,10 @@ function formatField(val: unknown, fallback: string = "—"): string {
     if (Array.isArray(val)) {
       return (
         val
-          .map((item) => formatField(item, ""))
-          .filter(Boolean)
+          .flatMap((item) => {
+            const formatted = formatField(item, "");
+            return formatted ? [formatted] : [];
+          })
           .join(", ") || fallback
       );
     }
@@ -271,7 +273,7 @@ export function PrescriptionDetailsModal({
                           const inst = formatField(m.instructions, "As directed");
 
                           return (
-                            <tr key={idx} className="hover:bg-slate-50/50">
+                            <tr key={medName || `med-${m.dosage}`} className="hover:bg-slate-50/50">
                               <td className="py-2.5 px-3 font-semibold text-[#111827]">
                                 {medName}
                                 {strength && (

@@ -67,7 +67,7 @@ function DKpi({
       onClick={onClick}
       className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
         onClick
-          ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-all duration-200"
+          ? "cursor-pointer hover:shadow-md hover:border-[#0D47A1]/30 transition-colors duration-200"
           : ""
       }`}
     >
@@ -414,7 +414,7 @@ export function DoctorDashboard() {
         {DOC_QUICK_ACTIONS.map(({ label, Icon, color }) => (
           <button
             key={label}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#009688]/40 hover:text-[#009688] hover:bg-teal-50 transition-all shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#009688]/40 hover:text-[#009688] hover:bg-teal-50 transition-colors shadow-sm"
             style={{ fontFamily: RB }}
           >
             <Icon size={13} style={{ color }} />
@@ -1039,9 +1039,9 @@ export function DoctorDashboard() {
         />
         <div className="space-y-2">
           {(consultationQueue?.queue || []).length > 0 ? (
-            consultationQueue.queue.map((qItem, idx) => (
+            consultationQueue.queue.map((qItem) => (
               <div
-                key={`${qItem.token || "token"}-${qItem.patientId || "pat"}-${idx}`}
+                key={`${qItem.token || "token"}-${qItem.patientId || "pat"}-${qItem.patientName || "unknown"}`}
                 className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-[#E5E7EB]"
               >
                 <div className="flex items-center gap-3">

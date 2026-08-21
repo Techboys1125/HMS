@@ -44,7 +44,7 @@ export function ReportExportActions({
           {onExportPdf && (
             <button
               onClick={onExportPdf}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-[#E5E7EB] hover:border-[#EF4444]/40 hover:bg-red-50 transition-all text-left"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-[#E5E7EB] hover:border-[#EF4444]/40 hover:bg-red-50 transition-colors text-left"
             >
               <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
                 <FileText size={18} className="text-[#EF4444]" />
@@ -59,7 +59,7 @@ export function ReportExportActions({
           {onExportCsv && (
             <button
               onClick={onExportCsv}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-[#E5E7EB] hover:border-[#009688]/40 hover:bg-teal-50 transition-all text-left"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-[#E5E7EB] hover:border-[#009688]/40 hover:bg-teal-50 transition-colors text-left"
             >
               <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
                 <FileSpreadsheet size={18} className="text-[#009688]" />
@@ -74,7 +74,7 @@ export function ReportExportActions({
           {onExportExcel && (
             <button
               onClick={onExportExcel}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-[#E5E7EB] hover:border-[#0D47A1]/40 hover:bg-blue-50 transition-all text-left"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-[#E5E7EB] hover:border-[#0D47A1]/40 hover:bg-blue-50 transition-colors text-left"
             >
               <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
                 <FileSpreadsheet size={18} className="text-[#0D47A1]" />

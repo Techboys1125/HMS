@@ -87,7 +87,9 @@ export function BookAppointmentScreen({
 
   const specialties = useMemo(() => {
     if (!selectedDept) return [];
-    return Array.from(new Set(doctorsList.map((d) => d.spec).filter(Boolean)));
+    return Array.from(
+      new Set(doctorsList.flatMap((d) => (d.spec ? [d.spec] : []))),
+    );
   }, [doctorsList, selectedDept]);
 
   useEffect(() => {
@@ -168,12 +170,17 @@ export function BookAppointmentScreen({
           setDepartments(mapped);
         } else {
           departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
-            const mapped = list
-              .map((d) => ({
-                id: d.departmentId ?? d.id ?? "",
-                departmentName: d.departmentName || d.name || "",
-              }))
-              .filter((d) => d.departmentName);
+            const mapped = list.flatMap((d) => {
+              const name = d.departmentName || d.name || "";
+              return name
+                ? [
+                    {
+                      id: d.departmentId ?? d.id ?? "",
+                      departmentName: name,
+                    },
+                  ]
+                : [];
+            });
             if (mapped.length > 0) setDepartments(mapped as Department[]);
           });
         }
@@ -617,7 +624,7 @@ export function BookAppointmentScreen({
         <div className="flex items-center gap-2">
           <button
             onClick={onRegisterNewPatientClick}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 border border-blue-200 text-[#0D47A1] text-xs font-semibold hover:bg-blue-100 transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 border border-blue-200 text-[#0D47A1] text-xs font-semibold hover:bg-blue-100 transition-colors"
             style={{ fontFamily: PP }}
           >
             <UserPlus size={14} /> Register New Patient
@@ -661,7 +668,7 @@ export function BookAppointmentScreen({
                   value={patientQuery}
                   onChange={(e) => setPatientQuery(e.target.value)}
                   placeholder="Search patient by MRN, Patient Name, Mobile Number or Appointment ID..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-colors shadow-inner"
                 />
               </div>
             )}
@@ -669,9 +676,9 @@ export function BookAppointmentScreen({
             {patientQuery.trim() !== "" && (
               <div className="max-h-48 overflow-y-auto border border-[#E5E7EB] rounded-xl divide-y divide-gray-100 bg-white shadow-lg">
                 {searchedPatients.length > 0 ? (
-                  searchedPatients.map((p, idx) => (
+                  searchedPatients.map((p) => (
                     <div
-                      key={p.id ? `pat-id-${p.id}` : p.mrn ? `pat-mrn-${p.mrn}` : `pat-idx-${idx}`}
+                      key={p.id ? `pat-id-${p.id}` : p.mrn ? `pat-mrn-${p.mrn}` : `pat-name-${p.name}`}
                       onClick={() => {
                         setSelectedPatient(p);
                         setPatientQuery("");
@@ -881,7 +888,7 @@ export function BookAppointmentScreen({
                       <div
                         key={doc.key}
                         onClick={() => setSelectedDocKey(doc.key)}
-                        className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
+                        className={`p-3.5 rounded-xl border cursor-pointer transition-colors flex items-start gap-3 ${
                           isSelected
                             ? "border-[#009688] bg-teal-50/50 shadow-sm ring-1 ring-[#009688]"
                             : "border-[#E5E7EB] bg-white hover:border-slate-300"
@@ -950,7 +957,7 @@ export function BookAppointmentScreen({
                       type="button"
                       disabled={!item.isAvailable}
                       onClick={() => setSelectedDate(item.date)}
-                      className={`p-2.5 rounded-xl border text-center transition-all ${
+                      className={`p-2.5 rounded-xl border text-center transition-colors ${
                         !item.isAvailable
                           ? "opacity-40 bg-slate-100 border-slate-200 cursor-not-allowed"
                           : isSelected
@@ -995,7 +1002,7 @@ export function BookAppointmentScreen({
                             type="button"
                             disabled={!slot.available}
                             onClick={() => setSelectedTimeSlot(slot.time)}
-                            className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
+                            className={`px-3 py-2 rounded-xl text-xs font-mono transition-colors border ${
                               !slot.available
                                 ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
                                 : isSelected
@@ -1023,7 +1030,7 @@ export function BookAppointmentScreen({
                             type="button"
                             disabled={!slot.available}
                             onClick={() => setSelectedTimeSlot(slot.time)}
-                            className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
+                            className={`px-3 py-2 rounded-xl text-xs font-mono transition-colors border ${
                               !slot.available
                                 ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
                                 : isSelected
@@ -1051,7 +1058,7 @@ export function BookAppointmentScreen({
                             type="button"
                             disabled={!slot.available}
                             onClick={() => setSelectedTimeSlot(slot.time)}
-                            className={`px-3 py-2 rounded-xl text-xs font-mono transition-all border ${
+                            className={`px-3 py-2 rounded-xl text-xs font-mono transition-colors border ${
                               !slot.available
                                 ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
                                 : isSelected
@@ -1155,7 +1162,7 @@ export function BookAppointmentScreen({
         <button
           type="button"
           onClick={onBack}
-          className="px-5 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-all"
+          className="px-5 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-colors"
           style={{ fontFamily: PP }}
         >
           Cancel
@@ -1165,7 +1172,7 @@ export function BookAppointmentScreen({
           type="button"
           onClick={handleConfirm}
           disabled={!selectedPatient || !currentDoctor || isBooking}
-          className="px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-6 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ fontFamily: PP }}
         >
           {isBooking ? (
@@ -1238,7 +1245,7 @@ export function BookAppointmentScreen({
                   console.log(`Printing Appointment Slip for ${confirmedAptId}...`);
                   window.print();
                 }}
-                className="w-full py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-2"
                 style={{ fontFamily: PP }}
               >
                 <Printer size={15} /> Print Appointment Slip
@@ -1249,7 +1256,7 @@ export function BookAppointmentScreen({
                   if (onConfirmSuccess) onConfirmSuccess(confirmedAptId);
                   else if (onBack) onBack();
                 }}
-                className="w-full py-2.5 rounded-xl border border-[#E5E7EB] bg-teal-50 text-xs font-semibold text-[#009688] hover:bg-teal-100 transition-all flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-xl border border-[#E5E7EB] bg-teal-50 text-xs font-semibold text-[#009688] hover:bg-teal-100 transition-colors flex items-center justify-center gap-2"
                 style={{ fontFamily: PP }}
               >
                 <UserCheck size={15} /> Patient Check-In
@@ -1258,7 +1265,7 @@ export function BookAppointmentScreen({
                 onClick={() => {
                   setShowSuccessModal(false);
                 }}
-                className="w-full py-2 rounded-xl text-xs text-[#64748B] font-medium hover:bg-slate-50 transition-all text-center"
+                className="w-full py-2 rounded-xl text-xs text-[#64748B] font-medium hover:bg-slate-50 transition-colors text-center"
               >
                 Book Another Appointment
               </button>

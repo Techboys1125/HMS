@@ -388,6 +388,16 @@ export interface DoctorPerformanceSummary {
   followUps: number;
   averageDurationMinutes: number;
   rating: number | null;
+  id?: string;
+  code?: string;
+  name?: string;
+  totalAppointments?: number;
+  completedAppointments?: number;
+  pendingAppointments?: number;
+  cancelledAppointments?: number;
+  followup?: number;
+  avgConsultationTimeMinutes?: number;
+  patientRating?: number;
 }
 
 export interface DoctorPerformanceSummaryData {
@@ -434,8 +444,10 @@ export interface DailyAppointmentDetail {
   doctorName: string;
   department: string;
   appointmentDate: string;
+  date?: string;
   status: string;
   appointmentType: string;
+  visitType?: string;
   mrn?: string;
   queueNumber?: string;
   durationMinutes?: number;

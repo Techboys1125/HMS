@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, User, ChevronRight, RefreshCw, Phone } from "lucide-react";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { patientsApi } from "../../patients/api/patient.api";
 import { mapApiPatientToPatientRecord } from "../../patients/api/mapApiPatientToPatientRecord";
 import { PatientProfilePage } from "../../patients/pages/PatientProfilePage";

@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router";
-import { useAuthStore } from "../../features/auth";
+import { useAuthStore } from "../../features/auth/store/auth.store";
 import { ROUTES } from "./routes";
 
 interface PublicRouteProps {

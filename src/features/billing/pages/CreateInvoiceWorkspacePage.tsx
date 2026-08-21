@@ -642,49 +642,75 @@ export function CreateInvoiceWorkspacePage() {
           billId = result.billId;
 
           // Add line items
-          for (const item of lineItems) {
-            await addBillItem({
-              billId,
-              payload: {
-                serviceCode:
-                  item.serviceName === "OPD Consultation Fee"
-                    ? "SERV_CONSULT_GEN"
-                    : "SERV_" +
-                      item.serviceName.toUpperCase().replace(/[^A-Z0-9]/g, "_"),
-                itemName: item.serviceName,
-                description: `${item.category} service: ${item.serviceName}`,
-                quantity: item.quantity,
-                unitPrice: item.unitPrice,
-                taxRate: item.tax || 18.0,
-              },
-            });
-          }
+          await Promise.all(
+            lineItems.map((item) =>
+              addBillItem({
+                billId,
+                payload: {
+                  serviceCode:
+                    item.serviceName === "OPD Consultation Fee"
+                      ? "SERV_CONSULT_GEN"
+                      : "SERV_" +
+                        item.serviceName.toUpperCase().replace(/[^A-Z0-9]/g, "_"),
+                  itemName: item.serviceName,
+                  description: `${item.category} service: ${item.serviceName}`,
+                  quantity: item.quantity,
+                  unitPrice: item.unitPrice,
+                  taxRate: item.tax || 18.0,
+                },
+              }),
+            ),
+          );
         } else {
           // Sync items for existing bill only if it is in DRAFT status
           const isDraft = billWorkspace?.bill?.status === "DRAFT";
           if (isDraft) {
             const existingItems = billWorkspace?.items || [];
+            const lineItemServiceNameSet = new Set(
+              lineItems.map((item) => item.serviceName),
+            );
+            const existingItemsMap = new Map(
+              existingItems.map((ext) => [ext.serviceName, ext]),
+            );
 
             // 1. Delete items that are no longer in lineItems
-            for (const extItem of existingItems) {
-              const stillExists = lineItems.some(
-                (item) => item.serviceName === extItem.serviceName,
-              );
-              if (!stillExists) {
-                await deleteBillItem({ billId, itemId: extItem.id });
-              }
-            }
+            const toDelete = existingItems.filter(
+              (extItem) => !lineItemServiceNameSet.has(extItem.serviceName),
+            );
+            await Promise.all(
+              toDelete.map((extItem) =>
+                deleteBillItem({ billId, itemId: extItem.id }),
+              ),
+            );
 
             // 2. Add or update items
-            for (const item of lineItems) {
-              const extItem = existingItems.find(
-                (ext) => ext.serviceName === item.serviceName,
-              );
-              if (extItem) {
-                if (extItem.quantity !== item.quantity) {
-                  await updateBillItem({
+            await Promise.all(
+              lineItems.map(async (item) => {
+                const extItem = existingItemsMap.get(item.serviceName);
+                if (extItem) {
+                  if (extItem.quantity !== item.quantity) {
+                    await updateBillItem({
+                      billId,
+                      itemId: extItem.id,
+                      payload: {
+                        serviceCode:
+                          item.serviceName === "OPD Consultation Fee"
+                            ? "SERV_CONSULT_GEN"
+                            : "SERV_" +
+                              item.serviceName
+                                .toUpperCase()
+                                .replace(/[^A-Z0-9]/g, "_"),
+                        itemName: item.serviceName,
+                        description: `${item.category} service: ${item.serviceName} (Updated)`,
+                        quantity: item.quantity,
+                        unitPrice: item.unitPrice,
+                        taxRate: item.tax || 18.0,
+                      },
+                    });
+                  }
+                } else {
+                  await addBillItem({
                     billId,
-                    itemId: extItem.id,
                     payload: {
                       serviceCode:
                         item.serviceName === "OPD Consultation Fee"
@@ -694,33 +720,15 @@ export function CreateInvoiceWorkspacePage() {
                               .toUpperCase()
                               .replace(/[^A-Z0-9]/g, "_"),
                       itemName: item.serviceName,
-                      description: `${item.category} service: ${item.serviceName} (Updated)`,
+                      description: `${item.category} service: ${item.serviceName}`,
                       quantity: item.quantity,
                       unitPrice: item.unitPrice,
                       taxRate: item.tax || 18.0,
                     },
                   });
                 }
-              } else {
-                await addBillItem({
-                  billId,
-                  payload: {
-                    serviceCode:
-                      item.serviceName === "OPD Consultation Fee"
-                        ? "SERV_CONSULT_GEN"
-                        : "SERV_" +
-                          item.serviceName
-                            .toUpperCase()
-                            .replace(/[^A-Z0-9]/g, "_"),
-                    itemName: item.serviceName,
-                    description: `${item.category} service: ${item.serviceName}`,
-                    quantity: item.quantity,
-                    unitPrice: item.unitPrice,
-                    taxRate: item.tax || 18.0,
-                  },
-                });
-              }
-            }
+              }),
+            );
           }
         }
 
@@ -883,7 +891,7 @@ export function CreateInvoiceWorkspacePage() {
                   urlBillId;
                 if (targetId) navigate(`/billing/invoice/${targetId}`);
               }}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-colors transition-transform shadow-sm active:scale-95"
               style={{ fontFamily: PP }}
             >
               <FileText size={15} />
@@ -899,7 +907,7 @@ export function CreateInvoiceWorkspacePage() {
                 isOverpayment ||
                 isNegativePayment
               }
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-colors transition-transform shadow-sm active:scale-95 disabled:opacity-50"
               style={{ fontFamily: PP }}
             >
               <CheckCircle2 size={15} />
@@ -1175,7 +1183,7 @@ export function CreateInvoiceWorkspacePage() {
                         key={cat}
                         type="button"
                         onClick={() => dispatch({ type: "SET_PATIENT_CATEGORY", payload: cat })}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${patientCategory === cat ? "bg-[#0D47A1] text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"}`}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${patientCategory === cat ? "bg-[#0D47A1] text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"}`}
                       >
                         {cat}
                       </button>
@@ -1870,7 +1878,7 @@ export function CreateInvoiceWorkspacePage() {
                 urlBillId;
               if (targetId) navigate(`/billing/invoice/${targetId}`);
             }}
-            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-all shadow-sm"
+            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm"
             style={{ fontFamily: PP }}
           >
             <FileText size={15} />
@@ -1881,7 +1889,7 @@ export function CreateInvoiceWorkspacePage() {
             type="button"
             onClick={() => handleGenerateInvoice(true)}
             disabled={!canCollect}
-            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-all shadow-sm disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors transition-opacity shadow-sm disabled:opacity-50"
             style={{ fontFamily: PP }}
           >
             <CheckCircle2 size={15} />

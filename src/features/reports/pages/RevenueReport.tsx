@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useReducer, useMemo } from "react";
 import {
   Download,
   RefreshCw,
@@ -20,7 +20,11 @@ import {
   Eye,
 } from "lucide-react";
 import { PP, RB } from "../constants/reports.constants";
-import type { RevenueReportRecord, DailyRevenuePoint, DailyRevenueDetail } from "../types/reports.types";
+import type {
+  RevenueReportRecord,
+  DailyRevenuePoint,
+  DailyRevenueDetail,
+} from "../types/reports.types";
 import {
   useDailyRevenue,
   useDailyRevenueDetails,
@@ -28,7 +32,159 @@ import {
   extractList,
 } from "../hooks/useReports";
 
-import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "../../../common/components/recharts-lazy";
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "../../../common/components/recharts-lazy";
+
+type IncludeOptions = {
+  kpi: boolean;
+  charts: boolean;
+  tables: boolean;
+  filters: boolean;
+};
+
+type RevenueReportState = {
+  searchQuery: string;
+  dateRange: string;
+  deptFilter: string;
+  doctorFilter: string;
+  paymentStatusFilter: string;
+  paymentMethodFilter: string;
+  reportPeriodFilter: string;
+  isRefreshing: boolean;
+  isLoading: boolean;
+  hasError: boolean;
+  showExportModal: boolean;
+  exportFormat: "pdf" | "excel" | "csv";
+  exportScope: "page" | "filtered" | "complete";
+  includeOptions: IncludeOptions;
+  trendDays: "Today" | "7 Days" | "30 Days" | "90 Days";
+  sortField: keyof RevenueReportRecord;
+  sortOrder: "asc" | "desc";
+};
+
+type RevenueReportAction =
+  | { type: "SET_SEARCH"; payload: string }
+  | {
+      type: "SET_FILTER";
+      payload: {
+        key: keyof Omit<
+          RevenueReportState,
+          | "isRefreshing"
+          | "isLoading"
+          | "hasError"
+          | "showExportModal"
+          | "exportFormat"
+          | "exportScope"
+          | "includeOptions"
+          | "trendDays"
+          | "sortField"
+          | "sortOrder"
+        >;
+        value: string;
+      };
+    }
+  | {
+      type: "RESET_FILTERS";
+    }
+  | { type: "SET_REFRESHING"; payload: boolean }
+  | { type: "SET_LOADING"; payload: boolean }
+  | { type: "SET_ERROR"; payload: boolean }
+  | {
+      type: "SET_EXPORT_STATE";
+      payload: Partial<
+        Pick<
+          RevenueReportState,
+          "showExportModal" | "exportFormat" | "exportScope" | "includeOptions"
+        >
+      >;
+    }
+  | {
+      type: "SET_TREND_DAYS";
+      payload: "Today" | "7 Days" | "30 Days" | "90 Days";
+    }
+  | {
+      type: "SET_SORT";
+      payload: {
+        sortField: keyof RevenueReportRecord;
+        sortOrder: "asc" | "desc";
+      };
+    };
+
+const DEFAULT_STATE: RevenueReportState = {
+  searchQuery: "",
+  dateRange: "Today",
+  deptFilter: "All Departments",
+  doctorFilter: "All Doctors",
+  paymentStatusFilter: "All Statuses",
+  paymentMethodFilter: "All Methods",
+  reportPeriodFilter: "Daily",
+  isRefreshing: false,
+  isLoading: false,
+  hasError: false,
+  showExportModal: false,
+  exportFormat: "pdf",
+  exportScope: "filtered",
+  includeOptions: { kpi: true, charts: true, tables: true, filters: true },
+  trendDays: "7 Days",
+  sortField: "invoiceDate",
+  sortOrder: "desc",
+};
+
+function revenueReportReducer(
+  state: RevenueReportState,
+  action: RevenueReportAction,
+): RevenueReportState {
+  switch (action.type) {
+    case "SET_SEARCH":
+      return { ...state, searchQuery: action.payload };
+    case "SET_FILTER":
+      return { ...state, [action.payload.key]: action.payload.value };
+    case "RESET_FILTERS":
+      return {
+        ...state,
+        searchQuery: "",
+        dateRange: "Today",
+        deptFilter: "All Departments",
+        doctorFilter: "All Doctors",
+        paymentStatusFilter: "All Statuses",
+        paymentMethodFilter: "All Methods",
+        reportPeriodFilter: "Daily",
+      };
+    case "SET_REFRESHING":
+      return { ...state, isRefreshing: action.payload };
+    case "SET_LOADING":
+      return { ...state, isLoading: action.payload };
+    case "SET_ERROR":
+      return { ...state, hasError: action.payload };
+    case "SET_EXPORT_STATE":
+      return { ...state, ...action.payload };
+    case "SET_TREND_DAYS":
+      return { ...state, trendDays: action.payload };
+    case "SET_SORT":
+      return {
+        ...state,
+        sortField: action.payload.sortField,
+        sortOrder: action.payload.sortOrder,
+      };
+    default:
+      return state;
+  }
+}
 
 function CircularProgress({
   percentage,
@@ -64,7 +220,7 @@ function CircularProgress({
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          className="transition-all duration-500 ease-out"
+          className="transition-colors duration-500 ease-out"
         />
       </svg>
       <span
@@ -83,15 +239,25 @@ export function DailyRevenueReportScreen({
   onBack?: () => void;
   onOpenBillingReport?: () => void;
 }) {
-  // State
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("Today");
-  const [deptFilter, setDeptFilter] = useState("All Departments");
-  const [doctorFilter, setDoctorFilter] = useState("All Doctors");
-  const [paymentStatusFilter, setPaymentStatusFilter] =
-    useState("All Statuses");
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState("All Methods");
-  const [reportPeriodFilter, setReportPeriodFilter] = useState("Daily");
+  const [state, dispatch] = useReducer(revenueReportReducer, DEFAULT_STATE);
+  const {
+    searchQuery,
+    dateRange,
+    deptFilter,
+    doctorFilter,
+    paymentStatusFilter,
+    paymentMethodFilter,
+    reportPeriodFilter,
+    isRefreshing,
+    isLoading,
+    hasError,
+    showExportModal,
+    exportFormat,
+    exportScope,
+    trendDays,
+    sortField,
+    sortOrder,
+  } = state;
 
   // ─── API Data Hooks ──────────────────────────────────────────────────────
   const today = new Date().toISOString().slice(0, 10);
@@ -120,21 +286,38 @@ export function DailyRevenueReportScreen({
   const { data: rawDetails } = useDailyRevenueDetails(reportFilters);
   const { data: collectionRateData } = useCollectionRate(reportFilters);
 
-  const dailyRevenueData = useMemo(() => extractList<DailyRevenuePoint>(rawDailyRevenue), [rawDailyRevenue]);
-  const revenueDetailsList = useMemo(() => extractList<DailyRevenueDetail>(rawDetails), [rawDetails]);
+  const dailyRevenueData = useMemo(
+    () => extractList<DailyRevenuePoint>(rawDailyRevenue),
+    [rawDailyRevenue],
+  );
+  const revenueDetailsList = useMemo(
+    () => extractList<DailyRevenueDetail>(rawDetails),
+    [rawDetails],
+  );
 
   const revenueTableSource = useMemo(() => {
     return revenueDetailsList.map((d: DailyRevenueDetail) => ({
-      id: d.paymentId || d.receiptNumber || d.invoiceNumber || `INV-${d.id || ""}`,
+      id:
+        d.paymentId ||
+        d.receiptNumber ||
+        d.invoiceNumber ||
+        `INV-${d.id || ""}`,
       patientName: d.patientName ?? d.receiptNumber ?? "N/A",
-      mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+      mrn: d.mrn
+        ? String(d.mrn).startsWith("MRN-")
+          ? String(d.mrn)
+          : `MRN-${d.mrn}`
+        : `MRN-${d.patientId || ""}`,
       doctorName: d.doctorName ?? "N/A",
       department: d.department ?? "General Medicine",
       invoiceDate: d.paidAt || d.invoiceDate || d.createdDate || today,
       invoiceAmount: Number(d.amount || d.billedAmount || d.totalAmount || 0),
-      collectedAmount: Number(d.paidAmount || d.amount || d.collectedAmount || 0),
+      collectedAmount: Number(
+        d.paidAmount || d.amount || d.collectedAmount || 0,
+      ),
       outstandingAmount: Number(d.outstandingAmount || 0),
-      paymentMethod: (d.paymentMethod as RevenueReportRecord["paymentMethod"]) ?? "Cash",
+      paymentMethod:
+        (d.paymentMethod as RevenueReportRecord["paymentMethod"]) ?? "Cash",
       paymentStatus: (d.paymentStatus
         ? d.paymentStatus.charAt(0) + d.paymentStatus.slice(1).toLowerCase()
         : "Paid") as RevenueReportRecord["paymentStatus"],
@@ -188,7 +371,6 @@ export function DailyRevenueReportScreen({
     return Object.values(map);
   }, [revenueTableSource]);
 
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated] = useState(() => {
     const now = new Date();
     const day = now.toLocaleDateString("en-US", { weekday: "long" });
@@ -201,32 +383,14 @@ export function DailyRevenueReportScreen({
   });
   const [lastRefreshed] = useState(() => {
     const now = new Date();
-    return now.toISOString().slice(0, 16).replace("T", " ");
+    const day = now.toLocaleDateString("en-US", { weekday: "long" });
+    const time = now.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return `${day}, ${time}`;
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasError, setHasError] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | "csv">(
-    "pdf",
-  );
-  const [exportScope, setExportScope] = useState<
-    "page" | "filtered" | "complete"
-  >("filtered");
-  const [includeOptions, setIncludeOptions] = useState({
-    kpi: true,
-    charts: true,
-    tables: true,
-    filters: true,
-  });
-  const [trendDays, setTrendDays] = useState<
-    "Today" | "7 Days" | "30 Days" | "90 Days"
-  >("7 Days");
-
-  // Table sorting & pagination
-  const [sortField, setSortField] =
-    useState<keyof RevenueReportRecord>("invoiceDate");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-
   const [appliedFilters, setAppliedFilters] = useState({
     dateRange: "Today",
     dept: "All Departments",
@@ -237,35 +401,28 @@ export function DailyRevenueReportScreen({
   });
 
   const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 400);
+    dispatch({ type: "SET_REFRESHING", payload: true });
+    setTimeout(() => dispatch({ type: "SET_REFRESHING", payload: false }), 400);
   };
 
   const handleApplyFilters = () => {
-    setIsLoading(true);
+    dispatch({ type: "SET_LOADING", payload: true });
     setTimeout(() => {
       setAppliedFilters({
-        dateRange,
-        dept: deptFilter,
-        doctor: doctorFilter,
-        paymentStatus: paymentStatusFilter,
-        paymentMethod: paymentMethodFilter,
-        reportPeriod: reportPeriodFilter,
+        dateRange: state.dateRange,
+        dept: state.deptFilter,
+        doctor: state.doctorFilter,
+        paymentStatus: state.paymentStatusFilter,
+        paymentMethod: state.paymentMethodFilter,
+        reportPeriod: state.reportPeriodFilter,
       });
-      setIsLoading(false);
+      dispatch({ type: "SET_LOADING", payload: false });
     }, 300);
   };
 
   const handleResetFilters = () => {
-    setDateRange("Today");
-    setDeptFilter("All Departments");
-    setDoctorFilter("All Doctors");
-    setPaymentStatusFilter("All Statuses");
-    setPaymentMethodFilter("All Methods");
-    setReportPeriodFilter("Daily");
-    setSearchQuery("");
-
-    setIsLoading(true);
+    dispatch({ type: "RESET_FILTERS" });
+    dispatch({ type: "SET_LOADING", payload: true });
     setTimeout(() => {
       setAppliedFilters({
         dateRange: "Today",
@@ -275,7 +432,7 @@ export function DailyRevenueReportScreen({
         paymentMethod: "All Methods",
         reportPeriod: "Daily",
       });
-      setIsLoading(false);
+      dispatch({ type: "SET_LOADING", payload: false });
     }, 300);
   };
 
@@ -344,7 +501,7 @@ export function DailyRevenueReportScreen({
 
   // Sorted records
   const sortedData = useMemo(() => {
-    return [...filteredData].sort((a, b) => {
+    return filteredData.toSorted((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
       if (typeof aVal === "number" && typeof bVal === "number") {
@@ -360,20 +517,25 @@ export function DailyRevenueReportScreen({
   }, [filteredData, sortField, sortOrder]);
 
   const handleSort = (field: keyof RevenueReportRecord) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    if (state.sortField === field) {
+      dispatch({
+        type: "SET_SORT",
+        payload: {
+          sortField: field,
+          sortOrder: state.sortOrder === "asc" ? "desc" : "asc",
+        },
+      });
     } else {
-      setSortField(field);
-      setSortOrder("desc");
+      dispatch({
+        type: "SET_SORT",
+        payload: { sortField: field, sortOrder: "desc" },
+      });
     }
   };
 
   // Status Chip helper
   const renderStatusChip = (status?: string) => {
-    const map: Record<
-      string,
-      { bg: string; text: string; dot: string }
-    > = {
+    const map: Record<string, { bg: string; text: string; dot: string }> = {
       Paid: {
         bg: "bg-green-50 border-green-200",
         text: "text-[#66BB6A]",
@@ -506,7 +668,12 @@ export function DailyRevenueReportScreen({
               </button>
 
               <button
-                onClick={() => setShowExportModal(true)}
+                onClick={() =>
+                  dispatch({
+                    type: "SET_EXPORT_STATE",
+                    payload: { showExportModal: true },
+                  })
+                }
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#0D47A1] hover:bg-blue-900 transition shadow-sm"
                 style={{ fontFamily: PP }}
               >
@@ -526,14 +693,16 @@ export function DailyRevenueReportScreen({
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
             <input
               type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={state.searchQuery}
+              onChange={(e) =>
+                dispatch({ type: "SET_SEARCH", payload: e.target.value })
+              }
               placeholder="Search Invoice ID, Patient, MRN, Doctor, Department..."
               className="w-full pl-10 pr-4 py-2.5 bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs text-[#111827] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
             />
-            {searchQuery && (
+            {state.searchQuery && (
               <button
-                onClick={() => setSearchQuery("")}
+                onClick={() => dispatch({ type: "SET_SEARCH", payload: "" })}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#64748B] hover:text-[#111827]"
               >
                 Clear
@@ -559,7 +728,12 @@ export function DailyRevenueReportScreen({
               </label>
               <select
                 value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    payload: { key: "dateRange", value: e.target.value },
+                  })
+                }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>Today</option>
@@ -575,7 +749,12 @@ export function DailyRevenueReportScreen({
               </label>
               <select
                 value={deptFilter}
-                onChange={(e) => setDeptFilter(e.target.value)}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    payload: { key: "deptFilter", value: e.target.value },
+                  })
+                }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Departments</option>
@@ -594,7 +773,12 @@ export function DailyRevenueReportScreen({
               </label>
               <select
                 value={doctorFilter}
-                onChange={(e) => setDoctorFilter(e.target.value)}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    payload: { key: "doctorFilter", value: e.target.value },
+                  })
+                }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Doctors</option>
@@ -612,7 +796,15 @@ export function DailyRevenueReportScreen({
               </label>
               <select
                 value={paymentStatusFilter}
-                onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    payload: {
+                      key: "paymentStatusFilter",
+                      value: e.target.value,
+                    },
+                  })
+                }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Statuses</option>
@@ -629,7 +821,15 @@ export function DailyRevenueReportScreen({
               </label>
               <select
                 value={paymentMethodFilter}
-                onChange={(e) => setPaymentMethodFilter(e.target.value)}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    payload: {
+                      key: "paymentMethodFilter",
+                      value: e.target.value,
+                    },
+                  })
+                }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Methods</option>
@@ -646,7 +846,15 @@ export function DailyRevenueReportScreen({
               </label>
               <select
                 value={reportPeriodFilter}
-                onChange={(e) => setReportPeriodFilter(e.target.value)}
+                onChange={(e) =>
+                  dispatch({
+                    type: "SET_FILTER",
+                    payload: {
+                      key: "reportPeriodFilter",
+                      value: e.target.value,
+                    },
+                  })
+                }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>Daily</option>
@@ -691,7 +899,10 @@ export function DailyRevenueReportScreen({
                 Period: {appliedFilters.dateRange}
                 <button
                   onClick={() => {
-                    setDateRange("Today");
+                    dispatch({
+                      type: "SET_FILTER",
+                      payload: { key: "dateRange", value: "Today" },
+                    });
                     setAppliedFilters((prev) => ({
                       ...prev,
                       dateRange: "Today",
@@ -699,7 +910,7 @@ export function DailyRevenueReportScreen({
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
-                  Ã—
+                  ×
                 </button>
               </span>
             )}
@@ -708,7 +919,10 @@ export function DailyRevenueReportScreen({
                 Dept: {appliedFilters.dept}
                 <button
                   onClick={() => {
-                    setDeptFilter("All Departments");
+                    dispatch({
+                      type: "SET_FILTER",
+                      payload: { key: "deptFilter", value: "All Departments" },
+                    });
                     setAppliedFilters((prev) => ({
                       ...prev,
                       dept: "All Departments",
@@ -716,7 +930,7 @@ export function DailyRevenueReportScreen({
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
-                  Ã—
+                  ×
                 </button>
               </span>
             )}
@@ -725,7 +939,10 @@ export function DailyRevenueReportScreen({
                 Doctor: {appliedFilters.doctor}
                 <button
                   onClick={() => {
-                    setDoctorFilter("All Doctors");
+                    dispatch({
+                      type: "SET_FILTER",
+                      payload: { key: "doctorFilter", value: "All Doctors" },
+                    });
                     setAppliedFilters((prev) => ({
                       ...prev,
                       doctor: "All Doctors",
@@ -733,7 +950,7 @@ export function DailyRevenueReportScreen({
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
-                  Ã—
+                  ×
                 </button>
               </span>
             )}
@@ -742,7 +959,13 @@ export function DailyRevenueReportScreen({
                 Status: {appliedFilters.paymentStatus}
                 <button
                   onClick={() => {
-                    setPaymentStatusFilter("All Statuses");
+                    dispatch({
+                      type: "SET_FILTER",
+                      payload: {
+                        key: "paymentStatusFilter",
+                        value: "All Statuses",
+                      },
+                    });
                     setAppliedFilters((prev) => ({
                       ...prev,
                       paymentStatus: "All Statuses",
@@ -750,7 +973,7 @@ export function DailyRevenueReportScreen({
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
-                  Ã—
+                  ×
                 </button>
               </span>
             )}
@@ -759,7 +982,13 @@ export function DailyRevenueReportScreen({
                 Method: {appliedFilters.paymentMethod}
                 <button
                   onClick={() => {
-                    setPaymentMethodFilter("All Methods");
+                    dispatch({
+                      type: "SET_FILTER",
+                      payload: {
+                        key: "paymentMethodFilter",
+                        value: "All Methods",
+                      },
+                    });
                     setAppliedFilters((prev) => ({
                       ...prev,
                       paymentMethod: "All Methods",
@@ -767,7 +996,7 @@ export function DailyRevenueReportScreen({
                   }}
                   className="hover:text-red-500 font-bold ml-1"
                 >
-                  Ã—
+                  ×
                 </button>
               </span>
             )}
@@ -775,10 +1004,10 @@ export function DailyRevenueReportScreen({
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-[#111827] border border-slate-300 font-medium">
                 Search: "{searchQuery}"
                 <button
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => dispatch({ type: "SET_SEARCH", payload: "" })}
                   className="hover:text-red-500 font-bold ml-1"
                 >
-                  Ã—
+                  ×
                 </button>
               </span>
             )}
@@ -799,19 +1028,19 @@ export function DailyRevenueReportScreen({
             </span>
             <button
               onClick={() => {
-                setIsLoading(!isLoading);
-                setHasError(false);
+                dispatch({ type: "SET_LOADING", payload: !state.isLoading });
+                dispatch({ type: "SET_ERROR", payload: false });
               }}
-              className={`px-2.5 py-1 rounded-lg border text-xs ${isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
+              className={`px-2.5 py-1 rounded-lg border text-xs ${state.isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
             >
               Toggle Loading Skeleton
             </button>
             <button
               onClick={() => {
-                setHasError(!hasError);
-                setIsLoading(false);
+                dispatch({ type: "SET_ERROR", payload: !state.hasError });
+                dispatch({ type: "SET_LOADING", payload: false });
               }}
-              className={`px-2.5 py-1 rounded-lg border text-xs ${hasError ? "bg-red-50 border-red-300 text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
+              className={`px-2.5 py-1 rounded-lg border text-xs ${state.hasError ? "bg-red-50 border-red-300 text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
             >
               Toggle Error State
             </button>
@@ -836,7 +1065,7 @@ export function DailyRevenueReportScreen({
               Please retry.
             </p>
             <button
-              onClick={() => setHasError(false)}
+              onClick={() => dispatch({ type: "SET_ERROR", payload: false })}
               className="mt-4 px-4 py-2 bg-[#EF4444] text-white rounded-xl text-xs font-semibold hover:bg-red-600 transition"
             >
               Retry Loading
@@ -870,7 +1099,7 @@ export function DailyRevenueReportScreen({
               {/* TOP 6 KPI CARDS SECTION */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Card 1: Today's Revenue */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Today's Revenue
@@ -907,7 +1136,7 @@ export function DailyRevenueReportScreen({
                 </div>
 
                 {/* Card 2: Collected Revenue */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Collected Revenue
@@ -948,7 +1177,7 @@ export function DailyRevenueReportScreen({
                 </div>
 
                 {/* Card 3: Outstanding Amount */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Outstanding Amount
@@ -989,7 +1218,7 @@ export function DailyRevenueReportScreen({
                 </div>
 
                 {/* Card 4: Invoices Summary */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Invoices Generated
@@ -1027,7 +1256,7 @@ export function DailyRevenueReportScreen({
                 </div>
 
                 {/* Card 5: Payment Methods Stack */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Payment Methods
@@ -1063,7 +1292,7 @@ export function DailyRevenueReportScreen({
                 </div>
 
                 {/* Card 6: Average Invoice Value */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                   <div>
                     <span className="text-xs font-semibold text-[#64748B]">
                       Avg Invoice Value
@@ -1110,7 +1339,9 @@ export function DailyRevenueReportScreen({
                       (t) => (
                         <button
                           key={t}
-                          onClick={() => setTrendDays(t)}
+                          onClick={() =>
+                            dispatch({ type: "SET_TREND_DAYS", payload: t })
+                          }
                           className={`px-3 py-1 rounded-lg font-medium transition ${trendDays === t ? "bg-white text-[#0D47A1] shadow-sm" : "text-[#64748B]"}`}
                         >
                           {t}
@@ -1293,29 +1524,29 @@ export function DailyRevenueReportScreen({
                               <Cell key={entry.name} fill={entry.color} />
                             ))}
                           </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Legend
-                          layout="horizontal"
-                          verticalAlign="bottom"
-                          align="center"
-                          wrapperStyle={{
-                            fontSize: "10px",
-                            paddingTop: "10px",
-                          }}
-                        />
-                       </RechartsPie>
-                     </ResponsiveContainer>
-                     )}
-                   </div>
-                 </div>
-               </div>
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#FFFFFF",
+                              borderRadius: "12px",
+                              borderColor: "#E5E7EB",
+                              fontSize: "11px",
+                            }}
+                          />
+                          <Legend
+                            layout="horizontal"
+                            verticalAlign="bottom"
+                            align="center"
+                            wrapperStyle={{
+                              fontSize: "10px",
+                              paddingTop: "10px",
+                            }}
+                          />
+                        </RechartsPie>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
+              </div>
 
               {/* DEPARTMENT REVENUE & DOCTOR REVENUE CONTRIBUTION */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1343,35 +1574,38 @@ export function DailyRevenueReportScreen({
                           data={deptRevenueData}
                           margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
                         >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          type="number"
-                          tick={{ fontSize: 10, fill: "#64748B" }}
-                        />
-                        <YAxis
-                          type="category"
-                          dataKey="department"
-                          tick={{ fontSize: 10, fill: "#111827" }}
-                          width={80}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Bar
-                          dataKey="revenue"
-                          fill="#009688"
-                          radius={[0, 4, 4, 0]}
-                        />
-                       </BarChart>
-                     </ResponsiveContainer>
-                     )}
-                   </div>
-                 </div>
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#F1F5F9"
+                          />
+                          <XAxis
+                            type="number"
+                            tick={{ fontSize: 10, fill: "#64748B" }}
+                          />
+                          <YAxis
+                            type="category"
+                            dataKey="department"
+                            tick={{ fontSize: 10, fill: "#111827" }}
+                            width={80}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#FFFFFF",
+                              borderRadius: "12px",
+                              borderColor: "#E5E7EB",
+                              fontSize: "11px",
+                            }}
+                          />
+                          <Bar
+                            dataKey="revenue"
+                            fill="#009688"
+                            radius={[0, 4, 4, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
 
                 {/* Doctor Revenue Contribution Vertical Bar */}
                 <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
@@ -1396,31 +1630,34 @@ export function DailyRevenueReportScreen({
                           data={doctorRevenueData}
                           margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
                         >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          dataKey="doctor"
-                          tick={{ fontSize: 9, fill: "#64748B" }}
-                        />
-                        <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Bar
-                          dataKey="revenue"
-                          fill="#0D47A1"
-                          radius={[4, 4, 0, 0]}
-                        />
-                       </BarChart>
-                     </ResponsiveContainer>
-                     )}
-                   </div>
-                 </div>
-               </div>
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#F1F5F9"
+                          />
+                          <XAxis
+                            dataKey="doctor"
+                            tick={{ fontSize: 9, fill: "#64748B" }}
+                          />
+                          <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#FFFFFF",
+                              borderRadius: "12px",
+                              borderColor: "#E5E7EB",
+                              fontSize: "11px",
+                            }}
+                          />
+                          <Bar
+                            dataKey="revenue"
+                            fill="#0D47A1"
+                            radius={[4, 4, 0, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
+              </div>
 
               {/* REVENUE REPORT TABLE */}
               <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
@@ -1615,7 +1852,12 @@ export function DailyRevenueReportScreen({
                 Export Daily Revenue Report
               </h3>
               <button
-                onClick={() => setShowExportModal(false)}
+                onClick={() =>
+                  dispatch({
+                    type: "SET_EXPORT_STATE",
+                    payload: { showExportModal: false },
+                  })
+                }
                 className="p-1 rounded-lg text-[#64748B] hover:text-[#111827] hover:bg-slate-100 transition"
               >
                 âœ•
@@ -1639,7 +1881,12 @@ export function DailyRevenueReportScreen({
                       name="exportFormat"
                       value="pdf"
                       checked={exportFormat === "pdf"}
-                      onChange={() => setExportFormat("pdf")}
+                      onChange={() =>
+                        dispatch({
+                          type: "SET_EXPORT_STATE",
+                          payload: { exportFormat: "pdf" },
+                        })
+                      }
                       className="accent-[#0D47A1]"
                     />
                     <span>PDF</span>
@@ -1652,7 +1899,12 @@ export function DailyRevenueReportScreen({
                       name="exportFormat"
                       value="excel"
                       checked={exportFormat === "excel"}
-                      onChange={() => setExportFormat("excel")}
+                      onChange={() =>
+                        dispatch({
+                          type: "SET_EXPORT_STATE",
+                          payload: { exportFormat: "excel" },
+                        })
+                      }
                       className="accent-[#009688]"
                     />
                     <span>Excel</span>
@@ -1665,7 +1917,12 @@ export function DailyRevenueReportScreen({
                       name="exportFormat"
                       value="csv"
                       checked={exportFormat === "csv"}
-                      onChange={() => setExportFormat("csv")}
+                      onChange={() =>
+                        dispatch({
+                          type: "SET_EXPORT_STATE",
+                          payload: { exportFormat: "csv" },
+                        })
+                      }
                       className="accent-slate-700"
                     />
                     <span>CSV</span>
@@ -1687,7 +1944,12 @@ export function DailyRevenueReportScreen({
                       name="exportScope"
                       value="page"
                       checked={exportScope === "page"}
-                      onChange={() => setExportScope("page")}
+                      onChange={() =>
+                        dispatch({
+                          type: "SET_EXPORT_STATE",
+                          payload: { exportScope: "page" },
+                        })
+                      }
                       className="accent-[#0D47A1]"
                     />
                     <span>Current Page</span>
@@ -1698,7 +1960,12 @@ export function DailyRevenueReportScreen({
                       name="exportScope"
                       value="filtered"
                       checked={exportScope === "filtered"}
-                      onChange={() => setExportScope("filtered")}
+                      onChange={() =>
+                        dispatch({
+                          type: "SET_EXPORT_STATE",
+                          payload: { exportScope: "filtered" },
+                        })
+                      }
                       className="accent-[#0D47A1]"
                     />
                     <span>Filtered Data</span>
@@ -1709,7 +1976,12 @@ export function DailyRevenueReportScreen({
                       name="exportScope"
                       value="complete"
                       checked={exportScope === "complete"}
-                      onChange={() => setExportScope("complete")}
+                      onChange={() =>
+                        dispatch({
+                          type: "SET_EXPORT_STATE",
+                          payload: { exportScope: "complete" },
+                        })
+                      }
                       className="accent-[#0D47A1]"
                     />
                     <span>Complete</span>
@@ -1729,11 +2001,16 @@ export function DailyRevenueReportScreen({
                     <label className="flex items-center gap-2">
                       <input
                         type="checkbox"
-                        checked={includeOptions.kpi}
+                        checked={state.includeOptions.kpi}
                         onChange={(e) =>
-                          setIncludeOptions({
-                            ...includeOptions,
-                            kpi: e.target.checked,
+                          dispatch({
+                            type: "SET_EXPORT_STATE",
+                            payload: {
+                              includeOptions: {
+                                ...state.includeOptions,
+                                kpi: e.target.checked,
+                              },
+                            },
                           })
                         }
                         className="accent-[#0D47A1]"
@@ -1743,11 +2020,16 @@ export function DailyRevenueReportScreen({
                     <label className="flex items-center gap-2">
                       <input
                         type="checkbox"
-                        checked={includeOptions.charts}
+                        checked={state.includeOptions.charts}
                         onChange={(e) =>
-                          setIncludeOptions({
-                            ...includeOptions,
-                            charts: e.target.checked,
+                          dispatch({
+                            type: "SET_EXPORT_STATE",
+                            payload: {
+                              includeOptions: {
+                                ...state.includeOptions,
+                                charts: e.target.checked,
+                              },
+                            },
                           })
                         }
                         className="accent-[#0D47A1]"
@@ -1757,11 +2039,16 @@ export function DailyRevenueReportScreen({
                     <label className="flex items-center gap-2">
                       <input
                         type="checkbox"
-                        checked={includeOptions.tables}
+                        checked={state.includeOptions.tables}
                         onChange={(e) =>
-                          setIncludeOptions({
-                            ...includeOptions,
-                            tables: e.target.checked,
+                          dispatch({
+                            type: "SET_EXPORT_STATE",
+                            payload: {
+                              includeOptions: {
+                                ...state.includeOptions,
+                                tables: e.target.checked,
+                              },
+                            },
                           })
                         }
                         className="accent-[#0D47A1]"
@@ -1771,11 +2058,16 @@ export function DailyRevenueReportScreen({
                     <label className="flex items-center gap-2">
                       <input
                         type="checkbox"
-                        checked={includeOptions.filters}
+                        checked={state.includeOptions.filters}
                         onChange={(e) =>
-                          setIncludeOptions({
-                            ...includeOptions,
-                            filters: e.target.checked,
+                          dispatch({
+                            type: "SET_EXPORT_STATE",
+                            payload: {
+                              includeOptions: {
+                                ...state.includeOptions,
+                                filters: e.target.checked,
+                              },
+                            },
                           })
                         }
                         className="accent-[#0D47A1]"
@@ -1802,7 +2094,12 @@ export function DailyRevenueReportScreen({
 
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E5E7EB] mt-6">
               <button
-                onClick={() => setShowExportModal(false)}
+                onClick={() =>
+                  dispatch({
+                    type: "SET_EXPORT_STATE",
+                    payload: { showExportModal: false },
+                  })
+                }
                 className="px-4 py-2 bg-white border border-[#E5E7EB] text-[#64748B] rounded-xl text-xs font-semibold hover:bg-slate-50 transition"
                 style={{ fontFamily: PP }}
               >
@@ -1813,7 +2110,10 @@ export function DailyRevenueReportScreen({
                   alert(
                     `Exporting Daily Revenue Report as ${exportFormat.toUpperCase()}...`,
                   );
-                  setShowExportModal(false);
+                  dispatch({
+                    type: "SET_EXPORT_STATE",
+                    payload: { showExportModal: false },
+                  });
                 }}
                 className="px-4 py-2 bg-[#0D47A1] text-white rounded-xl text-xs font-semibold hover:bg-blue-900 transition shadow-sm flex items-center gap-1.5"
                 style={{ fontFamily: PP }}

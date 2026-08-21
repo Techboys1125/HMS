@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router";
-import { useAuthStore, authStoreActions } from "../../features/auth";
+import { useAuthStore, authStoreActions } from "../../features/auth/store/auth.store";
 import { Header } from "./Header";
 import { NavRail } from "./NavRail";
 import type { NavId, Role } from "../../types/app.types";

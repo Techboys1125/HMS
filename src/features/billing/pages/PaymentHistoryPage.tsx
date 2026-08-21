@@ -69,26 +69,29 @@ export function PaymentHistoryPage() {
 
   // Map invoices into ledger records
   const payments = useMemo((): PaymentHistoryRecord[] => {
-    return invoices
-      .filter((inv) => inv.paidAmount > 0 || inv.paymentStatus !== "Pending")
-      .map((inv) => ({
-        receiptNo: inv.billNumber || inv.id,
-        invoiceId: inv.id,
-        paymentDate: inv.invoiceDate,
-        patientName: inv.patientName,
-        mrn: inv.mrn,
-        mobile: inv.mobile,
-        doctorName: inv.doctorName,
-        department: inv.department,
-        paymentMethod: inv.paymentMethod,
-        referenceNo: inv.notes || "",
-        invoiceAmount: inv.invoiceAmount,
-        amountPaid: inv.paidAmount,
-        balance: inv.balance,
-        collectedBy: inv.collectedBy,
-        status: inv.paymentStatus,
-        remarks: "",
-      }));
+    return invoices.flatMap((inv) => {
+      if (inv.paidAmount <= 0 && inv.paymentStatus === "Pending") return [];
+      return [
+        {
+          receiptNo: inv.billNumber || inv.id,
+          invoiceId: inv.id,
+          paymentDate: inv.invoiceDate,
+          patientName: inv.patientName,
+          mrn: inv.mrn,
+          mobile: inv.mobile,
+          doctorName: inv.doctorName,
+          department: inv.department,
+          paymentMethod: inv.paymentMethod,
+          referenceNo: inv.notes || "",
+          invoiceAmount: inv.invoiceAmount,
+          amountPaid: inv.paidAmount,
+          balance: inv.balance,
+          collectedBy: inv.collectedBy,
+          status: inv.paymentStatus,
+          remarks: "",
+        },
+      ];
+    });
   }, [invoices]);
 
   // Filtering
@@ -178,7 +181,7 @@ export function PaymentHistoryPage() {
           </button>
           <button
             onClick={() => console.log("Exporting Payment History...")}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-colors transition-transform shadow-sm active:scale-95"
             style={{ fontFamily: PP }}
           >
             <Download size={15} />
@@ -647,7 +650,7 @@ export function PaymentHistoryPage() {
         </button>
         <button
           onClick={() => window.print()}
-          className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-all shadow-sm"
+          className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm"
           style={{ fontFamily: PP }}
         >
           <Printer size={15} /> Print Report

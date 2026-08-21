@@ -46,7 +46,7 @@ export function PatientDoctorSearchScreen() {
   }, []);
 
   const departments = Array.from(
-    new Set(doctors.map((d) => d.department).filter(Boolean)),
+    new Set(doctors.flatMap((d) => (d.department ? [d.department] : []))),
   );
 
   const filteredDoctors = doctors.filter((d) => {

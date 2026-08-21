@@ -34,7 +34,9 @@ export function usePatientQueue() {
         setLoading(true);
         setError(null);
         const data = await patientQueueService.getPatientQueue(rawMrn);
-        if (!cancelled) setQueue(data);
+        if (!cancelled) {
+          setQueue(data);
+        }
       } catch (err: unknown) {
         if (!cancelled) {
           if (err instanceof ApiError && err.status === 404) {
@@ -50,7 +52,9 @@ export function usePatientQueue() {
           }
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 

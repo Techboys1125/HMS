@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router";
 import { DoctorProfilePage } from "./DoctorProfilePage";
 import { DoctorProfileScreen } from "../components/DoctorProfileScreen";
-import { useAuthStore } from "../../auth/index";
+import { useAuthStore } from "../auth/store/auth.store";
 import { useState, useEffect } from "react";
 import { ROUTES } from "../../../app/routes/routes";
 import { normalizeRole } from "../utils/doctorPermissions";

@@ -39,16 +39,16 @@ export function AppointmentDatePickerFilter({
   const [viewYear, setViewYear] = useState<number>(activeDate.getFullYear());
   const [viewMonth, setViewMonth] = useState<number>(activeDate.getMonth());
 
-  // Keep view month/year in sync if selectedDate changes externally
-  useEffect(() => {
-    if (selectedDate) {
-      const d = new Date(selectedDate);
+  const handleToggleOpen = () => {
+    if (!isOpen) {
+      const d = selectedDate ? new Date(selectedDate) : new Date();
       if (!isNaN(d.getTime())) {
         setViewYear(d.getFullYear());
         setViewMonth(d.getMonth());
       }
     }
-  }, [selectedDate]);
+    setIsOpen((prev) => !prev);
+  };
 
   // Click outside listener
   useEffect(() => {
@@ -172,8 +172,8 @@ export function AppointmentDatePickerFilter({
 
       {/* Input Box Trigger */}
       <div
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="flex items-center justify-between gap-3 px-3.5 py-2 bg-white border border-[#E5E7EB] rounded-xl cursor-pointer hover:border-[#0D47A1] shadow-xs transition-all w-44"
+        onClick={handleToggleOpen}
+        className="flex items-center justify-between gap-3 px-3.5 py-2 bg-white border border-[#E5E7EB] rounded-xl cursor-pointer hover:border-[#0D47A1] shadow-xs transition-colors w-44"
       >
         <span className="font-semibold text-[#111827]">
           {formatDisplayDate(selectedDate)}
@@ -224,16 +224,16 @@ export function AppointmentDatePickerFilter({
 
           {/* Days Grid */}
           <div className="grid grid-cols-7 gap-1 text-center text-xs">
-            {allCalendarDays.map((item, idx) => {
+            {allCalendarDays.map((item) => {
               const isSelected = selectedDate === item.dateStr;
               const isToday = todayStr === item.dateStr;
 
               return (
                 <button
-                  key={idx}
+                  key={item.dateStr}
                   type="button"
                   onClick={() => handleSelectDay(item.dateStr)}
-                  className={`h-8 w-8 mx-auto flex items-center justify-center rounded-lg font-semibold transition-all ${
+                  className={`h-8 w-8 mx-auto flex items-center justify-center rounded-lg font-semibold transition-colors ${
                     isSelected
                       ? "bg-[#333333] text-white shadow-xs"
                       : isToday

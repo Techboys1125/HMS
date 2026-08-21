@@ -27,7 +27,7 @@ export function DepartmentStatus() {
             </div>
             <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
-                className="h-full rounded-full transition-all"
+                className="h-full rounded-full transition-[width]"
                 style={{ width: `${d.capacity}%`, background: d.color }}
               />
             </div>

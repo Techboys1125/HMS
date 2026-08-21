@@ -27,7 +27,7 @@ import { StatusBadge } from "../components/StatusBadges";
 import { Pagination } from "../../../common/components/Pagination";
 import { patientsApi } from "../api/patient.api";
 import { mapApiPatientToPatientRecord, extractDoctorName } from "../api/mapApiPatientToPatientRecord";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { can, type Role } from "../utils/patientPermissions";
 
 export function PatientProfileScreen({
@@ -66,39 +66,41 @@ export function PatientProfileScreen({
           patientsApi.getBilling(patientMrn),
         ]);
 
-        if (cancelled) return;
+        if (!cancelled) {
+          if (rawPatient.status === "fulfilled") {
+            setPatient(mapApiPatientToPatientRecord(rawPatient.value));
 
-        if (rawPatient.status === "fulfilled") {
-          setPatient(mapApiPatientToPatientRecord(rawPatient.value));
-        } else {
-          setError("Failed to load patient profile");
-          setLoading(false);
-          return;
-        }
+            const safeArray = <T,>(val: unknown): T[] => {
+              if (Array.isArray(val)) return val as T[];
+              if (val && typeof val === "object") {
+                const obj = val as Record<string, unknown>;
+                if (Array.isArray(obj.content)) return obj.content as T[];
+                if (Array.isArray(obj.data)) return obj.data as T[];
+                if (Array.isArray(obj.items)) return obj.items as T[];
+              }
+              return [];
+            };
 
-        const safeArray = <T,>(val: unknown): T[] => {
-          if (Array.isArray(val)) return val as T[];
-          if (val && typeof val === "object") {
-            const obj = val as Record<string, unknown>;
-            if (Array.isArray(obj.content)) return obj.content as T[];
-            if (Array.isArray(obj.data)) return obj.data as T[];
-            if (Array.isArray(obj.items)) return obj.items as T[];
+            if (appts.status === "fulfilled") setAppointments(safeArray(appts.value));
+            if (rxBills.status === "fulfilled") setPrescriptions(safeArray(rxBills.value));
+            if (bills.status === "fulfilled") setBilling(safeArray(bills.value));
+          } else {
+            setError("Failed to load patient profile");
           }
-          return [];
-        };
-
-        if (appts.status === "fulfilled") setAppointments(safeArray(appts.value));
-        if (rxBills.status === "fulfilled") setPrescriptions(safeArray(rxBills.value));
-        if (bills.status === "fulfilled") setBilling(safeArray(bills.value));
+        }
       } catch {
         if (!cancelled) setError("Failed to load patient data");
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
-    fetchAll();
-    return () => { cancelled = true; };
+    void fetchAll();
+    return () => {
+      cancelled = true;
+    };
   }, [patientMrn, missingMrn]);
 
   const mrn = patient?.mrn || patientMrn;
@@ -130,7 +132,7 @@ export function PatientProfileScreen({
 
   const sortedAppointments = useMemo(() => {
     const safeAppointments = Array.isArray(appointments) ? appointments : [];
-    return [...safeAppointments].sort((a, b) => {
+    return safeAppointments.toSorted((a, b) => {
       const da = a.appointmentDate || a.date || "";
       const db = b.appointmentDate || b.date || "";
       return db.localeCompare(da);
@@ -522,13 +524,13 @@ export function PatientProfileScreen({
                         Medical Alerts
                       </h3>
                       <div className="flex flex-wrap gap-2">
-                        {(patient.knownAllergies || []).map((a, i) => (
-                          <span key={`allergy-${i}`} className="px-2.5 py-1 rounded-lg bg-red-50 text-red-700 text-[11px] font-semibold border border-red-100">
+                        {(patient.knownAllergies || []).map((a) => (
+                          <span key={`allergy-${a}`} className="px-2.5 py-1 rounded-lg bg-red-50 text-red-700 text-[11px] font-semibold border border-red-100">
                             Allergy: {a}
                           </span>
                         ))}
-                        {(patient.chronicDiseases || []).map((d, i) => (
-                          <span key={`chronic-${i}`} className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-[11px] font-semibold border border-amber-100">
+                        {(patient.chronicDiseases || []).map((d) => (
+                          <span key={`chronic-${d}`} className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-[11px] font-semibold border border-amber-100">
                             Chronic: {d}
                           </span>
                         ))}
@@ -588,7 +590,7 @@ export function PatientProfileScreen({
                     </h3>
                     <button
                       onClick={() => onBookAppointment?.(mrn)}
-                      className="px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-all flex items-center gap-1"
+                      className="px-3 py-1.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1"
                       style={{ fontFamily: PP }}
                     >
                       <Calendar size={14} /> Book Appointment

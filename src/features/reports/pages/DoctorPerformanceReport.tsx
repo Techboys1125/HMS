@@ -23,11 +23,29 @@ import {
   Shield,
 } from "lucide-react";
 import { PP, RB } from "../constants/reports.constants";
-import type { DoctorReportRecord, DoctorPerformanceSummary } from "../types/reports.types";
+import type {
+  DoctorReportRecord,
+  DoctorPerformanceSummary,
+} from "../types/reports.types";
 import { useDoctorPerformance, extractList } from "../hooks/useReports";
 
-import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "../../../common/components/recharts-lazy";
-
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "../../../common/components/recharts-lazy";
 
 function CircularProgress({
   percentage,
@@ -111,11 +129,13 @@ export function DoctorReportScreen({
     const now = new Date();
     if (range === "Today") return { fromDate: today, toDate: today };
     if (range === "7 Days") {
-      const from = new Date(now); from.setDate(now.getDate() - 7);
+      const from = new Date(now);
+      from.setDate(now.getDate() - 7);
       return { fromDate: from.toISOString().slice(0, 10), toDate: today };
     }
     if (range === "30 Days") {
-      const from = new Date(now); from.setDate(now.getDate() - 30);
+      const from = new Date(now);
+      from.setDate(now.getDate() - 30);
       return { fromDate: from.toISOString().slice(0, 10), toDate: today };
     }
     return { fromDate: "2025-01-01", toDate: today };
@@ -123,7 +143,10 @@ export function DoctorReportScreen({
   const reportFilters = getDateRange(dateRange);
   const { data: rawDoctorPerformance } = useDoctorPerformance(reportFilters);
 
-  const doctorList = useMemo(() => extractList<DoctorPerformanceSummary>(rawDoctorPerformance), [rawDoctorPerformance]);
+  const doctorList = useMemo(
+    () => extractList<DoctorPerformanceSummary>(rawDoctorPerformance),
+    [rawDoctorPerformance],
+  );
 
   // Map API doctor performance to table format
   const doctorTableSource = useMemo(() => {
@@ -136,7 +159,9 @@ export function DoctorReportScreen({
       pending: Number(d.pending || d.pendingAppointments || 0),
       cancelled: Number(d.cancelled || d.cancelledAppointments || 0),
       followup: Number(d.followUps || d.followup || 0),
-      avgTimeMinutes: Number(d.averageDurationMinutes || d.avgConsultationTimeMinutes || 15),
+      avgTimeMinutes: Number(
+        d.averageDurationMinutes || d.avgConsultationTimeMinutes || 15,
+      ),
       patientRating: Number(d.rating || d.patientRating || 4.8),
     }));
   }, [doctorList]);
@@ -145,17 +170,42 @@ export function DoctorReportScreen({
   // so all existing JSX references (doctorPerformanceData?.summary.*) work correctly
   const doctorPerformanceData = useMemo(() => {
     const totalDoctors = doctorList.length;
-    const totalConsultations = doctorList.reduce((s: number, d: DoctorPerformanceSummary) => s + Number(d.appointments || 0), 0);
-    const completedConsultations = doctorList.reduce((s: number, d: DoctorPerformanceSummary) => s + Number(d.completed || 0), 0);
-    const pendingConsultations = doctorList.reduce((s: number, d: DoctorPerformanceSummary) => s + Number(d.pending || 0), 0);
-    const cancelledConsultations = doctorList.reduce((s: number, d: DoctorPerformanceSummary) => s + Number(d.cancelled || 0), 0);
-    const followUpConsultations = doctorList.reduce((s: number, d: DoctorPerformanceSummary) => s + Number(d.followUps || 0), 0);
-    const avgRating = totalDoctors > 0
-      ? doctorList.reduce((s: number, d: DoctorPerformanceSummary) => s + Number(d.rating || 4.8), 0) / totalDoctors
-      : 0;
-    const topDoc = doctorList.length > 0
-      ? [...doctorList].sort((a: DoctorPerformanceSummary, b: DoctorPerformanceSummary) => Number(b.completed || 0) - Number(a.completed || 0))[0]
-      : null;
+    const totalConsultations = doctorList.reduce(
+      (s: number, d: DoctorPerformanceSummary) =>
+        s + Number(d.appointments || 0),
+      0,
+    );
+    const completedConsultations = doctorList.reduce(
+      (s: number, d: DoctorPerformanceSummary) => s + Number(d.completed || 0),
+      0,
+    );
+    const pendingConsultations = doctorList.reduce(
+      (s: number, d: DoctorPerformanceSummary) => s + Number(d.pending || 0),
+      0,
+    );
+    const cancelledConsultations = doctorList.reduce(
+      (s: number, d: DoctorPerformanceSummary) => s + Number(d.cancelled || 0),
+      0,
+    );
+    const followUpConsultations = doctorList.reduce(
+      (s: number, d: DoctorPerformanceSummary) => s + Number(d.followUps || 0),
+      0,
+    );
+    const avgRating =
+      totalDoctors > 0
+        ? doctorList.reduce(
+            (s: number, d: DoctorPerformanceSummary) =>
+              s + Number(d.rating || 4.8),
+            0,
+          ) / totalDoctors
+        : 0;
+    const topDoc =
+      doctorList.length > 0
+        ? doctorList.toSorted(
+            (a: DoctorPerformanceSummary, b: DoctorPerformanceSummary) =>
+              Number(b.completed || 0) - Number(a.completed || 0),
+          )[0]
+        : null;
     return {
       summary: {
         totalDoctors,
@@ -166,6 +216,8 @@ export function DoctorReportScreen({
         pendingConsultations,
         cancelledConsultations,
         followUpConsultations,
+        averageConsultationDurationMinutes: 15,
+        doctorUtilizationPercentage: 85,
         patientSatisfaction: avgRating,
         topPerformingDepartment: topDoc?.department ?? "--",
       },
@@ -211,7 +263,7 @@ export function DoctorReportScreen({
 
   // Sorted records
   const sortedData = useMemo(() => {
-    return [...filteredData].sort((a, b) => {
+    return filteredData.toSorted((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
       if (typeof aVal === "number" && typeof bVal === "number") {
@@ -562,7 +614,7 @@ export function DoctorReportScreen({
               {/* TOP 6 KPI CARDS SECTION */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Card 1: Total Doctors */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Total Doctors
@@ -604,7 +656,7 @@ export function DoctorReportScreen({
                 </div>
 
                 {/* Card 2: Total Consultations */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Total Consultations
@@ -648,7 +700,7 @@ export function DoctorReportScreen({
                 </div>
 
                 {/* Card 3: Average Consultation Time */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Avg Consultation Time
@@ -686,7 +738,7 @@ export function DoctorReportScreen({
                 </div>
 
                 {/* Card 4: Follow-up Consultations */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Follow-up Consultations
@@ -725,7 +777,7 @@ export function DoctorReportScreen({
                 </div>
 
                 {/* Card 5: Doctor Utilization */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Doctor Utilization
@@ -754,7 +806,7 @@ export function DoctorReportScreen({
                 </div>
 
                 {/* Card 6: Patient Satisfaction */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                   <div>
                     <span className="text-xs font-semibold text-[#64748B]">
                       Patient Satisfaction
@@ -991,9 +1043,11 @@ export function DoctorReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {([] as Array<{ name?: string; color: string }>).map((entry) => (
-                            <Cell key={entry.name} fill={entry.color} />
-                          ))}
+                          {([] as Array<{ name?: string; color: string }>).map(
+                            (entry) => (
+                              <Cell key={entry.name} fill={entry.color} />
+                            ),
+                          )}
                         </Pie>
                         <Tooltip
                           contentStyle={{

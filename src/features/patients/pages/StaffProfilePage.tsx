@@ -19,7 +19,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { PP, RB } from "../constants/patient.fonts";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { usersApi } from "../../users/api/users.api";
 import { authService } from "../../auth/services/auth.service";
 import UserAvatar from "../../../common/components/UserAvatar";
@@ -715,7 +715,7 @@ export function StaffProfilePage({ currentRole }: { currentRole: Role }) {
                   onClick={() => photoInputRef.current?.click()}
                   disabled={isUploadingPhoto}
                   title="Upload Photo"
-                  className="absolute -bottom-1 -right-1 p-1 bg-[#0D47A1] text-white rounded-lg shadow-sm hover:bg-[#0c3d8a] transition-all cursor-pointer disabled:opacity-50 border border-white"
+                  className="absolute -bottom-1 -right-1 p-1 bg-[#0D47A1] text-white rounded-lg shadow-sm hover:bg-[#0c3d8a] transition-colors cursor-pointer disabled:opacity-50 border border-white"
                 >
                   <Camera size={11} />
                 </button>
@@ -750,7 +750,7 @@ export function StaffProfilePage({ currentRole }: { currentRole: Role }) {
                       type="button"
                       onClick={() => photoInputRef.current?.click()}
                       disabled={isUploadingPhoto}
-                      className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                      className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
                     >
                       {isUploadingPhoto ? (
                         <>
@@ -776,7 +776,7 @@ export function StaffProfilePage({ currentRole }: { currentRole: Role }) {
                         <button
                           type="button"
                           onClick={handleRemovePhoto}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                          className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                           title="Remove photo"
                         >
                           <Trash2 size={13} />
@@ -974,7 +974,7 @@ export function StaffProfilePage({ currentRole }: { currentRole: Role }) {
                   </div>
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className={`h-full transition-all duration-300 ${passStrength.color}`}
+                      className={`h-full transition-[width] duration-300 ${passStrength.color}`}
                       style={{ width: `${passStrength.score}%` }}
                     />
                   </div>

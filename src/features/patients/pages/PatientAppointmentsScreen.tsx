@@ -53,6 +53,248 @@ const appointmentListReducer = (
   }
 };
 
+type FilterState = {
+  reschedulingAppt: PatientAppointment | null;
+  activeTab: "all" | "upcoming" | "completed" | "cancelled";
+  searchQuery: string;
+  deptFilter: string;
+  doctorFilter: string;
+  statusFilter: string;
+  visitTypeFilter: string;
+  dateRangeFilter: string;
+  toastMsg: string | null;
+};
+
+type FilterAction =
+  | { type: "SET_RESCHEDULING"; appointment: PatientAppointment | null }
+  | { type: "SET_ACTIVE_TAB"; tab: "all" | "upcoming" | "completed" | "cancelled" }
+  | {
+      type: "SET_FILTER";
+      field:
+        | "searchQuery"
+        | "deptFilter"
+        | "doctorFilter"
+        | "statusFilter"
+        | "visitTypeFilter"
+        | "dateRangeFilter";
+      value: string;
+    }
+  | { type: "RESET_FILTERS" }
+  | { type: "SET_TOAST"; msg: string | null }
+  | { type: "CLEAR_TOAST" };
+
+const filterReducer = (
+  state: FilterState,
+  action: FilterAction,
+): FilterState => {
+  switch (action.type) {
+    case "SET_RESCHEDULING":
+      return { ...state, reschedulingAppt: action.appointment };
+    case "SET_ACTIVE_TAB":
+      return { ...state, activeTab: action.tab };
+    case "SET_FILTER":
+      return { ...state, [action.field]: action.value };
+    case "RESET_FILTERS":
+      return {
+        ...state,
+        activeTab: "all",
+        searchQuery: "",
+        deptFilter: "All",
+        doctorFilter: "All",
+        statusFilter: "All",
+        visitTypeFilter: "All",
+        dateRangeFilter: "All",
+      };
+    case "SET_TOAST":
+      return { ...state, toastMsg: action.msg };
+    case "CLEAR_TOAST":
+import { useState, useEffect, useCallback, useReducer } from "react";
+import {
+  Search,
+  Plus,
+  Filter,
+  Download,
+  RefreshCw,
+  ChevronRight,
+  Eye,
+  X,
+  Activity,
+  Calendar,
+  Stethoscope,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Building2,
+  TrendingUp,
+} from "lucide-react";
+import type { PatientAppointment, ApiPatientAppointment } from "../types/patient.types";
+import { PP, RB } from "../constants/patient.fonts";
+import { usePatientPortal } from "../context/usePatientPortal";
+import type { FamilyMember } from "./FamilyMembersManagement";
+import {
+  PatientCancelAppointmentDialog,
+  PatientRescheduleAppointmentDialog,
+} from "../components/PatientDialogs";
+import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentScreen";
+import { appointmentsApi } from "../../appointments/api/appointments.api";
+import type { ApiResponse } from "../../auth/types/auth.types";
+import { Pagination } from "../../../common/components/Pagination";
+import { to24Hour } from "../../../lib/time-utils";
+
+type AppointmentListState = {
+  appointments: PatientAppointment[];
+  viewMode: "list" | "book";
+};
+type AppointmentListAction =
+  | { type: "SET_VIEW_MODE"; viewMode: "list" | "book" }
+  | { type: "SET_APPOINTMENTS"; appointments: PatientAppointment[] }
+  | { type: "CLEAR_APPOINTMENTS" };
+const appointmentListReducer = (
+  state: AppointmentListState,
+  action: AppointmentListAction,
+): AppointmentListState => {
+  switch (action.type) {
+    case "SET_VIEW_MODE":
+      return { ...state, viewMode: action.viewMode };
+    case "SET_APPOINTMENTS":
+      return { ...state, appointments: action.appointments };
+    case "CLEAR_APPOINTMENTS":
+      return { ...state, appointments: [] };
+  }
+};
+
+type FilterState = {
+  reschedulingAppt: PatientAppointment | null;
+  activeTab: "all" | "upcoming" | "completed" | "cancelled";
+  searchQuery: string;
+  deptFilter: string;
+  doctorFilter: string;
+  statusFilter: string;
+  visitTypeFilter: string;
+  dateRangeFilter: string;
+  toastMsg: string | null;
+};
+
+type FilterAction =
+  | { type: "SET_RESCHEDULING"; appointment: PatientAppointment | null }
+  | { type: "SET_ACTIVE_TAB"; tab: "all" | "upcoming" | "completed" | "cancelled" }
+  | {
+      type: "SET_FILTER";
+      field:
+        | "searchQuery"
+        | "deptFilter"
+        | "doctorFilter"
+        | "statusFilter"
+        | "visitTypeFilter"
+        | "dateRangeFilter";
+      value: string;
+    }
+  | { type: "RESET_FILTERS" }
+  | { type: "SET_TOAST"; msg: string | null }
+  | { type: "CLEAR_TOAST" };
+
+const filterReducer = (
+  state: FilterState,
+  action: FilterAction,
+): FilterState => {
+  switch (action.type) {
+    case "SET_RESCHEDULING":
+      return { ...state, reschedulingAppt: action.appointment };
+    case "SET_ACTIVE_TAB":
+      return { ...state, activeTab: action.tab };
+    case "SET_FILTER":
+      return { ...state, [action.field]: action.value };
+    case "RESET_FILTERS":
+      return {
+        ...state,
+        activeTab: "all",
+        searchQuery: "",
+        deptFilter: "All",
+        doctorFilter: "All",
+        statusFilter: "All",
+        visitTypeFilter: "All",
+        dateRangeFilter: "All",
+      };
+    case "SET_TOAST":
+      return { ...state, toastMsg: action.msg };
+    case "CLEAR_TOAST":
+      return { ...state, toastMsg: null };
+    default:
+      return state;
+  }
+};
+
+type BookingDrawerState = {
+  showBookDrawer: boolean;
+  editingAppt: PatientAppointment | null;
+  selectedDetailsAppt: PatientAppointment | null;
+  formDept: string;
+  formDoctor: string;
+  formDate: string;
+  formTime: string;
+  formType: "In-Person OPD" | "Follow-up OPD";
+  formReason: string;
+  formNotes: string;
+  currentPage: number;
+};
+
+type BookingDrawerAction =
+  | { type: "OPEN_BOOK_DRAWER"; appt?: PatientAppointment }
+  | { type: "CLOSE_BOOK_DRAWER" }
+  | { type: "SET_BOOKING_FIELD"; field: keyof Omit<BookingDrawerState, "showBookDrawer" | "editingAppt" | "selectedDetailsAppt">; value: string | number }
+  | { type: "SET_SELECTED_DETAILS"; appt: PatientAppointment | null }
+  | { type: "SET_CURRENT_PAGE"; page: number };
+
+const bookingDrawerReducer = (
+  state: BookingDrawerState,
+  action: BookingDrawerAction,
+): BookingDrawerState => {
+  switch (action.type) {
+    case "OPEN_BOOK_DRAWER": {
+      if (action.appt) {
+        return {
+          ...state,
+          showBookDrawer: true,
+          editingAppt: action.appt,
+          formDept: action.appt.department,
+          formDoctor: action.appt.doctor,
+          formDate: action.appt.date,
+          formTime: action.appt.time,
+          formType: action.appt.visitType as "In-Person OPD" | "Follow-up OPD",
+          formReason: action.appt.reason,
+          formNotes: action.appt.notes,
+        };
+      }
+      return {
+        ...state,
+        showBookDrawer: true,
+        editingAppt: null,
+        formDept: "Cardiology",
+        formDoctor: "Dr. Arjun Mehta",
+        formDate: "2025-03-30",
+        formTime: "10:30 AM",
+        formType: "In-Person OPD",
+        formReason: "",
+        formNotes: "",
+      };
+    }
+    case "CLOSE_BOOK_DRAWER":
+      return {
+        ...state,
+        showBookDrawer: false,
+        editingAppt: null,
+      };
+    case "SET_BOOKING_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "SET_SELECTED_DETAILS":
+      return { ...state, selectedDetailsAppt: action.appt };
+    case "SET_CURRENT_PAGE":
+      return { ...state, currentPage: action.page };
+    default:
+      return state;
+  }
+};
+
 export function PatientAppointmentsScreen({
   activePatient: propActivePatient,
 }: {
@@ -85,15 +327,21 @@ export function PatientAppointmentsScreen({
     appointmentsApi
       .getPatientAppointments(targetMrn)
       .then((res: ApiResponse<unknown>) => {
+        type ApiPatientAppointmentWithType = ApiPatientAppointment & {
+          appointmentType?: string;
+        };
         const data = res?.data || res;
-        const list = Array.isArray(data)
+        const list: ApiPatientAppointmentWithType[] = Array.isArray(data)
           ? data
-          : Array.isArray(data?.content)
-            ? data.content
+          : data &&
+              typeof data === "object" &&
+              "content" in data &&
+              Array.isArray((data as { content?: unknown }).content)
+            ? ((data as { content: ApiPatientAppointmentWithType[] }).content)
             : [];
         if (list && list.length > 0) {
           const mapped: PatientAppointment[] = list.map(
-            (a: ApiPatientAppointment, idx: number) => {
+            (a: ApiPatientAppointmentWithType, idx: number) => {
               const dt = a.visitDateTime || a.appointmentDate || a.date || "";
               const datePart = dt.includes("T") ? dt.split("T")[0] : dt;
               const timePart = dt.includes("T")
@@ -204,42 +452,47 @@ export function PatientAppointmentsScreen({
   useEffect(() => {
     loadAppointments(activePatient);
   }, [activePatient, loadAppointments]);
-  const [reschedulingAppt, setReschedulingAppt] =
-    useState<PatientAppointment | null>(null);
-  const [activeTab, setActiveTab] = useState<
-    "all" | "upcoming" | "completed" | "cancelled"
-  >("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [deptFilter, setDeptFilter] = useState("All");
-  const [doctorFilter, setDoctorFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [visitTypeFilter, setVisitTypeFilter] = useState("All");
-  const [dateRangeFilter, setDateRangeFilter] = useState("All");
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  // Drawer states
-  const [showBookDrawer, setShowBookDrawer] = useState(false);
-  const [editingAppt, setEditingAppt] = useState<PatientAppointment | null>(
-    null,
-  );
-  const [selectedDetailsAppt, setSelectedDetailsAppt] =
-    useState<PatientAppointment | null>(null);
+  const [filterState, filterDispatch] = useReducer(filterReducer, {
+    reschedulingAppt: null,
+    activeTab: "all" as const,
+    searchQuery: "",
+    deptFilter: "All",
+    doctorFilter: "All",
+    statusFilter: "All",
+    visitTypeFilter: "All",
+    dateRangeFilter: "All",
+    toastMsg: null,
+  });
 
-  // Form states for booking drawer
-  const [formDept, setFormDept] = useState("Cardiology");
-  const [formDoctor, setFormDoctor] = useState("Dr. Arjun Mehta");
-  const [formDate, setFormDate] = useState("2025-03-30");
-  const [formTime, setFormTime] = useState("10:30 AM");
-  const [formType, setFormType] = useState<"In-Person OPD" | "Follow-up OPD">(
-    "In-Person OPD",
-  );
-  const [formReason, setFormReason] = useState("");
-  const [formNotes, setFormNotes] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  // Drawer & form states
+  const [booking, bookingDispatch] = useReducer(bookingDrawerReducer, {
+    showBookDrawer: false,
+    editingAppt: null,
+    selectedDetailsAppt: null,
+    formDept: "Cardiology",
+    formDoctor: "Dr. Arjun Mehta",
+    formDate: "2025-03-30",
+    formTime: "10:30 AM",
+    formType: "In-Person OPD",
+    formReason: "",
+    formNotes: "",
+    currentPage: 1,
+  });
+
+  const openBookDrawer = (appt?: PatientAppointment) =>
+    bookingDispatch({ type: "OPEN_BOOK_DRAWER", appt });
+  const closeBookDrawer = () => bookingDispatch({ type: "CLOSE_BOOK_DRAWER" });
+  const setBookingField = <K extends keyof Omit<BookingDrawerState, "showBookDrawer" | "editingAppt" | "selectedDetailsAppt">>(
+    field: K,
+    value: BookingDrawerState[K],
+  ) => bookingDispatch({ type: "SET_BOOKING_FIELD", field, value });
+  const setSelectedDetails = (appt: PatientAppointment | null) =>
+    bookingDispatch({ type: "SET_SELECTED_DETAILS", appt });
 
   const triggerToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3000);
+    filterDispatch({ type: "SET_TOAST", msg });
+    setTimeout(() => filterDispatch({ type: "CLEAR_TOAST" }), 3000);
   };
 
   if (listState.viewMode === "book") {
@@ -277,22 +530,22 @@ export function PatientAppointmentsScreen({
   const nextAppointment =
     upcomingAppointments.length > 0 ? upcomingAppointments[0] : null;
 
-  // Filtered Appointments
   const filteredAppointments = listState.appointments.filter((appt) => {
     // Tab Filter
-    if (
-      activeTab === "upcoming" &&
-      !["Confirmed", "Scheduled", "In Progress", "Pending"].includes(
-        appt.status,
+    if (filterState.activeTab === "upcoming") {
+      if (
+        !["Confirmed", "Scheduled", "In Progress", "Checked-In", "Pending"].includes(
+          appt.status,
+        )
       )
-    )
-      return false;
-    if (activeTab === "completed" && appt.status !== "Completed") return false;
-    if (activeTab === "cancelled" && appt.status !== "Cancelled") return false;
+        return false;
+    }
+    if (filterState.activeTab === "completed" && appt.status !== "Completed") return false;
+    if (filterState.activeTab === "cancelled" && appt.status !== "Cancelled") return false;
 
     // Search Query
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
+    if (filterState.searchQuery) {
+      const q = filterState.searchQuery.toLowerCase();
       const match =
         appt.id.toLowerCase().includes(q) ||
         appt.doctor.toLowerCase().includes(q) ||
@@ -302,10 +555,10 @@ export function PatientAppointmentsScreen({
     }
 
     // Dropdown Filters
-    if (deptFilter !== "All" && appt.department !== deptFilter) return false;
-    if (doctorFilter !== "All" && appt.doctor !== doctorFilter) return false;
-    if (statusFilter !== "All" && appt.status !== statusFilter) return false;
-    if (visitTypeFilter !== "All" && appt.visitType !== visitTypeFilter)
+    if (filterState.deptFilter !== "All" && appt.department !== filterState.deptFilter) return false;
+    if (filterState.doctorFilter !== "All" && appt.doctor !== filterState.doctorFilter) return false;
+    if (filterState.statusFilter !== "All" && appt.status !== filterState.statusFilter) return false;
+    if (filterState.visitTypeFilter !== "All" && appt.visitType !== filterState.visitTypeFilter)
       return false;
 
     return true;
@@ -315,77 +568,56 @@ export function PatientAppointmentsScreen({
   const pageSize = 10;
   const totalPages = Math.ceil(filteredAppointments.length / pageSize);
   const paginatedAppointments = filteredAppointments.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize,
+    (booking.currentPage - 1) * pageSize,
+    booking.currentPage * pageSize,
   );
 
   // Handlers
   const handleOpenBookDrawer = (apptToReschedule?: PatientAppointment) => {
-    if (apptToReschedule) {
-      setEditingAppt(apptToReschedule);
-      setFormDept(apptToReschedule.department);
-      setFormDoctor(apptToReschedule.doctor);
-      setFormDate(apptToReschedule.date);
-      setFormTime(apptToReschedule.time);
-      setFormType(
-        apptToReschedule.visitType as "In-Person OPD" | "Follow-up OPD",
-      );
-      setFormReason(apptToReschedule.reason);
-      setFormNotes(apptToReschedule.notes);
-    } else {
-      setEditingAppt(null);
-      setFormDept("Cardiology");
-      setFormDoctor("Dr. Arjun Mehta");
-      setFormDate("2025-03-30");
-      setFormTime("10:30 AM");
-      setFormType("In-Person OPD");
-      setFormReason("");
-      setFormNotes("");
-    }
-    setShowBookDrawer(true);
+    openBookDrawer(apptToReschedule);
   };
 
   const handleSaveAppointment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingAppt) {
+    if (booking.editingAppt) {
       dispatch({
         type: "SET_APPOINTMENTS",
         appointments: listState.appointments.map((a) =>
-          a.id === editingAppt.id
+          a.id === booking.editingAppt!.id
             ? {
                 ...a,
-                department: formDept,
-                doctor: formDoctor,
-                date: formDate,
-                time: formTime,
-                visitType: formType,
-                reason: formReason || a.reason,
-                notes: formNotes || a.notes,
+                department: booking.formDept,
+                doctor: booking.formDoctor,
+                date: booking.formDate,
+                time: booking.formTime,
+                visitType: booking.formType,
+                reason: booking.formReason || a.reason,
+                notes: booking.formNotes || a.notes,
                 status: "Scheduled",
               }
             : a,
         ),
       });
       triggerToast(
-        `Appointment ${editingAppt.id} successfully rescheduled for ${formDate} at ${formTime}!`,
+        `Appointment ${booking.editingAppt.id} successfully rescheduled for ${booking.formDate} at ${booking.formTime}!`,
       );
     } else {
       const newAppt: PatientAppointment = {
         id: `APT-2025-00${listState.appointments.length + 1}`,
-        date: formDate,
-        time: formTime,
-        doctor: formDoctor,
+        date: booking.formDate,
+        time: booking.formTime,
+        doctor: booking.formDoctor,
         specialty:
-          formDept === "Cardiology" ? "Senior Cardiologist" : "Specialist",
-        department: formDept,
-        visitType: formType,
+          booking.formDept === "Cardiology" ? "Senior Cardiologist" : "Specialist",
+        department: booking.formDept,
+        visitType: booking.formType,
         status: "Scheduled",
         roomLocation:
-          formType === "Follow-up OPD"
+          booking.formType === "Follow-up OPD"
             ? "Wing A, OPD Room 202"
             : "Wing A, OPD Room 102",
-        reason: formReason || "General Consultation",
-        notes: formNotes || "Booked via Patient Portal",
+        reason: booking.formReason || "General Consultation",
+        notes: booking.formNotes || "Booked via Patient Portal",
         consultationStatus: "Scheduled",
         prescriptionStatus: "Pending Consultation",
         billingStatus: "Pending ($65.00)",
@@ -394,7 +626,7 @@ export function PatientAppointmentsScreen({
       dispatch({ type: "SET_APPOINTMENTS", appointments: [newAppt, ...listState.appointments] });
       triggerToast(`New appointment ${newAppt.id} booked successfully!`);
     }
-    setShowBookDrawer(false);
+    closeBookDrawer();
   };
 
   const handleCancelAppointment = async (id: string, reason: string, comments?: string) => {
@@ -408,13 +640,7 @@ export function PatientAppointmentsScreen({
   };
 
   const handleResetFilters = () => {
-    setDeptFilter("All");
-    setDoctorFilter("All");
-    setStatusFilter("All");
-    setVisitTypeFilter("All");
-    setDateRangeFilter("All");
-    setSearchQuery("");
-    setActiveTab("all");
+    filterDispatch({ type: "RESET_FILTERS" });
   };
 
   return (
@@ -423,10 +649,10 @@ export function PatientAppointmentsScreen({
       style={{ fontFamily: RB }}
     >
       {/* Toast Feedback Banner */}
-      {toastMsg && (
+       {filterState.toastMsg && (
         <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200">
           <CheckCircle2 size={16} className="text-[#66BB6A]" />
-          <span>{toastMsg}</span>
+           <span>{filterState.toastMsg}</span>
         </div>
       )}
 
@@ -575,13 +801,19 @@ export function PatientAppointmentsScreen({
                 size={15}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
               />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by Doctor Name, Appointment ID, Department..."
-                className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-              />
+               <input
+                 type="text"
+                 value={filterState.searchQuery}
+                 onChange={(e) =>
+                   filterDispatch({
+                     type: "SET_FILTER",
+                     field: "searchQuery",
+                     value: e.target.value,
+                   })
+                 }
+                 placeholder="Search by Doctor Name, Appointment ID, Department..."
+                 className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
+               />
             </div>
 
             {/* Filter Dropdowns & Controls */}
@@ -592,11 +824,17 @@ export function PatientAppointmentsScreen({
               </div>
 
               {/* Status Filter */}
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-              >
+               <select
+                 value={filterState.statusFilter}
+                 onChange={(e) =>
+                   filterDispatch({
+                     type: "SET_FILTER",
+                     field: "statusFilter",
+                     value: e.target.value,
+                   })
+                 }
+                 className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+               >
                 <option value="All">All Statuses</option>
                 <option value="Confirmed">Confirmed</option>
                 <option value="Scheduled">Scheduled</option>
@@ -606,11 +844,17 @@ export function PatientAppointmentsScreen({
               </select>
 
               {/* Department Filter */}
-              <select
-                value={deptFilter}
-                onChange={(e) => setDeptFilter(e.target.value)}
-                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-              >
+               <select
+                 value={filterState.deptFilter}
+                 onChange={(e) =>
+                   filterDispatch({
+                     type: "SET_FILTER",
+                     field: "deptFilter",
+                     value: e.target.value,
+                   })
+                 }
+                 className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+               >
                 <option value="All">All Departments</option>
                 <option value="Cardiology">Cardiology</option>
                 <option value="General Medicine">General Medicine</option>
@@ -620,11 +864,17 @@ export function PatientAppointmentsScreen({
               </select>
 
               {/* Visit Type Filter */}
-              <select
-                value={visitTypeFilter}
-                onChange={(e) => setVisitTypeFilter(e.target.value)}
-                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-              >
+               <select
+                 value={filterState.visitTypeFilter}
+                 onChange={(e) =>
+                   filterDispatch({
+                     type: "SET_FILTER",
+                     field: "visitTypeFilter",
+                     value: e.target.value,
+                   })
+                 }
+                 className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+               >
                 <option value="All">All Visit Types</option>
                 <option value="In-Person OPD">In-Person OPD</option>
                 <option value="Follow-up OPD">Follow-up OPD</option>
@@ -632,11 +882,17 @@ export function PatientAppointmentsScreen({
               </select>
 
               {/* Date Range Filter */}
-              <select
-                value={dateRangeFilter}
-                onChange={(e) => setDateRangeFilter(e.target.value)}
-                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-              >
+               <select
+                 value={filterState.dateRangeFilter}
+                 onChange={(e) =>
+                   filterDispatch({
+                     type: "SET_FILTER",
+                     field: "dateRangeFilter",
+                     value: e.target.value,
+                   })
+                 }
+                 className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+               >
                 <option value="All">All Date Ranges</option>
                 <option value="Today">Today</option>
                 <option value="This Week">This Week</option>
@@ -644,13 +900,13 @@ export function PatientAppointmentsScreen({
               </select>
 
               {/* Reset Filters Action */}
-              {(deptFilter !== "All" ||
-                doctorFilter !== "All" ||
-                statusFilter !== "All" ||
-                visitTypeFilter !== "All" ||
-                dateRangeFilter !== "All" ||
-                searchQuery ||
-                activeTab !== "all") && (
+               {(filterState.deptFilter !== "All" ||
+                 filterState.doctorFilter !== "All" ||
+                 filterState.statusFilter !== "All" ||
+                 filterState.visitTypeFilter !== "All" ||
+                 filterState.dateRangeFilter !== "All" ||
+                 filterState.searchQuery ||
+                 filterState.activeTab !== "all") && (
                 <button
                   onClick={handleResetFilters}
                   className="text-xs text-[#0D47A1] font-semibold hover:underline px-2 py-1 flex items-center gap-1"
@@ -668,16 +924,17 @@ export function PatientAppointmentsScreen({
               { id: "upcoming", label: "Upcoming", count: upcomingCount },
               { id: "completed", label: "Completed", count: completedCount },
               { id: "cancelled", label: "Cancelled", count: cancelledCount },
-            ].map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() =>
-                    setActiveTab(
-                      tab.id as "all" | "upcoming" | "completed" | "cancelled",
-                    )
-                  }
+             ].map((tab) => {
+               const isActive = filterState.activeTab === tab.id;
+               return (
+                 <button
+                   key={tab.id}
+                   onClick={() =>
+                     filterDispatch({
+                       type: "SET_ACTIVE_TAB",
+                       tab: tab.id as "all" | "upcoming" | "completed" | "cancelled",
+                     })
+                   }
                   className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors border-b-2 -mb-0.5 whitespace-nowrap ${
                     isActive
                       ? "border-[#0D47A1] text-[#0D47A1]"
@@ -859,7 +1116,7 @@ export function PatientAppointmentsScreen({
                               <div className="flex items-center justify-end gap-1">
                                 {/* View Details */}
                                 <button
-                                  onClick={() => setSelectedDetailsAppt(appt)}
+                                  onClick={() => setSelectedDetails(appt)}
                                   className="p-1.5 text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
                                   title="View Appointment Details"
                                 >
@@ -869,7 +1126,7 @@ export function PatientAppointmentsScreen({
                                 {/* Reschedule */}
                                 {isUpcoming && (
                                   <button
-                                    onClick={() => setReschedulingAppt(appt)}
+                                     onClick={() => filterDispatch({ type: "SET_RESCHEDULING", appointment: appt })}
                                     className="p-1.5 text-slate-500 hover:text-[#009688] hover:bg-teal-50 rounded-lg transition-colors"
                                     title="Reschedule Appointment"
                                   >
@@ -898,9 +1155,9 @@ export function PatientAppointmentsScreen({
 
                 {/* Pagination */}
                 <Pagination
-                  currentPage={currentPage}
+                  currentPage={booking.currentPage}
                   totalPages={totalPages}
-                  onPageChange={setCurrentPage}
+                  onPageChange={(page) => bookingDispatch({ type: "SET_CURRENT_PAGE", page })}
                   pageSize={pageSize}
                   totalCount={filteredAppointments.length}
                 />
@@ -988,7 +1245,7 @@ export function PatientAppointmentsScreen({
                         </span>
                         <div className="flex items-center gap-1.5">
                           <button
-                            onClick={() => setSelectedDetailsAppt(appt)}
+                            onClick={() => setSelectedDetails(appt)}
                             className="px-3 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-200"
                           >
                             Details
@@ -996,14 +1253,14 @@ export function PatientAppointmentsScreen({
                           {isUpcoming && (
                             <>
                               <button
-                                onClick={() => setReschedulingAppt(appt)}
-                                className="px-3 py-1.5 bg-blue-50 text-[#0D47A1] text-xs font-bold rounded-xl hover:bg-blue-100"
+                                onClick={() => filterDispatch({ type: "SET_RESCHEDULING", appointment: appt })}
+                                className="px-3 py-1.5 bg-blue-50 text-[#0D47A1] text-xs font-semibold rounded-xl hover:bg-blue-100"
                               >
                                 Reschedule
                               </button>
                               <button
                                 onClick={() => setCancellingAppt(appt)}
-                                className="px-3 py-1.5 bg-red-50 text-[#EF4444] text-xs font-bold rounded-xl hover:bg-red-100"
+                                className="px-3 py-1.5 bg-red-50 text-red-600 text-xs font-semibold rounded-xl hover:bg-red-100"
                               >
                                 Cancel
                               </button>
@@ -1014,110 +1271,9 @@ export function PatientAppointmentsScreen({
                     </div>
                   );
                 })}
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={setCurrentPage}
-                  pageSize={pageSize}
-                  totalCount={filteredAppointments.length}
-                />
               </div>
             </>
           )}
-        </div>
-
-        {/* Right Column (4 cols - Context Panel) */}
-        <div className="lg:col-span-4 space-y-4">
-          {/* Card 1: Next Appointment Snapshot */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Clock size={15} className="text-[#0D47A1]" /> Next Appointment
-              </h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] bg-blue-50 text-[#0D47A1] font-bold">
-                Upcoming
-              </span>
-            </div>
-
-            {nextAppointment ? (
-              <div className="p-4 rounded-xl bg-linear-to-br from-blue-50/80 to-slate-50 border border-blue-100 space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#0D47A1] text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-sm">
-                    {nextAppointment.doctor
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .replace("D", "")
-                      .replace("r", "")
-                      .replace(".", "") || "DR"}
-                  </div>
-                  <div>
-                    <h4
-                      className="text-xs font-bold text-[#111827]"
-                      style={{ fontFamily: PP }}
-                    >
-                      {nextAppointment.doctor}
-                    </h4>
-                    <p className="text-[11px] text-[#64748B]">
-                      {nextAppointment.specialty} · {nextAppointment.department}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5 text-xs text-[#111827] pt-2 border-t border-blue-100/60">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#64748B]">Date & Time:</span>
-                    <span className="font-bold text-[#0D47A1]">
-                      {nextAppointment.date} @ {nextAppointment.time}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#64748B]">Location:</span>
-                    <span className="font-semibold text-slate-700">
-                      {nextAppointment.roomLocation}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#64748B]">Visit Type:</span>
-                    <span className="font-medium text-[#009688]">
-                      {nextAppointment.visitType}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pt-2 flex items-center gap-2">
-                  <button
-                    onClick={() => setSelectedDetailsAppt(nextAppointment)}
-                    className="flex-1 py-2 rounded-xl bg-white border border-[#E5E7EB] text-[#111827] text-xs font-semibold hover:bg-slate-50 transition-colors"
-                  >
-                    View Details
-                  </button>
-                  <button
-                    onClick={() => setReschedulingAppt(nextAppointment)}
-                    className="flex-1 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors"
-                  >
-                    Reschedule
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="p-6 text-center bg-slate-50 rounded-xl border border-slate-100 space-y-2">
-                <Calendar size={28} className="mx-auto text-slate-400" />
-                <p className="text-xs text-[#64748B]">
-                  You have no upcoming appointments scheduled.
-                </p>
-                <button
-                  onClick={() => handleOpenBookDrawer()}
-                  className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors"
-                  style={{ fontFamily: PP }}
-                >
-                  Book Appointment
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Card 2: Appointment Statistics */}
@@ -1224,7 +1380,7 @@ export function PatientAppointmentsScreen({
 
               <button
                 onClick={() => {
-                  if (nextAppointment) setSelectedDetailsAppt(nextAppointment);
+                  if (nextAppointment) setSelectedDetails(nextAppointment);
                   else triggerToast("No upcoming appointment to view details.");
                 }}
                 className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-100 transition-colors flex items-center justify-between"
@@ -1236,15 +1392,16 @@ export function PatientAppointmentsScreen({
               </button>
             </div>
           </div>
+
         </div>
       </div>
 
       {/* ── 4. RIGHT DRAWER: BOOK / RESCHEDULE APPOINTMENT ── */}
-      {showBookDrawer && (
+      {booking.showBookDrawer && (
         <div className="fixed inset-0 z-50 overflow-hidden">
           <div
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
-            onClick={() => setShowBookDrawer(false)}
+            onClick={() => closeBookDrawer()}
           />
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
             <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 animate-in slide-in-from-right duration-200">
@@ -1255,8 +1412,8 @@ export function PatientAppointmentsScreen({
                     className="text-base font-bold"
                     style={{ fontFamily: PP }}
                   >
-                    {editingAppt
-                      ? `Reschedule ${editingAppt.id}`
+                    {booking.editingAppt
+                      ? `Reschedule ${booking.editingAppt.id}`
                       : "Book New Appointment"}
                   </h2>
                   <p className="text-xs text-blue-200 mt-0.5">
@@ -1264,7 +1421,7 @@ export function PatientAppointmentsScreen({
                   </p>
                 </div>
                 <button
-                  onClick={() => setShowBookDrawer(false)}
+                  onClick={() => closeBookDrawer()}
                   className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10"
                 >
                   <X size={20} />
@@ -1286,8 +1443,8 @@ export function PatientAppointmentsScreen({
                     1. Select Department
                   </label>
                   <select
-                    value={formDept}
-                    onChange={(e) => setFormDept(e.target.value)}
+                    value={booking.formDept}
+                    onChange={(e) => setBookingField("formDept", e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
                   >
                     <option value="Cardiology">
@@ -1311,8 +1468,8 @@ export function PatientAppointmentsScreen({
                     2. Select Doctor
                   </label>
                   <select
-                    value={formDoctor}
-                    onChange={(e) => setFormDoctor(e.target.value)}
+                    value={booking.formDoctor}
+                    onChange={(e) => setBookingField("formDoctor", e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
                   >
                     <option value="Dr. Arjun Mehta">
@@ -1343,9 +1500,9 @@ export function PatientAppointmentsScreen({
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
-                      onClick={() => setFormType("In-Person OPD")}
+                      onClick={() => setBookingField("formType", "In-Person OPD")}
                       className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
-                        formType === "In-Person OPD"
+                        booking.formType === "In-Person OPD"
                           ? "border-[#0D47A1] bg-blue-50 text-[#0D47A1]"
                           : "border-[#E5E7EB] bg-slate-50 text-slate-600"
                       }`}
@@ -1354,9 +1511,9 @@ export function PatientAppointmentsScreen({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormType("Follow-up OPD")}
+                      onClick={() => setBookingField("formType", "Follow-up OPD")}
                       className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
-                        formType === "Follow-up OPD"
+                        booking.formType === "Follow-up OPD"
                           ? "border-[#0D47A1] bg-blue-50 text-[#0D47A1]"
                           : "border-[#E5E7EB] bg-slate-50 text-slate-600"
                       }`}
@@ -1372,8 +1529,8 @@ export function PatientAppointmentsScreen({
                     </span>
                     <input
                       type="date"
-                      value={formDate}
-                      onChange={(e) => setFormDate(e.target.value)}
+                      value={booking.formDate}
+                      onChange={(e) => setBookingField("formDate", e.target.value)}
                       className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
                     />
                   </div>
@@ -1395,9 +1552,9 @@ export function PatientAppointmentsScreen({
                         <button
                           key={t}
                           type="button"
-                          onClick={() => setFormTime(t)}
+                          onClick={() => setBookingField("formTime", t)}
                           className={`py-1.5 rounded-lg border text-xs font-semibold text-center transition-colors ${
-                            formTime === t
+                            booking.formTime === t
                               ? "border-[#0D47A1] bg-[#0D47A1] text-white shadow-sm"
                               : "border-[#E5E7EB] bg-slate-50 text-[#111827] hover:bg-slate-100"
                           }`}
@@ -1426,8 +1583,8 @@ export function PatientAppointmentsScreen({
                       type="text"
                       required
                       placeholder="e.g. Routine follow-up, BP check, Chest tightness..."
-                      value={formReason}
-                      onChange={(e) => setFormReason(e.target.value)}
+                      value={booking.formReason}
+                      onChange={(e) => setBookingField("formReason", e.target.value)}
                       className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
                     />
                   </div>
@@ -1439,8 +1596,8 @@ export function PatientAppointmentsScreen({
                     <textarea
                       rows={2}
                       placeholder="Any symptoms, ongoing medications, or special requests..."
-                      value={formNotes}
-                      onChange={(e) => setFormNotes(e.target.value)}
+                      value={booking.formNotes}
+                      onChange={(e) => setBookingField("formNotes", e.target.value)}
                       className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
                     />
                   </div>
@@ -1458,31 +1615,31 @@ export function PatientAppointmentsScreen({
                     <div>
                       Doctor:{" "}
                       <span className="font-semibold text-[#111827]">
-                        {formDoctor}
+                        {booking.formDoctor}
                       </span>
                     </div>
                     <div>
                       Dept:{" "}
                       <span className="font-semibold text-[#111827]">
-                        {formDept}
+                        {booking.formDept}
                       </span>
                     </div>
                     <div>
                       Date:{" "}
                       <span className="font-semibold text-[#111827]">
-                        {formDate}
+                        {booking.formDate}
                       </span>
                     </div>
                     <div>
                       Time:{" "}
                       <span className="font-semibold text-[#111827]">
-                        {formTime}
+                        {booking.formTime}
                       </span>
                     </div>
                     <div>
                       Type:{" "}
                       <span className="font-semibold text-[#111827]">
-                        {formType}
+                        {booking.formType}
                       </span>
                     </div>
                     <div>
@@ -1499,11 +1656,11 @@ export function PatientAppointmentsScreen({
                     className="flex-1 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm"
                     style={{ fontFamily: PP }}
                   >
-                    {editingAppt ? "Confirm Reschedule" : "Confirm Appointment"}
+                    {booking.editingAppt ? "Confirm Reschedule" : "Confirm Appointment"}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setShowBookDrawer(false)}
+                    onClick={() => closeBookDrawer()}
                     className="px-4 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-xs font-medium text-[#64748B] hover:bg-slate-50"
                   >
                     Cancel
@@ -1516,11 +1673,11 @@ export function PatientAppointmentsScreen({
       )}
 
       {/* ── 5. RIGHT DRAWER: APPOINTMENT DETAILS ── */}
-      {selectedDetailsAppt && (
+      {booking.selectedDetailsAppt && (
         <div className="fixed inset-0 z-50 overflow-hidden">
           <div
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
-            onClick={() => setSelectedDetailsAppt(null)}
+            onClick={() => setSelectedDetails(null)}
           />
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
             <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 animate-in slide-in-from-right duration-200">
@@ -1534,11 +1691,11 @@ export function PatientAppointmentsScreen({
                     Appointment Details
                   </h2>
                   <span className="font-mono text-xs text-blue-200">
-                    {selectedDetailsAppt.id}
+                    {booking.selectedDetailsAppt.id}
                   </span>
                 </div>
                 <button
-                  onClick={() => setSelectedDetailsAppt(null)}
+                  onClick={() => setSelectedDetails(null)}
                   className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10"
                 >
                   <X size={20} />
@@ -1561,11 +1718,11 @@ export function PatientAppointmentsScreen({
                         className="text-sm font-bold text-[#111827]"
                         style={{ fontFamily: PP }}
                       >
-                        {selectedDetailsAppt.doctor}
+                        {booking.selectedDetailsAppt.doctor}
                       </h3>
                       <div className="text-xs text-[#64748B]">
-                        {selectedDetailsAppt.specialty} ·{" "}
-                        {selectedDetailsAppt.department}
+                        {booking.selectedDetailsAppt.specialty} ·{" "}
+                        {booking.selectedDetailsAppt.department}
                       </div>
                     </div>
                   </div>
@@ -1576,7 +1733,7 @@ export function PatientAppointmentsScreen({
                         Appointment Date
                       </span>
                       <span className="font-semibold text-[#111827]">
-                        {selectedDetailsAppt.date}
+                        {booking.selectedDetailsAppt.date}
                       </span>
                     </div>
                     <div>
@@ -1584,7 +1741,7 @@ export function PatientAppointmentsScreen({
                         Appointment Time
                       </span>
                       <span className="font-semibold text-[#0D47A1]">
-                        {selectedDetailsAppt.time}
+                        {booking.selectedDetailsAppt.time}
                       </span>
                     </div>
                     <div>
@@ -1592,7 +1749,7 @@ export function PatientAppointmentsScreen({
                         Visit Type
                       </span>
                       <span className="font-medium text-slate-700">
-                        {selectedDetailsAppt.visitType}
+                        {booking.selectedDetailsAppt.visitType}
                       </span>
                     </div>
                     <div>
@@ -1600,7 +1757,7 @@ export function PatientAppointmentsScreen({
                         Hospital Location
                       </span>
                       <span className="font-medium text-slate-700">
-                        {selectedDetailsAppt.roomLocation}
+                        {booking.selectedDetailsAppt.roomLocation}
                       </span>
                     </div>
                   </div>
@@ -1620,7 +1777,7 @@ export function PatientAppointmentsScreen({
                         Appointment Status
                       </span>
                       <span className="font-bold text-[#66BB6A]">
-                        {selectedDetailsAppt.status}
+                        {booking.selectedDetailsAppt.status}
                       </span>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-50 border border-gray-100">
@@ -1628,7 +1785,7 @@ export function PatientAppointmentsScreen({
                         Consultation Status
                       </span>
                       <span className="font-bold text-[#0D47A1]">
-                        {selectedDetailsAppt.consultationStatus}
+                        {booking.selectedDetailsAppt.consultationStatus}
                       </span>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-50 border border-gray-100">
@@ -1636,7 +1793,7 @@ export function PatientAppointmentsScreen({
                         Prescription Status
                       </span>
                       <span className="font-medium text-slate-700">
-                        {selectedDetailsAppt.prescriptionStatus}
+                        {booking.selectedDetailsAppt.prescriptionStatus}
                       </span>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-50 border border-gray-100">
@@ -1644,7 +1801,7 @@ export function PatientAppointmentsScreen({
                         Billing Status
                       </span>
                       <span className="font-bold text-amber-600">
-                        {selectedDetailsAppt.billingStatus}
+                        {booking.selectedDetailsAppt.billingStatus}
                       </span>
                     </div>
                   </div>
@@ -1663,7 +1820,7 @@ export function PatientAppointmentsScreen({
                       Reason for Visit
                     </span>
                     <p className="text-xs text-[#111827] mt-0.5 font-medium">
-                      {selectedDetailsAppt.reason}
+                      {booking.selectedDetailsAppt.reason}
                     </p>
                   </div>
                   <div className="pt-2 border-t border-gray-50">
@@ -1671,7 +1828,7 @@ export function PatientAppointmentsScreen({
                       Doctor / Staff Notes
                     </span>
                     <p className="text-xs text-slate-600 mt-0.5">
-                      {selectedDetailsAppt.notes}
+                      {booking.selectedDetailsAppt.notes}
                     </p>
                   </div>
                 </div>
@@ -1682,7 +1839,7 @@ export function PatientAppointmentsScreen({
                 <button
                   onClick={() =>
                     triggerToast(
-                      `Downloading slip for ${selectedDetailsAppt.id}...`,
+                      `Downloading slip for ${booking.selectedDetailsAppt!.id}...`,
                     )
                   }
                   className="flex-1 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-2 shadow-sm"
@@ -1692,9 +1849,9 @@ export function PatientAppointmentsScreen({
                 </button>
                 <button
                   onClick={() => {
-                    const apptToReschedule = selectedDetailsAppt;
-                    setSelectedDetailsAppt(null);
-                    setReschedulingAppt(apptToReschedule);
+                    const apptToReschedule = booking.selectedDetailsAppt;
+                    setSelectedDetails(null);
+                    filterDispatch({ type: "SET_RESCHEDULING", appointment: apptToReschedule });
                   }}
                   className="px-4 py-2.5 rounded-xl border border-blue-200 text-xs font-bold text-[#0D47A1] bg-blue-50 hover:bg-blue-100 transition-colors flex items-center gap-1.5"
                   style={{ fontFamily: PP }}
@@ -1703,8 +1860,8 @@ export function PatientAppointmentsScreen({
                 </button>
                 <button
                   onClick={() => {
-                    const apptToCancel = selectedDetailsAppt;
-                    setSelectedDetailsAppt(null);
+                    const apptToCancel = booking.selectedDetailsAppt;
+                    setSelectedDetails(null);
                     setCancellingAppt(apptToCancel);
                   }}
                   className="px-4 py-2.5 rounded-xl border border-red-200 text-xs font-bold text-[#EF4444] bg-red-50 hover:bg-red-100 transition-colors flex items-center gap-1.5"
@@ -1713,7 +1870,7 @@ export function PatientAppointmentsScreen({
                   <XCircle size={15} /> Cancel
                 </button>
                 <button
-                  onClick={() => setSelectedDetailsAppt(null)}
+                  onClick={() => setSelectedDetails(null)}
                   className="px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:bg-slate-50"
                 >
                   Close
@@ -1739,10 +1896,10 @@ export function PatientAppointmentsScreen({
       />
 
       {/* ── RESCHEDULE APPOINTMENT DIALOG ── */}
-      <PatientRescheduleAppointmentDialog
-        appointment={reschedulingAppt}
-        isOpen={!!reschedulingAppt}
-        onClose={() => setReschedulingAppt(null)}
+       <PatientRescheduleAppointmentDialog
+         appointment={filterState.reschedulingAppt}
+         isOpen={!!filterState.reschedulingAppt}
+         onClose={() => filterDispatch({ type: "SET_RESCHEDULING", appointment: null })}
         onConfirmReschedule={async (id, newDate, newTime, reason) => {
           try {
             await appointmentsApi.rescheduleAppointment(id, {
@@ -1759,7 +1916,7 @@ export function PatientAppointmentsScreen({
           }
         }}
         onViewDetails={(appt) => {
-          setSelectedDetailsAppt(appt);
+          setSelectedDetails(appt);
         }}
       />
     </div>

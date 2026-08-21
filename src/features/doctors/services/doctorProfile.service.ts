@@ -1,6 +1,6 @@
 import { doctorsApi } from "../api/doctors.api";
 import { usersApi } from "../../users/api/users.api";
-import { useAuthStore } from "../../auth/index";
+import { useAuthStore } from "../auth/store/auth.store";
 import type { AdminUpdateStaffData } from "../../users/types/users.types";
 import { appointmentService } from "../../appointments/services/appointment.service";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";

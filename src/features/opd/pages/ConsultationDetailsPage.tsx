@@ -8,7 +8,7 @@ import {
   Shield,
   AlertCircle,
 } from "lucide-react";
-import { usePermissions } from "../../../permissions";
+import { usePermissions } from "../../../permissions/usePermissions";
 import { useConsultation } from "../hooks/useConsultation";
 import type { ConsultationRecord } from "../types/consultation";
 
@@ -215,7 +215,7 @@ export function ConsultationDetailsPage({
             {onBack && (
               <button
                 onClick={onBack}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-all shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-colors shadow-sm"
                 style={{ fontFamily: PP }}
               >
                 <ArrowLeft size={14} />
@@ -229,7 +229,7 @@ export function ConsultationDetailsPage({
                   onClick={() =>
                     alert(`Downloading Consultation PDF (${record.id})`)
                   }
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#0D47A1] hover:bg-blue-50 text-xs font-semibold transition-all shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#0D47A1] hover:bg-blue-50 text-xs font-semibold transition-colors shadow-sm"
                   style={{ fontFamily: PP }}
                 >
                   <Download size={14} />
@@ -239,7 +239,7 @@ export function ConsultationDetailsPage({
                   onClick={() =>
                     alert(`Printing Consultation Summary for ${record.id}`)
                   }
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold transition-all shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold transition-colors shadow-sm"
                   style={{ fontFamily: PP }}
                 >
                   <Printer size={14} />
@@ -253,7 +253,7 @@ export function ConsultationDetailsPage({
                     onClick={() =>
                       alert(`Prescription document printed for ${record.id}`)
                     }
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#009688] hover:bg-teal-50 text-xs font-semibold transition-all shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#009688] hover:bg-teal-50 text-xs font-semibold transition-colors shadow-sm"
                     style={{ fontFamily: PP }}
                   >
                     <Printer size={14} />
@@ -263,7 +263,7 @@ export function ConsultationDetailsPage({
                 {can("CONSULTATION_UPDATE") && onEditConsultation && (
                   <button
                     onClick={() => onEditConsultation(record.id)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold transition-all shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold transition-colors shadow-sm"
                     style={{ fontFamily: PP }}
                   >
                     <Edit3 size={14} />

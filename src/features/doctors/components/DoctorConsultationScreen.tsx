@@ -23,7 +23,7 @@ import {
 import { PP, RB } from "../constants/doctors.constants";
 import { Card } from "./Card";
 import { Avatar } from "./Avatar";
-import { appointmentService } from "../../appointments";
+import { appointmentService } from "../../appointments/services/appointment.service";
 
 import {
   ResponsiveContainer,
@@ -406,7 +406,7 @@ export function DoctorConsultationScreen({
             <button
               key={id}
               onClick={() => setTab(id)}
-              className={`flex items-center gap-1.5 px-4 py-3.5 text-xs font-semibold border-b-2 transition-all -mb-px ${
+              className={`flex items-center gap-1.5 px-4 py-3.5 text-xs font-semibold border-b-2 transition-colors -mb-px ${
                 tab === id
                   ? "border-[#0D47A1] text-[#0D47A1]"
                   : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-200"
@@ -898,7 +898,7 @@ export function DoctorConsultationScreen({
                           Refill: {m.refill}
                         </div>
                       </div>
-                      <button className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-[#EF4444] transition-all p-1">
+                      <button className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-[#EF4444] transition-colors transition-opacity p-1">
                         <X size={13} />
                       </button>
                     </div>

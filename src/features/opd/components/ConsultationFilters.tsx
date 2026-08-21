@@ -46,12 +46,8 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
   placeholder = "Search by Patient Name, MRN, Consultation ID or Mobile Number...",
   showStatusFilter = true,
   showVisitTypeFilter = true,
-  doctorOptions = [
-    { value: "All", label: "All Doctors" },
-  ],
-  departmentOptions = [
-    { value: "All", label: "All Departments" },
-  ],
+  doctorOptions = [{ value: "All", label: "All Doctors" }],
+  departmentOptions = [{ value: "All", label: "All Departments" }],
 }) => {
   return (
     <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-4">
@@ -65,7 +61,7 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/20 focus:border-[#0D47A1] transition-all"
+          className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/20 focus:border-[#0D47A1] transition-colors"
           style={{ fontFamily: RB }}
         />
         {searchQuery && (
@@ -151,16 +147,11 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
               className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
               style={{ fontFamily: RB }}
             >
-              <option value="All">All Statuses</option>
-              <option value="BOOKED">Booked</option>
-              <option value="WAITING_FOR_VITALS">Waiting for Vitals</option>
-              <option value="WAITING_FOR_DOCTOR_CALL">Waiting for Doctor</option>
+              <option value="All">All Doctor Statuses</option>
+              <option value="WAITING_FOR_DOCTOR">Waiting for Doctor</option>
               <option value="CALLED">Called</option>
               <option value="IN_CONSULTATION">In Consultation</option>
               <option value="COMPLETED">Completed</option>
-              <option value="CANCELLED">Cancelled</option>
-              <option value="NO_SHOW">No Show</option>
-              <option value="FOLLOW_UP_SCHEDULED">Follow-up Scheduled</option>
             </select>
           </div>
         )}
@@ -190,7 +181,9 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
 
       <div className="flex items-center justify-between pt-2">
         <div className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>
-          Showing <span className="font-semibold text-[#111827]">{resultCount}</span> consultations
+          Showing{" "}
+          <span className="font-semibold text-[#111827]">{resultCount}</span>{" "}
+          consultations
         </div>
         <div className="flex items-center gap-2">
           <button

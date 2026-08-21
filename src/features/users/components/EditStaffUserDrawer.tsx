@@ -613,7 +613,7 @@ export function EditStaffUserDrawer({
                   onClick={() => photoInputRef.current?.click()}
                   disabled={isUploadingPhoto}
                   title="Upload Photo"
-                  className="absolute -bottom-1 -right-1 p-1 bg-[#009688] text-white rounded-lg shadow-sm hover:bg-[#00796B] transition-all cursor-pointer disabled:opacity-50 border border-white"
+                  className="absolute -bottom-1 -right-1 p-1 bg-[#009688] text-white rounded-lg shadow-sm hover:bg-[#00796B] transition-colors cursor-pointer disabled:opacity-50 border border-white"
                 >
                   <Camera size={11} />
                 </button>
@@ -648,7 +648,7 @@ export function EditStaffUserDrawer({
                       type="button"
                       onClick={() => photoInputRef.current?.click()}
                       disabled={isUploadingPhoto}
-                      className="px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                      className="px-2.5 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
                     >
                       {isUploadingPhoto ? (
                         <>
@@ -673,7 +673,7 @@ export function EditStaffUserDrawer({
                       <button
                         type="button"
                         onClick={handleRemovePhoto}
-                        className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                        className="p-1 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                         title="Remove photo"
                       >
                         <Trash2 size={13} />
@@ -925,22 +925,21 @@ export function EditStaffUserDrawer({
                         <span>Hospital OPD Schedule (Reference)</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
-                        {hospitalSchedule.weeklySchedule
-                          .filter((d) => d.isOpen)
-                          .map((day) => {
-                            const interval = day.workingIntervals?.[0];
-                            return (
-                              <span
-                                key={day.dayOfWeek}
-                                className="bg-white border border-blue-200 text-blue-700 px-2 py-0.5 rounded-lg text-[10px] font-semibold"
-                              >
-                                {DAY_NAME_MAP[day.dayOfWeek] || day.dayOfWeek}:{" "}
-                                {interval
-                                  ? `${interval.startTime}–${interval.endTime}`
-                                  : "Closed"}
-                              </span>
-                            );
-                          })}
+                        {hospitalSchedule.weeklySchedule.flatMap((day) => {
+                          if (!day.isOpen) return [];
+                          const interval = day.workingIntervals?.[0];
+                          return [
+                            <span
+                              key={day.dayOfWeek}
+                              className="bg-white border border-blue-200 text-blue-700 px-2 py-0.5 rounded-lg text-[10px] font-semibold"
+                            >
+                              {DAY_NAME_MAP[day.dayOfWeek] || day.dayOfWeek}:{" "}
+                              {interval
+                                ? `${interval.startTime}–${interval.endTime}`
+                                : "Closed"}
+                            </span>,
+                          ];
+                        })}
                       </div>
                     </div>
                   )}
@@ -953,22 +952,21 @@ export function EditStaffUserDrawer({
                         <span>Doctor Schedule</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
-                        {doctorSchedule.weeklySchedule
-                          .filter((day) => day.workingDay)
-                          .map((day) => {
-                            const firstPeriod = day.workingPeriods?.[0];
-                            return (
-                              <span
-                                key={day.dayOfWeek}
-                                className="bg-white border border-emerald-200 text-emerald-700 px-2 py-0.5 rounded-lg text-[10px] font-semibold"
-                              >
-                                {DAY_NAME_MAP[day.dayOfWeek] || day.dayOfWeek}:{" "}
-                                {firstPeriod
-                                  ? `${firstPeriod.startTime}–${firstPeriod.endTime}`
-                                  : "Off"}
-                              </span>
-                            );
-                          })}
+                        {doctorSchedule.weeklySchedule.flatMap((day) => {
+                          if (!day.workingDay) return [];
+                          const firstPeriod = day.workingPeriods?.[0];
+                          return [
+                            <span
+                              key={day.dayOfWeek}
+                              className="bg-white border border-emerald-200 text-emerald-700 px-2 py-0.5 rounded-lg text-[10px] font-semibold"
+                            >
+                              {DAY_NAME_MAP[day.dayOfWeek] || day.dayOfWeek}:{" "}
+                              {firstPeriod
+                                ? `${firstPeriod.startTime}–${firstPeriod.endTime}`
+                                : "Off"}
+                            </span>,
+                          ];
+                        })}
                       </div>
                     </div>
                   )}
@@ -976,7 +974,7 @@ export function EditStaffUserDrawer({
                   <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                     {form.availability.map((item, index) => (
                       <div
-                        key={item.dayOfWeek || item.id || index}
+                        key={item.dayOfWeek || item.id || `day-${item.startTime}`}
                         className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 text-xs"
                       >
                         <span className="w-20 font-bold text-slate-700">
@@ -1008,14 +1006,14 @@ export function EditStaffUserDrawer({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 border border-border text-text-muted hover:bg-slate-50 py-3 rounded-xl font-heading font-semibold text-xs transition-all cursor-pointer"
+                className="flex-1 border border-border text-text-muted hover:bg-slate-50 py-3 rounded-xl font-heading font-semibold text-xs transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || isLoadingDetail || isUploadingPhoto}
-                className="flex-1 bg-[#009688] hover:bg-[#00796B] text-white py-3 rounded-xl font-heading font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex-1 bg-[#009688] hover:bg-[#00796B] text-white py-3 rounded-xl font-heading font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <Loader2 size={14} className="animate-spin" />

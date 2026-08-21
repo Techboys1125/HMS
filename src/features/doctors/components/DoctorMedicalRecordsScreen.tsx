@@ -9,7 +9,7 @@ import {
   Download,
   CheckCircle2,
 } from "lucide-react";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
 import { PP, RB } from "../constants/doctors.constants";
 
@@ -188,7 +188,7 @@ export function DoctorMedicalRecordsScreen() {
               {filteredRecords.map((record) => (
                 <div
                   key={record.id || record.mrn}
-                  className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-[#E5E7EB] hover:bg-white hover:shadow-sm transition-all"
+                  className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-[#E5E7EB] hover:bg-white hover:shadow-sm transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <div

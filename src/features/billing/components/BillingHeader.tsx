@@ -6,7 +6,7 @@ import {
   BarChart2,
   Activity,
 } from "lucide-react";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { checkBillingPermission } from "../permissions/billing.permissions";
 import { PP, RB } from "../constants/billing.constants";
 
@@ -98,7 +98,7 @@ export function BillingHeader({
         {showGenerate && (
           <button
             onClick={onGenerateInvoice}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-colors transition-transform shadow-sm active:scale-95 cursor-pointer"
             style={{ fontFamily: PP }}
           >
             <Plus size={15} />+ Generate Invoice
@@ -110,7 +110,7 @@ export function BillingHeader({
             onClick={
               onExportReport || (() => console.log("Exporting Billing Report..."))
             }
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-all shadow-sm active:scale-95 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-colors transition-transform shadow-sm active:scale-95 cursor-pointer"
             style={{ fontFamily: PP }}
           >
             <Download size={15} />

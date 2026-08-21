@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useReducer, useTransition } from "react";
 import {
   Calendar,
   Download,
@@ -23,7 +23,10 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { PP, RB } from "../constants/reports.constants";
-import type { PatientReportRecord, PatientMasterRecord } from "../types/reports.types";
+import type {
+  PatientReportRecord,
+  PatientMasterRecord,
+} from "../types/reports.types";
 import {
   usePatientAgeDemographics,
   useDepartmentPatientVisits,
@@ -33,8 +36,23 @@ import {
   extractList,
 } from "../hooks/useReports";
 
-import { AreaChart, Area, BarChart, Bar, PieChart as RechartsPie, Pie, Cell, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "../../../common/components/recharts-lazy";
-
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart as RechartsPie,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "../../../common/components/recharts-lazy";
 
 function CircularProgress({
   percentage,
@@ -73,6 +91,32 @@ function CircularProgress({
   );
 }
 
+type FilterState = {
+  searchQuery: string;
+  dateRange: string;
+  genderFilter: string;
+  ageGroupFilter: string;
+  deptFilter: string;
+  doctorFilter: string;
+  visitTypeFilter: string;
+  regStatusFilter: string;
+};
+
+type FilterAction =
+  | { type: "SET_FIELD"; field: keyof FilterState; value: string }
+  | { type: "SET_ALL"; payload: FilterState };
+
+function filterReducer(state: FilterState, action: FilterAction): FilterState {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "SET_ALL":
+      return action.payload;
+    default:
+      return state;
+  }
+}
+
 export function PatientReportScreen({
   onBack,
   onOpenAppointmentReport,
@@ -83,14 +127,30 @@ export function PatientReportScreen({
   onOpenDoctorReport?: () => void;
 }) {
   // State
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("Today");
-  const [genderFilter, setGenderFilter] = useState("All Genders");
-  const [ageGroupFilter, setAgeGroupFilter] = useState("All Age Groups");
-  const [deptFilter, setDeptFilter] = useState("All Departments");
-  const [doctorFilter, setDoctorFilter] = useState("All Doctors");
-  const [visitTypeFilter, setVisitTypeFilter] = useState("All Visit Types");
-  const [regStatusFilter, setRegStatusFilter] = useState("All Statuses");
+  const [filterState, dispatch] = useReducer(filterReducer, {
+    searchQuery: "",
+    dateRange: "Today",
+    genderFilter: "All Genders",
+    ageGroupFilter: "All Age Groups",
+    deptFilter: "All Departments",
+    doctorFilter: "All Doctors",
+    visitTypeFilter: "All Visit Types",
+    regStatusFilter: "All Statuses",
+  });
+
+  const setFilter = (field: keyof FilterState, value: string) =>
+    dispatch({ type: "SET_FIELD", field, value });
+
+  const {
+    searchQuery,
+    dateRange,
+    genderFilter,
+    ageGroupFilter,
+    deptFilter,
+    doctorFilter,
+    visitTypeFilter,
+    regStatusFilter,
+  } = filterState;
 
   const [appliedFilters, setAppliedFilters] = useState({
     dateRange: "Today",
@@ -108,11 +168,13 @@ export function PatientReportScreen({
     const now = new Date();
     if (range === "Today") return { fromDate: today, toDate: today };
     if (range === "7 Days") {
-      const from = new Date(now); from.setDate(now.getDate() - 7);
+      const from = new Date(now);
+      from.setDate(now.getDate() - 7);
       return { fromDate: from.toISOString().slice(0, 10), toDate: today };
     }
     if (range === "30 Days") {
-      const from = new Date(now); from.setDate(now.getDate() - 30);
+      const from = new Date(now);
+      from.setDate(now.getDate() - 30);
       return { fromDate: from.toISOString().slice(0, 10), toDate: today };
     }
     return { fromDate: "2025-01-01", toDate: today };
@@ -139,6 +201,7 @@ export function PatientReportScreen({
   });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [lastUpdated] = useState(() => {
     const now = new Date();
     const day = now.toLocaleDateString("en-US", { weekday: "long" });
@@ -153,7 +216,6 @@ export function PatientReportScreen({
     const now = new Date();
     return now.toISOString().slice(0, 16).replace("T", " ");
   });
-  const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [trendDays, setTrendDays] = useState<"7 Days" | "30 Days" | "90 Days">(
     "7 Days",
@@ -169,8 +231,8 @@ export function PatientReportScreen({
   };
 
   const handleApplyFilters = () => {
-    setIsLoading(true);
-    setTimeout(() => {
+    startTransition(async () => {
+      await new Promise((r) => setTimeout(r, 300));
       setAppliedFilters({
         dateRange,
         gender: genderFilter,
@@ -180,22 +242,26 @@ export function PatientReportScreen({
         visitType: visitTypeFilter,
         regStatus: regStatusFilter,
       });
-      setIsLoading(false);
-    }, 300);
+    });
   };
 
   const handleResetFilters = () => {
-    setDateRange("Today");
-    setGenderFilter("All Genders");
-    setAgeGroupFilter("All Age Groups");
-    setDeptFilter("All Departments");
-    setDoctorFilter("All Doctors");
-    setVisitTypeFilter("All Visit Types");
-    setRegStatusFilter("All Statuses");
-    setSearchQuery("");
+    dispatch({
+      type: "SET_ALL",
+      payload: {
+        searchQuery: "",
+        dateRange: "Today",
+        genderFilter: "All Genders",
+        ageGroupFilter: "All Age Groups",
+        deptFilter: "All Departments",
+        doctorFilter: "All Doctors",
+        visitTypeFilter: "All Visit Types",
+        regStatusFilter: "All Statuses",
+      },
+    });
 
-    setIsLoading(true);
-    setTimeout(() => {
+    startTransition(async () => {
+      await new Promise((r) => setTimeout(r, 300));
       setAppliedFilters({
         dateRange: "Today",
         gender: "All Genders",
@@ -205,24 +271,38 @@ export function PatientReportScreen({
         visitType: "All Visit Types",
         regStatus: "All Statuses",
       });
-      setIsLoading(false);
-    }, 300);
+    });
   };
 
-  const patientMasterList = useMemo(() => extractList<PatientMasterRecord>(patientMasterData), [patientMasterData]);
+  const patientMasterList = useMemo(
+    () => extractList<PatientMasterRecord>(patientMasterData),
+    [patientMasterData],
+  );
 
   // Computed KPI Card Values from API hooks
   const computedPatientStats = useMemo(() => {
     const totalReg = regSummary?.totalRegistrations || patientMasterList.length;
-    const newCount = regSummary?.newPatients || patientMasterList.filter((p) => p.visitType === "New Visit" || !p.visitType).length;
-    const returningCount = regSummary?.returningPatients || (totalReg - newCount > 0 ? totalReg - newCount : 0);
+    const newCount =
+      regSummary?.newPatients ||
+      patientMasterList.filter(
+        (p) => p.visitType === "New Visit" || !p.visitType,
+      ).length;
+    const returningCount =
+      regSummary?.returningPatients ||
+      (totalReg - newCount > 0 ? totalReg - newCount : 0);
     return {
       totalReg,
       newCount,
       returningCount,
-      walkIns: patientMasterList.filter((p) => p.visitType === "Walk-In").length,
-      scheduled: patientMasterList.filter((p) => p.visitType === "Scheduled").length,
-      activeCount: ageDemographics?.totalPatients || patientMasterList.filter((p) => p.status === "Active" || !p.status).length || totalReg,
+      walkIns: patientMasterList.filter((p) => p.visitType === "Walk-In")
+        .length,
+      scheduled: patientMasterList.filter((p) => p.visitType === "Scheduled")
+        .length,
+      activeCount:
+        ageDemographics?.totalPatients ||
+        patientMasterList.filter((p) => p.status === "Active" || !p.status)
+          .length ||
+        totalReg,
     };
   }, [regSummary, ageDemographics, patientMasterList]);
 
@@ -240,10 +320,14 @@ export function PatientReportScreen({
   // Filtered records
   const filteredData = useMemo(() => {
     const source = patientMasterList.map((d: PatientMasterRecord) => ({
-      patientId: d.patientId || d.id || "",
-      patientName: d.patientName || d.fullName || d.name || "N/A",
-      mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
-      mobile: d.mobile || d.phone || d.phoneNumber || "",
+      patientId: d.patientId || "",
+      patientName: d.patientName || d.fullName || "N/A",
+      mrn: d.mrn
+        ? String(d.mrn).startsWith("MRN-")
+          ? String(d.mrn)
+          : `MRN-${d.mrn}`
+        : `MRN-${d.patientId || ""}`,
+      mobile: d.mobile || d.phone || "",
       gender: d.gender || "Other",
       age: d.age || 0,
       department: d.department || "General Medicine",
@@ -293,7 +377,7 @@ export function PatientReportScreen({
 
   // Sorted records
   const sortedData = useMemo(() => {
-    return [...filteredData].sort((a, b) => {
+    return filteredData.toSorted((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
       if (typeof aVal === "number" && typeof bVal === "number") {
@@ -412,13 +496,13 @@ export function PatientReportScreen({
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => setFilter("searchQuery", e.target.value)}
               placeholder="Search Patient Name, MRN, Mobile Number, Doctor, Department..."
               className="w-full pl-10 pr-4 py-2.5 bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs text-[#111827] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery("")}
+                onClick={() => setFilter("searchQuery", "")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#64748B] hover:text-[#111827]"
               >
                 Clear
@@ -444,7 +528,7 @@ export function PatientReportScreen({
               </label>
               <select
                 value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
+                onChange={(e) => setFilter("dateRange", e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>Today</option>
@@ -460,7 +544,7 @@ export function PatientReportScreen({
               </label>
               <select
                 value={genderFilter}
-                onChange={(e) => setGenderFilter(e.target.value)}
+                onChange={(e) => setFilter("genderFilter", e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Genders</option>
@@ -476,7 +560,7 @@ export function PatientReportScreen({
               </label>
               <select
                 value={ageGroupFilter}
-                onChange={(e) => setAgeGroupFilter(e.target.value)}
+                onChange={(e) => setFilter("ageGroupFilter", e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Age Groups</option>
@@ -495,7 +579,7 @@ export function PatientReportScreen({
               </label>
               <select
                 value={deptFilter}
-                onChange={(e) => setDeptFilter(e.target.value)}
+                onChange={(e) => setFilter("deptFilter", e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Departments</option>
@@ -514,7 +598,7 @@ export function PatientReportScreen({
               </label>
               <select
                 value={doctorFilter}
-                onChange={(e) => setDoctorFilter(e.target.value)}
+                onChange={(e) => setFilter("doctorFilter", e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Doctors</option>
@@ -532,7 +616,7 @@ export function PatientReportScreen({
               </label>
               <select
                 value={visitTypeFilter}
-                onChange={(e) => setVisitTypeFilter(e.target.value)}
+                onChange={(e) => setFilter("visitTypeFilter", e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Visit Types</option>
@@ -549,7 +633,7 @@ export function PatientReportScreen({
               </label>
               <select
                 value={regStatusFilter}
-                onChange={(e) => setRegStatusFilter(e.target.value)}
+                onChange={(e) => setFilter("regStatusFilter", e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Statuses</option>
@@ -597,7 +681,7 @@ export function PatientReportScreen({
                 Period: {appliedFilters.dateRange}
                 <button
                   onClick={() => {
-                    setDateRange("Today");
+                    setFilter("dateRange", "Today");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       dateRange: "Today",
@@ -614,7 +698,7 @@ export function PatientReportScreen({
                 Dept: {appliedFilters.dept}
                 <button
                   onClick={() => {
-                    setDeptFilter("All Departments");
+                    setFilter("deptFilter", "All Departments");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       dept: "All Departments",
@@ -631,7 +715,7 @@ export function PatientReportScreen({
                 Doctor: {appliedFilters.doctor}
                 <button
                   onClick={() => {
-                    setDoctorFilter("All Doctors");
+                    setFilter("doctorFilter", "All Doctors");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       doctor: "All Doctors",
@@ -648,7 +732,7 @@ export function PatientReportScreen({
                 Gender: {appliedFilters.gender}
                 <button
                   onClick={() => {
-                    setGenderFilter("All Genders");
+                    setFilter("genderFilter", "All Genders");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       gender: "All Genders",
@@ -665,7 +749,7 @@ export function PatientReportScreen({
                 Type: {appliedFilters.visitType}
                 <button
                   onClick={() => {
-                    setVisitTypeFilter("All Visit Types");
+                    setFilter("visitTypeFilter", "All Visit Types");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       visitType: "All Visit Types",
@@ -681,7 +765,7 @@ export function PatientReportScreen({
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-[#111827] border border-slate-300 font-medium">
                 Search: "{searchQuery}"
                 <button
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => setFilter("searchQuery", "")}
                   className="hover:text-red-500 font-bold ml-1"
                 >
                   Ã—
@@ -776,7 +860,7 @@ export function PatientReportScreen({
               {/* TOP 6 KPI CARDS SECTION */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Card 1: Total Registered Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Total Registered Patients
@@ -815,7 +899,7 @@ export function PatientReportScreen({
                 </div>
 
                 {/* Card 2: New Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       New Patients
@@ -853,7 +937,7 @@ export function PatientReportScreen({
                 </div>
 
                 {/* Card 3: Returning Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Returning Patients
@@ -889,7 +973,7 @@ export function PatientReportScreen({
                 </div>
 
                 {/* Card 4: Walk-In Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Walk-In Patients
@@ -920,7 +1004,7 @@ export function PatientReportScreen({
                 </div>
 
                 {/* Card 5: Gender Distribution Mini */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B]">
                       Gender Distribution
@@ -953,7 +1037,7 @@ export function PatientReportScreen({
                 </div>
 
                 {/* Card 6: Average Daily Registrations */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between">
+                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
                   <div>
                     <span className="text-xs font-semibold text-[#64748B]">
                       Avg Daily Registrations
@@ -1168,8 +1252,22 @@ export function PatientReportScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {([] as Array<{ color?: string; [key: string]: unknown }>).map((entry) => (
-                            <Cell key={entry?.id ? String(entry.id) : String(entry?.name || entry?.color || "cell")} fill={entry.color || "#0D47A1"} />
+                          {(
+                            [] as Array<{
+                              color?: string;
+                              [key: string]: unknown;
+                            }>
+                          ).map((entry) => (
+                            <Cell
+                              key={
+                                entry?.id
+                                  ? String(entry.id)
+                                  : String(
+                                      entry?.name || entry?.color || "cell",
+                                    )
+                              }
+                              fill={entry.color || "#0D47A1"}
+                            />
                           ))}
                         </Pie>
                         <Tooltip

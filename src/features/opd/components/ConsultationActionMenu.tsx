@@ -22,45 +22,52 @@ export interface ConsultationActionMenuProps {
 
 export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
   item,
-  role,
   onStartConsultation,
   onOpenConsultation,
   onCallPatient,
   onViewDetails,
-  canStartConsultation = false,
+  canStartConsultation = true,
 }) => {
   const handleDetailsClick = () => {
     onViewDetails?.(item.id);
   };
 
-  if (role === "admin") {
-    return (
-      <td className="py-3.5 px-4 text-right relative">
-        <button
-          onClick={handleDetailsClick}
-          className="p-1.5 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors inline-block"
-          title="View Consultation Details"
-        >
-          <Eye size={15} />
-        </button>
-      </td>
-    );
-  }
+  const statusUpper = String(item.status || "")
+    .toUpperCase()
+    .replace(/[\s-]/g, "_");
 
-  const isCalled = item.status === "CALLED";
-  const isInConsultation = item.status === "IN_CONSULTATION";
-  const isCompleted = item.status === "COMPLETED";
+  const isCalled = statusUpper === "CALLED";
+  const isInConsultation =
+    statusUpper === "IN_CONSULTATION" || statusUpper === "IN_PROGRESS";
+  const isCompleted =
+    statusUpper === "COMPLETED" ||
+    statusUpper === "CONSULTATION_COMPLETED" ||
+    statusUpper === "READY_FOR_BILLING" ||
+    statusUpper === "BILLING_PENDING" ||
+    statusUpper === "PAYMENT_COMPLETED" ||
+    statusUpper === "FINALIZED";
   const isWaitingForDoctorCall =
-    item.status === "WAITING_FOR_DOCTOR_CALL" ||
-    item.status === "WAITING_FOR_DOCTOR" ||
-    item.status === "WAITING";
+    statusUpper === "WAITING_FOR_DOCTOR_CALL" ||
+    statusUpper === "WAITING_FOR_DOCTOR" ||
+    statusUpper === "WAITING";
 
   return (
     <td className="py-3.5 px-4 text-right relative">
       <div className="flex items-center justify-end gap-1.5">
-        {canStartConsultation && isCalled && (
+        {canStartConsultation && isWaitingForDoctorCall && onCallPatient && (
           <button
-            onClick={() => onStartConsultation?.(item.id)}
+            onClick={() => onCallPatient(item)}
+            className="px-2.5 py-1.5 text-white rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 bg-purple-600 hover:bg-purple-700"
+            title="Call Patient"
+            style={{ fontFamily: PP }}
+          >
+            <Phone size={13} /> Call Patient
+          </button>
+        )}
+
+        {canStartConsultation && isCalled && onStartConsultation && (
+          <button
+            onClick={() => onStartConsultation(item.id)}
             className="px-2.5 py-1.5 bg-[#009688] hover:bg-[#00796B] text-white rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1"
             style={{ fontFamily: PP }}
           >
@@ -68,24 +75,17 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
           </button>
         )}
 
-        {canStartConsultation && isInConsultation && onOpenConsultation && (
+        {canStartConsultation && isInConsultation && (
           <button
-            onClick={() => onOpenConsultation(item.id)}
+            onClick={() =>
+              onOpenConsultation
+                ? onOpenConsultation(item.id)
+                : onStartConsultation?.(item.id)
+            }
             className="px-2.5 py-1.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1"
             style={{ fontFamily: PP }}
           >
-            <FolderOpen size={13} /> Open Consultation
-          </button>
-        )}
-
-        {canStartConsultation && onCallPatient && isWaitingForDoctorCall && (
-          <button
-            onClick={() => onCallPatient(item)}
-            className="px-2.5 py-1.5 text-white rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 bg-purple-600 hover:bg-purple-700"
-            title="Call Patient"
-            style={{ fontFamily: PP }}
-          >
-            <Phone size={13} /> Call
+            <FolderOpen size={13} /> Continue Consultation
           </button>
         )}
 
@@ -99,6 +99,14 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
             <FileText size={13} /> View Prescription
           </button>
         )}
+
+        <button
+          onClick={handleDetailsClick}
+          className="p-1.5 hover:bg-slate-200 text-[#0D47A1] border border-slate-200 rounded-lg transition-colors inline-block"
+          title="View Consultation Details"
+        >
+          <Eye size={15} />
+        </button>
       </div>
     </td>
   );

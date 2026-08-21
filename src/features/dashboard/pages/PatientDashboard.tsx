@@ -414,7 +414,7 @@ export function PatientDashboard({
               else if (action === "profile" && onNavigateNav)
                 onNavigateNav("settings");
             }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#0D47A1]/40 hover:text-[#0D47A1] hover:bg-blue-50 transition-all shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#0D47A1]/40 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors shadow-sm"
             style={{ fontFamily: RB }}
           >
             <Icon size={13} style={{ color }} />
@@ -505,9 +505,9 @@ export function PatientDashboard({
           />
           <div className="space-y-3.5 my-auto">
             {appointments.length > 0 ? (
-              appointments.map((item, idx) => (
+              appointments.map((item) => (
                 <div
-                  key={item.appointmentId || idx}
+                  key={item.appointmentId || `apt-${item.date}-${item.time}`}
                   className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-slate-50 hover:bg-white transition-colors"
                 >
                   <div className="flex items-center gap-3">
@@ -776,9 +776,9 @@ export function PatientDashboard({
             </thead>
             <tbody className="divide-y divide-gray-50">
               {(dashboard?.recentPrescriptions?.length ?? 0) > 0 ? (
-                (dashboard.recentPrescriptions as Record<string, unknown>[]).map((rx, idx) => (
+                (dashboard.recentPrescriptions as Record<string, unknown>[]).map((rx) => (
                   <tr
-                    key={rx.prescriptionId || rx.id || idx}
+                    key={rx.prescriptionId || rx.id || `rx-${rx.date}-${rx.patientName}`}
                     className="hover:bg-slate-50 transition-colors"
                   >
                     <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
@@ -876,9 +876,9 @@ export function PatientDashboard({
             </thead>
             <tbody className="divide-y divide-gray-50">
               {(dashboard?.recentBills?.length ?? 0) > 0 ? (
-                (dashboard.recentBills as Record<string, unknown>[]).map((b, idx) => (
+                (dashboard.recentBills as Record<string, unknown>[]).map((b) => (
                   <tr
-                    key={b.billId || b.billNumber || b.invoiceId || idx}
+                    key={b.billId || b.billNumber || b.invoiceId || `bill-${b.billDate}-${b.patientName}`}
                     className="hover:bg-slate-50 transition-colors"
                   >
                     <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">

@@ -71,7 +71,7 @@ export const FollowupForm: React.FC<FollowupFormProps> = ({
             onChange={(e) => onChange("followupNotes", e.target.value)}
             placeholder="e.g. Review ECG & blood reports. Adjust anti-hypertensive dosage if required."
             rows={2}
-            className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-all resize-none"
+            className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors resize-none"
             style={{ fontFamily: RB }}
           />
         </div>

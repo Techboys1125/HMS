@@ -1,5 +1,5 @@
 import { PatientListPage } from "../pages/PatientListPage";
-import { useAuthStore } from "../../auth/index";
+import { useAuthStore } from "../auth/store/auth.store";
 import type { Role } from "../utils/patientPermissions";
 
 export function PatientListPageRoute() {

@@ -35,11 +35,14 @@ export function PatientCheckInScreen({
   );
 
   useEffect(() => {
+    let cancelled = false;
+
     const load = async () => {
       try {
         const data = await appointmentService.listAppointments({
           status: "BOOKED",
         });
+        if (cancelled) return;
         setAppointments(data);
         if (data.length > 0) {
           const initId = initialAptId || initialMrn;
@@ -56,10 +59,16 @@ export function PatientCheckInScreen({
           }
         }
       } catch {
+        if (cancelled) return;
         setAppointments([]);
       }
     };
-    load();
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
   }, [initialAptId, initialMrn]);
 
   // Section 03 Form fields
@@ -141,7 +150,7 @@ export function PatientCheckInScreen({
         <div>
           <button
             onClick={onViewQueueClick}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-[#0D47A1] text-xs font-semibold hover:bg-blue-100 transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-[#0D47A1] text-xs font-semibold hover:bg-blue-100 transition-colors"
             style={{ fontFamily: PP }}
           >
             <Clock size={14} /> View OPD Live Queue
@@ -207,7 +216,7 @@ export function PatientCheckInScreen({
                 value={aptSearchQuery}
                 onChange={(e) => setAptSearchQuery(e.target.value)}
                 placeholder="Search by Appointment ID, MRN, Patient Name or Mobile..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-all shadow-inner"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-colors shadow-inner"
               />
             </div>
 
@@ -485,7 +494,7 @@ export function PatientCheckInScreen({
         <button
           type="button"
           onClick={onBack}
-          className="px-5 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-all"
+          className="px-5 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-colors"
           style={{ fontFamily: PP }}
         >
           Cancel
@@ -495,7 +504,7 @@ export function PatientCheckInScreen({
           type="button"
           disabled={!selectedApt || selectedApt.status === "Cancelled"}
           onClick={handlePerformCheckIn}
-          className="px-6 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-all shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-6 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ fontFamily: PP }}
         >
           <UserCheck size={16} /> Check-In Patient
@@ -572,7 +581,7 @@ export function PatientCheckInScreen({
                   console.log(`Printing Queue Token ${generatedToken}...`);
                   window.print();
                 }}
-                className="w-full py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-all flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-2"
                 style={{ fontFamily: PP }}
               >
                 <Printer size={15} /> Print Queue Token
@@ -583,7 +592,7 @@ export function PatientCheckInScreen({
                   if (onViewQueueClick) onViewQueueClick();
                   else if (onCheckInSuccess) onCheckInSuccess(generatedToken);
                 }}
-                className="w-full py-2.5 rounded-xl border border-[#E5E7EB] bg-teal-50 text-xs font-semibold text-[#009688] hover:bg-teal-100 transition-all flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-xl border border-[#E5E7EB] bg-teal-50 text-xs font-semibold text-[#009688] hover:bg-teal-100 transition-colors flex items-center justify-center gap-2"
                 style={{ fontFamily: PP }}
               >
                 <Clock size={15} /> View OPD Live Queue
@@ -592,7 +601,7 @@ export function PatientCheckInScreen({
                 onClick={() => {
                   setShowSuccessModal(false);
                 }}
-                className="w-full py-2 rounded-xl text-xs text-[#64748B] font-medium hover:bg-slate-50 transition-all text-center"
+                className="w-full py-2 rounded-xl text-xs text-[#64748B] font-medium hover:bg-slate-50 transition-colors text-center"
               >
                 Check-In Another Patient
               </button>

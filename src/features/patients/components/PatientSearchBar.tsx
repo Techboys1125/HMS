@@ -63,7 +63,7 @@ export function PatientSearchBar({
             if (debouncedQuery.trim().length >= 2) setIsOpen(true);
           }}
           placeholder={placeholder}
-          className="w-full pl-9 pr-8 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-[#0D47A1]/10 transition-all"
+          className="w-full pl-9 pr-8 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-[#0D47A1]/10 transition-colors"
           style={{ fontFamily: RB }}
         />
         {query && (

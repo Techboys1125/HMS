@@ -8,7 +8,7 @@
  */
 import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { patientsApi } from "../api/patient.api";
 import { RegisterPatientScreen } from "../pages/RegisterPatientScreen";
 import { ROUTES } from "../../../app/routes/routes";

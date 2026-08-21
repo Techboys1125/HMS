@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useReducer, useTransition } from "react";
 import {
   Download,
   RefreshCw,
@@ -50,7 +50,30 @@ import {
   ResponsiveContainer,
 } from "../../../common/components/recharts-lazy";
 
+type FilterState = {
+  searchQuery: string;
+  dateRange: string;
+  deptFilter: string;
+  doctorFilter: string;
+  visitTypeFilter: string;
+  payStatusFilter: string;
+  aptStatusFilter: string;
+};
 
+type FilterAction =
+  | { type: "SET_FIELD"; field: keyof FilterState; value: string }
+  | { type: "SET_ALL"; payload: FilterState };
+
+function filterReducer(state: FilterState, action: FilterAction): FilterState {
+  switch (action.type) {
+    case "SET_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "SET_ALL":
+      return action.payload;
+    default:
+      return state;
+  }
+}
 
 export function DashboardKpiDetailScreen({
   onBack,
@@ -62,17 +85,28 @@ export function DashboardKpiDetailScreen({
 }) {
   // State
   const [selectedKpi, setSelectedKpi] = useState<string>(initialKpi);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState("Today");
-  const [deptFilter, setDeptFilter] = useState("All Departments");
-  const [doctorFilter, setDoctorFilter] = useState("All Doctors");
-  const [visitTypeFilter, setVisitTypeFilter] = useState("All Visit Types");
-  const [payStatusFilter, setPayStatusFilter] = useState(
-    "All Payment Statuses",
-  );
-  const [aptStatusFilter, setAptStatusFilter] = useState(
-    "All Appointment Statuses",
-  );
+  const [filterState, dispatch] = useReducer(filterReducer, {
+    searchQuery: "",
+    dateRange: "Today",
+    deptFilter: "All Departments",
+    doctorFilter: "All Doctors",
+    visitTypeFilter: "All Visit Types",
+    payStatusFilter: "All Payment Statuses",
+    aptStatusFilter: "All Appointment Statuses",
+  });
+
+  const setFilter = (field: keyof FilterState, value: string) =>
+    dispatch({ type: "SET_FIELD", field, value });
+
+  const {
+    searchQuery,
+    dateRange,
+    deptFilter,
+    doctorFilter,
+    visitTypeFilter,
+    payStatusFilter,
+    aptStatusFilter,
+  } = filterState;
 
   const [appliedFilters, setAppliedFilters] = useState({
     dateRange: "Today",
@@ -89,11 +123,13 @@ export function DashboardKpiDetailScreen({
     const now = new Date();
     if (range === "Today") return { fromDate: today, toDate: today };
     if (range === "7 Days") {
-      const from = new Date(now); from.setDate(now.getDate() - 7);
+      const from = new Date(now);
+      from.setDate(now.getDate() - 7);
       return { fromDate: from.toISOString().slice(0, 10), toDate: today };
     }
     if (range === "30 Days") {
-      const from = new Date(now); from.setDate(now.getDate() - 30);
+      const from = new Date(now);
+      from.setDate(now.getDate() - 30);
       return { fromDate: from.toISOString().slice(0, 10), toDate: today };
     }
     return { fromDate: "2025-01-01", toDate: today };
@@ -105,14 +141,26 @@ export function DashboardKpiDetailScreen({
   const { data: rawPatientRegister } = usePatientMasterRegister(reportFilters);
   const { data: rawInvoiceRegister } = useInvoiceRegister(reportFilters);
 
-  const revenueList = useMemo(() => extractList<DailyRevenueDetail>(rawRevenueDetails), [rawRevenueDetails]);
-  const apptList = useMemo(() => extractList<DailyAppointmentDetail>(rawApptDetails), [rawApptDetails]);
-  const patientList = useMemo(() => extractList<PatientMasterRecord>(rawPatientRegister), [rawPatientRegister]);
-  const invoiceList = useMemo(() => extractList<InvoiceRegisterRecord>(rawInvoiceRegister), [rawInvoiceRegister]);
+  const revenueList = useMemo(
+    () => extractList<DailyRevenueDetail>(rawRevenueDetails),
+    [rawRevenueDetails],
+  );
+  const apptList = useMemo(
+    () => extractList<DailyAppointmentDetail>(rawApptDetails),
+    [rawApptDetails],
+  );
+  const patientList = useMemo(
+    () => extractList<PatientMasterRecord>(rawPatientRegister),
+    [rawPatientRegister],
+  );
+  const invoiceList = useMemo(
+    () => extractList<InvoiceRegisterRecord>(rawInvoiceRegister),
+    [rawInvoiceRegister],
+  );
 
   // Enterprise Export & Print Modal States
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportFormat, setExportFormat] = useState<"pdf" | "excel" | "csv">(
     "pdf",
@@ -133,30 +181,34 @@ export function DashboardKpiDetailScreen({
   };
 
   const handleApplyFilters = () => {
-    setIsLoading(true);
-    setTimeout(() => {
+    startTransition(async () => {
+      await new Promise((r) => setTimeout(r, 300));
       setAppliedFilters({
-        dateRange,
-        dept: deptFilter,
-        doctor: doctorFilter,
-        visitType: visitTypeFilter,
-        payStatus: payStatusFilter,
-        aptStatus: aptStatusFilter,
+        dateRange: filterState.dateRange,
+        dept: filterState.deptFilter,
+        doctor: filterState.doctorFilter,
+        visitType: filterState.visitTypeFilter,
+        payStatus: filterState.payStatusFilter,
+        aptStatus: filterState.aptStatusFilter,
       });
-      setIsLoading(false);
-    }, 300);
+    });
   };
 
   const handleResetFilters = () => {
-    setSearchQuery("");
-    setDateRange("Today");
-    setDeptFilter("All Departments");
-    setDoctorFilter("All Doctors");
-    setVisitTypeFilter("All Visit Types");
-    setPayStatusFilter("All Payment Statuses");
-    setAptStatusFilter("All Appointment Statuses");
-    setIsLoading(true);
-    setTimeout(() => {
+    dispatch({
+      type: "SET_ALL",
+      payload: {
+        searchQuery: "",
+        dateRange: "Today",
+        deptFilter: "All Departments",
+        doctorFilter: "All Doctors",
+        visitTypeFilter: "All Visit Types",
+        payStatusFilter: "All Payment Statuses",
+        aptStatusFilter: "All Appointment Statuses",
+      },
+    });
+    startTransition(async () => {
+      await new Promise((r) => setTimeout(r, 300));
       setAppliedFilters({
         dateRange: "Today",
         dept: "All Departments",
@@ -165,8 +217,7 @@ export function DashboardKpiDetailScreen({
         payStatus: "All Payment Statuses",
         aptStatus: "All Appointment Statuses",
       });
-      setIsLoading(false);
-    }, 300);
+    });
   };
 
   // Determine active KPI category
@@ -194,27 +245,45 @@ export function DashboardKpiDetailScreen({
 
     if (isRevenueKpi) {
       const source = revenueList.length > 0 ? revenueList : invoiceList;
-      const mapped = source.map((d: DailyRevenueDetail | InvoiceRegisterRecord) => {
-        const isDaily = "paymentId" in d;
-        const daily = d as DailyRevenueDetail;
-        const invoice = d as InvoiceRegisterRecord;
-        return {
-          invoiceId: isDaily
-            ? daily.paymentId || daily.receiptNumber || `INV-${daily.id || ""}`
-            : invoice.invoiceNumber || `INV-${invoice.mrn || ""}`,
-          patientName: "patientName" in d ? (d as { patientName: string }).patientName : "N/A",
-          mrn: "mrn" in d ? (String((d as { mrn: string }).mrn).startsWith("MRN-") ? String((d as { mrn: string }).mrn) : `MRN-${(d as { mrn: string }).mrn}`) : `MRN-`,
-          doctorName: (d as { doctorName?: string }).doctorName || "N/A",
-          department: (d as { department?: string }).department || "General Medicine",
-          invoiceDate: isDaily
-            ? daily.paidAt || today
-            : invoice.invoiceDate || today,
-          invoiceAmount: Number(isDaily ? daily.amount || 0 : invoice.billedAmount || 0),
-          collectedAmount: Number(isDaily ? daily.amount || 0 : invoice.paidAmount || 0),
-          paymentMethod: (d as { paymentMethod?: string }).paymentMethod || "Cash",
-          invoiceStatus: isDaily ? "Paid" : (invoice.paymentStatus || "Paid"),
-        };
-      }) as unknown as KpiRevenueRecord[];
+      const mapped = source.map(
+        (d: DailyRevenueDetail | InvoiceRegisterRecord) => {
+          const isDaily = "paymentId" in d;
+          const daily = d as DailyRevenueDetail;
+          const invoice = d as InvoiceRegisterRecord;
+          return {
+            invoiceId: isDaily
+              ? daily.paymentId ||
+                daily.receiptNumber ||
+                `INV-${daily.id || ""}`
+              : invoice.invoiceNumber || `INV-${invoice.mrn || ""}`,
+            patientName:
+              "patientName" in d
+                ? (d as { patientName: string }).patientName
+                : "N/A",
+            mrn:
+              "mrn" in d
+                ? String((d as { mrn: string }).mrn).startsWith("MRN-")
+                  ? String((d as { mrn: string }).mrn)
+                  : `MRN-${(d as { mrn: string }).mrn}`
+                : `MRN-`,
+            doctorName: (d as { doctorName?: string }).doctorName || "N/A",
+            department:
+              (d as { department?: string }).department || "General Medicine",
+            invoiceDate: isDaily
+              ? daily.paidAt || today
+              : invoice.invoiceDate || today,
+            invoiceAmount: Number(
+              isDaily ? daily.amount || 0 : invoice.billedAmount || 0,
+            ),
+            collectedAmount: Number(
+              isDaily ? daily.amount || 0 : invoice.paidAmount || 0,
+            ),
+            paymentMethod:
+              (d as { paymentMethod?: string }).paymentMethod || "Cash",
+            invoiceStatus: isDaily ? "Paid" : invoice.paymentStatus || "Paid",
+          };
+        },
+      ) as unknown as KpiRevenueRecord[];
       return mapped.filter((item) => {
         const matchesSearch =
           item.invoiceId.toLowerCase().includes(q) ||
@@ -239,7 +308,11 @@ export function DashboardKpiDetailScreen({
       const mapped = apptList.map((d: DailyAppointmentDetail) => ({
         appointmentId: d.appointmentNumber || `APT-${d.appointmentId || ""}`,
         patientName: d.patientName || "N/A",
-        mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+        mrn: d.mrn
+          ? String(d.mrn).startsWith("MRN-")
+            ? String(d.mrn)
+            : `MRN-${d.mrn}`
+          : `MRN-${d.patientId || ""}`,
         doctorName: d.doctorName || "N/A",
         department: d.department || "General Medicine",
         visitType: d.appointmentType || "New Visit",
@@ -280,7 +353,11 @@ export function DashboardKpiDetailScreen({
       const mapped = patientList.map((d: PatientMasterRecord) => ({
         patientId: String(d.patientId || ""),
         patientName: d.patientName || d.fullName || "N/A",
-        mrn: d.mrn ? (String(d.mrn).startsWith("MRN-") ? String(d.mrn) : `MRN-${d.mrn}`) : `MRN-${d.patientId || ""}`,
+        mrn: d.mrn
+          ? String(d.mrn).startsWith("MRN-")
+            ? String(d.mrn)
+            : `MRN-${d.mrn}`
+          : `MRN-${d.patientId || ""}`,
         gender: d.gender || "Other",
         age: d.age || 0,
         registrationDate: d.registrationDate || d.createdDate || today,
@@ -314,7 +391,10 @@ export function DashboardKpiDetailScreen({
         department: d.department || "General Medicine",
         consultationTime: d.appointmentTime || "10:00 AM",
         durationMinutes: d.durationMinutes || 30,
-        status: d.status === "Completed" || d.status === "COMPLETED" ? "Completed" : "In-Progress",
+        status:
+          d.status === "Completed" || d.status === "COMPLETED"
+            ? "Completed"
+            : "In-Progress",
       }));
       return mapped.filter((item) => {
         const matchesSearch =
@@ -333,7 +413,12 @@ export function DashboardKpiDetailScreen({
     }
 
     if (isPendingKpi) {
-      const pendingInvoices = invoiceList.filter((d: InvoiceRegisterRecord) => Number(d.outstandingAmount || 0) > 0 || d.paymentStatus === "Pending" || d.paymentStatus === "UNPAID");
+      const pendingInvoices = invoiceList.filter(
+        (d: InvoiceRegisterRecord) =>
+          Number(d.outstandingAmount || 0) > 0 ||
+          d.paymentStatus === "Pending" ||
+          d.paymentStatus === "UNPAID",
+      );
       const source = pendingInvoices.length > 0 ? pendingInvoices : invoiceList;
       const mapped = source.map((d: InvoiceRegisterRecord) => ({
         invoiceId: d.invoiceNumber || `INV-${d.mrn || ""}`,
@@ -342,7 +427,12 @@ export function DashboardKpiDetailScreen({
         department: d.department || "General Medicine",
         pendingAmount: Number(d.outstandingAmount || d.billedAmount || 0),
         dueDate: d.dueDate || today,
-        status: d.paymentStatus === "Pending" || d.paymentStatus === "UNPAID" ? "Pending" : d.paymentStatus === "Partially Paid" ? "Partially Paid" : "Overdue",
+        status:
+          d.paymentStatus === "Pending" || d.paymentStatus === "UNPAID"
+            ? "Pending"
+            : d.paymentStatus === "Partially Paid"
+              ? "Partially Paid"
+              : "Overdue",
       }));
       return mapped.filter((item) => {
         const matchesSearch =
@@ -375,8 +465,6 @@ export function DashboardKpiDetailScreen({
     invoiceList,
     today,
   ]);
-
-
 
   // Computed Report Summary Card Calculations
   const summaryMetrics = useMemo(() => {
@@ -522,7 +610,12 @@ export function DashboardKpiDetailScreen({
                 <Clock className="w-4 h-4 text-[#0D47A1]" />
                 <span>
                   Last Updated:{" "}
-                  <strong className="text-[#111827]">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</strong>
+                  <strong className="text-[#111827]">
+                    {new Date().toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </strong>
                 </span>
               </div>
 
@@ -935,7 +1028,7 @@ export function DashboardKpiDetailScreen({
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => setFilter("searchQuery", e.target.value)}
                   placeholder="Name, MRN, ID..."
                   className="w-full pl-8 pr-2.5 py-2 bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs text-[#111827] placeholder-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
                 />
@@ -949,7 +1042,7 @@ export function DashboardKpiDetailScreen({
               </label>
               <select
                 value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
+                onChange={(e) => setFilter("dateRange", e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>Today</option>
@@ -966,7 +1059,7 @@ export function DashboardKpiDetailScreen({
               </label>
               <select
                 value={deptFilter}
-                onChange={(e) => setDeptFilter(e.target.value)}
+                onChange={(e) => setFilter("deptFilter", e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Departments</option>
@@ -985,7 +1078,7 @@ export function DashboardKpiDetailScreen({
               </label>
               <select
                 value={doctorFilter}
-                onChange={(e) => setDoctorFilter(e.target.value)}
+                onChange={(e) => setFilter("doctorFilter", e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
               >
                 <option>All Doctors</option>
@@ -1007,7 +1100,7 @@ export function DashboardKpiDetailScreen({
               <select
                 disabled={!showVisitTypeFilter}
                 value={visitTypeFilter}
-                onChange={(e) => setVisitTypeFilter(e.target.value)}
+                onChange={(e) => setFilter("visitTypeFilter", e.target.value)}
                 className={`w-full border rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1] ${showVisitTypeFilter ? "bg-[#F1F5F9] border-[#E5E7EB]" : "bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed"}`}
               >
                 <option>All Visit Types</option>
@@ -1026,7 +1119,7 @@ export function DashboardKpiDetailScreen({
                 </label>
                 <select
                   value={aptStatusFilter}
-                  onChange={(e) => setAptStatusFilter(e.target.value)}
+                  onChange={(e) => setFilter("aptStatusFilter", e.target.value)}
                   className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
                 >
                   <option>All Appointment Statuses</option>
@@ -1046,7 +1139,7 @@ export function DashboardKpiDetailScreen({
                 <select
                   disabled={!showPayStatusFilter}
                   value={payStatusFilter}
-                  onChange={(e) => setPayStatusFilter(e.target.value)}
+                  onChange={(e) => setFilter("payStatusFilter", e.target.value)}
                   className={`w-full border rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1] ${showPayStatusFilter ? "bg-[#F1F5F9] border-[#E5E7EB]" : "bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed"}`}
                 >
                   <option>All Payment Statuses</option>
@@ -1095,7 +1188,7 @@ export function DashboardKpiDetailScreen({
                 Period: {appliedFilters.dateRange}
                 <button
                   onClick={() => {
-                    setDateRange("Today");
+                    setFilter("dateRange", "Today");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       dateRange: "Today",
@@ -1112,7 +1205,7 @@ export function DashboardKpiDetailScreen({
                 Dept: {appliedFilters.dept}
                 <button
                   onClick={() => {
-                    setDeptFilter("All Departments");
+                    setFilter("deptFilter", "All Departments");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       dept: "All Departments",
@@ -1129,7 +1222,7 @@ export function DashboardKpiDetailScreen({
                 Doctor: {appliedFilters.doctor}
                 <button
                   onClick={() => {
-                    setDoctorFilter("All Doctors");
+                    setFilter("doctorFilter", "All Doctors");
                     setAppliedFilters((prev) => ({
                       ...prev,
                       doctor: "All Doctors",
@@ -1145,7 +1238,7 @@ export function DashboardKpiDetailScreen({
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-[#111827] border border-slate-300 font-medium">
                 Search: "{searchQuery}"
                 <button
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => setFilter("searchQuery", "")}
                   className="hover:text-red-500 font-bold ml-1"
                 >
                   Ã—
@@ -1162,7 +1255,7 @@ export function DashboardKpiDetailScreen({
         )}
 
         {/* ANALYTICS CHARTS SECTION (DYNAMIC BY KPI) */}
-        {!isLoading && currentDataset.length > 0 && (
+        {!isPending && currentDataset.length > 0 && (
           <div className="space-y-6 mb-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Chart 1: Main Trend (Line / Area) */}
@@ -1413,7 +1506,7 @@ export function DashboardKpiDetailScreen({
           </div>
         )}
 
-        {!isLoading && currentDataset.length === 0 && (
+        {!isPending && currentDataset.length === 0 && (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-12 text-center my-6 shadow-sm">
             <AlertCircle className="w-12 h-12 text-[#F59E0B] mx-auto mb-3" />
             <h3
@@ -1437,7 +1530,7 @@ export function DashboardKpiDetailScreen({
         )}
 
         {/* DYNAMIC REUSABLE SMART TRANSACTION TABLE */}
-        {!isLoading && currentDataset.length > 0 && (
+        {!isPending && currentDataset.length > 0 && (
           <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden mb-6">
             <div className="p-5 border-b border-[#E5E7EB] flex items-center justify-between">
               <div>
@@ -1884,7 +1977,9 @@ export function DashboardKpiDetailScreen({
           </div>
           <div>
             Last Refreshed:{" "}
-            <strong className="text-[#111827]">{new Date().toLocaleString()}</strong>
+            <strong className="text-[#111827]">
+              {new Date().toLocaleString()}
+            </strong>
           </div>
         </div>
       </div>

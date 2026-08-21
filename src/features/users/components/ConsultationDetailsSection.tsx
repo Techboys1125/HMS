@@ -22,15 +22,17 @@ export const ConsultationDetailsSection: React.FC<
   useEffect(() => {
     departmentsApi.getDepartmentLookup(true).then((lookupList) => {
       if (lookupList && lookupList.length > 0) {
-        const names = lookupList.map((d) => d.departmentName).filter(Boolean);
+        const names = lookupList.flatMap((d) =>
+          d.departmentName ? [d.departmentName] : [],
+        );
         setApiDepts(names);
 
         const map: Record<string, string[]> = {};
         lookupList.forEach((d) => {
           if (d.departmentName && d.specialties) {
-            map[d.departmentName] = d.specialties
-              .map((s) => s.name)
-              .filter(Boolean);
+            map[d.departmentName] = d.specialties.flatMap((s) =>
+              s.name ? [s.name] : [],
+            );
           }
         });
         setDeptSpecialtiesMap(map);
@@ -125,7 +127,7 @@ export const ConsultationDetailsSection: React.FC<
             <select
               value={form.primaryDepartment}
               onChange={handlePrimaryDepartmentChange}
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-[#1E293B] cursor-pointer ${
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-colors text-[#1E293B] cursor-pointer ${
                 errors.primaryDepartment
                   ? "border-red-500 bg-red-50/50"
                   : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
@@ -159,16 +161,18 @@ export const ConsultationDetailsSection: React.FC<
             <select
               value={form.secondaryDepartment}
               onChange={handleSecondaryDepartmentChange}
-              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-[#1E293B] cursor-pointer"
+              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-[#1E293B] cursor-pointer"
             >
               <option value="">None (Optional)</option>
-              {departmentOptions
-                .filter((dept) => dept !== form.primaryDepartment)
-                .map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
-                  </option>
-                ))}
+              {departmentOptions.flatMap((dept) =>
+                dept !== form.primaryDepartment
+                  ? [
+                      <option key={dept} value={dept}>
+                        {dept}
+                      </option>,
+                    ]
+                  : [],
+              )}
             </select>
           </div>
         </div>
@@ -188,7 +192,7 @@ export const ConsultationDetailsSection: React.FC<
               onChange={(e) =>
                 setFieldValue("primarySpecialty", e.target.value)
               }
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-all text-[#1E293B] cursor-pointer ${
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-colors text-[#1E293B] cursor-pointer ${
                 errors.primarySpecialty
                   ? "border-red-500 bg-red-50/50"
                   : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
@@ -228,7 +232,7 @@ export const ConsultationDetailsSection: React.FC<
               onChange={(e) =>
                 setFieldValue("secondarySpecialty", e.target.value)
               }
-              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-[#1E293B] cursor-pointer"
+              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-[#1E293B] cursor-pointer"
             >
               <option value="">None (Optional)</option>
               {secondarySpecialties.length > 0 ? (
@@ -261,7 +265,7 @@ export const ConsultationDetailsSection: React.FC<
               value={form.consultationFee}
               onChange={(e) => setFieldValue("consultationFee", e.target.value)}
               placeholder="500"
-              className={`w-full bg-[#F8FAFC] border rounded-xl pl-9 pr-4 py-2.5 text-xs outline-none transition-all text-text-body ${
+              className={`w-full bg-[#F8FAFC] border rounded-xl pl-9 pr-4 py-2.5 text-xs outline-none transition-colors text-text-body ${
                 errors.consultationFee
                   ? "border-red-500 bg-red-50/50"
                   : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
@@ -286,7 +290,7 @@ export const ConsultationDetailsSection: React.FC<
             value={form.qualification}
             onChange={(e) => setFieldValue("qualification", e.target.value)}
             placeholder="e.g. MBBS, MD, DM (Cardiology)"
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body"
+            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body"
           />
         </div>
 
@@ -302,7 +306,7 @@ export const ConsultationDetailsSection: React.FC<
             value={form.yearsOfExperience}
             onChange={(e) => setFieldValue("yearsOfExperience", e.target.value)}
             placeholder="e.g. 10"
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body"
+            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body"
           />
         </div>
 
@@ -319,7 +323,7 @@ export const ConsultationDetailsSection: React.FC<
               setFieldValue("doctorCode", e.target.value.toUpperCase())
             }
             placeholder="e.g. DOC-CARD-01"
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body font-mono uppercase"
+            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body font-mono uppercase"
           />
         </div>
 
@@ -333,7 +337,7 @@ export const ConsultationDetailsSection: React.FC<
             onChange={(e) =>
               setFieldValue("slotDurationMinutes", e.target.value)
             }
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-all text-text-body cursor-pointer font-medium"
+            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body cursor-pointer font-medium"
           >
             <option value="10">10 Minutes</option>
             <option value="15">15 Minutes (Default)</option>

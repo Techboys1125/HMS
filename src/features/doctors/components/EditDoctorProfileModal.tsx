@@ -440,7 +440,7 @@ export function EditDoctorProfileModal({
             <button
               type="submit"
               disabled={isSaving}
-              className="px-5 py-2 rounded-xl bg-[#0D47A1] text-white font-bold hover:bg-blue-800 transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+              className="px-5 py-2 rounded-xl bg-[#0D47A1] text-white font-bold hover:bg-blue-800 transition-colors transition-opacity flex items-center gap-1.5 shadow-sm disabled:opacity-50"
               style={{ fontFamily: PP }}
             >
               {isSaving ? (

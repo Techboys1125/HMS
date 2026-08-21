@@ -36,7 +36,6 @@ import {
   Line,
 } from "../../../common/components/recharts-lazy";
 
-
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
 
@@ -74,7 +73,7 @@ function CircularProgress({
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          className="transition-all duration-500 ease-out"
+          className="transition-colors duration-500 ease-out"
         />
       </svg>
       <span
@@ -399,7 +398,7 @@ export function DoctorReportsDashboardScreen({
                 {/* Card 1: Today's Appointments */}
                 <div
                   onClick={() => navigate(ROUTES.DOCTOR_APPOINTMENTS)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
@@ -442,7 +441,7 @@ export function DoctorReportsDashboardScreen({
                 {/* Card 2: My Patients */}
                 <div
                   onClick={() => navigate(ROUTES.DOCTOR_PATIENTS)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
@@ -485,7 +484,7 @@ export function DoctorReportsDashboardScreen({
                 {/* Card 3: Completed Consultations */}
                 <div
                   onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
@@ -522,7 +521,7 @@ export function DoctorReportsDashboardScreen({
                 {/* Card 4: Follow-up Patients */}
                 <div
                   onClick={() => navigate(ROUTES.DOCTOR_APPOINTMENTS)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#F59E0B] transition">
@@ -559,7 +558,7 @@ export function DoctorReportsDashboardScreen({
                 {/* Card 5: Average Consultation Time */}
                 <div
                   onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
@@ -596,7 +595,7 @@ export function DoctorReportsDashboardScreen({
                 {/* Card 6: Patient Satisfaction */}
                 <div
                   onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between cursor-pointer group"
+                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between cursor-pointer group"
                 >
                   <div>
                     <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition">
@@ -639,7 +638,7 @@ export function DoctorReportsDashboardScreen({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                   {/* Report 1: Daily Appointment Report */}
-                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#0D47A1] hover:shadow-md transition-all flex flex-col justify-between group bg-white">
+                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#0D47A1] hover:shadow-md transition-colors transition-shadow flex flex-col justify-between group bg-white">
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <div className="p-2.5 rounded-xl bg-blue-50 text-[#0D47A1]">
@@ -675,7 +674,7 @@ export function DoctorReportsDashboardScreen({
                   </div>
 
                   {/* Report 2: Patient Report */}
-                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#009688] hover:shadow-md transition-all flex flex-col justify-between group bg-white">
+                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#009688] hover:shadow-md transition-colors transition-shadow flex flex-col justify-between group bg-white">
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <div className="p-2.5 rounded-xl bg-teal-50 text-[#009688]">
@@ -711,7 +710,7 @@ export function DoctorReportsDashboardScreen({
                   </div>
 
                   {/* Report 3: Doctor Performance Report */}
-                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#0D47A1] hover:shadow-md transition-all flex flex-col justify-between group bg-white">
+                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#0D47A1] hover:shadow-md transition-colors transition-shadow flex flex-col justify-between group bg-white">
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <div className="p-2.5 rounded-xl bg-indigo-50 text-[#0D47A1]">
@@ -747,7 +746,7 @@ export function DoctorReportsDashboardScreen({
                   </div>
 
                   {/* Report 4: Dashboard KPI Detail */}
-                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#009688] hover:shadow-md transition-all flex flex-col justify-between group bg-white">
+                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#009688] hover:shadow-md transition-colors transition-shadow flex flex-col justify-between group bg-white">
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <div className="p-2.5 rounded-xl bg-emerald-50 text-[#009688]">
@@ -985,9 +984,11 @@ export function DoctorReportsDashboardScreen({
                           paddingAngle={3}
                           dataKey="value"
                         >
-                          {([] as Array<{ name?: string; color: string }>).map((entry) => (
-                            <Cell key={entry.name} fill={entry.color} />
-                          ))}
+                          {([] as Array<{ name?: string; color: string }>).map(
+                            (entry) => (
+                              <Cell key={entry.name} fill={entry.color} />
+                            ),
+                          )}
                         </Pie>
                         <Tooltip
                           contentStyle={{

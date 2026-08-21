@@ -1,13 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
-import {
-  CommunicationHeader,
-  CommunicationKpiCards,
-  CommunicationToast,
-  TemplatesSection,
-  TriggersSection,
-  TemplateDetailsDrawer,
-  PreviewNotificationModal,
-} from "../components";
+import { CommunicationHeader } from "../components/CommunicationHeader";
+import { CommunicationKpiCards } from "../components/CommunicationKpiCards";
+import { CommunicationToast } from "../components/CommunicationToast";
+import { TemplatesSection } from "../components/TemplatesSection";
+import { TriggersSection } from "../components/TriggersSection";
+import { TemplateDetailsDrawer } from "../components/TemplateDetailsDrawer";
+import { PreviewNotificationModal } from "../components/PreviewNotificationModal";
 import type { TemplateRow } from "../components/TemplatesSection";
 import {
   useNotificationTemplates,
@@ -19,7 +17,7 @@ import {
   useCurrentUserId,
   useCurrentRole,
 } from "../hooks/useNotifications";
-import { getNotificationPermission } from "../permissions";
+import { getNotificationPermission } from "../permissions/notifications.permissions";
 import type { NotificationRule } from "../types/notifications.types";
 
 const RULE_KEY_EVENT_PATTERNS: {

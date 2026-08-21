@@ -61,7 +61,7 @@ export const RoleAccessSection: React.FC<RoleAccessSectionProps> = ({
               <div
                 key={role.id}
                 onClick={() => setFieldValue("role", role.id)}
-                className={`border rounded-2xl p-4 flex flex-col justify-between items-start gap-3 cursor-pointer transition-all duration-200 ${
+                className={`border rounded-2xl p-4 flex flex-col justify-between items-start gap-3 cursor-pointer transition-colors duration-200 ${
                   isSelected
                     ? "border-[#0D47A1] bg-blue-50/50 shadow-sm text-text-dark"
                     : "border-[#E5E7EB] hover:border-slate-300 bg-white hover:bg-slate-50/30"

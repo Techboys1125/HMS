@@ -1,4 +1,4 @@
-import { useReducer, useState } from "react";
+import { useReducer } from "react";
 import {
   Users,
   UserPlus,
@@ -81,6 +81,82 @@ const filterReducer = (state: FilterState, action: FilterAction): FilterState =>
   [action.field]: action.value,
 });
 
+type DrawerState = {
+  viewDrawerMember: FamilyMember | null;
+  editRelMember: FamilyMember | null;
+  editFormRel: FamilyMember["relationship"];
+  editDisplayName: string;
+  isPrimary: boolean;
+  isEmergency: boolean;
+  relFormError: string | null;
+  toastMessage: string | null;
+  removeDialogMember: FamilyMember | null;
+  removeFromDrawer: boolean;
+};
+
+type DrawerAction =
+  | { type: "OPEN_VIEW_DRAWER"; member: FamilyMember }
+  | { type: "CLOSE_VIEW_DRAWER" }
+  | { type: "OPEN_EDIT_DRAWER"; member: FamilyMember }
+  | { type: "CLOSE_EDIT_DRAWER" }
+  | { type: "SET_EDIT_FIELD"; field: "editFormRel"; value: FamilyMember["relationship"] }
+  | { type: "SET_EDIT_FIELD"; field: "editDisplayName"; value: string }
+  | { type: "SET_EDIT_FIELD"; field: "isPrimary"; value: boolean }
+  | { type: "SET_EDIT_FIELD"; field: "isEmergency"; value: boolean }
+  | { type: "SET_REL_FORM_ERROR"; error: string | null }
+  | { type: "OPEN_REMOVE_DIALOG"; member: FamilyMember; fromDrawer: boolean }
+  | { type: "CLOSE_REMOVE_DIALOG" }
+  | { type: "SHOW_TOAST"; message: string }
+  | { type: "CLEAR_TOAST" };
+
+const drawerReducer = (state: DrawerState, action: DrawerAction): DrawerState => {
+  switch (action.type) {
+    case "OPEN_VIEW_DRAWER":
+      return { ...state, viewDrawerMember: action.member };
+    case "CLOSE_VIEW_DRAWER":
+      return { ...state, viewDrawerMember: null, removeFromDrawer: false };
+    case "OPEN_EDIT_DRAWER":
+      return {
+        ...state,
+        editRelMember: action.member,
+        editFormRel: action.member.relationship,
+        editDisplayName: "",
+        isPrimary: action.member.relationship === "Self",
+        isEmergency: false,
+        relFormError: null,
+      };
+    case "CLOSE_EDIT_DRAWER":
+      return {
+        ...state,
+        editRelMember: null,
+        editFormRel: "Mother",
+        editDisplayName: "",
+        isPrimary: false,
+        isEmergency: false,
+        relFormError: null,
+      };
+    case "SET_EDIT_FIELD":
+      return { ...state, [action.field]: action.value };
+    case "SET_REL_FORM_ERROR":
+      return { ...state, relFormError: action.error };
+    case "OPEN_REMOVE_DIALOG":
+      return {
+        ...state,
+        removeDialogMember: action.member,
+        removeFromDrawer: action.fromDrawer,
+      };
+    case "CLOSE_REMOVE_DIALOG":
+      return { ...state, removeDialogMember: null, removeFromDrawer: false };
+    case "SHOW_TOAST":
+      return { ...state, toastMessage: action.message };
+    case "CLEAR_TOAST":
+      return { ...state, toastMessage: null };
+    default:
+      return state;
+  }
+};
+
+
 interface FamilyMembersManagementProps {
   familyMembers?: FamilyMember[];
   activeFamilyMember?: FamilyMember;
@@ -110,20 +186,30 @@ export function FamilyMembersManagement({
     dispatch({ type: "SET_FIELD", field, value });
 
   // Drawer & Dialog states
-  const [viewDrawerMember, setViewDrawerMember] = useState<FamilyMember | null>(
-    null,
-  );
-  const [editRelMember, setEditRelMember] = useState<FamilyMember | null>(null);
-  const [editFormRel, setEditFormRel] =
-    useState<FamilyMember["relationship"]>("Mother");
-  const [editDisplayName, setEditDisplayName] = useState("");
-  const [isPrimary, setIsPrimary] = useState(false);
-  const [isEmergency, setIsEmergency] = useState(false);
-  const [relFormError, setRelFormError] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [removeDialogMember, setRemoveDialogMember] =
-    useState<FamilyMember | null>(null);
-  const [removeFromDrawer, setRemoveFromDrawer] = useState(false);
+  const [drawerState, drawerDispatch] = useReducer(drawerReducer, {
+    viewDrawerMember: null,
+    editRelMember: null,
+    editFormRel: "Mother",
+    editDisplayName: "",
+    isPrimary: false,
+    isEmergency: false,
+    relFormError: null,
+    toastMessage: null,
+    removeDialogMember: null,
+    removeFromDrawer: false,
+  });
+  const {
+    viewDrawerMember,
+    editRelMember,
+    editFormRel,
+    editDisplayName,
+    isPrimary,
+    isEmergency,
+    relFormError,
+    toastMessage,
+    removeDialogMember,
+    removeFromDrawer,
+  } = drawerState;
 
   // Top Summary Metrics
   const totalLinked = familyMembers.length;
@@ -188,7 +274,7 @@ export function FamilyMembersManagement({
 
         <button
           onClick={() => onAddFamilyMember?.()}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm shadow-[#0D47A1]/20 active:scale-[0.98] shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-colors transition-transform shadow-sm shadow-[#0D47A1]/20 active:scale-[0.98] shrink-0"
           style={{ fontFamily: PP }}
         >
           <UserPlus size={16} />
@@ -441,7 +527,7 @@ export function FamilyMembersManagement({
           </p>
           <button
             onClick={() => onAddFamilyMember?.()}
-            className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
+            className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-colors shadow-sm"
             style={{ fontFamily: PP }}
           >
             <UserPlus size={16} />
@@ -596,7 +682,7 @@ export function FamilyMembersManagement({
                         <div className="flex items-center justify-end gap-1">
                           {/* View Drawer */}
                           <button
-                            onClick={() => setViewDrawerMember(m)}
+                            onClick={() => drawerDispatch({ type: "OPEN_VIEW_DRAWER", member: m })}
                             className="p-1.5 rounded-lg text-[#64748B] hover:text-[#0D47A1] hover:bg-slate-100 transition-colors"
                             title="View Profile Details"
                           >
@@ -606,12 +692,7 @@ export function FamilyMembersManagement({
                           {/* Edit Relationship */}
                           <button
                             onClick={() => {
-                              setEditRelMember(m);
-                              setEditFormRel(m.relationship);
-                              setEditDisplayName("");
-                              setIsPrimary(m.relationship === "Self");
-                              setIsEmergency(false);
-                              setRelFormError(null);
+                              drawerDispatch({ type: "OPEN_EDIT_DRAWER", member: m });
                             }}
                             className="p-1.5 rounded-lg text-[#64748B] hover:text-[#009688] hover:bg-slate-100 transition-colors"
                             title="Edit Relationship"
@@ -646,7 +727,7 @@ export function FamilyMembersManagement({
                           {/* Remove Link */}
                           {m.relationship !== "Self" && (
                             <button
-                              onClick={() => setRemoveDialogMember(m)}
+                              onClick={() => drawerDispatch({ type: "OPEN_REMOVE_DIALOG", member: m, fromDrawer: false })}
                               className="p-1.5 rounded-lg text-[#64748B] hover:text-[#EF4444] hover:bg-red-50 transition-colors"
                               title="Remove Link"
                             >
@@ -731,7 +812,7 @@ export function FamilyMembersManagement({
                   Family Member Details
                 </h3>
                 <button
-                  onClick={() => setViewDrawerMember(null)}
+                  onClick={() => drawerDispatch({ type: "CLOSE_VIEW_DRAWER" })}
                   className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
                 >
                   <X size={18} />
@@ -1019,28 +1100,28 @@ export function FamilyMembersManagement({
                 </h4>
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    className="flex items-center gap-2 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#0D47A1] hover:bg-blue-50 hover:border-blue-200 transition-all"
+                    className="flex items-center gap-2 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#0D47A1] hover:bg-blue-50 hover:border-blue-200 transition-colors"
                     style={{ fontFamily: PP }}
                   >
                     <ExternalLink size={14} />
                     Open Full Profile
                   </button>
                   <button
-                    className="flex items-center gap-2 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#009688] hover:bg-teal-50 hover:border-teal-200 transition-all"
+                    className="flex items-center gap-2 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#009688] hover:bg-teal-50 hover:border-teal-200 transition-colors"
                     style={{ fontFamily: PP }}
                   >
                     <Calendar size={14} />
                     View Appointments
                   </button>
                   <button
-                    className="flex items-center gap-2 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#66BB6A] hover:bg-emerald-50 hover:border-emerald-200 transition-all"
+                    className="flex items-center gap-2 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#66BB6A] hover:bg-emerald-50 hover:border-emerald-200 transition-colors"
                     style={{ fontFamily: PP }}
                   >
                     <Pill size={14} />
                     View Prescriptions
                   </button>
                   <button
-                    className="flex items-center gap-2 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#F59E0B] hover:bg-amber-50 hover:border-amber-200 transition-all"
+                    className="flex items-center gap-2 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#F59E0B] hover:bg-amber-50 hover:border-amber-200 transition-colors"
                     style={{ fontFamily: PP }}
                   >
                     <CreditCard size={14} />
@@ -1054,7 +1135,7 @@ export function FamilyMembersManagement({
             <div className="p-4 border-t border-[#E5E7EB] bg-slate-50 space-y-2">
               <div className="flex items-center justify-between gap-3">
                 <button
-                  onClick={() => setViewDrawerMember(null)}
+                  onClick={() => drawerDispatch({ type: "CLOSE_VIEW_DRAWER" })}
                   className="px-4 py-2 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-colors"
                   style={{ fontFamily: PP }}
                 >
@@ -1063,9 +1144,9 @@ export function FamilyMembersManagement({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
-                      setViewDrawerMember(null);
+                      drawerDispatch({ type: "CLOSE_VIEW_DRAWER" });
                     }}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0D47A1] text-white rounded-xl text-xs font-semibold hover:bg-[#0c3d8a] transition-all"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0D47A1] text-white rounded-xl text-xs font-semibold hover:bg-[#0c3d8a] transition-colors"
                     style={{ fontFamily: PP }}
                   >
                     <ExternalLink size={14} />
@@ -1076,10 +1157,9 @@ export function FamilyMembersManagement({
               {viewDrawerMember.relationship !== "Self" && (
                 <button
                   onClick={() => {
-                    setRemoveFromDrawer(true);
-                    setRemoveDialogMember(viewDrawerMember);
+                    drawerDispatch({ type: "OPEN_REMOVE_DIALOG", member: viewDrawerMember, fromDrawer: true });
                   }}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border border-red-200 rounded-xl text-xs font-semibold text-[#EF4444] hover:bg-red-50 transition-all"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border border-red-200 rounded-xl text-xs font-semibold text-[#EF4444] hover:bg-red-50 transition-colors"
                   style={{ fontFamily: PP }}
                 >
                   <UserX size={14} />
@@ -1097,7 +1177,7 @@ export function FamilyMembersManagement({
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
-            onClick={() => setEditRelMember(null)}
+            onClick={() => drawerDispatch({ type: "CLOSE_EDIT_DRAWER" })}
           />
 
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
@@ -1119,7 +1199,7 @@ export function FamilyMembersManagement({
                   </p>
                 </div>
                 <button
-                  onClick={() => setEditRelMember(null)}
+                  onClick={() => drawerDispatch({ type: "CLOSE_EDIT_DRAWER" })}
                   className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#64748B] flex items-center justify-center transition-colors"
                 >
                   <X size={16} />
@@ -1202,10 +1282,8 @@ export function FamilyMembersManagement({
                     <select
                       value={editFormRel}
                       onChange={(e) => {
-                        setEditFormRel(
-                          e.target.value as FamilyMember["relationship"],
-                        );
-                        setRelFormError(null);
+                        drawerDispatch({ type: "SET_EDIT_FIELD", field: "editFormRel", value: e.target.value as FamilyMember["relationship"] });
+                        drawerDispatch({ type: "SET_REL_FORM_ERROR", error: null });
                       }}
                       className={`w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-medium text-[#111827] outline-none transition-colors ${
                         relFormError
@@ -1244,7 +1322,7 @@ export function FamilyMembersManagement({
                       type="text"
                       placeholder="e.g. Mom, Dad, Grandpa"
                       value={editDisplayName}
-                      onChange={(e) => setEditDisplayName(e.target.value)}
+                      onChange={(e) => drawerDispatch({ type: "SET_EDIT_FIELD", field: "editDisplayName", value: e.target.value })}
                       className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
                       style={{ fontFamily: RB }}
                     />
@@ -1272,7 +1350,7 @@ export function FamilyMembersManagement({
                     </div>
                     <button
                       type="button"
-                      onClick={() => setIsPrimary(!isPrimary)}
+                      onClick={() => drawerDispatch({ type: "SET_EDIT_FIELD", field: "isPrimary", value: !isPrimary })}
                       className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                         isPrimary ? "bg-[#0D47A1]" : "bg-slate-300"
                       }`}
@@ -1304,7 +1382,7 @@ export function FamilyMembersManagement({
                     </div>
                     <button
                       type="button"
-                      onClick={() => setIsEmergency(!isEmergency)}
+                      onClick={() => drawerDispatch({ type: "SET_EDIT_FIELD", field: "isEmergency", value: !isEmergency })}
                       className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                         isEmergency ? "bg-[#009688]" : "bg-slate-300"
                       }`}
@@ -1331,7 +1409,7 @@ export function FamilyMembersManagement({
               {/* Drawer Footer */}
               <div className="p-4 border-t border-[#E5E7EB] bg-slate-50 flex items-center justify-end gap-3 shrink-0">
                 <button
-                  onClick={() => setEditRelMember(null)}
+                  onClick={() => drawerDispatch({ type: "CLOSE_EDIT_DRAWER" })}
                   className="px-4 py-2 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-colors"
                   style={{ fontFamily: PP }}
                 >
@@ -1340,15 +1418,15 @@ export function FamilyMembersManagement({
                 <button
                   onClick={() => {
                     if (!editFormRel) {
-                      setRelFormError("Relationship is required");
+                      drawerDispatch({ type: "SET_REL_FORM_ERROR", error: "Relationship is required" });
                       return;
                     }
                     onUpdateRelationship?.(editRelMember.id, editFormRel);
-                    setToastMessage("Relationship updated successfully.");
-                    setEditRelMember(null);
-                    setTimeout(() => setToastMessage(null), 3000);
+                    drawerDispatch({ type: "SHOW_TOAST", message: "Relationship updated successfully." });
+                    drawerDispatch({ type: "CLOSE_EDIT_DRAWER" });
+                    setTimeout(() => drawerDispatch({ type: "CLEAR_TOAST" }), 3000);
                   }}
-                  className="px-5 py-2 bg-[#0D47A1] text-white rounded-xl text-xs font-semibold hover:bg-[#0c3d8a] transition-all shadow-sm"
+                  className="px-5 py-2 bg-[#0D47A1] text-white rounded-xl text-xs font-semibold hover:bg-[#0c3d8a] transition-colors shadow-sm"
                   style={{ fontFamily: PP }}
                 >
                   Save Changes
@@ -1436,31 +1514,27 @@ export function FamilyMembersManagement({
 
             {/* FOOTER BUTTONS */}
             <div className="flex items-center justify-end gap-3 pt-2 border-t border-[#E5E7EB]">
-              <button
-                onClick={() => {
-                  setRemoveDialogMember(null);
-                  setRemoveFromDrawer(false);
-                }}
-                className="px-4 py-2 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-colors"
-                style={{ fontFamily: PP }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  const name = removeDialogMember.patientName;
-                  onRemoveFamilyMember?.(removeDialogMember.id);
-                  setRemoveDialogMember(null);
-                  if (removeFromDrawer) {
-                    setViewDrawerMember(null);
-                    setRemoveFromDrawer(false);
-                  }
-                  setToastMessage(
-                    `Family member ${name} removed successfully.`,
-                  );
-                  setTimeout(() => setToastMessage(null), 3000);
-                }}
-                className="px-5 py-2 bg-[#EF4444] text-white rounded-xl text-xs font-semibold hover:bg-red-600 transition-all shadow-sm flex items-center gap-1.5"
+                <button
+                  onClick={() => {
+                    drawerDispatch({ type: "CLOSE_REMOVE_DIALOG" });
+                  }}
+                  className="px-4 py-2 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-colors"
+                  style={{ fontFamily: PP }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    const name = removeDialogMember.patientName;
+                    onRemoveFamilyMember?.(removeDialogMember.id);
+                    drawerDispatch({ type: "CLOSE_REMOVE_DIALOG" });
+                    if (removeFromDrawer) {
+                      drawerDispatch({ type: "CLOSE_VIEW_DRAWER" });
+                    }
+                    drawerDispatch({ type: "SHOW_TOAST", message: `Family member ${name} removed successfully.` });
+                    setTimeout(() => drawerDispatch({ type: "CLEAR_TOAST" }), 3000);
+                  }}
+                className="px-5 py-2 bg-[#EF4444] text-white rounded-xl text-xs font-semibold hover:bg-red-600 transition-colors shadow-sm flex items-center gap-1.5"
                 style={{ fontFamily: PP }}
               >
                 <UserX size={14} />

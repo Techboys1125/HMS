@@ -317,7 +317,7 @@ export function DoctorEditPrescriptionScreen({
             {onBack && (
               <button
                 onClick={onBack}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-all shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-colors shadow-sm"
                 style={{ fontFamily: PP }}
               >
                 Cancel
@@ -325,7 +325,7 @@ export function DoctorEditPrescriptionScreen({
             )}
             <button
               onClick={handleSaveChanges}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#0D47A1] bg-white text-[#0D47A1] hover:bg-blue-50 text-xs font-semibold transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#0D47A1] bg-white text-[#0D47A1] hover:bg-blue-50 text-xs font-semibold transition-colors shadow-sm"
               style={{ fontFamily: PP }}
             >
               <Save size={14} /> Save Changes
@@ -333,7 +333,7 @@ export function DoctorEditPrescriptionScreen({
             {status === "Draft" && (
               <button
                 onClick={handleIssuePrescription}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#009688] hover:bg-[#00827a] text-white text-xs font-semibold transition-all shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#009688] hover:bg-[#00827a] text-white text-xs font-semibold transition-colors shadow-sm"
                 style={{ fontFamily: PP }}
               >
                 <CheckCircle2 size={14} /> Issue Prescription
@@ -1260,7 +1260,7 @@ export function DoctorEditPrescriptionScreen({
         <div className="flex items-center gap-2">
           <button
             onClick={handleSaveChanges}
-            className="px-5 py-2 rounded-xl border border-[#0D47A1] bg-white text-[#0D47A1] hover:bg-blue-50 text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5"
+            className="px-5 py-2 rounded-xl border border-[#0D47A1] bg-white text-[#0D47A1] hover:bg-blue-50 text-xs font-semibold transition-colors shadow-sm flex items-center gap-1.5"
             style={{ fontFamily: PP }}
           >
             <Save size={14} /> Save Changes
@@ -1268,7 +1268,7 @@ export function DoctorEditPrescriptionScreen({
           {status === "Draft" && (
             <button
               onClick={handleIssuePrescription}
-              className="px-5 py-2 rounded-xl bg-[#009688] hover:bg-[#00827a] text-white text-xs font-semibold transition-all shadow-sm flex items-center gap-1.5"
+              className="px-5 py-2 rounded-xl bg-[#009688] hover:bg-[#00827a] text-white text-xs font-semibold transition-colors shadow-sm flex items-center gap-1.5"
               style={{ fontFamily: PP }}
             >
               <CheckCircle2 size={14} /> Issue Prescription

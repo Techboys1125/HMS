@@ -16,7 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { useAuthStore } from "../../auth";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { doctorsApi } from "../api/doctors.api";
 import { PP, RB } from "../constants/doctors.constants";
 import type {

@@ -378,7 +378,7 @@ export function EditPatientScreen({
                   )}
                   <label
                     htmlFor="photo-upload"
-                    className="absolute bottom-0 right-0 bg-[#0D47A1] text-white p-2 rounded-full shadow-md cursor-pointer hover:bg-[#0c3d8a] transition-all"
+                    className="absolute bottom-0 right-0 bg-[#0D47A1] text-white p-2 rounded-full shadow-md cursor-pointer hover:bg-[#0c3d8a] transition-colors"
                     title="Upload Photo"
                   >
                     <Upload size={14} />
@@ -443,7 +443,7 @@ export function EditPatientScreen({
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Enter patient full name"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
                     />
                   </div>
                   <div>
@@ -454,7 +454,7 @@ export function EditPatientScreen({
                       type="date"
                       value={dob}
                       onChange={(e) => setDob(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all cursor-pointer"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
                     />
                   </div>
                   <div>
@@ -475,7 +475,7 @@ export function EditPatientScreen({
                     <select
                       value={gender}
                       onChange={(e) => setGender(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all cursor-pointer"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
                     >
                       {GENDERS.map((g) => (
                         <option key={g.value} value={g.value}>
@@ -491,7 +491,7 @@ export function EditPatientScreen({
                     <select
                       value={bloodGroup}
                       onChange={(e) => setBloodGroup(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all cursor-pointer"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
                     >
                       {BLOOD_GROUPS.map((b) => (
                         <option key={b.value} value={b.value}>
@@ -507,7 +507,7 @@ export function EditPatientScreen({
                     <select
                       value={maritalStatus}
                       onChange={(e) => setMaritalStatus(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all cursor-pointer"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
                     >
                       {MARITAL_STATUSES.map((m) => (
                         <option key={m.value} value={m.value}>
@@ -526,7 +526,7 @@ export function EditPatientScreen({
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+91 98765 43210"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
                     />
                   </div>
                   <div>
@@ -538,7 +538,7 @@ export function EditPatientScreen({
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="patient@example.com"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
                     />
                   </div>
                 </div>
@@ -562,7 +562,7 @@ export function EditPatientScreen({
                       value={emergencyName}
                       onChange={(e) => setEmergencyName(e.target.value)}
                       placeholder="Name of Next of Kin"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
                     />
                   </div>
                   <div>
@@ -572,7 +572,7 @@ export function EditPatientScreen({
                     <select
                       value={emergencyRelationship}
                       onChange={(e) => setEmergencyRelationship(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all cursor-pointer"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
                     >
                       {RELATIONSHIPS.map((r) => (
                         <option key={r.value} value={r.value}>
@@ -590,7 +590,7 @@ export function EditPatientScreen({
                       value={emergencyPhone}
                       onChange={(e) => setEmergencyPhone(e.target.value)}
                       placeholder="+91 98765 00000"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
                     />
                   </div>
                 </div>
@@ -614,7 +614,7 @@ export function EditPatientScreen({
                       value={addressLine}
                       onChange={(e) => setAddressLine(e.target.value)}
                       placeholder="Door No, Street Name, Landmark"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
                     />
                   </div>
                   <div>
@@ -626,7 +626,7 @@ export function EditPatientScreen({
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
                       placeholder="City Name"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
                     />
                   </div>
                   <div>
@@ -638,7 +638,7 @@ export function EditPatientScreen({
                       value={state}
                       onChange={(e) => setState(e.target.value)}
                       placeholder="State Name"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
                     />
                   </div>
                   <div>
@@ -650,7 +650,7 @@ export function EditPatientScreen({
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
                       placeholder="600001"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all font-mono"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors font-mono"
                     />
                   </div>
                 </div>
@@ -672,7 +672,7 @@ export function EditPatientScreen({
                     <select
                       value={registrationType}
                       onChange={(e) => setRegistrationType(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all cursor-pointer"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
                     >
                       {REGISTRATION_TYPES.map((rt) => (
                         <option key={rt.value} value={rt.value}>
@@ -688,7 +688,7 @@ export function EditPatientScreen({
                     <select
                       value={patientCategory}
                       onChange={(e) => setPatientCategory(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all cursor-pointer"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
                     >
                       {PATIENT_CATEGORIES.map((pc) => (
                         <option key={pc.value} value={pc.value}>
@@ -706,7 +706,7 @@ export function EditPatientScreen({
                       value={assignedDoctor}
                       onChange={(e) => setAssignedDoctor(e.target.value)}
                       placeholder="Dr. Arjun Mehta"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
                     />
                   </div>
                   <div className="md:col-span-3">
@@ -718,7 +718,7 @@ export function EditPatientScreen({
                       value={allergies}
                       onChange={(e) => setAllergies(e.target.value)}
                       placeholder="e.g. Penicillin, Peanuts, Sulfa Drugs"
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
                     />
                   </div>
                   <div className="md:col-span-3">
@@ -730,7 +730,7 @@ export function EditPatientScreen({
                       value={medicalConditions}
                       onChange={(e) => setMedicalConditions(e.target.value)}
                       placeholder="Summary of pre-existing conditions, surgeries, or chronic illness..."
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-all resize-none"
+                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors resize-none"
                     />
                   </div>
                 </div>
@@ -748,7 +748,7 @@ export function EditPatientScreen({
                 <button
                   type="submit"
                   disabled={updateMutation.isPending}
-                  className="px-6 py-2.5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-sm font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-sm font-semibold transition-colors shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
                   style={{ fontFamily: PP }}
                 >
                   {updateMutation.isPending && (

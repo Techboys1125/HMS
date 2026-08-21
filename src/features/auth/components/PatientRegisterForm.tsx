@@ -151,7 +151,7 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-5.5 sm:py-6 px-8 bg-[#0D47A1] hover:bg-[#1565C0] text-white font-heading font-bold text-base sm:text-lg rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.99] disabled:opacity-70 flex items-center justify-center gap-2 mt-8 sm:mt-10"
+            className="w-full py-5.5 sm:py-6 px-8 bg-[#0D47A1] hover:bg-[#1565C0] text-white font-heading font-bold text-base sm:text-lg rounded-2xl shadow-lg hover:shadow-xl transition-colors transition-transform active:scale-[0.99] disabled:opacity-70 flex items-center justify-center gap-2 mt-8 sm:mt-10"
           >
             {loading ? (
               <>
@@ -172,7 +172,7 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
           <button
             type="button"
             onClick={onGoToLogin}
-            className="font-bold text-[#0D47A1] hover:underline transition-all"
+            className="font-bold text-[#0D47A1] hover:underline transition-colors"
           >
             Sign In here
           </button>

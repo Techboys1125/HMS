@@ -15,7 +15,7 @@ import type {
   DoctorStatus,
 } from "../types/doctors.types";
 import type { AppPermission } from "../../../permissions/types";
-import { usePermissions } from "../../../permissions";
+import { usePermissions } from "../../../permissions/usePermissions";
 import { PP } from "../constants/doctors.constants";
 import UserAvatar from "../../../common/components/UserAvatar";
 

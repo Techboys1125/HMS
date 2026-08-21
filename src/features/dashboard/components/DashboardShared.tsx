@@ -294,7 +294,7 @@ export function ProgressBar({
       </div>
       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full transition-all"
+          className="h-full rounded-full transition-colors"
           style={{ width: `${pct}%`, background: color }}
         />
       </div>
