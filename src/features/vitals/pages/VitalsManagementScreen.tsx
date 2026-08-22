@@ -46,7 +46,7 @@ interface Props {
 /* ─────────────────────────────────────────────────────────────────────────────
    VITALS DETAILS SCREEN (READ ONLY)
    ───────────────────────────────────────────────────────────────────────────── */
-export function VitalsDetailsScreen({
+function VitalsDetailsScreen({
   activeApt,
   vitalsData = {
     height: "",
@@ -777,7 +777,11 @@ export function RecordPatientVitalsForm({
         spo2: Number(spo2),
       };
 
-      const wasSaved = await vitalsService.submitVitals(activeApt.id, payload, activeApt.status);
+      const wasSaved = await vitalsService.submitVitals(
+        activeApt.id,
+        payload,
+        activeApt.status,
+      );
       if (!wasSaved) throw new Error("Vitals submission was not accepted");
 
       triggerToast("Vitals recorded successfully!", "success");
@@ -1189,6 +1193,7 @@ export function RecordPatientVitalsScreen({
 
             appointmentDate: new Date().toISOString().split("T")[0],
             appointmentTime: item.checkInTime || "Now",
+            time: item.checkInTime || "Now",
             timeSlot: item.checkInTime || "Now",
             status: toDisplayStatus(item.status),
             queueStatus: item.status || "WAITING_FOR_VITALS",

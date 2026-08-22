@@ -31,9 +31,7 @@ export function AppointmentKpiCards() {
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             Appointment Slots
           </span>
           <div
@@ -103,9 +101,7 @@ export function AppointmentKpiCards() {
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             Working Shifts
           </span>
           <div
@@ -175,9 +171,7 @@ export function AppointmentKpiCards() {
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             Queue Rules
           </span>
           <div
@@ -247,9 +241,7 @@ export function AppointmentKpiCards() {
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             Holiday Calendar
           </span>
           <div

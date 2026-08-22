@@ -8,7 +8,11 @@ export interface NotificationKpiMetrics {
   completed: number;
 }
 
-export function NotificationKpiCards({ metrics }: { metrics: NotificationKpiMetrics }) {
+export function NotificationKpiCards({
+  metrics,
+}: {
+  metrics: NotificationKpiMetrics;
+}) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <div className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
@@ -21,7 +25,10 @@ export function NotificationKpiCards({ metrics }: { metrics: NotificationKpiMetr
           </div>
         </div>
         <div className="mt-3 flex items-baseline justify-between">
-          <span style={{ fontFamily: PP }} className="text-2xl font-bold text-[#111827]">
+          <span
+            style={{ fontFamily: PP }}
+            className="text-2xl font-bold text-[#111827]"
+          >
             {metrics.unread}
           </span>
           <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
@@ -46,7 +53,10 @@ export function NotificationKpiCards({ metrics }: { metrics: NotificationKpiMetr
           </div>
         </div>
         <div className="mt-3 flex items-baseline justify-between">
-          <span style={{ fontFamily: PP }} className="text-2xl font-bold text-[#111827]">
+          <span
+            style={{ fontFamily: PP }}
+            className="text-2xl font-bold text-[#111827]"
+          >
             {metrics.today}
           </span>
           <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
@@ -71,7 +81,10 @@ export function NotificationKpiCards({ metrics }: { metrics: NotificationKpiMetr
           </div>
         </div>
         <div className="mt-3 flex items-baseline justify-between">
-          <span style={{ fontFamily: PP }} className="text-2xl font-bold text-[#111827]">
+          <span
+            style={{ fontFamily: PP }}
+            className="text-2xl font-bold text-[#111827]"
+          >
             {metrics.critical}
           </span>
           <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600">
@@ -96,7 +109,10 @@ export function NotificationKpiCards({ metrics }: { metrics: NotificationKpiMetr
           </div>
         </div>
         <div className="mt-3 flex items-baseline justify-between">
-          <span style={{ fontFamily: PP }} className="text-2xl font-bold text-[#111827]">
+          <span
+            style={{ fontFamily: PP }}
+            className="text-2xl font-bold text-[#111827]"
+          >
             {metrics.completed}
           </span>
           <span className="inline-flex items-center gap-1 text-xs font-medium text-purple-600">

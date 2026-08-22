@@ -82,7 +82,9 @@ export function PatientSearchScreen({
     : generalPatientsResponse;
   const isLoading = isDoctorRole ? isDoctorLoading : isGeneralLoading;
 
-  const [doctorMap, setDoctorMap] = useState<Record<string | number, string>>({});
+  const [doctorMap, setDoctorMap] = useState<Record<string | number, string>>(
+    {},
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -317,7 +319,7 @@ export function PatientSearchScreen({
         onEditPatient={() => {}}
       />
     );
-}
+  }
 
   // Breadcrumb label based on role
   const roleLabel =

@@ -17,7 +17,7 @@ export function usePatients(
     size?: number;
     status?: string;
   },
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) {
   return useQuery({
     queryKey: patientKeys.list(params?.query),
@@ -34,25 +34,6 @@ export function usePatient(mrn: string) {
   });
 }
 
-export function usePatientSearch(query: string) {
-  return useQuery({
-    queryKey: patientKeys.search(query),
-    queryFn: () => patientsApi.listPatients({ query }),
-    enabled: query.trim().length >= 2,
-  });
-}
-
-export function useRegisterPatient() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (payload: Record<string, unknown>) =>
-      patientsApi.registerPatient(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: patientKeys.all });
-    },
-  });
-}
-
 export function useUpdatePatient(mrn: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -65,25 +46,17 @@ export function useUpdatePatient(mrn: string) {
   });
 }
 
-export function usePatientAudit(mrn: string) {
-  return useQuery({
-    queryKey: patientKeys.audit(mrn),
-    queryFn: () => patientsApi.getPatientAudit(mrn),
-    enabled: !!mrn,
-  });
-}
-
 export function useDoctorPatients(
   params?: {
     page?: number;
     size?: number;
     search?: string;
   },
-  options?: { enabled?: boolean }
+  options?: { enabled?: boolean },
 ) {
   return useQuery({
     queryKey: [...patientKeys.all, "doctor", params?.search ?? ""],
-    queryFn: () => patientsApi.getDoctorPatients(params),
+    queryFn: () => patientsApi.getDoctorPatients(undefined, params),
     enabled: options?.enabled,
   });
 }

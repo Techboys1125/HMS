@@ -10,36 +10,24 @@ import {
   fetchCollectionRate,
   fetchHospitalDashboard,
   fetchDepartmentConsultationVolume,
-  fetchHospitalDoctorPerformance,
   fetchInvoiceRegister,
   fetchInvoiceSummary,
   fetchOperationalTrend,
   fetchPatientRegistrationSummary,
-  fetchPatientRegistrationDetails,
   fetchRevenueVsCollection,
   fetchDailyRevenue,
   fetchDailyRevenueDetails,
   fetchReportCategoryShare,
   fetchMostViewedReports,
   fetchPatientAgeDemographics,
-  fetchPatientDashboard,
   fetchDepartmentPatientVisits,
-  fetchDoctorPatientWorkload,
   fetchGenderBreakdown,
   fetchPatientMasterRegister,
-  fetchPatientRegistrationTrend,
   fetchAdminReportsDashboard,
-  fetchAdminAppointmentsReport,
-  fetchAdminPatientsReport,
   fetchCollectionRateSummary,
-  fetchDoctorDetailPerformance,
-  fetchDoctorActivities,
-  fetchDoctorWorkload,
   fetchDoctorSelfDailyAppointmentsAnalytics,
   fetchDoctorSelfDailyAppointmentsDashboard,
   fetchDoctorSelfDailyAppointmentRegister,
-  fetchDoctorSelfPatientAnalytics,
-  fetchDoctorSelfPatientDashboard,
   fetchDoctorSelfPatientRegister,
   fetchAccountantMainReport,
   fetchAccountantBillingAnalysis,
@@ -47,14 +35,6 @@ import {
   fetchAccountantRefundLog,
   fetchAccountantRevenueReport,
   fetchAccountantTransactionReport,
-  fetchReceptionDashboard,
-  fetchReceptionRegistrationTrend,
-  fetchReceptionAppointmentStatus,
-  fetchReceptionCheckinAnalytics,
-  fetchReceptionQueuePerformance,
-  fetchReceptionRegister,
-  fetchReceptionActivityLog,
-  fetchReceptionSummary,
 } from "../services/reports.service";
 
 // ─── Query Key Factories ────────────────────────────────────────────────────
@@ -94,8 +74,7 @@ const reportKeys = {
     [...reportKeys.all, "daily-revenue-details", f] as const,
   reportCategoryShare: () =>
     [...reportKeys.all, "report-category-share"] as const,
-  mostViewedReports: () =>
-    [...reportKeys.all, "most-viewed-reports"] as const,
+  mostViewedReports: () => [...reportKeys.all, "most-viewed-reports"] as const,
   patientAgeDemographics: (f?: ReportFilters) =>
     [...reportKeys.all, "patient-age-demographics", f] as const,
   patientDashboard: (f?: ReportFilters) =>
@@ -245,17 +224,6 @@ export function useDepartmentConsultationVolume(filters?: ReportFilters) {
   });
 }
 
-// 7. Doctor Performance (Hospital alias)
-export function useHospitalDoctorPerformance(filters?: ReportFilters) {
-  const f = getDefaultFilters(filters);
-  return useQuery({
-    queryKey: reportKeys.hospitalDoctorPerformance(f),
-    queryFn: () => fetchHospitalDoctorPerformance(f),
-    enabled: true,
-    staleTime: 60_000,
-  });
-}
-
 // 8. Invoice Register Detail
 export function useInvoiceRegister(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
@@ -295,17 +263,6 @@ export function usePatientRegistrationSummary(filters?: ReportFilters) {
   return useQuery({
     queryKey: reportKeys.patientRegistrationSummary(f),
     queryFn: () => fetchPatientRegistrationSummary(f),
-    enabled: true,
-    staleTime: 60_000,
-  });
-}
-
-// 12. Patient Registration Detail
-export function usePatientRegistrationDetails(filters?: ReportFilters) {
-  const f = getDefaultFilters(filters);
-  return useQuery({
-    queryKey: reportKeys.patientRegistrationDetails(f),
-    queryFn: () => fetchPatientRegistrationDetails(f),
     enabled: true,
     staleTime: 60_000,
   });
@@ -373,34 +330,12 @@ export function usePatientAgeDemographics(filters?: ReportFilters) {
   });
 }
 
-// 19. Patient Dashboard
-export function usePatientDashboard(filters?: ReportFilters) {
-  const f = getDefaultFilters(filters);
-  return useQuery({
-    queryKey: reportKeys.patientDashboard(f),
-    queryFn: () => fetchPatientDashboard(f),
-    enabled: true,
-    staleTime: 60_000,
-  });
-}
-
 // 20. Department Patient Visits
 export function useDepartmentPatientVisits(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
     queryKey: reportKeys.departmentPatientVisits(f),
     queryFn: () => fetchDepartmentPatientVisits(f),
-    enabled: true,
-    staleTime: 60_000,
-  });
-}
-
-// 21. Doctor Patient Workload
-export function useDoctorPatientWorkload(filters?: ReportFilters) {
-  const f = getDefaultFilters(filters);
-  return useQuery({
-    queryKey: reportKeys.doctorPatientWorkload(f),
-    queryFn: () => fetchDoctorPatientWorkload(f),
     enabled: true,
     staleTime: 60_000,
   });
@@ -428,43 +363,12 @@ export function usePatientMasterRegister(filters?: ReportFilters) {
   });
 }
 
-// 24. Patient Registration Trend
-export function usePatientRegistrationTrend(period?: string) {
-  return useQuery({
-    queryKey: reportKeys.patientRegistrationTrend(period),
-    queryFn: () => fetchPatientRegistrationTrend(period),
-    staleTime: 60_000,
-  });
-}
-
 // 25. Admin Reports Dashboard
 export function useAdminReportsDashboard(filters?: ReportFilters) {
   const f = getDefaultFilters(filters);
   return useQuery({
     queryKey: [...reportKeys.all, "admin-reports-dashboard", f] as const,
     queryFn: () => fetchAdminReportsDashboard(f),
-    enabled: true,
-    staleTime: 60_000,
-  });
-}
-
-// 26. Admin Appointments Report
-export function useAdminAppointmentsReport(filters?: ReportFilters) {
-  const f = getDefaultFilters(filters);
-  return useQuery({
-    queryKey: [...reportKeys.all, "admin-appointments-report", f] as const,
-    queryFn: () => fetchAdminAppointmentsReport(f),
-    enabled: true,
-    staleTime: 60_000,
-  });
-}
-
-// 27. Admin Patients Report
-export function useAdminPatientsReport(filters?: ReportFilters) {
-  const f = getDefaultFilters(filters);
-  return useQuery({
-    queryKey: [...reportKeys.all, "admin-patients-report", f] as const,
-    queryFn: () => fetchAdminPatientsReport(f),
     enabled: true,
     staleTime: 60_000,
   });
@@ -481,44 +385,18 @@ export function useCollectionRateSummary(filters?: ReportFilters) {
   });
 }
 
-// 29. Doctor Detail Performance
-export function useDoctorDetailPerformance(doctorId: string | number, filters?: ReportFilters) {
-  const f = getDefaultFilters(filters);
-  return useQuery({
-    queryKey: [...reportKeys.all, "doctor-detail-performance", doctorId, f] as const,
-    queryFn: () => fetchDoctorDetailPerformance(doctorId, f),
-    enabled: !!doctorId,
-    staleTime: 60_000,
-  });
-}
-
-// 30. Doctor Activities
-export function useDoctorActivities(doctorId: string | number, filters?: ReportFilters) {
-  const f = getDefaultFilters(filters);
-  return useQuery({
-    queryKey: [...reportKeys.all, "doctor-activities", doctorId, f] as const,
-    queryFn: () => fetchDoctorActivities(doctorId, f),
-    enabled: !!doctorId,
-    staleTime: 60_000,
-  });
-}
-
-// 31. Doctor Workload
-export function useDoctorWorkload(filters?: ReportFilters) {
-  const f = getDefaultFilters(filters);
-  return useQuery({
-    queryKey: [...reportKeys.all, "doctor-workload", f] as const,
-    queryFn: () => fetchDoctorWorkload(f),
-    enabled: true,
-    staleTime: 60_000,
-  });
-}
-
 // ─── Doctor Personal Practice Reports Hooks (/api/v1/doctors/me/reports/**) ──
 
-export function useDoctorSelfDailyAppointmentsAnalytics(params?: { date?: string; period?: string }) {
+export function useDoctorSelfDailyAppointmentsAnalytics(params?: {
+  date?: string;
+  period?: string;
+}) {
   return useQuery({
-    queryKey: [...reportKeys.all, "doctor-self-appointments-analytics", params] as const,
+    queryKey: [
+      ...reportKeys.all,
+      "doctor-self-appointments-analytics",
+      params,
+    ] as const,
     queryFn: () => fetchDoctorSelfDailyAppointmentsAnalytics(params),
     staleTime: 60_000,
   });
@@ -526,39 +404,44 @@ export function useDoctorSelfDailyAppointmentsAnalytics(params?: { date?: string
 
 export function useDoctorSelfDailyAppointmentsDashboard(date?: string) {
   return useQuery({
-    queryKey: [...reportKeys.all, "doctor-self-appointments-dashboard", date] as const,
+    queryKey: [
+      ...reportKeys.all,
+      "doctor-self-appointments-dashboard",
+      date,
+    ] as const,
     queryFn: () => fetchDoctorSelfDailyAppointmentsDashboard(date),
     staleTime: 60_000,
   });
 }
 
-export function useDoctorSelfDailyAppointmentRegister(params?: { date?: string; page?: number; size?: number }) {
+export function useDoctorSelfDailyAppointmentRegister(params?: {
+  date?: string;
+  page?: number;
+  size?: number;
+}) {
   return useQuery({
-    queryKey: [...reportKeys.all, "doctor-self-appointments-register", params] as const,
+    queryKey: [
+      ...reportKeys.all,
+      "doctor-self-appointments-register",
+      params,
+    ] as const,
     queryFn: () => fetchDoctorSelfDailyAppointmentRegister(params),
     staleTime: 60_000,
   });
 }
 
-export function useDoctorSelfPatientAnalytics(params?: { fromDate?: string; toDate?: string; period?: string }) {
+export function useDoctorSelfPatientRegister(params?: {
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  size?: number;
+}) {
   return useQuery({
-    queryKey: [...reportKeys.all, "doctor-self-patient-analytics", params] as const,
-    queryFn: () => fetchDoctorSelfPatientAnalytics(params),
-    staleTime: 60_000,
-  });
-}
-
-export function useDoctorSelfPatientDashboard(params?: { fromDate?: string; toDate?: string }) {
-  return useQuery({
-    queryKey: [...reportKeys.all, "doctor-self-patient-dashboard", params] as const,
-    queryFn: () => fetchDoctorSelfPatientDashboard(params),
-    staleTime: 60_000,
-  });
-}
-
-export function useDoctorSelfPatientRegister(params?: { fromDate?: string; toDate?: string; page?: number; size?: number }) {
-  return useQuery({
-    queryKey: [...reportKeys.all, "doctor-self-patient-register", params] as const,
+    queryKey: [
+      ...reportKeys.all,
+      "doctor-self-patient-register",
+      params,
+    ] as const,
     queryFn: () => fetchDoctorSelfPatientRegister(params),
     staleTime: 60_000,
   });
@@ -566,7 +449,11 @@ export function useDoctorSelfPatientRegister(params?: { fromDate?: string; toDat
 
 // ─── Accountant Financial Reports Hooks (/api/v1/accountant/reports/**) ──────
 
-export function useAccountantMainReport(params?: { fromDate?: string; toDate?: string; type?: string }) {
+export function useAccountantMainReport(params?: {
+  fromDate?: string;
+  toDate?: string;
+  type?: string;
+}) {
   return useQuery({
     queryKey: [...reportKeys.all, "accountant-main-report", params] as const,
     queryFn: () => fetchAccountantMainReport(params),
@@ -574,23 +461,42 @@ export function useAccountantMainReport(params?: { fromDate?: string; toDate?: s
   });
 }
 
-export function useAccountantBillingAnalysis(params?: { fromDate?: string; toDate?: string; billType?: string }) {
+export function useAccountantBillingAnalysis(params?: {
+  fromDate?: string;
+  toDate?: string;
+  billType?: string;
+}) {
   return useQuery({
-    queryKey: [...reportKeys.all, "accountant-billing-analysis", params] as const,
+    queryKey: [
+      ...reportKeys.all,
+      "accountant-billing-analysis",
+      params,
+    ] as const,
     queryFn: () => fetchAccountantBillingAnalysis(params),
     staleTime: 60_000,
   });
 }
 
-export function useAccountantPaymentCollection(params?: { fromDate?: string; toDate?: string; paymentMethod?: string }) {
+export function useAccountantPaymentCollection(params?: {
+  fromDate?: string;
+  toDate?: string;
+  paymentMethod?: string;
+}) {
   return useQuery({
-    queryKey: [...reportKeys.all, "accountant-payment-collection", params] as const,
+    queryKey: [
+      ...reportKeys.all,
+      "accountant-payment-collection",
+      params,
+    ] as const,
     queryFn: () => fetchAccountantPaymentCollection(params),
     staleTime: 60_000,
   });
 }
 
-export function useAccountantRefundLog(params?: { fromDate?: string; toDate?: string }) {
+export function useAccountantRefundLog(params?: {
+  fromDate?: string;
+  toDate?: string;
+}) {
   return useQuery({
     queryKey: [...reportKeys.all, "accountant-refund-log", params] as const,
     queryFn: () => fetchAccountantRefundLog(params),
@@ -598,7 +504,11 @@ export function useAccountantRefundLog(params?: { fromDate?: string; toDate?: st
   });
 }
 
-export function useAccountantRevenueReport(params?: { fromDate?: string; toDate?: string; groupBy?: string }) {
+export function useAccountantRevenueReport(params?: {
+  fromDate?: string;
+  toDate?: string;
+  groupBy?: string;
+}) {
   return useQuery({
     queryKey: [...reportKeys.all, "accountant-revenue-report", params] as const,
     queryFn: () => fetchAccountantRevenueReport(params),
@@ -606,76 +516,19 @@ export function useAccountantRevenueReport(params?: { fromDate?: string; toDate?
   });
 }
 
-export function useAccountantTransactionReport(params?: { fromDate?: string; toDate?: string; page?: number; size?: number }) {
+export function useAccountantTransactionReport(params?: {
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  size?: number;
+}) {
   return useQuery({
-    queryKey: [...reportKeys.all, "accountant-transaction-report", params] as const,
+    queryKey: [
+      ...reportKeys.all,
+      "accountant-transaction-report",
+      params,
+    ] as const,
     queryFn: () => fetchAccountantTransactionReport(params),
-    staleTime: 60_000,
-  });
-}
-
-// ─── Reception Operational Reports Hooks (/api/v1/reception/reports/**) ─────
-
-export function useReceptionDashboard(params?: { date?: string }) {
-  return useQuery({
-    queryKey: [...reportKeys.all, "reception-dashboard", params] as const,
-    queryFn: () => fetchReceptionDashboard(params),
-    staleTime: 60_000,
-  });
-}
-
-export function useReceptionRegistrationTrend(params?: { fromDate?: string; toDate?: string }) {
-  return useQuery({
-    queryKey: [...reportKeys.all, "reception-registration-trend", params] as const,
-    queryFn: () => fetchReceptionRegistrationTrend(params),
-    staleTime: 60_000,
-  });
-}
-
-export function useReceptionAppointmentStatus(params?: { date?: string }) {
-  return useQuery({
-    queryKey: [...reportKeys.all, "reception-appointment-status", params] as const,
-    queryFn: () => fetchReceptionAppointmentStatus(params),
-    staleTime: 60_000,
-  });
-}
-
-export function useReceptionCheckinAnalytics(params?: { date?: string }) {
-  return useQuery({
-    queryKey: [...reportKeys.all, "reception-checkin-analytics", params] as const,
-    queryFn: () => fetchReceptionCheckinAnalytics(params),
-    staleTime: 60_000,
-  });
-}
-
-export function useReceptionQueuePerformance(params?: { date?: string }) {
-  return useQuery({
-    queryKey: [...reportKeys.all, "reception-queue-performance", params] as const,
-    queryFn: () => fetchReceptionQueuePerformance(params),
-    staleTime: 60_000,
-  });
-}
-
-export function useReceptionRegister(params?: { fromDate?: string; toDate?: string; page?: number; size?: number }) {
-  return useQuery({
-    queryKey: [...reportKeys.all, "reception-register", params] as const,
-    queryFn: () => fetchReceptionRegister(params),
-    staleTime: 60_000,
-  });
-}
-
-export function useReceptionActivityLog(params?: { fromDate?: string; toDate?: string; page?: number; size?: number }) {
-  return useQuery({
-    queryKey: [...reportKeys.all, "reception-activity-log", params] as const,
-    queryFn: () => fetchReceptionActivityLog(params),
-    staleTime: 60_000,
-  });
-}
-
-export function useReceptionSummary(params?: { date?: string }) {
-  return useQuery({
-    queryKey: [...reportKeys.all, "reception-summary", params] as const,
-    queryFn: () => fetchReceptionSummary(params),
     staleTime: 60_000,
   });
 }

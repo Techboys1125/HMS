@@ -38,8 +38,8 @@ export function QueueTokenSettings() {
           gap: "8px",
         }}
       >
-        <Sliders size={18} style={{ color: "#009688" }} /> Section 04: Queue
-        & OPD Token Sequence Settings
+        <Sliders size={18} style={{ color: "#009688" }} /> Section 04: Queue &
+        OPD Token Sequence Settings
       </h3>
 
       <div

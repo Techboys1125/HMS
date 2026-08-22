@@ -25,8 +25,8 @@ export function BackupAnalyticsSection() {
           gap: "8px",
         }}
       >
-        <BarChart2 size={18} style={{ color: "#0D47A1" }} /> Backup
-        Performance & Health Metrics
+        <BarChart2 size={18} style={{ color: "#0D47A1" }} /> Backup Performance
+        & Health Metrics
       </h3>
 
       <div

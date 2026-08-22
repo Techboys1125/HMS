@@ -125,15 +125,6 @@ export async function fetchNotifications(
   return unwrap<NotificationPageResponse>(res);
 }
 
-export async function fetchNotificationDetail(
-  id: string,
-): Promise<NotificationDetailResponse> {
-  const res = await apiClient.get<ApiEnvelope<NotificationDetailResponse>>(
-    `/api/v1/notifications/${encodeURIComponent(id)}`,
-  );
-  return unwrap<NotificationDetailResponse>(res);
-}
-
 export async function fetchUnreadCount(): Promise<UnreadCountResponse> {
   const res = await apiClient.get<ApiEnvelope<UnreadCountResponse>>(
     "/api/v1/notifications/unread-count",

@@ -18,9 +18,7 @@ import {
 import { mapApiNotificationsToRecords } from "../services/notification.mapper";
 import { ROLE_QUICK_FILTERS } from "../constants/notifications.constants";
 import { ROUTES } from "../../../app/routes/routes";
-import type {
-  NotificationRecord,
-} from "../types/notifications.types";
+import type { NotificationRecord } from "../types/notifications.types";
 
 const PAGE_SIZE = 100;
 
@@ -77,9 +75,13 @@ export function PatientNotificationsPage() {
       if (filter.id === "All") {
         counts.All = roleNotifications.length;
       } else if (filter.id === "Unread") {
-        counts.Unread = roleNotifications.filter((n) => n.status === "Unread").length;
+        counts.Unread = roleNotifications.filter(
+          (n) => n.status === "Unread",
+        ).length;
       } else {
-        counts[filter.id] = roleNotifications.filter((n) => n.category === filter.id).length;
+        counts[filter.id] = roleNotifications.filter(
+          (n) => n.category === filter.id,
+        ).length;
       }
     });
     return counts;
@@ -109,10 +111,18 @@ export function PatientNotificationsPage() {
 
       return true;
     });
-  }, [roleNotifications, selectedCategory, searchQuery, priorityFilter, statusFilter]);
+  }, [
+    roleNotifications,
+    selectedCategory,
+    searchQuery,
+    priorityFilter,
+    statusFilter,
+  ]);
 
   const kpiMetrics = useMemo(() => {
-    const unread = roleNotifications.filter((n) => n.status === "Unread").length;
+    const unread = roleNotifications.filter(
+      (n) => n.status === "Unread",
+    ).length;
     const today = roleNotifications.filter(
       (n) =>
         n.timestamp.includes("minute") ||

@@ -28,23 +28,14 @@ export { appointmentsApi } from "./api/appointments.api";
 export { appointmentService } from "./services/appointment.service";
 export * from "./hooks/useAppointments";
 export * from "./hooks/useAppointment";
-export * from "./hooks/useBookAppointment";
 export * from "./hooks/useAppointmentSlots";
-export * from "./permissions/appointment.permissions";
 export {
   PP,
   RB,
   type ChipVariant,
   EMPTY_AVAILABILITY,
-  BLOCKED_STATUSES,
-  UNBLOCKED_STATUSES,
-  isSlotBlocked,
   appointmentToPatientSummary,
 } from "./constants/appointment.constants";
-export {
-  appointmentStore,
-  useAppointmentStore,
-} from "./store/appointment.store";
 
 // Components
 export { Chip } from "./components/Chip";
@@ -58,22 +49,13 @@ export { AppointmentDetailsDrawer } from "./components/AppointmentDetailsDrawer"
 export { DockableQueueWorkspace } from "./components/DockableQueueWorkspace";
 
 // Pages
-export {
-  AppointmentManagementCenterScreen,
-  AppointmentCenterScreen,
-} from "./pages/AppointmentManagementCenterScreen";
+export { AppointmentManagementCenterScreen } from "./pages/AppointmentManagementCenterScreen";
 export { BookAppointmentScreen } from "./pages/BookAppointmentScreen";
 export {
   QueueManagementScreen,
   QueueManagementScreen as ReceptionQueueManagementScreen,
 } from "./pages/QueueManagementScreen";
 export { PatientCheckInScreen } from "./pages/PatientCheckInScreen";
-
-// Reception Feature Integration
-export {
-  ReceptionManagementCenterScreen,
-  ReceptionCenterScreen,
-} from "../reception";
 
 // Legacy alias
 export { AppointmentManagementCenterScreen as AppointmentManagementScreen } from "./pages/AppointmentManagementCenterScreen";

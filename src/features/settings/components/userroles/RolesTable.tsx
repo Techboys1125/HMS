@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { Eye, Lock } from "lucide-react";
-import {
-  ROLES,
-  type RoleItem,
-} from "../../constants/userroles.constants";
+import { ROLES, type RoleItem } from "../../constants/userroles.constants";
 import { RolesFilterBar } from "./RolesFilterBar";
 import { RoleDetailsDrawer } from "./RoleDetailsDrawer";
 
@@ -156,8 +153,7 @@ export function RolesTable() {
                         borderRadius: "12px",
                         background:
                           r.status === "Active" ? "#E8F5E9" : "#FEF3C7",
-                        color:
-                          r.status === "Active" ? "#2E7D32" : "#B45309",
+                        color: r.status === "Active" ? "#2E7D32" : "#B45309",
                       }}
                     >
                       {r.status}

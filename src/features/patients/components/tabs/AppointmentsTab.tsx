@@ -84,17 +84,48 @@ export function PatientAppointmentsTab({
       ) : (
         <div className="space-y-2">
           {filtered.map((appt) => {
-            const rawDoc = appt.doctor ?? (appt as unknown as Record<string, unknown>).doctorName;
+            const rawDoc =
+              appt.doctor ??
+              (appt as unknown as Record<string, unknown>).doctorName;
             const doctorName =
               typeof rawDoc === "string"
                 ? rawDoc
                 : rawDoc && typeof rawDoc === "object"
-                  ? (rawDoc as { fullName?: string; name?: string; doctorName?: string }).fullName ||
-                    (rawDoc as { fullName?: string; name?: string; doctorName?: string }).name ||
-                    (rawDoc as { fullName?: string; name?: string; doctorName?: string }).doctorName ||
+                  ? (
+                      rawDoc as {
+                        fullName?: string;
+                        name?: string;
+                        doctorName?: string;
+                      }
+                    ).fullName ||
+                    (
+                      rawDoc as {
+                        fullName?: string;
+                        name?: string;
+                        doctorName?: string;
+                      }
+                    ).name ||
+                    (
+                      rawDoc as {
+                        fullName?: string;
+                        name?: string;
+                        doctorName?: string;
+                      }
+                    ).doctorName ||
                     "Doctor"
                   : "Doctor";
-            const initial = String(doctorName).replace(/^Dr\.?\s*/i, "").trim().charAt(0) || "D";
+            const initial =
+              String(doctorName)
+                .replace(/^Dr\.?\s*/i, "")
+                .trim()
+                .charAt(0) || "D";
+
+            const departmentName =
+              typeof appt.department === "string"
+                ? appt.department
+                : appt.department?.departmentName ||
+                  appt.department?.name ||
+                  "Department";
 
             return (
               <div
@@ -110,7 +141,7 @@ export function PatientAppointmentsTab({
                       {doctorName}
                     </div>
                     <div className="text-[11px] text-[#64748B]">
-                      {appt.date} at {appt.time} · {appt.department}
+                      {appt.date} at {appt.time} · {departmentName}
                     </div>
                   </div>
                 </div>

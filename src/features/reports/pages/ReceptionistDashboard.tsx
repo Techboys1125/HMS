@@ -30,7 +30,7 @@ import {
   useReceptionCheckinAnalytics,
   useReceptionRegistrationTrend,
   useReceptionQueuePerformance,
-} from "../../reception/hooks/useReceptionReports";
+} from "../../reception";
 
 import {
   AreaChart,

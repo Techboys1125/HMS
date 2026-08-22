@@ -35,7 +35,10 @@ const KpiCard: React.FC<KpiCardProps> = ({
 }) => (
   <div className="bg-white rounded-2xl p-4 border border-[#E5E7EB] shadow-sm flex flex-col justify-between">
     <div className="flex items-center justify-between">
-      <span className="text-xs font-semibold text-[#64748B]" style={{ fontFamily: PP }}>
+      <span
+        className="text-xs font-semibold text-[#64748B]"
+        style={{ fontFamily: PP }}
+      >
         {label}
       </span>
       <div
@@ -45,7 +48,10 @@ const KpiCard: React.FC<KpiCardProps> = ({
       </div>
     </div>
     <div className="mt-3">
-      <div className="text-2xl font-bold text-[#111827]" style={{ fontFamily: PP }}>
+      <div
+        className="text-2xl font-bold text-[#111827]"
+        style={{ fontFamily: PP }}
+      >
         {value}
       </div>
       {trend && <div className="mt-1">{trend}</div>}
@@ -67,7 +73,7 @@ export const ConsultationKPICards: React.FC<ConsultationKPICardsProps> = ({
   const inConsultation = tabCounts["IN_CONSULTATION"] || 0;
   const completed = tabCounts["COMPLETED"] || 0;
   const followUps = consultations.filter(
-    (c) => c.visitType === "Follow-up" || c.visitType === "Follow",
+    (c) => c.visitType === "Follow-up",
   ).length;
 
   if (role === "admin") {

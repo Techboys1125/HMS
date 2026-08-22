@@ -547,7 +547,9 @@ export function DoctorScheduleScreen() {
                       (!ex.startTime && !ex.endTime);
                     return (
                       <div
-                        key={ex.id || ex.exceptionDate || ex.startDate || ex.reason}
+                        key={
+                          ex.id || ex.exceptionDate || ex.startDate || ex.reason
+                        }
                         className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-[#E5E7EB]"
                       >
                         <div className="flex items-center gap-3">

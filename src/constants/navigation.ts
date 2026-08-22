@@ -16,7 +16,7 @@ import {
   MessageSquare,
   User,
 } from "lucide-react";
-import type { Role, NavGroup, NavItem } from "../types/app.types";
+import type { Role, NavGroup } from "../types/app.types";
 
 export const PP = "'Poppins', system-ui, sans-serif";
 export const RB = "'Roboto', system-ui, sans-serif";
@@ -159,7 +159,7 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "patients", Icon: Users, label: "Patients" },
         { id: "doctors", Icon: UserCheck, label: "Doctors" },
         { id: "appointments", Icon: Calendar, label: "Appointments" },
-       
+
         { id: "billing", Icon: CreditCard, label: "Billing" },
         { id: "reports", Icon: BarChart2, label: "Reports" },
       ],
@@ -207,16 +207,3 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
     },
   ],
 };
-
-export const ALL_NAV_ITEMS: NavItem[] = Object.values(ROLE_NAV_GROUPS).reduce<
-  NavItem[]
->((acc, groups) => {
-  for (const g of groups) {
-    for (const item of g.items) {
-      if (!acc.some((x) => x.id === item.id)) {
-        acc.push(item);
-      }
-    }
-  }
-  return acc;
-}, []);

@@ -1,7 +1,4 @@
-import {
-  BarChart2,
-  PieChart as PieChartIcon,
-} from "lucide-react";
+import { BarChart2, PieChart as PieChartIcon } from "lucide-react";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -30,8 +27,8 @@ export function AppointmentAnalyticsCharts() {
           gap: "8px",
         }}
       >
-        <BarChart2 size={18} style={{ color: "#0D47A1" }} /> Appointment
-        Volume Analytics
+        <BarChart2 size={18} style={{ color: "#0D47A1" }} /> Appointment Volume
+        Analytics
       </h3>
 
       <div
@@ -60,9 +57,7 @@ export function AppointmentAnalyticsCharts() {
           >
             Appointments by Day of Week
           </h4>
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "8px" }}
-          >
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {[
               { day: "Monday", count: 142, color: "#0D47A1" },
               { day: "Tuesday", count: 128, color: "#009688" },
@@ -79,9 +74,7 @@ export function AppointmentAnalyticsCharts() {
                   }}
                 >
                   <span>{item.day}</span>
-                  <span style={{ fontWeight: 600 }}>
-                    {item.count} Bookings
-                  </span>
+                  <span style={{ fontWeight: 600 }}>{item.count} Bookings</span>
                 </div>
                 <div
                   style={{

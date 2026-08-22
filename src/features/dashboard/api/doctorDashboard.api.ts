@@ -6,6 +6,7 @@ import type {
   DoctorNextPatient,
   DoctorTodayAppointments,
   DoctorConsultationQueueResponse,
+  DoctorMeAppointments,
 } from "../types/dashboard.types";
 
 function unwrap<T>(response: { data: DashboardApiResponse<T> | T }): T {
@@ -18,30 +19,30 @@ function unwrap<T>(response: { data: DashboardApiResponse<T> | T }): T {
 
 export const doctorDashboardApi = {
   getStatistics: async (): Promise<DoctorDashboardStatistics> => {
-    const res = await apiClient.get<DashboardApiResponse<DoctorDashboardStatistics>>(
-      "/api/v1/doctor/dashboard/statistics",
-    );
+    const res = await apiClient.get<
+      DashboardApiResponse<DoctorDashboardStatistics>
+    >("/api/v1/doctor/dashboard/statistics");
     return unwrap(res);
   },
 
   getCurrentPatient: async (): Promise<DoctorCurrentPatient | null> => {
-    const res = await apiClient.get<DashboardApiResponse<DoctorCurrentPatient | null>>(
-      "/api/v1/doctor/dashboard/current-patient",
-    );
+    const res = await apiClient.get<
+      DashboardApiResponse<DoctorCurrentPatient | null>
+    >("/api/v1/doctor/dashboard/current-patient");
     return unwrap(res);
   },
 
   getNextPatient: async (): Promise<DoctorNextPatient | null> => {
-    const res = await apiClient.get<DashboardApiResponse<DoctorNextPatient | null>>(
-      "/api/v1/doctor/dashboard/next-patient",
-    );
+    const res = await apiClient.get<
+      DashboardApiResponse<DoctorNextPatient | null>
+    >("/api/v1/doctor/dashboard/next-patient");
     return unwrap(res);
   },
 
   getTodayAppointments: async (): Promise<DoctorTodayAppointments> => {
-    const res = await apiClient.get<DashboardApiResponse<DoctorTodayAppointments>>(
-      "/api/v1/doctor/dashboard/today-appointments",
-    );
+    const res = await apiClient.get<
+      DashboardApiResponse<DoctorTodayAppointments>
+    >("/api/v1/doctor/dashboard/today-appointments");
     return unwrap(res);
   },
 
@@ -53,9 +54,9 @@ export const doctorDashboardApi = {
   },
 
   getConsultationQueue: async (): Promise<DoctorConsultationQueueResponse> => {
-    const res = await apiClient.get<DashboardApiResponse<DoctorConsultationQueueResponse>>(
-      "/api/v1/doctors/me/consultation-queue",
-    );
+    const res = await apiClient.get<
+      DashboardApiResponse<DoctorConsultationQueueResponse>
+    >("/api/v1/doctors/me/consultation-queue");
     return unwrap(res);
   },
 

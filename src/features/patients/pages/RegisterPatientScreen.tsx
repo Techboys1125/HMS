@@ -491,12 +491,7 @@ export function RegisterPatientScreen({
     touched[field] && errors[field] ? inputError : inputBase;
 
   const handleSubmit = useCallback(async () => {
-    if (submitting) {
-      return;
-    }
-
-    setSubmitting(true);
-
+    if (createPatient.isPending) return;
     setTouched({
       fullName: true,
       gender: true,
@@ -727,7 +722,6 @@ export function RegisterPatientScreen({
     primaryPatientMrn,
     portal,
     user,
-    submitting,
   ]);
 
   const handleClear = useCallback(() => {

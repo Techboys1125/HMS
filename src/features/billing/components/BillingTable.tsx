@@ -23,7 +23,7 @@ interface BillingTableProps {
   onPrintInvoice?: (invoice: InvoiceRecord) => void;
 }
 
-export function InvoiceRow({
+function InvoiceRow({
   invoice,
   isAdminReadOnly,
   activeMenuId,
@@ -227,50 +227,50 @@ export function BillingTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-[#111827]">
-          {invoices.length > 0 ? (
-            invoices.map((inv) => (
-              <InvoiceRow
-                key={inv.id}
-                invoice={inv}
-                isAdminReadOnly={isAdminReadOnly}
-                activeMenuId={activeMenuId}
-                setActiveMenuId={setActiveMenuId}
-                onViewInvoiceDetailsClick={onViewInvoiceDetailsClick}
-                onCollectPaymentClick={onCollectPaymentClick}
-                onGenerateInvoiceClick={onGenerateInvoiceClick}
-                onCancelInvoice={onCancelInvoice}
-                onViewPaymentHistory={onViewPaymentHistory}
-                onPrintInvoice={onPrintInvoice}
-              />
-            ))
-          ) : (
-            /* EMPTY STATE */
-            <tr>
-              <td colSpan={9} className="py-12 text-center bg-slate-50/50">
-                <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-3">
-                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                    <FileText size={24} />
+            {invoices.length > 0 ? (
+              invoices.map((inv) => (
+                <InvoiceRow
+                  key={inv.id}
+                  invoice={inv}
+                  isAdminReadOnly={isAdminReadOnly}
+                  activeMenuId={activeMenuId}
+                  setActiveMenuId={setActiveMenuId}
+                  onViewInvoiceDetailsClick={onViewInvoiceDetailsClick}
+                  onCollectPaymentClick={onCollectPaymentClick}
+                  onGenerateInvoiceClick={onGenerateInvoiceClick}
+                  onCancelInvoice={onCancelInvoice}
+                  onViewPaymentHistory={onViewPaymentHistory}
+                  onPrintInvoice={onPrintInvoice}
+                />
+              ))
+            ) : (
+              /* EMPTY STATE */
+              <tr>
+                <td colSpan={9} className="py-12 text-center bg-slate-50/50">
+                  <div className="flex flex-col items-center justify-center max-w-sm mx-auto space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                      <FileText size={24} />
+                    </div>
+                    <h3
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      No invoices available
+                    </h3>
+                    <p
+                      className="text-xs text-slate-500"
+                      style={{ fontFamily: RB }}
+                    >
+                      There are no billing records matching your search query or
+                      filter selection.
+                    </p>
                   </div>
-                  <h3
-                    className="text-sm font-bold text-[#111827]"
-                    style={{ fontFamily: PP }}
-                  >
-                    No invoices available
-                  </h3>
-                  <p
-                    className="text-xs text-slate-500"
-                    style={{ fontFamily: RB }}
-                  >
-                    There are no billing records matching your search query or
-                    filter selection.
-                  </p>
-                </div>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

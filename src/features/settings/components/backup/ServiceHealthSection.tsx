@@ -28,8 +28,8 @@ export function ServiceHealthSection() {
           gap: "8px",
         }}
       >
-        <Server size={18} style={{ color: "#0D47A1" }} /> Section 05: Core
-        HMS Service Health Status
+        <Server size={18} style={{ color: "#0D47A1" }} /> Section 05: Core HMS
+        Service Health Status
       </h3>
 
       <div

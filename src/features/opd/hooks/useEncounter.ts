@@ -6,7 +6,9 @@ import { QUEUE_QUERY_KEY } from "./useQueue";
 export const useEncounter = () => {
   const queryClient = useQueryClient();
   const selectedEncounter = useConsultationStore((s) => s.selectedEncounter);
-  const selectedPrescription = useConsultationStore((s) => s.selectedPrescription);
+  const selectedPrescription = useConsultationStore(
+    (s) => s.selectedPrescription,
+  );
   const loading = useConsultationStore((s) => s.loading);
   const error = useConsultationStore((s) => s.error);
 

@@ -44,7 +44,9 @@ export function InvoicePrintPreviewPage() {
 
   // Print Settings Toggles
   const [paperSize, setPaperSize] = useState<"A4" | "Letter">("A4");
-  const [margins, setMargins] = useState<"Normal" | "Narrow" | "Wide">("Normal");
+  const [margins, setMargins] = useState<"Normal" | "Narrow" | "Wide">(
+    "Normal",
+  );
   const [includeLogo, setIncludeLogo] = useState(true);
   const [includeQrCode, setIncludeQrCode] = useState(true);
   const [includeNotes, setIncludeNotes] = useState(true);
@@ -81,7 +83,10 @@ export function InvoicePrintPreviewPage() {
     return (
       <div className="p-12 text-center bg-[#F1F5F9] min-h-screen flex flex-col items-center justify-center space-y-3">
         <div className="w-10 h-10 border-4 border-[#0D47A1] border-t-transparent rounded-full animate-spin" />
-        <p className="text-xs font-semibold text-slate-600" style={{ fontFamily: PP }}>
+        <p
+          className="text-xs font-semibold text-slate-600"
+          style={{ fontFamily: PP }}
+        >
           Loading invoice details...
         </p>
       </div>
@@ -92,11 +97,15 @@ export function InvoicePrintPreviewPage() {
     return (
       <div className="p-12 text-center bg-[#F1F5F9] min-h-screen flex flex-col items-center justify-center space-y-4">
         <FileText size={48} className="text-slate-300 animate-bounce" />
-        <h2 className="text-lg font-bold text-slate-800" style={{ fontFamily: PP }}>
+        <h2
+          className="text-lg font-bold text-slate-800"
+          style={{ fontFamily: PP }}
+        >
           Invoice Details Not Available
         </h2>
         <p className="text-xs text-slate-500 max-w-sm">
-          Could not find invoice #{targetId}. Please verify the bill number or return to billing.
+          Could not find invoice #{targetId}. Please verify the bill number or
+          return to billing.
         </p>
         <div className="flex items-center gap-3 pt-2">
           <button
@@ -159,13 +168,13 @@ export function InvoicePrintPreviewPage() {
   const patientMobile =
     bill?.patient?.registeredMobile ||
     bill?.patient?.phone ||
-    (receipt as unknown as Record<string, unknown>)?.mobile as string ||
+    ((receipt as unknown as Record<string, unknown>)?.mobile as string) ||
     (billData.phone as string) ||
-    (user as unknown as Record<string, unknown>)?.registeredMobile as string ||
-    (user as unknown as Record<string, unknown>)?.phone as string ||
+    ((user as unknown as Record<string, unknown>)
+      ?.registeredMobile as string) ||
+    ((user as unknown as Record<string, unknown>)?.phone as string) ||
     "N/A";
-  const patientCategory =
-    (billData.patientCategory as string) || "OPD Patient";
+  const patientCategory = (billData.patientCategory as string) || "OPD Patient";
 
   // Doctor & OPD Consultation Details
   const doctorName =
@@ -209,17 +218,10 @@ export function InvoicePrintPreviewPage() {
     (billData.balance as number) ??
     Math.max(0, grandTotal - amountPaid);
   const subtotal =
-    summaryData?.grossAmount ??
-    (billData.grossAmount as number) ??
-    grandTotal;
+    summaryData?.grossAmount ?? (billData.grossAmount as number) ?? grandTotal;
   const discount =
-    summaryData?.discountAmount ??
-    (billData.discountAmount as number) ??
-    0;
-  const taxGst =
-    summaryData?.taxAmount ??
-    (billData.taxAmount as number) ??
-    0;
+    summaryData?.discountAmount ?? (billData.discountAmount as number) ?? 0;
+  const taxGst = summaryData?.taxAmount ?? (billData.taxAmount as number) ?? 0;
 
   const firstPayment = payments[0] as BillPaymentRecord | undefined;
   const paymentMode =
@@ -376,7 +378,7 @@ export function InvoicePrintPreviewPage() {
               >
                 -
               </button>
-              <span className="font-bold text-[#111827] min-w-[45px] text-center">
+              <span className="font-bold text-[#111827] min-w-11.25 text-center">
                 {zoomLevel}%
               </span>
               <button
@@ -397,7 +399,7 @@ export function InvoicePrintPreviewPage() {
           {/* Centered A4 Sheet Surface */}
           <div className="flex justify-center overflow-x-auto py-2">
             <div
-              className="bg-white rounded-2xl border border-slate-300 shadow-2xl p-8 md:p-10 space-y-6 text-xs transition-transform duration-200 max-w-[800px] w-full"
+              className="bg-white rounded-2xl border border-slate-300 shadow-2xl p-8 md:p-10 space-y-6 text-xs transition-transform duration-200 max-w-200 w-full"
               id="print-area"
               style={{
                 fontFamily: RB,
@@ -419,7 +421,9 @@ export function InvoicePrintPreviewPage() {
                       >
                         {hospitalName}
                       </h2>
-                      <p className="text-[11px] text-slate-500">{hospitalAddress}</p>
+                      <p className="text-[11px] text-slate-500">
+                        {hospitalAddress}
+                      </p>
                       <p className="text-[10px] text-slate-400 mt-0.5">
                         {hospitalPhone} | {hospitalEmail} | {hospitalWebsite}
                       </p>
@@ -589,7 +593,8 @@ export function InvoicePrintPreviewPage() {
                           colSpan={6}
                           className="py-6 text-center text-slate-400 font-medium"
                         >
-                          No itemized breakdown recorded for invoice #{targetId}.
+                          No itemized breakdown recorded for invoice #{targetId}
+                          .
                         </td>
                       </tr>
                     )}
@@ -636,13 +641,17 @@ export function InvoicePrintPreviewPage() {
                   {discount > 0 && (
                     <div className="flex justify-between text-[#66BB6A]">
                       <span>Discount:</span>
-                      <span className="font-semibold">- ₹{discount.toLocaleString()}</span>
+                      <span className="font-semibold">
+                        - ₹{discount.toLocaleString()}
+                      </span>
                     </div>
                   )}
                   {taxGst > 0 && (
                     <div className="flex justify-between text-slate-600">
                       <span>Tax GST:</span>
-                      <span className="font-semibold">+ ₹{taxGst.toLocaleString()}</span>
+                      <span className="font-semibold">
+                        + ₹{taxGst.toLocaleString()}
+                      </span>
                     </div>
                   )}
                   <div
@@ -675,9 +684,12 @@ export function InvoicePrintPreviewPage() {
                     Terms & Instructions
                   </div>
                   <p className="whitespace-pre-line leading-relaxed">
-                    1. All payments are non-refundable once medical services are rendered.
-                    {"\n"}2. Please retain this official tax invoice receipt for insurance claim reimbursement.
-                    {"\n"}3. This is a computer-generated tax invoice for #{targetId}.
+                    1. All payments are non-refundable once medical services are
+                    rendered.
+                    {"\n"}2. Please retain this official tax invoice receipt for
+                    insurance claim reimbursement.
+                    {"\n"}3. This is a computer-generated tax invoice for #
+                    {targetId}.
                   </p>
                 </div>
               )}
@@ -825,7 +837,9 @@ export function InvoicePrintPreviewPage() {
                 </label>
 
                 <label className="flex items-center justify-between cursor-pointer">
-                  <span className="text-slate-700">Include QR Verification</span>
+                  <span className="text-slate-700">
+                    Include QR Verification
+                  </span>
                   <input
                     type="checkbox"
                     checked={includeQrCode}
@@ -914,7 +928,10 @@ export function InvoicePrintPreviewPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl w-full max-w-md p-6 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-[#111827]" style={{ fontFamily: PP }}>
+              <h3
+                className="text-base font-bold text-[#111827]"
+                style={{ fontFamily: PP }}
+              >
                 Share Invoice — #{targetId}
               </h3>
               <button

@@ -85,9 +85,7 @@ export const EncounterPrescriptionPage: React.FC = () => {
     return "—";
   };
 
-  const getQuantityString = (
-    qty?: PrescriptionMedicationItem["quantity"],
-  ) => {
+  const getQuantityString = (qty?: PrescriptionMedicationItem["quantity"]) => {
     if (!qty && qty !== 0) return "—";
     if (typeof qty === "string" || typeof qty === "number") return String(qty);
     if (typeof qty === "object") {
@@ -264,7 +262,8 @@ export const EncounterPrescriptionPage: React.FC = () => {
               No Prescription Record Found
             </div>
             <p className="text-xs text-slate-500 max-w-md mx-auto">
-              No prescription has been generated or finalized for encounter ENC-{encounterId}.
+              No prescription has been generated or finalized for encounter ENC-
+              {encounterId}.
             </p>
           </div>
         )}
@@ -290,7 +289,10 @@ export const EncounterPrescriptionPage: React.FC = () => {
                   {prescription.prescriptionId || `RX-${prescription.id}`}
                 </span>
                 <span className="text-[10px] text-slate-500">
-                  ENC-{prescription.encounterNumber || prescription.encounterId || encounterId}
+                  ENC-
+                  {prescription.encounterNumber ||
+                    prescription.encounterId ||
+                    encounterId}
                 </span>
               </div>
             </div>
@@ -302,7 +304,8 @@ export const EncounterPrescriptionPage: React.FC = () => {
                   Prescription ID
                 </span>
                 <span className="font-mono font-bold text-xs sm:text-sm text-[#0D47A1]">
-                  {prescription.prescriptionId || `RX-${prescription.id || "N/A"}`}
+                  {prescription.prescriptionId ||
+                    `RX-${prescription.id || "N/A"}`}
                 </span>
                 {prescription.id && (
                   <span className="text-[10px] text-slate-400 block">
@@ -316,7 +319,8 @@ export const EncounterPrescriptionPage: React.FC = () => {
                   Encounter Number
                 </span>
                 <span className="font-mono font-bold text-xs sm:text-sm text-slate-800">
-                  {prescription.encounterNumber || `ENC-${prescription.encounterId || encounterId}`}
+                  {prescription.encounterNumber ||
+                    `ENC-${prescription.encounterId || encounterId}`}
                 </span>
                 <span className="text-[10px] text-slate-400 block">
                   ID: {prescription.encounterId || encounterId}
@@ -374,9 +378,13 @@ export const EncounterPrescriptionPage: React.FC = () => {
                     {prescription.patient?.mrn || "N/A"}
                   </span>
 
-                  <span className="text-slate-500 font-medium">Age / Gender:</span>
+                  <span className="text-slate-500 font-medium">
+                    Age / Gender:
+                  </span>
                   <span className="font-medium text-slate-700">
-                    {prescription.patient?.age ? `${prescription.patient.age} Yrs` : "N/A"}{" "}
+                    {prescription.patient?.age
+                      ? `${prescription.patient.age} Yrs`
+                      : "N/A"}{" "}
                     / {prescription.patient?.gender || "N/A"}
                   </span>
                 </div>
@@ -394,22 +402,31 @@ export const EncounterPrescriptionPage: React.FC = () => {
                   </h3>
                 </div>
                 <div className="grid grid-cols-2 gap-y-2 text-xs">
-                  <span className="text-slate-500 font-medium">Doctor Name:</span>
+                  <span className="text-slate-500 font-medium">
+                    Doctor Name:
+                  </span>
                   <span className="font-bold text-slate-800">
                     {prescription.prescriber?.fullName || "Attending Physician"}
                   </span>
 
-                  <span className="text-slate-500 font-medium">Doctor ID / Code:</span>
+                  <span className="text-slate-500 font-medium">
+                    Doctor ID / Code:
+                  </span>
                   <span className="font-mono text-slate-700">
                     {prescription.prescriber?.doctorId || "N/A"}
                   </span>
 
-                  <span className="text-slate-500 font-medium">Registration No:</span>
+                  <span className="text-slate-500 font-medium">
+                    Registration No:
+                  </span>
                   <span className="font-mono font-medium text-slate-700">
-                    {prescription.prescriber?.registrationNumber || "MCI / State Council"}
+                    {prescription.prescriber?.registrationNumber ||
+                      "MCI / State Council"}
                   </span>
 
-                  <span className="text-slate-500 font-medium">Department:</span>
+                  <span className="text-slate-500 font-medium">
+                    Department:
+                  </span>
                   <span className="font-semibold text-slate-700">
                     {prescription.prescriber?.department || "OPD Services"}
                   </span>
@@ -434,7 +451,8 @@ export const EncounterPrescriptionPage: React.FC = () => {
                 </div>
               </div>
 
-              {prescription.medications && prescription.medications.length > 0 ? (
+              {prescription.medications &&
+              prescription.medications.length > 0 ? (
                 <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-xs">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
@@ -499,7 +517,8 @@ export const EncounterPrescriptionPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center text-slate-500 text-xs">
-                  No medications prescribed in this session (Advice / Observation only).
+                  No medications prescribed in this session (Advice /
+                  Observation only).
                 </div>
               )}
             </div>
@@ -520,7 +539,8 @@ export const EncounterPrescriptionPage: React.FC = () => {
                       General Advice:
                     </span>
                     <p className="text-slate-800 mt-0.5">
-                      {prescription.advice?.general || "Follow physician instructions and maintain hydration."}
+                      {prescription.advice?.general ||
+                        "Follow physician instructions and maintain hydration."}
                     </p>
                   </div>
 
@@ -606,7 +626,9 @@ export const EncounterPrescriptionPage: React.FC = () => {
 
                   {prescription.followUp?.type && (
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-slate-400">Review Type:</span>
+                      <span className="text-[11px] text-slate-400">
+                        Review Type:
+                      </span>
                       <span className="font-medium text-slate-700">
                         {prescription.followUp.type}
                       </span>
@@ -649,7 +671,8 @@ export const EncounterPrescriptionPage: React.FC = () => {
                   {prescription.prescriber?.fullName || "Dr. Pradeep Kumar"}
                 </p>
                 <p className="text-[10px] text-slate-500 font-mono">
-                  Reg No: {prescription.prescriber?.registrationNumber || "MCI-45612"}
+                  Reg No:{" "}
+                  {prescription.prescriber?.registrationNumber || "MCI-45612"}
                 </p>
                 <p className="text-[10px] text-slate-400">
                   Authorized Medical Practitioner

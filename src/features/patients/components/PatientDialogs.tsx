@@ -357,8 +357,6 @@ export function PatientRescheduleAppointmentDialog({
     selectedDate || undefined,
   );
 
-
-
   if (!isOpen || !appointment) return null;
 
   const year = currentMonth.getFullYear();
@@ -390,7 +388,8 @@ export function PatientRescheduleAppointmentDialog({
   for (let day = 1; day <= totalDays; day++) {
     const d = new Date(year, month, day);
     const dateStr = d.toISOString().split("T")[0];
-    const isPast = d < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const isPast =
+      d < new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const isToday = dateStr === todayStr;
     const isCurrentAppt = dateStr === appointment.date;
     calendarDays.push({
@@ -416,7 +415,14 @@ export function PatientRescheduleAppointmentDialog({
     });
   }
 
-  const displaySlots = (apiSlots as Array<{ time?: string; startTime?: string; slot?: string; available?: boolean }> || []).map((s) => ({
+  const displaySlots = (
+    (apiSlots as Array<{
+      time?: string;
+      startTime?: string;
+      slot?: string;
+      available?: boolean;
+    }>) || []
+  ).map((s) => ({
     time: s.time || s.startTime || s.slot || "",
     available: s.available !== false,
   }));
@@ -652,15 +658,21 @@ export function PatientRescheduleAppointmentDialog({
                   <div className="flex items-center gap-2 text-xs text-[#009688] font-bold">
                     <button
                       type="button"
-                      onClick={() => setCurrentMonth(new Date(year, month - 1, 1))}
+                      onClick={() =>
+                        setCurrentMonth(new Date(year, month - 1, 1))
+                      }
                       className="p-1 hover:bg-slate-100 rounded-lg"
                     >
                       <ChevronLeft size={16} />
                     </button>
-                    <span>{monthName} {year}</span>
+                    <span>
+                      {monthName} {year}
+                    </span>
                     <button
                       type="button"
-                      onClick={() => setCurrentMonth(new Date(year, month + 1, 1))}
+                      onClick={() =>
+                        setCurrentMonth(new Date(year, month + 1, 1))
+                      }
                       className="p-1 hover:bg-slate-100 rounded-lg"
                     >
                       <ChevronRight size={16} />
@@ -722,7 +734,8 @@ export function PatientRescheduleAppointmentDialog({
 
                 {slotsLoading ? (
                   <div className="flex items-center justify-center py-6 text-xs text-[#64748B]">
-                    <RefreshCw size={14} className="animate-spin mr-2" /> Loading available slots...
+                    <RefreshCw size={14} className="animate-spin mr-2" />{" "}
+                    Loading available slots...
                   </div>
                 ) : !selectedDate ? (
                   <div className="flex items-center justify-center py-6 text-xs text-[#64748B]">
@@ -906,9 +919,7 @@ export function PatientRescheduleAppointmentDialog({
                       Patient
                     </span>
                     <span className="font-bold text-[#111827]">
-                      {(appointment as Record<string, unknown>)?.patientName ||
-                       (appointment as Record<string, unknown>)?.doctor ||
-                       "Patient"}
+                      {appointment.patientName || "Patient"}
                     </span>
                   </div>
 

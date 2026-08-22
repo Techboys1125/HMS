@@ -25,8 +25,8 @@ export function SecurityAnalyticsCharts() {
           gap: "8px",
         }}
       >
-        <BarChart2 size={18} style={{ color: "#0D47A1" }} /> Threat
-        Analytics & Login Trends
+        <BarChart2 size={18} style={{ color: "#0D47A1" }} /> Threat Analytics &
+        Login Trends
       </h3>
 
       <div
@@ -144,9 +144,7 @@ export function SecurityAnalyticsCharts() {
                   }}
                 >
                   <span>{item.label}</span>
-                  <span style={{ fontWeight: 600 }}>
-                    {item.count} Events
-                  </span>
+                  <span style={{ fontWeight: 600 }}>{item.count} Events</span>
                 </div>
                 <div
                   style={{

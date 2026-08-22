@@ -55,6 +55,7 @@ export type FamilyRelationshipEnum =
   | "OTHER";
 
 export interface DoctorSummary {
+  fullName: string;
   id: number | string;
   doctorId?: number | string;
   name: string;
@@ -96,6 +97,7 @@ export interface LinkedPatient {
 }
 
 export interface AppointmentRecord {
+  time: string;
   tokenNumber?: string;
   appointmentTime?: string;
   reasonForVisit?: string;

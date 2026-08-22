@@ -47,7 +47,11 @@ export function AuditLogDetailsPage({
   onNavigateCategory,
 }: AuditLogDetailsPageProps) {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const { data: record, isLoading, isError } = useAuditLogDetail(recordId, sourceCategory);
+  const {
+    data: record,
+    isLoading,
+    isError,
+  } = useAuditLogDetail(recordId, sourceCategory);
   const { data: relatedData } = useMainAuditLogs({ page: 0, size: 10 });
 
   const showToast = (msg: string) => {
@@ -366,8 +370,7 @@ export function AuditLogDetailsPage({
                     {record.userId || "—"}
                   </span>
                   <span className="flex items-center gap-1">
-                    <Phone className="w-3.5 h-3.5 text-gray-400" />
-                    —
+                    <Phone className="w-3.5 h-3.5 text-gray-400" />—
                   </span>
                 </div>
               </div>
@@ -463,7 +466,9 @@ export function AuditLogDetailsPage({
                   Network
                 </span>
                 <span className="font-medium text-gray-700 text-xs mt-0.5 block">
-                  {record.metadata?.network ? String(record.metadata.network) : "—"}
+                  {record.metadata?.network
+                    ? String(record.metadata.network)
+                    : "—"}
                 </span>
               </div>
             </div>
@@ -613,7 +618,9 @@ export function AuditLogDetailsPage({
                   Operating System
                 </span>
                 <span className="font-medium text-gray-800 text-xs mt-0.5 block">
-                  {record.metadata?.operatingSystem ? String(record.metadata.operatingSystem) : "—"}
+                  {record.metadata?.operatingSystem
+                    ? String(record.metadata.operatingSystem)
+                    : "—"}
                 </span>
               </div>
               <div>
@@ -629,7 +636,9 @@ export function AuditLogDetailsPage({
                   MAC Address
                 </span>
                 <span className="font-mono text-gray-600 text-xs mt-0.5 block">
-                  {record.metadata?.macAddress ? String(record.metadata.macAddress) : "—"}
+                  {record.metadata?.macAddress
+                    ? String(record.metadata.macAddress)
+                    : "—"}
                 </span>
               </div>
               <div>
@@ -637,7 +646,9 @@ export function AuditLogDetailsPage({
                   Hospital Branch
                 </span>
                 <span className="font-semibold text-blue-900 text-xs mt-0.5 block">
-                  {record.metadata?.branch ? String(record.metadata.branch) : "—"}
+                  {record.metadata?.branch
+                    ? String(record.metadata.branch)
+                    : "—"}
                 </span>
               </div>
               <div>
@@ -661,7 +672,9 @@ export function AuditLogDetailsPage({
                   Timezone
                 </span>
                 <span className="font-mono text-gray-600 text-xs mt-0.5 block">
-                  {record.metadata?.timezone ? String(record.metadata.timezone) : "—"}
+                  {record.metadata?.timezone
+                    ? String(record.metadata.timezone)
+                    : "—"}
                 </span>
               </div>
             </div>
@@ -771,7 +784,8 @@ export function AuditLogDetailsPage({
                   Affected: {record.recordId || "—"}
                 </div>
                 <div className="text-gray-600 font-semibold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Status: {record.status}
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Status:{" "}
+                  {record.status}
                 </div>
               </div>
             </div>
@@ -844,7 +858,8 @@ export function AuditLogDetailsPage({
               <div className="p-2.5 bg-slate-50 text-slate-700 rounded-xl border border-slate-200 text-[11px] font-medium flex items-start gap-2">
                 <Shield className="w-4 h-4 text-slate-500 mt-0.5 shrink-0" />
                 <span>
-                  Hash and signature values are displayed only when supplied by the API.
+                  Hash and signature values are displayed only when supplied by
+                  the API.
                 </span>
               </div>
             </div>

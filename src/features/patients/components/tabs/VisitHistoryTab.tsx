@@ -58,7 +58,10 @@ function resolveStatus(appointment: ApiPatientAppointment): string {
   return appointment.status || appointment.appointmentStatus || "—";
 }
 
-export function VisitHistoryTab({ patient, isOwnProfile }: VisitHistoryTabProps) {
+export function VisitHistoryTab({
+  patient,
+  isOwnProfile,
+}: VisitHistoryTabProps) {
   const [appointments, setAppointments] = useState<ApiPatientAppointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [prevMrn, setPrevMrn] = useState<string | null>(null);

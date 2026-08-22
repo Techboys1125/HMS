@@ -2,33 +2,30 @@ import { useQuery } from "@tanstack/react-query";
 import {
   fetchActiveSessions,
   fetchAuditDashboard,
-  fetchAuditEventDetail,
   fetchAuditFilterOptions,
   fetchAuditMetrics,
   fetchAuditRecordDetail,
   fetchAuditWorkspaces,
   fetchCriticalEvents,
-  fetchDataChangeDetail,
   fetchDataChangeLogs,
   fetchDataChangesDashboard,
-  fetchDeletedRecordDetail,
   fetchDeletedRecordLogs,
   fetchDeletedRecordsDashboard,
   fetchFailedLoginAttempts,
   fetchLockedAccounts,
-  fetchLoginEventDetail,
   fetchLoginHistoryDashboard,
   fetchLoginHistoryFilterOptions,
   fetchLoginHistoryLogs,
   fetchMainAuditLogs,
-  fetchSystemLogDetail,
   fetchSystemLogLogs,
   fetchSystemLogsDashboard,
   fetchUserActivitiesDashboard,
-  fetchUserActivityDetail,
   fetchUserActivityLogs,
 } from "../services/auditlog.service";
-import type { AuditCategory, AuditLogListParams } from "../types/auditlog.types";
+import type {
+  AuditCategory,
+  AuditLogListParams,
+} from "../types/auditlog.types";
 
 const STALE_TIME = 5 * 60 * 1000;
 
@@ -52,7 +49,8 @@ const auditLogKeys = {
     [...auditLogKeys.all, "login-filter-options"] as const,
   loginLogs: (params?: AuditLogListParams) =>
     [...auditLogKeys.all, "login-logs", params] as const,
-  loginDetail: (id: string) => [...auditLogKeys.all, "login-detail", id] as const,
+  loginDetail: (id: string) =>
+    [...auditLogKeys.all, "login-detail", id] as const,
   activeSessions: (params?: AuditLogListParams) =>
     [...auditLogKeys.all, "active-sessions", params] as const,
   failedAttempts: (params?: AuditLogListParams) =>
@@ -60,7 +58,12 @@ const auditLogKeys = {
   lockedAccounts: (params?: AuditLogListParams) =>
     [...auditLogKeys.all, "locked-accounts", params] as const,
   userActivitiesDashboard: (fromDate?: string, toDate?: string) =>
-    [...auditLogKeys.all, "user-activities-dashboard", fromDate, toDate] as const,
+    [
+      ...auditLogKeys.all,
+      "user-activities-dashboard",
+      fromDate,
+      toDate,
+    ] as const,
   userActivityLogs: (params?: AuditLogListParams) =>
     [...auditLogKeys.all, "user-activity-logs", params] as const,
   userActivityDetail: (id: string) =>
@@ -72,7 +75,12 @@ const auditLogKeys = {
   dataChangeDetail: (id: string) =>
     [...auditLogKeys.all, "data-change-detail", id] as const,
   deletedRecordsDashboard: (fromDate?: string, toDate?: string) =>
-    [...auditLogKeys.all, "deleted-records-dashboard", fromDate, toDate] as const,
+    [
+      ...auditLogKeys.all,
+      "deleted-records-dashboard",
+      fromDate,
+      toDate,
+    ] as const,
   deletedRecordLogs: (params?: AuditLogListParams) =>
     [...auditLogKeys.all, "deleted-record-logs", params] as const,
   deletedRecordDetail: (id: string) =>
@@ -85,10 +93,7 @@ const auditLogKeys = {
     [...auditLogKeys.all, "system-log-detail", id] as const,
 };
 
-export function useCriticalEvents(
-  params?: AuditLogListParams,
-  enabled = true,
-) {
+export function useCriticalEvents(params?: AuditLogListParams, enabled = true) {
   return useQuery({
     queryKey: auditLogKeys.criticalEvents(params),
     queryFn: () => fetchCriticalEvents(params),
@@ -119,10 +124,7 @@ export function useAuditFilterOptions(enabled = true) {
   });
 }
 
-export function useMainAuditLogs(
-  params?: AuditLogListParams,
-  enabled = true,
-) {
+export function useMainAuditLogs(params?: AuditLogListParams, enabled = true) {
   return useQuery({
     queryKey: auditLogKeys.mainLogs(params),
     queryFn: () => fetchMainAuditLogs(params),
@@ -138,16 +140,6 @@ export function useAuditLogDetail(
   return useQuery({
     queryKey: auditLogKeys.detail(id ?? "", category),
     queryFn: () => fetchAuditRecordDetail(id!, category),
-    enabled: Boolean(id),
-    staleTime: STALE_TIME,
-    retry: false,
-  });
-}
-
-export function useAuditEventDetail(id: string | null) {
-  return useQuery({
-    queryKey: [...auditLogKeys.all, "main-event-detail", id ?? ""] as const,
-    queryFn: () => fetchAuditEventDetail(id!),
     enabled: Boolean(id),
     staleTime: STALE_TIME,
     retry: false,
@@ -211,20 +203,7 @@ export function useLoginHistoryLogs(
   });
 }
 
-export function useLoginEventDetail(id: string | null) {
-  return useQuery({
-    queryKey: auditLogKeys.loginDetail(id ?? ""),
-    queryFn: () => fetchLoginEventDetail(id!),
-    enabled: Boolean(id),
-    staleTime: STALE_TIME,
-    retry: false,
-  });
-}
-
-export function useActiveSessions(
-  params?: AuditLogListParams,
-  enabled = true,
-) {
+export function useActiveSessions(params?: AuditLogListParams, enabled = true) {
   return useQuery({
     queryKey: auditLogKeys.activeSessions(params),
     queryFn: () => fetchActiveSessions(params),
@@ -245,10 +224,7 @@ export function useFailedLoginAttempts(
   });
 }
 
-export function useLockedAccounts(
-  params?: AuditLogListParams,
-  enabled = true,
-) {
+export function useLockedAccounts(params?: AuditLogListParams, enabled = true) {
   return useQuery({
     queryKey: auditLogKeys.lockedAccounts(params),
     queryFn: () => fetchLockedAccounts(params),
@@ -283,16 +259,6 @@ export function useUserActivityLogs(
   });
 }
 
-export function useUserActivityDetail(id: string | null) {
-  return useQuery({
-    queryKey: auditLogKeys.userActivityDetail(id ?? ""),
-    queryFn: () => fetchUserActivityDetail(id!),
-    enabled: Boolean(id),
-    staleTime: STALE_TIME,
-    retry: false,
-  });
-}
-
 export function useDataChangesDashboard(
   fromDate?: string,
   toDate?: string,
@@ -306,26 +272,13 @@ export function useDataChangesDashboard(
   });
 }
 
-export function useDataChangeLogs(
-  params?: AuditLogListParams,
-  enabled = true,
-) {
+export function useDataChangeLogs(params?: AuditLogListParams, enabled = true) {
   return useQuery({
     queryKey: auditLogKeys.dataChangeLogs(params),
     queryFn: () => fetchDataChangeLogs(params),
     enabled,
     refetchOnMount: "always",
     staleTime: STALE_TIME,
-  });
-}
-
-export function useDataChangeDetail(id: string | null) {
-  return useQuery({
-    queryKey: auditLogKeys.dataChangeDetail(id ?? ""),
-    queryFn: () => fetchDataChangeDetail(id!),
-    enabled: Boolean(id),
-    staleTime: STALE_TIME,
-    retry: false,
   });
 }
 
@@ -355,16 +308,6 @@ export function useDeletedRecordLogs(
   });
 }
 
-export function useDeletedRecordDetail(id: string | null) {
-  return useQuery({
-    queryKey: auditLogKeys.deletedRecordDetail(id ?? ""),
-    queryFn: () => fetchDeletedRecordDetail(id!),
-    enabled: Boolean(id),
-    staleTime: STALE_TIME,
-    retry: false,
-  });
-}
-
 export function useSystemLogsDashboard(
   fromDate?: string,
   toDate?: string,
@@ -378,10 +321,7 @@ export function useSystemLogsDashboard(
   });
 }
 
-export function useSystemLogLogs(
-  params?: AuditLogListParams,
-  enabled = true,
-) {
+export function useSystemLogLogs(params?: AuditLogListParams, enabled = true) {
   return useQuery({
     queryKey: auditLogKeys.systemLogLogs(params),
     queryFn: () => fetchSystemLogLogs(params),
@@ -391,24 +331,6 @@ export function useSystemLogLogs(
   });
 }
 
-export function useSystemLogDetail(id: string | null) {
-  return useQuery({
-    queryKey: auditLogKeys.systemLogDetail(id ?? ""),
-    queryFn: () => fetchSystemLogDetail(id!),
-    enabled: Boolean(id),
-    staleTime: STALE_TIME,
-    retry: false,
-  });
-}
-
 export { auditLogKeys };
 
 // Aliases for backward-compat consumers that import these names
-export { useMainAuditLogs as useAuditLogs };
-export function useAuditLogSummary(
-  fromDate?: string,
-  toDate?: string,
-  enabled = true,
-) {
-  return useAuditDashboard(fromDate, toDate, enabled);
-}

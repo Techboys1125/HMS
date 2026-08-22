@@ -1,4 +1,8 @@
-import type { UserRole, QuickFilterItem, CommRule } from "../types/notifications.types";
+import type {
+  UserRole,
+  QuickFilterItem,
+  CommRule,
+} from "../types/notifications.types";
 import {
   Bell,
   Info,
@@ -122,15 +126,4 @@ export const DEFAULT_COMM_RULES: CommRule[] = [
     sub: "Dispatches emergency SMS alerts to Super Admin",
     key: "criticalSecurityAlerts",
   },
-];
-
-export const PREFERENCE_COLUMNS: { key: string; label: string }[] = [
-  { key: "inApp", label: "In-App" },
-  { key: "email", label: "Email" },
-  { key: "sms", label: "SMS" },
-  { key: "push", label: "Push" },
-  { key: "critical", label: "Critical Alerts" },
-  { key: "appointment", label: "Appt Alerts" },
-  { key: "billing", label: "Billing Alerts" },
-  { key: "system", label: "System Alerts" },
 ];

@@ -18,10 +18,16 @@ export function ReportErrorState({
       <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
         <AlertCircle size={28} className="text-[#EF4444]" />
       </div>
-      <h3 className="text-base font-bold text-[#111827] mb-1" style={{ fontFamily: PP }}>
+      <h3
+        className="text-base font-bold text-[#111827] mb-1"
+        style={{ fontFamily: PP }}
+      >
         {title}
       </h3>
-      <p className="text-xs text-[#64748B] max-w-75 mb-4" style={{ fontFamily: RB }}>
+      <p
+        className="text-xs text-[#64748B] max-w-75 mb-4"
+        style={{ fontFamily: RB }}
+      >
         {message}
       </p>
       {onRetry && (

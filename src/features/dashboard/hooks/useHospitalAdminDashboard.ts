@@ -4,13 +4,19 @@ import { hospitalAdminDashboardApi } from "../api/hospitalAdminDashboard.api";
 const hospitalAdminKeys = {
   all: ["hospital-admin-dashboard"] as const,
   summary: () => [...hospitalAdminKeys.all, "summary"] as const,
-  appointmentFlow: () => [...hospitalAdminKeys.all, "appointment-flow"] as const,
-  statusDistribution: () => [...hospitalAdminKeys.all, "status-distribution"] as const,
-  departmentWorkload: () => [...hospitalAdminKeys.all, "department-workload"] as const,
-  doctorAvailability: () => [...hospitalAdminKeys.all, "doctor-availability"] as const,
+  appointmentFlow: () =>
+    [...hospitalAdminKeys.all, "appointment-flow"] as const,
+  statusDistribution: () =>
+    [...hospitalAdminKeys.all, "status-distribution"] as const,
+  departmentWorkload: () =>
+    [...hospitalAdminKeys.all, "department-workload"] as const,
+  doctorAvailability: () =>
+    [...hospitalAdminKeys.all, "doctor-availability"] as const,
   todayTimeline: () => [...hospitalAdminKeys.all, "today-timeline"] as const,
-  revenueDistribution: () => [...hospitalAdminKeys.all, "revenue-distribution"] as const,
-  departmentSummary: () => [...hospitalAdminKeys.all, "department-summary"] as const,
+  revenueDistribution: () =>
+    [...hospitalAdminKeys.all, "revenue-distribution"] as const,
+  departmentSummary: () =>
+    [...hospitalAdminKeys.all, "department-summary"] as const,
 };
 
 export function useHospitalAdminSummary() {

@@ -1,7 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
-import { INR_CURRENCY_FORMATTER } from "../../../lib/intl-formatters";
 // React imports
 import {
   Calendar,
@@ -37,7 +36,6 @@ import {
   YAxis,
   Tooltip,
 } from "../../../common/components/recharts-lazy";
-
 
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
@@ -157,7 +155,8 @@ function Av({
     "bg-rose-500",
     "bg-amber-600",
   ];
-  const bg = palette[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % palette.length];
+  const bg =
+    palette[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % palette.length];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -286,9 +285,18 @@ export function HospitalAdminDashboard({
   const revenueDist = revenueQuery.data || [];
   const deptSummary = deptSummaryQuery.data || [];
 
-  const totalRevenue = revenueDist.reduce((acc, curr) => acc + (Number(curr.value) || 0), 0);
-  const totalDoctors = docAvailability.reduce((acc, curr) => acc + (Number(curr.count) || 0), 0);
-  const pendingAppointments = deptSummary.reduce((acc, d) => acc + (Number(d.waiting) || 0), 0);
+  const totalRevenue = revenueDist.reduce(
+    (acc, curr) => acc + (Number(curr.value) || 0),
+    0,
+  );
+  const totalDoctors = docAvailability.reduce(
+    (acc, curr) => acc + (Number(curr.count) || 0),
+    0,
+  );
+  const pendingAppointments = deptSummary.reduce(
+    (acc, d) => acc + (Number(d.waiting) || 0),
+    0,
+  );
 
   const safeNum = (val: unknown, fallback = 0): number => {
     const num = Number(val);
@@ -302,7 +310,11 @@ export function HospitalAdminDashboard({
 
   const formatCurrency = (val: unknown) => {
     const num = safeNum(val);
-    return INR_CURRENCY_FORMATTER.format(num);
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(num);
   };
 
   const todayStr = summary?.date || new Date().toISOString().split("T")[0];
@@ -363,11 +375,22 @@ export function HospitalAdminDashboard({
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         <DKpi
           title="Today's OPD Patients"
-          value={safeVal(summary?.todayOpdPatients ?? summary?.opdPatients?.today)}
+          value={safeVal(
+            summary?.todayOpdPatients ?? summary?.opdPatients?.today,
+          )}
           sub={summaryQuery.isLoading ? "Loading..." : `Updated ${todayStr}`}
-          trend={safeNum(summary?.todayOpdPatients ?? summary?.opdPatients?.today) > 0 ? "+100%" : "--"}
+          trend={
+            safeNum(summary?.todayOpdPatients ?? summary?.opdPatients?.today) >
+            0
+              ? "+100%"
+              : "--"
+          }
           up={true}
-          data={apptFlow.length > 0 ? apptFlow.map((h) => ({ v: h.completed })) : [{ v: 0 }]}
+          data={
+            apptFlow.length > 0
+              ? apptFlow.map((h) => ({ v: h.completed }))
+              : [{ v: 0 }]
+          }
           color="#0D47A1"
           gid="ha1"
           Icon={Users}
@@ -377,11 +400,23 @@ export function HospitalAdminDashboard({
         />
         <DKpi
           title="Today's Appointments"
-          value={safeVal(summary?.todayAppointments ?? summary?.appointments?.today)}
+          value={safeVal(
+            summary?.todayAppointments ?? summary?.appointments?.today,
+          )}
           sub={summaryQuery.isLoading ? "Loading..." : "All departments"}
-          trend={safeNum(summary?.todayAppointments ?? summary?.appointments?.today) > 0 ? "+100%" : "--"}
+          trend={
+            safeNum(
+              summary?.todayAppointments ?? summary?.appointments?.today,
+            ) > 0
+              ? "+100%"
+              : "--"
+          }
           up={true}
-          data={apptFlow.length > 0 ? apptFlow.map((h) => ({ v: h.completed })) : [{ v: 0 }]}
+          data={
+            apptFlow.length > 0
+              ? apptFlow.map((h) => ({ v: h.completed }))
+              : [{ v: 0 }]
+          }
           color="#009688"
           gid="ha2"
           Icon={Calendar}
@@ -391,11 +426,21 @@ export function HospitalAdminDashboard({
         />
         <DKpi
           title="Today's Revenue"
-          value={formatCurrency(summary?.todayRevenue ?? summary?.revenue?.today)}
+          value={formatCurrency(
+            summary?.todayRevenue ?? summary?.revenue?.today,
+          )}
           sub={summaryQuery.isLoading ? "Loading..." : "Gross collections"}
-          trend={safeNum(summary?.todayRevenue ?? summary?.revenue?.today) > 0 ? "+100%" : "--"}
+          trend={
+            safeNum(summary?.todayRevenue ?? summary?.revenue?.today) > 0
+              ? "+100%"
+              : "--"
+          }
           up={true}
-          data={revenueDist.length > 0 ? revenueDist.map((r) => ({ v: r.value })) : [{ v: 0 }]}
+          data={
+            revenueDist.length > 0
+              ? revenueDist.map((r) => ({ v: r.value }))
+              : [{ v: 0 }]
+          }
           color="#66BB6A"
           gid="ha3"
           Icon={DollarSign}
@@ -407,7 +452,11 @@ export function HospitalAdminDashboard({
           sub={summaryQuery.isLoading ? "Loading..." : "Awaiting consultation"}
           trend={pendingAppointments > 0 ? "Action Required" : "All Clear"}
           up={pendingAppointments === 0}
-          data={apptFlow.length > 0 ? apptFlow.map((h) => ({ v: h.completed })) : [{ v: 0 }]}
+          data={
+            apptFlow.length > 0
+              ? apptFlow.map((h) => ({ v: h.completed }))
+              : [{ v: 0 }]
+          }
           color="#F59E0B"
           gid="ha4"
           Icon={Bell}
@@ -415,11 +464,21 @@ export function HospitalAdminDashboard({
         />
         <DKpi
           title="Doctors Available Today"
-          value={String(summary?.doctorsAvailable ?? summary?.doctors?.available ?? 0)}
+          value={String(
+            summary?.doctorsAvailable ?? summary?.doctors?.available ?? 0,
+          )}
           sub={summaryQuery.isLoading ? "Loading..." : "On duty"}
-          trend={(summary?.doctorsAvailable ?? summary?.doctors?.available ?? 0) > 0 ? "Active" : "--"}
+          trend={
+            (summary?.doctorsAvailable ?? summary?.doctors?.available ?? 0) > 0
+              ? "Active"
+              : "--"
+          }
           up={true}
-          data={docAvailability.length > 0 ? docAvailability.map((d) => ({ v: d.count })) : [{ v: 0 }]}
+          data={
+            docAvailability.length > 0
+              ? docAvailability.map((d) => ({ v: d.count }))
+              : [{ v: 0 }]
+          }
           color="#0D47A1"
           gid="ha5"
           Icon={Stethoscope}
@@ -504,7 +563,10 @@ export function HospitalAdminDashboard({
           >
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#0D47A1]" /> Peak
-              Patient Flow: {flowQuery.data ? `${flowQuery.data.peakAppointments} at ${flowQuery.data.peakHour}` : "No Data"}
+              Patient Flow:{" "}
+              {flowQuery.data
+                ? `${flowQuery.data.peakAppointments} at ${flowQuery.data.peakHour}`
+                : "No Data"}
             </span>
             <span className="font-semibold text-[#111827]">
               Total: {flowQuery.data?.totalCompleted ?? 0} Completed
@@ -573,7 +635,9 @@ export function HospitalAdminDashboard({
             className="mt-2 text-[11px] text-center text-[#64748B]"
             style={{ fontFamily: RB }}
           >
-            Period: Today · {statusDist.reduce((acc, s) => acc + safeNum(s.value), 0)} Total Recorded Visits
+            Period: Today ·{" "}
+            {statusDist.reduce((acc, s) => acc + safeNum(s.value), 0)} Total
+            Recorded Visits
           </div>
         </div>
       </div>
@@ -628,7 +692,9 @@ export function HospitalAdminDashboard({
             style={{ fontFamily: RB }}
           >
             <span>{deptWorkload.length > 0 ? "Live data" : "No Data"}</span>
-            <span className="font-semibold text-[#0D47A1]">{deptWorkload.reduce((acc, d) => acc + d.appts, 0)} Total Patients</span>
+            <span className="font-semibold text-[#0D47A1]">
+              {deptWorkload.reduce((acc, d) => acc + d.appts, 0)} Total Patients
+            </span>
           </div>
         </div>
 
@@ -637,7 +703,10 @@ export function HospitalAdminDashboard({
           <SH title="Doctor Availability" sub="Current Staffing Overview" />
           <div className="space-y-3 my-auto">
             {docAvailability.map((d) => {
-              const pct = totalDoctors > 0 ? Math.round((d.count / totalDoctors) * 100) : 0;
+              const pct =
+                totalDoctors > 0
+                  ? Math.round((d.count / totalDoctors) * 100)
+                  : 0;
               return (
                 <div key={d.status}>
                   <div
@@ -672,7 +741,9 @@ export function HospitalAdminDashboard({
             style={{ fontFamily: RB }}
           >
             <span>Available + In Consult: {totalDoctors} Active</span>
-            <span className="font-semibold text-[#66BB6A]">{totalDoctors > 0 ? "100" : "0"}% On Duty</span>
+            <span className="font-semibold text-[#66BB6A]">
+              {totalDoctors > 0 ? "100" : "0"}% On Duty
+            </span>
           </div>
         </div>
 
@@ -753,8 +824,7 @@ export function HospitalAdminDashboard({
               className="text-xs text-[#64748B] mt-0.5"
               style={{ fontFamily: RB }}
             >
-              Real-time patient flow tracker · {timeline.length} tracked
-              records
+              Real-time patient flow tracker · {timeline.length} tracked records
             </div>
           </div>
           <div
@@ -915,10 +985,13 @@ export function HospitalAdminDashboard({
                 </th>
               ))}
             </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {deptSummary.map((d) => (
-                <tr key={d.departmentId} className="hover:bg-slate-50 transition-colors">
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {deptSummary.map((d) => (
+              <tr
+                key={d.departmentId}
+                className="hover:bg-slate-50 transition-colors"
+              >
                 <td
                   className="px-5 py-3 text-xs font-medium text-[#111827]"
                   style={{ fontFamily: PP }}
@@ -949,7 +1022,7 @@ export function HospitalAdminDashboard({
                             ? "warning"
                             : d.status === "CRITICAL"
                               ? "error"
-                            : "default"
+                              : "default"
                     }
                   />
                 </td>

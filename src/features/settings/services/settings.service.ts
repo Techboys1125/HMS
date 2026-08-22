@@ -49,16 +49,6 @@ export async function saveHospitalConfiguration(
   );
 }
 
-export async function createHospitalConfiguration(
-  payload: HospitalConfigurationPayload,
-): Promise<HospitalConfiguration> {
-  const res = await apiClient.post<ApiEnvelope<HospitalConfiguration>>(
-    "/api/v1/admin/hospital/configuration",
-    payload,
-  );
-  return unwrap<HospitalConfiguration>(res);
-}
-
 export async function uploadHospitalLogo(file: File): Promise<UploadResponse> {
   return uploadFile(file);
 }
@@ -131,9 +121,10 @@ export async function resetHospitalConfiguration(): Promise<void> {
   );
 }
 
-export async function updateOpdBreaks(
-  payload: { dayOfWeek: string; breaks: OpdBreak[] },
-): Promise<OpdWeeklySchedule> {
+export async function updateOpdBreaks(payload: {
+  dayOfWeek: string;
+  breaks: OpdBreak[];
+}): Promise<OpdWeeklySchedule> {
   const res = await apiClient.put<ApiEnvelope<OpdWeeklySchedule>>(
     "/api/v1/admin/opd/breaks",
     payload,

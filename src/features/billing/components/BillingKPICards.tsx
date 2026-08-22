@@ -24,7 +24,7 @@ interface KpiCardProps {
   bgTint: string;
 }
 
-export function BillingKpiCard({
+function BillingKpiCard({
   title,
   value,
   trend,

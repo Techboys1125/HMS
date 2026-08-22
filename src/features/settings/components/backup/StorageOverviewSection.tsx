@@ -28,8 +28,8 @@ export function StorageOverviewSection() {
           gap: "8px",
         }}
       >
-        <HardDrive size={18} style={{ color: "#009688" }} /> Section 03:
-        Disk & Storage Space Breakdown
+        <HardDrive size={18} style={{ color: "#009688" }} /> Section 03: Disk &
+        Storage Space Breakdown
       </h3>
 
       <div

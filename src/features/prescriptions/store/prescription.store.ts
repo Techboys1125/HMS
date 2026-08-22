@@ -123,8 +123,10 @@ export function usePrescriptionStore<T = PrescriptionState>(
 
 usePrescriptionStore.getState = prescriptionStoreActions.getState;
 usePrescriptionStore.subscribe = prescriptionStoreActions.subscribe;
-usePrescriptionStore.setPrescriptions = prescriptionStoreActions.setPrescriptions;
-usePrescriptionStore.setSelectedPrescription = prescriptionStoreActions.setSelectedPrescription;
+usePrescriptionStore.setPrescriptions =
+  prescriptionStoreActions.setPrescriptions;
+usePrescriptionStore.setSelectedPrescription =
+  prescriptionStoreActions.setSelectedPrescription;
 usePrescriptionStore.setLoading = prescriptionStoreActions.setLoading;
 usePrescriptionStore.setError = prescriptionStoreActions.setError;
 usePrescriptionStore.setFilters = prescriptionStoreActions.setFilters;

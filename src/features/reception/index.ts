@@ -1,22 +1,7 @@
-export { ReceptionManagementCenterScreen } from "./pages/ReceptionManagementCenterScreen";
-export { default as ReceptionCenterScreen } from "./pages/ReceptionManagementCenterScreen";
-export { ReceptionQueueManagementScreen } from "./pages/ReceptionQueueManagementScreen";
-export { PatientCheckInScreen } from "./pages/PatientCheckInScreen";
 export * from "./types/reception.types";
-export * from "./permissions/reception.permissions";
 export * from "./api/reception.api";
 export * from "./services/reception.service";
-export * from "./hooks/useReceptionQueue";
-export * from "./hooks/useCheckIn";
-export * from "./components/QueueTokenBadge";
-export * from "./components/BillingStatusIndicator";
-export * from "./components/ReceptionSearchFilters";
-export * from "./components/ReceptionWorklistTable";
-export * from "./components/PatientCheckInModal";
-export * from "./components/VisitSlipModal";
-export * from "./components/WalkInRegistrationModal";
 export * from "./components/CheckInConfirmationModal";
 export * from "./types/receptionReports.types";
 export * from "./api/receptionReports.api";
 export * from "./hooks/useReceptionReports";
-

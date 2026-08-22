@@ -170,17 +170,13 @@ export function BookAppointmentScreen({
           setDepartments(mapped);
         } else {
           departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
-            const mapped = list.flatMap((d) => {
-              const name = d.departmentName || d.name || "";
-              return name
-                ? [
-                    {
-                      id: d.departmentId ?? d.id ?? "",
-                      departmentName: name,
-                    },
-                  ]
-                : [];
-            });
+            const content = Array.isArray(list) ? list : list.content || [];
+            const mapped = content
+              .map((d) => ({
+                id: d.departmentId ?? d.id ?? "",
+                departmentName: d.departmentName || d.name || "",
+              }))
+              .filter((d) => d.departmentName);
             if (mapped.length > 0) setDepartments(mapped as Department[]);
           });
         }
@@ -1242,7 +1238,9 @@ export function BookAppointmentScreen({
             <div className="space-y-2 pt-1">
               <button
                 onClick={() => {
-                  console.log(`Printing Appointment Slip for ${confirmedAptId}...`);
+                  console.log(
+                    `Printing Appointment Slip for ${confirmedAptId}...`,
+                  );
                   window.print();
                 }}
                 className="w-full py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-2"

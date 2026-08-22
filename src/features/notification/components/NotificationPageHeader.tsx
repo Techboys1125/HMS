@@ -1,4 +1,10 @@
-import { ChevronRight, CheckCircle2, RefreshCw, Settings, Download } from "lucide-react";
+import {
+  ChevronRight,
+  CheckCircle2,
+  RefreshCw,
+  Settings,
+  Download,
+} from "lucide-react";
 import { PP } from "../constants/notifications.constants";
 
 export interface NotificationPageHeaderProps {
@@ -26,7 +32,9 @@ export function NotificationPageHeader({
         <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
           <span>Hospital</span>
           <ChevronRight className="w-3.5 h-3.5" />
-          <span className="font-medium text-[#0D47A1]">Notification Center</span>
+          <span className="font-medium text-[#0D47A1]">
+            Notification Center
+          </span>
         </div>
         <div className="flex items-center gap-3">
           <h1

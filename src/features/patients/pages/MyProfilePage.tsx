@@ -27,7 +27,10 @@ export function MyProfilePage({
   const { activeMrn, switchToFamilyMember, switchToPrimary } =
     useSwitchAccount(mrn);
   const portal = usePatientPortal();
-  const { data: familyMembers } = useFamilyMembers(mrn, _currentRole === "PATIENT");
+  const { data: familyMembers } = useFamilyMembers(
+    mrn,
+    _currentRole === "PATIENT",
+  );
   const effectiveMrn = activeMrn || mrn;
 
   if (effectiveMrn !== prevEffectiveMrn) {
@@ -84,24 +87,13 @@ export function MyProfilePage({
     id: user?.patientId || user?.id || 1,
     mrn: effectiveMrn || user?.mrn || "MRN-2026717666",
     fullName:
-      (customSaved.name as string) ||
-      user?.name ||
-      user?.fullName ||
-      "Patient",
+      (customSaved.name as string) || user?.name || user?.fullName || "Patient",
     patientName:
-      (customSaved.name as string) ||
-      user?.name ||
-      user?.fullName ||
-      "Patient",
+      (customSaved.name as string) || user?.name || user?.fullName || "Patient",
     name:
-      (customSaved.name as string) ||
-      user?.name ||
-      user?.fullName ||
-      "Patient",
+      (customSaved.name as string) || user?.name || user?.fullName || "Patient",
     email:
-      (customSaved.email as string) ||
-      user?.email ||
-      "patient@safehands.org",
+      (customSaved.email as string) || user?.email || "patient@safehands.org",
     phone:
       (customSaved.phone as string) ||
       user?.phone ||
@@ -115,15 +107,11 @@ export function MyProfilePage({
     ).toUpperCase(),
     status: "ACTIVE",
     dob: (customSaved.dob as string) || user?.dob || "2000-02-12",
-    bloodGroup:
-      (customSaved.bloodGroup as string) || "A_NEGATIVE",
-    address:
-      (customSaved.address as string) || user?.address || "Springfield",
+    bloodGroup: (customSaved.bloodGroup as string) || "A_NEGATIVE",
+    address: (customSaved.address as string) || user?.address || "Springfield",
     emergencyContact: {
-      name:
-        (customSaved.emergencyName as string) || "Emergency Contact",
-      relationship:
-        (customSaved.emergencyRelation as string) || "SELF",
+      name: (customSaved.emergencyName as string) || "Emergency Contact",
+      relationship: (customSaved.emergencyRelation as string) || "SELF",
       mobileNumber: (customSaved.emergencyPhone as string) || "",
     },
   } as unknown as Patient;
@@ -140,9 +128,7 @@ export function MyProfilePage({
       basePatient.patientName ||
       basePatient.fullName,
     name:
-      (customSaved.name as string) ||
-      basePatient.name ||
-      basePatient.fullName,
+      (customSaved.name as string) || basePatient.name || basePatient.fullName,
     email: (customSaved.email as string) || basePatient.email,
     phone:
       (customSaved.phone as string) ||
@@ -154,8 +140,7 @@ export function MyProfilePage({
       basePatient.phone,
     gender: (customSaved.gender as string) || basePatient.gender,
     dob: (customSaved.dob as string) || basePatient.dob,
-    bloodGroup:
-      (customSaved.bloodGroup as string) || basePatient.bloodGroup,
+    bloodGroup: (customSaved.bloodGroup as string) || basePatient.bloodGroup,
     address: (customSaved.address as string) || basePatient.address,
     emergencyContact: {
       name:

@@ -85,7 +85,8 @@ export function AppointmentDetailsDrawer({
       onClose();
     } catch (err) {
       const error = err as Error | null | undefined;
-      const msg = error?.message || "Check-in is only allowed on the appointment date.";
+      const msg =
+        error?.message || "Check-in is only allowed on the appointment date.";
       onError?.(msg);
     } finally {
       setIsCheckingIn(false);

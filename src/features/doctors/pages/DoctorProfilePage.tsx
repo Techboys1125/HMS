@@ -138,8 +138,7 @@ export function DoctorProfilePage() {
       setDoctor(doctorRecord);
       setPersonalForm({
         fullName:
-          doctorRecord.fullName ||
-          doctorRecord.name.replace(/^Dr\.\s*/, ""),
+          doctorRecord.fullName || doctorRecord.name.replace(/^Dr\.\s*/, ""),
         email: doctorRecord.email || "",
         mobile: doctorRecord.phone || "",
         gender: doctorRecord.gender || "",
@@ -177,76 +176,73 @@ export function DoctorProfilePage() {
             user?.doctorId ||
             user?.doctorProfile?.doctorId;
 
-          let loaded = false;
           if (docId) {
             try {
               const response = await apiClient.get<
                 DoctorApiResponse<ApiUserDoctorRecord> | ApiUserDoctorRecord
               >(`/api/v1/doctors/${docId}`);
-              if (!cancelled) {
-                const data =
-                  (response.data as DoctorApiResponse<ApiUserDoctorRecord>)?.data ||
-                  (response.data as ApiUserDoctorRecord);
-                if (
-                  data &&
-                  (data.fullName || data.name || data.doctorProfile)
-                ) {
-                  const doctorRecord = mapApiUserToDoctorRecord(data);
-                  setDoctor(doctorRecord);
-                  setPersonalForm({
-                    fullName: doctorRecord.name.replace(/^Dr\.\s*/, ""),
-                    email: doctorRecord.email || "",
-                    mobile: doctorRecord.phone || "",
-                    gender: doctorRecord.gender || "",
-                    dateOfBirth: doctorRecord.dob || "",
-                    address: doctorRecord.address || "",
-                    bio: doctorRecord.bio || "",
-                    photoUrl: doctorRecord.photoUrl || doctorRecord.photo || "",
-                    photo: doctorRecord.photo || doctorRecord.photoUrl || "",
-                  });
-                  loaded = true;
-                }
+
+              if (cancelled) return;
+
+              const data =
+                (response.data as DoctorApiResponse<ApiUserDoctorRecord>)?.data ||
+                (response.data as ApiUserDoctorRecord);
+
+              if (data && (data.fullName || data.name || data.doctorProfile)) {
+                const doctorRecord = mapApiUserToDoctorRecord(data);
+                setDoctor(doctorRecord);
+                setPersonalForm({
+                  fullName: doctorRecord.name.replace(/^Dr\.\s*/, ""),
+                  email: doctorRecord.email || "",
+                  mobile: doctorRecord.phone || "",
+                  gender: doctorRecord.gender || "",
+                  dateOfBirth: doctorRecord.dob || "",
+                  address: doctorRecord.address || "",
+                  bio: doctorRecord.bio || "",
+                  photoUrl: doctorRecord.photoUrl || doctorRecord.photo || "",
+                  photo: doctorRecord.photo || doctorRecord.photoUrl || "",
+                });
+                return;
               }
             } catch {
-              // Fall through to admin endpoint
+              // fallback below
             }
           }
 
-          if (!loaded && uid && !cancelled) {
+          if (uid) {
             try {
               const response = await apiClient.get<
                 DoctorApiResponse<ApiUserDoctorRecord>
               >(`/api/v1/admin/users/${uid}`);
-              if (!cancelled) {
-                const data =
-                  response.data?.data ||
-                  (response.data as unknown as ApiUserDoctorRecord);
-                if (
-                  data &&
-                  (data.fullName || data.name || data.doctorProfile)
-                ) {
-                  const doctorRecord = mapApiUserToDoctorRecord(data);
-                  setDoctor(doctorRecord);
-                  setPersonalForm({
-                    fullName: doctorRecord.name.replace(/^Dr\.\s*/, ""),
-                    email: doctorRecord.email || "",
-                    mobile: doctorRecord.phone || "",
-                    gender: doctorRecord.gender || "",
-                    dateOfBirth: doctorRecord.dob || "",
-                    address: doctorRecord.address || "",
-                    bio: doctorRecord.bio || "",
-                    photoUrl: doctorRecord.photoUrl || doctorRecord.photo || "",
-                    photo: doctorRecord.photo || doctorRecord.photoUrl || "",
-                  });
-                  loaded = true;
-                }
+
+              if (cancelled) return;
+
+              const data =
+                response.data?.data ||
+                (response.data as unknown as ApiUserDoctorRecord);
+
+              if (data && (data.fullName || data.name || data.doctorProfile)) {
+                const doctorRecord = mapApiUserToDoctorRecord(data);
+                setDoctor(doctorRecord);
+                setPersonalForm({
+                  fullName: doctorRecord.name.replace(/^Dr\.\s*/, ""),
+                  email: doctorRecord.email || "",
+                  mobile: doctorRecord.phone || "",
+                  gender: doctorRecord.gender || "",
+                  dateOfBirth: doctorRecord.dob || "",
+                  address: doctorRecord.address || "",
+                  bio: doctorRecord.bio || "",
+                  photoUrl: doctorRecord.photoUrl || doctorRecord.photo || "",
+                  photo: doctorRecord.photo || doctorRecord.photoUrl || "",
+                });
+                return;
               }
             } catch {
-              // Fall through to basic profile
+              // fallback below
             }
           }
 
-          if (!loaded && me && !cancelled) {
+          if (me && !cancelled) {
             const doctorRecord = mapApiUserToDoctorRecord(
               me as unknown as ApiUserDoctorRecord,
             );
@@ -271,9 +267,7 @@ export function DoctorProfilePage() {
           );
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
@@ -298,11 +292,13 @@ export function DoctorProfilePage() {
           : `Dr. ${personalForm.fullName}`,
         email: personalForm.email,
         phone: personalForm.mobile,
-        gender: (personalForm.gender as "Male" | "Female" | "Other") || doctor.gender,
+        gender:
+          (personalForm.gender as "Male" | "Female" | "Other") || doctor.gender,
         dob: personalForm.dateOfBirth || doctor.dob,
         address: personalForm.address || doctor.address,
         bio: personalForm.bio || doctor.bio,
-        photoUrl: personalForm.photoUrl || personalForm.photo || doctor.photoUrl,
+        photoUrl:
+          personalForm.photoUrl || personalForm.photo || doctor.photoUrl,
         photo: personalForm.photo || personalForm.photoUrl || doctor.photo,
       };
       await doctorProfileService.updateDoctor(updatedDoctor);

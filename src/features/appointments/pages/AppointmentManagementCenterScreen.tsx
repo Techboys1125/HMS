@@ -1580,6 +1580,3 @@ export function AppointmentManagementCenterScreen({
     </div>
   );
 }
-
-export { AppointmentManagementCenterScreen as AppointmentCenterScreen };
-export default AppointmentManagementCenterScreen;

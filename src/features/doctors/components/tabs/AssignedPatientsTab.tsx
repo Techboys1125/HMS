@@ -83,12 +83,15 @@ export function AssignedPatientsTab({
       ) : (
         <div className="space-y-2">
           {uniquePatients.map((patient) => {
-            const rawPatient = patient.patientName ?? (patient as unknown as Record<string, unknown>).name;
+            const rawPatient =
+              patient.patientName ??
+              (patient as unknown as Record<string, unknown>).name;
             const pName =
               typeof rawPatient === "string"
                 ? rawPatient
                 : rawPatient && typeof rawPatient === "object"
-                  ? (rawPatient as { fullName?: string; name?: string }).fullName ||
+                  ? (rawPatient as { fullName?: string; name?: string })
+                      .fullName ||
                     (rawPatient as { fullName?: string; name?: string }).name ||
                     "Patient"
                   : "Patient";

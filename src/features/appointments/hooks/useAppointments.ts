@@ -1,12 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { appointmentService } from "../services/appointment.service";
-import type {
-  AppointmentRecord,
-  CreateAppointmentRequest,
-  RescheduleAppointmentRequest,
-  CancelAppointmentRequest,
-  UserRole,
-} from "../types/appointment.types";
+import type { AppointmentRecord, UserRole } from "../types/appointment.types";
 
 export function useAppointments(
   userRole: UserRole = "Receptionist",
@@ -102,7 +96,10 @@ export function useAppointments(
           date,
           params?.status,
         );
-      } else if (roleUpper === "PATIENT" && (params?.patientId || params?.mrn)) {
+      } else if (
+        roleUpper === "PATIENT" &&
+        (params?.patientId || params?.mrn)
+      ) {
         items = await appointmentService.listPatientAppointments(
           params.patientId || params.mrn || "",
         );
@@ -140,83 +137,4 @@ export function useAppointments(
     error,
     refetch,
   };
-}
-
-export function useCreateAppointment() {
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const createAppointment = async (
-    payload: CreateAppointmentRequest,
-  ): Promise<AppointmentRecord | null> => {
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      return await appointmentService.bookAppointment(payload);
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Failed to create appointment.";
-      setError(msg);
-      throw err;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return { createAppointment, isSubmitting, error };
-}
-
-export function useRescheduleAppointment() {
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const rescheduleAppointment = async (
-    appointmentId: string | number,
-    payload: RescheduleAppointmentRequest,
-  ): Promise<AppointmentRecord | null> => {
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      return await appointmentService.rescheduleAppointment(
-        appointmentId,
-        payload,
-      );
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error
-          ? err.message
-          : "Failed to reschedule appointment.";
-      setError(msg);
-      throw err;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return { rescheduleAppointment, isSubmitting, error };
-}
-
-export function useCancelAppointment() {
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const cancelAppointment = async (
-    appointmentId: string | number,
-    payload: CancelAppointmentRequest,
-  ): Promise<AppointmentRecord | null> => {
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      return await appointmentService.cancelAppointment(appointmentId, payload);
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Failed to cancel appointment.";
-      setError(msg);
-      throw err;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return { cancelAppointment, isSubmitting, error };
 }

@@ -35,9 +35,9 @@ export const nurseDashboardApi = {
   },
 
   getPreparationStatus: async (): Promise<NursePreparationStatus> => {
-    const res = await apiClient.get<DashboardApiResponse<NursePreparationStatus>>(
-      "/api/v1/nurse/dashboard/preparation-status",
-    );
+    const res = await apiClient.get<
+      DashboardApiResponse<NursePreparationStatus>
+    >("/api/v1/nurse/dashboard/preparation-status");
     return unwrap(res);
   },
 
@@ -49,9 +49,9 @@ export const nurseDashboardApi = {
   },
 
   getDoctorAssistance: async (): Promise<NurseDoctorAssistance> => {
-    const res = await apiClient.get<DashboardApiResponse<NurseDoctorAssistance>>(
-      "/api/v1/nurse/dashboard/doctor-assistance",
-    );
+    const res = await apiClient.get<
+      DashboardApiResponse<NurseDoctorAssistance>
+    >("/api/v1/nurse/dashboard/doctor-assistance");
     return unwrap(res);
   },
 

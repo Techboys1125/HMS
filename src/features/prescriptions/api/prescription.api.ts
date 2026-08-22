@@ -149,27 +149,34 @@ export const prescriptionApi = {
         await apiClient.get<ApiResponseBody<ApiPatientPrescription[]>>(url);
       const body = response.data;
 
-      if (Array.isArray(body)) return body;
-      if (body !== null && typeof body === "object" && "data" in body) {
-        const inner = body.data;
-        if (Array.isArray(inner)) return inner;
+      if (Array.isArray(body)) {
+        return body;
+      }
+
+      if (body && typeof body === "object") {
+        const bodyRecord = body as {
+          data?: unknown;
+          content?: unknown;
+        };
+
+        if (Array.isArray(bodyRecord.data)) {
+          return bodyRecord.data as ApiPatientPrescription[];
+        }
+
         if (
-          inner &&
-          typeof inner === "object" &&
-          "content" in inner &&
-          Array.isArray(inner.content)
+          bodyRecord.data &&
+          typeof bodyRecord.data === "object" &&
+          Array.isArray((bodyRecord.data as { content?: unknown }).content)
         ) {
-          return inner.content;
+          return (bodyRecord.data as { content: ApiPatientPrescription[] })
+            .content;
+        }
+
+        if (Array.isArray(bodyRecord.content)) {
+          return bodyRecord.content as ApiPatientPrescription[];
         }
       }
-      if (
-        body !== null &&
-        typeof body === "object" &&
-        "content" in body &&
-        Array.isArray(body.content)
-      ) {
-        return body.content;
-      }
+
       return [];
     } catch {
       return [];
@@ -183,10 +190,10 @@ export const prescriptionApi = {
     id: string | number,
   ): Promise<ApiPatientPrescription | null> => {
     try {
-      const response = await apiClient.get<
-        ApiResponseBody<ApiPatientPrescription>
-      >(`/api/v1/patient/prescriptions/${id}`);
-      return response.data?.data || response.data || null;
+      const response = await apiClient.get<ApiPatientPrescription>(
+        `/api/v1/patient/prescriptions/${id}`,
+      );
+      return response.data || null;
     } catch {
       return null;
     }
@@ -199,10 +206,10 @@ export const prescriptionApi = {
     prescriptionId: string | number,
   ): Promise<PrescriptionDetailResponse | null> => {
     try {
-      const response = await apiClient.get<
-        ApiResponseBody<PrescriptionDetailResponse>
-      >(`/api/v1/prescriptions/${prescriptionId}`);
-      return response.data?.data || response.data || null;
+      const response = await apiClient.get<PrescriptionDetailResponse>(
+        `/api/v1/prescriptions/${prescriptionId}`,
+      );
+      return response.data || null;
     } catch {
       return null;
     }
@@ -215,10 +222,10 @@ export const prescriptionApi = {
     encounterId: string | number,
   ): Promise<ApiPatientPrescription | null> => {
     try {
-      const response = await apiClient.get<
-        ApiResponseBody<ApiPatientPrescription>
-      >(`/api/v1/encounters/${encounterId}/prescription`);
-      return response.data?.data || response.data || null;
+      const response = await apiClient.get<ApiPatientPrescription>(
+        `/api/v1/encounters/${encounterId}/prescription`,
+      );
+      return response.data || null;
     } catch {
       return null;
     }
@@ -231,10 +238,11 @@ export const prescriptionApi = {
     prescriptionId: string | number,
     payload: { confirmation: boolean } = { confirmation: true },
   ): Promise<ApiPatientPrescription> => {
-    const response = await apiClient.post<
-      ApiResponseBody<ApiPatientPrescription>
-    >(`/api/v1/prescriptions/${prescriptionId}/finalize`, payload);
-    return response.data?.data || response.data;
+    const response = await apiClient.post<ApiPatientPrescription>(
+      `/api/v1/prescriptions/${prescriptionId}/finalize`,
+      payload,
+    );
+    return response.data;
   },
 
   /**
@@ -298,10 +306,10 @@ export const prescriptionApi = {
     prescriptionId: string | number,
   ): Promise<PrintOutputResponse | null> => {
     try {
-      const response = await apiClient.get<
-        ApiResponseBody<PrintOutputResponse>
-      >(`/api/v1/prescriptions/${prescriptionId}/print-output`);
-      return response.data?.data || response.data || null;
+      const response = await apiClient.get<PrintOutputResponse>(
+        `/api/v1/prescriptions/${prescriptionId}/print-output`,
+      );
+      return response.data || null;
     } catch {
       return null;
     }
@@ -312,10 +320,10 @@ export const prescriptionApi = {
    */
   getDoctorSummary: async (): Promise<PrescriptionSummaryResponse | null> => {
     try {
-      const response = await apiClient.get<
-        ApiResponseBody<PrescriptionSummaryResponse>
-      >("/api/v1/doctor/prescriptions/summary");
-      return response.data?.data || response.data || null;
+      const response = await apiClient.get<PrescriptionSummaryResponse>(
+        "/api/v1/doctor/prescriptions/summary",
+      );
+      return response.data || null;
     } catch {
       return null;
     }

@@ -24,31 +24,44 @@ const RULE_KEY_EVENT_PATTERNS: {
   key: string;
   matches: (eventType: string) => boolean;
 }[] = [
-  { key: "autoApptConfirmation", matches: (et) => et.toUpperCase().includes("APPOINTMENT") },
-  { key: "instantInvoiceAfterPay", matches: (et) => /INVOICE|BILL|PAYMENT/.test(et.toUpperCase()) },
-  { key: "prescriptionNotif", matches: (et) => et.toUpperCase().includes("PRESCRIPTION") },
-  { key: "systemMaintenanceAlerts", matches: (et) => et.toUpperCase().includes("MAINTENANCE") },
-  { key: "criticalSecurityAlerts", matches: (et) => /SECURITY|AUDIT|LOGIN/.test(et.toUpperCase()) },
+  {
+    key: "autoApptConfirmation",
+    matches: (et) => et.toUpperCase().includes("APPOINTMENT"),
+  },
+  {
+    key: "instantInvoiceAfterPay",
+    matches: (et) => /INVOICE|BILL|PAYMENT/.test(et.toUpperCase()),
+  },
+  {
+    key: "prescriptionNotif",
+    matches: (et) => et.toUpperCase().includes("PRESCRIPTION"),
+  },
+  {
+    key: "systemMaintenanceAlerts",
+    matches: (et) => et.toUpperCase().includes("MAINTENANCE"),
+  },
+  {
+    key: "criticalSecurityAlerts",
+    matches: (et) => /SECURITY|AUDIT|LOGIN/.test(et.toUpperCase()),
+  },
 ];
 
 export function NotificationCommunicationPage() {
   const role = useCurrentRole();
   const permissions = getNotificationPermission(String(role));
-  const canManage = permissions.canManageRules && permissions.canManageTemplates;
+  const canManage =
+    permissions.canManageRules && permissions.canManageTemplates;
 
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateRow | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateRow | null>(
+    null,
+  );
   const [isTemplateEditMode, setIsTemplateEditMode] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [saveToast, setSaveToast] = useState<string | null>(null);
 
-  const {
-    data: apiTemplates,
-    refetch: refetchTemplates,
-  } = useNotificationTemplates();
-  const {
-    data: apiRules,
-    refetch: refetchRules,
-  } = useNotificationRules();
+  const { data: apiTemplates, refetch: refetchTemplates } =
+    useNotificationTemplates();
+  const { data: apiRules, refetch: refetchRules } = useNotificationRules();
   const { data: apiFailures, refetch: refetchFailures } =
     useNotificationFailures();
   const updateRuleMutation = useUpdateNotificationRule();
@@ -188,7 +201,10 @@ export function NotificationCommunicationPage() {
           width: "100%",
         }}
       >
-        <CommunicationHeader onPreview={() => setShowPreviewModal(true)} onRefresh={handleRefresh} />
+        <CommunicationHeader
+          onPreview={() => setShowPreviewModal(true)}
+          onRefresh={handleRefresh}
+        />
 
         <CommunicationKpiCards
           rulesCount={enabledRulesCount}

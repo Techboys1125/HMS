@@ -80,8 +80,8 @@ export function PermissionMatrix() {
               margin: "2px 0 0 0",
             }}
           >
-            Configure granular View, Edit, Delete, and Approval permissions
-            per role across all 11 HMS core modules.
+            Configure granular View, Edit, Delete, and Approval permissions per
+            role across all 11 HMS core modules.
           </p>
         </div>
         <span
@@ -134,10 +134,7 @@ export function PermissionMatrix() {
           </thead>
           <tbody>
             {MATRIX_MODULES.map((module) => (
-              <tr
-                key={module}
-                style={{ borderBottom: "1px solid #F1F5F9" }}
-              >
+              <tr key={module} style={{ borderBottom: "1px solid #F1F5F9" }}>
                 <td
                   style={{
                     padding: "10px 12px",

@@ -1,15 +1,9 @@
 export {
   OPDConsultationPage,
   OpdConsultationCenterScreen,
-  OpdConsultationMonitoringCenterScreen,
 } from "./pages/OPDConsultationPage";
 export { StartConsultationPage as StartOpdConsultationWorkspaceScreen } from "./pages/StartConsultationPage";
-export { ConsultationDetailsPage as ConsultationDetailsScreen } from "./pages/ConsultationDetailsPage";
-export { ConsultationDetailsPage as AdminConsultationDetailsScreen } from "./pages/ConsultationDetailsPage";
-export { ConsultationHistoryPage as ConsultationHistoryScreen } from "./pages/ConsultationHistoryPage";
-export { EditConsultationPage as EditConsultationScreen } from "./pages/EditConsultationPage";
-
-export { StatusChip, ConsultationStatusBadge } from "./components/StatusChip";
+export { StatusChip } from "./components/StatusChip";
 export { Avatar } from "./components/Avatar";
 export { ConsultationHeader } from "./components/ConsultationHeader";
 export { ConsultationKPICards } from "./components/ConsultationKPICards";
@@ -34,7 +28,10 @@ export type {
   MedicineItem,
 } from "./types/consultation";
 export type { PatientVitals, EncounterVitalsPayload } from "./types/vitals";
-export type { DiagnosisItem, EncounterDiagnosisPayload } from "./types/diagnosis";
+export type {
+  DiagnosisItem,
+  EncounterDiagnosisPayload,
+} from "./types/diagnosis";
 export type {
   Encounter,
   Consultation,

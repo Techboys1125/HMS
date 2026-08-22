@@ -56,4 +56,3 @@ export function normalizeDateString(dateStr?: string | null): string {
   if (!trimmed) return "";
   return trimmed.split("T")[0].split(" ")[0];
 }
-

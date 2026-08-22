@@ -269,9 +269,9 @@ export const appointmentsApi = {
     } catch (error: unknown) {
       // Fallback: doctor-specific endpoint
       try {
-        const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
-          `/api/v1/doctor/appointments/${appointmentId}/start`,
-        );
+        const response = await apiClient.patch<
+          ApiResponse<QueueActionResponse>
+        >(`/api/v1/doctor/appointments/${appointmentId}/start`);
         return response.data;
       } catch {
         return handleApiError(error);
@@ -289,21 +289,23 @@ export const appointmentsApi = {
       return response.data;
     } catch {
       try {
-        const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
-          `/api/v1/doctor/appointments/${appointmentId}/complete`,
-        );
+        const response = await apiClient.patch<
+          ApiResponse<QueueActionResponse>
+        >(`/api/v1/doctor/appointments/${appointmentId}/complete`);
         return response.data;
       } catch {
         try {
-          const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
-            `/api/v1/appointments/${appointmentId}/status`,
-            { status: "COMPLETED", reason: "Consultation completed" },
-          );
+          const response = await apiClient.patch<
+            ApiResponse<QueueActionResponse>
+          >(`/api/v1/appointments/${appointmentId}/status`, {
+            status: "COMPLETED",
+            reason: "Consultation completed",
+          });
           return response.data;
         } catch {
-          const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
-            `/api/v1/appointments/${appointmentId}/complete`,
-          );
+          const response = await apiClient.patch<
+            ApiResponse<QueueActionResponse>
+          >(`/api/v1/appointments/${appointmentId}/complete`);
           return response.data;
         }
       }
@@ -479,7 +481,8 @@ export const appointmentsApi = {
   ): Promise<ApiResponse<{ slots: unknown[] }>> => {
     try {
       const url = `/api/v1/doctors/${doctorId}/availability?date=${encodeURIComponent(date)}`;
-      const response = await apiClient.get<ApiResponse<{ slots: unknown[] }>>(url);
+      const response =
+        await apiClient.get<ApiResponse<{ slots: unknown[] }>>(url);
       return response.data;
     } catch (error: unknown) {
       return handleApiError(error);
@@ -600,7 +603,8 @@ export const appointmentsApi = {
       const url = reason
         ? `/api/v1/queue/${appointmentId}?reason=${encodeURIComponent(reason)}`
         : `/api/v1/queue/${appointmentId}`;
-      const response = await apiClient.delete<ApiResponse<QueueActionResponse>>(url);
+      const response =
+        await apiClient.delete<ApiResponse<QueueActionResponse>>(url);
       return response.data;
     } catch (error: unknown) {
       return handleApiError(error);

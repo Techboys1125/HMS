@@ -79,8 +79,7 @@ export const DEFAULT_CONFIGURATION: BillingConfiguration = {
     showPaymentSummary: true,
     showTaxDetails: true,
     showTerms: true,
-    footerNotes:
-      "Payment once settled is subject to official refund policy.",
+    footerNotes: "Payment once settled is subject to official refund policy.",
     hospitalName: "",
     hospitalTagline: "",
     hospitalAddress: "",

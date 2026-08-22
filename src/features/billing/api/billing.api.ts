@@ -278,11 +278,15 @@ export const billingApi = {
       if (params?.direction) query.set("direction", params.direction);
       if (params?.status) query.set("status", params.status);
       if (params?.billStatus) query.set("billStatus", params.billStatus);
-      if (params?.paymentStatus) query.set("paymentStatus", params.paymentStatus);
-      if (params?.paymentMethod) query.set("paymentMethod", params.paymentMethod);
-      if (params?.patientId != null) query.set("patientId", String(params.patientId));
+      if (params?.paymentStatus)
+        query.set("paymentStatus", params.paymentStatus);
+      if (params?.paymentMethod)
+        query.set("paymentMethod", params.paymentMethod);
+      if (params?.patientId != null)
+        query.set("patientId", String(params.patientId));
       if (params?.mrn) query.set("mrn", params.mrn);
-      if (params?.doctorId != null) query.set("doctorId", String(params.doctorId));
+      if (params?.doctorId != null)
+        query.set("doctorId", String(params.doctorId));
       if (params?.search) query.set("search", params.search);
       if (params?.fromDate) query.set("fromDate", params.fromDate);
       if (params?.toDate) query.set("toDate", params.toDate);
@@ -351,9 +355,7 @@ export const billingApi = {
     query: string,
   ): Promise<ApiResponse<PendingBillingRecord[]>> {
     try {
-      const response = await apiClient.get<
-        ApiResponse<PendingBillingRecord[]>
-      >(
+      const response = await apiClient.get<ApiResponse<PendingBillingRecord[]>>(
         `/api/v1/billing/pending-billing/search?query=${encodeURIComponent(query)}`,
       );
       return response.data;

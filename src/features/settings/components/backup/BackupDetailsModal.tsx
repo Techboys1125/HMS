@@ -8,7 +8,10 @@ interface BackupDetailsModalProps {
   onClose: () => void;
 }
 
-export function BackupDetailsModal({ backup, onClose }: BackupDetailsModalProps) {
+export function BackupDetailsModal({
+  backup,
+  onClose,
+}: BackupDetailsModalProps) {
   return (
     <div
       style={{

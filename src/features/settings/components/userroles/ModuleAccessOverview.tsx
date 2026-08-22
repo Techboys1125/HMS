@@ -98,17 +98,13 @@ export function ModuleAccessOverview() {
                 <span style={{ color: "#2E7D32", fontWeight: 700 }}>
                   Allowed Roles:{" "}
                 </span>
-                <span style={{ color: "#111827" }}>
-                  {m.allowed.join(", ")}
-                </span>
+                <span style={{ color: "#111827" }}>{m.allowed.join(", ")}</span>
               </div>
               <div>
                 <span style={{ color: "#DC2626", fontWeight: 700 }}>
                   Blocked Roles:{" "}
                 </span>
-                <span style={{ color: "#64748B" }}>
-                  {m.blocked.join(", ")}
-                </span>
+                <span style={{ color: "#64748B" }}>{m.blocked.join(", ")}</span>
               </div>
             </div>
           </div>

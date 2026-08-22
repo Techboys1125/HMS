@@ -30,9 +30,7 @@ export function SecurityKpiCards() {
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             Security Score
           </span>
           <div
@@ -102,9 +100,7 @@ export function SecurityKpiCards() {
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             Password Policy
           </span>
           <div
@@ -174,9 +170,7 @@ export function SecurityKpiCards() {
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             Active Sessions
           </span>
           <div
@@ -246,9 +240,7 @@ export function SecurityKpiCards() {
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             Failed Logins Today
           </span>
           <div
@@ -283,9 +275,7 @@ export function SecurityKpiCards() {
             marginTop: "6px",
           }}
         >
-          <span style={{ fontSize: "11px", color: "#94A3B8" }}>
-            Max Cap 5
-          </span>
+          <span style={{ fontSize: "11px", color: "#94A3B8" }}>Max Cap 5</span>
           <span
             style={{
               fontSize: "10px",

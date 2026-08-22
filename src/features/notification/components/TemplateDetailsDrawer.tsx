@@ -190,9 +190,7 @@ export function TemplateDetailsDrawer({
                   <input
                     type="text"
                     value={template.name}
-                    onChange={(e) =>
-                      onTemplateChange({ name: e.target.value })
-                    }
+                    onChange={(e) => onTemplateChange({ name: e.target.value })}
                     style={{
                       width: "100%",
                       padding: "6px 8px",
@@ -276,7 +274,9 @@ export function TemplateDetailsDrawer({
                 <input
                   type="text"
                   value={template.channel}
-                  onChange={(e) => onTemplateChange({ channel: e.target.value })}
+                  onChange={(e) =>
+                    onTemplateChange({ channel: e.target.value })
+                  }
                   style={{
                     width: "100%",
                     padding: "6px 8px",
@@ -374,9 +374,7 @@ export function TemplateDetailsDrawer({
                 >
                   Version
                 </span>
-                <span style={{ color: "#475569" }}>
-                  {template.lastUpdated}
-                </span>
+                <span style={{ color: "#475569" }}>{template.lastUpdated}</span>
               </div>
               <div>
                 <span

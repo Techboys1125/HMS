@@ -199,9 +199,26 @@ export function DoctorReportScreen({
             0,
           ) / totalDoctors
         : 0;
+    const averageConsultationDurationMinutes =
+      totalDoctors > 0
+        ? doctorList.reduce(
+            (sum: number, d: DoctorPerformanceSummary) =>
+              sum +
+              Number(
+                d.averageDurationMinutes || d.avgConsultationTimeMinutes || 15,
+              ),
+            0,
+          ) / totalDoctors
+        : 0;
+
+    const doctorUtilizationPercentage =
+      totalConsultations > 0
+        ? (completedConsultations / totalConsultations) * 100
+        : 0;
+
     const topDoc =
       doctorList.length > 0
-        ? doctorList.toSorted(
+        ? [...doctorList].sort(
             (a: DoctorPerformanceSummary, b: DoctorPerformanceSummary) =>
               Number(b.completed || 0) - Number(a.completed || 0),
           )[0]
@@ -220,6 +237,8 @@ export function DoctorReportScreen({
         doctorUtilizationPercentage: 85,
         patientSatisfaction: avgRating,
         topPerformingDepartment: topDoc?.department ?? "--",
+        averageConsultationDurationMinutes,
+        doctorUtilizationPercentage,
       },
       content: doctorList,
     };

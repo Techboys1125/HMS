@@ -34,7 +34,6 @@ import {
   Tooltip,
 } from "../../../common/components/recharts-lazy";
 
-
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
 
@@ -152,7 +151,8 @@ function Av({
     "bg-rose-500",
     "bg-amber-600",
   ];
-  const bg = palette[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % palette.length];
+  const bg =
+    palette[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % palette.length];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -714,10 +714,7 @@ export function ReceptionDashboard({
                   ? apptStatusDist
                   : [{ name: "No Data", value: 0, color: "#64748B" }]
                 ).map((entry) => (
-                  <Cell
-                    key={entry.name}
-                    fill={entry.color}
-                  />
+                  <Cell key={entry.name} fill={entry.color} />
                 ))}
               </Bar>
             </BarChart>
@@ -1090,10 +1087,7 @@ export function ReceptionDashboard({
                   ? regTypes
                   : [{ category: "No Data", count: 0, color: "#64748B" }]
                 ).map((entry) => (
-                  <Cell
-                    key={entry.category}
-                    fill={entry.color}
-                  />
+                  <Cell key={entry.category} fill={entry.color} />
                 ))}
               </Bar>
             </BarChart>

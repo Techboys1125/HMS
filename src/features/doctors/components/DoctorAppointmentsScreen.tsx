@@ -10,7 +10,9 @@ export function DoctorAppointmentsScreen({
   const doctorId =
     user?.doctorProfile?.doctorId ??
     user?.doctorId ??
-    (String(user?.role || "").toUpperCase() === "DOCTOR" ? user?.id : undefined);
+    (String(user?.role || "").toUpperCase() === "DOCTOR"
+      ? user?.id
+      : undefined);
 
   return (
     <AppointmentManagementCenterScreen

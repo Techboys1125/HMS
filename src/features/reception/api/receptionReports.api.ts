@@ -25,17 +25,26 @@ function unwrap<T>(res: { data: ApiEnvelope<T> | T }): T {
   return body as T;
 }
 
-function buildQuery(params: Record<string, string | number | undefined>): string {
+function buildQuery(
+  params: Record<string, string | number | undefined>,
+): string {
   const entries = Object.entries(params).filter(
     ([, v]) => v !== undefined && v !== "",
   );
   if (entries.length === 0) return "";
-  return "?" + entries.map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
+  return (
+    "?" +
+    entries.map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&")
+  );
 }
 
 export const receptionReportsApi = {
   // 1. Activity Log
-  getActivityLog: async (params?: { date?: string; page?: number; size?: number }): Promise<ReceptionActivityLogResponse> => {
+  getActivityLog: async (params?: {
+    date?: string;
+    page?: number;
+    size?: number;
+  }): Promise<ReceptionActivityLogResponse> => {
     const qs = buildQuery({
       date: params?.date,
       page: params?.page ?? 0,
@@ -48,16 +57,20 @@ export const receptionReportsApi = {
   },
 
   // 2. Appointment Status Distribution
-  getAppointmentStatus: async (date?: string): Promise<ReceptionAppointmentStatusData> => {
+  getAppointmentStatus: async (
+    date?: string,
+  ): Promise<ReceptionAppointmentStatusData> => {
     const qs = buildQuery({ date });
-    const res = await apiClient.get<ApiEnvelope<ReceptionAppointmentStatusData>>(
-      `/api/v1/reception/reports/appointment-status${qs}`,
-    );
+    const res = await apiClient.get<
+      ApiEnvelope<ReceptionAppointmentStatusData>
+    >(`/api/v1/reception/reports/appointment-status${qs}`);
     return unwrap(res);
   },
 
   // 3. Check-in Analytics
-  getCheckinAnalytics: async (date?: string): Promise<ReceptionCheckinAnalyticsData> => {
+  getCheckinAnalytics: async (
+    date?: string,
+  ): Promise<ReceptionCheckinAnalyticsData> => {
     const qs = buildQuery({ date });
     const res = await apiClient.get<ApiEnvelope<ReceptionCheckinAnalyticsData>>(
       `/api/v1/reception/reports/checkin-analytics${qs}`,
@@ -66,7 +79,9 @@ export const receptionReportsApi = {
   },
 
   // 4. Reception Dashboard Summary
-  getDashboardSummary: async (date?: string): Promise<ReceptionDashboardSummaryData> => {
+  getDashboardSummary: async (
+    date?: string,
+  ): Promise<ReceptionDashboardSummaryData> => {
     const qs = buildQuery({ date });
     const res = await apiClient.get<ApiEnvelope<ReceptionDashboardSummaryData>>(
       `/api/v1/reception/reports/dashboard${qs}`,
@@ -75,7 +90,9 @@ export const receptionReportsApi = {
   },
 
   // 5. Queue Performance
-  getQueuePerformance: async (date?: string): Promise<ReceptionQueuePerformanceData> => {
+  getQueuePerformance: async (
+    date?: string,
+  ): Promise<ReceptionQueuePerformanceData> => {
     const qs = buildQuery({ date });
     const res = await apiClient.get<ApiEnvelope<ReceptionQueuePerformanceData>>(
       `/api/v1/reception/reports/queue-performance${qs}`,
@@ -84,7 +101,11 @@ export const receptionReportsApi = {
   },
 
   // 6. Recent Reception Register
-  getRegister: async (params?: { date?: string; page?: number; size?: number }): Promise<ReceptionRegisterResponse> => {
+  getRegister: async (params?: {
+    date?: string;
+    page?: number;
+    size?: number;
+  }): Promise<ReceptionRegisterResponse> => {
     const qs = buildQuery({
       date: params?.date,
       page: params?.page ?? 0,
@@ -97,19 +118,24 @@ export const receptionReportsApi = {
   },
 
   // 7. Patient Registration Trend
-  getRegistrationTrend: async (params?: { from?: string; to?: string }): Promise<ReceptionRegistrationTrendData> => {
+  getRegistrationTrend: async (params?: {
+    from?: string;
+    to?: string;
+  }): Promise<ReceptionRegistrationTrendData> => {
     const qs = buildQuery({
       from: params?.from,
       to: params?.to,
     });
-    const res = await apiClient.get<ApiEnvelope<ReceptionRegistrationTrendData>>(
-      `/api/v1/reception/reports/registration-trend${qs}`,
-    );
+    const res = await apiClient.get<
+      ApiEnvelope<ReceptionRegistrationTrendData>
+    >(`/api/v1/reception/reports/registration-trend${qs}`);
     return unwrap(res);
   },
 
   // 8. Reception Summary Widget
-  getSummaryWidget: async (date?: string): Promise<ReceptionSummaryWidgetData> => {
+  getSummaryWidget: async (
+    date?: string,
+  ): Promise<ReceptionSummaryWidgetData> => {
     const qs = buildQuery({ date });
     const res = await apiClient.get<ApiEnvelope<ReceptionSummaryWidgetData>>(
       `/api/v1/reception/reports/summary${qs}`,

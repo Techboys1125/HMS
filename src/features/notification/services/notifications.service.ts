@@ -25,7 +25,6 @@ export {
   fetchNotificationPreferences,
   updateNotificationPreferences,
   fetchNotifications,
-  fetchNotificationDetail,
   fetchUnreadCount,
   markNotificationAsRead,
   markNotificationAsUnread,

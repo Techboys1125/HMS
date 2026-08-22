@@ -16,23 +16,25 @@ function unwrap<T>(response: { data: DashboardApiResponse<T> | T }): T {
 
 export const accountantDashboardApi = {
   getDashboard: async (): Promise<AccountantDashboardData> => {
-    const res = await apiClient.get<DashboardApiResponse<AccountantDashboardData>>(
-      "/api/v1/accountant/dashboard",
-    );
+    const res = await apiClient.get<
+      DashboardApiResponse<AccountantDashboardData>
+    >("/api/v1/accountant/dashboard");
     return unwrap(res);
   },
 
   getPaymentMethods: async (): Promise<AccountantPaymentMethods[]> => {
-    const res = await apiClient.get<DashboardApiResponse<AccountantPaymentMethods[]>>(
-      "/api/v1/accountant/dashboard/payment-methods",
-    );
+    const res = await apiClient.get<
+      DashboardApiResponse<AccountantPaymentMethods[]>
+    >("/api/v1/accountant/dashboard/payment-methods");
     return unwrap(res);
   },
 
-  getRecentTransactions: async (limit = 10): Promise<AccountantTransaction[]> => {
-    const res = await apiClient.get<DashboardApiResponse<AccountantTransaction[]>>(
-      `/api/v1/accountant/dashboard/recent-transactions?limit=${limit}`,
-    );
+  getRecentTransactions: async (
+    limit = 10,
+  ): Promise<AccountantTransaction[]> => {
+    const res = await apiClient.get<
+      DashboardApiResponse<AccountantTransaction[]>
+    >(`/api/v1/accountant/dashboard/recent-transactions?limit=${limit}`);
     return unwrap(res);
   },
 };

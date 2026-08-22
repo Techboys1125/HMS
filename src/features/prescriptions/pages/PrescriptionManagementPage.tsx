@@ -2,7 +2,12 @@ import React, { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { usePatientPortal } from "../../patients/context/usePatientPortal";
-import { usePrescription, usePrescriptionDetails, usePrescriptionFilters, usePrescriptionActions } from "../hooks/usePrescription";
+import {
+  usePrescription,
+  usePrescriptionDetails,
+  usePrescriptionFilters,
+  usePrescriptionActions,
+} from "../hooks/usePrescription";
 import type { UnifiedPrescription } from "../types/prescription.types";
 
 // Extracted Subcomponents
@@ -12,20 +17,21 @@ import { PrescriptionFilters } from "../components/PrescriptionFilters";
 import { PrescriptionTable } from "../components/PrescriptionTable";
 import { PrescriptionLoader } from "../components/PrescriptionLoader";
 import { PrescriptionEmptyState } from "../components/PrescriptionEmptyState";
-import { PrescriptionDrawer, PrescriptionDetailsModal, PrescriptionPrintModal } from "../components/PrescriptionPreview";
+import {
+  PrescriptionDrawer,
+  PrescriptionDetailsModal,
+  PrescriptionPrintModal,
+} from "../components/PrescriptionPreview";
 
 const RB = "'Roboto', system-ui, sans-serif";
 
 export const PrescriptionManagementPage: React.FC<{
   onNewPrescription?: () => void;
   onViewConsultation?: (consultId: string) => void;
-}> = ({
-  onNewPrescription,
-  onViewConsultation,
-}) => {
+}> = ({ onNewPrescription, onViewConsultation }) => {
   const user = useAuthStore((s) => s.user);
   const roleRaw = String(user?.role ?? "").toUpperCase();
-  
+
   const role: "patient" | "doctor" | "admin" =
     roleRaw === "PATIENT"
       ? "patient"
@@ -36,41 +42,33 @@ export const PrescriptionManagementPage: React.FC<{
   const portal = usePatientPortal();
   const activePatient = portal?.activePatient || undefined;
   const patientName = activePatient?.patientName || user?.fullName || "Patient";
-  const activeMrn = role === "patient" ? (activePatient?.mrn || user?.patientId || "") : undefined;
+  const activeMrn =
+    role === "patient"
+      ? activePatient?.mrn || user?.patientId || ""
+      : undefined;
 
   // Filter doctor prescriptions by name if in doctor role
   const doctorNameFilter = role === "doctor" ? user?.fullName : undefined;
 
-  const {
-    prescriptions,
-    loading,
-    toastMsg,
-    showToast,
-    triggerRefresh,
-  } = usePrescription(activeMrn, doctorNameFilter);
+  const { prescriptions, loading, toastMsg, showToast, triggerRefresh } =
+    usePrescription(activeMrn, doctorNameFilter);
 
-  const {
-    selectedPrescription,
-    loadDetails,
-    closeDetails,
-  } = usePrescriptionDetails();
+  const { selectedPrescription, loadDetails, closeDetails } =
+    usePrescriptionDetails();
 
-  const {
-    filters,
-    setFilterValue,
-    resetFilters,
-  } = usePrescriptionFilters();
+  const { filters, setFilterValue, resetFilters } = usePrescriptionFilters();
 
-  const {
-    handlePrint,
-    handleDownload,
-    handleDuplicate,
-  } = usePrescriptionActions(showToast);
+  const { handlePrint, handleDownload, handleDuplicate } =
+    usePrescriptionActions(showToast);
 
   // Modal view states
-  const [activeDrawerRx, setActiveDrawerRx] = useState<UnifiedPrescription | null>(null);
-  const [fullViewRx, setFullViewRx] = useState<UnifiedPrescription | null>(null);
-  const [printPreviewRx, setPrintPreviewRx] = useState<UnifiedPrescription | null>(null);
+  const [activeDrawerRx, setActiveDrawerRx] =
+    useState<UnifiedPrescription | null>(null);
+  const [fullViewRx, setFullViewRx] = useState<UnifiedPrescription | null>(
+    null,
+  );
+  const [printPreviewRx, setPrintPreviewRx] =
+    useState<UnifiedPrescription | null>(null);
 
   const handleResetAll = () => {
     resetFilters();
@@ -100,7 +98,9 @@ export const PrescriptionManagementPage: React.FC<{
         onNewPrescription={onNewPrescription}
       />
 
-      <div className={`${role === "patient" ? "p-6 space-y-6" : "px-6 space-y-6"}`}>
+      <div
+        className={`${role === "patient" ? "p-6 space-y-6" : "px-6 space-y-6"}`}
+      >
         {/* KPI Cards */}
         <PrescriptionSummaryCard role={role} prescriptions={prescriptions} />
 

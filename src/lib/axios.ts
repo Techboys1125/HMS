@@ -21,6 +21,7 @@ export class ApiError extends Error {
   };
   config?: unknown;
   isAxiosError?: boolean;
+  status: number;
 
   constructor(message: string, status?: number, data?: unknown) {
     super(message);
@@ -220,7 +221,11 @@ export const apiClient = {
       ...config,
       method: "POST",
       body:
-        body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
+        body instanceof FormData
+          ? body
+          : body
+            ? JSON.stringify(body)
+            : undefined,
     }),
 
   put: <T = unknown>(url: string, body?: unknown, config: RequestInit = {}) =>
@@ -228,7 +233,11 @@ export const apiClient = {
       ...config,
       method: "PUT",
       body:
-        body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
+        body instanceof FormData
+          ? body
+          : body
+            ? JSON.stringify(body)
+            : undefined,
     }),
 
   patch: <T = unknown>(url: string, body?: unknown, config: RequestInit = {}) =>
@@ -236,7 +245,11 @@ export const apiClient = {
       ...config,
       method: "PATCH",
       body:
-        body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
+        body instanceof FormData
+          ? body
+          : body
+            ? JSON.stringify(body)
+            : undefined,
     }),
 
   delete: <T = unknown>(url: string, config: RequestInit = {}) =>

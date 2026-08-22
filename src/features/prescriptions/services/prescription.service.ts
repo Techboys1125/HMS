@@ -32,25 +32,17 @@ export const prescriptionService = {
       name: m.medicineName || m.name || "",
       strength: m.strength || "",
       route: m.route || "ORAL",
-      dosage: m.dose?.value
-        ? `${m.dose.value}${m.dose.unit || ""}`
-        : m.dosage || "",
-      frequency: typeof m.frequency === "string"
-        ? m.frequency
-        : m.frequency?.display || "",
-      duration: typeof m.duration === "string"
-        ? m.duration
-        : m.duration?.value
-          ? `${m.duration.value} ${m.duration.unit || ""}`
-          : "",
+      dosage: m.dose != null ? String(m.dose) : m.dosage || "",
+      frequency: m.frequency != null ? String(m.frequency) : "",
+      duration: m.duration != null ? String(m.duration) : "",
       instructions: m.instructions || "",
     }));
 
     return {
       id: String(apiRx.id ?? ""),
-      patientName: fallbackPatientName || apiRx.patientName || "Patient",
-      mrn: apiRx.patientMrn || apiRx.mrn || "",
-      consultationId: String(apiRx.encounterId || apiRx.consultationId || ""),
+      patientName: fallbackPatientName || "Patient",
+      mrn: "",
+      consultationId: "",
       department: apiRx.department || "",
       consultationDate: apiRx.date || "",
       medicineCount: apiRx.medicineCount || medicines.length,
@@ -63,11 +55,14 @@ export const prescriptionService = {
     };
   },
 
-  mapPatientSummaryToUnified: (rx: PatientPrescriptionSummary): UnifiedPrescription => {
+  mapPatientSummaryToUnified: (
+    rx: PatientPrescriptionSummary,
+  ): UnifiedPrescription => {
     const statusRaw = String(rx.prescriptionStatus ?? "").toUpperCase();
     let status: RxStatus = "Issued";
     if (statusRaw === "DRAFT") status = "Draft";
-    else if (statusRaw === "FINALIZED" || statusRaw === "COMPLETED") status = "Completed";
+    else if (statusRaw === "FINALIZED" || statusRaw === "COMPLETED")
+      status = "Completed";
     else if (statusRaw === "CANCELLED") status = "Cancelled";
     else if (statusRaw === "ARCHIVED") status = "Archived";
 
@@ -134,7 +129,13 @@ export const prescriptionService = {
 
   loadPatientPrescriptions: async (
     mrn: string,
-    params?: { page?: number; size?: number; status?: string; fromDate?: string; toDate?: string },
+    params?: {
+      page?: number;
+      size?: number;
+      status?: string;
+      fromDate?: string;
+      toDate?: string;
+    },
   ): Promise<UnifiedPrescription[]> => {
     prescriptionStoreActions.setLoading(true);
     try {
@@ -173,7 +174,9 @@ export const prescriptionService = {
     }
   },
 
-  getEncounterPrescription: async (encounterId: string | number): Promise<UnifiedPrescription | null> => {
+  getEncounterPrescription: async (
+    encounterId: string | number,
+  ): Promise<UnifiedPrescription | null> => {
     try {
       const apiRx = await prescriptionApi.getEncounterPrescription(encounterId);
       if (apiRx) {
@@ -187,29 +190,47 @@ export const prescriptionService = {
     }
   },
 
-  createPrescription: async (encounterId: string | number, payload?: { outcome?: string }) => {
+  createPrescription: async (
+    encounterId: string | number,
+    payload: { outcome: string },
+  ) => {
     try {
-      return await encountersApi.createPrescription(encounterId, payload || {});
+      return await encountersApi.createPrescription(encounterId, payload);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to create prescription";
+      const msg =
+        err instanceof Error ? err.message : "Failed to create prescription";
       prescriptionStoreActions.setError(msg);
       throw err;
     }
   },
 
-  addMedication: async (prescriptionId: string | number, payload: Record<string, unknown>) => {
+  addMedication: async (
+    prescriptionId: string | number,
+    payload: Record<string, unknown>,
+  ) => {
     try {
       return await encountersApi.addMedication(prescriptionId, payload);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to add medication";
+      const msg =
+        err instanceof Error ? err.message : "Failed to add medication";
       prescriptionStoreActions.setError(msg);
       throw err;
     }
   },
 
-  saveAdvice: async (prescriptionId: string | number, payload: { generalAdvice?: string; dietAdvice?: string; precautions?: string }) => {
+  saveAdvice: async (
+    prescriptionId: string | number,
+    payload: {
+      generalAdvice?: string;
+      dietAdvice?: string;
+      precautions?: string;
+    },
+  ) => {
     try {
-      return await encountersApi.savePrescriptionAdvice(prescriptionId, payload);
+      return await encountersApi.savePrescriptionAdvice(
+        prescriptionId,
+        payload,
+      );
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to save advice";
       prescriptionStoreActions.setError(msg);
@@ -221,7 +242,8 @@ export const prescriptionService = {
     try {
       return await encountersApi.validatePrescription(prescriptionId);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to validate prescription";
+      const msg =
+        err instanceof Error ? err.message : "Failed to validate prescription";
       prescriptionStoreActions.setError(msg);
       throw err;
     }
@@ -232,27 +254,36 @@ export const prescriptionService = {
       await prescriptionApi.finalizePrescription(id);
       return true;
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to finalize prescription";
+      const msg =
+        err instanceof Error ? err.message : "Failed to finalize prescription";
       prescriptionStoreActions.setError(msg);
       return false;
     }
   },
 
-  createAmendment: async (prescriptionId: string | number, payload?: { reason?: string }) => {
+  createAmendment: async (
+    prescriptionId: string | number,
+    payload?: { reason?: string },
+  ) => {
     try {
       return await prescriptionApi.createAmendment(prescriptionId, payload);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to create amendment";
+      const msg =
+        err instanceof Error ? err.message : "Failed to create amendment";
       prescriptionStoreActions.setError(msg);
       throw err;
     }
   },
 
-  reprintPrescription: async (prescriptionId: string | number, payload?: { reason?: string }) => {
+  reprintPrescription: async (
+    prescriptionId: string | number,
+    payload?: { reason?: string },
+  ) => {
     try {
       return await prescriptionApi.reprintPrescription(prescriptionId, payload);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to reprint prescription";
+      const msg =
+        err instanceof Error ? err.message : "Failed to reprint prescription";
       prescriptionStoreActions.setError(msg);
       throw err;
     }
@@ -262,7 +293,8 @@ export const prescriptionService = {
     try {
       return await prescriptionApi.getPrintOutput(prescriptionId);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to load print layout";
+      const msg =
+        err instanceof Error ? err.message : "Failed to load print layout";
       prescriptionStoreActions.setError(msg);
       return null;
     }

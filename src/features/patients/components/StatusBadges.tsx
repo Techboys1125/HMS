@@ -22,17 +22,3 @@ export function StatusBadge({ status = "" }: { status?: string }) {
     </span>
   );
 }
-
-export function TimelineStatusBadge({ status = "" }: { status?: string }) {
-  const isCompleted = status === "Completed";
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${isCompleted ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}
-    >
-      <span
-        className={`w-1.5 h-1.5 rounded-full ${isCompleted ? "bg-green-500" : "bg-amber-500"}`}
-      />
-      {status}
-    </span>
-  );
-}

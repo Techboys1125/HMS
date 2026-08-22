@@ -1,2 +1,8 @@
-export { getNotificationPermission, normalizeNotificationRole } from "./notifications.permissions";
-export type { NotificationPermission, NotificationRoleKey } from "./notifications.permissions";
+export {
+  getNotificationPermission,
+  normalizeNotificationRole,
+} from "./notifications.permissions";
+export type {
+  NotificationPermission,
+  NotificationRoleKey,
+} from "./notifications.permissions";

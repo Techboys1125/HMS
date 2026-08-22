@@ -4,7 +4,9 @@ import { Pill } from "lucide-react";
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
 
-export const PrescriptionEmptyState: React.FC<{ onReset: () => void }> = ({ onReset }) => {
+export const PrescriptionEmptyState: React.FC<{ onReset: () => void }> = ({
+  onReset,
+}) => {
   return (
     <div className="p-12 text-center flex flex-col items-center justify-center">
       <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
@@ -20,7 +22,8 @@ export const PrescriptionEmptyState: React.FC<{ onReset: () => void }> = ({ onRe
         className="text-xs text-slate-500 max-w-xs mt-1"
         style={{ fontFamily: RB }}
       >
-        No prescription records match your current filter criteria or search query.
+        No prescription records match your current filter criteria or search
+        query.
       </p>
       <button
         onClick={onReset}

@@ -64,7 +64,10 @@ export const PrescriptionFilters: React.FC<PrescriptionFiltersProps> = ({
           </div>
         </div>
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-          <span className="text-[11px] text-[#64748B]" style={{ fontFamily: RB }}>
+          <span
+            className="text-[11px] text-[#64748B]"
+            style={{ fontFamily: RB }}
+          >
             Use the search box or status filter to find specific prescriptions.
           </span>
           <button
@@ -130,7 +133,10 @@ export const PrescriptionFilters: React.FC<PrescriptionFiltersProps> = ({
 
       <div className="flex items-center justify-between pt-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400 font-medium" style={{ fontFamily: RB }}>
+          <span
+            className="text-xs text-slate-400 font-medium"
+            style={{ fontFamily: RB }}
+          >
             Date Range:
           </span>
           <select

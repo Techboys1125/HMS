@@ -166,14 +166,12 @@ export function SlotConfigurationSettings() {
         }}
       >
         <div>
-          <div
-            style={{ fontSize: "13px", fontWeight: 600, color: "#111827" }}
-          >
+          <div style={{ fontSize: "13px", fontWeight: 600, color: "#111827" }}>
             Enable Double Booking Override
           </div>
           <div style={{ fontSize: "11px", color: "#64748B" }}>
-            Allows senior doctors to accept urgent emergency patients in
-            filled slots
+            Allows senior doctors to accept urgent emergency patients in filled
+            slots
           </div>
         </div>
         <input

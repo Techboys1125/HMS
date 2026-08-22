@@ -206,12 +206,22 @@ export const billingService = {
         responseData = response.data as unknown as Record<string, unknown>;
       } catch {
         try {
-          const res = await apiClient.get<Record<string, unknown>>(`/api/v1/patients/${encodeURIComponent(mrn)}/billing`);
-          responseData = (res.data?.data || res.data) as Record<string, unknown>;
+          const res = await apiClient.get<Record<string, unknown>>(
+            `/api/v1/patients/${encodeURIComponent(mrn)}/billing`,
+          );
+          responseData = (res.data?.data || res.data) as Record<
+            string,
+            unknown
+          >;
         } catch {
           try {
-            const res = await apiClient.get<Record<string, unknown>>(`/api/v1/billing?mrn=${encodeURIComponent(mrn)}`);
-            responseData = (res.data?.data || res.data) as Record<string, unknown>;
+            const res = await apiClient.get<Record<string, unknown>>(
+              `/api/v1/billing?mrn=${encodeURIComponent(mrn)}`,
+            );
+            responseData = (res.data?.data || res.data) as Record<
+              string,
+              unknown
+            >;
           } catch {
             return [];
           }
@@ -233,20 +243,47 @@ export const billingService = {
         const patientObj = (bill.patient || {}) as Record<string, unknown>;
         return mapApiBillToInvoiceRecord({
           billId: (bill.billId || bill.id) as number | undefined,
-          billNumber: String(bill.billNumber || bill.invoiceNumber || bill.billId || bill.id || ""),
-          patientName: String(bill.patientName || responseData?.patientName || patientObj.name || ""),
-          patientMrn: String(bill.patientMrn || responseData?.mrn || patientObj.mrn || mrn),
-          mrn: String(bill.patientMrn || responseData?.mrn || patientObj.mrn || mrn),
+          billNumber: String(
+            bill.billNumber ||
+              bill.invoiceNumber ||
+              bill.billId ||
+              bill.id ||
+              "",
+          ),
+          patientName: String(
+            bill.patientName ||
+              responseData?.patientName ||
+              patientObj.name ||
+              "",
+          ),
+          patientMrn: String(
+            bill.patientMrn || responseData?.mrn || patientObj.mrn || mrn,
+          ),
+          mrn: String(
+            bill.patientMrn || responseData?.mrn || patientObj.mrn || mrn,
+          ),
           consultationFee: 0,
           status: String(bill.billStatus || bill.status || "FINALIZED"),
           paymentStatus: String(bill.paymentStatus || "UNPAID"),
           summary: {
-            grossAmount: Number(summaryObj.grossAmount || bill.amount || bill.totalAmount || 0),
-            discountAmount: Number(summaryObj.discountAmount || bill.discount || 0),
+            grossAmount: Number(
+              summaryObj.grossAmount || bill.amount || bill.totalAmount || 0,
+            ),
+            discountAmount: Number(
+              summaryObj.discountAmount || bill.discount || 0,
+            ),
             taxAmount: Number(summaryObj.taxAmount || bill.tax || 0),
-            netAmount: Number(summaryObj.netAmount || bill.amount || bill.netAmount || 0),
-            paidAmount: Number(summaryObj.paidAmount || (bill.paymentStatus === "PAID" ? (bill.amount || 0) : 0)),
-            balanceAmount: Number(summaryObj.balanceAmount || (bill.paymentStatus === "PAID" ? 0 : (bill.amount || 0))),
+            netAmount: Number(
+              summaryObj.netAmount || bill.amount || bill.netAmount || 0,
+            ),
+            paidAmount: Number(
+              summaryObj.paidAmount ||
+                (bill.paymentStatus === "PAID" ? bill.amount || 0 : 0),
+            ),
+            balanceAmount: Number(
+              summaryObj.balanceAmount ||
+                (bill.paymentStatus === "PAID" ? 0 : bill.amount || 0),
+            ),
           },
         } as unknown as BillListItem);
       });

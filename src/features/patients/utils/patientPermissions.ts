@@ -196,12 +196,3 @@ export function can(
 
   return permission;
 }
-
-export const ROLE_LABELS: Record<Role, string> = {
-  ADMIN: "Hospital Admin",
-  RECEPTIONIST: "Receptionist",
-  DOCTOR: "Doctor",
-  NURSE: "Nurse",
-  PATIENT: "Patient",
-  ACCOUNTANT: "Accountant",
-};

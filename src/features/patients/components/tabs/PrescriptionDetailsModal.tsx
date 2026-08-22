@@ -13,7 +13,10 @@ import {
 import { PP, RB } from "../../../doctors/constants/doctors.constants";
 import { patientsApi } from "../../api/patient.api";
 import { prescriptionApi } from "../../../prescriptions/api/prescription.api";
-import type { Patient, ApiPatientPrescription } from "../../types/patient.types";
+import type {
+  Patient,
+  ApiPatientPrescription,
+} from "../../types/patient.types";
 import type { PrescriptionDetailResponse } from "../../../prescriptions/api/prescription.api";
 
 interface PrescriptionDetailsModalProps {
@@ -30,13 +33,18 @@ interface PrescriptionDetailsModalProps {
  */
 function formatField(val: unknown, fallback: string = "—"): string {
   if (val == null) return fallback;
-  if (typeof val === "string" || typeof val === "number" || typeof val === "boolean") {
+  if (
+    typeof val === "string" ||
+    typeof val === "number" ||
+    typeof val === "boolean"
+  ) {
     const s = String(val).trim();
     return s || fallback;
   }
   if (typeof val === "object") {
     const obj = val as Record<string, unknown>;
-    if ("display" in obj && obj.display != null) return String(obj.display).trim();
+    if ("display" in obj && obj.display != null)
+      return String(obj.display).trim();
     if ("value" in obj && obj.value != null) {
       const v = String(obj.value).trim();
       const u = obj.unit ? ` ${String(obj.unit).trim()}` : "";
@@ -45,7 +53,8 @@ function formatField(val: unknown, fallback: string = "—"): string {
     if ("name" in obj && obj.name != null) return String(obj.name).trim();
     if ("text" in obj && obj.text != null) return String(obj.text).trim();
     if ("code" in obj && obj.code != null) return String(obj.code).trim();
-    if ("followUpDate" in obj && obj.followUpDate != null) return String(obj.followUpDate).trim();
+    if ("followUpDate" in obj && obj.followUpDate != null)
+      return String(obj.followUpDate).trim();
     if (Array.isArray(val)) {
       return (
         val
@@ -72,13 +81,16 @@ export function PrescriptionDetailsModal({
     queryFn: async () => {
       if (!prescriptionId) return null;
       try {
-        const full = await prescriptionApi.getPrescriptionDetails(prescriptionId);
+        const full =
+          await prescriptionApi.getPrescriptionDetails(prescriptionId);
         if (full) return full;
       } catch {
         // continue
       }
       try {
-        const fallback = await patientsApi.getPrescriptionById(String(prescriptionId));
+        const fallback = await patientsApi.getPrescriptionById(
+          String(prescriptionId),
+        );
         if (fallback) {
           return {
             prescriptionId: fallback.id,
@@ -123,16 +135,16 @@ export function PrescriptionDetailsModal({
     "General Medicine",
   );
   const dateStr = formatField(
-    details?.finalizedAt ||
-      details?.createdAt ||
-      initialData?.date,
+    details?.finalizedAt || details?.createdAt || initialData?.date,
     new Date().toISOString().split("T")[0],
   );
   const status = formatField(details?.status || initialData?.status, "Issued");
   const medicines = details?.medicines || initialData?.medicines || [];
   const diagnosis = formatField(initialData?.diagnosis || details?.outcome, "");
   const followUpDate = formatField(
-    details?.followUp?.followUpDate || details?.followUp || initialData?.followUpDate,
+    details?.followUp?.followUpDate ||
+      details?.followUp ||
+      initialData?.followUpDate,
     "",
   );
   const advice = details?.advice;
@@ -164,7 +176,9 @@ export function PrescriptionDetailsModal({
           <div className="flex items-center gap-2">
             <span
               className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
-                status === "Issued" || status === "FINALIZED" || status === "Completed"
+                status === "Issued" ||
+                status === "FINALIZED" ||
+                status === "Completed"
                   ? "bg-emerald-50 text-[#66BB6A] border-emerald-200"
                   : "bg-slate-100 text-slate-700 border-slate-200"
               }`}
@@ -197,7 +211,8 @@ export function PrescriptionDetailsModal({
                     <span>{patient.fullName || patient.name || "Patient"}</span>
                   </div>
                   <div className="text-[11px] text-slate-500 font-mono">
-                    MRN: {patient.mrn} · {patient.age ?? 0} Y / {patient.gender || "Unknown"}
+                    MRN: {patient.mrn} · {patient.age ?? 0} Y /{" "}
+                    {patient.gender || "Unknown"}
                   </div>
                   {patient.phone && (
                     <div className="text-[11px] text-slate-500">
@@ -211,9 +226,7 @@ export function PrescriptionDetailsModal({
                     <Building2 size={13} className="text-[#009688]" />
                     <span>{doctorName}</span>
                   </div>
-                  <div className="text-[11px] text-slate-500">
-                    {department}
-                  </div>
+                  <div className="text-[11px] text-slate-500">{department}</div>
                   <div className="text-[11px] text-slate-500 flex items-center gap-1 sm:justify-end">
                     <Calendar size={11} />
                     <span>Date: {dateStr}</span>
@@ -238,8 +251,8 @@ export function PrescriptionDetailsModal({
                     className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-1.5"
                     style={{ fontFamily: PP }}
                   >
-                    <Pill size={14} className="text-purple-600" /> Prescribed Medications (
-                    {medicines.length})
+                    <Pill size={14} className="text-purple-600" /> Prescribed
+                    Medications ({medicines.length})
                   </h4>
                 </div>
 
@@ -266,11 +279,16 @@ export function PrescriptionDetailsModal({
                             `Medication #${idx + 1}`,
                           );
                           const strengthStr = formatField(m.strength, "");
-                          const strength = strengthStr ? ` (${strengthStr})` : "";
+                          const strength = strengthStr
+                            ? ` (${strengthStr})`
+                            : "";
                           const dose = formatField(m.dosage || m.dose, "—");
                           const freq = formatField(m.frequency, "—");
                           const dur = formatField(m.duration, "—");
-                          const inst = formatField(m.instructions, "As directed");
+                          const inst = formatField(
+                            m.instructions,
+                            "As directed",
+                          );
 
                           return (
                             <tr key={medName || `med-${m.dosage}`} className="hover:bg-slate-50/50">
@@ -337,7 +355,9 @@ export function PrescriptionDetailsModal({
                 <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700">
                   <CheckCircle2 size={15} className="text-[#009688]" />
                   <span>
-                    <strong className="text-[#111827]">Scheduled Follow-up:</strong>{" "}
+                    <strong className="text-[#111827]">
+                      Scheduled Follow-up:
+                    </strong>{" "}
                     {followUpDate}
                   </span>
                 </div>

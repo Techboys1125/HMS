@@ -193,65 +193,87 @@ const filterReducer = (
 };
 
 interface ExceptionFormState {
-  open: boolean;
+  isOpen: boolean;
   editingException: ApiScheduleExceptionItem | null;
-  exceptionType: ExceptionType;
-  exceptionStartDate: string;
-  exceptionEndDate: string;
-  exceptionFullDay: boolean;
-  exceptionStartTime: string;
-  exceptionEndTime: string;
-  exceptionReason: string;
-  exceptionAction: ExceptionAction;
-  isSavingException: boolean;
+  type: ExceptionType;
+  startDate: string;
+  endDate: string;
+  fullDay: boolean;
+  startTime: string;
+  endTime: string;
+  reason: string;
+  action: ExceptionAction;
+  isSaving: boolean;
 }
 
 type ExceptionFormAction =
-  | { type: "OPEN_FORM" }
-  | { type: "START_EDIT"; exception: ApiScheduleExceptionItem }
-  | { type: "CLOSE_FORM" }
-  | { type: "SET_FIELD"; field: keyof ExceptionFormState; value: string | boolean | ApiScheduleExceptionItem | null }
-  | { type: "SET_SAVING"; value: boolean };
+  | { type: "OPEN_NEW" }
+  | { type: "OPEN_EDIT"; payload: ApiScheduleExceptionItem }
+  | { type: "CLOSE" }
+  | { type: "SET_FIELD"; field: keyof ExceptionFormState; value: unknown }
+  | { type: "SET_SAVING"; isSaving: boolean };
+
+const initialExceptionFormState: ExceptionFormState = {
+  isOpen: false,
+  editingException: null,
+  type: "VACATION",
+  startDate: "",
+  endDate: "",
+  fullDay: true,
+  startTime: "09:00",
+  endTime: "12:00",
+  reason: "",
+  action: "BLOCK_APPOINTMENTS",
+  isSaving: false,
+};
 
 const exceptionFormReducer = (
   state: ExceptionFormState,
   action: ExceptionFormAction,
 ): ExceptionFormState => {
   switch (action.type) {
-    case "OPEN_FORM":
+    case "OPEN_NEW":
+      return {
+        ...initialExceptionFormState,
+        isOpen: true,
+        startDate:
+          typeof todayKey === "function" ? todayKey() : state.startDate,
+        endDate: typeof todayKey === "function" ? todayKey() : state.endDate,
+      };
+    case "OPEN_EDIT": {
+      const ex = action.payload;
+      const exExt = ex as unknown as Record<string, unknown>;
       return {
         ...state,
-        open: true,
-        editingException: null,
-        exceptionType: "VACATION",
-        exceptionStartDate: todayKey(),
-        exceptionEndDate: todayKey(),
-        exceptionFullDay: true,
-        exceptionStartTime: "09:00",
-        exceptionEndTime: "12:00",
-        exceptionReason: "",
-        exceptionAction: "BLOCK_APPOINTMENTS",
+        isOpen: true,
+        editingException: ex,
+        type:
+          (exExt.exceptionType as ExceptionType) ||
+          (ex.type as ExceptionType) ||
+          "VACATION",
+        startDate:
+          ex.startDate ||
+          (exExt.exceptionDate as string) ||
+          (typeof todayKey === "function" ? todayKey() : state.startDate),
+        endDate:
+          ex.endDate ||
+          ex.startDate ||
+          (exExt.exceptionDate as string) ||
+          (typeof todayKey === "function" ? todayKey() : state.endDate),
+        fullDay:
+          (exExt.isFullDay as boolean) ?? (exExt.fullDay as boolean) ?? true,
+        startTime: ex.startTime?.slice(0, 5) || "09:00",
+        endTime: ex.endTime?.slice(0, 5) || "12:00",
+        reason: ex.reason || "",
+        action: (ex.action as ExceptionAction) || "BLOCK_APPOINTMENTS",
       };
-    case "START_EDIT":
-      return {
-        ...state,
-        open: true,
-        editingException: action.exception,
-        exceptionType: (action.exception.exceptionType as ExceptionType) || (action.exception.type as ExceptionType) || "VACATION",
-        exceptionStartDate: action.exception.startDate || action.exception.exceptionDate || todayKey(),
-        exceptionEndDate: action.exception.endDate || action.exception.startDate || action.exception.exceptionDate || todayKey(),
-        exceptionFullDay: action.exception.isFullDay ?? action.exception.fullDay ?? true,
-        exceptionStartTime: action.exception.startTime?.slice(0, 5) || "09:00",
-        exceptionEndTime: action.exception.endTime?.slice(0, 5) || "12:00",
-        exceptionReason: action.exception.reason || "",
-        exceptionAction: (action.exception.action as ExceptionAction) || "BLOCK_APPOINTMENTS",
-      };
-    case "CLOSE_FORM":
-      return { ...state, open: false, editingException: null };
+    }
+    case "CLOSE":
+      return { ...state, isOpen: false, editingException: null };
     case "SET_FIELD":
-      return { ...state, [action.field]: action.value } as ExceptionFormState;
+      return { ...state, [action.field]: action.value };
     case "SET_SAVING":
-      return { ...state, isSavingException: action.value };
+      return { ...state, isSaving: action.isSaving };
     default:
       return state;
   }
@@ -383,19 +405,10 @@ export function DoctorProfileScreen({
   const [isLoading, setIsLoading] = useState(true);
   const [isDeactivating, setIsDeactivating] = useState(false);
 
-  const [exceptionForm, exceptionFormDispatch] = useReducer(exceptionFormReducer, {
-    open: false,
-    editingException: null,
-    exceptionType: "VACATION",
-    exceptionStartDate: todayKey(),
-    exceptionEndDate: todayKey(),
-    exceptionFullDay: true,
-    exceptionStartTime: "09:00",
-    exceptionEndTime: "12:00",
-    exceptionReason: "",
-    exceptionAction: "BLOCK_APPOINTMENTS",
-    isSavingException: false,
-  });
+  const [exceptionForm, exceptionFormDispatch] = useReducer(
+    exceptionFormReducer,
+    initialExceptionFormState,
+  );
 
   const [selectedApptDetail, setSelectedApptDetail] =
     useState<DoctorAppointment | null>(null);
@@ -864,13 +877,13 @@ export function DoctorProfileScreen({
   };
 
   const handleStartEditException = (ex: ApiScheduleExceptionItem) => {
-    exceptionFormDispatch({ type: "START_EDIT", exception: ex });
+    exceptionFormDispatch({ type: "OPEN_EDIT", payload: ex });
   };
 
   const handleSaveException = async (e: FormEvent) => {
     e.preventDefault();
-    if (!exceptionForm.exceptionStartDate || !exceptionForm.exceptionEndDate) return;
-    exceptionFormDispatch({ type: "SET_SAVING", value: true });
+    if (!exceptionForm.startDate || !exceptionForm.endDate) return;
+    exceptionFormDispatch({ type: "SET_SAVING", isSaving: true });
     try {
       const doctorId = resolveDoctorId(docRef.current);
       if (exceptionForm.editingException?.id) {
@@ -878,36 +891,36 @@ export function DoctorProfileScreen({
           doctorId,
           exceptionForm.editingException.id,
           {
-            exceptionType: exceptionForm.exceptionType,
-            startDate: exceptionForm.exceptionStartDate,
-            endDate: exceptionForm.exceptionEndDate,
-            startTime: exceptionForm.exceptionFullDay ? null : exceptionForm.exceptionStartTime,
-            endTime: exceptionForm.exceptionFullDay ? null : exceptionForm.exceptionEndTime,
-            isFullDay: exceptionForm.exceptionFullDay,
-            reason: exceptionForm.exceptionReason,
-            action: exceptionForm.exceptionAction,
+            exceptionType: exceptionForm.type,
+            startDate: exceptionForm.startDate,
+            endDate: exceptionForm.endDate,
+            startTime: exceptionForm.fullDay ? null : exceptionForm.startTime,
+            endTime: exceptionForm.fullDay ? null : exceptionForm.endTime,
+            isFullDay: exceptionForm.fullDay,
+            reason: exceptionForm.reason,
+            action: exceptionForm.action,
           },
         );
         triggerToast("Schedule exception updated.");
       } else {
         await doctorsService.createScheduleException(doctorId, {
-          exceptionType: exceptionForm.exceptionType,
-          startDate: exceptionForm.exceptionStartDate,
-          endDate: exceptionForm.exceptionEndDate,
-          startTime: exceptionForm.exceptionFullDay ? null : exceptionForm.exceptionStartTime,
-          endTime: exceptionForm.exceptionFullDay ? null : exceptionForm.exceptionEndTime,
-          isFullDay: exceptionForm.exceptionFullDay,
-          reason: exceptionForm.exceptionReason,
-          action: exceptionForm.exceptionAction,
+          exceptionType: exceptionForm.type,
+          startDate: exceptionForm.startDate,
+          endDate: exceptionForm.endDate,
+          startTime: exceptionForm.fullDay ? null : exceptionForm.startTime,
+          endTime: exceptionForm.fullDay ? null : exceptionForm.endTime,
+          isFullDay: exceptionForm.fullDay,
+          reason: exceptionForm.reason,
+          action: exceptionForm.action,
         });
         triggerToast("Schedule exception created.");
       }
-      exceptionFormDispatch({ type: "CLOSE_FORM" });
+      exceptionFormDispatch({ type: "CLOSE" });
       await loadExceptions();
     } catch {
       triggerToast("Failed to save schedule exception.");
     } finally {
-      exceptionFormDispatch({ type: "SET_SAVING", value: false });
+      exceptionFormDispatch({ type: "SET_SAVING", isSaving: false });
     }
   };
 
@@ -1685,7 +1698,7 @@ export function DoctorProfileScreen({
               </div>
               <button
                 onClick={() => {
-                  exceptionFormDispatch({ type: "OPEN_FORM" });
+                  exceptionFormDispatch({ type: "OPEN_NEW" });
                 }}
                 className="px-3.5 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-1.5 shadow-sm shrink-0"
                 style={{ fontFamily: PP }}
@@ -1694,7 +1707,7 @@ export function DoctorProfileScreen({
               </button>
             </div>
 
-            {exceptionForm.open && (
+            {exceptionForm.isOpen && (
               <form
                 onSubmit={handleSaveException}
                 className="bg-slate-50 border border-[#E5E7EB] rounded-2xl p-5 space-y-4"
@@ -1711,7 +1724,7 @@ export function DoctorProfileScreen({
                   <button
                     type="button"
                     onClick={() => {
-                      exceptionFormDispatch({ type: "CLOSE_FORM" });
+                      exceptionFormDispatch({ type: "CLOSE" });
                     }}
                     className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
                   >
@@ -1725,9 +1738,13 @@ export function DoctorProfileScreen({
                       Exception Type
                     </label>
                     <select
-                      value={exceptionForm.exceptionType}
+                      value={exceptionForm.type}
                       onChange={(e) =>
-                        exceptionFormDispatch({ type: "SET_FIELD", field: "exceptionType", value: e.target.value as ExceptionType })
+                        exceptionFormDispatch({
+                          type: "SET_FIELD",
+                          field: "type",
+                          value: e.target.value,
+                        })
                       }
                       className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1]"
                     >
@@ -1753,9 +1770,14 @@ export function DoctorProfileScreen({
                     </label>
                     <input
                       type="date"
-                      value={exceptionForm.exceptionStartDate}
+                      value={exceptionForm.startDate}
                       onChange={(e) =>
-                        e.target.value && exceptionFormDispatch({ type: "SET_FIELD", field: "exceptionStartDate", value: e.target.value })
+                        e.target.value &&
+                        exceptionFormDispatch({
+                          type: "SET_FIELD",
+                          field: "startDate",
+                          value: e.target.value,
+                        })
                       }
                       className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
                     />
@@ -1766,9 +1788,14 @@ export function DoctorProfileScreen({
                     </label>
                     <input
                       type="date"
-                      value={exceptionForm.exceptionEndDate}
+                      value={exceptionForm.endDate}
                       onChange={(e) =>
-                        e.target.value && exceptionFormDispatch({ type: "SET_FIELD", field: "exceptionEndDate", value: e.target.value })
+                        e.target.value &&
+                        exceptionFormDispatch({
+                          type: "SET_FIELD",
+                          field: "endDate",
+                          value: e.target.value,
+                        })
                       }
                       className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
                     />
@@ -1778,8 +1805,14 @@ export function DoctorProfileScreen({
                 <label className="flex items-center gap-2 cursor-pointer text-xs">
                   <input
                     type="checkbox"
-                    checked={exceptionForm.exceptionFullDay}
-                    onChange={(e) => exceptionFormDispatch({ type: "SET_FIELD", field: "exceptionFullDay", value: e.target.checked })}
+                    checked={exceptionForm.fullDay}
+                    onChange={(e) =>
+                      exceptionFormDispatch({
+                        type: "SET_FIELD",
+                        field: "fullDay",
+                        value: e.target.checked,
+                      })
+                    }
                     className="rounded text-[#0D47A1] focus:ring-[#0D47A1] w-4 h-4"
                   />
                   <span className="font-semibold text-[#111827]">
@@ -1787,27 +1820,39 @@ export function DoctorProfileScreen({
                   </span>
                 </label>
 
-                {!exceptionForm.exceptionFullDay && (
+                {!exceptionForm.fullDay && (
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
                       <label className="block font-bold text-[#111827] mb-1">
                         Start Time
                       </label>
-                        <TimeSelect
-                          value={exceptionForm.exceptionStartTime}
-                          onChange={(value) => exceptionFormDispatch({ type: "SET_FIELD", field: "exceptionStartTime", value })}
-                          className="w-full"
-                        />
+                      <TimeSelect
+                        value={exceptionForm.startTime}
+                        onChange={(val) =>
+                          exceptionFormDispatch({
+                            type: "SET_FIELD",
+                            field: "startTime",
+                            value: val,
+                          })
+                        }
+                        className="w-full"
+                      />
                     </div>
                     <div>
                       <label className="block font-bold text-[#111827] mb-1">
                         End Time
                       </label>
-                        <TimeSelect
-                          value={exceptionForm.exceptionEndTime}
-                          onChange={(value) => exceptionFormDispatch({ type: "SET_FIELD", field: "exceptionEndTime", value })}
-                          className="w-full"
-                        />
+                      <TimeSelect
+                        value={exceptionForm.endTime}
+                        onChange={(val) =>
+                          exceptionFormDispatch({
+                            type: "SET_FIELD",
+                            field: "endTime",
+                            value: val,
+                          })
+                        }
+                        className="w-full"
+                      />
                     </div>
                   </div>
                 )}
@@ -1816,10 +1861,16 @@ export function DoctorProfileScreen({
                   <label className="block font-bold text-[#111827] mb-1 text-xs">
                     Reason
                   </label>
-                    <textarea
-                      rows={2}
-                      value={exceptionForm.exceptionReason}
-                      onChange={(e) => exceptionFormDispatch({ type: "SET_FIELD", field: "exceptionReason", value: e.target.value })}
+                  <textarea
+                    rows={2}
+                    value={exceptionForm.reason}
+                    onChange={(e) =>
+                      exceptionFormDispatch({
+                        type: "SET_FIELD",
+                        field: "reason",
+                        value: e.target.value,
+                      })
+                    }
                     placeholder="e.g. Personal leave, surgery block..."
                     className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] resize-none"
                   />
@@ -1829,7 +1880,7 @@ export function DoctorProfileScreen({
                   <button
                     type="button"
                     onClick={() => {
-                      exceptionFormDispatch({ type: "CLOSE_FORM" });
+                      exceptionFormDispatch({ type: "CLOSE" });
                     }}
                     className="px-3.5 py-2 rounded-xl border border-[#E5E7EB] text-slate-600 hover:bg-slate-100 text-xs font-semibold transition-colors"
                   >
@@ -1837,16 +1888,16 @@ export function DoctorProfileScreen({
                   </button>
                   <button
                     type="submit"
-                    disabled={exceptionForm.isSavingException}
+                    disabled={exceptionForm.isSaving}
                     className="px-4 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-[#00796b] transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ fontFamily: PP }}
                   >
                     <CheckCircle2 size={14} />
-                    {exceptionForm.isSavingException
-                        ? "Saving..."
-                        : exceptionForm.editingException
-                          ? "Update Exception"
-                          : "Create Exception"}
+                    {exceptionForm.isSaving
+                      ? "Saving..."
+                      : exceptionForm.editingException
+                        ? "Update Exception"
+                        : "Create Exception"}
                   </button>
                 </div>
               </form>

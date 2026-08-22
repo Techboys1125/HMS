@@ -56,7 +56,9 @@ export const PrescriptionHeader: React.FC<PrescriptionHeaderProps> = ({
         className="flex items-center gap-2 text-xs text-slate-500 mb-4 font-medium"
         style={{ fontFamily: RB }}
       >
-        <span className="hover:text-[#0D47A1] cursor-pointer">{role === "doctor" ? "Doctor" : "Hospital Admin"}</span>
+        <span className="hover:text-[#0D47A1] cursor-pointer">
+          {role === "doctor" ? "Doctor" : "Hospital Admin"}
+        </span>
         <ChevronRight size={13} className="text-slate-400" />
         <span className="hover:text-[#0D47A1] cursor-pointer">
           Prescriptions

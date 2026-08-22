@@ -1,8 +1,6 @@
 import type {
   ApiUserDoctorRecord,
   DoctorRecord,
-  CreateDoctorPayload,
-  UpdateDoctorPayload,
   ApiDoctorProfile,
   ApiScheduleExceptionItem,
   ApiSpecialtyRef,
@@ -10,6 +8,10 @@ import type {
 } from "../types/doctors.types";
 
 interface ApiFallbackRecord {
+  primaryDepartment?: ApiDoctorProfile["primaryDepartment"];
+  primarySpecialty?: ApiDoctorProfile["primarySpecialty"];
+  gender: string;
+  email: string;
   profile?: ApiDoctorProfile;
   doctor?: ApiDoctorProfile;
   departmentName?: string;
@@ -62,10 +64,10 @@ interface ApiFallbackRecord {
 }
 
 export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
-  const anyU = (u || {}) as ApiFallbackRecord;
+  const fallbackRecord = (u || {}) as ApiFallbackRecord;
   const profile = (u.doctorProfile ||
-    anyU.profile ||
-    anyU.doctor ||
+    fallbackRecord.profile ||
+    fallbackRecord.doctor ||
     u) as unknown as ApiDoctorProfile;
   const anyProfile = (profile || {}) as ApiFallbackRecord;
 
@@ -74,12 +76,12 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     anyProfile?.primaryDepartmentName ||
     anyProfile?.departmentName ||
     anyProfile?.department ||
-    anyU.departmentName ||
-    anyU.department ||
-    anyU.primaryDepartmentName ||
-    anyU.primaryDepartment?.departmentName ||
-    anyU.deptName ||
-    anyU.dept ||
+    fallbackRecord.departmentName ||
+    fallbackRecord.department ||
+    fallbackRecord.primaryDepartmentName ||
+    fallbackRecord.primaryDepartment?.departmentName ||
+    fallbackRecord.deptName ||
+    fallbackRecord.dept ||
     "";
 
   const primarySpec =
@@ -87,17 +89,17 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     anyProfile?.primarySpecialtyName ||
     anyProfile?.specialtyName ||
     anyProfile?.specialty ||
-    anyU.specialtyName ||
-    anyU.specialty ||
-    anyU.primarySpecialtyName ||
-    anyU.primarySpecialty?.specialtyName ||
-    anyU.specName ||
+    fallbackRecord.specialtyName ||
+    fallbackRecord.specialty ||
+    fallbackRecord.primarySpecialtyName ||
+    fallbackRecord.primarySpecialty?.specialtyName ||
+    fallbackRecord.specName ||
     "";
 
   const qualification =
     profile?.qualification ||
     anyProfile?.qualification ||
-    anyU.qualification ||
+    fallbackRecord.qualification ||
     "";
 
   const experienceYrs =
@@ -106,23 +108,23 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     anyProfile?.experienceYrs ??
     anyProfile?.experienceYears ??
     anyProfile?.experience ??
-    anyU.yearsOfExperience ??
-    anyU.experienceYrs ??
-    anyU.experienceYears ??
-    anyU.experience ??
+    fallbackRecord.yearsOfExperience ??
+    fallbackRecord.experienceYrs ??
+    fallbackRecord.experienceYears ??
+    fallbackRecord.experience ??
     0;
 
   const regNumber =
     profile?.medicalRegistrationNumber ||
     anyProfile?.medicalRegistrationNumber ||
     anyProfile?.regNumber ||
-    anyU.medicalRegistrationNumber ||
-    anyU.regNumber ||
+    fallbackRecord.medicalRegistrationNumber ||
+    fallbackRecord.regNumber ||
     "";
 
   const empId =
     u.employeeId ||
-    anyU.empId ||
+    fallbackRecord.empId ||
     anyProfile?.employeeId ||
     anyProfile?.empId ||
     "";
@@ -131,17 +133,17 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     profile?.consultationFee ??
     anyProfile?.consultationFee ??
     anyProfile?.fees?.standardConsultationFee ??
-    anyU.consultationFee ??
-    anyU.fees?.standardConsultationFee ??
+    fallbackRecord.consultationFee ??
+    fallbackRecord.fees?.standardConsultationFee ??
     0;
 
   const followUpFee =
-    profile?.followUpFee ?? anyProfile?.followUpFee ?? anyU.followUpFee ?? 0;
+    profile?.followUpFee ?? anyProfile?.followUpFee ?? fallbackRecord.followUpFee ?? 0;
 
   const slotDurationMinutes =
     profile?.slotDurationMinutes ??
     anyProfile?.slotDurationMinutes ??
-    anyU.slotDurationMinutes ??
+    fallbackRecord.slotDurationMinutes ??
     15;
 
   const slotDuration = slotDurationMinutes
@@ -151,7 +153,7 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
   const rawAvail =
     profile?.availability ||
     anyProfile?.availability ||
-    anyU.availability ||
+    fallbackRecord.availability ||
     [];
   const workingDays = Array.from(
     new Set(
@@ -178,7 +180,7 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
   else if (rawStatus === "SUSPENDED") status = "Suspended";
 
   const rawDoctorId =
-    profile?.doctorId ?? anyProfile?.doctorId ?? anyU.doctorId ?? 0;
+    profile?.doctorId ?? anyProfile?.doctorId ?? fallbackRecord.doctorId ?? 0;
   const hasExplicitDoctorId = Number.isFinite(rawDoctorId) && rawDoctorId > 0;
   const rawUserId = hasExplicitDoctorId
     ? (u.userId ?? anyProfile?.userId ?? 0)
@@ -187,15 +189,15 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
 
   const fullName = String(u.fullName || u.name || anyProfile?.name || "");
   const photoUrl = String(
-    anyU.photoUrl ||
-      anyU.photo ||
+    fallbackRecord.photoUrl ||
+      fallbackRecord.photo ||
       anyProfile?.photoUrl ||
       anyProfile?.photo ||
       "",
   );
   const photo = String(
-    anyU.photo ||
-      anyU.photoUrl ||
+    fallbackRecord.photo ||
+      fallbackRecord.photoUrl ||
       anyProfile?.photo ||
       anyProfile?.photoUrl ||
       "",
@@ -216,12 +218,12 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     primaryDepartmentId:
       profile?.primaryDepartment?.departmentId ??
       anyProfile?.departmentId ??
-      anyU.departmentId,
+      fallbackRecord.departmentId,
     specialty: String(primarySpec || ""),
     primarySpecialtyId:
       profile?.primarySpecialty?.specialtyId ??
       anyProfile?.specialtyId ??
-      anyU.specialtyId,
+      fallbackRecord.specialtyId,
     qualification: String(qualification || ""),
     experienceYrs: Number(experienceYrs),
     consultationFee: Number(consultationFee),
@@ -253,8 +255,8 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     dob: String(
       u.dateOfBirth || anyProfile?.dateOfBirth || anyProfile?.dob || "",
     ),
-    opdRoom: String(anyProfile?.opdRoom || anyU.opdRoom || ""),
-    joinedDate: String(anyProfile?.joinedDate || anyU.joinedDate || ""),
+    opdRoom: String(anyProfile?.opdRoom || fallbackRecord.opdRoom || ""),
+    joinedDate: String(anyProfile?.joinedDate || fallbackRecord.joinedDate || ""),
     shiftTimings,
     workingDays: workingDays.length > 0 ? (workingDays as string[]) : [],
     bio: String(
@@ -276,68 +278,5 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     effectiveTo: anyProfile?.effectiveTo as string | undefined,
     availabilityTemplate: anyProfile?.availabilityTemplate as
       string | undefined,
-  };
-}
-
-export function mapDoctorRecordToCreatePayload(
-  doc: Partial<DoctorRecord>,
-): CreateDoctorPayload {
-  return {
-    fullName: (doc.name || "").replace(/^Dr\.\s*/, ""),
-    email: doc.email || "",
-    mobile: doc.phone || "",
-    gender: doc.gender || "Male",
-    dateOfBirth: doc.dob || undefined,
-    residentialAddress: doc.address || undefined,
-    professionalBio: doc.bio || undefined,
-    role: "DOCTOR",
-    medicalRegistrationNumber: doc.regNumber || "",
-    qualification: doc.qualification || "",
-    yearsOfExperience: doc.experienceYrs || 0,
-    primaryDepartmentId: doc.primaryDepartmentId || 1,
-    primarySpecialtyId: doc.primarySpecialtyId || 1,
-    consultationFee: doc.consultationFee || 0,
-    followUpFee: doc.followUpFee || 0,
-    slotDurationMinutes: doc.slotDurationMinutes || 15,
-    availability: doc.rawAvailability || [],
-    scheduleExceptions: doc.scheduleExceptions || [],
-  };
-}
-
-export function mapDoctorToUpdatePayload(
-  doc: DoctorRecord,
-): UpdateDoctorPayload {
-  return {
-    fullName: doc.name.replace(/^Dr\.\s*/, ""),
-    email: doc.email,
-    mobile: doc.phone,
-    gender: doc.gender,
-    dateOfBirth: doc.dob || undefined,
-    residentialAddress: doc.address || undefined,
-    professionalBio: doc.bio || undefined,
-    medicalRegistrationNumber: doc.regNumber,
-    qualification: doc.qualification,
-    yearsOfExperience: doc.experienceYrs,
-    primaryDepartmentId: doc.primaryDepartmentId,
-    primarySpecialtyId: doc.primarySpecialtyId,
-    consultationFee: doc.consultationFee,
-    followUpFee: doc.followUpFee,
-    slotDurationMinutes: doc.slotDurationMinutes,
-    availability: doc.rawAvailability,
-  };
-}
-
-export function mergeDoctorWithScheduleData(
-  base: DoctorRecord,
-  scheduleData: {
-    weeklySchedule?: ApiDoctorProfile;
-    exceptions?: ApiScheduleExceptionItem[];
-    dailyAvailability?: DoctorRecord["rawAvailability"];
-  },
-): DoctorRecord {
-  return {
-    ...base,
-    scheduleExceptions: scheduleData.exceptions ?? base.scheduleExceptions,
-    rawAvailability: scheduleData.dailyAvailability ?? base.rawAvailability,
   };
 }

@@ -40,7 +40,10 @@ export function NotificationList({
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-[#0D47A1] mb-4 animate-pulse">
               <Bell className="w-8 h-8" />
             </div>
-            <h3 style={{ fontFamily: PP }} className="text-lg font-bold text-[#111827]">
+            <h3
+              style={{ fontFamily: PP }}
+              className="text-lg font-bold text-[#111827]"
+            >
               Loading notifications...
             </h3>
             <p className="mt-1 text-xs text-[#64748B] max-w-sm">
@@ -52,7 +55,10 @@ export function NotificationList({
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-700 mb-4">
               <Bell className="w-8 h-8" />
             </div>
-            <h3 style={{ fontFamily: PP }} className="text-lg font-bold text-red-800">
+            <h3
+              style={{ fontFamily: PP }}
+              className="text-lg font-bold text-red-800"
+            >
               Unable to load notifications
             </h3>
             <p className="mt-1 text-xs text-red-700 max-w-sm">{error}</p>
@@ -62,7 +68,10 @@ export function NotificationList({
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-[#0D47A1] mb-4">
               <Bell className="w-8 h-8" />
             </div>
-            <h3 style={{ fontFamily: PP }} className="text-lg font-bold text-[#111827]">
+            <h3
+              style={{ fontFamily: PP }}
+              className="text-lg font-bold text-[#111827]"
+            >
               No notifications available
             </h3>
             <p className="mt-1 text-xs text-[#64748B] max-w-sm">
@@ -73,13 +82,16 @@ export function NotificationList({
         ) : (
           items.map((item) => {
             const isUnread = item.status === "Unread";
-            const isCritical = item.priority === "Critical" || item.priority === "High";
+            const isCritical =
+              item.priority === "Critical" || item.priority === "High";
 
             return (
               <div
                 key={item.id}
                 className={`rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md ${
-                  isUnread ? "border-[#0D47A1]/30 bg-blue-50/20" : "border-[#E5E7EB]"
+                  isUnread
+                    ? "border-[#0D47A1]/30 bg-blue-50/20"
+                    : "border-[#E5E7EB]"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -89,7 +101,10 @@ export function NotificationList({
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h4 style={{ fontFamily: PP }} className="text-sm font-semibold text-[#111827]">
+                        <h4
+                          style={{ fontFamily: PP }}
+                          className="text-sm font-semibold text-[#111827]"
+                        >
                           {item.title}
                         </h4>
                         {isCritical && (

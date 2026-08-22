@@ -84,7 +84,9 @@ function localDate(date: Date): string {
   return local.toISOString().slice(0, 10);
 }
 
-function getDateRange(range: string): Pick<AuditLogListParams, "fromDate" | "toDate"> {
+function getDateRange(
+  range: string,
+): Pick<AuditLogListParams, "fromDate" | "toDate"> {
   if (range === "All Time") return {};
 
   const today = new Date();
@@ -110,11 +112,22 @@ function matchesCode(value: string | undefined, selected: string): boolean {
   if (selected === "All") return true;
   const actual = normalizeCode(value);
   const expected = normalizeCode(selected);
-  return Boolean(actual && expected && (actual === expected || actual.includes(expected) || expected.includes(actual)));
+  return Boolean(
+    actual &&
+    expected &&
+    (actual === expected ||
+      actual.includes(expected) ||
+      expected.includes(actual)),
+  );
 }
 
-function matchesAnyCode(values: Array<string | undefined>, selected: string): boolean {
-  return selected === "All" || values.some((value) => matchesCode(value, selected));
+function matchesAnyCode(
+  values: Array<string | undefined>,
+  selected: string,
+): boolean {
+  return (
+    selected === "All" || values.some((value) => matchesCode(value, selected))
+  );
 }
 
 function isInDateRange(timestamp: string | undefined, range: string): boolean {
@@ -144,7 +157,9 @@ function optionValue(option: AuditSelectOption): string {
 function optionLabel(option: AuditSelectOption): string {
   if (typeof option === "string") return option;
   if (option.fullName) {
-    return option.role ? `${option.fullName} (${option.role})` : option.fullName;
+    return option.role
+      ? `${option.fullName} (${option.role})`
+      : option.fullName;
   }
   return option.name || option.code || option.id || option.userId || "Unknown";
 }
@@ -189,9 +204,13 @@ function downloadCsv(records: AuditRecord[], filename: string): void {
     record.description,
   ]);
   const csv = [header, ...rows]
-    .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
+    .map((row) =>
+      row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","),
+    )
     .join("\n");
-  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const url = URL.createObjectURL(
+    new Blob([csv], { type: "text/csv;charset=utf-8" }),
+  );
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = filename;
@@ -212,8 +231,15 @@ export function AuditLogManagementPage() {
     selectedStatus: string;
     selectedEventType: string;
   };
-  type FilterAction = { type: "SET_FIELD"; field: keyof FilterState; value: string };
-  const filterReducer = (state: FilterState, action: FilterAction): FilterState => ({
+  type FilterAction = {
+    type: "SET_FIELD";
+    field: keyof FilterState;
+    value: string;
+  };
+  const filterReducer = (
+    state: FilterState,
+    action: FilterAction,
+  ): FilterState => ({
     ...state,
     [action.field]: action.value,
   });
@@ -264,7 +290,8 @@ export function AuditLogManagementPage() {
   );
   const auditWorkspacesQuery = useAuditWorkspaces();
   const auditFilterOptionsQuery = useAuditFilterOptions();
-  const loginFilterOptionsQuery = useLoginHistoryFilterOptions(isLoginWorkspace);
+  const loginFilterOptionsQuery =
+    useLoginHistoryFilterOptions(isLoginWorkspace);
 
   const mainLogsQuery = useMainAuditLogs(listParams, isAllWorkspace);
   const criticalEventsQuery = useCriticalEvents(
@@ -316,7 +343,10 @@ export function AuditLogManagementPage() {
   );
 
   const activeSessionsQuery = useActiveSessions(listParams, isLoginWorkspace);
-  const failedAttemptsQuery = useFailedLoginAttempts(listParams, isLoginWorkspace);
+  const failedAttemptsQuery = useFailedLoginAttempts(
+    listParams,
+    isLoginWorkspace,
+  );
   const lockedAccountsQuery = useLockedAccounts(listParams, isLoginWorkspace);
 
   const activeQuery =
@@ -337,7 +367,7 @@ export function AuditLogManagementPage() {
   const apiRecords = safeArray(activeQuery.data?.content);
   const totalElements = activeQuery.data?.totalElements ?? 0;
   const filterOptions: AuditFilterOptions | undefined = isLoginWorkspace
-    ? loginFilterOptionsQuery.data ?? auditFilterOptionsQuery.data
+    ? (loginFilterOptionsQuery.data ?? auditFilterOptionsQuery.data)
     : auditFilterOptionsQuery.data;
 
   const filteredRecords = useMemo(() => {
@@ -361,27 +391,43 @@ export function AuditLogManagementPage() {
       ) {
         return false;
       }
-      if (!isInDateRange(record.timestamp, filters.selectedDateRange)) return false;
+      if (!isInDateRange(record.timestamp, filters.selectedDateRange))
+        return false;
       if (!matchesCode(record.module, filters.selectedModule)) return false;
-      if (!matchesCode(record.department, filters.selectedDepartment)) return false;
+      if (!matchesCode(record.department, filters.selectedDepartment))
+        return false;
       if (!matchesCode(record.userRole, filters.selectedRole)) return false;
       if (
         filters.selectedUser !== "All" &&
         ![record.userId, record.user].some(
-          (value) => normalizeCode(value) === normalizeCode(filters.selectedUser),
+          (value) =>
+            normalizeCode(value) === normalizeCode(filters.selectedUser),
         )
       ) {
         return false;
       }
-      if (!matchesAnyCode([record.severityCode, record.severity], filters.selectedSeverity)) {
+      if (
+        !matchesAnyCode(
+          [record.severityCode, record.severity],
+          filters.selectedSeverity,
+        )
+      ) {
         return false;
       }
-      if (!matchesAnyCode([record.statusCode, record.status], filters.selectedStatus)) {
+      if (
+        !matchesAnyCode(
+          [record.statusCode, record.status],
+          filters.selectedStatus,
+        )
+      ) {
         return false;
       }
       if (
         filters.selectedEventType !== "All" &&
-        !matchesAnyCode([record.eventType, record.action, record.categoryCode], filters.selectedEventType)
+        !matchesAnyCode(
+          [record.eventType, record.action, record.categoryCode],
+          filters.selectedEventType,
+        )
       ) {
         return false;
       }
@@ -433,7 +479,11 @@ export function AuditLogManagementPage() {
       const dashboard = allDashboardQuery.data;
       if (!dashboard) return [];
       return [
-        { title: "Total Audit Events", value: dashboard.totalAuditEvents, Icon: Activity },
+        {
+          title: "Total Audit Events",
+          value: dashboard.totalAuditEvents,
+          Icon: Activity,
+        },
         {
           title: "Successful Logins",
           value: dashboard.successfulLogins,
@@ -447,7 +497,11 @@ export function AuditLogManagementPage() {
           Icon: Users,
         },
         { title: "Data Changes", value: dashboard.dataChanges, Icon: Database },
-        { title: "Deleted Records", value: dashboard.deletedRecords, Icon: Trash2 },
+        {
+          title: "Deleted Records",
+          value: dashboard.deletedRecords,
+          Icon: Trash2,
+        },
         {
           title: "Critical Events",
           value: dashboard.criticalEvents,
@@ -473,8 +527,16 @@ export function AuditLogManagementPage() {
           trend: dashboard.trends?.failed,
           Icon: AlertTriangle,
         },
-        { title: "Locked Accounts", value: dashboard.lockedAccounts, Icon: Lock },
-        { title: "Active Sessions", value: dashboard.activeSessions, Icon: Users },
+        {
+          title: "Locked Accounts",
+          value: dashboard.lockedAccounts,
+          Icon: Lock,
+        },
+        {
+          title: "Active Sessions",
+          value: dashboard.activeSessions,
+          Icon: Users,
+        },
       ];
     }
 
@@ -488,8 +550,16 @@ export function AuditLogManagementPage() {
           trend: dashboard.trend,
           Icon: Activity,
         },
-        { title: "High Priority", value: dashboard.highPriority, Icon: AlertTriangle },
-        { title: "Today's Actions", value: dashboard.todayActions, Icon: Users },
+        {
+          title: "High Priority",
+          value: dashboard.highPriority,
+          Icon: AlertTriangle,
+        },
+        {
+          title: "Today's Actions",
+          value: dashboard.todayActions,
+          Icon: Users,
+        },
         {
           title: "Most Active User",
           value: dashboard.mostActiveUser?.fullName || "—",
@@ -509,9 +579,21 @@ export function AuditLogManagementPage() {
           trend: dashboard.trend,
           Icon: Database,
         },
-        { title: "Patient Updates", value: dashboard.patientUpdates, Icon: Users },
-        { title: "Doctor Updates", value: dashboard.doctorUpdates, Icon: Activity },
-        { title: "Billing Changes", value: dashboard.billingChanges, Icon: Database },
+        {
+          title: "Patient Updates",
+          value: dashboard.patientUpdates,
+          Icon: Users,
+        },
+        {
+          title: "Doctor Updates",
+          value: dashboard.doctorUpdates,
+          Icon: Activity,
+        },
+        {
+          title: "Billing Changes",
+          value: dashboard.billingChanges,
+          Icon: Database,
+        },
       ];
     }
 
@@ -526,8 +608,16 @@ export function AuditLogManagementPage() {
           Icon: Trash2,
         },
         { title: "Restored", value: dashboard.restored, Icon: RotateCcw },
-        { title: "Permanent Delete", value: dashboard.permanentDelete, Icon: Lock },
-        { title: "Pending Review", value: dashboard.pendingReview, Icon: AlertTriangle },
+        {
+          title: "Permanent Delete",
+          value: dashboard.permanentDelete,
+          Icon: Lock,
+        },
+        {
+          title: "Pending Review",
+          value: dashboard.pendingReview,
+          Icon: AlertTriangle,
+        },
       ];
     }
 
@@ -540,9 +630,21 @@ export function AuditLogManagementPage() {
         trend: dashboard.trend,
         Icon: Server,
       },
-      { title: "Background Jobs", value: dashboard.backgroundJobs, Icon: Activity },
-      { title: "Warning Events", value: dashboard.warningEvents, Icon: AlertTriangle },
-      { title: "Critical Events", value: dashboard.criticalEvents, Icon: AlertTriangle },
+      {
+        title: "Background Jobs",
+        value: dashboard.backgroundJobs,
+        Icon: Activity,
+      },
+      {
+        title: "Warning Events",
+        value: dashboard.warningEvents,
+        Icon: AlertTriangle,
+      },
+      {
+        title: "Critical Events",
+        value: dashboard.criticalEvents,
+        Icon: AlertTriangle,
+      },
     ];
   }, [
     allDashboardQuery.data,
@@ -571,20 +673,23 @@ export function AuditLogManagementPage() {
     setPage(0);
   };
 
-  const handleWorkspaceChange = useCallback((workspace: AuditCategory) => {
-    setFilter("currentWorkspace", workspace);
-    // Workspace streams use different server fields. Do not carry a module,
-    // role, status, or event-type filter from another stream into this one.
-    setFilter("searchQuery", "");
-    setFilter("selectedModule", "All");
-    setFilter("selectedDepartment", "All");
-    setFilter("selectedRole", "All");
-    setFilter("selectedUser", "All");
-    setFilter("selectedSeverity", "All");
-    setFilter("selectedStatus", "All");
-    setFilter("selectedEventType", "All");
-    setPage(0);
-  }, [setFilter, setPage]);
+  const handleWorkspaceChange = useCallback(
+    (workspace: AuditCategory) => {
+      setFilter("currentWorkspace", workspace);
+      // Workspace streams use different server fields. Do not carry a module,
+      // role, status, or event-type filter from another stream into this one.
+      setFilter("searchQuery", "");
+      setFilter("selectedModule", "All");
+      setFilter("selectedDepartment", "All");
+      setFilter("selectedRole", "All");
+      setFilter("selectedUser", "All");
+      setFilter("selectedSeverity", "All");
+      setFilter("selectedStatus", "All");
+      setFilter("selectedEventType", "All");
+      setPage(0);
+    },
+    [setFilter, setPage],
+  );
 
   const refreshAuditData = () => {
     void activeQuery.refetch();
@@ -593,7 +698,8 @@ export function AuditLogManagementPage() {
     void auditWorkspacesQuery.refetch();
     void auditFilterOptionsQuery.refetch();
 
-    if (isAllWorkspace || isCriticalWorkspace) void criticalEventsQuery.refetch();
+    if (isAllWorkspace || isCriticalWorkspace)
+      void criticalEventsQuery.refetch();
     if (isLoginWorkspace) {
       void loginDashboardQuery.refetch();
       void loginFilterOptionsQuery.refetch();
@@ -608,7 +714,7 @@ export function AuditLogManagementPage() {
   const totalPages = activeQuery.data?.totalPages ?? 0;
   const canGoNext = Boolean(
     activeQuery.data &&
-      (activeQuery.data.last === false || currentPage + 1 < totalPages),
+    (activeQuery.data.last === false || currentPage + 1 < totalPages),
   );
   const lastUpdated = activeQuery.dataUpdatedAt
     ? new Date(activeQuery.dataUpdatedAt).toLocaleString()
@@ -644,7 +750,9 @@ export function AuditLogManagementPage() {
               {!isAllWorkspace && (
                 <>
                   <ChevronRight className="w-4 h-4 text-gray-400" />
-                  <span className="font-semibold text-gray-800">{filters.currentWorkspace}</span>
+                  <span className="font-semibold text-gray-800">
+                    {filters.currentWorkspace}
+                  </span>
                 </>
               )}
             </div>
@@ -659,11 +767,15 @@ export function AuditLogManagementPage() {
                 </button>
               )}
               <div>
-                <h1 className="text-2xl font-bold text-gray-900" style={{ fontFamily: PP }}>
+                <h1
+                  className="text-2xl font-bold text-gray-900"
+                  style={{ fontFamily: PP }}
+                >
                   {isAllWorkspace ? "Audit Logs" : filters.currentWorkspace}
                 </h1>
                 <p className="text-sm text-gray-500 mt-1">
-                  Audit records are loaded directly from the hospital administration API.
+                  Audit records are loaded directly from the hospital
+                  administration API.
                 </p>
               </div>
             </div>
@@ -690,7 +802,9 @@ export function AuditLogManagementPage() {
               className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm disabled:opacity-70"
               style={{ backgroundColor: "#0D47A1" }}
             >
-              <RefreshCw className={`w-4 h-4 ${activeQuery.isFetching ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`w-4 h-4 ${activeQuery.isFetching ? "animate-spin" : ""}`}
+              />
               Refresh
             </button>
           </div>
@@ -721,10 +835,17 @@ export function AuditLogManagementPage() {
                     )}
                   </div>
                   <div className="mt-4">
-                    <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: PP }}>
-                      {typeof card.value === "number" ? card.value.toLocaleString() : card.value}
+                    <div
+                      className="text-2xl font-bold text-gray-900"
+                      style={{ fontFamily: PP }}
+                    >
+                      {typeof card.value === "number"
+                        ? card.value.toLocaleString()
+                        : card.value}
                     </div>
-                    <div className="text-xs font-medium text-gray-500 mt-1">{card.title}</div>
+                    <div className="text-xs font-medium text-gray-500 mt-1">
+                      {card.title}
+                    </div>
                   </div>
                 </div>
               );
@@ -732,7 +853,9 @@ export function AuditLogManagementPage() {
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-gray-200 px-5 py-4 text-sm text-gray-500">
-            {allDashboardQuery.isLoading ? "Loading audit summary…" : "No audit summary was returned by the server."}
+            {allDashboardQuery.isLoading
+              ? "Loading audit summary…"
+              : "No audit summary was returned by the server."}
           </div>
         )}
       </section>
@@ -741,7 +864,10 @@ export function AuditLogManagementPage() {
         <section className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
           <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3">
             <div>
-              <h2 className="text-base font-bold text-gray-900" style={{ fontFamily: PP }}>
+              <h2
+                className="text-base font-bold text-gray-900"
+                style={{ fontFamily: PP }}
+              >
                 Recent Critical Events
               </h2>
               <p className="text-xs text-gray-500 mt-0.5">
@@ -749,27 +875,46 @@ export function AuditLogManagementPage() {
               </p>
             </div>
             <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold border border-red-200">
-              {(criticalEventsQuery.data?.totalElements ?? criticalRecords.length).toLocaleString()} alerts
+              {(
+                criticalEventsQuery.data?.totalElements ??
+                criticalRecords.length
+              ).toLocaleString()}{" "}
+              alerts
             </span>
           </div>
           {criticalEventsQuery.isLoading ? (
             <p className="text-sm text-gray-500">Loading critical events…</p>
           ) : criticalEventsQuery.isError ? (
-            <p className="text-sm text-red-700">{getErrorMessage(criticalEventsQuery.error)}</p>
+            <p className="text-sm text-red-700">
+              {getErrorMessage(criticalEventsQuery.error)}
+            </p>
           ) : criticalRecords.length === 0 ? (
-            <p className="text-sm text-gray-500">No critical events were returned by the server.</p>
+            <p className="text-sm text-gray-500">
+              No critical events were returned by the server.
+            </p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {criticalRecords.slice(0, 3).map((record) => (
-                <article key={record.id} className="p-4 rounded-xl border border-red-200 bg-red-50/40 space-y-2">
+                <article
+                  key={record.id}
+                  className="p-4 rounded-xl border border-red-200 bg-red-50/40 space-y-2"
+                >
                   <div className="flex justify-between gap-3">
                     <SeverityBadge severity={record.severity} />
-                    <span className="text-[11px] font-mono text-gray-500">{display(record.timestamp)}</span>
+                    <span className="text-[11px] font-mono text-gray-500">
+                      {display(record.timestamp)}
+                    </span>
                   </div>
-                  <h3 className="text-sm font-bold text-gray-900">{record.action}</h3>
-                  <p className="text-xs text-gray-600 line-clamp-2">{display(record.description)}</p>
+                  <h3 className="text-sm font-bold text-gray-900">
+                    {record.action}
+                  </h3>
+                  <p className="text-xs text-gray-600 line-clamp-2">
+                    {display(record.description)}
+                  </p>
                   <div className="pt-2 flex justify-between items-center border-t border-red-100">
-                    <span className="text-[11px] font-semibold text-blue-900">{record.module}</span>
+                    <span className="text-[11px] font-semibold text-blue-900">
+                      {record.module}
+                    </span>
                     <button
                       onClick={() => setActiveDetailsRecord(record)}
                       className="text-xs font-bold text-blue-700 hover:text-blue-900 inline-flex items-center gap-1"
@@ -787,7 +932,10 @@ export function AuditLogManagementPage() {
       <section className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
         <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3">
           <div>
-            <h2 className="text-base font-bold text-gray-900" style={{ fontFamily: PP }}>
+            <h2
+              className="text-base font-bold text-gray-900"
+              style={{ fontFamily: PP }}
+            >
               Audit Workspaces
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -795,11 +943,15 @@ export function AuditLogManagementPage() {
             </p>
           </div>
           <span className="text-xs font-bold text-blue-900 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-            {auditWorkspacesQuery.isLoading ? "Loading…" : `${workspaceCards.length} workspaces`}
+            {auditWorkspacesQuery.isLoading
+              ? "Loading…"
+              : `${workspaceCards.length} workspaces`}
           </span>
         </div>
         {auditWorkspacesQuery.isError && (
-          <p className="text-xs text-red-700">{getErrorMessage(auditWorkspacesQuery.error)}</p>
+          <p className="text-xs text-red-700">
+            {getErrorMessage(auditWorkspacesQuery.error)}
+          </p>
         )}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {workspaceCards.map((card) => {
@@ -813,23 +965,38 @@ export function AuditLogManagementPage() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isActive ? "bg-white/20 text-white" : `${card.bg} ${card.color}`}`}>
+                    <div
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center ${isActive ? "bg-white/20 text-white" : `${card.bg} ${card.color}`}`}
+                    >
                       <CardIcon className="w-5 h-5" />
                     </div>
-                    <ArrowUpRight className={`w-4 h-4 ${isActive ? "text-white" : "text-gray-400"}`} />
+                    <ArrowUpRight
+                      className={`w-4 h-4 ${isActive ? "text-white" : "text-gray-400"}`}
+                    />
                   </div>
-                  <h3 className={`text-sm font-bold ${isActive ? "text-white" : "text-gray-900"}`} style={{ fontFamily: PP }}>
+                  <h3
+                    className={`text-sm font-bold ${isActive ? "text-white" : "text-gray-900"}`}
+                    style={{ fontFamily: PP }}
+                  >
                     {card.title}
                   </h3>
-                  <p className={`text-[11px] mt-1 leading-relaxed ${isActive ? "text-blue-100" : "text-gray-500"}`}>
+                  <p
+                    className={`text-[11px] mt-1 leading-relaxed ${isActive ? "text-blue-100" : "text-gray-500"}`}
+                  >
                     {card.description}
                   </p>
                 </div>
-                <div className={`mt-4 pt-2 border-t text-[11px] font-bold flex items-center justify-between ${isActive ? "border-white/20 text-blue-100" : "border-gray-100 text-gray-500"}`}>
+                <div
+                  className={`mt-4 pt-2 border-t text-[11px] font-bold flex items-center justify-between ${isActive ? "border-white/20 text-blue-100" : "border-gray-100 text-gray-500"}`}
+                >
                   <span>
-                    {typeof card.count === "number" ? `${card.count.toLocaleString()} records` : "Count unavailable"}
+                    {typeof card.count === "number"
+                      ? `${card.count.toLocaleString()} records`
+                      : "Count unavailable"}
                   </span>
-                  {isActive && <span className="text-[9px] tracking-wider">ACTIVE</span>}
+                  {isActive && (
+                    <span className="text-[9px] tracking-wider">ACTIVE</span>
+                  )}
                 </div>
               </button>
             );
@@ -850,24 +1017,74 @@ export function AuditLogManagementPage() {
         </div>
         <div className="mt-4 pt-4 border-t border-gray-100">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-            <FilterSelect label="Date range" value={filters.selectedDateRange} onChange={(value) => { setFilter("selectedDateRange", value); setPage(0); }}>
+            <FilterSelect
+              label="Date range"
+              value={filters.selectedDateRange}
+              onChange={(value) => {
+                setFilter("selectedDateRange", value);
+                setPage(0);
+              }}
+            >
               <option value="All Time">All time</option>
               <option value="Today">Today</option>
               <option value="Yesterday">Yesterday</option>
               <option value="Last 7 Days">Last 7 days</option>
               <option value="Last 30 Days">Last 30 days</option>
             </FilterSelect>
-            <ApiFilterSelect label="Module" value={filters.selectedModule} onChange={(v) => setFilter("selectedModule", v)} options={filterOptions?.modules} allLabel="All modules" />
-            <ApiFilterSelect label="Department" value={filters.selectedDepartment} onChange={(v) => setFilter("selectedDepartment", v)} options={filterOptions?.departments} allLabel="All departments" />
-            <ApiFilterSelect label="Role" value={filters.selectedRole} onChange={(v) => setFilter("selectedRole", v)} options={filterOptions?.roles} allLabel="All roles" />
-            <ApiFilterSelect label="User" value={filters.selectedUser} onChange={(v) => setFilter("selectedUser", v)} options={filterOptions?.users} allLabel="All users" />
-            <ApiFilterSelect label="Severity" value={filters.selectedSeverity} onChange={(v) => setFilter("selectedSeverity", v)} options={filterOptions?.severities} allLabel="All severities" />
-            <ApiFilterSelect label="Status" value={filters.selectedStatus} onChange={(v) => setFilter("selectedStatus", v)} options={filterOptions?.statuses} allLabel="All statuses" />
-            <ApiFilterSelect label="Event type" value={filters.selectedEventType} onChange={(v) => setFilter("selectedEventType", v)} options={filterOptions?.eventTypes} allLabel="All event types" />
+            <ApiFilterSelect
+              label="Module"
+              value={filters.selectedModule}
+              onChange={(v) => setFilter("selectedModule", v)}
+              options={filterOptions?.modules}
+              allLabel="All modules"
+            />
+            <ApiFilterSelect
+              label="Department"
+              value={filters.selectedDepartment}
+              onChange={(v) => setFilter("selectedDepartment", v)}
+              options={filterOptions?.departments}
+              allLabel="All departments"
+            />
+            <ApiFilterSelect
+              label="Role"
+              value={filters.selectedRole}
+              onChange={(v) => setFilter("selectedRole", v)}
+              options={filterOptions?.roles}
+              allLabel="All roles"
+            />
+            <ApiFilterSelect
+              label="User"
+              value={filters.selectedUser}
+              onChange={(v) => setFilter("selectedUser", v)}
+              options={filterOptions?.users}
+              allLabel="All users"
+            />
+            <ApiFilterSelect
+              label="Severity"
+              value={filters.selectedSeverity}
+              onChange={(v) => setFilter("selectedSeverity", v)}
+              options={filterOptions?.severities}
+              allLabel="All severities"
+            />
+            <ApiFilterSelect
+              label="Status"
+              value={filters.selectedStatus}
+              onChange={(v) => setFilter("selectedStatus", v)}
+              options={filterOptions?.statuses}
+              allLabel="All statuses"
+            />
+            <ApiFilterSelect
+              label="Event type"
+              value={filters.selectedEventType}
+              onChange={(v) => setFilter("selectedEventType", v)}
+              options={filterOptions?.eventTypes}
+              allLabel="All event types"
+            />
           </div>
           <div className="flex items-center justify-between gap-3 pt-3 mt-3 border-t border-gray-100">
             <p className="text-[11px] text-gray-500">
-              Date range is sent to the backend; the remaining filters apply to the loaded API records.
+              Date range is sent to the backend; the remaining filters apply to
+              the loaded API records.
             </p>
             <button
               onClick={resetFilters}
@@ -885,7 +1102,11 @@ export function AuditLogManagementPage() {
           activeSessions={safeArray(activeSessionsQuery.data?.content)}
           failedAttempts={safeArray(failedAttemptsQuery.data?.content)}
           lockedAccounts={safeArray(lockedAccountsQuery.data?.content)}
-          loading={activeSessionsQuery.isLoading || failedAttemptsQuery.isLoading || lockedAccountsQuery.isLoading}
+          loading={
+            activeSessionsQuery.isLoading ||
+            failedAttemptsQuery.isLoading ||
+            lockedAccountsQuery.isLoading
+          }
           error={
             activeSessionsQuery.isError
               ? activeSessionsQuery.error
@@ -902,19 +1123,27 @@ export function AuditLogManagementPage() {
         <div className="p-4 border-b border-gray-200 bg-gray-50/50 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-blue-900" />
-            <h2 className="text-sm font-bold text-gray-900" style={{ fontFamily: PP }}>
+            <h2
+              className="text-sm font-bold text-gray-900"
+              style={{ fontFamily: PP }}
+            >
               {filters.currentWorkspace} stream
             </h2>
           </div>
           <span className="text-xs font-semibold text-gray-500 font-mono">
-            {activeQuery.isLoading ? "Loading…" : `${filteredRecords.length} shown of ${totalElements.toLocaleString()}`}
+            {activeQuery.isLoading
+              ? "Loading…"
+              : `${filteredRecords.length} shown of ${totalElements.toLocaleString()}`}
           </span>
         </div>
         <div className="p-6">
           {activeQuery.isLoading ? (
             <LoadingState label="Loading audit records…" />
           ) : activeQuery.isError ? (
-            <ErrorState error={activeQuery.error} onRetry={() => void activeQuery.refetch()} />
+            <ErrorState
+              error={activeQuery.error}
+              onRetry={() => void activeQuery.refetch()}
+            />
           ) : filteredRecords.length === 0 ? (
             <EmptyState onReset={resetFilters} />
           ) : (
@@ -924,22 +1153,41 @@ export function AuditLogManagementPage() {
                   <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 font-bold uppercase tracking-wider">
                     {isAllTable && <AllLogHeaders />}
                     {isLoginWorkspace && <LoginHeaders />}
-                    {filters.currentWorkspace === "User Activities" && <UserActivityHeaders />}
-                    {filters.currentWorkspace === "Data Changes" && <DataChangeHeaders />}
-                    {filters.currentWorkspace === "Deleted Records" && <DeletedRecordHeaders />}
-                    {filters.currentWorkspace === "System Logs" && <SystemLogHeaders />}
+                    {filters.currentWorkspace === "User Activities" && (
+                      <UserActivityHeaders />
+                    )}
+                    {filters.currentWorkspace === "Data Changes" && (
+                      <DataChangeHeaders />
+                    )}
+                    {filters.currentWorkspace === "Deleted Records" && (
+                      <DeletedRecordHeaders />
+                    )}
+                    {filters.currentWorkspace === "System Logs" && (
+                      <SystemLogHeaders />
+                    )}
                     <th className="p-3.5 text-right">View</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white font-medium text-gray-800">
                   {filteredRecords.map((record) => (
-                    <tr key={record.id} className="hover:bg-blue-50/40 transition-colors">
+                    <tr
+                      key={record.id}
+                      className="hover:bg-blue-50/40 transition-colors"
+                    >
                       {isAllTable && <AllLogCells record={record} />}
                       {isLoginWorkspace && <LoginCells record={record} />}
-                      {filters.currentWorkspace === "User Activities" && <UserActivityCells record={record} />}
-                      {filters.currentWorkspace === "Data Changes" && <DataChangeCells record={record} />}
-                      {filters.currentWorkspace === "Deleted Records" && <DeletedRecordCells record={record} />}
-                      {filters.currentWorkspace === "System Logs" && <SystemLogCells record={record} />}
+                      {filters.currentWorkspace === "User Activities" && (
+                        <UserActivityCells record={record} />
+                      )}
+                      {filters.currentWorkspace === "Data Changes" && (
+                        <DataChangeCells record={record} />
+                      )}
+                      {filters.currentWorkspace === "Deleted Records" && (
+                        <DeletedRecordCells record={record} />
+                      )}
+                      {filters.currentWorkspace === "System Logs" && (
+                        <SystemLogCells record={record} />
+                      )}
                       <td className="p-3.5 text-right whitespace-nowrap">
                         <button
                           onClick={() => setActiveDetailsRecord(record)}
@@ -964,7 +1212,8 @@ export function AuditLogManagementPage() {
           <span>Last loaded: {lastUpdated}</span>
         </div>
         <div className="text-xs font-semibold text-gray-700">
-          Page {currentPage + 1}{totalPages ? ` of ${totalPages}` : ""}
+          Page {currentPage + 1}
+          {totalPages ? ` of ${totalPages}` : ""}
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -1080,11 +1329,15 @@ function LoginSupplementaryData({
   return (
     <section className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
       <div>
-        <h2 className="text-base font-bold text-gray-900" style={{ fontFamily: PP }}>
+        <h2
+          className="text-base font-bold text-gray-900"
+          style={{ fontFamily: PP }}
+        >
           Login Security Data
         </h2>
         <p className="text-xs text-gray-500 mt-0.5">
-          Active sessions, failed attempts, and locked accounts from the login-history endpoints.
+          Active sessions, failed attempts, and locked accounts from the
+          login-history endpoints.
         </p>
       </div>
       {loading ? (
@@ -1095,28 +1348,57 @@ function LoginSupplementaryData({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <LoginDataPanel title="Active Sessions" count={activeSessions.length}>
             {activeSessions.map((session) => (
-              <div key={session.sessionId} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
-                <p className="font-semibold text-gray-900">{session.user?.fullName || session.user?.userId || "—"}</p>
-                <p className="text-gray-500">{display(session.device)} · {display(session.status)}</p>
-                <p className="font-mono text-[10px] text-gray-400">{display(session.loginTime)}</p>
+              <div
+                key={session.sessionId}
+                className="border-b border-gray-100 pb-2 last:border-0 last:pb-0"
+              >
+                <p className="font-semibold text-gray-900">
+                  {session.user?.fullName || session.user?.userId || "—"}
+                </p>
+                <p className="text-gray-500">
+                  {display(session.device)} · {display(session.status)}
+                </p>
+                <p className="font-mono text-[10px] text-gray-400">
+                  {display(session.loginTime)}
+                </p>
               </div>
             ))}
           </LoginDataPanel>
           <LoginDataPanel title="Failed Attempts" count={failedAttempts.length}>
             {failedAttempts.map((attempt) => (
-              <div key={attempt.eventId} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
-                <p className="font-semibold text-gray-900">{attempt.userName || attempt.userId || "—"}</p>
-                <p className="text-gray-500">{display(attempt.failureReason)} · {display(attempt.attemptCount)} attempts</p>
-                <p className="font-mono text-[10px] text-gray-400">{display(attempt.timestamp)}</p>
+              <div
+                key={attempt.eventId}
+                className="border-b border-gray-100 pb-2 last:border-0 last:pb-0"
+              >
+                <p className="font-semibold text-gray-900">
+                  {attempt.userName || attempt.userId || "—"}
+                </p>
+                <p className="text-gray-500">
+                  {display(attempt.failureReason)} ·{" "}
+                  {display(attempt.attemptCount)} attempts
+                </p>
+                <p className="font-mono text-[10px] text-gray-400">
+                  {display(attempt.timestamp)}
+                </p>
               </div>
             ))}
           </LoginDataPanel>
           <LoginDataPanel title="Locked Accounts" count={lockedAccounts.length}>
             {lockedAccounts.map((account) => (
-              <div key={account.userId} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
-                <p className="font-semibold text-gray-900">{account.fullName || account.userId || "—"}</p>
-                <p className="text-gray-500">{display(account.reason)} · {display(account.failedAttemptCount)} attempts</p>
-                <p className="font-mono text-[10px] text-gray-400">{display(account.lockedAt)}</p>
+              <div
+                key={account.userId}
+                className="border-b border-gray-100 pb-2 last:border-0 last:pb-0"
+              >
+                <p className="font-semibold text-gray-900">
+                  {account.fullName || account.userId || "—"}
+                </p>
+                <p className="text-gray-500">
+                  {display(account.reason)} ·{" "}
+                  {display(account.failedAttemptCount)} attempts
+                </p>
+                <p className="font-mono text-[10px] text-gray-400">
+                  {display(account.lockedAt)}
+                </p>
               </div>
             ))}
           </LoginDataPanel>
@@ -1141,7 +1423,11 @@ function LoginDataPanel({
         <h3 className="font-bold text-gray-900">{title}</h3>
         <span className="font-mono text-gray-500">{count}</span>
       </div>
-      {count ? <div className="space-y-2">{children}</div> : <p className="text-gray-500">No records returned.</p>}
+      {count ? (
+        <div className="space-y-2">{children}</div>
+      ) : (
+        <p className="text-gray-500">No records returned.</p>
+      )}
     </div>
   );
 }
@@ -1155,12 +1441,23 @@ function LoadingState({ label }: { label: string }) {
   );
 }
 
-function ErrorState({ error, onRetry }: { error: unknown; onRetry: () => void }) {
+function ErrorState({
+  error,
+  onRetry,
+}: {
+  error: unknown;
+  onRetry: () => void;
+}) {
   return (
     <div className="py-16 text-center space-y-3">
       <AlertTriangle className="w-8 h-8 text-red-600 mx-auto" />
-      <p className="text-sm text-red-700 max-w-xl mx-auto">{getErrorMessage(error)}</p>
-      <button onClick={onRetry} className="px-4 py-2 text-xs font-semibold text-white bg-blue-900 rounded-lg">
+      <p className="text-sm text-red-700 max-w-xl mx-auto">
+        {getErrorMessage(error)}
+      </p>
+      <button
+        onClick={onRetry}
+        className="px-4 py-2 text-xs font-semibold text-white bg-blue-900 rounded-lg"
+      >
         Retry request
       </button>
     </div>
@@ -1172,12 +1469,20 @@ function EmptyState({ onReset }: { onReset: () => void }) {
     <div className="py-16 text-center space-y-3">
       <Search className="w-8 h-8 text-gray-400 mx-auto" />
       <div>
-        <h3 className="text-base font-bold text-gray-800" style={{ fontFamily: PP }}>
+        <h3
+          className="text-base font-bold text-gray-800"
+          style={{ fontFamily: PP }}
+        >
           No Audit Records Found
         </h3>
-        <p className="text-xs text-gray-500 mt-1">The server returned no records matching the current filters.</p>
+        <p className="text-xs text-gray-500 mt-1">
+          The server returned no records matching the current filters.
+        </p>
       </div>
-      <button onClick={onReset} className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white rounded-lg bg-blue-900">
+      <button
+        onClick={onReset}
+        className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white rounded-lg bg-blue-900"
+      >
         <RotateCcw className="w-4 h-4" />
         Reset filters
       </button>
@@ -1186,49 +1491,264 @@ function EmptyState({ onReset }: { onReset: () => void }) {
 }
 
 function AllLogHeaders() {
-  return <><th className="p-3.5">Timestamp</th><th className="p-3.5">Category</th><th className="p-3.5">User</th><th className="p-3.5">Role</th><th className="p-3.5">Module</th><th className="p-3.5">Action</th><th className="p-3.5">Severity</th><th className="p-3.5">Status</th></>;
+  return (
+    <>
+      <th className="p-3.5">Timestamp</th>
+      <th className="p-3.5">Category</th>
+      <th className="p-3.5">User</th>
+      <th className="p-3.5">Role</th>
+      <th className="p-3.5">Module</th>
+      <th className="p-3.5">Action</th>
+      <th className="p-3.5">Severity</th>
+      <th className="p-3.5">Status</th>
+    </>
+  );
 }
 
 function LoginHeaders() {
-  return <><th className="p-3.5">User</th><th className="p-3.5">Role</th><th className="p-3.5">Login Time</th><th className="p-3.5">Logout Time</th><th className="p-3.5">IP Address</th><th className="p-3.5">Device</th><th className="p-3.5">Status</th></>;
+  return (
+    <>
+      <th className="p-3.5">User</th>
+      <th className="p-3.5">Role</th>
+      <th className="p-3.5">Login Time</th>
+      <th className="p-3.5">Logout Time</th>
+      <th className="p-3.5">IP Address</th>
+      <th className="p-3.5">Device</th>
+      <th className="p-3.5">Status</th>
+    </>
+  );
 }
 
 function UserActivityHeaders() {
-  return <><th className="p-3.5">User</th><th className="p-3.5">Module</th><th className="p-3.5">Action</th><th className="p-3.5">Description</th><th className="p-3.5">Timestamp</th><th className="p-3.5">Status</th></>;
+  return (
+    <>
+      <th className="p-3.5">User</th>
+      <th className="p-3.5">Module</th>
+      <th className="p-3.5">Action</th>
+      <th className="p-3.5">Description</th>
+      <th className="p-3.5">Timestamp</th>
+      <th className="p-3.5">Status</th>
+    </>
+  );
 }
 
 function DataChangeHeaders() {
-  return <><th className="p-3.5">Module</th><th className="p-3.5">Record</th><th className="p-3.5">Field</th><th className="p-3.5 text-red-600">Old Value</th><th className="p-3.5 text-emerald-600">New Value</th><th className="p-3.5">Modified By</th><th className="p-3.5">Timestamp</th></>;
+  return (
+    <>
+      <th className="p-3.5">Module</th>
+      <th className="p-3.5">Record</th>
+      <th className="p-3.5">Field</th>
+      <th className="p-3.5 text-red-600">Old Value</th>
+      <th className="p-3.5 text-emerald-600">New Value</th>
+      <th className="p-3.5">Modified By</th>
+      <th className="p-3.5">Timestamp</th>
+    </>
+  );
 }
 
 function DeletedRecordHeaders() {
-  return <><th className="p-3.5">Record</th><th className="p-3.5">Module</th><th className="p-3.5">Deleted By</th><th className="p-3.5">Reason</th><th className="p-3.5">Deleted Time</th><th className="p-3.5">Status</th></>;
+  return (
+    <>
+      <th className="p-3.5">Record</th>
+      <th className="p-3.5">Module</th>
+      <th className="p-3.5">Deleted By</th>
+      <th className="p-3.5">Reason</th>
+      <th className="p-3.5">Deleted Time</th>
+      <th className="p-3.5">Status</th>
+    </>
+  );
 }
 
 function SystemLogHeaders() {
-  return <><th className="p-3.5">Severity</th><th className="p-3.5">Event</th><th className="p-3.5">Module</th><th className="p-3.5">Description</th><th className="p-3.5">Timestamp</th><th className="p-3.5">Status</th></>;
+  return (
+    <>
+      <th className="p-3.5">Severity</th>
+      <th className="p-3.5">Event</th>
+      <th className="p-3.5">Module</th>
+      <th className="p-3.5">Description</th>
+      <th className="p-3.5">Timestamp</th>
+      <th className="p-3.5">Status</th>
+    </>
+  );
 }
 
 function AllLogCells({ record }: { record: AuditRecord }) {
-  return <><td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">{display(record.timestamp)}</td><td className="p-3.5 whitespace-nowrap font-semibold text-gray-700">{record.category}</td><td className="p-3.5 whitespace-nowrap font-bold text-gray-900">{record.user}</td><td className="p-3.5 whitespace-nowrap text-gray-600">{record.userRole}</td><td className="p-3.5 whitespace-nowrap"><span className="px-2 py-0.5 rounded bg-gray-100 font-medium text-gray-700">{record.module}</span></td><td className="p-3.5 font-semibold text-blue-950">{record.action}</td><td className="p-3.5 whitespace-nowrap"><SeverityBadge severity={record.severity} /></td><td className="p-3.5 whitespace-nowrap"><StatusBadge status={record.status} /></td></>;
+  return (
+    <>
+      <td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">
+        {display(record.timestamp)}
+      </td>
+      <td className="p-3.5 whitespace-nowrap font-semibold text-gray-700">
+        {record.category}
+      </td>
+      <td className="p-3.5 whitespace-nowrap font-bold text-gray-900">
+        {record.user}
+      </td>
+      <td className="p-3.5 whitespace-nowrap text-gray-600">
+        {record.userRole}
+      </td>
+      <td className="p-3.5 whitespace-nowrap">
+        <span className="px-2 py-0.5 rounded bg-gray-100 font-medium text-gray-700">
+          {record.module}
+        </span>
+      </td>
+      <td className="p-3.5 font-semibold text-blue-950">{record.action}</td>
+      <td className="p-3.5 whitespace-nowrap">
+        <SeverityBadge severity={record.severity} />
+      </td>
+      <td className="p-3.5 whitespace-nowrap">
+        <StatusBadge status={record.status} />
+      </td>
+    </>
+  );
 }
 
 function LoginCells({ record }: { record: AuditRecord }) {
-  return <><td className="p-3.5 whitespace-nowrap font-bold text-gray-900">{record.user}</td><td className="p-3.5 whitespace-nowrap text-gray-600">{record.userRole}</td><td className="p-3.5 whitespace-nowrap font-mono text-gray-600">{display(record.loginTime || record.timestamp)}</td><td className="p-3.5 whitespace-nowrap font-mono text-gray-500">{display(record.logoutTime)}</td><td className="p-3.5 whitespace-nowrap font-mono text-xs text-gray-600">{display(record.ipAddress)}</td><td className="p-3.5 whitespace-nowrap text-gray-600 max-w-xs truncate">{display(record.device)}</td><td className="p-3.5 whitespace-nowrap"><StatusBadge status={record.status} /></td></>;
+  return (
+    <>
+      <td className="p-3.5 whitespace-nowrap font-bold text-gray-900">
+        {record.user}
+      </td>
+      <td className="p-3.5 whitespace-nowrap text-gray-600">
+        {record.userRole}
+      </td>
+      <td className="p-3.5 whitespace-nowrap font-mono text-gray-600">
+        {display(record.loginTime || record.timestamp)}
+      </td>
+      <td className="p-3.5 whitespace-nowrap font-mono text-gray-500">
+        {display(record.logoutTime)}
+      </td>
+      <td className="p-3.5 whitespace-nowrap font-mono text-xs text-gray-600">
+        {display(record.ipAddress)}
+      </td>
+      <td className="p-3.5 whitespace-nowrap text-gray-600 max-w-xs truncate">
+        {display(record.device)}
+      </td>
+      <td className="p-3.5 whitespace-nowrap">
+        <StatusBadge status={record.status} />
+      </td>
+    </>
+  );
 }
 
 function UserActivityCells({ record }: { record: AuditRecord }) {
-  return <><td className="p-3.5 whitespace-nowrap font-bold text-gray-900">{record.user}</td><td className="p-3.5 whitespace-nowrap"><span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-medium border border-purple-100">{record.module}</span></td><td className="p-3.5 font-semibold text-blue-950">{record.action}</td><td className="p-3.5 max-w-xs truncate text-gray-500" title={record.description}>{display(record.description)}</td><td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">{display(record.timestamp)}</td><td className="p-3.5 whitespace-nowrap"><StatusBadge status={record.status} /></td></>;
+  return (
+    <>
+      <td className="p-3.5 whitespace-nowrap font-bold text-gray-900">
+        {record.user}
+      </td>
+      <td className="p-3.5 whitespace-nowrap">
+        <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-medium border border-purple-100">
+          {record.module}
+        </span>
+      </td>
+      <td className="p-3.5 font-semibold text-blue-950">{record.action}</td>
+      <td
+        className="p-3.5 max-w-xs truncate text-gray-500"
+        title={record.description}
+      >
+        {display(record.description)}
+      </td>
+      <td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">
+        {display(record.timestamp)}
+      </td>
+      <td className="p-3.5 whitespace-nowrap">
+        <StatusBadge status={record.status} />
+      </td>
+    </>
+  );
 }
 
 function DataChangeCells({ record }: { record: AuditRecord }) {
-  return <><td className="p-3.5 whitespace-nowrap"><span className="px-2 py-0.5 rounded bg-teal-50 text-teal-700 font-medium border border-teal-100">{record.module}</span></td><td className="p-3.5 whitespace-nowrap font-mono font-bold text-blue-700">{display(record.recordId)}</td><td className="p-3.5 font-semibold text-gray-800">{display(record.fieldChanged)}</td><td className="p-3.5 font-mono text-red-600 max-w-48 truncate" title={record.oldValue}>{display(record.oldValue)}</td><td className="p-3.5 font-mono text-emerald-600 max-w-48 truncate" title={record.newValue}>{display(record.newValue)}</td><td className="p-3.5 whitespace-nowrap font-bold text-gray-900">{record.user}</td><td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">{display(record.timestamp)}</td></>;
+  return (
+    <>
+      <td className="p-3.5 whitespace-nowrap">
+        <span className="px-2 py-0.5 rounded bg-teal-50 text-teal-700 font-medium border border-teal-100">
+          {record.module}
+        </span>
+      </td>
+      <td className="p-3.5 whitespace-nowrap font-mono font-bold text-blue-700">
+        {display(record.recordId)}
+      </td>
+      <td className="p-3.5 font-semibold text-gray-800">
+        {display(record.fieldChanged)}
+      </td>
+      <td
+        className="p-3.5 font-mono text-red-600 max-w-48 truncate"
+        title={record.oldValue}
+      >
+        {display(record.oldValue)}
+      </td>
+      <td
+        className="p-3.5 font-mono text-emerald-600 max-w-48 truncate"
+        title={record.newValue}
+      >
+        {display(record.newValue)}
+      </td>
+      <td className="p-3.5 whitespace-nowrap font-bold text-gray-900">
+        {record.user}
+      </td>
+      <td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">
+        {display(record.timestamp)}
+      </td>
+    </>
+  );
 }
 
 function DeletedRecordCells({ record }: { record: AuditRecord }) {
-  return <><td className="p-3.5 whitespace-nowrap font-mono font-bold text-red-700">{display(record.recordId)}</td><td className="p-3.5 whitespace-nowrap"><span className="px-2 py-0.5 rounded bg-amber-50 text-amber-800 font-medium border border-amber-200">{record.module}</span></td><td className="p-3.5 whitespace-nowrap font-bold text-gray-900">{record.user}</td><td className="p-3.5 text-gray-600 max-w-xs truncate" title={record.deletionReason || record.description}>{display(record.deletionReason || record.description)}</td><td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">{display(record.timestamp)}</td><td className="p-3.5 whitespace-nowrap"><StatusBadge status={record.status} /></td></>;
+  return (
+    <>
+      <td className="p-3.5 whitespace-nowrap font-mono font-bold text-red-700">
+        {display(record.recordId)}
+      </td>
+      <td className="p-3.5 whitespace-nowrap">
+        <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-800 font-medium border border-amber-200">
+          {record.module}
+        </span>
+      </td>
+      <td className="p-3.5 whitespace-nowrap font-bold text-gray-900">
+        {record.user}
+      </td>
+      <td
+        className="p-3.5 text-gray-600 max-w-xs truncate"
+        title={record.deletionReason || record.description}
+      >
+        {display(record.deletionReason || record.description)}
+      </td>
+      <td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">
+        {display(record.timestamp)}
+      </td>
+      <td className="p-3.5 whitespace-nowrap">
+        <StatusBadge status={record.status} />
+      </td>
+    </>
+  );
 }
 
 function SystemLogCells({ record }: { record: AuditRecord }) {
-  return <><td className="p-3.5 whitespace-nowrap"><SeverityBadge severity={record.severity} /></td><td className="p-3.5 font-semibold text-gray-900">{record.action}</td><td className="p-3.5 whitespace-nowrap"><span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-medium border border-indigo-100">{record.module}</span></td><td className="p-3.5 max-w-xs truncate text-gray-500" title={record.description}>{display(record.description)}</td><td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">{display(record.timestamp)}</td><td className="p-3.5 whitespace-nowrap"><StatusBadge status={record.status} /></td></>;
+  return (
+    <>
+      <td className="p-3.5 whitespace-nowrap">
+        <SeverityBadge severity={record.severity} />
+      </td>
+      <td className="p-3.5 font-semibold text-gray-900">{record.action}</td>
+      <td className="p-3.5 whitespace-nowrap">
+        <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-medium border border-indigo-100">
+          {record.module}
+        </span>
+      </td>
+      <td
+        className="p-3.5 max-w-xs truncate text-gray-500"
+        title={record.description}
+      >
+        {display(record.description)}
+      </td>
+      <td className="p-3.5 whitespace-nowrap text-gray-500 font-mono">
+        {display(record.timestamp)}
+      </td>
+      <td className="p-3.5 whitespace-nowrap">
+        <StatusBadge status={record.status} />
+      </td>
+    </>
+  );
 }

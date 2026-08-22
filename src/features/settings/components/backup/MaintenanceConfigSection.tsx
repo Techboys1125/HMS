@@ -36,8 +36,8 @@ export function MaintenanceConfigSection({
           gap: "8px",
         }}
       >
-        <Wrench size={18} style={{ color: "#B45309" }} /> Section 04:
-        Scheduled System Maintenance Window
+        <Wrench size={18} style={{ color: "#B45309" }} /> Section 04: Scheduled
+        System Maintenance Window
       </h3>
 
       <div
@@ -190,14 +190,11 @@ export function MaintenanceConfigSection({
         }}
       >
         <div>
-          <div
-            style={{ fontSize: "13px", fontWeight: 700, color: "#92400E" }}
-          >
+          <div style={{ fontSize: "13px", fontWeight: 700, color: "#92400E" }}>
             Activate Emergency System Maintenance Banner
           </div>
           <div style={{ fontSize: "11px", color: "#B45309" }}>
-            Displays top notification banner across all active staff
-            sessions
+            Displays top notification banner across all active staff sessions
           </div>
         </div>
         <input

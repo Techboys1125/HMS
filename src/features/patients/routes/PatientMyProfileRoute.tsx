@@ -9,14 +9,20 @@ export function PatientMyProfileRoute() {
 
   const role = String(user?.role ?? "ADMIN").toUpperCase();
   const currentRole: Role =
-    role === "RECEPTIONIST" ? "RECEPTIONIST"
-    : role === "DOCTOR" ? "DOCTOR"
-    : role === "NURSE" ? "NURSE"
-    : role === "PATIENT" ? "PATIENT"
-    : role === "ACCOUNTANT" ? "ACCOUNTANT"
-    : "ADMIN";
+    role === "RECEPTIONIST"
+      ? "RECEPTIONIST"
+      : role === "DOCTOR"
+        ? "DOCTOR"
+        : role === "NURSE"
+          ? "NURSE"
+          : role === "PATIENT"
+            ? "PATIENT"
+            : role === "ACCOUNTANT"
+              ? "ACCOUNTANT"
+              : "ADMIN";
 
-  const mrn = portal?.primaryMrn || String(user?.patientId || user?.id || "UNKNOWN");
+  const mrn =
+    portal?.primaryMrn || String(user?.patientId || user?.id || "UNKNOWN");
 
   return <MyProfilePage currentRole={currentRole} mrn={mrn} />;
 }

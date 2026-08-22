@@ -25,8 +25,8 @@ export function PermissionAnalyticsCharts() {
           gap: "8px",
         }}
       >
-        <BarChart2 size={18} style={{ color: "#0D47A1" }} /> Role &
-        Permission Analytics
+        <BarChart2 size={18} style={{ color: "#0D47A1" }} /> Role & Permission
+        Analytics
       </h3>
 
       <div
@@ -56,8 +56,8 @@ export function PermissionAnalyticsCharts() {
               gap: "6px",
             }}
           >
-            <PieChartIcon size={14} style={{ color: "#009688" }} /> Active
-            Staff Users by Role
+            <PieChartIcon size={14} style={{ color: "#009688" }} /> Active Staff
+            Users by Role
           </h4>
           <div
             style={{
@@ -119,9 +119,7 @@ export function PermissionAnalyticsCharts() {
           >
             Module Privilege Distribution
           </h4>
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "8px" }}
-          >
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             {[
               { module: "Patients Module", roles: 6, color: "#0D47A1" },
               { module: "Appointments Module", roles: 6, color: "#009688" },

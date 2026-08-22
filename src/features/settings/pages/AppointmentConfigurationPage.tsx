@@ -17,7 +17,9 @@ export function AppointmentConfigurationPage() {
   const opd = useOpdConfiguration();
 
   const handleSave = () => {
-    setToastMessage("Appointment configuration is managed in the live OPD sections below.");
+    setToastMessage(
+      "Appointment configuration is managed in the live OPD sections below.",
+    );
     setTimeout(() => setToastMessage(null), 3000);
   };
 

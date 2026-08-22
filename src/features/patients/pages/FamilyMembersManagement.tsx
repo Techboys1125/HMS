@@ -21,44 +21,11 @@ import {
   ExternalLink,
   User,
 } from "lucide-react";
+import type { FamilyMember } from "../types/family.types";
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
 
-export type FamilyMember = {
-  id: string;
-  patientName: string;
-  mrn: string;
-  relationship:
-    | "Self"
-    | "Mother"
-    | "Father"
-    | "Spouse"
-    | "Son"
-    | "Daughter"
-    | "Brother"
-    | "Sister"
-    | "Grandfather"
-    | "Grandmother"
-    | "Guardian"
-    | "Other";
-  age: number;
-  gender: "Male" | "Female" | "Other";
-  bloodGroup?: string;
-  knownAllergies?: string[];
-  registeredMobile: string;
-  verificationStatus: "Verified" | "Pending" | "Inactive";
-  patientStatus: "Active" | "Inactive";
-  lastAppointment: string;
-  avatarBg?: string;
-  upcomingAppointmentsCount: number;
-  pendingBillsCount: number;
-  pendingBillsAmount: number;
-  activePrescriptionsCount: number;
-  lastConsultationDate?: string;
-  primaryDoctor?: string;
-  latestBillId?: string;
-  latestBillAmount?: number;
-};
+export type { FamilyMember } from "../types/family.types";
 
 export type LinkActivity = {
   id: string;
@@ -75,8 +42,15 @@ type FilterState = {
   relFilter: string;
   statusFilter: string;
 };
-type FilterAction = { type: "SET_FIELD"; field: keyof FilterState; value: string };
-const filterReducer = (state: FilterState, action: FilterAction): FilterState => ({
+type FilterAction = {
+  type: "SET_FIELD";
+  field: keyof FilterState;
+  value: string;
+};
+const filterReducer = (
+  state: FilterState,
+  action: FilterAction,
+): FilterState => ({
   ...state,
   [action.field]: action.value,
 });
@@ -169,6 +143,8 @@ interface FamilyMembersManagementProps {
   ) => void;
 }
 
+
+
 export function FamilyMembersManagement({
   familyMembers = [],
   activeFamilyMember = familyMembers[0],
@@ -236,9 +212,11 @@ export function FamilyMembersManagement({
       m.mrn.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
       m.relationship.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
       m.registeredMobile.includes(filters.searchTerm);
-    const matchesRel = filters.relFilter === "All" || m.relationship === filters.relFilter;
+    const matchesRel =
+      filters.relFilter === "All" || m.relationship === filters.relFilter;
     const matchesStatus =
-      filters.statusFilter === "All" || m.verificationStatus === filters.statusFilter;
+      filters.statusFilter === "All" ||
+      m.verificationStatus === filters.statusFilter;
     return matchesSearch && matchesRel && matchesStatus;
   });
 
@@ -727,7 +705,13 @@ export function FamilyMembersManagement({
                           {/* Remove Link */}
                           {m.relationship !== "Self" && (
                             <button
-                              onClick={() => drawerDispatch({ type: "OPEN_REMOVE_DIALOG", member: m, fromDrawer: false })}
+                              onClick={() =>
+                                drawerDispatch({
+                                  type: "OPEN_REMOVE_DIALOG",
+                                  member: m,
+                                  fromDrawer: false,
+                                })
+                              }
                               className="p-1.5 rounded-lg text-[#64748B] hover:text-[#EF4444] hover:bg-red-50 transition-colors"
                               title="Remove Link"
                             >
@@ -1514,27 +1498,33 @@ export function FamilyMembersManagement({
 
             {/* FOOTER BUTTONS */}
             <div className="flex items-center justify-end gap-3 pt-2 border-t border-[#E5E7EB]">
-                <button
-                  onClick={() => {
-                    drawerDispatch({ type: "CLOSE_REMOVE_DIALOG" });
-                  }}
-                  className="px-4 py-2 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-colors"
-                  style={{ fontFamily: PP }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    const name = removeDialogMember.patientName;
-                    onRemoveFamilyMember?.(removeDialogMember.id);
-                    drawerDispatch({ type: "CLOSE_REMOVE_DIALOG" });
-                    if (removeFromDrawer) {
-                      drawerDispatch({ type: "CLOSE_VIEW_DRAWER" });
-                    }
-                    drawerDispatch({ type: "SHOW_TOAST", message: `Family member ${name} removed successfully.` });
-                    setTimeout(() => drawerDispatch({ type: "CLEAR_TOAST" }), 3000);
-                  }}
-                className="px-5 py-2 bg-[#EF4444] text-white rounded-xl text-xs font-semibold hover:bg-red-600 transition-colors shadow-sm flex items-center gap-1.5"
+              <button
+                onClick={() => {
+                  drawerDispatch({ type: "CLOSE_REMOVE_DIALOG" });
+                }}
+                className="px-4 py-2 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-colors"
+                style={{ fontFamily: PP }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const name = removeDialogMember.patientName;
+                  onRemoveFamilyMember?.(removeDialogMember.id);
+                  drawerDispatch({ type: "CLOSE_REMOVE_DIALOG" });
+                  if (removeFromDrawer) {
+                    drawerDispatch({ type: "CLOSE_VIEW_DRAWER" });
+                  }
+                  drawerDispatch({
+                    type: "SHOW_TOAST",
+                    message: `Family member ${name} removed successfully.`,
+                  });
+                  setTimeout(
+                    () => drawerDispatch({ type: "CLEAR_TOAST" }),
+                    3000,
+                  );
+                }}
+                className="px-5 py-2 bg-[#EF4444] text-white rounded-xl text-xs font-semibold hover:bg-red-600 transition-all shadow-sm flex items-center gap-1.5"
                 style={{ fontFamily: PP }}
               >
                 <UserX size={14} />

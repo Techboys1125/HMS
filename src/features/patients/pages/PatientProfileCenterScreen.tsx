@@ -15,7 +15,10 @@ import { PP, RB } from "../constants/patient.fonts";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { PatientSearchScreen } from "./PatientSearchScreen";
 
-interface ActivePatientProfile extends Omit<Patient, "emergencyContact"> {
+interface ActivePatientProfile extends Omit<
+  Patient,
+  "emergencyContact" | "registeredMobile"
+> {
   patientName?: string;
   registeredMobile?: string;
   emergencyContact?: {
@@ -93,10 +96,7 @@ export function PatientProfileCenterScreen({
           "Patient",
       ),
       patientId: String(
-        activePatient?.mrn ||
-          activePatient?.id ||
-          user?.mrn ||
-          "Generating...",
+        activePatient?.mrn || activePatient?.id || user?.mrn || "Generating...",
       ),
       email: String(
         custom.email ||

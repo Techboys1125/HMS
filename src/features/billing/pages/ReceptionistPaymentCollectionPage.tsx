@@ -290,7 +290,7 @@ export function ReceptionistPaymentCollectionPage() {
             </div>
 
             {/* INVOICE LIST */}
-            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+            <div className="space-y-2 max-h-100 overflow-y-auto">
               {isLoading ? (
                 <div className="py-8 text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0D47A1] mx-auto mb-2" />

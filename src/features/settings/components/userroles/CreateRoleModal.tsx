@@ -65,9 +65,7 @@ export function CreateRoleModal({ onClose }: CreateRoleModalProps) {
           </button>
         </div>
 
-        <div
-          style={{ display: "flex", flexDirection: "column", gap: "14px" }}
-        >
+        <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
           <div>
             <label
               style={{

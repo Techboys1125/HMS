@@ -90,12 +90,15 @@ export function AppointmentsTab({
       ) : (
         <div className="space-y-2">
           {filtered.map((appt) => {
-            const rawPatient = appt.patientName ?? (appt as unknown as Record<string, unknown>).name;
+            const rawPatient =
+              appt.patientName ??
+              (appt as unknown as Record<string, unknown>).name;
             const pName =
               typeof rawPatient === "string"
                 ? rawPatient
                 : rawPatient && typeof rawPatient === "object"
-                  ? (rawPatient as { fullName?: string; name?: string }).fullName ||
+                  ? (rawPatient as { fullName?: string; name?: string })
+                      .fullName ||
                     (rawPatient as { fullName?: string; name?: string }).name ||
                     "Patient"
                   : "Patient";

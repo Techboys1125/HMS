@@ -39,6 +39,10 @@ export interface NursePreparationStatus {
 }
 
 export interface NurseQueuePatient {
+  queueStatus: string;
+  status: string;
+  vitalsRecorded: boolean;
+  departmentName: string;
   token: string;
   appointmentId: string;
   patientId: string;
@@ -52,6 +56,7 @@ export interface NurseQueuePatient {
 }
 
 export interface NurseQueue {
+  content: NurseQueuePatient[];
   waitingForVitals: number;
   patients: NurseQueuePatient[];
   page: number;
@@ -61,6 +66,7 @@ export interface NurseQueue {
 }
 
 export interface NurseDoctorAssistance {
+  doctorAssistances: number;
   doctorsAssistedToday: number;
   patientsPrepared: number;
   averagePreparationMinutes: number;
@@ -546,8 +552,15 @@ export interface PatientDashboardData {
   summary: {
     upcomingAppointment: unknown;
     activePrescriptions: { count: number };
-    outstandingBills: { amount: number; currency: string; pendingCount: number };
-    completedConsultations: { count: number; lastConsultationDate: string | null };
+    outstandingBills: {
+      amount: number;
+      currency: string;
+      pendingCount: number;
+    };
+    completedConsultations: {
+      count: number;
+      lastConsultationDate: string | null;
+    };
     healthNotifications: {
       unreadCount: number;
       reminderCount: number;
@@ -597,6 +610,7 @@ export interface PatientDashboardAppointments {
 }
 
 export interface PatientTimelineItem {
+  time: string;
   appointmentId: string;
   doctorName: string;
   specialty: string;

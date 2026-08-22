@@ -34,7 +34,6 @@ import {
   Tooltip,
 } from "../../../common/components/recharts-lazy";
 
-
 const PP = "Poppins, system-ui, sans-serif";
 const RB = "Roboto, system-ui, sans-serif";
 
@@ -124,6 +123,16 @@ function DKpi({
 
 type ChipVariant =
   "success" | "warning" | "error" | "info" | "teal" | "default";
+
+type DashboardRecord = Record<string, unknown> & {
+  prescriptionId?: string | number;
+  id?: string | number;
+  items?: unknown[];
+  billId?: string | number;
+  billNumber?: string | number;
+  invoiceId?: string | number;
+};
+
 function Chip({
   label,
   variant = "default",
@@ -231,6 +240,8 @@ const PAT_QUICK_ACTIONS = [
   { label: "Update Profile", Icon: User, color: "#64748B", action: "profile" },
 ];
 
+import type { FamilyMember } from "../../patients/types/family.types";
+
 export function PatientDashboard({
   onBookAppointmentClick,
   onViewBillsClick,
@@ -243,30 +254,9 @@ export function PatientDashboard({
   onBookAppointmentClick?: () => void;
   onViewBillsClick?: () => void;
   onNavigateNav?: (nav: string) => void;
-  activePatient?: {
-    id?: number | string;
-    mrn?: string;
-    name?: string;
-    patientName?: string;
-    relationship?: string;
-    fullName?: string;
-  } | null;
-  familyMembers?: {
-    id?: number | string;
-    mrn?: string;
-    name?: string;
-    patientName?: string;
-    fullName?: string;
-    relationship?: string;
-  }[];
-  onSwitchPatient?: (member: {
-    id?: number | string;
-    mrn?: string;
-    name?: string;
-    patientName?: string;
-    fullName?: string;
-    relationship?: string;
-  }) => void;
+  activePatient?: FamilyMember | null;
+  familyMembers?: FamilyMember[];
+  onSwitchPatient?: (member: FamilyMember) => void;
   onAddFamilyMember?: () => void;
 }) {
   const dashboardQuery = usePatientDashboard();
@@ -283,7 +273,11 @@ export function PatientDashboard({
   const unreadCount = unreadQuery.data?.count ?? 0;
 
   const upcomingApt = appointments.find(
-    (a) => a.status === "SCHEDULED" || a.status === "Confirmed" || a.status === "BOOKED" || a.status === "Booked",
+    (a) =>
+      a.status === "SCHEDULED" ||
+      a.status === "Confirmed" ||
+      a.status === "BOOKED" ||
+      a.status === "Booked",
   );
 
   const upcomingStr = nextVisit
@@ -313,8 +307,14 @@ export function PatientDashboard({
     if (!dashboard?.billingSummary) return [];
     const bs = dashboard.billingSummary;
     const items: { name: string; amount: number; color: string }[] = [];
-    if (bs.pendingAmount > 0) items.push({ name: "Pending", amount: bs.pendingAmount, color: "#F59E0B" });
-    if (bs.paidAmount > 0) items.push({ name: "Paid", amount: bs.paidAmount, color: "#66BB6A" });
+    if (bs.pendingAmount > 0)
+      items.push({
+        name: "Pending",
+        amount: bs.pendingAmount,
+        color: "#F59E0B",
+      });
+    if (bs.paidAmount > 0)
+      items.push({ name: "Paid", amount: bs.paidAmount, color: "#66BB6A" });
     return items;
   }, [dashboard]);
 
@@ -439,10 +439,14 @@ export function PatientDashboard({
         <DKpi
           title="Active Prescriptions"
           value={String(prescriptions?.active ?? 0)}
-          sub={prescriptionQuery.isLoading ? "Loading..." : "Active medications"}
+          sub={
+            prescriptionQuery.isLoading ? "Loading..." : "Active medications"
+          }
           trend="--"
           up={true}
-          data={prescriptionSummaryData.slice(0, 3).map((p) => ({ v: p.count }))}
+          data={prescriptionSummaryData
+            .slice(0, 3)
+            .map((p) => ({ v: p.count }))}
           color="#009688"
           gid="pt2"
           Icon={Pill}
@@ -454,9 +458,21 @@ export function PatientDashboard({
               ? `₹${(dashboard.billingSummary.pendingAmount ?? 0).toLocaleString()}`
               : "₹0"
           }
-          sub={dashboardQuery.isLoading ? "Loading..." : `${dashboard?.billingSummary?.pendingInvoiceCount ?? 0} pending`}
-          trend={dashboard && dashboard.billingSummary?.pendingAmount > 0 ? "Action Required" : "All Clear"}
-          up={dashboard ? (dashboard.billingSummary?.pendingAmount ?? 0) === 0 : true}
+          sub={
+            dashboardQuery.isLoading
+              ? "Loading..."
+              : `${dashboard?.billingSummary?.pendingInvoiceCount ?? 0} pending`
+          }
+          trend={
+            dashboard && dashboard.billingSummary?.pendingAmount > 0
+              ? "Action Required"
+              : "All Clear"
+          }
+          up={
+            dashboard
+              ? (dashboard.billingSummary?.pendingAmount ?? 0) === 0
+              : true
+          }
           data={[{ v: dashboard?.billingSummary?.pendingAmount ?? 0 }]}
           color="#F59E0B"
           gid="pt3"
@@ -507,7 +523,7 @@ export function PatientDashboard({
             {appointments.length > 0 ? (
               appointments.map((item) => (
                 <div
-                  key={item.appointmentId || `apt-${item.date}-${item.time}`}
+                  key={item.appointmentId || `apt-${item.appointmentDate}-${item.appointmentTime}`}
                   className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-slate-50 hover:bg-white transition-colors"
                 >
                   <div className="flex items-center gap-3">
@@ -537,13 +553,18 @@ export function PatientDashboard({
                   </div>
                   <Chip
                     label={item.displayStatus || item.status}
-                    variant={PAT_STATUS_CHIP[item.displayStatus || item.status] || "default"}
+                    variant={
+                      PAT_STATUS_CHIP[item.displayStatus || item.status] ||
+                      "default"
+                    }
                   />
                 </div>
               ))
             ) : (
               <div className="text-center text-xs text-[#64748B] py-4">
-                {appointmentsQuery.isLoading ? "Loading appointments..." : "No appointments found"}
+                {appointmentsQuery.isLoading
+                  ? "Loading appointments..."
+                  : "No appointments found"}
               </div>
             )}
           </div>
@@ -551,7 +572,8 @@ export function PatientDashboard({
             className="mt-3 pt-2 border-t border-gray-50 text-xs text-[#64748B] text-center"
             style={{ fontFamily: RB }}
           >
-            Next Visit: <span className="font-semibold text-[#0D47A1]">{upcomingStr}</span>
+            Next Visit:{" "}
+            <span className="font-semibold text-[#0D47A1]">{upcomingStr}</span>
           </div>
         </div>
 
@@ -722,7 +744,10 @@ export function PatientDashboard({
             style={{ fontFamily: RB }}
           >
             {dashboard?.billingSummary?.currency === "INR" ? "₹" : "$"}
-            {(dashboard?.billingSummary?.pendingAmount ?? 0).toLocaleString()} Pending ·{" "}
+            {(
+              dashboard?.billingSummary?.pendingAmount ?? 0
+            ).toLocaleString()}{" "}
+            Pending ·{" "}
             {(dashboard?.billingSummary?.paidAmount ?? 0).toLocaleString()} Paid
           </div>
         </div>
@@ -776,42 +801,58 @@ export function PatientDashboard({
             </thead>
             <tbody className="divide-y divide-gray-50">
               {(dashboard?.recentPrescriptions?.length ?? 0) > 0 ? (
-                (dashboard.recentPrescriptions as Record<string, unknown>[]).map((rx) => (
-                  <tr
-                    key={rx.prescriptionId || rx.id || `rx-${rx.date}-${rx.patientName}`}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                      {String(rx.prescriptionId || rx.prescriptionNumber || rx.id || `RX-${idx + 1}`)}
-                    </td>
-                    <td
-                      className="px-5 py-3 text-xs font-medium text-[#111827]"
-                      style={{ fontFamily: RB }}
+                (dashboard.recentPrescriptions as DashboardRecord[]).map(
+                  (rx, idx) => (
+                    <tr
+                      key={rx.prescriptionId || rx.id || idx}
+                      className="hover:bg-slate-50 transition-colors"
                     >
-                      {String(rx.doctorName || rx.doctor || "N/A")}
-                    </td>
-                    <td className="px-5 py-3 font-mono text-xs text-slate-500">
-                      {String(rx.issuedAt || rx.createdAt || rx.date || "--")}
-                    </td>
-                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
-                      {Number(rx.medicinesCount ?? rx.medsCount ?? rx.items?.length ?? 0)} Medicines
-                    </td>
-                    <td className="px-5 py-3">
-                      <Chip
-                        label={String(rx.status || "Active")}
-                        variant={PAT_STATUS_CHIP[String(rx.status || "Active")] || "success"}
-                      />
-                    </td>
-                    <td className="px-5 py-3">
-                      <button
-                        className="px-3 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-100 transition-colors"
-                        style={{ fontFamily: PP }}
+                      <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                        {String(
+                          rx.prescriptionId ||
+                            rx.prescriptionNumber ||
+                            rx.id ||
+                            `RX-${idx + 1}`,
+                        )}
+                      </td>
+                      <td
+                        className="px-5 py-3 text-xs font-medium text-[#111827]"
+                        style={{ fontFamily: RB }}
                       >
-                        View Prescription
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                        {String(rx.doctorName || rx.doctor || "N/A")}
+                      </td>
+                      <td className="px-5 py-3 font-mono text-xs text-slate-500">
+                        {String(rx.issuedAt || rx.createdAt || rx.date || "--")}
+                      </td>
+                      <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
+                        {Number(
+                          rx.medicinesCount ??
+                            rx.medsCount ??
+                            rx.items?.length ??
+                            0,
+                        )}{" "}
+                        Medicines
+                      </td>
+                      <td className="px-5 py-3">
+                        <Chip
+                          label={String(rx.status || "Active")}
+                          variant={
+                            PAT_STATUS_CHIP[String(rx.status || "Active")] ||
+                            "success"
+                          }
+                        />
+                      </td>
+                      <td className="px-5 py-3">
+                        <button
+                          className="px-3 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-100 transition-colors"
+                          style={{ fontFamily: PP }}
+                        >
+                          View Prescription
+                        </button>
+                      </td>
+                    </tr>
+                  ),
+                )
               ) : (
                 <tr>
                   <td
@@ -876,19 +917,24 @@ export function PatientDashboard({
             </thead>
             <tbody className="divide-y divide-gray-50">
               {(dashboard?.recentBills?.length ?? 0) > 0 ? (
-                (dashboard.recentBills as Record<string, unknown>[]).map((b) => (
+                (dashboard.recentBills as Record<string, unknown>[]).map((b, idx) => (
                   <tr
-                    key={b.billId || b.billNumber || b.invoiceId || `bill-${b.billDate}-${b.patientName}`}
+                    key={String(b.billId || b.billNumber || b.invoiceId || `bill-${idx}`)}
                     className="hover:bg-slate-50 transition-colors"
                   >
                     <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                      {String(b.billNumber || b.invoiceId || b.invoice || `BILL-${idx + 1}`)}
+                      {String(
+                        b.billNumber ||
+                          b.invoiceId ||
+                          b.invoice ||
+                          `BILL-${idx + 1}`,
+                      )}
                     </td>
                     <td className="px-5 py-3 font-mono text-xs text-slate-500">
                       {String(b.billDate || b.generatedAt || b.date || "--")}
                     </td>
                     <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
-                      ₹{(Number(b.netAmount ?? b.amount ?? 0)).toLocaleString()}
+                      ₹{Number(b.netAmount ?? b.amount ?? 0).toLocaleString()}
                     </td>
                     <td className="px-5 py-3">
                       <Chip
@@ -896,7 +942,8 @@ export function PatientDashboard({
                         variant={
                           String(b.paymentStatus || b.status || "") === "PAID"
                             ? "success"
-                            : String(b.paymentStatus || b.status || "") === "PARTIALLY_PAID"
+                            : String(b.paymentStatus || b.status || "") ===
+                                "PARTIALLY_PAID"
                               ? "info"
                               : "warning"
                         }

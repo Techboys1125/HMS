@@ -4,11 +4,16 @@ import { receptionDashboardApi } from "../api/receptionDashboard.api";
 const receptionKeys = {
   all: ["reception-dashboard"] as const,
   summary: () => [...receptionKeys.all, "summary"] as const,
-  registrationTrend: () => [...receptionKeys.all, "registration-trend"] as const,
-  appointmentStatus: () => [...receptionKeys.all, "appointment-status"] as const,
-  patientsByDepartment: () => [...receptionKeys.all, "patients-by-department"] as const,
-  registrationCategories: () => [...receptionKeys.all, "registration-categories"] as const,
-  performanceSummary: () => [...receptionKeys.all, "performance-summary"] as const,
+  registrationTrend: () =>
+    [...receptionKeys.all, "registration-trend"] as const,
+  appointmentStatus: () =>
+    [...receptionKeys.all, "appointment-status"] as const,
+  patientsByDepartment: () =>
+    [...receptionKeys.all, "patients-by-department"] as const,
+  registrationCategories: () =>
+    [...receptionKeys.all, "registration-categories"] as const,
+  performanceSummary: () =>
+    [...receptionKeys.all, "performance-summary"] as const,
 };
 
 export function useReceptionSummary() {

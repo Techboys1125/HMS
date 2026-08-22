@@ -14,24 +14,18 @@ import type {
   InvoiceSummaryData,
   OperationalTrendPoint,
   PatientRegistrationSummary,
-  PatientRegistrationDetail,
   RevenueVsCollectionPoint,
   DailyRevenuePoint,
   DailyRevenueDetail,
   ReportCategoryShare,
   MostViewedReport,
   PatientAgeDemographics,
-  PatientDashboardData,
   DepartmentPatientVisit,
-  DoctorPatientWorkload,
   GenderBreakdownData,
   PatientMasterRecord,
-  RegistrationTrendData,
   DoctorDailyAppointmentsAnalyticsData,
   DoctorDailyAppointmentsDashboardData,
   DoctorDailyAppointmentRegisterResponse,
-  DoctorPatientAnalyticsData,
-  DoctorPatientReportDashboardData,
   DoctorPatientRegisterResponse,
   AccountantMainReportData,
   AccountantBillingAnalysisData,
@@ -39,19 +33,17 @@ import type {
   AccountantRefundLogData,
   AccountantRevenueReportData,
   AccountantTransactionRegisterResponse,
-  ReceptionDashboardData,
-  ReceptionRegistrationTrendData,
-  ReceptionAppointmentStatusData,
-  ReceptionCheckinAnalyticsData,
-  ReceptionQueuePerformanceData,
-  ReceptionRegisterResponse,
-  ReceptionActivityLogResponse,
-  ReceptionSummaryData,
+  DoctorPatientWorkload,
 } from "../types/reports.types";
 
 function unwrap<T>(response: { data: ApiEnvelope<T> | T }): T {
   const body = response.data;
-  if (body && typeof body === "object" && "data" in body && (body as { data: unknown }).data !== undefined) {
+  if (
+    body &&
+    typeof body === "object" &&
+    "data" in body &&
+    (body as { data: unknown }).data !== undefined
+  ) {
     return (body as ApiEnvelope<T>).data;
   }
   return body as T;
@@ -81,12 +73,17 @@ export function extractList<T>(data: unknown): T[] {
   return [];
 }
 
-function buildQuery(params: Record<string, string | number | undefined>): string {
+function buildQuery(
+  params: Record<string, string | number | undefined>,
+): string {
   const entries = Object.entries(params).filter(
     ([, v]) => v !== undefined && v !== "",
   );
   if (entries.length === 0) return "";
-  return "?" + entries.map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
+  return (
+    "?" +
+    entries.map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&")
+  );
 }
 
 export interface ReportFilters {
@@ -146,9 +143,9 @@ export async function fetchDailyAppointmentDetails(
     page: filters?.page ?? 0,
     size: filters?.size ?? 10,
   });
-  const res = await apiClient.get<ApiEnvelope<PaginatedData<DailyAppointmentDetail>>>(
-    `/api/v1/admin/reports/hospital/appointments/daily/details${qs}`,
-  );
+  const res = await apiClient.get<
+    ApiEnvelope<PaginatedData<DailyAppointmentDetail>>
+  >(`/api/v1/admin/reports/hospital/appointments/daily/details${qs}`);
   return unwrap(res);
 }
 
@@ -197,23 +194,6 @@ export async function fetchDepartmentConsultationVolume(
   return unwrapArray(res);
 }
 
-// ─── 7. Doctor Performance (Hospital alias) ─────────────────────────────────
-
-export async function fetchHospitalDoctorPerformance(
-  filters?: ReportFilters,
-): Promise<DoctorPerformanceSummaryData> {
-  const qs = buildQuery({
-    fromDate: filters?.fromDate,
-    toDate: filters?.toDate,
-    page: filters?.page ?? 0,
-    size: filters?.size ?? 20,
-  });
-  const res = await apiClient.get<ApiEnvelope<DoctorPerformanceSummaryData>>(
-    `/api/v1/admin/reports/hospital/doctors/performance${qs}`,
-  );
-  return unwrap(res);
-}
-
 // ─── 8. Invoice Register Detail ─────────────────────────────────────────────
 
 export async function fetchInvoiceRegister(
@@ -225,9 +205,9 @@ export async function fetchInvoiceRegister(
     page: filters?.page ?? 0,
     size: filters?.size ?? 10,
   });
-  const res = await apiClient.get<ApiEnvelope<PaginatedData<InvoiceRegisterRecord>>>(
-    `/api/v1/admin/reports/hospital/invoices${qs}`,
-  );
+  const res = await apiClient.get<
+    ApiEnvelope<PaginatedData<InvoiceRegisterRecord>>
+  >(`/api/v1/admin/reports/hospital/invoices${qs}`);
   return unwrap(res);
 }
 
@@ -276,23 +256,6 @@ export async function fetchPatientRegistrationSummary(
   return unwrap(res);
 }
 
-// ─── 12. Patient Registration Detail ────────────────────────────────────────
-
-export async function fetchPatientRegistrationDetails(
-  filters?: ReportFilters,
-): Promise<PaginatedData<PatientRegistrationDetail>> {
-  const qs = buildQuery({
-    fromDate: filters?.fromDate,
-    toDate: filters?.toDate,
-    page: filters?.page ?? 0,
-    size: filters?.size ?? 10,
-  });
-  const res = await apiClient.get<ApiEnvelope<PaginatedData<PatientRegistrationDetail>>>(
-    `/api/v1/admin/reports/hospital/patient-registrations/details${qs}`,
-  );
-  return unwrap(res);
-}
-
 // ─── 13. Revenue vs Collection ──────────────────────────────────────────────
 
 export async function fetchRevenueVsCollection(
@@ -334,15 +297,17 @@ export async function fetchDailyRevenueDetails(
     page: filters?.page ?? 0,
     size: filters?.size ?? 10,
   });
-  const res = await apiClient.get<ApiEnvelope<PaginatedData<DailyRevenueDetail>>>(
-    `/api/v1/admin/reports/hospital/revenue/daily/details${qs}`,
-  );
+  const res = await apiClient.get<
+    ApiEnvelope<PaginatedData<DailyRevenueDetail>>
+  >(`/api/v1/admin/reports/hospital/revenue/daily/details${qs}`);
   return unwrap(res);
 }
 
 // ─── 16. Report Category Share ──────────────────────────────────────────────
 
-export async function fetchReportCategoryShare(): Promise<ReportCategoryShare[]> {
+export async function fetchReportCategoryShare(): Promise<
+  ReportCategoryShare[]
+> {
   const res = await apiClient.get<ApiEnvelope<ReportCategoryShare[]>>(
     `/api/v1/admin/reports/usage/category-share`,
   );
@@ -373,21 +338,6 @@ export async function fetchPatientAgeDemographics(
   return unwrap(res);
 }
 
-// ─── 19. Patient Dashboard ──────────────────────────────────────────────────
-
-export async function fetchPatientDashboard(
-  filters?: ReportFilters,
-): Promise<PatientDashboardData> {
-  const qs = buildQuery({
-    fromDate: filters?.fromDate,
-    toDate: filters?.toDate,
-  });
-  const res = await apiClient.get<ApiEnvelope<PatientDashboardData>>(
-    `/api/v1/admin/reports/hospital/patients/dashboard${qs}`,
-  );
-  return unwrap(res);
-}
-
 // ─── 20. Department Patient Visits ──────────────────────────────────────────
 
 export async function fetchDepartmentPatientVisits(
@@ -399,21 +349,6 @@ export async function fetchDepartmentPatientVisits(
   });
   const res = await apiClient.get<ApiEnvelope<DepartmentPatientVisit[]>>(
     `/api/v1/admin/reports/hospital/patients/department-visits${qs}`,
-  );
-  return unwrapArray(res);
-}
-
-// ─── 21. Doctor Patient Workload ────────────────────────────────────────────
-
-export async function fetchDoctorPatientWorkload(
-  filters?: ReportFilters,
-): Promise<DoctorPatientWorkload[]> {
-  const qs = buildQuery({
-    fromDate: filters?.fromDate,
-    toDate: filters?.toDate,
-  });
-  const res = await apiClient.get<ApiEnvelope<DoctorPatientWorkload[]>>(
-    `/api/v1/admin/reports/hospital/patients/doctor-workload${qs}`,
   );
   return unwrapArray(res);
 }
@@ -444,21 +379,9 @@ export async function fetchPatientMasterRegister(
     page: filters?.page ?? 0,
     size: filters?.size ?? 10,
   });
-  const res = await apiClient.get<ApiEnvelope<PaginatedData<PatientMasterRecord>>>(
-    `/api/v1/admin/reports/hospital/patients/register${qs}`,
-  );
-  return unwrap(res);
-}
-
-// ─── 24. Patient Registration Trend ─────────────────────────────────────────
-
-export async function fetchPatientRegistrationTrend(
-  period?: string,
-): Promise<RegistrationTrendData> {
-  const qs = period ? `?period=${encodeURIComponent(period)}` : "";
-  const res = await apiClient.get<ApiEnvelope<RegistrationTrendData>>(
-    `/api/v1/admin/reports/hospital/patients/registration-trend${qs}`,
-  );
+  const res = await apiClient.get<
+    ApiEnvelope<PaginatedData<PatientMasterRecord>>
+  >(`/api/v1/admin/reports/hospital/patients/register${qs}`);
   return unwrap(res);
 }
 
@@ -475,45 +398,6 @@ export async function fetchAdminReportsDashboard(
     `/api/v1/admin/reports/dashboard${qs}`,
   );
   return unwrap(res);
-}
-
-export async function fetchAdminAppointmentsReport(
-  filters?: ReportFilters,
-): Promise<DailyAppointmentSummary[]> {
-  const qs = buildQuery({
-    fromDate: filters?.fromDate,
-    toDate: filters?.toDate,
-  });
-  const res = await apiClient.get<ApiEnvelope<DailyAppointmentSummary[]>>(
-    `/api/v1/admin/reports/appointments${qs}`,
-  );
-  return unwrapArray(res);
-}
-
-export async function fetchAdminPatientsReport(
-  filters?: ReportFilters,
-): Promise<PatientDashboardData> {
-  const qs = buildQuery({
-    fromDate: filters?.fromDate,
-    toDate: filters?.toDate,
-  });
-  const res = await apiClient.get<ApiEnvelope<PatientDashboardData>>(
-    `/api/v1/admin/reports/patients${qs}`,
-  );
-  return unwrap(res);
-}
-
-export async function fetchAdminDepartmentConsultations(
-  filters?: ReportFilters,
-): Promise<DepartmentConsultationVolume[]> {
-  const qs = buildQuery({
-    fromDate: filters?.fromDate,
-    toDate: filters?.toDate,
-  });
-  const res = await apiClient.get<ApiEnvelope<DepartmentConsultationVolume[]>>(
-    `/api/v1/admin/reports/departments/consultations${qs}`,
-  );
-  return unwrapArray(res);
 }
 
 // ─── Modern Collection Rate Reports ─────────────────────────────────────────
@@ -540,9 +424,9 @@ export async function fetchCollectionRateRegister(
     page: filters?.page ?? 0,
     size: filters?.size ?? 10,
   });
-  const res = await apiClient.get<ApiEnvelope<PaginatedData<InvoiceRegisterRecord>>>(
-    `/api/v1/admin/reports/collection-rate/register${qs}`,
-  );
+  const res = await apiClient.get<
+    ApiEnvelope<PaginatedData<InvoiceRegisterRecord>>
+  >(`/api/v1/admin/reports/collection-rate/register${qs}`);
   return unwrap(res);
 }
 
@@ -595,13 +479,17 @@ async function fetchBlob(path: string): Promise<Blob> {
   const response = await fetch(fullUrl, { headers });
 
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Request failed: ${response.status} ${response.statusText}`,
+    );
   }
 
   return await response.blob();
 }
 
-export async function exportCollectionRateExcel(filters?: ReportFilters): Promise<Blob> {
+export async function exportCollectionRateExcel(
+  filters?: ReportFilters,
+): Promise<Blob> {
   const qs = buildQuery({
     fromDate: filters?.fromDate,
     toDate: filters?.toDate,
@@ -609,7 +497,9 @@ export async function exportCollectionRateExcel(filters?: ReportFilters): Promis
   return fetchBlob(`/api/v1/admin/reports/collection-rate/export/excel${qs}`);
 }
 
-export async function exportCollectionRatePdf(filters?: ReportFilters): Promise<Blob> {
+export async function exportCollectionRatePdf(
+  filters?: ReportFilters,
+): Promise<Blob> {
   const qs = buildQuery({
     fromDate: filters?.fromDate,
     toDate: filters?.toDate,
@@ -643,9 +533,9 @@ export async function fetchDoctorActivities(
     page: filters?.page ?? 0,
     size: filters?.size ?? 10,
   });
-  const res = await apiClient.get<ApiEnvelope<PaginatedData<DailyAppointmentDetail>>>(
-    `/api/v1/admin/reports/doctors/${doctorId}/activities${qs}`,
-  );
+  const res = await apiClient.get<
+    ApiEnvelope<PaginatedData<DailyAppointmentDetail>>
+  >(`/api/v1/admin/reports/doctors/${doctorId}/activities${qs}`);
   return unwrap(res);
 }
 
@@ -690,26 +580,32 @@ export async function fetchDoctorConsultationStatus(
 
 export async function fetchDoctorConsultationTrend(
   filters?: ReportFilters,
-): Promise<RegistrationTrendData> {
+): Promise<OperationalTrendPoint[]> {
   const qs = buildQuery({
     fromDate: filters?.fromDate,
     toDate: filters?.toDate,
   });
-  const res = await apiClient.get<ApiEnvelope<RegistrationTrendData>>(
+  const res = await apiClient.get<ApiEnvelope<OperationalTrendPoint[]>>(
     `/api/v1/admin/reports/doctors/consultation-trend${qs}`,
   );
-  return unwrap(res);
+  return unwrapArray(res);
 }
 
-export async function exportDoctorPerformanceExcel(filters?: ReportFilters): Promise<Blob> {
+export async function exportDoctorPerformanceExcel(
+  filters?: ReportFilters,
+): Promise<Blob> {
   const qs = buildQuery({
     fromDate: filters?.fromDate,
     toDate: filters?.toDate,
   });
-  return fetchBlob(`/api/v1/admin/reports/doctors/performance/export/excel${qs}`);
+  return fetchBlob(
+    `/api/v1/admin/reports/doctors/performance/export/excel${qs}`,
+  );
 }
 
-export async function exportDoctorPerformancePdf(filters?: ReportFilters): Promise<Blob> {
+export async function exportDoctorPerformancePdf(
+  filters?: ReportFilters,
+): Promise<Blob> {
   const qs = buildQuery({
     fromDate: filters?.fromDate,
     toDate: filters?.toDate,
@@ -717,12 +613,16 @@ export async function exportDoctorPerformancePdf(filters?: ReportFilters): Promi
   return fetchBlob(`/api/v1/admin/reports/doctors/performance/export/pdf${qs}`);
 }
 
-export async function exportDoctorPerformanceRegisterExcel(filters?: ReportFilters): Promise<Blob> {
+export async function exportDoctorPerformanceRegisterExcel(
+  filters?: ReportFilters,
+): Promise<Blob> {
   const qs = buildQuery({
     fromDate: filters?.fromDate,
     toDate: filters?.toDate,
   });
-  return fetchBlob(`/api/v1/admin/reports/doctors/performance/register/export/excel${qs}`);
+  return fetchBlob(
+    `/api/v1/admin/reports/doctors/performance/register/export/excel${qs}`,
+  );
 }
 
 // ─── Doctor Personal Practice Reports APIs (/api/v1/doctors/me/reports/**) ──
@@ -735,9 +635,9 @@ export async function fetchDoctorSelfDailyAppointmentsAnalytics(params?: {
     date: params?.date,
     period: params?.period,
   });
-  const res = await apiClient.get<ApiEnvelope<DoctorDailyAppointmentsAnalyticsData>>(
-    `/api/v1/doctors/me/reports/daily-appointments/analytics${qs}`,
-  );
+  const res = await apiClient.get<
+    ApiEnvelope<DoctorDailyAppointmentsAnalyticsData>
+  >(`/api/v1/doctors/me/reports/daily-appointments/analytics${qs}`);
   return unwrap(res);
 }
 
@@ -745,9 +645,9 @@ export async function fetchDoctorSelfDailyAppointmentsDashboard(
   date?: string,
 ): Promise<DoctorDailyAppointmentsDashboardData> {
   const qs = buildQuery({ date });
-  const res = await apiClient.get<ApiEnvelope<DoctorDailyAppointmentsDashboardData>>(
-    `/api/v1/doctors/me/reports/daily-appointments/dashboard${qs}`,
-  );
+  const res = await apiClient.get<
+    ApiEnvelope<DoctorDailyAppointmentsDashboardData>
+  >(`/api/v1/doctors/me/reports/daily-appointments/dashboard${qs}`);
   return unwrap(res);
 }
 
@@ -761,39 +661,9 @@ export async function fetchDoctorSelfDailyAppointmentRegister(params?: {
     page: params?.page ?? 0,
     size: params?.size ?? 20,
   });
-  const res = await apiClient.get<ApiEnvelope<DoctorDailyAppointmentRegisterResponse>>(
-    `/api/v1/doctors/me/reports/daily-appointments/register${qs}`,
-  );
-  return unwrap(res);
-}
-
-export async function fetchDoctorSelfPatientAnalytics(params?: {
-  fromDate?: string;
-  toDate?: string;
-  period?: string;
-}): Promise<DoctorPatientAnalyticsData> {
-  const qs = buildQuery({
-    fromDate: params?.fromDate,
-    toDate: params?.toDate,
-    period: params?.period,
-  });
-  const res = await apiClient.get<ApiEnvelope<DoctorPatientAnalyticsData>>(
-    `/api/v1/doctors/me/reports/patients/analytics${qs}`,
-  );
-  return unwrap(res);
-}
-
-export async function fetchDoctorSelfPatientDashboard(params?: {
-  fromDate?: string;
-  toDate?: string;
-}): Promise<DoctorPatientReportDashboardData> {
-  const qs = buildQuery({
-    fromDate: params?.fromDate,
-    toDate: params?.toDate,
-  });
-  const res = await apiClient.get<ApiEnvelope<DoctorPatientReportDashboardData>>(
-    `/api/v1/doctors/me/reports/patients/dashboard${qs}`,
-  );
+  const res = await apiClient.get<
+    ApiEnvelope<DoctorDailyAppointmentRegisterResponse>
+  >(`/api/v1/doctors/me/reports/daily-appointments/register${qs}`);
   return unwrap(res);
 }
 
@@ -847,19 +717,6 @@ export async function fetchAccountantBillingAnalysis(params?: {
     `/api/v1/accountant/reports/billing${qs}`,
   );
   return unwrap(res);
-}
-
-export async function exportAccountantReportCsv(params?: {
-  fromDate?: string;
-  toDate?: string;
-  type?: string;
-}): Promise<Blob> {
-  const qs = buildQuery({
-    fromDate: params?.fromDate,
-    toDate: params?.toDate,
-    type: params?.type,
-  });
-  return fetchBlob(`/api/v1/accountant/reports/export/csv${qs}`);
 }
 
 export async function fetchAccountantPaymentCollection(params?: {
@@ -920,111 +777,8 @@ export async function fetchAccountantTransactionReport(params?: {
     page: params?.page ?? 0,
     size: params?.size ?? 10,
   });
-  const res = await apiClient.get<ApiEnvelope<AccountantTransactionRegisterResponse>>(
-    `/api/v1/accountant/reports/transactions${qs}`,
-  );
+  const res = await apiClient.get<
+    ApiEnvelope<AccountantTransactionRegisterResponse>
+  >(`/api/v1/accountant/reports/transactions${qs}`);
   return unwrap(res);
 }
-
-// ─── Reception Reports ─────────────────────────────────────────────────────
-
-export async function fetchReceptionDashboard(params?: {
-  date?: string;
-}): Promise<ReceptionDashboardData> {
-  const qs = buildQuery({ date: params?.date });
-  const res = await apiClient.get<ApiEnvelope<ReceptionDashboardData>>(
-    `/api/v1/reception/reports/dashboard${qs}`,
-  );
-  return unwrap(res);
-}
-
-export async function fetchReceptionRegistrationTrend(params?: {
-  fromDate?: string;
-  toDate?: string;
-}): Promise<ReceptionRegistrationTrendData> {
-  const qs = buildQuery({
-    fromDate: params?.fromDate,
-    toDate: params?.toDate,
-  });
-  const res = await apiClient.get<ApiEnvelope<ReceptionRegistrationTrendData>>(
-    `/api/v1/reception/reports/registration-trend${qs}`,
-  );
-  return unwrap(res);
-}
-
-export async function fetchReceptionAppointmentStatus(params?: {
-  date?: string;
-}): Promise<ReceptionAppointmentStatusData> {
-  const qs = buildQuery({ date: params?.date });
-  const res = await apiClient.get<ApiEnvelope<ReceptionAppointmentStatusData>>(
-    `/api/v1/reception/reports/appointment-status${qs}`,
-  );
-  return unwrap(res);
-}
-
-export async function fetchReceptionCheckinAnalytics(params?: {
-  date?: string;
-}): Promise<ReceptionCheckinAnalyticsData> {
-  const qs = buildQuery({ date: params?.date });
-  const res = await apiClient.get<ApiEnvelope<ReceptionCheckinAnalyticsData>>(
-    `/api/v1/reception/reports/checkin-analytics${qs}`,
-  );
-  return unwrap(res);
-}
-
-export async function fetchReceptionQueuePerformance(params?: {
-  date?: string;
-}): Promise<ReceptionQueuePerformanceData> {
-  const qs = buildQuery({ date: params?.date });
-  const res = await apiClient.get<ApiEnvelope<ReceptionQueuePerformanceData>>(
-    `/api/v1/reception/reports/queue-performance${qs}`,
-  );
-  return unwrap(res);
-}
-
-export async function fetchReceptionRegister(params?: {
-  fromDate?: string;
-  toDate?: string;
-  page?: number;
-  size?: number;
-}): Promise<ReceptionRegisterResponse> {
-  const qs = buildQuery({
-    fromDate: params?.fromDate,
-    toDate: params?.toDate,
-    page: params?.page ?? 0,
-    size: params?.size ?? 10,
-  });
-  const res = await apiClient.get<ApiEnvelope<ReceptionRegisterResponse>>(
-    `/api/v1/reception/reports/register${qs}`,
-  );
-  return unwrap(res);
-}
-
-export async function fetchReceptionActivityLog(params?: {
-  fromDate?: string;
-  toDate?: string;
-  page?: number;
-  size?: number;
-}): Promise<ReceptionActivityLogResponse> {
-  const qs = buildQuery({
-    fromDate: params?.fromDate,
-    toDate: params?.toDate,
-    page: params?.page ?? 0,
-    size: params?.size ?? 10,
-  });
-  const res = await apiClient.get<ApiEnvelope<ReceptionActivityLogResponse>>(
-    `/api/v1/reception/reports/activity-log${qs}`,
-  );
-  return unwrap(res);
-}
-
-export async function fetchReceptionSummary(params?: {
-  date?: string;
-}): Promise<ReceptionSummaryData> {
-  const qs = buildQuery({ date: params?.date });
-  const res = await apiClient.get<ApiEnvelope<ReceptionSummaryData>>(
-    `/api/v1/reception/reports/summary${qs}`,
-  );
-  return unwrap(res);
-}
-

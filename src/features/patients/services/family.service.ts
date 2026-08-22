@@ -11,7 +11,7 @@ import type {
 
 function mapApiToFamilyMember(api: ApiPatientFamilyMember): FamilyMember {
   return {
-    id: api.id || "",
+    id: api.id != null ? String(api.id) : "",
     name: api.name,
     fullName: api.name,
     patientName: api.name,
@@ -21,6 +21,15 @@ function mapApiToFamilyMember(api: ApiPatientFamilyMember): FamilyMember {
     isPrimary: api.isPrimary ?? false,
     status: "ACTIVE",
     verificationStatus: "PENDING",
+    mrn: "",
+    age: 0,
+    registeredMobile: "",
+    patientStatus: "",
+    lastAppointment: "",
+    upcomingAppointmentsCount: 0,
+    pendingBillsCount: 0,
+    pendingBillsAmount: 0,
+    activePrescriptionsCount: 0,
   };
 }
 

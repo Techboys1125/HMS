@@ -29,11 +29,7 @@ export function checkBillingPermission(
     case "DOCTOR":
     case "NURSE":
       // Read-only access to billing
-      return [
-        "view_dashboard",
-        "view_bills",
-        "view_history",
-      ].includes(action);
+      return ["view_dashboard", "view_bills", "view_history"].includes(action);
 
     case "ACCOUNTANT":
       // Accountant financial management

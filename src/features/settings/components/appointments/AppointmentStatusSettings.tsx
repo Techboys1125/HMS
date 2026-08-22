@@ -59,9 +59,7 @@ export function AppointmentStatusSettings() {
               justifyContent: "space-between",
             }}
           >
-            <div
-              style={{ display: "flex", alignItems: "center", gap: "8px" }}
-            >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <div
                 style={{
                   width: "12px",

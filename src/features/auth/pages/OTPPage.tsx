@@ -90,7 +90,14 @@ export const OTPPage: React.FC<OTPPageProps> = ({
       {/* OTP Input Grid */}
       <form onSubmit={handleVerify} className="space-y-6">
         <div className="flex items-center justify-between gap-3">
-          {["otp-slot-0", "otp-slot-1", "otp-slot-2", "otp-slot-3", "otp-slot-4", "otp-slot-5"].map((slotKey, idx) => (
+          {[
+            "otp-slot-0",
+            "otp-slot-1",
+            "otp-slot-2",
+            "otp-slot-3",
+            "otp-slot-4",
+            "otp-slot-5",
+          ].map((slotKey, idx) => (
             <input
               key={slotKey}
               ref={(el) => {

@@ -240,10 +240,15 @@ export function PatientAppointmentsScreen({
 
               const doctorRaw = a.doctor;
               let doctorName: string;
-              if (doctorRaw && typeof doctorRaw === "object" && doctorRaw !== null) {
+              if (
+                doctorRaw &&
+                typeof doctorRaw === "object" &&
+                doctorRaw !== null
+              ) {
                 doctorName =
                   (doctorRaw as { name?: string; fullName?: string }).name ||
-                  (doctorRaw as { name?: string; fullName?: string }).fullName ||
+                  (doctorRaw as { name?: string; fullName?: string })
+                    .fullName ||
                   "Doctor";
               } else if (typeof doctorRaw === "string" && doctorRaw.trim()) {
                 doctorName = doctorRaw.trim();
@@ -255,8 +260,10 @@ export function PatientAppointmentsScreen({
               let deptName: string;
               if (deptRaw && typeof deptRaw === "object" && deptRaw !== null) {
                 deptName =
-                  (deptRaw as { departmentName?: string; name?: string }).departmentName ||
-                  (deptRaw as { departmentName?: string; name?: string }).name ||
+                  (deptRaw as { departmentName?: string; name?: string })
+                    .departmentName ||
+                  (deptRaw as { departmentName?: string; name?: string })
+                    .name ||
                   "General";
               } else if (typeof deptRaw === "string" && deptRaw.trim()) {
                 deptName = deptRaw.trim();
@@ -293,9 +300,7 @@ export function PatientAppointmentsScreen({
                 rawStatus === "CHECKED-IN"
               ) {
                 formattedStatus = "Checked-In";
-              } else if (
-                rawStatus === "WAITING_FOR_VITALS"
-              ) {
+              } else if (rawStatus === "WAITING_FOR_VITALS") {
                 formattedStatus = "Waiting for Vitals";
               } else if (
                 rawStatus === "WAITING_FOR_DOCTOR" ||
@@ -314,8 +319,8 @@ export function PatientAppointmentsScreen({
                 doctor: doctorName,
                 specialty: a.specialty || deptName,
                 department: deptName,
-                visitType: (a.appointmentType === "Follow-up OPD" ||
-                a.appointmentType === "FOLLOW_UP"
+                visitType: (a.visitType === "Follow-up OPD" ||
+                a.visitType === "FOLLOW_UP"
                   ? "Follow-up OPD"
                   : "In-Person OPD") as "Follow-up OPD" | "In-Person OPD",
                 status: formattedStatus,
@@ -406,7 +411,9 @@ export function PatientAppointmentsScreen({
   // Summary counts
   const totalCount = listState.appointments.length;
   const upcomingAppointments = listState.appointments.filter((a) =>
-    ["Confirmed", "Scheduled", "In Progress", "Checked-In", "Pending"].includes(a.status),
+    ["Confirmed", "Scheduled", "In Progress", "Checked-In", "Pending"].includes(
+      a.status,
+    ),
   );
   const upcomingCount = upcomingAppointments.length;
   const completedCount = listState.appointments.filter(
@@ -513,15 +520,24 @@ export function PatientAppointmentsScreen({
         billingStatus: "Pending ($65.00)",
         billingAmount: "$65.00",
       };
-      dispatch({ type: "SET_APPOINTMENTS", appointments: [newAppt, ...listState.appointments] });
+      dispatch({
+        type: "SET_APPOINTMENTS",
+        appointments: [newAppt, ...listState.appointments],
+      });
       triggerToast(`New appointment ${newAppt.id} booked successfully!`);
     }
     closeBookDrawer();
   };
 
-  const handleCancelAppointment = async (id: string, reason: string, comments?: string) => {
+  const handleCancelAppointment = async (
+    id: string,
+    reason: string,
+    comments?: string,
+  ) => {
     try {
-      await appointmentsApi.cancelAppointment(id, { reason: reason || comments || "Patient request" });
+      await appointmentsApi.cancelAppointment(id, {
+        reason: reason || comments || "Patient request",
+      });
       loadAppointments(activePatient);
       triggerToast(`Appointment ${id} has been cancelled.`);
     } catch {
@@ -570,7 +586,9 @@ export function PatientAppointmentsScreen({
 
         <div className="flex items-center gap-2.5">
           <button
-            onClick={() => dispatch({ type: "SET_VIEW_MODE", viewMode: "book" })}
+            onClick={() =>
+              dispatch({ type: "SET_VIEW_MODE", viewMode: "book" })
+            }
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm"
             style={{ fontFamily: PP }}
           >
@@ -1163,11 +1181,104 @@ export function PatientAppointmentsScreen({
                 })}
               </div>
             </>
-        )}
+          )}
         </div>
 
-        {/* Right Column (4 cols): Stats & Quick Actions */}
-        <div className="lg:col-span-4 space-y-6">
+        {/* Right Column (4 cols - Context Panel) */}
+        <div className="lg:col-span-4 space-y-4">
+          {/* Card 1: Next Appointment Snapshot */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <h3
+                className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2"
+                style={{ fontFamily: PP }}
+              >
+                <Clock size={15} className="text-[#0D47A1]" /> Next Appointment
+              </h3>
+              <span className="px-2 py-0.5 rounded-full text-[10px] bg-blue-50 text-[#0D47A1] font-bold">
+                Upcoming
+              </span>
+            </div>
+
+            {nextAppointment ? (
+              <div className="p-4 rounded-xl bg-linear-to-br from-blue-50/80 to-slate-50 border border-blue-100 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#0D47A1] text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-sm">
+                    {nextAppointment.doctor
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .replace("D", "")
+                      .replace("r", "")
+                      .replace(".", "") || "DR"}
+                  </div>
+                  <div>
+                    <h4
+                      className="text-xs font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      {nextAppointment.doctor}
+                    </h4>
+                    <p className="text-[11px] text-[#64748B]">
+                      {nextAppointment.specialty} · {nextAppointment.department}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 text-xs text-[#111827] pt-2 border-t border-blue-100/60">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#64748B]">Date & Time:</span>
+                    <span className="font-bold text-[#0D47A1]">
+                      {nextAppointment.date} @ {nextAppointment.time}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#64748B]">Location:</span>
+                    <span className="font-semibold text-slate-700">
+                      {nextAppointment.roomLocation}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#64748B]">Visit Type:</span>
+                    <span className="font-medium text-[#009688]">
+                      {nextAppointment.visitType}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex items-center gap-2">
+                  <button
+                    onClick={() =>
+                      setSelectedDetails(nextAppointment)
+                    }
+                    className="flex-1 py-2 rounded-xl bg-white border border-[#E5E7EB] text-[#111827] text-xs font-semibold hover:bg-slate-50 transition-colors"
+                  >
+                    View Details
+                  </button>
+                  <button
+                    onClick={() => filterDispatch({ type: "SET_RESCHEDULING", appointment: nextAppointment })}
+                    className="flex-1 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors"
+                  >
+                    Reschedule
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-6 text-center bg-slate-50 rounded-xl border border-slate-100 space-y-2">
+                <Calendar size={28} className="mx-auto text-slate-400" />
+                <p className="text-xs text-[#64748B]">
+                  You have no upcoming appointments scheduled.
+                </p>
+                <button
+                  onClick={() => handleOpenBookDrawer()}
+                  className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors"
+                  style={{ fontFamily: PP }}
+                >
+                  Book Appointment
+                </button>
+              </div>
+            )}
+          </div>
           {/* Card 2: Appointment Statistics */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
             <h3
@@ -1260,7 +1371,9 @@ export function PatientAppointmentsScreen({
 
             <div className="space-y-2">
               <button
-                onClick={() => dispatch({ type: "SET_VIEW_MODE", viewMode: "book" })}
+                onClick={() =>
+                  dispatch({ type: "SET_VIEW_MODE", viewMode: "book" })
+                }
                 className="w-full p-3 rounded-xl bg-blue-50 border border-blue-100 text-[#0D47A1] text-xs font-bold hover:bg-blue-100 transition-colors flex items-center justify-between"
                 style={{ fontFamily: PP }}
               >
@@ -1767,11 +1880,11 @@ export function PatientAppointmentsScreen({
                 >
                   Close
                 </button>
-              </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
       {/* ── CANCEL APPOINTMENT CONFIRMATION DIALOG ── */}
       <PatientCancelAppointmentDialog
@@ -1814,3 +1927,4 @@ export function PatientAppointmentsScreen({
     </div>
   );
 }
+

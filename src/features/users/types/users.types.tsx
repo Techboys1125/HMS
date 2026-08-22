@@ -137,6 +137,8 @@ export interface SlotRequest {
 }
 
 export interface DoctorAvailability {
+  endTime: string;
+  startTime: string;
   day: string;
   available: boolean;
   slots: SlotRequest[];

@@ -290,8 +290,9 @@ export function PatientMedicalRecordsScreen({
               style={{ fontFamily: PP }}
             >
               {
-                displayedPrescriptionRecords.filter((rx) => rx.status === "Active")
-                  .length
+                displayedPrescriptionRecords.filter(
+                  (rx) => rx.status === "Active",
+                ).length
               }
             </div>
             <div className="text-[11px] text-[#009688] font-medium mt-1">

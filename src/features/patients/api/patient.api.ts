@@ -640,13 +640,18 @@ export const patientsApi = {
         if (Array.isArray(data)) return data as Record<string, unknown>[];
         if (data && typeof data === "object") {
           const obj = data as Record<string, unknown>;
-          if (Array.isArray(obj.data)) return obj.data as Record<string, unknown>[];
-          if (Array.isArray(obj.content)) return obj.content as Record<string, unknown>[];
-          if (Array.isArray(obj.items)) return obj.items as Record<string, unknown>[];
+          if (Array.isArray(obj.data))
+            return obj.data as Record<string, unknown>[];
+          if (Array.isArray(obj.content))
+            return obj.content as Record<string, unknown>[];
+          if (Array.isArray(obj.items))
+            return obj.items as Record<string, unknown>[];
           if (obj.data && typeof obj.data === "object") {
             const inner = obj.data as Record<string, unknown>;
-            if (Array.isArray(inner.content)) return inner.content as Record<string, unknown>[];
-            if (Array.isArray(inner.items)) return inner.items as Record<string, unknown>[];
+            if (Array.isArray(inner.content))
+              return inner.content as Record<string, unknown>[];
+            if (Array.isArray(inner.items))
+              return inner.items as Record<string, unknown>[];
           }
         }
         return [];
@@ -656,7 +661,9 @@ export const patientsApi = {
 
       // 1. Try endpoint with query param
       try {
-        const res = await apiClient.get<unknown>(`/api/v1/appointments?mrn=${encodeURIComponent(mrn)}`);
+        const res = await apiClient.get<unknown>(
+          `/api/v1/appointments?mrn=${encodeURIComponent(mrn)}`,
+        );
         rawList = extractList(res.data);
       } catch {
         // continue
@@ -665,7 +672,9 @@ export const patientsApi = {
       // 2. Try nested patient appointments endpoint
       if (rawList.length === 0) {
         try {
-          const res = await apiClient.get<unknown>(`/api/v1/patients/${encodeURIComponent(mrn)}/appointments`);
+          const res = await apiClient.get<unknown>(
+            `/api/v1/patients/${encodeURIComponent(mrn)}/appointments`,
+          );
           rawList = extractList(res.data);
         } catch {
           // continue
@@ -679,10 +688,18 @@ export const patientsApi = {
           const all = extractList(res.data);
           const normalized = mrn.toLowerCase().trim();
           rawList = all.filter((a) => {
-            const pObj = (a.patient && typeof a.patient === "object" ? a.patient : {}) as Record<string, unknown>;
-            const aMrn = String(a.mrn || a.patientMrn || pObj.mrn || "").toLowerCase().trim();
-            const aPid = String(a.patientId || pObj.id || "").toLowerCase().trim();
-            return (aMrn && aMrn === normalized) || (aPid && aPid === normalized);
+            const pObj = (
+              a.patient && typeof a.patient === "object" ? a.patient : {}
+            ) as Record<string, unknown>;
+            const aMrn = String(a.mrn || a.patientMrn || pObj.mrn || "")
+              .toLowerCase()
+              .trim();
+            const aPid = String(a.patientId || pObj.id || "")
+              .toLowerCase()
+              .trim();
+            return (
+              (aMrn && aMrn === normalized) || (aPid && aPid === normalized)
+            );
           });
         } catch {
           // continue
@@ -690,7 +707,9 @@ export const patientsApi = {
       }
 
       return rawList.map((a) => {
-        const docObj = (a.doctor && typeof a.doctor === "object" ? a.doctor : {}) as Record<string, unknown>;
+        const docObj = (
+          a.doctor && typeof a.doctor === "object" ? a.doctor : {}
+        ) as Record<string, unknown>;
         const docName =
           typeof a.doctor === "string"
             ? a.doctor
@@ -700,7 +719,9 @@ export const patientsApi = {
           id: String(a.id || a.appointmentId || ""),
           mrn: String(a.mrn || a.patientMrn || mrn),
           doctor: String(docName),
-          department: String(a.department || a.departmentName || "General Medicine"),
+          department: String(
+            a.department || a.departmentName || "General Medicine",
+          ),
           date: String(a.appointmentDate || a.date || a.scheduledDate || ""),
           time: String(a.startTime || a.appointmentTime || a.time || ""),
           status: String(a.status || "Scheduled"),
@@ -962,13 +983,18 @@ export const patientsApi = {
         if (Array.isArray(data)) return data as Record<string, unknown>[];
         if (data && typeof data === "object") {
           const obj = data as Record<string, unknown>;
-          if (Array.isArray(obj.data)) return obj.data as Record<string, unknown>[];
-          if (Array.isArray(obj.content)) return obj.content as Record<string, unknown>[];
-          if (Array.isArray(obj.items)) return obj.items as Record<string, unknown>[];
+          if (Array.isArray(obj.data))
+            return obj.data as Record<string, unknown>[];
+          if (Array.isArray(obj.content))
+            return obj.content as Record<string, unknown>[];
+          if (Array.isArray(obj.items))
+            return obj.items as Record<string, unknown>[];
           if (obj.data && typeof obj.data === "object") {
             const inner = obj.data as Record<string, unknown>;
-            if (Array.isArray(inner.content)) return inner.content as Record<string, unknown>[];
-            if (Array.isArray(inner.items)) return inner.items as Record<string, unknown>[];
+            if (Array.isArray(inner.content))
+              return inner.content as Record<string, unknown>[];
+            if (Array.isArray(inner.items))
+              return inner.items as Record<string, unknown>[];
           }
         }
         return [];
@@ -978,7 +1004,9 @@ export const patientsApi = {
 
       // 1. Primary: GET /api/v1/patients/{mrn}/prescriptions (confirmed endpoint)
       try {
-        const res = await apiClient.get<unknown>(`/api/v1/patients/${encodeURIComponent(mrn)}/prescriptions`);
+        const res = await apiClient.get<unknown>(
+          `/api/v1/patients/${encodeURIComponent(mrn)}/prescriptions`,
+        );
         rawList = extractList(res.data);
       } catch {
         // continue
@@ -987,7 +1015,9 @@ export const patientsApi = {
       // 2. Fallback: /api/v1/prescriptions?mrn=...
       if (rawList.length === 0) {
         try {
-          const res = await apiClient.get<unknown>(`/api/v1/prescriptions?mrn=${encodeURIComponent(mrn)}`);
+          const res = await apiClient.get<unknown>(
+            `/api/v1/prescriptions?mrn=${encodeURIComponent(mrn)}`,
+          );
           rawList = extractList(res.data);
         } catch {
           // continue
@@ -996,7 +1026,9 @@ export const patientsApi = {
 
       return rawList.map((r) => {
         const meds = Array.isArray(r.medicines) ? r.medicines : [];
-        const docObj = (r.doctor && typeof r.doctor === "object" ? r.doctor : {}) as Record<string, unknown>;
+        const docObj = (
+          r.doctor && typeof r.doctor === "object" ? r.doctor : {}
+        ) as Record<string, unknown>;
         const docName =
           typeof r.doctor === "string"
             ? r.doctor
@@ -1006,7 +1038,9 @@ export const patientsApi = {
           id: String(r.id || r.prescriptionId || ""),
           date: String(r.date || r.createdAt || r.finalizedAt || ""),
           doctorName: String(docName),
-          department: String(r.department || r.departmentName || "General Medicine"),
+          department: String(
+            r.department || r.departmentName || "General Medicine",
+          ),
           medicineCount: meds.length || Number(r.medicineCount) || 0,
           status: String(r.status || "Issued"),
           medicines: meds as ApiPatientPrescription["medicines"],
@@ -1123,6 +1157,8 @@ export const patientsApi = {
             gender?: string;
             age?: number;
             mobileNumber?: string;
+            registeredMobile?: string;
+            userId?: number;
             bloodGroup?: string;
             visitCount?: number;
             lastVisitDate?: string;
@@ -1130,7 +1166,9 @@ export const patientsApi = {
             lastVisit?: string;
             totalVisits?: number;
           }>;
-        }>(`/api/v1/doctors/${encodeURIComponent(targetDoctorId)}/patients${qs}`);
+        }>(
+          `/api/v1/doctors/${encodeURIComponent(targetDoctorId)}/patients${qs}`,
+        );
       } catch {
         // Fallback to /api/v1/doctor/patients
         response = await apiClient.get<unknown>(`/api/v1/doctor/patients${qs}`);
@@ -1156,16 +1194,31 @@ export const patientsApi = {
         phone: String(p.mobileNumber || p.phone || p.mobile || ""),
         mobileNumber: String(p.mobileNumber || p.phone || p.mobile || ""),
         mobile: String(p.mobileNumber || p.phone || p.mobile || ""),
+        registeredMobile: String(
+          p.registeredMobile || p.mobileNumber || p.phone || p.mobile || "",
+        ),
         bloodGroup: p.bloodGroup as string | undefined,
         status: "ACTIVE",
-        registrationDate: (p.lastVisitDate || p.registrationDate || p.createdAt) as string | undefined,
+        registrationDate: (p.lastVisitDate ||
+          p.registrationDate ||
+          p.createdAt) as string | undefined,
         insuranceDetails: null,
-        visitCount: typeof p.visitCount === "number" ? p.visitCount : (typeof p.totalVisits === "number" ? p.totalVisits : undefined),
+        visitCount:
+          typeof p.visitCount === "number"
+            ? p.visitCount
+            : typeof p.totalVisits === "number"
+              ? p.totalVisits
+              : undefined,
         lastVisitDate: (p.lastVisitDate || p.lastVisit) as string | undefined,
         nextAppointmentDate: p.nextAppointmentDate as string | undefined,
         lastVisit: (p.lastVisit || p.lastVisitDate) as string | undefined,
-        totalVisits: typeof p.totalVisits === "number" ? p.totalVisits : (typeof p.visitCount === "number" ? p.visitCount : undefined),
-        userId: 0,
+        totalVisits:
+          typeof p.totalVisits === "number"
+            ? p.totalVisits
+            : typeof p.visitCount === "number"
+              ? p.visitCount
+              : undefined,
+        userId: p.userId ? Number(p.userId) : 0,
       }));
 
       return {

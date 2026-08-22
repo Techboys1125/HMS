@@ -36,7 +36,6 @@ export function PatientCheckInScreen({
 
   useEffect(() => {
     let cancelled = false;
-
     const load = async () => {
       try {
         const data = await appointmentService.listAppointments({

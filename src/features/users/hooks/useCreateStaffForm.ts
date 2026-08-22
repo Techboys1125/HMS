@@ -866,6 +866,8 @@ export const useCreateStaffForm = (
           ([day, sched]) => ({
             day: day.toUpperCase(),
             available: sched.isAvailable,
+            startTime: (sched.startTime || "").slice(0, 5),
+            endTime: (sched.endTime || "").slice(0, 5),
             slots: sched.isAvailable
               ? [
                   {

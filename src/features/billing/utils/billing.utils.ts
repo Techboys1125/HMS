@@ -5,10 +5,6 @@ import type {
   PaymentMethod,
 } from "../types/billing.types";
 
-export function formatCurrency(value: number): string {
-  return `₹${value.toLocaleString()}`;
-}
-
 export function mapApiInvoiceToInvoiceRecord(
   apiInv: ApiPatientInvoice,
   patientName: string,

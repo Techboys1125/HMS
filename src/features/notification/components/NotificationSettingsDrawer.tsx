@@ -29,7 +29,10 @@ export function NotificationSettingsDrawer({
         <div>
           <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-4 mb-5">
             <div>
-              <h3 style={{ fontFamily: PP }} className="text-lg font-bold text-[#111827]">
+              <h3
+                style={{ fontFamily: PP }}
+                className="text-lg font-bold text-[#111827]"
+              >
                 Notification Settings
               </h3>
               <p className="text-xs text-[#64748B]">
@@ -37,7 +40,10 @@ export function NotificationSettingsDrawer({
                 {currentRole}.
               </p>
             </div>
-            <button onClick={onClose} className="rounded-lg p-1 text-[#64748B] hover:bg-slate-100">
+            <button
+              onClick={onClose}
+              className="rounded-lg p-1 text-[#64748B] hover:bg-slate-100"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -55,7 +61,9 @@ export function NotificationSettingsDrawer({
               <input
                 type="checkbox"
                 checked={settings.appointmentNotifs}
-                onChange={(e) => updateSetting("appointmentNotifs", e.target.checked)}
+                onChange={(e) =>
+                  updateSetting("appointmentNotifs", e.target.checked)
+                }
                 className="h-4 w-4 rounded border-gray-300 text-[#0D47A1] focus:ring-[#0D47A1]"
               />
             </div>
@@ -65,7 +73,9 @@ export function NotificationSettingsDrawer({
               <input
                 type="checkbox"
                 checked={settings.patientNotifs}
-                onChange={(e) => updateSetting("patientNotifs", e.target.checked)}
+                onChange={(e) =>
+                  updateSetting("patientNotifs", e.target.checked)
+                }
                 className="h-4 w-4 rounded border-gray-300 text-[#0D47A1] focus:ring-[#0D47A1]"
               />
             </div>
@@ -75,7 +85,9 @@ export function NotificationSettingsDrawer({
               <input
                 type="checkbox"
                 checked={settings.billingNotifs}
-                onChange={(e) => updateSetting("billingNotifs", e.target.checked)}
+                onChange={(e) =>
+                  updateSetting("billingNotifs", e.target.checked)
+                }
                 className="h-4 w-4 rounded border-gray-300 text-[#0D47A1] focus:ring-[#0D47A1]"
               />
             </div>
@@ -85,7 +97,9 @@ export function NotificationSettingsDrawer({
               <input
                 type="checkbox"
                 checked={settings.reportsNotifs}
-                onChange={(e) => updateSetting("reportsNotifs", e.target.checked)}
+                onChange={(e) =>
+                  updateSetting("reportsNotifs", e.target.checked)
+                }
                 className="h-4 w-4 rounded border-gray-300 text-[#0D47A1] focus:ring-[#0D47A1]"
               />
             </div>
@@ -95,7 +109,9 @@ export function NotificationSettingsDrawer({
               <input
                 type="checkbox"
                 checked={settings.securityAlerts}
-                onChange={(e) => updateSetting("securityAlerts", e.target.checked)}
+                onChange={(e) =>
+                  updateSetting("securityAlerts", e.target.checked)
+                }
                 className="h-4 w-4 rounded border-gray-300 text-[#0D47A1] focus:ring-[#0D47A1]"
               />
             </div>

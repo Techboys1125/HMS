@@ -22,7 +22,11 @@ export const receptionReportKeys = {
 };
 
 // 1. Reception Activity Logs Hook
-export function useReceptionActivityLog(params?: { date?: string; page?: number; size?: number }) {
+export function useReceptionActivityLog(params?: {
+  date?: string;
+  page?: number;
+  size?: number;
+}) {
   return useQuery({
     queryKey: receptionReportKeys.activityLog(params),
     queryFn: () => receptionReportsApi.getActivityLog(params),
@@ -67,7 +71,11 @@ export function useReceptionQueuePerformance(date?: string) {
 }
 
 // 6. Recent Reception Register Hook
-export function useReceptionRegister(params?: { date?: string; page?: number; size?: number }) {
+export function useReceptionRegister(params?: {
+  date?: string;
+  page?: number;
+  size?: number;
+}) {
   return useQuery({
     queryKey: receptionReportKeys.register(params),
     queryFn: () => receptionReportsApi.getRegister(params),
@@ -76,7 +84,10 @@ export function useReceptionRegister(params?: { date?: string; page?: number; si
 }
 
 // 7. Patient Registration Trend Hook
-export function useReceptionRegistrationTrend(params?: { from?: string; to?: string }) {
+export function useReceptionRegistrationTrend(params?: {
+  from?: string;
+  to?: string;
+}) {
   return useQuery({
     queryKey: receptionReportKeys.registrationTrend(params),
     queryFn: () => receptionReportsApi.getRegistrationTrend(params),

@@ -50,12 +50,16 @@ function mapPrescriptionSummary(r: RawRecord): PrescriptionSummary {
     prescriptionId: String(r.prescriptionId || r.id || ""),
     appointmentId: r.appointmentId as string | undefined,
     encounterId: r.encounterId as string | undefined,
-    visitDateTime: (r.visitDateTime || r.visitDate || r.createdAt) as string | undefined,
+    visitDateTime: (r.visitDateTime || r.visitDate || r.createdAt) as
+      string | undefined,
     doctor: doctor
       ? {
           doctorId: doctor.doctorId as string | undefined,
-          doctorName: String(doctor.doctorName || doctor.fullName || doctor.name || ""),
-          doctorSpecialization: doctor.doctorSpecialization as string | undefined,
+          doctorName: String(
+            doctor.doctorName || doctor.fullName || doctor.name || "",
+          ),
+          doctorSpecialization: doctor.doctorSpecialization as
+            string | undefined,
         }
       : typeof r.doctorName === "string"
         ? { doctorName: r.doctorName }
@@ -83,10 +87,12 @@ function mapPrescriptionSummary(r: RawRecord): PrescriptionSummary {
           sampleMedicines: Array.isArray(meds.sampleMedicines)
             ? (meds.sampleMedicines as string[])
             : undefined,
-          containsControlledMedicine: meds.containsControlledMedicine as boolean | undefined,
+          containsControlledMedicine: meds.containsControlledMedicine as
+            boolean | undefined,
         }
       : undefined,
-    prescriptionStatus: (r.prescriptionStatus || r.status) as string | undefined,
+    prescriptionStatus: (r.prescriptionStatus || r.status) as
+      string | undefined,
     followUp: followUp
       ? {
           required: followUp.required as boolean | undefined,
@@ -101,7 +107,8 @@ function mapPrescriptionSummary(r: RawRecord): PrescriptionSummary {
       : undefined,
     documents: docs
       ? {
-          prescriptionDocumentId: docs.prescriptionDocumentId as string | undefined,
+          prescriptionDocumentId: docs.prescriptionDocumentId as
+            string | undefined,
           pdfAvailable: docs.pdfAvailable as boolean | undefined,
           digitalSignature: docs.digitalSignature as boolean | undefined,
           downloadable: docs.downloadable as boolean | undefined,
@@ -119,7 +126,12 @@ function mapBillRecord(r: RawRecord): BillingSummaryRecord {
     doctor: (r.doctor || r.doctorName) as string | undefined,
     billStatus: (r.billStatus || r.status) as string | undefined,
     paymentStatus: (r.paymentStatus || r.paidStatus) as string | undefined,
-    amount: typeof r.amount === "number" ? r.amount : (typeof r.totalAmount === "number" ? r.totalAmount : undefined),
+    amount:
+      typeof r.amount === "number"
+        ? r.amount
+        : typeof r.totalAmount === "number"
+          ? r.totalAmount
+          : undefined,
   };
 }
 
@@ -136,7 +148,10 @@ export const medicalRecordService = {
       const list = extractList(response.data);
       return list.map(mapPrescriptionSummary);
     } catch (err) {
-      console.warn("[medicalRecordService] getPrescriptionHistory failed:", err);
+      console.warn(
+        "[medicalRecordService] getPrescriptionHistory failed:",
+        err,
+      );
       return [];
     }
   },
@@ -155,7 +170,9 @@ export const medicalRecordService = {
       if (!data) return emptyResult;
 
       // The response may be wrapped in a { data: ... } envelope
-      const inner = (data.data && typeof data.data === "object" ? data.data : data) as RawRecord;
+      const inner = (
+        data.data && typeof data.data === "object" ? data.data : data
+      ) as RawRecord;
 
       const summaryObj = inner.summary as RawRecord | undefined;
       const billsRaw = Array.isArray(inner.bills)
@@ -169,7 +186,8 @@ export const medicalRecordService = {
           ? {
               totalBills: summaryObj.totalBills as number | undefined,
               totalPaid: summaryObj.totalPaid as number | undefined,
-              totalOutstanding: summaryObj.totalOutstanding as number | undefined,
+              totalOutstanding: summaryObj.totalOutstanding as
+                number | undefined,
             }
           : undefined,
         bills: billsRaw.map(mapBillRecord),
@@ -196,13 +214,15 @@ export const medicalRecordService = {
         type: "prescription" as const,
         date: rx.visitDateTime || rx.createdAt || "",
         title: `Prescription – ${rx.prescriptionId}`,
-        description: [
-          rx.diagnosis?.primaryDiagnosis,
-          rx.diagnosis?.icd10Code && `(${rx.diagnosis.icd10Code})`,
-          rx.medications?.totalMedicines && `${rx.medications.totalMedicines} medication(s)`,
-        ]
-          .filter(Boolean)
-          .join(" · ") || "Prescription issued",
+        description:
+          [
+            rx.diagnosis?.primaryDiagnosis,
+            rx.diagnosis?.icd10Code && `(${rx.diagnosis.icd10Code})`,
+            rx.medications?.totalMedicines &&
+              `${rx.medications.totalMedicines} medication(s)`,
+          ]
+            .filter(Boolean)
+            .join(" · ") || "Prescription issued",
         doctorName: rx.doctor?.doctorName,
         department: rx.department?.departmentName,
         status: rx.prescriptionStatus || "FINALIZED",
@@ -212,12 +232,13 @@ export const medicalRecordService = {
         type: "billing" as const,
         date: bill.date || "",
         title: `Invoice – ${bill.billNumber || bill.billId}`,
-        description: [
-          bill.amount != null && `₹${bill.amount.toLocaleString()}`,
-          bill.paymentStatus,
-        ]
-          .filter(Boolean)
-          .join(" · ") || "Bill generated",
+        description:
+          [
+            bill.amount != null && `₹${bill.amount.toLocaleString()}`,
+            bill.paymentStatus,
+          ]
+            .filter(Boolean)
+            .join(" · ") || "Bill generated",
         doctorName: bill.doctor,
         status: bill.paymentStatus || bill.billStatus || "PENDING",
       })),
@@ -228,7 +249,8 @@ export const medicalRecordService = {
       billing,
       timeline,
       totalVisits: prescriptions.length,
-      lastVisitDate: prescriptions[0]?.visitDateTime || prescriptions[0]?.createdAt,
+      lastVisitDate:
+        prescriptions[0]?.visitDateTime || prescriptions[0]?.createdAt,
     };
   },
 };

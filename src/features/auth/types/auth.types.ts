@@ -11,6 +11,9 @@ export type AuthScreen =
   | "success";
 
 export interface User {
+  address: string;
+  dob: string;
+  mobileNumber: string;
   professionalBio: string;
   dateOfBirth: string;
   residentialAddress: string;

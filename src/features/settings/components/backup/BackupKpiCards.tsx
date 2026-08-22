@@ -34,9 +34,7 @@ export function BackupKpiCards({
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             System Health
           </span>
           <div
@@ -106,9 +104,7 @@ export function BackupKpiCards({
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             Last Backup
           </span>
           <div
@@ -178,9 +174,7 @@ export function BackupKpiCards({
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             Storage Usage
           </span>
           <div
@@ -250,9 +244,7 @@ export function BackupKpiCards({
             marginBottom: "8px",
           }}
         >
-          <span
-            style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}
-          >
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#64748B" }}>
             Maintenance Status
           </span>
           <div

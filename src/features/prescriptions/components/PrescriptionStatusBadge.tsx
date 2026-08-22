@@ -3,7 +3,9 @@ import type { RxStatus } from "../types/prescription.types";
 
 const PP = "'Poppins', system-ui, sans-serif";
 
-export const PrescriptionStatusBadge: React.FC<{ status: RxStatus | string }> = ({ status }) => {
+export const PrescriptionStatusBadge: React.FC<{
+  status: RxStatus | string;
+}> = ({ status }) => {
   const norm = String(status ?? "").trim();
   const lower = norm.toLowerCase();
 

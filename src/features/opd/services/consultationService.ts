@@ -6,9 +6,11 @@ import type {
   ConsultationRecord,
   VisitType,
   ConsultationStatus,
+  MedicineItem,
 } from "../types/consultation";
 import { encountersApi } from "../../encounters/api/encounters.api";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
+import type { Diagnosis } from "../../encounters";
 
 export const consultationService = {
   /**
@@ -261,8 +263,7 @@ export const consultationService = {
   ) => {
     consultationStoreActions.setLoading(true);
     try {
-      const { selectedPrescription } =
-        consultationStoreActions.getState();
+      const { selectedPrescription } = consultationStoreActions.getState();
       // Use numeric id for API calls (not the string prescriptionId like RX-20260806-2292)
       const rxId = selectedPrescription?.id;
       const hasValidRxId =
@@ -418,78 +419,128 @@ export const consultationService = {
 
       if (!consultation) {
         // Fallback: Check aggregated clinical workspace endpoint GET /api/v1/encounters/{id}/workspace
-        const workspace = await consultationApi.getEncounterWorkspace(consultationId);
+        const workspace =
+          await consultationApi.getEncounterWorkspace(consultationId);
         if (workspace && (workspace.consultation || workspace.encounter)) {
           return workspace;
         }
         throw new Error("Consultation details not found");
       }
 
-      const cnsRecord = consultation as Record<string, unknown>;
+      const cnsRecord = consultation as unknown as Record<string, unknown>;
 
-      const encounterId = cnsRecord.encounterId || `ENC-${consultationId}`;
+      const encounterId =
+        (cnsRecord.encounterId as string | number) || `ENC-${consultationId}`;
 
-      const [encounter, vitals, diagnoses, prescription] = await Promise.all([
-        consultationApi.getEncounter(encounterId),
-        consultationApi.loadEncounterVitals(encounterId),
-        consultationApi.getDiagnoses(encounterId),
-        consultationApi.getPrescription(encounterId),
-      ]);
+      // 2. Fetch encounter
+      const encounter = await consultationApi.getEncounter(encounterId);
+
+      // 3. Fetch vitals
+      const vitals = await consultationApi.loadEncounterVitals(encounterId);
+
+      // 4. Fetch diagnoses
+      const rawDiagnoses = await consultationApi.getDiagnoses(encounterId);
+
+      const diagnoses: Diagnosis[] = Array.isArray(rawDiagnoses)
+        ? rawDiagnoses
+        : [];
+
+      // 5. Fetch prescription
+      const prescription = await consultationApi.getPrescription(encounterId);
+
+      const vitalsRecord = (cnsRecord.vitals || {}) as Record<string, unknown>;
+      const patientRecord = (cnsRecord.patient || {}) as Record<
+        string,
+        unknown
+      >;
 
       const normalizedVitals = vitals
         ? {
-            height: vitals.height || cnsRecord.vitals?.height || "",
-            weight: vitals.weight || cnsRecord.vitals?.weight || "",
-            bmi: vitals.bmi || cnsRecord.vitals?.bmi || "",
-            temp: vitals.temp || cnsRecord.vitals?.temp || "",
-            bp: vitals.bp || cnsRecord.vitals?.bp || "",
-            pulse: vitals.pulse || cnsRecord.vitals?.pulse || "",
-            respiratoryRate:
-              vitals.respiratoryRate || cnsRecord.vitals?.respiratoryRate || "",
-            spo2: vitals.spo2 || cnsRecord.vitals?.spo2 || "",
-            bloodSugar: vitals.bloodSugar || cnsRecord.vitals?.bloodSugar || "",
+            height: String(vitals.height || vitalsRecord.height || ""),
+            weight: String(vitals.weight || vitalsRecord.weight || ""),
+            bmi: String(vitals.bmi || vitalsRecord.bmi || ""),
+            temp: String(vitals.temp || vitalsRecord.temp || ""),
+            bp: String(vitals.bp || vitalsRecord.bp || ""),
+            pulse: String(vitals.pulse || vitalsRecord.pulse || ""),
+            respiratoryRate: String(
+              vitals.respiratoryRate || vitalsRecord.respiratoryRate || "",
+            ),
+            spo2: String(vitals.spo2 || vitalsRecord.spo2 || ""),
+            bloodSugar: String(
+              vitals.bloodSugar || vitalsRecord.bloodSugar || "",
+            ),
           }
-        : cnsRecord.vitals;
+        : (cnsRecord.vitals as PatientVitals | undefined);
 
       const fullRecord: ConsultationRecord = {
         id: String(cnsRecord.id || consultationId),
         appointmentId: Number(cnsRecord.appointmentId || consultationId),
         tokenNo: String(cnsRecord.tokenNo || cnsRecord.token || ""),
-        patientName: String(cnsRecord.patientName || cnsRecord.patient?.name || "Patient"),
-        mrn: String(cnsRecord.mrn || cnsRecord.patient?.mrn || ""),
-        age: Number(cnsRecord.age || cnsRecord.patient?.age || 0),
-        gender: (cnsRecord.gender || cnsRecord.patient?.gender || "Other") as "Male" | "Female" | "Other",
-        phone: String(cnsRecord.phone || cnsRecord.patient?.contact || ""),
+        patientName: String(
+          cnsRecord.patientName || patientRecord.name || "Patient",
+        ),
+        mrn: String(cnsRecord.mrn || patientRecord.mrn || ""),
+        age: Number(cnsRecord.age || patientRecord.age || 0),
+        gender: (cnsRecord.gender || patientRecord.gender || "Other") as
+          "Male" | "Female" | "Other",
+        phone: String(cnsRecord.phone || patientRecord.contact || ""),
         doctor: String(cnsRecord.doctor || cnsRecord.doctorName || ""),
-        department: String(cnsRecord.department || cnsRecord.departmentName || ""),
-        appointmentTime: String(cnsRecord.appointmentTime || cnsRecord.checkInTime || ""),
-        visitType: (cnsRecord.visitType || "First Visit") as "First Visit" | "Follow-up",
+        department: String(
+          cnsRecord.department || cnsRecord.departmentName || "",
+        ),
+        appointmentTime: String(
+          cnsRecord.appointmentTime || cnsRecord.checkInTime || "",
+        ),
+        visitType: (cnsRecord.visitType || "First Visit") as
+          "First Visit" | "Follow-up",
         status: (cnsRecord.status || "IN_CONSULTATION") as ConsultationStatus,
         chiefComplaint: String(cnsRecord.chiefComplaint || ""),
         opdRoom: String(cnsRecord.opdRoom || ""),
         date: String(cnsRecord.date || new Date().toISOString().split("T")[0]),
-        vitals: normalizedVitals,
-        finalDiagnosis:
-          diagnoses.length > 0
+        vitals: normalizedVitals as PatientVitals,
+        finalDiagnosis: String(
+          diagnoses.length > 0 && diagnoses[0].diagnosisName
             ? diagnoses[0].diagnosisName
             : cnsRecord.finalDiagnosis || "",
-        icdCode:
-          diagnoses.length > 0
-            ? `${diagnoses[0].diagnosisCode} — ${diagnoses[0].diagnosisName}`
+        ),
+        icdCode: String(
+          diagnoses.length > 0 && diagnoses[0].diagnosisCode
+            ? `${diagnoses[0].diagnosisCode} — ${diagnoses[0].diagnosisName || ""}`
             : cnsRecord.icdCode || "",
+        ),
         medicines:
           prescription && prescription.medications
             ? prescription.medications.map(
-                (med: Record<string, unknown>, idx: number) => ({
+                (med: Record<string, unknown>, idx: number): MedicineItem => ({
                   id: String(med.id || idx),
                   name: String(med.medicineName || med.name || ""),
                   dosage: String(med.strength || med.dosage || ""),
-                  frequency: String(med.frequencyDisplay || med.frequency || ""),
+                  frequency: String(
+                    med.frequencyDisplay || med.frequency || "",
+                  ),
                   duration: `${med.durationValue || 7} Days`,
                   instructions: String(med.instructions || ""),
                 }),
               )
-            : cnsRecord.medicines || [],
+            : Array.isArray(cnsRecord.medicines)
+              ? cnsRecord.medicines.map(
+                  (
+                    med: Record<string, unknown>,
+                    idx: number,
+                  ): MedicineItem => ({
+                    id: String(med.id || idx),
+                    name: String(med.medicineName || med.name || ""),
+                    dosage: String(med.strength || med.dosage || ""),
+                    frequency: String(
+                      med.frequencyDisplay || med.frequency || "",
+                    ),
+                    duration: String(
+                      med.duration || `${med.durationValue || 7} Days`,
+                    ),
+                    instructions: String(med.instructions || ""),
+                  }),
+                )
+              : [],
         ...cnsRecord,
       };
 

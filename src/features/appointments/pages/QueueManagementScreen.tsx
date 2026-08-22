@@ -61,10 +61,10 @@ export function QueueManagementScreen({
           setApiDepts(names);
         } else {
           departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
-            const names = list.flatMap((d) => {
-              const n = d.departmentName || d.name;
-              return n ? [n] : [];
-            });
+            const content = Array.isArray(list) ? list : list.content || [];
+            const names = content
+              .map((d) => d.departmentName || d.name)
+              .filter((n): n is string => Boolean(n));
             if (names.length > 0) setApiDepts(names);
           });
         }
@@ -229,7 +229,10 @@ export function QueueManagementScreen({
 
   const handleMarkNoShow = async (apt: AppointmentRecord) => {
     try {
-      await appointmentService.receptionMarkNoShow(apt.id, "Patient did not arrive");
+      await appointmentService.receptionMarkNoShow(
+        apt.id,
+        "Patient did not arrive",
+      );
       setQueueItems((prev) =>
         prev.map((i) =>
           i.id === apt.id
@@ -277,8 +280,15 @@ export function QueueManagementScreen({
     >
       {/* Toast Notification */}
       {toastMsg && (
-        <div className={`fixed top-5 right-5 z-50 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${toastType === "error" ? "bg-[#EF4444]" : "bg-[#111827]"}`}>
-          <AlertCircle size={16} className={toastType === "error" ? "text-red-200" : "text-[#66BB6A]"} />
+        <div
+          className={`fixed top-5 right-5 z-50 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200 ${toastType === "error" ? "bg-[#EF4444]" : "bg-[#111827]"}`}
+        >
+          <AlertCircle
+            size={16}
+            className={
+              toastType === "error" ? "text-red-200" : "text-[#66BB6A]"
+            }
+          />
           <span>{toastMsg}</span>
         </div>
       )}

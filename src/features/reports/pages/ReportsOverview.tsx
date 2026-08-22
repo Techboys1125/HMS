@@ -1,5 +1,100 @@
-import React, { useReducer, useMemo, useState } from "react";
-import { INR_CURRENCY_FORMATTER } from "../../../lib/intl-formatters";
+import React, { useState, useMemo, useReducer } from "react";
+
+type ReportState = {
+  searchQuery: string;
+  branchFilter: string;
+  deptFilter: string;
+  doctorFilter: string;
+  dateRangeFilter: string;
+  typeFilter: string;
+  statusFilter: string;
+  visitTypeFilter: string;
+  trendDays: "7" | "30" | "90";
+  isRefreshing: boolean;
+  appliedFilters: {
+    dept: string;
+    doctor: string;
+    dateRange: string;
+    type: string;
+    status: string;
+    visitType: string;
+  };
+  isLoading: boolean;
+  hasError: boolean;
+};
+
+type ReportAction =
+  | { type: "SET_SEARCH"; payload: string }
+  | { type: "SET_FILTER"; field: string; value: string }
+  | { type: "LOAD_START" }
+  | { type: "LOAD_SUCCESS"; payload: ReportState["appliedFilters"] }
+  | { type: "LOAD_ERROR" }
+  | { type: "RESET_FILTERS" }
+  | { type: "RESET_FILTERS_SUCCESS"; payload: ReportState["appliedFilters"] }
+  | { type: "SET_ERROR"; payload: boolean }
+  | { type: "SET_REFRESHING"; payload: boolean }
+  | { type: "SET_LOADING"; payload: boolean }
+  | { type: "SET_TREND_DAYS"; payload: "7" | "30" | "90" };
+
+const initialState: ReportState = {
+  searchQuery: "",
+  branchFilter: "Main Branch",
+  deptFilter: "All Departments",
+  doctorFilter: "All Doctors",
+  dateRangeFilter: "Today",
+  typeFilter: "All Types",
+  statusFilter: "All Statuses",
+  visitTypeFilter: "All Visit Types",
+  trendDays: "7",
+  isRefreshing: false,
+  appliedFilters: {
+    dept: "All Departments",
+    doctor: "All Doctors",
+    dateRange: "Today",
+    type: "All Types",
+    status: "All Statuses",
+    visitType: "All Visit Types",
+  },
+  isLoading: false,
+  hasError: false,
+};
+
+function reducer(state: ReportState, action: ReportAction): ReportState {
+  switch (action.type) {
+    case "SET_SEARCH":
+      return { ...state, searchQuery: action.payload };
+    case "SET_FILTER":
+      return { ...state, [action.field]: action.value };
+    case "LOAD_START":
+      return { ...state, isLoading: true, hasError: false };
+    case "LOAD_SUCCESS":
+      return { ...state, isLoading: false, appliedFilters: action.payload };
+    case "LOAD_ERROR":
+      return { ...state, isLoading: false, hasError: true };
+    case "SET_ERROR":
+      return { ...state, hasError: action.payload };
+    case "SET_REFRESHING":
+      return { ...state, isRefreshing: action.payload };
+    case "SET_LOADING":
+      return { ...state, isLoading: action.payload };
+    case "SET_TREND_DAYS":
+      return { ...state, trendDays: action.payload };
+    case "RESET_FILTERS":
+      return {
+        ...initialState,
+        isLoading: true,
+      };
+    case "RESET_FILTERS_SUCCESS":
+      return {
+        ...state,
+        isLoading: false,
+        appliedFilters: action.payload,
+      };
+    default:
+      return state;
+  }
+}
+
 import {
   BarChart2,
   Calendar,
@@ -28,6 +123,7 @@ import { ROUTES } from "../../../app/routes/routes";
 import { ReportLoadingState } from "../components/ReportLoadingState";
 import { ReportErrorState } from "../components/ReportErrorState";
 import { PP, RB } from "../constants/reports.constants";
+import { INR_CURRENCY_FORMATTER } from "../../../lib/intl-formatters";
 import type {
   DoctorSummaryPerformanceRecord,
   AvailableReportCard,
@@ -137,88 +233,19 @@ export function AdminReportsDashboardScreen({
   onOpenKpiDetail?: (kpi?: string) => void;
 }) {
   const navigate = useNavigate();
-
-  type FilterState = {
-    searchQuery: string;
-    branchFilter: string;
-    deptFilter: string;
-    doctorFilter: string;
-    dateRangeFilter: string;
-    typeFilter: string;
-    statusFilter: string;
-    visitTypeFilter: string;
-    trendDays: "7" | "30" | "90";
-    isRefreshing: boolean;
-    isLoading: boolean;
-    hasError: boolean;
-  };
-
-  type FilterAction =
-    | { type: "SET_SEARCH"; payload: string }
-    | {
-        type: "SET_FILTER";
-        field: keyof Omit<
-          FilterState,
-          | "searchQuery"
-          | "trendDays"
-          | "isRefreshing"
-          | "isLoading"
-          | "hasError"
-        >;
-        payload: string;
-      }
-    | { type: "RESET_FILTERS" }
-    | { type: "SET_TREND_DAYS"; payload: "7" | "30" | "90" }
-    | { type: "SET_REFRESHING"; payload: boolean }
-    | { type: "SET_LOADING"; payload: boolean }
-    | { type: "SET_ERROR"; payload: boolean };
-
-  const initialState: FilterState = {
-    searchQuery: "",
-    branchFilter: "Main Branch",
-    deptFilter: "All Departments",
-    doctorFilter: "All Doctors",
-    dateRangeFilter: "Today",
-    typeFilter: "All Types",
-    statusFilter: "All Statuses",
-    visitTypeFilter: "All Visit Types",
-    trendDays: "7",
-    isRefreshing: false,
-    isLoading: false,
-    hasError: false,
-  };
-
-  function reducer(state: FilterState, action: FilterAction): FilterState {
-    switch (action.type) {
-      case "SET_SEARCH":
-        return { ...state, searchQuery: action.payload };
-      case "SET_FILTER":
-        return { ...state, [action.field]: action.payload };
-      case "RESET_FILTERS":
-        return { ...initialState };
-      case "SET_TREND_DAYS":
-        return { ...state, trendDays: action.payload };
-      case "SET_REFRESHING":
-        return { ...state, isRefreshing: action.payload };
-      case "SET_LOADING":
-        return { ...state, isLoading: action.payload };
-      case "SET_ERROR":
-        return { ...state, hasError: action.payload };
-      default:
-        return state;
-    }
-  }
-
   const [state, dispatch] = useReducer(reducer, initialState);
-
-  const [appliedFilters, setAppliedFilters] = useState({
-    dept: "All Departments",
-    doctor: "All Doctors",
-    dateRange: "Today",
-    type: "All Types",
-    status: "All Statuses",
-    visitType: "All Visit Types",
-  });
+  const {
+    searchQuery,
+    deptFilter,
+    doctorFilter,
+    dateRangeFilter,
+    typeFilter,
+    statusFilter,
+    visitTypeFilter,
+    appliedFilters,
+    isLoading,
+    hasError,
+  } = state;
 
   const [selectedReportModal, setSelectedReportModal] =
     useState<AvailableReportCard | null>(null);
@@ -259,17 +286,19 @@ export function AdminReportsDashboardScreen({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const handleApplyFilters = () => {
-    dispatch({ type: "SET_LOADING", payload: true });
+    dispatch({ type: "LOAD_START" });
     setTimeout(() => {
-      setAppliedFilters({
-        dept: state.deptFilter,
-        doctor: state.doctorFilter,
-        dateRange: state.dateRangeFilter,
-        type: state.typeFilter,
-        status: state.statusFilter,
-        visitType: state.visitTypeFilter,
+      dispatch({
+        type: "LOAD_SUCCESS",
+        payload: {
+          dept: deptFilter,
+          doctor: doctorFilter,
+          dateRange: dateRangeFilter,
+          type: typeFilter,
+          status: statusFilter,
+          visitType: visitTypeFilter,
+        },
       });
-      dispatch({ type: "SET_LOADING", payload: false });
     }, 400);
   };
 
@@ -280,15 +309,17 @@ export function AdminReportsDashboardScreen({
 
   const handleResetFilters = () => {
     dispatch({ type: "RESET_FILTERS" });
-    dispatch({ type: "SET_LOADING", payload: true });
     setTimeout(() => {
-      setAppliedFilters({
-        dept: "All Departments",
-        doctor: "All Doctors",
-        dateRange: "Today",
-        type: "All Types",
-        status: "All Statuses",
-        visitType: "All Visit Types",
+      dispatch({
+        type: "RESET_FILTERS_SUCCESS",
+        payload: {
+          dept: "All Departments",
+          doctor: "All Doctors",
+          dateRange: "Today",
+          type: "All Types",
+          status: "All Statuses",
+          visitType: "All Visit Types",
+        },
       });
       dispatch({ type: "SET_LOADING", payload: false });
     }, 300);
@@ -788,7 +819,7 @@ export function AdminReportsDashboardScreen({
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
             <input
               type="text"
-              value={state.searchQuery}
+              value={searchQuery}
               onChange={(e) =>
                 dispatch({ type: "SET_SEARCH", payload: e.target.value })
               }
@@ -1114,12 +1145,12 @@ export function AdminReportsDashboardScreen({
                 Date Range
               </label>
               <select
-                value={state.dateRangeFilter}
+                value={dateRangeFilter}
                 onChange={(e) =>
                   dispatch({
                     type: "SET_FILTER",
                     field: "dateRangeFilter",
-                    payload: e.target.value,
+                    value: e.target.value,
                   })
                 }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -1136,12 +1167,12 @@ export function AdminReportsDashboardScreen({
                 Department
               </label>
               <select
-                value={state.deptFilter}
+                value={deptFilter}
                 onChange={(e) =>
                   dispatch({
                     type: "SET_FILTER",
                     field: "deptFilter",
-                    payload: e.target.value,
+                    value: e.target.value,
                   })
                 }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -1160,12 +1191,12 @@ export function AdminReportsDashboardScreen({
                 Doctor
               </label>
               <select
-                value={state.doctorFilter}
+                value={doctorFilter}
                 onChange={(e) =>
                   dispatch({
                     type: "SET_FILTER",
                     field: "doctorFilter",
-                    payload: e.target.value,
+                    value: e.target.value,
                   })
                 }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -1182,12 +1213,12 @@ export function AdminReportsDashboardScreen({
                 Visit Type
               </label>
               <select
-                value={state.visitTypeFilter}
+                value={visitTypeFilter}
                 onChange={(e) =>
                   dispatch({
                     type: "SET_FILTER",
                     field: "visitTypeFilter",
-                    payload: e.target.value,
+                    value: e.target.value,
                   })
                 }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -1202,12 +1233,12 @@ export function AdminReportsDashboardScreen({
                 Appointment Status
               </label>
               <select
-                value={state.statusFilter}
+                value={statusFilter}
                 onChange={(e) =>
                   dispatch({
                     type: "SET_FILTER",
                     field: "statusFilter",
-                    payload: e.target.value,
+                    value: e.target.value,
                   })
                 }
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -1259,12 +1290,12 @@ export function AdminReportsDashboardScreen({
                       dispatch({
                         type: "SET_FILTER",
                         field: "dateRangeFilter",
-                        payload: "Today",
+                        value: "Today",
                       });
-                      setAppliedFilters((prev) => ({
-                        ...prev,
-                        dateRange: "Today",
-                      }));
+                      dispatch({
+                        type: "LOAD_SUCCESS",
+                        payload: { ...appliedFilters, dateRange: "Today" },
+                      });
                     }}
                     className="hover:text-red-500 font-bold ml-1"
                   >
@@ -1280,12 +1311,12 @@ export function AdminReportsDashboardScreen({
                       dispatch({
                         type: "SET_FILTER",
                         field: "deptFilter",
-                        payload: "All Departments",
+                        value: "All Departments",
                       });
-                      setAppliedFilters((prev) => ({
-                        ...prev,
-                        dept: "All Departments",
-                      }));
+                      dispatch({
+                        type: "LOAD_SUCCESS",
+                        payload: { ...appliedFilters, dept: "All Departments" },
+                      });
                     }}
                     className="hover:text-red-500 font-bold ml-1"
                   >
@@ -1301,12 +1332,12 @@ export function AdminReportsDashboardScreen({
                       dispatch({
                         type: "SET_FILTER",
                         field: "doctorFilter",
-                        payload: "All Doctors",
+                        value: "All Doctors",
                       });
-                      setAppliedFilters((prev) => ({
-                        ...prev,
-                        doctor: "All Doctors",
-                      }));
+                      dispatch({
+                        type: "LOAD_SUCCESS",
+                        payload: { ...appliedFilters, doctor: "All Doctors" },
+                      });
                     }}
                     className="hover:text-red-500 font-bold ml-1"
                   >
@@ -1322,12 +1353,15 @@ export function AdminReportsDashboardScreen({
                       dispatch({
                         type: "SET_FILTER",
                         field: "visitTypeFilter",
-                        payload: "All Visit Types",
+                        value: "All Visit Types",
                       });
-                      setAppliedFilters((prev) => ({
-                        ...prev,
-                        visitType: "All Visit Types",
-                      }));
+                      dispatch({
+                        type: "LOAD_SUCCESS",
+                        payload: {
+                          ...appliedFilters,
+                          visitType: "All Visit Types",
+                        },
+                      });
                     }}
                     className="hover:text-red-500 font-bold ml-1"
                   >
@@ -1343,12 +1377,12 @@ export function AdminReportsDashboardScreen({
                       dispatch({
                         type: "SET_FILTER",
                         field: "statusFilter",
-                        payload: "All Statuses",
+                        value: "All Statuses",
                       });
-                      setAppliedFilters((prev) => ({
-                        ...prev,
-                        status: "All Statuses",
-                      }));
+                      dispatch({
+                        type: "LOAD_SUCCESS",
+                        payload: { ...appliedFilters, status: "All Statuses" },
+                      });
                     }}
                     className="hover:text-red-500 font-bold ml-1"
                   >
@@ -1388,7 +1422,11 @@ export function AdminReportsDashboardScreen({
             </span>
             <button
               onClick={() => {
-                dispatch({ type: "SET_LOADING", payload: !state.isLoading });
+                if (isLoading) {
+                  dispatch({ type: "LOAD_SUCCESS", payload: appliedFilters });
+                } else {
+                  dispatch({ type: "LOAD_START" });
+                }
                 dispatch({ type: "SET_ERROR", payload: false });
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${state.isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
@@ -1397,8 +1435,7 @@ export function AdminReportsDashboardScreen({
             </button>
             <button
               onClick={() => {
-                dispatch({ type: "SET_ERROR", payload: !state.hasError });
-                dispatch({ type: "SET_LOADING", payload: false });
+                dispatch({ type: "SET_ERROR", payload: !hasError });
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${state.hasError ? "bg-red-50 border-red-300 text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
             >

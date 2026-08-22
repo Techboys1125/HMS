@@ -120,6 +120,7 @@ export function DoctorPatientReportScreen({
   const [trendDays, setTrendDays] = useState<"7 Days" | "30 Days" | "90 Days">(
     "7 Days",
   );
+  const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasError, setHasError] = useState(false);
 
@@ -143,9 +144,8 @@ export function DoctorPatientReportScreen({
 
   const filteredPatients = useMemo(() => {
     const rawList = registerData?.content || [];
-    const lowerSearch = searchQuery.toLowerCase();
-    return rawList.flatMap((item) => {
-      const mapped = {
+    return rawList
+      .map((item) => ({
         mrn: item.mrn,
         patientName: item.patientName,
         age: 30,
@@ -156,25 +156,22 @@ export function DoctorPatientReportScreen({
         diagnosis: "Routine OPD",
         followUpDate: item.nextFollowUpDate,
         status: item.followUpStatus,
-      };
-      const mobileNumber = mapped.mobileNumber || "";
-      const matchesSearch =
-        !lowerSearch ||
-        (mapped.patientName || "").toLowerCase().includes(lowerSearch) ||
-        (mapped.mrn || "").toLowerCase().includes(lowerSearch) ||
-        mobileNumber.includes(searchQuery);
-      const matchesVisit =
-        visitTypeFilter === "All Visit Types" ||
-        mapped.visitType === visitTypeFilter;
-      const matchesStatus =
-        consultStatusFilter === "All Statuses" ||
-        mapped.status === consultStatusFilter;
-
-      if (matchesSearch && matchesVisit && matchesStatus) {
-        return [mapped];
-      }
-      return [];
-    });
+      }))
+      .filter((item) => {
+        const matchesSearch =
+          (item.patientName || "")
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          (item.mrn || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.mobileNumber || "").includes(searchQuery);
+        const matchesVisit =
+          visitTypeFilter === "All Visit Types" ||
+          item.visitType === visitTypeFilter;
+        const matchesStatus =
+          consultStatusFilter === "All Statuses" ||
+          item.status === consultStatusFilter;
+        return matchesSearch && matchesVisit && matchesStatus;
+      });
   }, [registerData, searchQuery, visitTypeFilter, consultStatusFilter]);
 
   return (

@@ -164,9 +164,7 @@ export function BillingManagementPage() {
           onViewPaymentHistory={(inv) =>
             navigate(`/billing/history?billId=${encodeURIComponent(inv.id)}`)
           }
-          onPrintInvoice={(inv) =>
-            navigate(`/billing/invoice/${inv.id}/print`)
-          }
+          onPrintInvoice={(inv) => navigate(`/billing/invoice/${inv.id}/print`)}
         />
 
         <BillingPagination
@@ -281,7 +279,10 @@ export function BillingManagementPage() {
                 navigate(`/billing/collect-payment/${inv.id}`)
               }
               onGenerateInvoiceClick={(inv) => {
-                const billIdParam = inv.id && inv.id !== "undefined" ? `billId=${encodeURIComponent(inv.id)}&` : "";
+                const billIdParam =
+                  inv.id && inv.id !== "undefined"
+                    ? `billId=${encodeURIComponent(inv.id)}&`
+                    : "";
                 navigate(
                   `/billing/create?${billIdParam}appointmentId=${encodeURIComponent(String(inv.appointmentId ?? ""))}&encounterId=${encodeURIComponent(String(inv.encounterId ?? ""))}&patientId=${encodeURIComponent(String(inv.patientId ?? ""))}&patientMrn=${encodeURIComponent(inv.mrn)}&doctorId=${encodeURIComponent(String(inv.doctorId ?? ""))}`,
                 );
@@ -290,7 +291,9 @@ export function BillingManagementPage() {
                 canCancelInvoice ? handleCancelInvoice : undefined
               }
               onViewPaymentHistory={(inv) =>
-                navigate(`/billing/history?billId=${encodeURIComponent(inv.id)}`)
+                navigate(
+                  `/billing/history?billId=${encodeURIComponent(inv.id)}`,
+                )
               }
               onPrintInvoice={(inv) =>
                 navigate(`/billing/invoice/${inv.id}/print`)

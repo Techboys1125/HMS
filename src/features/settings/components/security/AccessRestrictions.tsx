@@ -36,8 +36,8 @@ export function AccessRestrictions() {
           gap: "8px",
         }}
       >
-        <Shield size={18} style={{ color: "#009688" }} /> Section 05:
-        Network & IP Access Restrictions
+        <Shield size={18} style={{ color: "#009688" }} /> Section 05: Network &
+        IP Access Restrictions
       </h3>
 
       <div
@@ -103,9 +103,7 @@ export function AccessRestrictions() {
             <input
               type="checkbox"
               checked={
-                accessRestrictions[
-                  item.key as keyof typeof accessRestrictions
-                ]
+                accessRestrictions[item.key as keyof typeof accessRestrictions]
               }
               onChange={(e) =>
                 setAccessRestrictions((prev) => ({

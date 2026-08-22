@@ -3,7 +3,7 @@ import { useState, useCallback } from "react";
 import { ROUTES } from "./routes";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
-import { RouteGuard } from "../../permissions/guards";
+import { RouteGuard } from "../../permissions/guards.tsx";
 
 // Auth Feature Pages
 import { LoginPage } from "../../features/auth/pages/LoginPage";

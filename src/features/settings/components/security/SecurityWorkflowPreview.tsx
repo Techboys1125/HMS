@@ -67,9 +67,7 @@ export function SecurityWorkflowPreview() {
             >
               {st.step}
             </div>
-            <div style={{ fontSize: "10px", color: "#64748B" }}>
-              {st.sub}
-            </div>
+            <div style={{ fontSize: "10px", color: "#64748B" }}>{st.sub}</div>
           </div>
         ))}
       </div>

@@ -45,9 +45,7 @@ export function ScheduleExceptionsTab({
       } catch {
         // Errors are intentionally swallowed; loading will still be cleared below.
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
     void loadExceptions();

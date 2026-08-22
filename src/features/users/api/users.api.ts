@@ -8,7 +8,6 @@ import type {
   AdminUpdateStaffData,
   UserDetailData,
   OpdWeeklySchedule,
-  BackendAvailabilityItem,
 } from "../types/users.types";
 
 const unwrapUserCollection = (body: unknown): User[] => {
@@ -47,8 +46,8 @@ export const usersApi = {
         ...data,
         availability: data.availability?.map((item) => ({
           ...item,
-          startTime: to24Hour((item as BackendAvailabilityItem).startTime),
-          endTime: to24Hour((item as BackendAvailabilityItem).endTime),
+          startTime: to24Hour(item.startTime),
+          endTime: to24Hour(item.endTime),
         })),
         ...("doctorProfile" in data && data.doctorProfile?.availability
           ? {
@@ -56,10 +55,8 @@ export const usersApi = {
                 ...data.doctorProfile,
                 availability: data.doctorProfile.availability.map((item) => ({
                   ...item,
-                  startTime: to24Hour(
-                    (item as BackendAvailabilityItem).startTime,
-                  ),
-                  endTime: to24Hour((item as BackendAvailabilityItem).endTime),
+                  startTime: to24Hour(item.startTime),
+                  endTime: to24Hour(item.endTime),
                 })),
               },
             }
