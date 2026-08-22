@@ -34,20 +34,6 @@ export function usePatient(mrn: string) {
   });
 }
 
-export function usePatientSearch(
-  query: string,
-  options?: { enabled?: boolean },
-) {
-  return useQuery({
-    queryKey: patientKeys.search(query),
-    queryFn: async () => {
-      const list = await patientsApi.getAll({ query });
-      return { items: list || [] };
-    },
-    enabled: options?.enabled ?? query.trim().length >= 2,
-  });
-}
-
 export function useUpdatePatient(mrn: string) {
   const queryClient = useQueryClient();
   return useMutation({

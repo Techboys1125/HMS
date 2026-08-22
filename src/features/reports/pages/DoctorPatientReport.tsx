@@ -145,8 +145,21 @@ export function DoctorPatientReportScreen({
   const filteredPatients = useMemo(() => {
     const rawList = registerData?.content || [];
     const query = searchQuery.trim().toLowerCase();
-    return rawList
-      .map((item) => ({
+    return rawList.reduce<
+      Array<{
+        mrn: string;
+        patientName: string;
+        age: number;
+        gender: string;
+        mobileNumber: string;
+        lastConsultationDate: string;
+        visitType: string;
+        diagnosis: string;
+        followUpDate: string;
+        status: string;
+      }>
+    >((acc, item) => {
+      const mapped = {
         mrn: item.mrn,
         patientName: item.patientName,
         age: 30,
@@ -157,21 +170,23 @@ export function DoctorPatientReportScreen({
         diagnosis: "Routine OPD",
         followUpDate: item.nextFollowUpDate,
         status: item.followUpStatus,
-      }))
-      .filter((item) => {
-        const matchesSearch =
-          !query ||
-          (item.patientName || "").toLowerCase().includes(query) ||
-          (item.mrn || "").toLowerCase().includes(query) ||
-          (item.mobileNumber || "").toLowerCase().includes(query);
-        const matchesVisit =
-          visitTypeFilter === "All Visit Types" ||
-          item.visitType === visitTypeFilter;
-        const matchesStatus =
-          consultStatusFilter === "All Statuses" ||
-          item.status === consultStatusFilter;
-        return matchesSearch && matchesVisit && matchesStatus;
-      });
+      };
+      const matchesSearch =
+        !query ||
+        (mapped.patientName || "").toLowerCase().includes(query) ||
+        (mapped.mrn || "").toLowerCase().includes(query) ||
+        (mapped.mobileNumber || "").toLowerCase().includes(query);
+      const matchesVisit =
+        visitTypeFilter === "All Visit Types" ||
+        mapped.visitType === visitTypeFilter;
+      const matchesStatus =
+        consultStatusFilter === "All Statuses" ||
+        mapped.status === consultStatusFilter;
+      if (matchesSearch && matchesVisit && matchesStatus) {
+        acc.push(mapped);
+      }
+      return acc;
+    }, []);
   }, [registerData, searchQuery, visitTypeFilter, consultStatusFilter]);
 
   return (

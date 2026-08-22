@@ -170,13 +170,22 @@ export function BookAppointmentScreen({
           setDepartments(mapped);
         } else {
           departmentsApi.getDepartments({ activeOnly: true }).then((list) => {
-            const content = Array.isArray(list) ? list : list.content || [];
-            const mapped = content
-              .map((d) => ({
-                id: d.departmentId ?? d.id ?? "",
-                departmentName: d.departmentName || d.name || "",
-              }))
-              .filter((d) => d.departmentName);
+            const content: import("../../users/api/departments.api").ApiDepartmentSpecialtiesItem[] =
+              Array.isArray(list)
+                ? (list as unknown as import("../../users/api/departments.api").ApiDepartmentSpecialtiesItem[])
+                : list?.content || [];
+            const mapped = content.reduce<
+              Array<{ id: string; departmentName: string }>
+            >((acc, d) => {
+              const departmentName = d.departmentName || d.name || "";
+              if (departmentName) {
+                acc.push({
+                  id: String(d.departmentId ?? d.id ?? ""),
+                  departmentName,
+                });
+              }
+              return acc;
+            }, []);
             if (mapped.length > 0) setDepartments(mapped as Department[]);
           });
         }
@@ -674,7 +683,13 @@ export function BookAppointmentScreen({
                 {searchedPatients.length > 0 ? (
                   searchedPatients.map((p) => (
                     <div
-                      key={p.id ? `pat-id-${p.id}` : p.mrn ? `pat-mrn-${p.mrn}` : `pat-name-${p.name}`}
+                      key={
+                        p.id
+                          ? `pat-id-${p.id}`
+                          : p.mrn
+                            ? `pat-mrn-${p.mrn}`
+                            : `pat-name-${p.name}`
+                      }
                       onClick={() => {
                         setSelectedPatient(p);
                         setPatientQuery("");

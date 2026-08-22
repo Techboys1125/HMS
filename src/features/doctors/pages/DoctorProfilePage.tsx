@@ -267,7 +267,9 @@ export function DoctorProfilePage() {
           );
         }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 

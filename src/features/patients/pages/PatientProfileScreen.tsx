@@ -106,7 +106,9 @@ export function PatientProfileScreen({
       } catch {
         if (!cancelled) setError("Failed to load patient data");
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 

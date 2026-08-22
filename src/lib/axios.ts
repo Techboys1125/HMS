@@ -1,11 +1,6 @@
 import { getToken, setToken, removeToken } from "./cookie-token-storage";
 
-// Same-origin requests (relative paths) so calls flow through the Vite dev
-// proxy (see vite.config.ts), which removes cross-origin CORS failures on any
-// port/host. Set VITE_API_BASE_URL to a full URL (e.g. http://host:8081) for
-// deployments that do not proxy /api.
-export const API_BASE_URL =
-  (import.meta.env && import.meta.env.VITE_API_BASE_URL) || "";
+export const API_BASE_URL = "https://safe-hands-hms-backend.onrender.com";
 
 export interface ApiResponseData<T = unknown> {
   data: T;
