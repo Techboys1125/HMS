@@ -66,7 +66,7 @@ export function ReportTable<T extends Record<string, unknown>>({
         columns.some((col) => {
           const val = row[col.key];
           return val != null && String(val).toLowerCase().includes(q);
-        })
+        }),
       );
     }
     if (sortKey) {
@@ -102,12 +102,18 @@ export function ReportTable<T extends Record<string, unknown>>({
         <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between flex-wrap gap-3">
           <div>
             {title && (
-              <h3 className="text-sm font-semibold text-[#111827]" style={{ fontFamily: PP }}>
+              <h3
+                className="text-sm font-semibold text-[#111827]"
+                style={{ fontFamily: PP }}
+              >
                 {title}
               </h3>
             )}
             {subtitle && (
-              <p className="text-xs text-[#64748B] mt-0.5" style={{ fontFamily: RB }}>
+              <p
+                className="text-xs text-[#64748B] mt-0.5"
+                style={{ fontFamily: RB }}
+              >
                 {subtitle}
               </p>
             )}
@@ -115,7 +121,10 @@ export function ReportTable<T extends Record<string, unknown>>({
           <div className="flex items-center gap-2">
             {searchable && (
               <div className="relative">
-                <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+                <Search
+                  size={13}
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8]"
+                />
                 <input
                   type="text"
                   placeholder={searchPlaceholder}
@@ -155,7 +164,9 @@ export function ReportTable<T extends Record<string, unknown>>({
                   <span className="flex items-center gap-1">
                     {col.label}
                     {sortKey === col.key && (
-                      <span className="text-[#0D47A1]">{sortDir === "asc" ? "↑" : "↓"}</span>
+                      <span className="text-[#0D47A1]">
+                        {sortDir === "asc" ? "↑" : "↓"}
+                      </span>
                     )}
                   </span>
                 </th>
@@ -165,7 +176,11 @@ export function ReportTable<T extends Record<string, unknown>>({
           <tbody className="divide-y divide-gray-50">
             {paged.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-5 py-12 text-center text-xs text-[#94A3B8]" style={{ fontFamily: RB }}>
+                <td
+                  colSpan={columns.length}
+                  className="px-5 py-12 text-center text-xs text-[#94A3B8]"
+                  style={{ fontFamily: RB }}
+                >
                   {emptyMessage}
                 </td>
               </tr>
@@ -177,17 +192,26 @@ export function ReportTable<T extends Record<string, unknown>>({
                 >
                   {columns.map((col) => {
                     const val = row[col.key];
-                    const isStatus = typeof val === "string" && STATUS_COLORS[val];
+                    const isStatus =
+                      typeof val === "string" && STATUS_COLORS[val];
                     return (
-                      <td key={col.key} className="px-5 py-3 text-xs" style={{ fontFamily: RB }}>
+                      <td
+                        key={col.key}
+                        className="px-5 py-3 text-xs"
+                        style={{ fontFamily: RB }}
+                      >
                         {col.render ? (
                           col.render(val, row)
                         ) : isStatus ? (
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${STATUS_COLORS[val]}`}>
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${STATUS_COLORS[val]}`}
+                          >
                             {val}
                           </span>
                         ) : (
-                          <span className="text-[#111827]">{val != null ? String(val) : "-"}</span>
+                          <span className="text-[#111827]">
+                            {val != null ? String(val) : "-"}
+                          </span>
                         )}
                       </td>
                     );
@@ -199,9 +223,13 @@ export function ReportTable<T extends Record<string, unknown>>({
         </table>
       </div>
       {totalPages > 1 && (
-        <div className="px-5 py-3 border-t border-gray-50 flex items-center justify-between text-xs" style={{ fontFamily: RB }}>
+        <div
+          className="px-5 py-3 border-t border-gray-50 flex items-center justify-between text-xs"
+          style={{ fontFamily: RB }}
+        >
           <span className="text-[#64748B]">
-            Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filtered.length)} of {filtered.length}
+            Showing {(page - 1) * pageSize + 1}–
+            {Math.min(page * pageSize, filtered.length)} of {filtered.length}
           </span>
           <div className="flex items-center gap-1">
             <button
@@ -220,7 +248,9 @@ export function ReportTable<T extends Record<string, unknown>>({
                   key={p}
                   onClick={() => setPage(p)}
                   className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-medium transition-colors ${
-                    p === page ? "bg-[#0D47A1] text-white" : "border border-[#E5E7EB] text-[#64748B] hover:bg-slate-50"
+                    p === page
+                      ? "bg-[#0D47A1] text-white"
+                      : "border border-[#E5E7EB] text-[#64748B] hover:bg-slate-50"
                   }`}
                 >
                   {p}

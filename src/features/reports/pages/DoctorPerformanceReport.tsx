@@ -1380,7 +1380,10 @@ export function DoctorReportScreen({
                       patient: string;
                     }[]
                   ).map((act) => (
-                    <div key={act.id} className="flex items-start gap-4 relative z-10">
+                    <div
+                      key={act.id}
+                      className="flex items-start gap-4 relative z-10"
+                    >
                       <div className="w-7 h-7 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center text-[#0D47A1] shrink-0">
                         <UserCheck className="w-3.5 h-3.5" />
                       </div>

@@ -30,7 +30,10 @@ export function ReportKpiCards({ kpis, onKpiClick }: ReportKpiCardsProps) {
           >
             <div className="flex items-start justify-between">
               <div>
-                <div className="text-xs font-medium text-[#64748B] mb-1" style={{ fontFamily: RB }}>
+                <div
+                  className="text-xs font-medium text-[#64748B] mb-1"
+                  style={{ fontFamily: RB }}
+                >
                   {kpi.title}
                 </div>
                 <div
@@ -40,7 +43,10 @@ export function ReportKpiCards({ kpis, onKpiClick }: ReportKpiCardsProps) {
                   {kpi.value}
                 </div>
                 {kpi.sub && (
-                  <div className="text-xs text-slate-400 mt-1" style={{ fontFamily: RB }}>
+                  <div
+                    className="text-xs text-slate-400 mt-1"
+                    style={{ fontFamily: RB }}
+                  >
                     {kpi.sub}
                   </div>
                 )}
@@ -59,7 +65,11 @@ export function ReportKpiCards({ kpis, onKpiClick }: ReportKpiCardsProps) {
                 className={`flex items-center gap-1 text-xs font-medium mt-2 ${kpi.isPositive !== false ? "text-[#66BB6A]" : "text-[#EF4444]"}`}
                 style={{ fontFamily: RB }}
               >
-                {kpi.isPositive !== false ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                {kpi.isPositive !== false ? (
+                  <TrendingUp size={12} />
+                ) : (
+                  <TrendingDown size={12} />
+                )}
                 {kpi.trend}
               </div>
             )}
