@@ -677,7 +677,9 @@ export function CreateInvoiceWorkspacePage() {
                     item.serviceName === "OPD Consultation Fee"
                       ? "SERV_CONSULT_GEN"
                       : "SERV_" +
-                        item.serviceName.toUpperCase().replace(/[^A-Z0-9]/g, "_"),
+                        item.serviceName
+                          .toUpperCase()
+                          .replace(/[^A-Z0-9]/g, "_"),
                   itemName: item.serviceName,
                   description: `${item.category} service: ${item.serviceName}`,
                   quantity: item.quantity,
@@ -696,12 +698,13 @@ export function CreateInvoiceWorkspacePage() {
               lineItems.map((item) => item.serviceName),
             );
             const existingItemsMap = new Map(
-              existingItems.map((ext) => [ext.serviceName, ext]),
+              existingItems.map((ext) => [ext.serviceName || "", ext]),
             );
 
             // 1. Delete items that are no longer in lineItems
             const toDelete = existingItems.filter(
-              (extItem) => !lineItemServiceNameSet.has(extItem.serviceName),
+              (extItem) =>
+                !lineItemServiceNameSet.has(extItem.serviceName || ""),
             );
             await Promise.all(
               toDelete.map((extItem) =>

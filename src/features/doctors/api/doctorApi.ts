@@ -177,14 +177,16 @@ export const doctorApi = {
         DoctorApiResponse<ApiScheduleExceptionItem[]>
       >(`/api/v1/doctors/${doctorId}/schedule-exceptions`);
       const rawData = response.data?.data || response.data;
-      const list = Array.isArray(rawData)
-        ? rawData
+      const rawList: ApiScheduleExceptionItem[] = Array.isArray(rawData)
+        ? (rawData as ApiScheduleExceptionItem[])
         : Array.isArray(
-              (rawData as unknown as { content?: unknown[] })?.content,
+              (rawData as unknown as { content?: ApiScheduleExceptionItem[] })
+                ?.content,
             )
-          ? (rawData as unknown as { content: unknown[] }).content
+          ? (rawData as unknown as { content: ApiScheduleExceptionItem[] })
+              .content
           : [];
-      return list.map((item: ApiScheduleExceptionItem) => ({
+      return rawList.map((item: ApiScheduleExceptionItem) => ({
         id: item.id || Number(doctorId),
         doctorId: Number(doctorId),
         exceptionDate:
@@ -307,14 +309,15 @@ export const doctorApi = {
         DoctorApiResponse<DoctorAppointment[]>
       >(`/api/v1/doctors/${doctorId}/appointments`);
       const rawData = response.data?.data || response.data;
-      const list = Array.isArray(rawData)
-        ? rawData
+      const list: DoctorAppointment[] = Array.isArray(rawData)
+        ? (rawData as DoctorAppointment[])
         : Array.isArray(
-              (rawData as unknown as { content?: unknown[] })?.content,
+              (rawData as unknown as { content?: DoctorAppointment[] })
+                ?.content,
             )
-          ? (rawData as unknown as { content: unknown[] }).content
+          ? (rawData as unknown as { content: DoctorAppointment[] }).content
           : [];
-      return list.map((item: DoctorAppointment) => ({
+      return list.map((item) => ({
         id: String(item.id || ""),
         patientId: String(item.patientId || item.patientName || ""),
         patientName: item.patientName || "Patient",

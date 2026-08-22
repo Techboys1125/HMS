@@ -93,7 +93,7 @@ export function PatientSearchBar({
             </div>
           ) : (
             <div className="p-2 space-y-1">
-              {results.map((p) => (
+              {results.map((p: Patient) => (
                 <PatientSummaryCard
                   key={p.mrn}
                   patient={p}

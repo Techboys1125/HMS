@@ -69,7 +69,7 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     fallbackRecord.profile ||
     fallbackRecord.doctor ||
     u) as unknown as ApiDoctorProfile;
-  const anyProfile = (profile || {}) as ApiFallbackRecord;
+  const anyProfile = (profile || {}) as unknown as ApiFallbackRecord;
 
   const primaryDept =
     profile?.primaryDepartment?.departmentName ||

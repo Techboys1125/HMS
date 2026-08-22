@@ -54,14 +54,15 @@ export function ConsultationHistoryPage({
         // Use the consultation queue API to fetch completed consultations
         const queueData = await consultationApi.getConsultationQueue();
         if (!cancelled) {
-          const completedConsultations = (queueData || []).filter(
-            (item: Record<string, unknown>) =>
-              String(item.status || "").toUpperCase() === "COMPLETED",
+          const rawItems =
+            (queueData as Record<string, unknown>[] | undefined) || [];
+          const completedConsultations = rawItems.filter(
+            (item) => String(item.status || "").toUpperCase() === "COMPLETED",
           );
 
           // Map API data to TimelineConsultationItem format
           const mapped: TimelineConsultationItem[] = completedConsultations.map(
-            (item: Record<string, unknown>) => ({
+            (item) => ({
               id: String(item.consultationId || item.id || ""),
               date: String(item.appointmentDate || item.date || ""),
               time: String(item.startTime || item.time || ""),

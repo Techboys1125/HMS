@@ -341,8 +341,7 @@ export const appointmentService = {
         : String(item?.status || "").toUpperCase() === status.toUpperCase();
       if (!matchesStatus) return [];
 
-      const docObj =
-        (item?.doctor as unknown as Record<string, unknown>) || {};
+      const docObj = (item?.doctor as unknown as Record<string, unknown>) || {};
       const docId = String(
         item?.doctorId || docObj?.id || docObj?.doctorId || "",
       );
@@ -351,8 +350,7 @@ export const appointmentService = {
       const updatedItem = { ...item };
       if (knownDoc) {
         if (
-          (!updatedItem.departmentName ||
-            updatedItem.departmentName === "") &&
+          (!updatedItem.departmentName || updatedItem.departmentName === "") &&
           knownDoc.departmentName
         ) {
           updatedItem.departmentName = knownDoc.departmentName;
@@ -733,7 +731,8 @@ export const appointmentService = {
       : [];
 
     let slots: AppointmentSlot[] = availabilitySlots.map(
-      (s: Record<string, unknown>): AppointmentSlot => {
+      (rawItem: unknown): AppointmentSlot => {
+        const s = (rawItem as Record<string, unknown>) || {};
         const statusUpper = String(s.status || "").toUpperCase();
         const available = ["AVAILABLE", "OPEN", "FREE"].includes(statusUpper);
         return {
@@ -853,12 +852,14 @@ export const appointmentService = {
     startTime: string,
   ): Promise<boolean> {
     const slots = await this.listAvailableSlots(doctorId, date);
-    const slot = slots.find(
-      (s: Record<string, unknown>) =>
+    const slot = slots.find((rawItem: unknown) => {
+      const s = (rawItem as Record<string, unknown>) || {};
+      return (
         s.time === startTime ||
         s.startTime === startTime ||
-        s.slot === startTime,
-    );
+        s.slot === startTime
+      );
+    });
     return (slot as Record<string, unknown>)?.available !== false;
   },
 

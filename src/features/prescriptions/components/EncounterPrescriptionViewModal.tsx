@@ -472,9 +472,13 @@ export const EncounterPrescriptionViewModal: React.FC<
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 bg-white">
-                        {prescription.medications.map((med) => (
+                        {prescription.medications.map((med, idx) => (
                           <tr
-                            key={med.medicationId || med.medicineId || `med-${med.medicineName}-${med.dosage}`}
+                            key={
+                              med.medicationId ||
+                              med.medicineId ||
+                              `med-${med.medicineName}-${med.dose || ""}`
+                            }
                             className="hover:bg-slate-50/50 transition-colors"
                           >
                             <td className="py-3 px-3 font-mono text-slate-400">

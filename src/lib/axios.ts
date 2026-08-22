@@ -21,13 +21,14 @@ export class ApiError extends Error {
   };
   config?: unknown;
   isAxiosError?: boolean;
-  status: number;
+  status: number = 0;
 
   constructor(message: string, status?: number, data?: unknown) {
     super(message);
     this.name = "ApiError";
     this.isAxiosError = true;
     if (status) {
+      this.status = status;
       this.response = { status, data };
     }
   }

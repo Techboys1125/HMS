@@ -56,7 +56,7 @@ import { DoctorQueueScreen } from "../../features/doctors/components/DoctorQueue
 import { DoctorPatientsScreen } from "../../features/doctors/components/DoctorPatientsScreen";
 import { DoctorMedicalRecordsScreen } from "../../features/doctors/components/DoctorMedicalRecordsScreen";
 import { DoctorAppointmentsScreen } from "../../features/doctors/components/DoctorAppointmentsScreen";
-import { UserManagementCenterScreen } from "../../features/users/pages/UserManagement";
+import UserManagementCenterScreen from "../../features/users/pages/UserManagement";
 import { BillingManagementPage } from "../../features/billing/pages/BillingManagementPage";
 import { BillingConfigurationPage } from "../../features/billing/pages/BillingConfigurationPage";
 import { InvoiceDetailsPage } from "../../features/billing/pages/InvoiceDetailsPage";

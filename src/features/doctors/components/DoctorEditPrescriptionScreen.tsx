@@ -14,15 +14,9 @@ import {
   X,
 } from "lucide-react";
 import type { EditableMedicine, RxStatus } from "../types/doctors.types";
-import {
-  FREQUENCY_OPTIONS,
-  ROUTE_OPTIONS,
-  COMMON_MEDICINES,
-  PP,
-  RB,
-} from "../constants/doctors.constants";
+import { PP, RB } from "../constants/doctors.constants";
+import { Avatar } from "../../../common/components/Avatar";
 import { Card } from "./Card";
-import { Avatar } from "./Avatar";
 
 export function DoctorEditPrescriptionScreen({
   prescriptionId = "RX-2026-0888",
@@ -721,11 +715,22 @@ export function DoctorEditPrescriptionScreen({
                             }
                             className="w-full px-1.5 py-1.5 border border-gray-200 rounded-lg bg-white outline-none text-xs"
                           >
-                            {ROUTE_OPTIONS.map((r) => (
-                              <option key={r} value={r}>
-                                {r}
-                              </option>
-                            ))}
+                            <option value="Oral">Oral</option>
+                            <option value="Sublingual">Sublingual</option>
+                            <option value="IV (Intravenous)">
+                              IV (Intravenous)
+                            </option>
+                            <option value="IM (Intramuscular)">
+                              IM (Intramuscular)
+                            </option>
+                            <option value="SC (Subcutaneous)">
+                              SC (Subcutaneous)
+                            </option>
+                            <option value="Topical">Topical</option>
+                            <option value="Inhalation">Inhalation</option>
+                            <option value="Ophthalmic">Ophthalmic</option>
+                            <option value="Otic">Otic</option>
+                            <option value="Rectal">Rectal</option>
                           </select>
                         </td>
                         <td className="px-2 py-2">
@@ -754,11 +759,16 @@ export function DoctorEditPrescriptionScreen({
                             }
                             className={`w-full px-1.5 py-1.5 border rounded-lg bg-white outline-none text-xs ${errors[`med_${m.id}_frequency`] ? "border-red-500" : "border-gray-200 focus:border-[#0D47A1]"}`}
                           >
-                            {FREQUENCY_OPTIONS.map((f) => (
-                              <option key={f} value={f}>
-                                {f}
-                              </option>
-                            ))}
+                            <option value="Once Daily">Once Daily</option>
+                            <option value="Twice Daily">Twice Daily</option>
+                            <option value="Thrice Daily">Thrice Daily</option>
+                            <option value="Four Times Daily">
+                              Four Times Daily
+                            </option>
+                            <option value="Once Nightly">Once Nightly</option>
+                            <option value="As Needed (PRN)">
+                              As Needed (PRN)
+                            </option>
                           </select>
                         </td>
                         <td className="px-2 py-2">
@@ -826,11 +836,7 @@ export function DoctorEditPrescriptionScreen({
                   </tbody>
                 </table>
               </div>
-              <datalist id="medicine-suggestions">
-                {COMMON_MEDICINES.map((med) => (
-                  <option key={med} value={med} />
-                ))}
-              </datalist>
+              <datalist id="medicine-suggestions" />
             </Card>
 
             <Card className="p-5">
@@ -1214,7 +1220,10 @@ export function DoctorEditPrescriptionScreen({
                     isPending: status === "Draft",
                   },
                 ].map((ev, i, arr) => (
-                  <div key={ev?.id || ev?._id || ev?.key || ev?.value || ev?.code || ev?.name || ev?.title || ev?.label || (typeof ev === 'object' ? JSON.stringify(ev) : String(ev))} className="flex gap-2.5 items-start">
+                  <div
+                    key={`${ev.title}-${i}`}
+                    className="flex gap-2.5 items-start"
+                  >
                     <div className="flex flex-col items-center">
                       <div
                         className={`w-2 h-2 rounded-full mt-1 shrink-0 ${ev.isPending ? "bg-amber-400" : "bg-[#009688]"}`}

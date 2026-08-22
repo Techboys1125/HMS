@@ -1038,7 +1038,7 @@ export function DoctorDashboard() {
         />
         <div className="space-y-2">
           {(consultationQueue?.queue || []).length > 0 ? (
-            consultationQueue.queue.map((qItem) => (
+            (consultationQueue?.queue || []).map((qItem) => (
               <div
                 key={`${qItem.token || "token"}-${qItem.patientId || "pat"}-${qItem.patientName || "unknown"}`}
                 className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-[#E5E7EB]"

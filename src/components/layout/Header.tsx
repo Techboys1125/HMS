@@ -32,7 +32,7 @@ export function Header({
   onLogout: () => void;
   onNavigateNav: (id: NavId) => void;
   activePatient?: FamilyMember;
-  familyMembers?: FamilyMember[];
+  familyMembers?: readonly FamilyMember[];
   onSwitchActivePatient?: (member: FamilyMember) => void;
 }) {
   const user = useAuthStore((s) => s.user);

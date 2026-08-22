@@ -804,7 +804,7 @@ export function PatientDashboard({
             </thead>
             <tbody className="divide-y divide-gray-50">
               {(dashboard?.recentPrescriptions?.length ?? 0) > 0 ? (
-                (dashboard.recentPrescriptions as DashboardRecord[]).map(
+                ((dashboard?.recentPrescriptions || []) as DashboardRecord[]).map(
                   (rx, idx) => (
                     <tr
                       key={String(
@@ -927,7 +927,9 @@ export function PatientDashboard({
             </thead>
             <tbody className="divide-y divide-gray-50">
               {(dashboard?.recentBills?.length ?? 0) > 0 ? (
-                (dashboard.recentBills as Record<string, unknown>[]).map(
+                (
+                  (dashboard?.recentBills || []) as Record<string, unknown>[]
+                ).map(
                   (b, idx) => (
                     <tr
                       key={String(

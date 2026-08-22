@@ -84,6 +84,7 @@ export function DoctorDashboardKpiDetailScreen({
   >("7 Days");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const meta: DoctorKpiMeta = {
     key: selectedKpi,

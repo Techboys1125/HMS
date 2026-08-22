@@ -15,8 +15,8 @@ import {
 } from "lucide-react";
 import type { RxStatus } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
+import { Avatar } from "../../../common/components/Avatar";
 import { Card } from "./Card";
-import { Avatar } from "./Avatar";
 
 export function DoctorPrescriptionDetailsScreen({
   prescriptionId = "RX-2026-0891",
@@ -961,7 +961,7 @@ export function DoctorPrescriptionDetailsScreen({
                     done: true,
                   },
                 ].map((ev, i, arr) => (
-                  <div key={ev?.id || ev?._id || ev?.key || ev?.value || ev?.code || ev?.name || ev?.title || ev?.label || (typeof ev === 'object' ? JSON.stringify(ev) : String(ev))} className="flex gap-2.5 items-start">
+                  <div key={ev.title || i} className="flex gap-2.5 items-start">
                     <div className="flex flex-col items-center">
                       <div className="w-2 h-2 rounded-full bg-[#009688] mt-1 shrink-0" />
                       {i < arr.length - 1 && (

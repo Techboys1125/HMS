@@ -22,10 +22,12 @@ export const QueueTokenModal: React.FC<QueueTokenModalProps> = ({
   patientMrn,
   doctorName = "Duty Doctor",
   departmentName = "General OPD",
-  appointmentTime = formatTime(appointmentTime || "09:00 AM"),
+  appointmentTime = "09:00 AM",
   onPrint,
 }) => {
   if (!isOpen) return null;
+
+  const formattedTime = formatTime(appointmentTime);
 
   const handlePrint = onPrint || (() => window.print());
 
@@ -90,7 +92,7 @@ export const QueueTokenModal: React.FC<QueueTokenModalProps> = ({
               <div className="flex justify-between">
                 <span className="text-slate-400">Time Slot:</span>
                 <span className="text-[#1E293B] font-bold">
-                  {appointmentTime}
+                  {formattedTime}
                 </span>
               </div>
             </div>

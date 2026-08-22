@@ -301,6 +301,7 @@ export function AddDoctorDrawer({
         empId: autoEmpId,
         regNumber,
         name: payload.fullName,
+        fullName: payload.fullName,
         gender,
         department,
         primaryDepartmentId: primaryDeptId,

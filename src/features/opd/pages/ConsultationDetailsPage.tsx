@@ -12,20 +12,235 @@ import { usePermissions } from "../../../permissions/usePermissions";
 import { useConsultation } from "../hooks/useConsultation";
 import type { ConsultationRecord } from "../types/consultation";
 
-// Reusable Components
 import { ConsultationHeader } from "../components/ConsultationHeader";
 import { VitalsCard } from "../components/VitalsCard";
-import { ChiefComplaintCard } from "../components/ChiefComplaintCard";
-import { ExaminationCard } from "../components/ExaminationCard";
-import { DiagnosisCard } from "../components/DiagnosisCard";
-import { PrescriptionCard } from "../components/PrescriptionCard";
-import { InvestigationCard } from "../components/InvestigationCard";
-import { AdviceCard } from "../components/AdviceCard";
-import { FollowupCard } from "../components/FollowupCard";
-import { TimelineCard } from "../components/TimelineCard";
 import { PatientSummaryCard } from "../components/PatientSummaryCard";
 
 const PP = "'Poppins', system-ui, sans-serif";
+
+function ChiefComplaintCard({
+  complaint,
+  duration,
+  historyOfPresentIllness,
+}: {
+  complaint?: string;
+  duration?: string;
+  historyOfPresentIllness?: string;
+}) {
+  return (
+    <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-2">
+      <div className="text-xs font-bold text-slate-700 font-sans">
+        Chief Complaint: {complaint || "None"}
+      </div>
+      {duration && (
+        <div className="text-xs text-slate-500 font-sans">
+          Duration: {duration}
+        </div>
+      )}
+      {historyOfPresentIllness && (
+        <div className="text-xs text-slate-600 font-sans mt-1">
+          HPI: {historyOfPresentIllness}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ExaminationCard({ findings }: { findings?: string }) {
+  return (
+    <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-1">
+      <div className="text-xs font-bold text-slate-700 font-sans">
+        Clinical Examination Findings
+      </div>
+      <div className="text-xs text-slate-600 font-sans">
+        {findings || "No findings recorded."}
+      </div>
+    </div>
+  );
+}
+
+function DiagnosisCard({
+  provisionalDiagnosis,
+  finalDiagnosis,
+  icdCode,
+}: {
+  provisionalDiagnosis?: string;
+  finalDiagnosis?: string;
+  icdCode?: string;
+}) {
+  return (
+    <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-2">
+      <div className="text-xs font-bold text-slate-700 font-sans">
+        Provisional: {provisionalDiagnosis || "N/A"}
+      </div>
+      <div className="text-xs font-bold text-[#0D47A1] font-sans">
+        Final: {finalDiagnosis || "N/A"}{" "}
+        {icdCode ? `(ICD: ${icdCode})` : ""}
+      </div>
+    </div>
+  );
+}
+
+function PrescriptionCard({
+  medicines,
+}: {
+  medicines?: Array<{
+    name?: string;
+    medicineName?: string;
+    dosage?: string;
+    dose?: string;
+    frequency?: string;
+    duration?: string;
+  }>;
+}) {
+  return (
+    <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
+      <div className="text-xs font-bold text-slate-700 font-sans">
+        Prescribed Medications
+      </div>
+      {!medicines || medicines.length === 0 ? (
+        <div className="text-xs text-slate-400 font-sans">
+          No medicines prescribed.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {medicines.map((m, idx) => (
+            <div
+              key={idx}
+              className="text-xs text-slate-700 font-sans flex justify-between border-b pb-1 border-slate-100"
+            >
+              <span className="font-semibold">{m.medicineName || m.name}</span>
+              <span>
+                {m.dose || m.dosage} - {m.frequency} ({m.duration})
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InvestigationCard({
+  investigations,
+  remarks,
+}: {
+  investigations?: string[] | string;
+  remarks?: string;
+}) {
+  const list = Array.isArray(investigations)
+    ? investigations
+    : investigations
+      ? [investigations]
+      : [];
+  return (
+    <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-2">
+      <div className="text-xs font-bold text-slate-700 font-sans">
+        Investigations
+      </div>
+      {list.length === 0 ? (
+        <div className="text-xs text-slate-400 font-sans">
+          No investigations ordered.
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {list.map((inv, idx) => (
+            <span
+              key={idx}
+              className="px-2.5 py-1 bg-blue-50 text-[#0D47A1] rounded-lg text-xs font-semibold"
+            >
+              {inv}
+            </span>
+          ))}
+        </div>
+      )}
+      {remarks && (
+        <div className="text-xs text-slate-500 font-sans mt-2">
+          Remarks: {remarks}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdviceCard({
+  advice,
+  lifestyleRecommendations,
+}: {
+  advice?: string;
+  lifestyleRecommendations?: string;
+}) {
+  return (
+    <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-2">
+      <div className="text-xs font-bold text-slate-700 font-sans">
+        Advice & Guidance
+      </div>
+      <div className="text-xs text-slate-600 font-sans">
+        {advice || "Follow general wellness guidelines."}
+      </div>
+      {lifestyleRecommendations && (
+        <div className="text-xs text-slate-500 font-sans mt-1">
+          Lifestyle: {lifestyleRecommendations}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FollowupCard({
+  required,
+  nextVisitDate,
+  notes,
+}: {
+  required?: string;
+  nextVisitDate?: string;
+  notes?: string;
+}) {
+  return (
+    <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-2">
+      <div className="text-xs font-bold text-slate-700 font-sans">
+        Follow-up Required: {required}
+      </div>
+      {nextVisitDate && (
+        <div className="text-xs font-semibold text-[#0D47A1] font-sans">
+          Next Visit Date: {nextVisitDate}
+        </div>
+      )}
+      {notes && (
+        <div className="text-xs text-slate-500 font-sans">Notes: {notes}</div>
+      )}
+    </div>
+  );
+}
+
+function TimelineCard({
+  events,
+  title,
+}: {
+  events?: Array<{ title?: string; time?: string; date?: string }>;
+  title?: string;
+}) {
+  return (
+    <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
+      <div className="text-xs font-bold text-slate-800 font-sans">
+        {title || "Timeline"}
+      </div>
+      <div className="space-y-2">
+        {(events || []).map((ev, idx) => (
+          <div
+            key={idx}
+            className="text-xs flex items-center justify-between text-slate-600 font-sans"
+          >
+            <span className="font-medium">{ev.title}</span>
+            <span className="text-slate-400 text-[11px] font-mono">
+              {ev.date} {ev.time}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const emptyVitals = {
   bp: "",
@@ -518,7 +733,13 @@ export function ConsultationDetailsPage({
               </button>
               {!collapsedSections.followup && (
                 <FollowupCard
-                  required={record.followupRequired || "No"}
+                  required={
+                    typeof record.followupRequired === "boolean"
+                      ? record.followupRequired
+                        ? "Yes"
+                        : "No"
+                      : String(record.followupRequired || "No")
+                  }
                   nextVisitDate={record.nextVisitDate}
                   notes={record.followupNotes}
                 />

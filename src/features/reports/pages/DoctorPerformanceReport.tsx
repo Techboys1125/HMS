@@ -1370,11 +1370,17 @@ export function DoctorReportScreen({
                   Recent Doctor OPD Activities & Logs
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {[].map((act) => (
-                    <div
-                      key={act.id}
-                      className="flex items-start gap-4 relative z-10"
-                    >
+                  {(
+                    [] as {
+                      id: string;
+                      doctor: string;
+                      department: string;
+                      time: string;
+                      type: string;
+                      patient: string;
+                    }[]
+                  ).map((act) => (
+                    <div key={act.id} className="flex items-start gap-4 relative z-10">
                       <div className="w-7 h-7 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center text-[#0D47A1] shrink-0">
                         <UserCheck className="w-3.5 h-3.5" />
                       </div>

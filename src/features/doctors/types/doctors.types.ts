@@ -9,7 +9,7 @@ export type RxStatus =
   "Draft" | "Issued" | "Completed" | "Cancelled" | "Archived";
 
 export interface DoctorRecord {
-  fullName: string;
+  fullName?: string;
   id: string;
   userId?: number;
   doctorId?: number;

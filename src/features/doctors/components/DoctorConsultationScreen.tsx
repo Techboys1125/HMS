@@ -21,8 +21,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { PP, RB } from "../constants/doctors.constants";
+import { Avatar } from "../../../common/components/Avatar";
 import { Card } from "./Card";
-import { Avatar } from "./Avatar";
 import { appointmentService } from "../../appointments/services/appointment.service";
 
 import {
@@ -33,7 +33,6 @@ import {
   YAxis,
   Tooltip,
 } from "../../../common/components/recharts-lazy";
-
 
 type ConsultTab = "overview" | "vitals" | "soap" | "prescription" | "history";
 
@@ -184,7 +183,10 @@ export function DoctorConsultationScreen({
     try {
       await appointmentService.doctorCompleteConsultation(appointmentId);
       try {
-        await appointmentService.updateAppointmentStatus(appointmentId, "COMPLETED");
+        await appointmentService.updateAppointmentStatus(
+          appointmentId,
+          "COMPLETED",
+        );
       } catch {
         // ignore fallback
       }

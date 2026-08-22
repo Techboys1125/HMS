@@ -1,6 +1,32 @@
-import { DEPARTMENTS } from "../../constants/dashboard";
+import { useHospitalAdminDepartmentWorkload } from "../../features/dashboard/hooks/useHospitalAdminDashboard";
 
 export function DepartmentStatus() {
+  const { data: departmentData, isLoading } =
+    useHospitalAdminDepartmentWorkload();
+
+  const colors = [
+    "#0D47A1",
+    "#009688",
+    "#E91E63",
+    "#FF9800",
+    "#9C27B0",
+    "#64748B",
+  ];
+
+  const departments = (departmentData || []).map((d, index) => {
+    const total = d.appts || 0;
+    const active = Math.min(total, Math.round(total * 0.7));
+    const capacity =
+      total > 0 ? Math.min(100, Math.round((total / 30) * 100)) : 0;
+    return {
+      name: d.dept,
+      active,
+      total,
+      capacity,
+      color: colors[index % colors.length],
+    };
+  });
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm shadow-slate-50">
       <div className="flex items-center justify-between mb-4">
@@ -13,11 +39,11 @@ export function DepartmentStatus() {
           </div>
         </div>
         <span className="text-xs font-semibold text-[#0D47A1] bg-blue-50 px-2.5 py-1 rounded-full">
-          5 Active
+          {isLoading ? "..." : `${departments.length} Active`}
         </span>
       </div>
       <div className="flex flex-col gap-3">
-        {DEPARTMENTS.map((d) => (
+        {departments.map((d) => (
           <div key={d.name}>
             <div className="flex items-center justify-between text-xs mb-1">
               <span className="font-medium text-slate-700">{d.name}</span>

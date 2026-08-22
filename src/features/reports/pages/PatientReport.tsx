@@ -188,8 +188,6 @@ function CircularProgress({
   );
 }
 
-
-
 export function PatientReportScreen({
   onBack,
   onOpenAppointmentReport,
@@ -422,8 +420,8 @@ export function PatientReportScreen({
   // Sorted records
   const sortedData = useMemo(() => {
     return filteredData.toSorted((a, b) => {
-      const aVal = a[sortField];
-      const bVal = b[sortField];
+      const aVal = (a as Record<string, unknown>)[sortField as string];
+      const bVal = (b as Record<string, unknown>)[sortField as string];
       if (typeof aVal === "number" && typeof bVal === "number") {
         return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
       }
@@ -1679,7 +1677,16 @@ export function PatientReportScreen({
                   Recent Patient Registration & Visit Activity
                 </h3>
                 <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {[].map((act) => (
+                  {(
+                    [] as {
+                      id: string;
+                      patient: string;
+                      mrn: string;
+                      time: string;
+                      type: string;
+                      doctor: string;
+                    }[]
+                  ).map((act) => (
                     <div
                       key={act.id}
                       className="flex items-start gap-4 relative z-10"

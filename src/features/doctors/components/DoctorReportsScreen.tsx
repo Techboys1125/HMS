@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { TrendingUp, TrendingDown, Download } from "lucide-react";
 
 import { PP, RB } from "../constants/doctors.constants";
 import { Card } from "./Card";
-import { SectionHeader } from "./SectionHeader";
+import SectionHeader from "./SectionHeader";
 
 const WEEKLY_CONSULTATIONS: { id: number; day: string; count: number }[] = [];
 
@@ -16,7 +16,6 @@ import {
   Tooltip,
   Cell,
 } from "../../../common/components/recharts-lazy";
-
 
 export function DoctorReportsScreen() {
   const [period, setPeriod] = useState<"week" | "month">("week");
@@ -148,7 +147,10 @@ export function DoctorReportsScreen() {
                     radius={[6, 6, 0, 0]}
                   >
                     {WEEKLY_CONSULTATIONS.map((_, i) => (
-                      <Cell key={_?.id || _?._id || _?.key || _?.value || _?.code || _?.name || _?.title || _?.label || (typeof _ === 'object' ? JSON.stringify(_) : String(_))} fill={i === 3 ? "#0D47A1" : "#DBEAFE"} />
+                      <Cell
+                        key={_?.id ?? i}
+                        fill={i === 3 ? "#0D47A1" : "#DBEAFE"}
+                      />
                     ))}
                   </Bar>
                 </BarChart>

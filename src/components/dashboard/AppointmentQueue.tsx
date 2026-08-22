@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Download } from "lucide-react";
 import type { AppStatus } from "../../types/app.types";
 import { Avatar } from "../../common/components/Avatar";
-import { StatusBadge } from "../../common/components/StatusBadge";
-import { formatTime } from "../../../lib/time-utils";
+import { StatusBadge } from "../../features/appointments/components/StatusBadge";
+import { formatTime } from "../../lib/time-utils";
 import { appointmentService } from "../../features/appointments/services/appointment.service";
 import type { AppointmentRecord } from "../../features/appointments/types/appointment.types";
 

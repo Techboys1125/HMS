@@ -1040,13 +1040,13 @@ export function AccountantBillingReportScreen({
                               {item.invoiceDate}
                             </td>
                             <td className="py-3.5 px-4 text-right font-bold text-[#111827]">
-                              ${item.invoiceAmount.toFixed(2)}
+                              ${(item.invoiceAmount ?? 0).toFixed(2)}
                             </td>
                             <td className="py-3.5 px-4 text-right font-bold text-[#66BB6A]">
-                              ${item.amountPaid.toFixed(2)}
+                              ${(item.amountPaid ?? 0).toFixed(2)}
                             </td>
                             <td className="py-3.5 px-4 text-right font-bold text-[#EF4444]">
-                              ${item.outstandingBalance.toFixed(2)}
+                              ${(item.outstandingBalance ?? 0).toFixed(2)}
                             </td>
                             <td className="py-3.5 px-4 font-medium text-[#111827]">
                               {item.paymentMethod}

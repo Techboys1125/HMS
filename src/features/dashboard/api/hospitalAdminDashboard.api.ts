@@ -183,18 +183,19 @@ export const hospitalAdminDashboardApi = {
       page: 0,
       size: 500,
     });
-    const appointments = (res.data as { content?: unknown[] })?.content || [];
-    const todayAppointments = appointments
-      .filter(
-        (a: Record<string, unknown>) => String(a.appointmentDate) === today(),
-      )
-      .sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
+    const rawContent = (res.data as { content?: unknown[] })?.content;
+    const appointments: Record<string, unknown>[] = Array.isArray(rawContent)
+      ? (rawContent as Record<string, unknown>[])
+      : [];
+    const todayAppointments: Record<string, unknown>[] = appointments
+      .filter((a) => String(a.appointmentDate) === today())
+      .sort((a, b) => {
         const timeA = String(a.startTime || "99:99");
         const timeB = String(b.startTime || "99:99");
         return timeA.localeCompare(timeB);
       });
 
-    return todayAppointments.map((a: Record<string, unknown>) => {
+    return todayAppointments.map((a) => {
       const status = String(a.status || "Scheduled");
       const labelMap: Record<string, string> = {
         BOOKED: "Scheduled",

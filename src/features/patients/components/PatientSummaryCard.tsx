@@ -2,7 +2,7 @@
  * PatientSummaryCard – Compact patient info card for lists and search results
  */
 import type { Patient } from "../types/patient.types";
-import { PatientStatusBadge } from "./PatientStatusBadge";
+import { StatusBadge as PatientStatusBadge } from "./StatusBadges";
 import { PP, RB } from "../../doctors/constants/doctors.constants";
 
 interface PatientSummaryCardProps {

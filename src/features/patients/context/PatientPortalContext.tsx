@@ -58,7 +58,7 @@ function mapApiToFamilyMember(
     fullName?: string;
     name?: string;
     mrn?: string;
-    patientId?: string;
+    patientId?: string | null;
   } | null,
 ): FamilyMember {
   let customSaved: Record<string, unknown> = {};

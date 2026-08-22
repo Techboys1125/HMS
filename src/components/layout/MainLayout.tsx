@@ -4,7 +4,7 @@ import type { FamilyMember } from "../../features/patients/pages/FamilyMembersMa
 import { Header } from "./Header";
 import { NavRail } from "./NavRail";
 
-const EMPTY_FAMILY_MEMBERS: readonly FamilyMember[] = [];
+const EMPTY_FAMILY_MEMBERS: FamilyMember[] = [];
 
 export function MainLayout({
   activeNav,
@@ -23,7 +23,7 @@ export function MainLayout({
   onLogout: () => void;
   onNavigateNav: (id: NavId) => void;
   activePatient?: FamilyMember;
-  familyMembers?: FamilyMember[];
+  familyMembers?: readonly FamilyMember[];
   onSwitchActivePatient?: (member: FamilyMember) => void;
   sidebarTheme?: "light" | "dark";
   onThemeToggle?: () => void;
