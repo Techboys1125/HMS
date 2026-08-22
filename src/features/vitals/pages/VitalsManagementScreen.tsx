@@ -787,7 +787,8 @@ export function RecordPatientVitalsForm({
       triggerToast("Vitals recorded successfully!", "success");
 
       await onMarkReady();
-    } catch {
+    } catch (err) {
+      console.log(err);
       triggerToast("Unable to record vitals.", "error");
     }
   };
@@ -1269,7 +1270,8 @@ export function RecordPatientVitalsScreen({
     try {
       const data = await vitalsService.getVitals(aptId);
       setDetailsVitals(data);
-    } catch {
+    } catch (err) {
+      console.log(err);
       setDetailsVitals(null);
     }
   }, []);

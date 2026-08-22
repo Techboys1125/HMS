@@ -70,7 +70,9 @@ async function customFetch<T = unknown>(
       ...options,
       headers,
     });
-  } catch (networkError: unknown) {
+  } catch (networkError) {
+    console.log(networkError);
+
     const errorObj = networkError as { message?: string } | undefined;
     throw new ApiError(
       "Unable to connect to the server. Please check your network connection and try again.",

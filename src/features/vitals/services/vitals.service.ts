@@ -86,7 +86,8 @@ export const vitalsService = {
         recordedBy: recordedByName,
         recordedAt: recordedAtStr,
       };
-    } catch {
+    } catch (err) {
+      console.log(err);
       return null;
     }
   },

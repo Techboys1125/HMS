@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate } from "react-router";
-import "./unusedEntryPoints";
 import { useState, useCallback } from "react";
 import { ROUTES } from "./routes";
 import ProtectedRoute from "./ProtectedRoute";

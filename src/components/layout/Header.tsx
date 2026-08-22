@@ -56,8 +56,8 @@ export function Header({
         }
       }
     }
-  } catch {
-    // Ignore
+  } catch (err) {
+    console.log(err);
   }
 
   const currentActive =
