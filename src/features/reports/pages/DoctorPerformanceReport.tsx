@@ -218,7 +218,7 @@ export function DoctorReportScreen({
 
     const topDoc =
       doctorList.length > 0
-        ? [...doctorList].sort(
+        ? doctorList.toSorted(
             (a: DoctorPerformanceSummary, b: DoctorPerformanceSummary) =>
               Number(b.completed || 0) - Number(a.completed || 0),
           )[0]
@@ -233,8 +233,6 @@ export function DoctorReportScreen({
         pendingConsultations,
         cancelledConsultations,
         followUpConsultations,
-        averageConsultationDurationMinutes: 15,
-        doctorUtilizationPercentage: 85,
         patientSatisfaction: avgRating,
         topPerformingDepartment: topDoc?.department ?? "--",
         averageConsultationDurationMinutes,

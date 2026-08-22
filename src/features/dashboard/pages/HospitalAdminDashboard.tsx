@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router";
 import { ROUTES } from "../../../app/routes/routes";
 // React imports
@@ -308,13 +308,19 @@ export function HospitalAdminDashboard({
     return isNaN(num) ? String(fallback) : String(num);
   };
 
+  const currencyFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0,
+      }),
+    [],
+  );
+
   const formatCurrency = (val: unknown) => {
     const num = safeNum(val);
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(num);
+    return currencyFormatter.format(num);
   };
 
   const todayStr = summary?.date || new Date().toISOString().split("T")[0];

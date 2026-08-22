@@ -398,7 +398,10 @@ export function DoctorQueueScreen() {
                     patient.queueId ||
                     patient.appointmentId ||
                     patient.appointmentNumber ||
-                    idx
+                    patient.id ||
+                    patient.patientId ||
+                    patientMrn ||
+                    patientDisplayName
                   }
                   className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 ${meta.row}`}
                 >

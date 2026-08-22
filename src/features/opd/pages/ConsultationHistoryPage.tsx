@@ -36,9 +36,12 @@ export function ConsultationHistoryPage({
     currentRole === "patient";
 
   // State for historical consultations from API
-  const [historicalConsultations, setHistoricalConsultations] = useState<TimelineConsultationItem[]>([]);
+  const [historicalConsultations, setHistoricalConsultations] = useState<
+    TimelineConsultationItem[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [toastMsg] = useState<string | null>(null);
 
   // Fetch consultation history from API
   useEffect(() => {
@@ -52,45 +55,55 @@ export function ConsultationHistoryPage({
         const queueData = await consultationApi.getConsultationQueue();
         if (!cancelled) {
           const completedConsultations = (queueData || []).filter(
-            (item: Record<string, unknown>) => 
-              String(item.status || "").toUpperCase() === "COMPLETED"
+            (item: Record<string, unknown>) =>
+              String(item.status || "").toUpperCase() === "COMPLETED",
           );
-          
+
           // Map API data to TimelineConsultationItem format
-          const mapped: TimelineConsultationItem[] = completedConsultations.map((item: Record<string, unknown>) => ({
-            id: String(item.consultationId || item.id || ""),
-            date: String(item.appointmentDate || item.date || ""),
-            time: String(item.startTime || item.time || ""),
-            doctor: String(item.doctorName || item.doctor?.name || ""),
-            department: String(item.departmentName || item.department || ""),
-            visitType: String(item.visitType || item.appointmentType || "First Visit"),
-            status: "Completed",
-            chiefComplaint: String(item.chiefComplaint || item.reason || ""),
-            diagnosis: String(item.diagnosis || ""),
-            icdCode: String(item.icdCode || ""),
-            medicinesCount: Number(item.medicinesCount || 0),
-            investigationsCount: Number(item.investigationsCount || 0),
-            followupStatus: String(item.followupStatus || ""),
-            nextFollowupDate: String(item.nextFollowupDate || ""),
-            vitals: item.vitals as TimelineConsultationItem["vitals"],
-            medicines: item.medicines as TimelineConsultationItem["medicines"],
-            investigations: item.investigations as string[],
-            examinationFindings: String(item.examinationFindings || ""),
-            clinicalNotes: String(item.clinicalNotes || ""),
-          }));
-          
+          const mapped: TimelineConsultationItem[] = completedConsultations.map(
+            (item: Record<string, unknown>) => ({
+              id: String(item.consultationId || item.id || ""),
+              date: String(item.appointmentDate || item.date || ""),
+              time: String(item.startTime || item.time || ""),
+              doctor: String(
+                item.doctorName ||
+                  (item.doctor as { name?: string } | undefined)?.name ||
+                  "",
+              ),
+              department: String(item.departmentName || item.department || ""),
+              visitType: String(
+                item.visitType || item.appointmentType || "First Visit",
+              ),
+              status: "Completed",
+              chiefComplaint: String(item.chiefComplaint || item.reason || ""),
+              diagnosis: String(item.diagnosis || ""),
+              icdCode: String(item.icdCode || ""),
+              medicinesCount: Number(item.medicinesCount || 0),
+              investigationsCount: Number(item.investigationsCount || 0),
+              followupStatus: String(item.followupStatus || ""),
+              nextFollowupDate: String(item.nextFollowupDate || ""),
+              vitals: item.vitals as TimelineConsultationItem["vitals"],
+              medicines:
+                item.medicines as TimelineConsultationItem["medicines"],
+              investigations: item.investigations as string[],
+              examinationFindings: String(item.examinationFindings || ""),
+              clinicalNotes: String(item.clinicalNotes || ""),
+            }),
+          );
+
           setHistoricalConsultations(mapped);
         }
       } catch (err) {
         if (!cancelled) {
-          const msg = err instanceof Error ? err.message : "Failed to fetch consultation history";
+          const msg =
+            err instanceof Error
+              ? err.message
+              : "Failed to fetch consultation history";
           console.error("Failed to fetch consultation history:", err);
           setError(msg);
         }
       } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     };
 
@@ -132,9 +145,9 @@ export function ConsultationHistoryPage({
         const matchId = item.id.toLowerCase().includes(q);
         const matchDx = item.diagnosis.toLowerCase().includes(q);
         const matchDate = item.date.toLowerCase().includes(q);
-        const matchMeds = item.medicines?.some((m) =>
-          m.name.toLowerCase().includes(q),
-        ) || false;
+        const matchMeds =
+          item.medicines?.some((m) => m.name.toLowerCase().includes(q)) ||
+          false;
         const matchDoc = item.doctor.toLowerCase().includes(q);
         if (!matchId && !matchDx && !matchDate && !matchMeds && !matchDoc)
           return false;
@@ -278,154 +291,152 @@ export function ConsultationHistoryPage({
               </p>
             </div>
           )}
-          {!isLoading && filteredTimeline.map((item) => {
-            const isExpanded = !!expandedCardIds[item.id];
-            return (
-              <div
-                key={item.id}
-                className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden"
-              >
-                <button
-                  onClick={() => toggleExpand(item.id)}
-                  className="w-full text-left px-5 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
+          {!isLoading &&
+            filteredTimeline.map((item) => {
+              const isExpanded = !!expandedCardIds[item.id];
+              return (
+                <div
+                  key={item.id}
+                  className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden"
                 >
-                  <div>
-                    <div className="flex items-center gap-2 text-xs text-[#0D47A1] font-bold">
-                      <span>
-                        {item.date} · {formatTime(item.time)}
-                      </span>
-                      <span className="font-mono bg-blue-50 px-1.5 py-0.5 rounded text-[10px]">
-                        {item.id}
-                      </span>
-                    </div>
-                    <div
-                      className="text-sm font-bold text-slate-800 mt-1"
-                      style={{ fontFamily: PP }}
-                    >
-                      {item.diagnosis} (ICD: {item.icdCode})
-                    </div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">
-                      Doctor: {item.doctor} ({item.department}) ·{" "}
-                      {item.visitType}
-                    </div>
-                  </div>
-                  <ChevronDown
-                    className={`text-slate-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                    size={18}
-                  />
-                </button>
-
-                {isExpanded && (
-                  <div className="border-t border-slate-100 p-5 space-y-4 text-xs text-slate-700">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <strong
-                          className="block text-slate-400 uppercase font-semibold text-[10px] mb-1"
-                          style={{ fontFamily: PP }}
-                        >
-                          Chief Complaint
-                        </strong>
-                        <p
-                          className="text-slate-700 font-medium"
-                          style={{ fontFamily: RB }}
-                        >
-                          {item.chiefComplaint}
-                        </p>
+                  <button
+                    onClick={() => toggleExpand(item.id)}
+                    className="w-full text-left px-5 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2 text-xs text-[#0D47A1] font-bold">
+                        <span>
+                          {item.date} · {formatTime(item.time)}
+                        </span>
+                        <span className="font-mono bg-blue-50 px-1.5 py-0.5 rounded text-[10px]">
+                          {item.id}
+                        </span>
                       </div>
-                      <div>
-                        <strong
-                          className="block text-slate-400 uppercase font-semibold text-[10px] mb-1"
-                          style={{ fontFamily: PP }}
-                        >
-                          Vitals Readings
-                        </strong>
-                        <p className="text-slate-700 font-mono">
-                          BP: {item.vitals.bp} mmHg | Heart Rate:{" "}
-                          {item.vitals.pulse} | Temp: {item.vitals.temp} | SpO₂:{" "}
-                          {item.vitals.spo2}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="border-t border-slate-50 pt-3">
-                      <strong
-                        className="block text-slate-400 uppercase font-semibold text-[10px] mb-1.5"
+                      <div
+                        className="text-sm font-bold text-slate-800 mt-1"
                         style={{ fontFamily: PP }}
                       >
-                        Prescribed Medicines
-                      </strong>
-                      <div className="space-y-1">
-                        {item.medicines.map((m) => (
-                          <div
-                            key={m.name}
-                            className="flex gap-2"
-                          >
-                            <span className="font-bold text-slate-800">
-                              • {m.name}
-                            </span>
-                            <span className="text-slate-500 font-mono">
-                              {m.dosage} - {m.freq} ({m.duration})
-                            </span>
-                          </div>
-                        ))}
+                        {item.diagnosis} (ICD: {item.icdCode})
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">
+                        Doctor: {item.doctor} ({item.department}) ·{" "}
+                        {item.visitType}
                       </div>
                     </div>
+                    <ChevronDown
+                      className={`text-slate-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                      size={18}
+                    />
+                  </button>
 
-                    {item.investigations.length > 0 && (
+                  {isExpanded && (
+                    <div className="border-t border-slate-100 p-5 space-y-4 text-xs text-slate-700">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <strong
+                            className="block text-slate-400 uppercase font-semibold text-[10px] mb-1"
+                            style={{ fontFamily: PP }}
+                          >
+                            Chief Complaint
+                          </strong>
+                          <p
+                            className="text-slate-700 font-medium"
+                            style={{ fontFamily: RB }}
+                          >
+                            {item.chiefComplaint}
+                          </p>
+                        </div>
+                        <div>
+                          <strong
+                            className="block text-slate-400 uppercase font-semibold text-[10px] mb-1"
+                            style={{ fontFamily: PP }}
+                          >
+                            Vitals Readings
+                          </strong>
+                          <p className="text-slate-700 font-mono">
+                            BP: {item.vitals.bp} mmHg | Heart Rate:{" "}
+                            {item.vitals.pulse} | Temp: {item.vitals.temp} |
+                            SpO₂: {item.vitals.spo2}
+                          </p>
+                        </div>
+                      </div>
+
                       <div className="border-t border-slate-50 pt-3">
                         <strong
                           className="block text-slate-400 uppercase font-semibold text-[10px] mb-1.5"
                           style={{ fontFamily: PP }}
                         >
-                          Recommended Investigations
+                          Prescribed Medicines
                         </strong>
-                        <div className="flex flex-wrap gap-1.5">
-                          {item.investigations.map((inv) => (
-                            <span
-                              key={inv}
-                              className="px-2 py-0.5 bg-blue-50 text-[#0D47A1] rounded font-semibold border border-blue-100"
-                            >
-                              {inv}
-                            </span>
+                        <div className="space-y-1">
+                          {item.medicines.map((m) => (
+                            <div key={m.name} className="flex gap-2">
+                              <span className="font-bold text-slate-800">
+                                • {m.name}
+                              </span>
+                              <span className="text-slate-500 font-mono">
+                                {m.dosage} - {m.freq} ({m.duration})
+                              </span>
+                            </div>
                           ))}
                         </div>
                       </div>
-                    )}
 
-                    {item.clinicalNotes && (
-                      <div className="border-t border-slate-50 pt-3">
-                        <strong
-                          className="block text-slate-400 uppercase font-semibold text-[10px] mb-1"
-                          style={{ fontFamily: PP }}
-                        >
-                          Clinical Advice & Summary
-                        </strong>
-                        <p
-                          className="text-slate-600 leading-relaxed"
-                          style={{ fontFamily: RB }}
-                        >
-                          {item.clinicalNotes}
-                        </p>
-                      </div>
-                    )}
+                      {item.investigations.length > 0 && (
+                        <div className="border-t border-slate-50 pt-3">
+                          <strong
+                            className="block text-slate-400 uppercase font-semibold text-[10px] mb-1.5"
+                            style={{ fontFamily: PP }}
+                          >
+                            Recommended Investigations
+                          </strong>
+                          <div className="flex flex-wrap gap-1.5">
+                            {item.investigations.map((inv) => (
+                              <span
+                                key={inv}
+                                className="px-2 py-0.5 bg-blue-50 text-[#0D47A1] rounded font-semibold border border-blue-100"
+                              >
+                                {inv}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
-                    {!isReadOnly && onViewFullConsultation && (
-                      <div className="border-t border-slate-100 pt-3 flex justify-end">
-                        <button
-                          onClick={() => onViewFullConsultation(item.id)}
-                          className="px-3 py-1.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white font-semibold rounded-lg flex items-center gap-1"
-                          style={{ fontFamily: PP }}
-                        >
-                          <Eye size={12} />
-                          View Full Details
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                      {item.clinicalNotes && (
+                        <div className="border-t border-slate-50 pt-3">
+                          <strong
+                            className="block text-slate-400 uppercase font-semibold text-[10px] mb-1"
+                            style={{ fontFamily: PP }}
+                          >
+                            Clinical Advice & Summary
+                          </strong>
+                          <p
+                            className="text-slate-600 leading-relaxed"
+                            style={{ fontFamily: RB }}
+                          >
+                            {item.clinicalNotes}
+                          </p>
+                        </div>
+                      )}
+
+                      {!isReadOnly && onViewFullConsultation && (
+                        <div className="border-t border-slate-100 pt-3 flex justify-end">
+                          <button
+                            onClick={() => onViewFullConsultation(item.id)}
+                            className="px-3 py-1.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white font-semibold rounded-lg flex items-center gap-1"
+                            style={{ fontFamily: PP }}
+                          >
+                            <Eye size={12} />
+                            View Full Details
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
         </div>
       </div>
     </div>

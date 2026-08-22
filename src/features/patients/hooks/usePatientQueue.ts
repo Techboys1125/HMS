@@ -52,9 +52,7 @@ export function usePatientQueue() {
           }
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 

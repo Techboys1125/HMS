@@ -26,7 +26,10 @@ import { Avatar, Chip } from "../components/Avatar";
 import { StatusBadge } from "../components/StatusBadges";
 import { Pagination } from "../../../common/components/Pagination";
 import { patientsApi } from "../api/patient.api";
-import { mapApiPatientToPatientRecord, extractDoctorName } from "../api/mapApiPatientToPatientRecord";
+import {
+  mapApiPatientToPatientRecord,
+  extractDoctorName,
+} from "../api/mapApiPatientToPatientRecord";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { can, type Role } from "../utils/patientPermissions";
 
@@ -90,9 +93,12 @@ export function PatientProfileScreen({
               return [];
             };
 
-            if (appts.status === "fulfilled") setAppointments(safeArray(appts.value));
-            if (rxBills.status === "fulfilled") setPrescriptions(safeArray(rxBills.value));
-            if (bills.status === "fulfilled") setBilling(safeArray(bills.value));
+            if (appts.status === "fulfilled")
+              setAppointments(safeArray(appts.value));
+            if (rxBills.status === "fulfilled")
+              setPrescriptions(safeArray(rxBills.value));
+            if (bills.status === "fulfilled")
+              setBilling(safeArray(bills.value));
           } else {
             setError("Failed to load patient profile");
           }
@@ -100,9 +106,7 @@ export function PatientProfileScreen({
       } catch {
         if (!cancelled) setError("Failed to load patient data");
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 
@@ -696,17 +700,17 @@ export function PatientProfileScreen({
                         Medical Alerts
                       </h3>
                       <div className="flex flex-wrap gap-2">
-                        {(patient.knownAllergies || []).map((a, i) => (
+                        {(patient.knownAllergies || []).map((a) => (
                           <span
-                            key={`allergy-${i}`}
+                            key={`allergy-${a}`}
                             className="px-2.5 py-1 rounded-lg bg-red-50 text-red-700 text-[11px] font-semibold border border-red-100"
                           >
                             Allergy: {a}
                           </span>
                         ))}
-                        {(patient.chronicDiseases || []).map((d, i) => (
+                        {(patient.chronicDiseases || []).map((d) => (
                           <span
-                            key={`chronic-${i}`}
+                            key={`chronic-${d}`}
                             className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 text-[11px] font-semibold border border-amber-100"
                           >
                             Chronic: {d}

@@ -432,21 +432,19 @@ export const consultationService = {
       const encounterId =
         (cnsRecord.encounterId as string | number) || `ENC-${consultationId}`;
 
-      // 2. Fetch encounter
-      const encounter = await consultationApi.getEncounter(encounterId);
-
-      // 3. Fetch vitals
-      const vitals = await consultationApi.loadEncounterVitals(encounterId);
-
-      // 4. Fetch diagnoses
-      const rawDiagnoses = await consultationApi.getDiagnoses(encounterId);
+      // 2-5. Fetch encounter, vitals, diagnoses, and prescription in parallel
+      const [encounter, vitals, rawDiagnoses, prescription] = await Promise.all(
+        [
+          consultationApi.getEncounter(encounterId),
+          consultationApi.loadEncounterVitals(encounterId),
+          consultationApi.getDiagnoses(encounterId),
+          consultationApi.getPrescription(encounterId),
+        ],
+      );
 
       const diagnoses: Diagnosis[] = Array.isArray(rawDiagnoses)
         ? rawDiagnoses
         : [];
-
-      // 5. Fetch prescription
-      const prescription = await consultationApi.getPrescription(encounterId);
 
       const vitalsRecord = (cnsRecord.vitals || {}) as Record<string, unknown>;
       const patientRecord = (cnsRecord.patient || {}) as Record<

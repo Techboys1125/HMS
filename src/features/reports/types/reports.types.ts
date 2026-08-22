@@ -374,16 +374,6 @@ export interface PaginatedData<T> {
 
 // 1. Doctor Performance Summary
 export interface DoctorPerformanceSummary {
-  id: string;
-  code: string;
-  name: string;
-  totalAppointments: number;
-  completedAppointments: number;
-  pendingAppointments: number;
-  cancelledAppointments: number;
-  followup: number;
-  avgConsultationTimeMinutes: number;
-  patientRating: number;
   doctorId: string;
   doctorName: string;
   department: string;
@@ -442,8 +432,6 @@ export interface DailyAppointmentSummary {
 
 // 3. Daily Appointments Detail
 export interface DailyAppointmentDetail {
-  visitType: string;
-  date: string;
   appointmentTime: string;
   patientId: string;
   appointmentId: number;

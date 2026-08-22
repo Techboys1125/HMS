@@ -523,7 +523,10 @@ export function PatientDashboard({
             {appointments.length > 0 ? (
               appointments.map((item) => (
                 <div
-                  key={item.appointmentId || `apt-${item.appointmentDate}-${item.appointmentTime}`}
+                  key={
+                    item.appointmentId ||
+                    `apt-${item.appointmentDate}-${item.appointmentTime}`
+                  }
                   className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-slate-50 hover:bg-white transition-colors"
                 >
                   <div className="flex items-center gap-3">
@@ -804,7 +807,14 @@ export function PatientDashboard({
                 (dashboard.recentPrescriptions as DashboardRecord[]).map(
                   (rx, idx) => (
                     <tr
-                      key={rx.prescriptionId || rx.id || idx}
+                      key={String(
+                        rx.prescriptionId ||
+                          rx.id ||
+                          rx.prescriptionNumber ||
+                          rx.issuedAt ||
+                          rx.doctorName ||
+                          "rx",
+                      )}
                       className="hover:bg-slate-50 transition-colors"
                     >
                       <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
@@ -917,48 +927,61 @@ export function PatientDashboard({
             </thead>
             <tbody className="divide-y divide-gray-50">
               {(dashboard?.recentBills?.length ?? 0) > 0 ? (
-                (dashboard.recentBills as Record<string, unknown>[]).map((b, idx) => (
-                  <tr
-                    key={String(b.billId || b.billNumber || b.invoiceId || `bill-${idx}`)}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                      {String(
-                        b.billNumber ||
+                (dashboard.recentBills as Record<string, unknown>[]).map(
+                  (b, idx) => (
+                    <tr
+                      key={String(
+                        b.billId ||
+                          b.billNumber ||
                           b.invoiceId ||
-                          b.invoice ||
-                          `BILL-${idx + 1}`,
+                          b.id ||
+                          b.billDate ||
+                          b.date ||
+                          b.generatedAt ||
+                          "bill",
                       )}
-                    </td>
-                    <td className="px-5 py-3 font-mono text-xs text-slate-500">
-                      {String(b.billDate || b.generatedAt || b.date || "--")}
-                    </td>
-                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
-                      ₹{Number(b.netAmount ?? b.amount ?? 0).toLocaleString()}
-                    </td>
-                    <td className="px-5 py-3">
-                      <Chip
-                        label={String(b.paymentStatus || b.status || "Pending")}
-                        variant={
-                          String(b.paymentStatus || b.status || "") === "PAID"
-                            ? "success"
-                            : String(b.paymentStatus || b.status || "") ===
-                                "PARTIALLY_PAID"
-                              ? "info"
-                              : "warning"
-                        }
-                      />
-                    </td>
-                    <td className="px-5 py-3">
-                      <button
-                        className="px-3 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
-                        style={{ fontFamily: PP }}
-                      >
-                        View Invoice
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      className="hover:bg-slate-50 transition-colors"
+                    >
+                      <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                        {String(
+                          b.billNumber ||
+                            b.invoiceId ||
+                            b.invoice ||
+                            `BILL-${idx + 1}`,
+                        )}
+                      </td>
+                      <td className="px-5 py-3 font-mono text-xs text-slate-500">
+                        {String(b.billDate || b.generatedAt || b.date || "--")}
+                      </td>
+                      <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
+                        ₹{Number(b.netAmount ?? b.amount ?? 0).toLocaleString()}
+                      </td>
+                      <td className="px-5 py-3">
+                        <Chip
+                          label={String(
+                            b.paymentStatus || b.status || "Pending",
+                          )}
+                          variant={
+                            String(b.paymentStatus || b.status || "") === "PAID"
+                              ? "success"
+                              : String(b.paymentStatus || b.status || "") ===
+                                  "PARTIALLY_PAID"
+                                ? "info"
+                                : "warning"
+                          }
+                        />
+                      </td>
+                      <td className="px-5 py-3">
+                        <button
+                          className="px-3 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
+                          style={{ fontFamily: PP }}
+                        >
+                          View Invoice
+                        </button>
+                      </td>
+                    </tr>
+                  ),
+                )
               ) : (
                 <tr>
                   <td

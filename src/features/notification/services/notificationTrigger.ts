@@ -218,57 +218,59 @@ export async function triggerNotificationMatrix(
   const currentUserId = currentUser?.id;
   let anyDeliverySucceeded = false;
 
-  for (const receiver of params.receivers) {
-    const title = receiver.titleOverride || params.title;
-    const message = receiver.messageOverride || params.message;
-    const priority = params.priority || "MEDIUM";
+  await Promise.all(
+    params.receivers.map(async (receiver) => {
+      const title = receiver.titleOverride || params.title;
+      const message = receiver.messageOverride || params.message;
+      const priority = params.priority || "MEDIUM";
 
-    const eventType = receiver.eventTypeOverride || params.eventType;
-    const resolvedType =
-      receiver.typeOverride || params.type || getNotificationType(eventType);
-    const resolvedModule =
-      receiver.moduleOverride || params.module || getSourceModule(eventType);
+      const eventType = receiver.eventTypeOverride || params.eventType;
+      const resolvedType =
+        receiver.typeOverride || params.type || getNotificationType(eventType);
+      const resolvedModule =
+        receiver.moduleOverride || params.module || getSourceModule(eventType);
 
-    if (
-      receiver.userId !== undefined &&
-      receiver.userId !== null &&
-      String(receiver.userId) !== ""
-    ) {
       if (
-        currentUserId !== undefined &&
-        String(receiver.userId) === String(currentUserId)
+        receiver.userId !== undefined &&
+        receiver.userId !== null &&
+        String(receiver.userId) !== ""
       ) {
-        continue;
-      }
-      try {
-        await triggerInternalNotification({
-          eventId: params.eventId,
-          userId: receiver.userId,
-          title,
-          message,
-          type: resolvedType,
-          priority,
-          referenceType: params.referenceType,
-          referenceId: params.referenceId,
-          sourceModule: resolvedModule,
-          eventType: eventType,
-          receiverRole: receiver.role,
-          actionLabel: params.actionLabel,
-          actionUrl: params.actionUrl,
-        });
-        anyDeliverySucceeded = true;
-      } catch (err) {
-        console.error(
-          `[NotificationTrigger] Failed to send to specific user ${receiver.userId}:`,
-          err,
+        if (
+          currentUserId !== undefined &&
+          String(receiver.userId) === String(currentUserId)
+        ) {
+          return;
+        }
+        try {
+          await triggerInternalNotification({
+            eventId: params.eventId,
+            userId: receiver.userId,
+            title,
+            message,
+            type: resolvedType,
+            priority,
+            referenceType: params.referenceType,
+            referenceId: params.referenceId,
+            sourceModule: resolvedModule,
+            eventType: eventType,
+            receiverRole: receiver.role,
+            actionLabel: params.actionLabel,
+            actionUrl: params.actionUrl,
+          });
+          anyDeliverySucceeded = true;
+        } catch (err) {
+          console.error(
+            `[NotificationTrigger] Failed to send to specific user ${receiver.userId}:`,
+            err,
+          );
+        }
+      } else {
+        console.warn(
+          `[NotificationTrigger] Skipped role-based notification for "${receiver.role}" because recipient resolution requires /api/v1/admin/users.`,
         );
       }
-    } else {
-      console.warn(
-        `[NotificationTrigger] Skipped role-based notification for "${receiver.role}" because recipient resolution requires /api/v1/admin/users.`,
-      );
-    }
-  }
+    }),
+  );
 
   if (anyDeliverySucceeded) {
     markEventAsTriggered(params.eventId);

@@ -144,6 +144,7 @@ export function DoctorPatientReportScreen({
 
   const filteredPatients = useMemo(() => {
     const rawList = registerData?.content || [];
+    const query = searchQuery.trim().toLowerCase();
     return rawList
       .map((item) => ({
         mrn: item.mrn,
@@ -159,11 +160,10 @@ export function DoctorPatientReportScreen({
       }))
       .filter((item) => {
         const matchesSearch =
-          (item.patientName || "")
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          (item.mrn || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (item.mobileNumber || "").includes(searchQuery);
+          !query ||
+          (item.patientName || "").toLowerCase().includes(query) ||
+          (item.mrn || "").toLowerCase().includes(query) ||
+          (item.mobileNumber || "").toLowerCase().includes(query);
         const matchesVisit =
           visitTypeFilter === "All Visit Types" ||
           item.visitType === visitTypeFilter;

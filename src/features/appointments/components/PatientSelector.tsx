@@ -48,9 +48,7 @@ export const PatientSelector: React.FC<PatientSelectorProps> = ({
           console.error("Failed to fetch linked patients:", err);
         }
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
