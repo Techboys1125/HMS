@@ -112,18 +112,18 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[#F8FAFC] overflow-hidden font-body">
+    <div className="auth-page-container min-h-screen lg:h-screen w-full flex flex-col lg:flex-row bg-[#F8FAFC] overflow-y-auto lg:overflow-hidden font-body">
       {/* Left Branding Panel (50% width, full height) */}
       <BrandingPanel />
 
       {/* Right Form Area (50% width, centered container layout) */}
-      <main className="w-full lg:w-1/2 min-h-screen flex flex-col justify-center items-center p-4 sm:p-8 lg:p-12 bg-slate-50 relative overflow-y-auto">
+      <main className="auth-right-panel w-full lg:w-1/2 min-h-screen lg:h-full flex flex-col items-center justify-center p-3 sm:p-6 lg:p-8 bg-slate-50 relative overflow-y-auto lg:overflow-hidden">
         {/* Soft glowing ambient backgrounds */}
         <div className="absolute top-0 right-0 w-120 h-120 bg-[#0D47A1]/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-120 h-120 bg-secondary/5 rounded-full blur-3xl pointer-events-none" />
 
         {/* Card Container wrapper for form screens */}
-        <div className="w-full max-w-3xl bg-white rounded-3xl border border-slate-100/80 shadow-2xl shadow-slate-200/50 p-6 sm:p-8 md:p-10 relative z-10 transition-colors duration-300">
+        <div className="auth-card w-full max-w-xl bg-white rounded-2xl border border-slate-100/80 shadow-xl shadow-slate-200/50 p-4 sm:p-6 md:p-7 relative z-10 transition-colors duration-300 my-auto">
           {/* 1. Login Screen */}
           {currentScreen === "login" && (
             <LoginForm

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { authService } from "../services/auth.service";
-import { patientRegisterSchema } from "../validation/login.schema";
+import { validatePatientRegisterForm } from "../validation/login.schema";
 import type {
   PatientRegistrationData,
   PatientLinkData,
@@ -17,17 +17,17 @@ export const usePatientRegister = (
   const register = async (
     data: PatientRegistrationData,
   ): Promise<PatientRegistrationResponse | null> => {
+    const fieldErrors = validatePatientRegisterForm(data);
+    if (Object.keys(fieldErrors).length > 0) {
+      setErrors(fieldErrors);
+      setError(Object.values(fieldErrors)[0]);
+      return null;
+    }
+
     try {
       setLoading(true);
       setError(null);
       setErrors({});
-
-      const validationError = patientRegisterSchema(data);
-      if (validationError) {
-        setError(validationError);
-        setErrors({ form: validationError });
-        return null;
-      }
 
       const response = await authService.registerPatient(data);
       if (response && onSuccess) {

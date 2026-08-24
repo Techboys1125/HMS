@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { patientQueueService } from "../services/patientQueue.service";
 import { usePatientPortal } from "../context/usePatientPortal";
 import { useAuthStore } from "../../auth/store/auth.store";
@@ -16,15 +16,17 @@ export function usePatientQueue() {
     portal?.activeMrn || portal?.primaryMrn || user?.patientId || user?.mrn;
   const isValidPatient = Boolean(
     rawMrn &&
-    !String(rawMrn).includes("MRN-PATIENT") &&
-    !String(rawMrn).includes("Generating"),
+      !String(rawMrn).includes("MRN-PATIENT") &&
+      !String(rawMrn).includes("Generating"),
   );
+
+  const mrn = isValidPatient ? rawMrn : undefined;
 
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
-      if (!isValidPatient || !rawMrn) {
+    async function loadQueue() {
+      if (!mrn) {
         setQueue(null);
         setLoading(false);
         return;
@@ -33,16 +35,20 @@ export function usePatientQueue() {
       try {
         setLoading(true);
         setError(null);
-        const data = await patientQueueService.getPatientQueue(rawMrn);
+        const data = await patientQueueService.getPatientQueue(mrn);
         if (!cancelled) {
           setQueue(data);
         }
       } catch (err: unknown) {
         if (!cancelled) {
-          if (err instanceof ApiError && err.status === 404) {
+          if (
+            (err instanceof ApiError &&
+              (err.status === 404 || err.response?.status === 404))
+          ) {
             setQueue(null);
             setError(null);
           } else {
+            console.error("[usePatientQueue] Failed to load queue", err);
             setQueue(null);
             setError(
               err instanceof Error
@@ -58,28 +64,32 @@ export function usePatientQueue() {
       }
     }
 
-    load();
+    loadQueue();
 
     return () => {
       cancelled = true;
     };
-  }, [isValidPatient, rawMrn]);
+  }, [mrn]);
 
-  const refresh = async () => {
-    if (!isValidPatient || !rawMrn) {
+  const refresh = useCallback(async () => {
+    if (!mrn) {
       setQueue(null);
       return;
     }
     try {
       setLoading(true);
       setError(null);
-      const data = await patientQueueService.getPatientQueue(rawMrn);
+      const data = await patientQueueService.getPatientQueue(mrn);
       setQueue(data);
     } catch (err: unknown) {
-      if (err instanceof ApiError && err.status === 404) {
+      if (
+        err instanceof ApiError &&
+        (err.status === 404 || err.response?.status === 404)
+      ) {
         setQueue(null);
         setError(null);
       } else {
+        console.error("[usePatientQueue] Failed to refresh queue", err);
         setError(
           err instanceof Error ? err.message : "Failed to load patient queue",
         );
@@ -87,7 +97,7 @@ export function usePatientQueue() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [mrn]);
 
   return {
     queue,

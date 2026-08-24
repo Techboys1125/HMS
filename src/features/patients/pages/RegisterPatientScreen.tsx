@@ -1,6 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
 import {
-  ChevronRight,
   User,
   MapPin,
   Shield,
@@ -10,7 +9,6 @@ import {
   X,
   RotateCcw,
   Calendar,
-  Upload,
 } from "lucide-react";
 import { PP, RB } from "../constants/patient.fonts";
 import { useCreatePatient } from "../hooks/useCreatePatient";
@@ -22,6 +20,7 @@ import type {
 import { ROLE_FIELD_PERMISSIONS } from "../types/patient.types";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { usePatientPortal } from "../context/usePatientPortal";
+import { CustomDatePicker } from "../../../components/CustomDatePicker";
 
 /* ─────────────────── Design Tokens ─────────────────── */
 const inputBase =
@@ -762,25 +761,6 @@ export function RegisterPatientScreen({
 
       <div className="max-w-350 mx-auto px-6 py-6">
         <div className="mb-7">
-          <div
-            className="flex items-center gap-1.5 text-[12px] text-slate-500 mb-2"
-            style={{ fontFamily: RB }}
-          >
-            <button
-              onClick={() => onBack?.()}
-              className="hover:text-[#0D47A1] transition-colors"
-            >
-              {effectiveMode === "PATIENT_FAMILY"
-                ? "Family Members"
-                : "Reception Management"}
-            </button>
-            <ChevronRight size={13} className="text-slate-300" />
-            <span className="font-medium text-[#111827]">
-              {effectiveMode === "PATIENT_FAMILY"
-                ? "Add Family Member"
-                : "Patient Registration"}
-            </span>
-          </div>
 
           <h1
             className="text-2xl font-bold text-[#111827] mb-1"
@@ -829,11 +809,6 @@ export function RegisterPatientScreen({
                       <option value="WIFE">Spouse</option>
                       <option value="SON">Son</option>
                       <option value="DAUGHTER">Daughter</option>
-                      <option value="BROTHER">Brother</option>
-                      <option value="SISTER">Sister</option>
-                      <option value="GRANDFATHER">Grandfather</option>
-                      <option value="GRANDMOTHER">Grandmother</option>
-                      <option value="GUARDIAN">Guardian</option>
                       <option value="OTHER">Other</option>
                     </select>
                     {fieldError("relationship")}
@@ -878,15 +853,13 @@ export function RegisterPatientScreen({
                   <label className={labelBase}>
                     Date of Birth <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="date"
+                  <CustomDatePicker
                     value={form.dateOfBirth}
-                    onChange={(e) => set("dateOfBirth", e.target.value)}
-                    onBlur={() => markTouched("dateOfBirth")}
-                    max={todayStr}
-                    className={fClass("dateOfBirth")}
+                    onChange={(val) => set("dateOfBirth", val)}
+                    maxDate={todayStr}
+                    error={touched.dateOfBirth ? errors.dateOfBirth : undefined}
+                    inputClassName={fClass("dateOfBirth")}
                   />
-                  {fieldError("dateOfBirth")}
                 </div>
 
                 <div>
@@ -937,7 +910,7 @@ export function RegisterPatientScreen({
                 </div>
 
                 <div>
-                  <label className={labelBase}>Blood Group</label>
+                  <label className={labelBase}>Blood Group *</label>
                   <select
                     value={form.bloodGroup}
                     onChange={(e) => set("bloodGroup", e.target.value)}
@@ -981,25 +954,6 @@ export function RegisterPatientScreen({
                     placeholder="Aadhar Number"
                     className={inputBase}
                   />
-                </div>
-
-                <div>
-                  <label className={labelBase}>Patient Photograph</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={form.photoUrl}
-                      onChange={(e) => set("photoUrl", e.target.value)}
-                      placeholder="Image URL"
-                      className={inputBase}
-                    />
-                    <button
-                      type="button"
-                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 transition-colors shrink-0"
-                    >
-                      <Upload size={14} /> Upload Photo
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>

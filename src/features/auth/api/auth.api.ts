@@ -53,6 +53,43 @@ export const authApi = {
     }
   },
 
+  // Upload Patient Photo (POST /api/v1/upload)
+  uploadPhoto: async (file: File): Promise<string> => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await apiClient.post<Record<string, unknown>>(
+        "/api/v1/upload",
+        formData,
+      );
+      const resData = response.data;
+      const uploadedUrl =
+        (resData?.url as string) ||
+        (resData?.path as string) ||
+        (resData?.fileUrl as string) ||
+        ((resData?.data as Record<string, unknown>)?.url as string) ||
+        ((resData?.data as Record<string, unknown>)?.path as string) ||
+        "";
+      if (!uploadedUrl && typeof resData === "string") return resData;
+      if (!uploadedUrl) {
+        throw new Error("Upload succeeded but did not return a valid file URL.");
+      }
+      return uploadedUrl;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const resData = error.response?.data as
+          | { message?: string }
+          | undefined;
+        if (resData?.message) {
+          throw new Error(resData.message, { cause: error });
+        }
+      }
+      const msg =
+        error instanceof Error ? error.message : "Failed to upload photo";
+      throw new Error(msg, { cause: error });
+    }
+  },
+
   // Link Existing Patient (POST /api/v1/auth/patient/link)
   linkPatient: async (
     data: PatientLinkData,

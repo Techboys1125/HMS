@@ -577,6 +577,46 @@ export const appointmentsApi = {
     }
   },
 
+  /** GET /api/v1/queue/{queueId}/timeline – Get Queue Item Timeline audit trail */
+  getQueueTimeline: async (
+    queueId: string | number,
+  ): Promise<
+    ApiResponse<{
+      appointmentId?: number;
+      token?: string;
+      events?: Array<{
+        eventType?: string;
+        oldStatus?: string;
+        newStatus?: string;
+        performedBy?: string;
+        role?: string;
+        timestamp?: string;
+        remarks?: string;
+      }>;
+    }>
+  > => {
+    try {
+      const response = await apiClient.get<
+        ApiResponse<{
+          appointmentId?: number;
+          token?: string;
+          events?: Array<{
+            eventType?: string;
+            oldStatus?: string;
+            newStatus?: string;
+            performedBy?: string;
+            role?: string;
+            timestamp?: string;
+            remarks?: string;
+          }>;
+        }>
+      >(`/api/v1/queue/${queueId}/timeline`);
+      return response.data;
+    } catch (error: unknown) {
+      return handleApiError(error);
+    }
+  },
+
   /** POST /api/v1/queue/{appointmentId}/transfer – Transfer to another doctor */
   queueTransferPatient: async (
     appointmentId: string | number,

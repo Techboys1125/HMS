@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Eye,
   Edit,
@@ -8,11 +8,10 @@ import {
   Calendar,
   Stethoscope,
   FileText,
-  AlertTriangle,
-  Info,
   Clock,
   Check,
   CheckCircle2,
+  RefreshCw,
 } from "lucide-react";
 import type { AppointmentRecord } from "../types/appointment.types";
 import type { UserRole } from "../types/appointment-screen.types";
@@ -34,9 +33,9 @@ export function AppointmentDetailsDrawer({
   onPatientSelect,
   isDetailsLoading,
   userRole = "Receptionist",
-  onStartConsultation,
   onCheckInSuccess,
   onError,
+  onStartConsultation,
 }: {
   apt: AppointmentRecord | null;
   isOpen: boolean;
@@ -52,9 +51,79 @@ export function AppointmentDetailsDrawer({
 }) {
   void isDetailsLoading;
   const [activeTab, setActiveTab] = useState<
-    "all" | "patient" | "appointment" | "clinical" | "alerts" | "timeline"
+    "all" | "patient" | "appointment" | "clinical" | "timeline"
   >("all");
   const [isCheckingIn, setIsCheckingIn] = useState(false);
+
+  interface TimelineEventItem {
+    title: string;
+    timestamp: string;
+    by: string;
+    status: string;
+  }
+
+  const [apiTimelineEvents, setApiTimelineEvents] = useState<
+    TimelineEventItem[]
+  >([]);
+  const [isLoadingTimeline, setIsLoadingTimeline] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !apt?.id) return;
+    let cancelled = false;
+    const aptId = apt.id;
+    const aptApptDate = apt.appointmentDate;
+
+    async function loadTimeline() {
+      setIsLoadingTimeline(true);
+      try {
+        const res = await appointmentService.getQueueTimeline(aptId);
+        if (cancelled) return;
+        const resData = (res as { data?: unknown })?.data ?? res;
+        const events = Array.isArray(resData)
+          ? resData
+          : Array.isArray((resData as { events?: unknown[] })?.events)
+            ? (resData as { events: unknown[] }).events
+            : [];
+
+        if (events.length > 0) {
+          const mapped = events.map((evtItem: unknown) => {
+            const e = (evtItem as Record<string, unknown>) || {};
+            const title = String(
+              e.remarks || e.eventType || e.newStatus || "Queue Event Updated",
+            );
+            const roleStr = e.role ? ` (${e.role})` : "";
+            const by = `${e.performedBy || "System"}${roleStr}`;
+            const timeRaw = String(e.timestamp || e.createdDate || "");
+            const formattedTime = timeRaw
+              ? timeRaw.includes("T")
+                ? timeRaw.replace("T", " ").slice(0, 19)
+                : timeRaw
+              : aptApptDate;
+
+            return {
+              title,
+              timestamp: formattedTime,
+              by,
+              status: "completed",
+            };
+          });
+          setApiTimelineEvents(mapped);
+        } else {
+          setApiTimelineEvents([]);
+        }
+      } catch {
+        if (!cancelled) setApiTimelineEvents([]);
+      } finally {
+        if (!cancelled) setIsLoadingTimeline(false);
+      }
+    }
+
+    loadTimeline();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, apt?.id, apt?.appointmentDate]);
 
   if (!isOpen || !apt) return null;
 
@@ -94,49 +163,81 @@ export function AppointmentDetailsDrawer({
   };
 
   const patientInfo = appointmentToPatientSummary(apt);
+  const rawApt = apt as unknown as Record<string, unknown>;
+  const rawPatientInfo = patientInfo as unknown as Record<string, unknown>;
 
-  const doctorInfo = apt.doctor || {
-    id: apt.doctorId || "DOC-402",
-    name: apt.doctorName,
+  const doctorInfo = {
+    id: apt.doctor?.id || apt.doctorId || "",
+    name:
+      apt.doctorName ||
+      apt.doctor?.name ||
+      apt.doctor?.fullName ||
+      "Consultant",
     department:
       typeof apt.department === "string"
         ? apt.department
         : apt.department?.departmentName ||
           apt.department?.name ||
           apt.department?.departmentCode ||
-          "",
-    specialty: apt.doctorSpecialty || "Senior Cardiology Specialist",
-    qualification: "MBBS, MD (Cardiology)",
-    consultationFee: 150,
-    opdRoom: apt.opdRoom || "Room 104 - Wing A",
+          apt.departmentName ||
+          "General Medicine",
+    specialty:
+      apt.doctorSpecialty ||
+      (rawApt.specialty as string) ||
+      apt.doctor?.specialty ||
+      "Specialist",
+    qualification: apt.doctor?.qualification || "MBBS",
+    consultationFee:
+      apt.doctor?.consultationFee || (rawApt.billingAmount as string) || "N/A",
+    opdRoom: apt.opdRoom || apt.doctor?.opdRoom || "OPD Counter",
   };
 
-  const timelineSteps = [
-    {
-      title: "Appointment Booked",
-      timestamp: `${apt.createdDate} 09:15 AM`,
-      by: "Receptionist Desk",
-      status: "completed",
-    },
-    {
-      title: "Patient Checked-In",
-      timestamp: `${apt.appointmentDate} 08:42 AM`,
-      by: "Triage Nurse Desk",
-      status: "completed",
-    },
-    {
-      title: "Waiting in OPD Queue",
-      timestamp: `${apt.appointmentDate} 08:50 AM`,
-      by: "OPD Queue System",
-      status: "active",
-    },
-    {
-      title: "Ready for Consultation",
-      timestamp: `${apt.appointmentDate} 09:00 AM`,
-      by: "Dr. Arjun Mehta",
-      status: "upcoming",
-    },
-  ];
+  const timelineSteps =
+    apiTimelineEvents.length > 0
+      ? apiTimelineEvents
+      : [
+          {
+            title: "Appointment Booked",
+            timestamp: `${apt.createdDate || apt.appointmentDate} ${apt.timeSlot || ""}`,
+            by:
+              (apt as AppointmentRecord & { bookingChannel?: string })
+                .bookingChannel || "Reception Desk",
+            status: "completed",
+          },
+          ...(apt.status === "Checked-In" ||
+          apt.status === "In Consultation" ||
+          apt.status === "Completed"
+            ? [
+                {
+                  title: "Patient Checked-In",
+                  timestamp: `${apt.appointmentDate} ${apt.timeSlot || ""}`,
+                  by: "Triage / Reception Desk",
+                  status: "completed",
+                },
+              ]
+            : []),
+          ...(apt.status === "In Consultation" || apt.status === "Completed"
+            ? [
+                {
+                  title: "In Consultation",
+                  timestamp: `${apt.appointmentDate} ${apt.timeSlot || ""}`,
+                  by: doctorInfo.name || "Attending Doctor",
+                  status:
+                    apt.status === "In Consultation" ? "active" : "completed",
+                },
+              ]
+            : []),
+          ...(apt.status === "Completed"
+            ? [
+                {
+                  title: "Consultation Completed",
+                  timestamp: `${apt.appointmentDate}`,
+                  by: doctorInfo.name || "Attending Doctor",
+                  status: "completed",
+                },
+              ]
+            : []),
+        ];
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -179,24 +280,6 @@ export function AppointmentDetailsDrawer({
             </div>
 
             <div className="flex items-center gap-2">
-              {!isDoctor && !isNurse && (
-                <button
-                  type="button"
-                  onClick={() => onEditClick(apt)}
-                  className="px-2.5 py-1.5 rounded-lg bg-white/10 text-white text-xs font-semibold hover:bg-white/20 transition-colors flex items-center gap-1"
-                >
-                  <Edit size={13} /> Edit
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => onPrintClick(apt)}
-                className="px-2.5 py-1.5 rounded-lg bg-white/10 text-white text-xs font-semibold hover:bg-white/20 transition-colors flex items-center gap-1"
-              >
-                <Printer size={13} /> Print Slip
-              </button>
-
               <button
                 type="button"
                 onClick={onClose}
@@ -265,7 +348,6 @@ export function AppointmentDetailsDrawer({
                 { id: "patient", label: "Patient Info" },
                 { id: "appointment", label: "Appointment" },
                 { id: "clinical", label: "Clinical Prep" },
-                { id: "alerts", label: "Patient Alerts" },
                 { id: "timeline", label: "Timeline" },
               ] as const
             ).map((tab) => (
@@ -368,7 +450,19 @@ export function AppointmentDetailsDrawer({
                       Known Allergies
                     </span>
                     <strong className="text-red-900">
-                      Penicillin, NSAIDs, Peanuts
+                      {rawPatientInfo.allergies ||
+                      (apt.patient as unknown as Record<string, unknown>)
+                        ?.allergies
+                        ? String(
+                            rawPatientInfo.allergies ||
+                              (
+                                apt.patient as unknown as Record<
+                                  string,
+                                  unknown
+                                >
+                              )?.allergies,
+                          )
+                        : "None reported"}
                     </strong>
                   </div>
                 </div>
@@ -416,7 +510,7 @@ export function AppointmentDetailsDrawer({
                       Token Number
                     </span>
                     <strong className="text-[#0D47A1] font-mono">
-                      {apt.tokenNo}
+                      {apt.tokenNo || apt.queueToken || "Pending"}
                     </strong>
                   </div>
                   <div>
@@ -424,7 +518,7 @@ export function AppointmentDetailsDrawer({
                       Visit Type
                     </span>
                     <span className="font-bold text-[#009688]">
-                      {apt.visitType}
+                      {apt.visitType || "CONSULTATION"}
                     </span>
                   </div>
                   <div>
@@ -446,7 +540,9 @@ export function AppointmentDetailsDrawer({
                     <span className="text-slate-400 text-[10px] block font-medium">
                       Created Date
                     </span>
-                    <span className="text-slate-600">{apt.createdDate}</span>
+                    <span className="text-slate-600">
+                      {apt.createdDate || apt.appointmentDate}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -469,7 +565,7 @@ export function AppointmentDetailsDrawer({
                       Attending Doctor
                     </span>
                     <strong className="text-[#111827] text-sm">
-                      {doctorInfo.name}
+                      {doctorInfo.name || "Consultant"}
                     </strong>
                   </div>
                   <div>
@@ -477,7 +573,7 @@ export function AppointmentDetailsDrawer({
                       Department
                     </span>
                     <strong className="text-[#0D47A1]">
-                      {doctorInfo.department}
+                      {doctorInfo.department || "General Medicine"}
                     </strong>
                   </div>
                   <div>
@@ -485,7 +581,7 @@ export function AppointmentDetailsDrawer({
                       Specialization
                     </span>
                     <span className="text-slate-700 font-semibold">
-                      {doctorInfo.specialty}
+                      {doctorInfo.specialty || "Specialist"}
                     </span>
                   </div>
                   <div>
@@ -501,7 +597,7 @@ export function AppointmentDetailsDrawer({
                       Room Number
                     </span>
                     <strong className="text-[#009688]">
-                      {doctorInfo.opdRoom}
+                      {doctorInfo.opdRoom || "OPD Counter"}
                     </strong>
                   </div>
                 </div>
@@ -525,7 +621,13 @@ export function AppointmentDetailsDrawer({
                       Previous Visit Date
                     </span>
                     <strong className="text-[#111827]">
-                      14 Jun 2026 (6 weeks ago)
+                      {(apt as unknown as Record<string, unknown>)
+                        .previousVisitDate
+                        ? String(
+                            (apt as unknown as Record<string, unknown>)
+                              .previousVisitDate,
+                          )
+                        : "No previous visits"}
                     </strong>
                   </div>
                   <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
@@ -533,7 +635,13 @@ export function AppointmentDetailsDrawer({
                       Previous Diagnosis Summary
                     </span>
                     <strong className="text-[#0D47A1]">
-                      Essential Hypertension, Mild Hyperlipidemia
+                      {(apt as unknown as Record<string, unknown>)
+                        .previousDiagnosis
+                        ? String(
+                            (apt as unknown as Record<string, unknown>)
+                              .previousDiagnosis,
+                          )
+                        : "No previous diagnosis summary"}
                     </strong>
                   </div>
                 </div>
@@ -545,7 +653,8 @@ export function AppointmentDetailsDrawer({
                     </span>
                     <div className="p-3 bg-amber-50/80 border border-amber-100 rounded-xl text-amber-950 font-medium">
                       {apt.chiefComplaint ||
-                        "Chest pain and shortness of breath upon mild exertion."}
+                        apt.reason ||
+                        "General Consultation"}
                     </div>
                   </div>
                   <div>
@@ -553,7 +662,9 @@ export function AppointmentDetailsDrawer({
                       Reason for Visit
                     </span>
                     <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl text-slate-700 font-medium">
-                      Routine OPD Follow-up & Symptom Review
+                      {apt.reason ||
+                        apt.chiefComplaint ||
+                        "Routine OPD Consultation"}
                     </div>
                   </div>
                   <div>
@@ -561,99 +672,32 @@ export function AppointmentDetailsDrawer({
                       Special Notes
                     </span>
                     <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl text-blue-950 font-medium text-[11px]">
-                      Patient reports intermittent mild headache in the
-                      mornings. Vitals recorded by Triage Nurse prior to
-                      consultation.
+                      {apt.notes ||
+                        apt.symptoms ||
+                        "No special notes recorded."}
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* SECTION 05: PATIENT ALERTS */}
-            {(activeTab === "all" || activeTab === "alerts") && (
-              <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
-                <h3
-                  className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2"
-                  style={{ fontFamily: PP }}
-                >
-                  <AlertTriangle size={15} className="text-[#EF4444]" /> Section
-                  05 · Patient Alerts
-                </h3>
-
-                <div className="space-y-3">
-                  {/* Alert 1: Drug Allergy */}
-                  <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
-                    <AlertTriangle
-                      size={16}
-                      className="text-[#EF4444] mt-0.5 shrink-0"
-                    />
-                    <div>
-                      <div
-                        className="text-xs font-bold text-red-900"
-                        style={{ fontFamily: PP }}
-                      >
-                        Drug Allergies
-                      </div>
-                      <div className="text-xs text-red-700 mt-0.5 font-medium">
-                        Severe reaction to Penicillin (Anaphylaxis risk). Avoid
-                        beta-lactam antibiotics.
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Alert 2: High Priority */}
-                  <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
-                    <AlertTriangle
-                      size={16}
-                      className="text-[#F59E0B] mt-0.5 shrink-0"
-                    />
-                    <div>
-                      <div
-                        className="text-xs font-bold text-amber-900"
-                        style={{ fontFamily: PP }}
-                      >
-                        High Priority Alert
-                      </div>
-                      <div className="text-xs text-amber-800 mt-0.5 font-medium">
-                        Hypertensive episode on last visit (BP 150/95). Monitor
-                        vitals closely.
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Alert 3: Important Note */}
-                  <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3">
-                    <Info
-                      size={16}
-                      className="text-[#0D47A1] mt-0.5 shrink-0"
-                    />
-                    <div>
-                      <div
-                        className="text-xs font-bold text-blue-950"
-                        style={{ fontFamily: PP }}
-                      >
-                        Important Medical Notes
-                      </div>
-                      <div className="text-xs text-blue-800 mt-0.5 font-medium">
-                        Requires blood pressure tracking prior to prescribing
-                        NSAIDs or cardiac medication.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* SECTION 06: APPOINTMENT TIMELINE */}
+            {/* SECTION 05: APPOINTMENT TIMELINE */}
             {(activeTab === "all" || activeTab === "timeline") && (
               <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
                 <h3
-                  className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2"
+                  className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center justify-between"
                   style={{ fontFamily: PP }}
                 >
-                  <Clock size={15} className="text-[#0D47A1]" /> Section 06 ·
-                  Appointment Timeline
+                  <div className="flex items-center gap-2">
+                    <Clock size={15} className="text-[#0D47A1]" /> Section 05 ·
+                    Appointment Timeline
+                  </div>
+                  {isLoadingTimeline && (
+                    <div className="flex items-center gap-1.5 text-[10px] text-teal-600 font-normal normal-case">
+                      <RefreshCw size={12} className="animate-spin" /> Loading
+                      timeline...
+                    </div>
+                  )}
                 </h3>
 
                 <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">

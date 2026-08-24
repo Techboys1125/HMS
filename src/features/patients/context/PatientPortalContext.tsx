@@ -28,13 +28,15 @@ export {
 } from "./PatientPortalContext";
 
 interface PatientPortalPayload {
-  name: string;
+  name?: string;
   id?: string | number;
   mrn?: string;
   patientName?: string;
   fullName?: string;
   relationship?: string;
   age?: number;
+  dateOfBirth?: string;
+  dob?: string;
   gender?: string;
   mobileNumber?: string;
   phone?: string;
@@ -44,12 +46,36 @@ interface PatientPortalPayload {
   photo?: string;
   address?: unknown;
   lastAppointment?: string;
+  lastVisit?: string;
+  lastVisitDate?: string;
+  lastConsultationDate?: string;
   upcomingAppointmentsCount?: number;
   pendingBillsCount?: number;
   pendingBillsAmount?: number;
   activePrescriptionsCount?: number;
   knownAllergies?: string[];
   allergies?: string[];
+}
+
+function calculateAge(dob?: string, ageVal?: number): number {
+  if (typeof ageVal === "number" && ageVal > 0) return ageVal;
+  if (!dob) return 0;
+  try {
+    const birthDate = new Date(dob);
+    if (isNaN(birthDate.getTime())) return 0;
+    const today = new Date();
+    let computedAge = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      computedAge--;
+    }
+    return Math.max(0, computedAge);
+  } catch {
+    return 0;
+  }
 }
 
 function mapApiToFamilyMember(
@@ -85,16 +111,37 @@ function mapApiToFamilyMember(
     (currentUser?.mrn && p.mrn === currentUser.mrn) ||
     (currentUser?.patientId && p.mrn === currentUser.patientId);
 
-  const resolvedName =
-    (isSelf &&
-      ((customSaved.name as string) ||
-        currentUser?.fullName ||
-        currentUser?.name)) ||
+  const primaryName = (
+    (customSaved.name as string) ||
+    currentUser?.fullName ||
+    currentUser?.name ||
+    ""
+  ).trim();
+
+  let resolvedName =
     (customSaved.name as string) ||
     p.patientName ||
     p.fullName ||
     p.name ||
-    "Patient";
+    "";
+
+  if (isSelf) {
+    resolvedName = resolvedName || primaryName || "Patient";
+  } else {
+    const relStr = p.relationship
+      ? String(p.relationship).charAt(0).toUpperCase() +
+        String(p.relationship).slice(1).toLowerCase()
+      : "Member";
+
+    if (
+      !resolvedName ||
+      (primaryName &&
+        resolvedName.toLowerCase().trim() === primaryName.toLowerCase().trim())
+    ) {
+      const baseName = resolvedName || primaryName || "Family Member";
+      resolvedName = `${baseName} (${relStr})`;
+    }
+  }
 
   return {
     id: String(p.id ?? p.mrn ?? Math.random()),
@@ -102,7 +149,8 @@ function mapApiToFamilyMember(
     name: resolvedName,
     mrn: p.mrn || "",
     relationship: (p.relationship as FamilyMember["relationship"]) || "Self",
-    age: p.age ?? 0,
+    dateOfBirth: p.dateOfBirth || p.dob || "",
+    age: calculateAge(p.dateOfBirth || p.dob, p.age),
     gender: (p.gender as FamilyMember["gender"]) || "Other",
     registeredMobile:
       (customSaved.phone as string) ||
@@ -112,7 +160,12 @@ function mapApiToFamilyMember(
       "",
     verificationStatus: "Verified",
     patientStatus: "Active",
-    lastAppointment: p.lastAppointment || "",
+    lastAppointment:
+      p.lastAppointment ||
+      p.lastVisit ||
+      p.lastVisitDate ||
+      p.lastConsultationDate ||
+      "",
     upcomingAppointmentsCount: p.upcomingAppointmentsCount ?? 0,
     pendingBillsCount: p.pendingBillsCount ?? 0,
     pendingBillsAmount: p.pendingBillsAmount ?? 0,

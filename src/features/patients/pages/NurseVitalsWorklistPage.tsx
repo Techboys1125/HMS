@@ -31,6 +31,7 @@ const toAppointmentRecord = (item: VitalsWaitingItem): AppointmentRecord => ({
   appointmentDate: item.checkInTime || "",
   status: item.status || "WAITING_FOR_VITALS",
   department: getDepartmentName(item),
+  specialty: item.specialty || item.doctor?.specialty || "",
   patientAge:
     typeof item.age === "number"
       ? item.age

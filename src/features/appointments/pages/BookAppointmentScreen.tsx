@@ -4,8 +4,6 @@ import {
   UserPlus,
   Search,
   CheckCircle2,
-  Printer,
-  UserCheck,
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
@@ -13,6 +11,7 @@ import type {
   PatientSummary,
   Department,
   CreateAppointmentRequest,
+  AppointmentRecord,
 } from "../types/appointment.types";
 import { PP, RB } from "../constants/appointment.constants";
 import type { BookAppointmentScreenProps } from "../types/appointment-screen.types";
@@ -32,8 +31,9 @@ export function BookAppointmentScreen({
   initialMrn,
   onBookSuccess,
 }: BookAppointmentScreenProps) {
+  void onViewPatientProfileClick;
   // Section 01: Patient Search state
-  const [patientQuery, setPatientQuery] = useState(initialMrn || "");
+  const [patientQuery, setPatientQuery] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<PatientSummary | null>(
     null,
   );
@@ -93,6 +93,24 @@ export function BookAppointmentScreen({
   }, [doctorsList, selectedDept]);
 
   useEffect(() => {
+    const computeAge = (p: { age?: number; dateOfBirth?: string; dob?: string }) => {
+      if (typeof p.age === "number" && p.age > 0) return p.age;
+      const dobStr = p.dateOfBirth || p.dob;
+      if (dobStr) {
+        const dob = new Date(dobStr);
+        if (!isNaN(dob.getTime())) {
+          const today = new Date();
+          let age = today.getFullYear() - dob.getFullYear();
+          const m = today.getMonth() - dob.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+            age--;
+          }
+          if (age > 0) return age;
+        }
+      }
+      return 0;
+    };
+
     if (role === "patient") {
       patientsApi
         .getMyPatients()
@@ -101,9 +119,9 @@ export function BookAppointmentScreen({
             id: p.id ?? (p.mrn ? `mrn-${p.mrn}` : `patient-${idx}`),
             mrn: p.mrn,
             name: p.fullName || p.patientName || p.name || "Unknown Patient",
-            age: p.age || 0,
+            age: computeAge(p),
             gender: p.gender || "",
-            phone: p.phone || p.mobileNumber || "",
+            phone: p.phone || p.mobileNumber || p.registeredMobile || "",
             bloodGroup: p.bloodGroup || "",
             emergencyContact: p.emergencyContact
               ? `${p.emergencyContact.name || p.emergencyContact.contactName || ""} (${p.emergencyContact.relationship || ""})`
@@ -117,9 +135,12 @@ export function BookAppointmentScreen({
                 p.mrn?.toLowerCase() === initialMrn.toLowerCase() ||
                 String(p.id).toLowerCase() === initialMrn.toLowerCase(),
             );
-            if (found) setSelectedPatient(found);
-            else if (mapped.length > 0) setSelectedPatient(mapped[0]);
-          } else if (mapped.length > 0) {
+            if (found) {
+              setSelectedPatient(found);
+              return;
+            }
+          }
+          if (mapped.length > 0) {
             setSelectedPatient(mapped[0]);
           }
         })
@@ -132,9 +153,9 @@ export function BookAppointmentScreen({
             id: p.id ?? (p.mrn ? `mrn-${p.mrn}` : `patient-${idx}`),
             mrn: p.mrn,
             name: p.fullName || p.patientName || p.name || "Unknown Patient",
-            age: p.age || 0,
+            age: computeAge(p),
             gender: p.gender || "",
-            phone: p.phone || p.mobileNumber || "",
+            phone: p.phone || p.mobileNumber || p.registeredMobile || "",
             bloodGroup: p.bloodGroup || "",
             emergencyContact: p.emergencyContact
               ? `${p.emergencyContact.name || p.emergencyContact.contactName || ""} (${p.emergencyContact.relationship || ""})`
@@ -150,13 +171,10 @@ export function BookAppointmentScreen({
             );
             if (found) setSelectedPatient(found);
           }
-          if (!selectedPatient && mapped.length > 0 && !initialMrn) {
-            setSelectedPatient(mapped[0]);
-          }
         })
         .catch(() => {});
     }
-  }, [initialMrn, role, selectedPatient]);
+  }, [initialMrn, role]);
 
   useEffect(() => {
     departmentsApi
@@ -302,7 +320,12 @@ export function BookAppointmentScreen({
   };
 
   const availableDates = useMemo(() => {
-    const dates = [];
+    const dates: Array<{
+      date: string;
+      day: string;
+      label: string;
+      isAvailable: boolean;
+    }> = [];
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const months = [
       "Jan",
@@ -325,9 +348,11 @@ export function BookAppointmentScreen({
       date.setDate(today.getDate() + i);
 
       const dayOfWeek = date.getDay();
-      const isSunday = dayOfWeek === 0;
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const dayNum = String(date.getDate()).padStart(2, "0");
+      const dateStr = `${year}-${month}-${dayNum}`;
 
-      const dateStr = date.toISOString().split("T")[0];
       let label = `${date.getDate()} ${months[date.getMonth()]}`;
       if (i === 0) label = "Today";
       else if (i === 1) label = "Tomorrow";
@@ -336,21 +361,18 @@ export function BookAppointmentScreen({
         date: dateStr,
         day: daysOfWeek[dayOfWeek],
         label,
-        isAvailable: !isSunday,
+        isAvailable: true,
       });
     }
     return dates;
   }, []);
 
   const [selectedDate, setSelectedDate] = useState(() => {
-    const todayStr = new Date().toISOString().split("T")[0];
-    const todayDay = new Date().getDay();
-    if (todayDay === 0) {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return tomorrow.toISOString().split("T")[0];
-    }
-    return todayStr;
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const dayNum = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${dayNum}`;
   });
 
   const [apiSlots, setApiSlots] = useState<DoctorDailySlot[]>([]);
@@ -437,6 +459,10 @@ export function BookAppointmentScreen({
   };
 
   const dynamicTimeSlotGroups = useMemo(() => {
+    if (!selectedDocKey || !currentDoctor) {
+      return { morning: [], afternoon: [], evening: [] };
+    }
+
     if (apiSlots.length === 0) {
       const defaultSlots = {
         morning: [
@@ -499,9 +525,9 @@ export function BookAppointmentScreen({
     });
 
     return { morning, afternoon, evening };
-  }, [apiSlots, selectedDate]);
+  }, [apiSlots, selectedDate, selectedDocKey, currentDoctor]);
 
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState("09:30 AM");
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
   const [prevTimeSlotGroups, setPrevTimeSlotGroups] = useState(
     dynamicTimeSlotGroups,
   );
@@ -530,9 +556,7 @@ export function BookAppointmentScreen({
   const [visitType, setVisitType] = useState<"New Consultation" | "Follow-up">(
     "New Consultation",
   );
-  const [chiefComplaint, setChiefComplaint] = useState(
-    "Chest tightness and occasional breathlessness during walking.",
-  );
+  const [chiefComplaint, setChiefComplaint] = useState("");
   const [remarks, setRemarks] = useState("");
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -582,11 +606,14 @@ export function BookAppointmentScreen({
       };
 
       const createdRecord = await appointmentService.bookAppointment(payload);
-      setConfirmedAptId(String(createdRecord.id));
+      const aptNum = String(
+        createdRecord.appointmentNumber ||
+          createdRecord.appointmentId ||
+          createdRecord.id ||
+          "APT-CONFIRMED",
+      );
+      setConfirmedAptId(aptNum);
       setShowSuccessModal(true);
-
-      if (onBookSuccess) onBookSuccess(createdRecord);
-      if (onConfirmSuccess) onConfirmSuccess(String(createdRecord.id));
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : "Failed to book appointment.";
@@ -608,11 +635,11 @@ export function BookAppointmentScreen({
               onClick={onBack}
               className="hover:text-[#0D47A1] transition-colors"
             >
-              Reception Management
+              {role === "patient" ? "Patient Portal" : "Reception Management"}
             </button>
             <ChevronRight size={12} />
             <span className="font-semibold text-[#0D47A1]">
-              Appointment Booking
+              {role === "patient" ? "Book Appointment" : "Appointment Booking"}
             </span>
           </div>
           <h1
@@ -622,19 +649,23 @@ export function BookAppointmentScreen({
             Book Appointment
           </h1>
           <p className="text-xs text-[#64748B] mt-0.5">
-            Search a patient, select a doctor and confirm an appointment.
+            {role === "patient"
+              ? "Select a doctor, date & available time slot to book your appointment."
+              : "Search a patient, select a doctor and confirm an appointment."}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onRegisterNewPatientClick}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 border border-blue-200 text-[#0D47A1] text-xs font-semibold hover:bg-blue-100 transition-colors"
-            style={{ fontFamily: PP }}
-          >
-            <UserPlus size={14} /> Register New Patient
-          </button>
-        </div>
+        {role !== "patient" && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onRegisterNewPatientClick}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 border border-blue-200 text-[#0D47A1] text-xs font-semibold hover:bg-blue-100 transition-colors"
+              style={{ fontFamily: PP }}
+            >
+              <UserPlus size={14} /> Register New Patient
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
@@ -678,7 +709,7 @@ export function BookAppointmentScreen({
               </div>
             )}
 
-            {patientQuery.trim() !== "" && (
+            {role !== "patient" && !selectedPatient && patientQuery.trim() !== "" && (
               <div className="max-h-48 overflow-y-auto border border-[#E5E7EB] rounded-xl divide-y divide-gray-100 bg-white shadow-lg">
                 {searchedPatients.length > 0 ? (
                   searchedPatients.map((p) => (
@@ -704,7 +735,8 @@ export function BookAppointmentScreen({
                         <div>
                           <p className="font-bold text-[#111827]">{p.name}</p>
                           <p className="text-[11px] text-[#64748B]">
-                            {p.gender} · {p.age} yrs · {p.phone}
+                            {p.gender}
+                            {p.age && p.age > 0 ? ` · ${p.age} yrs` : ""} · {p.phone}
                           </p>
                         </div>
                       </div>
@@ -728,7 +760,7 @@ export function BookAppointmentScreen({
             )}
 
             {selectedPatient ? (
-              <div className="p-4 rounded-xl bg-slate-50 border border-blue-100 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="p-4 rounded-xl bg-slate-50 border border-blue-100 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-[#0D47A1] text-white flex items-center justify-center font-bold text-base shadow-sm">
                     {(selectedPatient.name ?? "Patient")
@@ -744,40 +776,23 @@ export function BookAppointmentScreen({
                       <h3 className="text-sm font-bold text-[#111827]">
                         {selectedPatient.name}
                       </h3>
-                      <span className="px-2 py-0.5 rounded-full bg-blue-100 text-[#0D47A1] text-[10px] font-mono font-bold">
-                        {selectedPatient.mrn}
-                      </span>
+                      {selectedPatient.mrn && (
+                        <span className="px-2 py-0.5 rounded-full bg-blue-100 text-[#0D47A1] text-[10px] font-mono font-bold">
+                          {selectedPatient.mrn}
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-[#64748B] mt-0.5">
-                      {selectedPatient.age} yrs · {selectedPatient.gender} ·
-                      Blood Group:{" "}
-                      <span className="font-semibold text-[#009688]">
-                        {selectedPatient.bloodGroup}
-                      </span>{" "}
-                      · Mobile:{" "}
-                      <span className="font-mono">{selectedPatient.phone}</span>
+                      {selectedPatient.gender ? `${selectedPatient.gender}` : ""}
+                      {selectedPatient.age && selectedPatient.age > 0
+                        ? ` · ${selectedPatient.age} yrs`
+                        : ""}
+                      {selectedPatient.bloodGroup
+                        ? ` · Blood Group: ${selectedPatient.bloodGroup}`
+                        : ""}
+                      {selectedPatient.phone ? ` · Mobile: ${selectedPatient.phone}` : ""}
                     </p>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0 w-full md:w-auto">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onViewPatientProfileClick &&
-                      onViewPatientProfileClick(selectedPatient.mrn || "")
-                    }
-                    className="flex-1 md:flex-none px-3 py-1.5 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-[#0D47A1] hover:bg-blue-50 transition-colors"
-                  >
-                    View Patient Profile
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onRegisterNewPatientClick}
-                    className="flex-1 md:flex-none px-3 py-1.5 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
-                  >
-                    Register New Patient
-                  </button>
                 </div>
               </div>
             ) : (
@@ -993,96 +1008,112 @@ export function BookAppointmentScreen({
                 Select Time Slot *
               </label>
 
-              {isLoadingSlots ? (
+              {!selectedDocKey || !currentDoctor ? (
+                <div className="p-4 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  Please select a doctor above to view available time slots.
+                </div>
+              ) : isLoadingSlots ? (
                 <div className="flex items-center gap-2 py-6 text-xs text-slate-400">
                   <RefreshCw size={14} className="animate-spin text-teal-600" />{" "}
                   Loading availability slots...
                 </div>
+              ) : dynamicTimeSlotGroups.morning.length === 0 &&
+                dynamicTimeSlotGroups.afternoon.length === 0 &&
+                dynamicTimeSlotGroups.evening.length === 0 ? (
+                <div className="p-4 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  No available time slots found for this doctor on {selectedDate}.
+                </div>
               ) : (
                 <>
-                  <div className="space-y-1.5">
-                    <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
-                      Morning Session
-                    </span>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {dynamicTimeSlotGroups.morning.map((slot) => {
-                        const isSelected = selectedTimeSlot === slot.time;
-                        return (
-                          <button
-                            key={slot.time}
-                            type="button"
-                            disabled={!slot.available}
-                            onClick={() => setSelectedTimeSlot(slot.time)}
-                            className={`px-3 py-2 rounded-xl text-xs font-mono transition-colors border ${
-                              !slot.available
-                                ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
-                                : isSelected
-                                  ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                                  : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
-                            }`}
-                          >
-                            {slot.time}
-                          </button>
-                        );
-                      })}
+                  {dynamicTimeSlotGroups.morning.length > 0 && (
+                    <div className="space-y-1.5">
+                      <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
+                        Morning Session
+                      </span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {dynamicTimeSlotGroups.morning.map((slot) => {
+                          const isSelected = selectedTimeSlot === slot.time;
+                          return (
+                            <button
+                              key={slot.time}
+                              type="button"
+                              disabled={!slot.available}
+                              onClick={() => setSelectedTimeSlot(slot.time)}
+                              className={`px-3 py-2 rounded-xl text-xs font-mono transition-colors border ${
+                                !slot.available
+                                  ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
+                                  : isSelected
+                                    ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                                    : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                              }`}
+                            >
+                              {slot.time}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="space-y-1.5 pt-1">
-                    <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
-                      Afternoon Session
-                    </span>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {dynamicTimeSlotGroups.afternoon.map((slot) => {
-                        const isSelected = selectedTimeSlot === slot.time;
-                        return (
-                          <button
-                            key={slot.time}
-                            type="button"
-                            disabled={!slot.available}
-                            onClick={() => setSelectedTimeSlot(slot.time)}
-                            className={`px-3 py-2 rounded-xl text-xs font-mono transition-colors border ${
-                              !slot.available
-                                ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
-                                : isSelected
-                                  ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                                  : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
-                            }`}
-                          >
-                            {slot.time}
-                          </button>
-                        );
-                      })}
+                  {dynamicTimeSlotGroups.afternoon.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
+                        Afternoon Session
+                      </span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {dynamicTimeSlotGroups.afternoon.map((slot) => {
+                          const isSelected = selectedTimeSlot === slot.time;
+                          return (
+                            <button
+                              key={slot.time}
+                              type="button"
+                              disabled={!slot.available}
+                              onClick={() => setSelectedTimeSlot(slot.time)}
+                              className={`px-3 py-2 rounded-xl text-xs font-mono transition-colors border ${
+                                !slot.available
+                                  ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
+                                  : isSelected
+                                    ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                                    : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                              }`}
+                            >
+                              {slot.time}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="space-y-1.5 pt-1">
-                    <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
-                      Evening Session
-                    </span>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {dynamicTimeSlotGroups.evening.map((slot) => {
-                        const isSelected = selectedTimeSlot === slot.time;
-                        return (
-                          <button
-                            key={slot.time}
-                            type="button"
-                            disabled={!slot.available}
-                            onClick={() => setSelectedTimeSlot(slot.time)}
-                            className={`px-3 py-2 rounded-xl text-xs font-mono transition-colors border ${
-                              !slot.available
-                                ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
-                                : isSelected
-                                  ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                                  : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
-                            }`}
-                          >
-                            {slot.time}
-                          </button>
-                        );
-                      })}
+                  {dynamicTimeSlotGroups.evening.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider block">
+                        Evening Session
+                      </span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {dynamicTimeSlotGroups.evening.map((slot) => {
+                          const isSelected = selectedTimeSlot === slot.time;
+                          return (
+                            <button
+                              key={slot.time}
+                              type="button"
+                              disabled={!slot.available}
+                              onClick={() => setSelectedTimeSlot(slot.time)}
+                              className={`px-3 py-2 rounded-xl text-xs font-mono transition-colors border ${
+                                !slot.available
+                                  ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
+                                  : isSelected
+                                    ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                                    : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                              }`}
+                            >
+                              {slot.time}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </>
               )}
             </div>
@@ -1196,91 +1227,167 @@ export function BookAppointmentScreen({
       </div>
 
       {showSuccessModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex flex-col items-center text-center space-y-2">
-              <div className="w-14 h-14 rounded-full bg-green-50 text-[#66BB6A] flex items-center justify-center mb-1">
-                <CheckCircle2 size={36} />
-              </div>
-              <h3
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div
+            className="bg-white rounded-3xl max-w-lg w-full p-7 shadow-2xl space-y-5 text-center animate-in zoom-in-95 duration-200 border border-slate-100"
+            style={{ fontFamily: RB }}
+          >
+            {/* Top Checkmark Circle */}
+            <div className="w-16 h-16 rounded-full bg-emerald-100/80 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+              <CheckCircle2 size={34} />
+            </div>
+
+            <div className="space-y-1">
+              <h2
                 className="text-xl font-bold text-[#111827]"
                 style={{ fontFamily: PP }}
               >
-                Appointment Booked Successfully
-              </h3>
-              <p className="text-xs text-[#64748B]">
-                OPD appointment slot confirmed in HMS queue.
+                Appointment Booked Successfully!
+              </h2>
+              <p className="text-xs text-slate-500 font-medium max-w-md mx-auto">
+                Your OPD appointment has been registered with the Healthcare Operations Center.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-slate-50 border border-[#E5E7EB] space-y-2 text-xs">
-              <div className="flex justify-between items-center pb-2 border-b border-slate-200">
-                <span className="text-[#64748B]">Appointment ID</span>
-                <span className="font-mono text-base font-bold text-[#0D47A1]">
-                  {confirmedAptId}
+            {/* Appointment ID Pill */}
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-blue-50/80 border border-blue-100 text-[#0D47A1] text-xs font-mono font-bold">
+                <span>Appointment ID:</span>
+                <span className="font-extrabold">{confirmedAptId}</span>
+              </span>
+            </div>
+
+            {/* Inner Details Card matching Screenshot */}
+            <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 text-left space-y-3.5">
+              {/* Doctor Header Row */}
+              <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#0D47A1] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                    {(currentDoctor?.name || "DR").slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <div
+                      className="text-xs font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      {currentDoctor?.name || "Dr. Arjun Mehta"}
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      {currentDoctor?.dept || "Cardiology"}
+                    </div>
+                  </div>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#0D47A1] border border-blue-100">
+                  Scheduled
                 </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#64748B]">Patient</span>
-                <span className="font-bold text-[#111827]">
-                  {selectedPatient?.name}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#64748B]">Doctor</span>
-                <span className="font-semibold text-[#111827]">
-                  {currentDoctor?.name || "N/A"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#64748B]">Department</span>
-                <span className="text-slate-600">
-                  {currentDoctor?.dept || "N/A"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#64748B]">Date & Slot</span>
-                <span className="font-mono font-bold text-[#009688]">
-                  {selectedDate} at {selectedTimeSlot}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[#64748B]">Status</span>
-                <span className="font-bold text-[#66BB6A]">Scheduled</span>
+
+              {/* 2-Column Field Grid */}
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-medium block">
+                    Appointment Date
+                  </span>
+                  <span className="font-bold text-[#111827]">
+                    {selectedDate}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-medium block">
+                    Time Slot
+                  </span>
+                  <span className="font-bold text-[#0D47A1]">
+                    {selectedTimeSlot}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-medium block">
+                    Visit Type
+                  </span>
+                  <span className="font-semibold text-slate-700">
+                    {visitType}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-medium block">
+                    Hospital OPD Location
+                  </span>
+                  <span className="font-medium text-slate-700">
+                    Wing A, OPD Room 102
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-medium block">
+                    Consultation Fee
+                  </span>
+                  <span className="font-bold text-[#009688]">
+                    {currentDoctor?.fee ? `₹${currentDoctor.fee} (OPD Counter)` : "$65.00 (OPD Counter)"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-medium block">
+                    Chief Complaint
+                  </span>
+                  <span className="font-medium text-slate-700 truncate block">
+                    {chiefComplaint || "General Consultation"}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2 pt-1">
+            {/* Action Buttons matching Screenshot */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
               <button
+                type="button"
                 onClick={() => {
-                  console.log(
-                    `Printing Appointment Slip for ${confirmedAptId}...`,
-                  );
-                  window.print();
-                }}
-                className="w-full py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Printer size={15} /> Print Appointment Slip
-              </button>
-              <button
-                onClick={() => {
+                  const apptData = {
+                    id: confirmedAptId,
+                    appointmentNumber: confirmedAptId,
+                    patientName: selectedPatient?.name,
+                    mrn: selectedPatient?.mrn,
+                    doctorName: currentDoctor?.name,
+                    departmentName: currentDoctor?.dept,
+                    appointmentDate: selectedDate,
+                    startTime: selectedTimeSlot,
+                    visitType: visitType,
+                    reason: chiefComplaint,
+                    symptoms: remarks,
+                  } as unknown as AppointmentRecord;
                   setShowSuccessModal(false);
-                  if (onConfirmSuccess) onConfirmSuccess(confirmedAptId);
+                  if (onBookSuccess) onBookSuccess(apptData, true);
+                  else if (onConfirmSuccess) onConfirmSuccess(confirmedAptId);
                   else if (onBack) onBack();
                 }}
-                className="w-full py-2.5 rounded-xl border border-[#E5E7EB] bg-teal-50 text-xs font-semibold text-[#009688] hover:bg-teal-100 transition-colors flex items-center justify-center gap-2"
+                className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center"
                 style={{ fontFamily: PP }}
               >
-                <UserCheck size={15} /> Patient Check-In
+                View Appointment Details
               </button>
               <button
+                type="button"
                 onClick={() => {
+                  const apptData = {
+                    id: confirmedAptId,
+                    appointmentNumber: confirmedAptId,
+                    patientName: selectedPatient?.name,
+                    mrn: selectedPatient?.mrn,
+                    doctorName: currentDoctor?.name,
+                    departmentName: currentDoctor?.dept,
+                    appointmentDate: selectedDate,
+                    startTime: selectedTimeSlot,
+                    visitType: visitType,
+                    reason: chiefComplaint,
+                    symptoms: remarks,
+                  } as unknown as AppointmentRecord;
                   setShowSuccessModal(false);
+                  if (onBookSuccess) onBookSuccess(apptData, false);
+                  else if (onConfirmSuccess) onConfirmSuccess(confirmedAptId);
+                  else if (onBack) onBack();
                 }}
-                className="w-full py-2 rounded-xl text-xs text-[#64748B] font-medium hover:bg-slate-50 transition-colors text-center"
+                className="w-full sm:flex-1 py-3 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all"
+                style={{ fontFamily: PP }}
               >
-                Book Another Appointment
+                Return to My Appointments
               </button>
             </div>
           </div>

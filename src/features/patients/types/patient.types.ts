@@ -315,7 +315,7 @@ export interface PatientRescheduleAppointmentDialogProps {
     newTime: string,
     reason: string,
     notes: string,
-  ) => void;
+  ) => Promise<{ success?: boolean; message?: string } | void> | void;
   onViewDetails?: (appt: PatientAppointment) => void;
 }
 
@@ -536,6 +536,23 @@ export interface ApiPatientAppointment {
   appointmentDate?: string;
   startTime?: string;
   visitDateTime?: string;
+  patient?: string | { name?: string; fullName?: string };
+  patientName?: string;
+  chiefComplaint?: string;
+  chief_complaint?: string;
+  reasonForVisit?: string;
+  visitReason?: string;
+  appointmentReason?: string;
+  complaint?: string;
+  visitDetails?: { reason?: string; chiefComplaint?: string; notes?: string; remarks?: string };
+  details?: { reason?: string; notes?: string };
+  description?: string;
+  remarks?: string;
+  clinicalNotes?: string;
+  visitNotes?: string;
+  comments?: string;
+  opdRoom?: string;
+  roomNo?: string;
 }
 
 /**

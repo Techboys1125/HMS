@@ -78,6 +78,7 @@ export interface NurseWaitingPatient {
     name?: string;
     department?: string;
     departmentName?: string;
+    specialty?: string;
   };
 
   department?:
@@ -87,6 +88,8 @@ export interface NurseWaitingPatient {
         departmentCode?: string;
       }
     | string;
+
+  specialty?: string;
 }
 
 export interface NurseVitalsApiResponse<T = unknown> {

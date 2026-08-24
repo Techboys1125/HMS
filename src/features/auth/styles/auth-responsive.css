@@ -1,0 +1,267 @@
+/* ==========================================================================
+   Auth & Registration Responsive Styles & Media Queries
+   Supports all device screen resolutions & aspect ratios:
+   - Mobile Phones (Small: <=480px, Medium: 481px-640px)
+   - Tablets (Portrait: 641px-768px, Landscape: 769px-1024px)
+   - Desktops & Laptops (1025px-1440px)
+   - Ultra-Wide & Large Monitors (1441px+)
+   - Short Screen Heights (Small laptops / Landscape phones: <=740px)
+   ========================================================================== */
+
+/* ─── 1. Base Layout Utility Classes ─── */
+.auth-page-container {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #F8FAFC;
+  font-family: var(--font-body, system-ui, sans-serif);
+}
+
+.auth-right-panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background-color: #F8FAFC;
+  box-sizing: border-box;
+}
+
+.auth-card {
+  width: 100%;
+  background-color: #FFFFFF;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(241, 245, 249, 0.9);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+  transition: all 0.25s ease-in-out;
+  box-sizing: border-box;
+}
+
+/* ─── 2. Extra Small Mobile Phones (<= 480px) ─── */
+@media screen and (max-width: 480px) {
+  .auth-right-panel {
+    padding: 0.75rem !important;
+  }
+
+  .auth-card {
+    padding: 1rem 0.875rem !important;
+    border-radius: 0.875rem !important;
+    max-width: 100% !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .auth-header-title {
+    font-size: 1.25rem !important;
+    line-height: 1.6rem !important;
+  }
+
+  .auth-header-subtitle {
+    font-size: 0.75rem !important;
+    margin-top: 0.125rem !important;
+  }
+
+  .auth-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+  }
+
+  .auth-input-field {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    padding-left: 2.25rem !important;
+    font-size: 0.8125rem !important;
+  }
+
+  .auth-submit-btn {
+    padding-top: 0.625rem !important;
+    padding-bottom: 0.625rem !important;
+    font-size: 0.8125rem !important;
+    margin-top: 0.75rem !important;
+  }
+}
+
+/* ─── 3. Standard Mobile & Small Tablets (481px to 640px) ─── */
+@media screen and (min-width: 481px) and (max-width: 640px) {
+  .auth-right-panel {
+    padding: 1.25rem !important;
+  }
+
+  .auth-card {
+    padding: 1.5rem 1.25rem !important;
+    max-width: 28rem !important;
+    border-radius: 1rem !important;
+  }
+
+  .auth-header-title {
+    font-size: 1.375rem !important;
+  }
+
+  .auth-form-grid {
+    gap: 0.625rem !important;
+  }
+}
+
+/* ─── 4. Medium Tablets (Portrait: 641px to 768px) ─── */
+@media screen and (min-width: 641px) and (max-width: 768px) {
+  .auth-page-container {
+    flex-direction: column !important;
+  }
+
+  .auth-right-panel {
+    width: 100% !important;
+    min-height: 100vh !important;
+    padding: 2rem 1.5rem !important;
+    overflow-y: auto !important;
+  }
+
+  .auth-card {
+    max-width: 32rem !important;
+    padding: 1.75rem 2rem !important;
+    border-radius: 1.125rem !important;
+  }
+
+  .auth-header-title {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* ─── 5. Large Tablets & Small Laptops (Landscape: 769px to 1024px) ─── */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .auth-page-container {
+    flex-direction: row !important;
+  }
+
+  .auth-right-panel {
+    width: 50% !important;
+    min-height: 100vh !important;
+    padding: 1.5rem !important;
+    overflow-y: auto !important;
+  }
+
+  .auth-card {
+    max-width: 30rem !important;
+    padding: 1.5rem 1.75rem !important;
+  }
+}
+
+/* ─── 6. Standard Desktops & Laptops (1025px to 1440px) ─── */
+@media screen and (min-width: 1025px) and (max-width: 1440px) {
+  .auth-page-container {
+    height: 100vh !important;
+    overflow: hidden !important;
+  }
+
+  .auth-right-panel {
+    width: 50% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    padding: 1.5rem !important;
+  }
+
+  .auth-card {
+    max-width: 32rem !important;
+    padding: 1.5rem 2rem !important;
+    border-radius: 1.25rem !important;
+  }
+
+  .auth-header-title {
+    font-size: 1.625rem !important;
+  }
+}
+
+/* ─── 7. Ultra-Wide & Large Monitors (1441px+) ─── */
+@media screen and (min-width: 1441px) {
+  .auth-page-container {
+    height: 100vh !important;
+    overflow: hidden !important;
+  }
+
+  .auth-right-panel {
+    width: 50% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    padding: 2.5rem !important;
+  }
+
+  .auth-card {
+    max-width: 36rem !important;
+    padding: 2rem 2.5rem !important;
+    border-radius: 1.5rem !important;
+  }
+
+  .auth-header-title {
+    font-size: 1.875rem !important;
+  }
+
+  .auth-header-subtitle {
+    font-size: 0.875rem !important;
+  }
+}
+
+/* ─── 8. Short Viewport Heights (Laptops with 768p resolution / Landscape mode: <=740px) ─── */
+@media screen and (max-height: 740px) and (min-width: 1025px) {
+  .auth-right-panel {
+    padding: 1rem !important;
+  }
+
+  .auth-card {
+    padding: 1.125rem 1.5rem !important;
+    max-width: 30rem !important;
+  }
+
+  .auth-header-title {
+    font-size: 1.25rem !important;
+    line-height: 1.5rem !important;
+  }
+
+  .auth-header-subtitle {
+    font-size: 0.75rem !important;
+    margin-top: 0.125rem !important;
+  }
+
+  .auth-form-space {
+    margin-top: 0.375rem !important;
+  }
+
+  .auth-form-space > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.5rem !important;
+  }
+
+  .auth-input-field {
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.4rem !important;
+    font-size: 0.8125rem !important;
+  }
+
+  .auth-submit-btn {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    margin-top: 0.625rem !important;
+    font-size: 0.8125rem !important;
+  }
+
+  .auth-footer {
+    padding-top: 0.375rem !important;
+    margin-top: 0.5rem !important;
+  }
+}
+
+/* ─── 9. High-DPI / Retina Displays ─── */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .auth-card {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ─── 10. Print Mode ─── */
+@media print {
+  .branding-panel {
+    display: none !important;
+  }
+  .auth-right-panel {
+    width: 100% !important;
+    background: white !important;
+  }
+}

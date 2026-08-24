@@ -83,12 +83,17 @@ export const normalizeAppointmentRecord = (
     deptObj?.departmentName ||
     deptObj?.name ||
     deptObj?.departmentCode ||
+    item?.deptName ||
+    item?.dept ||
     (typeof item?.department === "string" ? item.department : undefined) ||
     doctor?.departmentName ||
     doctor?.department ||
     knownDoc?.departmentName ||
     knownDoc?.department ||
     "General Medicine") as string;
+
+  const rawStatus = (item?.status || item?.appointmentStatus || item?.state || "SCHEDULED") as string;
+  const displayStatus = toDisplayStatus(rawStatus) || "Booked";
 
   return {
     id: (item?.id ?? item?.appointmentId ?? item?.appointmentNumber ?? "") as
@@ -106,11 +111,11 @@ export const normalizeAppointmentRecord = (
       string | undefined,
     doctorId: (item?.doctorId ?? doctor?.doctorId ?? doctor?.id ?? "") as
       string | number,
-    doctorName: (item?.doctorName || doctor?.name || "") as string,
+    doctorName: (item?.doctorName || doctor?.name || doctor?.fullName || "") as string,
     appointmentDate,
     startTime,
     endTime: item?.endTime as string | undefined,
-    status: toDisplayStatus(item?.status as string | undefined),
+    status: displayStatus,
     queueStatus: (item?.queueStatus || item?.arrivalStatus) as
       string | undefined,
     appointmentType: item?.appointmentType as string | undefined,
@@ -125,6 +130,7 @@ export const normalizeAppointmentRecord = (
           : undefined,
     departmentName: resolvedDeptName,
     department: resolvedDeptName,
+    specialty: (item?.specialty || doctor?.specialty || resolvedDeptName || "General Medicine") as string,
 
     patient: patient as unknown as PatientSummary,
     doctor: doctor as unknown as DoctorSummary,
@@ -140,10 +146,19 @@ export const normalizeAppointmentRecord = (
     isWalkIn: item?.isWalkIn as boolean | undefined,
     createdDate: (item?.createdDate || item?.createdAt) as string | undefined,
     mrn: (item?.mrn || patient?.mrn) as string | undefined,
-    patientAge: item?.patientAge as number | undefined,
-    patientGender: item?.patientGender as string | undefined,
-    patientPhone: (item?.patientPhone || patient?.phone || patient?.mobile) as
-      string | undefined,
+    patientAge: (item?.patientAge ??
+      item?.age ??
+      patient?.age ??
+      patient?.patientAge) as number | undefined,
+    patientGender: (item?.patientGender ||
+      item?.gender ||
+      patient?.gender ||
+      patient?.sex) as string | undefined,
+    patientPhone: (item?.patientPhone ||
+      item?.phone ||
+      item?.mobile ||
+      patient?.phone ||
+      patient?.mobile) as string | undefined,
     doctorSpecialty: (item?.doctorSpecialty || doctor?.specialty) as
       string | undefined,
     tokenNo: (item?.tokenNo || item?.queueToken) as string | undefined,
@@ -153,7 +168,7 @@ export const normalizeAppointmentRecord = (
       string | undefined,
     notes: item?.notes as string | undefined,
     arrivalTime: "",
-    time: "",
+    time: startTime,
   };
 };
 
@@ -465,6 +480,10 @@ export const appointmentService = {
     return appointmentsApi.receptionCheckIn(appointmentId);
   },
 
+  async getQueueTimeline(queueId: string | number) {
+    return appointmentsApi.getQueueTimeline(queueId);
+  },
+
   async getAppointmentToken(appointmentId: string | number) {
     const res = await appointmentsApi.getAppointmentToken(appointmentId);
     return res?.data?.tokenNumber || `TK-${String(appointmentId).slice(-4)}`;
@@ -555,6 +574,7 @@ export const appointmentService = {
             specialtyName?: string;
           };
           consultationFee?: number | string;
+          consultFee?: number | string;
           qualification?: string;
         };
         userId?: string | number;
@@ -674,7 +694,7 @@ export const appointmentService = {
           d.primaryDepartment?.departmentName ??
           "",
         departmentId:
-          d.departmentId ?? d.primaryDepartment?.departmentId ?? departmentId,
+          (d.departmentId ?? d.primaryDepartment?.departmentId ?? departmentId ?? "") as string | number,
         specialty:
           d.specialty ??
           d.primarySpecialty?.specialtyName ??
@@ -682,10 +702,16 @@ export const appointmentService = {
           "",
         qualification: d.qualification ?? d.doctorProfile?.qualification ?? "",
         consultationFee:
-          d.fees?.standardConsultationFee ??
-          d.consultationFee ??
-          d.doctorProfile?.consultationFee ??
-          0,
+          Number(
+            (d as Record<string, unknown>).consultFee ??
+              d.consultationFee ??
+              (d as Record<string, unknown>).consultFeeInr ??
+              (d as Record<string, unknown>).fee ??
+              d.fees?.standardConsultationFee ??
+              d.doctorProfile?.consultationFee ??
+              d.doctorProfile?.consultFee ??
+              0,
+          ) || 0,
         opdRoom: d.opdRoom ?? "",
         status:
           d.status ??
@@ -726,9 +752,14 @@ export const appointmentService = {
     };
 
     const res = await appointmentsApi.getAvailableSlots(doctorId, date);
-    const availabilitySlots = Array.isArray(res?.data?.slots)
-      ? res.data.slots
-      : [];
+    const rawData = (res as { data?: unknown })?.data ?? res;
+    const availabilitySlots = Array.isArray(rawData)
+      ? rawData
+      : Array.isArray((rawData as { slots?: unknown[] })?.slots)
+        ? (rawData as { slots: unknown[] }).slots
+        : Array.isArray((rawData as { content?: unknown[] })?.content)
+          ? (rawData as { content: unknown[] }).content
+          : [];
 
     let slots: AppointmentSlot[] = availabilitySlots.map(
       (rawItem: unknown): AppointmentSlot => {
@@ -737,7 +768,7 @@ export const appointmentService = {
         const available = ["AVAILABLE", "OPEN", "FREE"].includes(statusUpper);
         return {
           ...s,
-          time: String(s.startTime || s.endTime || ""),
+          time: String(s.startTime || s.endTime || s.time || s.slot || ""),
           available,
         };
       },

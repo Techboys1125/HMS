@@ -66,22 +66,25 @@ export function Header({
   const isSelfActive =
     !currentActive ||
     String(currentActive.relationship).toUpperCase() === "SELF" ||
-    currentActive.mrn === user?.mrn ||
-    currentActive.mrn === user?.patientId;
+    (!!user?.mrn && currentActive.mrn === user?.mrn) ||
+    (!!user?.patientId && currentActive.mrn === user?.patientId);
 
   const activePatientName =
-    (isSelfActive && (customSelfName || user?.fullName || user?.name)) ||
     currentActive?.patientName ||
     currentActive?.name ||
+    (isSelfActive && (customSelfName || user?.fullName || user?.name)) ||
     user?.fullName ||
     user?.name ||
     "Patient";
 
+  const accountOwnerName =
+    (user?.fullName && user.fullName.trim()) ||
+    (user?.name && user.name.trim()) ||
+    "Patient";
+
   const displayName =
     role === "patient"
-      ? isSelfActive
-        ? activePatientName
-        : customSelfName || user?.fullName || user?.name || "Patient"
+      ? accountOwnerName
       : user?.fullName || user?.name || "Staff";
   const displayEmail =
     user?.email ||

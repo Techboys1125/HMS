@@ -751,9 +751,12 @@ export function PatientProfileScreen({
                           >
                             <div>
                               <div className="font-bold text-[#111827] text-xs">
-                                {typeof a.doctor === "object"
-                                  ? (a.doctor as { name?: string }).name
-                                  : a.doctor || a.doctorName || "—"}
+                                {typeof a.doctor === "object" && a.doctor !== null
+                                  ? (a.doctor as { fullName?: string; name?: string; doctorName?: string }).fullName ||
+                                    (a.doctor as { fullName?: string; name?: string; doctorName?: string }).name ||
+                                    (a.doctor as { fullName?: string; name?: string; doctorName?: string }).doctorName ||
+                                    "Doctor"
+                                  : String(a.doctor || a.doctorName || "Doctor")}
                               </div>
                               <div className="text-[11px] text-slate-500">
                                 {typeof a.department === "object"
@@ -835,9 +838,12 @@ export function PatientProfileScreen({
                                 item.id || item.appointmentId || "",
                               );
                               const doctorName =
-                                typeof item.doctor === "object"
-                                  ? (item.doctor as { name?: string }).name
-                                  : item.doctor || item.doctorName || "—";
+                                typeof item.doctor === "object" && item.doctor !== null
+                                  ? (item.doctor as { fullName?: string; name?: string; doctorName?: string }).fullName ||
+                                    (item.doctor as { fullName?: string; name?: string; doctorName?: string }).name ||
+                                    (item.doctor as { fullName?: string; name?: string; doctorName?: string }).doctorName ||
+                                    "Doctor"
+                                   : String(item.doctor || item.doctorName || "Doctor");
                               const deptName =
                                 typeof item.department === "object"
                                   ? (
@@ -968,7 +974,7 @@ export function PatientProfileScreen({
                               const doctorName =
                                 typeof v.doctor === "object"
                                   ? (v.doctor as { name?: string }).name
-                                  : v.doctor || v.doctorName || "—";
+                                   : String(v.doctor || v.doctorName || "—");
                               const deptName =
                                 typeof v.department === "object"
                                   ? (

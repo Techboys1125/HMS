@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   RefreshCw,
   ChevronLeft,
@@ -341,15 +341,28 @@ export function PatientRescheduleAppointmentDialog({
   onViewDetails,
 }: PatientRescheduleAppointmentDialogProps) {
   const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState("");
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const [selectedDate, setSelectedDate] = useState(appointment?.date || todayStr);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(appointment?.time || "");
   const [rescheduleReason, setRescheduleReason] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(today);
+
+  useEffect(() => {
+    function syncAppointmentDefaults() {
+      if (appointment?.date) {
+        setSelectedDate(appointment.date);
+        if (appointment.time) {
+          setSelectedTimeSlot(appointment.time);
+        }
+      }
+    }
+
+    syncAppointmentDefaults();
+  }, [appointment]);
 
   const doctorId = appointment ? String(appointment.doctorId || "") : "";
   const { slots: apiSlots, isLoading: slotsLoading } = useAppointmentSlots(
@@ -387,7 +400,7 @@ export function PatientRescheduleAppointmentDialog({
 
   for (let day = 1; day <= totalDays; day++) {
     const d = new Date(year, month, day);
-    const dateStr = d.toISOString().split("T")[0];
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const isPast =
       d < new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const isToday = dateStr === todayStr;
@@ -403,44 +416,117 @@ export function PatientRescheduleAppointmentDialog({
   }
 
   const remaining = 42 - calendarDays.length;
+  const nextMonthYear = month === 11 ? year + 1 : year;
+  const nextMonthNum = month === 11 ? 1 : month + 2;
+  const nextMonthStr = String(nextMonthNum).padStart(2, "0");
+
   for (let i = 1; i <= remaining; i++) {
-    const d = new Date(year, month + 1, i);
+    const dateStr = `${nextMonthYear}-${nextMonthStr}-${String(i).padStart(2, "0")}`;
     calendarDays.push({
       day: i,
       isCurrentMonth: false,
       isAvailable: false,
       isToday: false,
       isCurrentAppt: false,
-      fullDate: d.toISOString().split("T")[0],
+      fullDate: dateStr,
     });
   }
 
-  const displaySlots = (
+  const isCurrentApptDate = selectedDate === appointment.date;
+  const currentApptTimeFormatted = appointment.time ? formatTime(appointment.time) : "";
+
+  const defaultFallbackSlots = [
+    { time: "09:00 AM", available: true },
+    { time: "09:30 AM", available: true },
+    { time: "10:00 AM", available: true },
+    { time: "10:30 AM", available: false },
+    { time: "11:00 AM", available: true },
+    { time: "11:30 AM", available: true },
+    { time: "02:00 PM", available: true },
+    { time: "02:30 PM", available: false },
+    { time: "03:00 PM", available: true },
+    { time: "03:30 PM", available: true },
+    { time: "04:00 PM", available: false },
+    { time: "04:30 PM", available: true },
+  ].map((slot) => {
+    if (
+      isCurrentApptDate &&
+      currentApptTimeFormatted &&
+      formatTime(slot.time) === currentApptTimeFormatted
+    ) {
+      return { ...slot, available: false };
+    }
+    return slot;
+  });
+
+  const fetchedSlots = (
     (apiSlots as Array<{
       time?: string;
       startTime?: string;
       slot?: string;
+      slotTime?: string;
       available?: boolean;
+      isAvailable?: boolean;
+      isBooked?: boolean;
+      status?: string;
     }>) || []
-  ).map((s) => ({
-    time: s.time || s.startTime || s.slot || "",
-    available: s.available !== false,
-  }));
+  )
+    .map((s) => {
+      const timeStr = s.time || s.startTime || s.slot || s.slotTime || "";
+      const statusUpper = (s.status || "").toUpperCase();
+      const isUnavailable =
+        s.available === false ||
+        s.isAvailable === false ||
+        s.isBooked === true ||
+        statusUpper === "BOOKED" ||
+        statusUpper === "RESERVED" ||
+        statusUpper === "TAKEN" ||
+        statusUpper === "FULL" ||
+        statusUpper === "OPD_BREAK" ||
+        statusUpper === "BREAK" ||
+        statusUpper === "UNAVAILABLE" ||
+        statusUpper === "OFF" ||
+        (isCurrentApptDate &&
+          currentApptTimeFormatted &&
+          formatTime(timeStr) === currentApptTimeFormatted);
+      return {
+        time: timeStr,
+        available: !isUnavailable,
+      };
+    })
+    .filter((s) => Boolean(s.time));
+
+  const displaySlots =
+    fetchedSlots.length > 0 ? fetchedSlots : defaultFallbackSlots;
+
+  const parseSlotHour = (timeStr: string): number => {
+    if (!timeStr) return 0;
+    const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+    if (!match) {
+      const raw = parseInt(timeStr, 10);
+      return isNaN(raw) ? 0 : raw;
+    }
+    let h = parseInt(match[1], 10);
+    const p = match[3]?.toUpperCase();
+    if (p === "PM" && h < 12) h += 12;
+    if (p === "AM" && h === 12) h = 0;
+    return h;
+  };
 
   const morningSlots = displaySlots.filter((s) => {
-    const h = parseInt(s.time, 10);
+    const h = parseSlotHour(s.time);
     return h >= 5 && h < 12;
   });
   const afternoonSlots = displaySlots.filter((s) => {
-    const h = parseInt(s.time, 10);
+    const h = parseSlotHour(s.time);
     return h >= 12 && h < 17;
   });
   const eveningSlots = displaySlots.filter((s) => {
-    const h = parseInt(s.time, 10);
+    const h = parseSlotHour(s.time);
     return h >= 17;
   });
 
-  const handleRescheduleSubmit = (e: React.FormEvent) => {
+  const handleRescheduleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDate) {
       setValidationError("Please select a new appointment date.");
@@ -458,17 +544,33 @@ export function PatientRescheduleAppointmentDialog({
     setValidationError(null);
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    try {
+      if (onConfirmReschedule) {
+        const res = await onConfirmReschedule(
+          appointment.id,
+          selectedDate,
+          selectedTimeSlot,
+          rescheduleReason,
+          additionalNotes,
+        );
+        if (res && typeof res === "object" && "success" in res && res.success === false) {
+          setIsSubmitting(false);
+          setValidationError(
+            res.message || "Requested reschedule slot is unavailable.",
+          );
+          return;
+        }
+      }
       setIsSubmitting(false);
       setShowSuccessDialog(true);
-      onConfirmReschedule(
-        appointment.id,
-        selectedDate,
-        selectedTimeSlot,
-        rescheduleReason,
-        additionalNotes,
-      );
-    }, 400);
+    } catch (err: unknown) {
+      setIsSubmitting(false);
+      const errorMsg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err as { message?: string })?.message ||
+        (err instanceof Error ? err.message : "Requested reschedule slot is unavailable.");
+      setValidationError(errorMsg);
+    }
   };
 
   const handleCloseAll = () => {
@@ -479,61 +581,127 @@ export function PatientRescheduleAppointmentDialog({
     onClose();
   };
 
-  // Success State View
+  // Success State View matching user screenshot modal design
   if (showSuccessDialog) {
     return (
-      <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 max-sm:items-end">
+      <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
         <div
-          className="w-full max-w-md bg-white rounded-2xl max-sm:rounded-b-none max-sm:rounded-t-2xl shadow-2xl overflow-hidden border border-gray-100 p-6 space-y-5 text-center animate-in zoom-in-95 duration-200"
+          className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 p-7 space-y-5 text-center animate-in zoom-in-95 duration-200"
           style={{ fontFamily: RB }}
         >
-          <div className="w-14 h-14 rounded-full bg-emerald-50 text-[#66BB6A] flex items-center justify-center mx-auto shadow-inner border border-emerald-100">
-            <CheckCircle2 size={32} />
+          {/* Top Checkmark Circle */}
+          <div className="w-16 h-16 rounded-full bg-emerald-100/80 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+            <CheckCircle2 size={34} />
           </div>
 
-          <div>
-            <h3
-              className="text-base font-bold text-[#111827]"
+          <div className="space-y-1">
+            <h2
+              className="text-xl font-bold text-[#111827]"
               style={{ fontFamily: PP }}
             >
-              Appointment Rescheduled Successfully
-            </h3>
-            <p className="text-xs text-[#64748B] mt-1">
-              Your appointment{" "}
-              <span className="font-mono font-bold text-[#0D47A1]">
-                {appointment.id}
-              </span>{" "}
-              has been updated successfully.
+              Appointment Rescheduled Successfully!
+            </h2>
+            <p className="text-xs text-slate-500 font-medium max-w-md mx-auto">
+              Your OPD appointment has been registered with the Healthcare Operations Center.
             </p>
           </div>
 
-          {/* New Details Card */}
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs text-left space-y-2">
-            <div className="flex justify-between border-b border-slate-200 pb-2">
-              <span className="text-[#64748B]">Doctor & Dept:</span>
-              <span className="font-bold text-[#111827]">
-                {appointment.doctor} ({appointment.department})
+          {/* Appointment ID Pill */}
+          <div>
+            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-blue-50/80 border border-blue-100 text-[#0D47A1] text-xs font-mono font-bold">
+              <span>Appointment ID:</span>
+              <span className="font-extrabold">{appointment.id}</span>
+            </span>
+          </div>
+
+          {/* Details Card matching Screenshot */}
+          <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 text-left space-y-3.5">
+            {/* Doctor Header Row */}
+            <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#0D47A1] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                  {(appointment.doctor || "DR").slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <div
+                    className="text-xs font-bold text-[#111827]"
+                    style={{ fontFamily: PP }}
+                  >
+                    {appointment.doctor}
+                  </div>
+                  <div className="text-[11px] text-slate-500">
+                    {appointment.specialty || appointment.department || "Consultant"}
+                  </div>
+                </div>
+              </div>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#0D47A1] border border-blue-100">
+                Scheduled
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-[#64748B]">New Date:</span>
-              <span className="font-bold text-[#0D47A1]">{selectedDate}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#64748B]">New Time:</span>
-              <span className="font-bold text-[#009688]">
-                {selectedTimeSlot}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#64748B]">Reason:</span>
-              <span className="font-medium text-slate-700">
-                {rescheduleReason}
-              </span>
+
+            {/* 2-Column Field Grid */}
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <span className="text-[10px] text-slate-400 font-medium block">
+                  Appointment Date
+                </span>
+                <span className="font-bold text-[#111827]">
+                  {selectedDate}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 font-medium block">
+                  Time Slot
+                </span>
+                <span className="font-bold text-[#0D47A1]">
+                  {selectedTimeSlot}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 font-medium block">
+                  Visit Type
+                </span>
+                <span className="font-semibold text-slate-700">
+                  {appointment.visitType || "In-Person OPD"}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 font-medium block">
+                  Hospital OPD Location
+                </span>
+                <span className="font-medium text-slate-700">
+                  {appointment.roomLocation || "Wing A, OPD Room 102"}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 font-medium block">
+                  Consultation Fee
+                </span>
+                <span className="font-bold text-[#009688]">
+                  {appointment.billingAmount || "$65.00 (OPD Counter)"}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 font-medium block">
+                  Chief Complaint
+                </span>
+                <span className="font-medium text-slate-700 truncate block">
+                  {appointment.reason || "General Consultation"}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 font-medium block">
+                  Reschedule Reason
+                </span>
+                <span className="font-semibold text-amber-700 truncate block">
+                  {rescheduleReason || "Patient Request"}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
+          {/* Bottom Action Buttons matching Screenshot */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <button
               type="button"
               onClick={() => {
@@ -541,11 +709,12 @@ export function PatientRescheduleAppointmentDialog({
                   ...appointment,
                   date: selectedDate,
                   time: selectedTimeSlot,
+                  reason: rescheduleReason || appointment.reason,
                 };
                 handleCloseAll();
                 if (onViewDetails) onViewDetails(updatedAppt);
               }}
-              className="w-full sm:flex-1 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm"
+              className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-[#0D47A1] hover:bg-[#0c3d8a] text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center"
               style={{ fontFamily: PP }}
             >
               View Appointment Details
@@ -553,9 +722,10 @@ export function PatientRescheduleAppointmentDialog({
             <button
               type="button"
               onClick={handleCloseAll}
-              className="w-full sm:flex-1 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-xs font-semibold text-[#64748B] hover:bg-slate-50 transition-colors"
+              className="w-full sm:flex-1 py-3 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all"
+              style={{ fontFamily: PP }}
             >
-              Back to My Appointments
+              Return to My Appointments
             </button>
           </div>
         </div>
@@ -761,16 +931,28 @@ export function PatientRescheduleAppointmentDialog({
                                 key={s.time}
                                 type="button"
                                 disabled={isBooked}
+                                title={
+                                  isBooked
+                                    ? "This time slot is already booked"
+                                    : "Click to select slot"
+                                }
                                 onClick={() => setSelectedTimeSlot(s.time)}
-                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-colors text-center ${
+                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center relative ${
                                   isSelected
-                                    ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold"
+                                    ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold scale-[1.02]"
                                     : isBooked
-                                      ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed line-through"
+                                      ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through opacity-65"
                                       : "bg-white text-[#111827] border-[#E5E7EB] hover:border-teal-300 hover:bg-teal-50/30"
                                 }`}
                               >
-                                {formatTime(s.time)}
+                                <span className={isBooked ? "line-through text-slate-400" : ""}>
+                                  {formatTime(s.time)}
+                                </span>
+                                {isBooked && (
+                                  <span className="block text-[9px] font-normal text-slate-400 no-underline mt-0.5">
+                                    Booked
+                                  </span>
+                                )}
                               </button>
                             );
                           })}
@@ -792,16 +974,28 @@ export function PatientRescheduleAppointmentDialog({
                                 key={s.time}
                                 type="button"
                                 disabled={isBooked}
+                                title={
+                                  isBooked
+                                    ? "This time slot is already booked"
+                                    : "Click to select slot"
+                                }
                                 onClick={() => setSelectedTimeSlot(s.time)}
-                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-colors text-center ${
+                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center relative ${
                                   isSelected
-                                    ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold"
+                                    ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold scale-[1.02]"
                                     : isBooked
-                                      ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed line-through"
+                                      ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through opacity-65"
                                       : "bg-white text-[#111827] border-[#E5E7EB] hover:border-teal-300 hover:bg-teal-50/30"
                                 }`}
                               >
-                                {formatTime(s.time)}
+                                <span className={isBooked ? "line-through text-slate-400" : ""}>
+                                  {formatTime(s.time)}
+                                </span>
+                                {isBooked && (
+                                  <span className="block text-[9px] font-normal text-slate-400 no-underline mt-0.5">
+                                    Booked
+                                  </span>
+                                )}
                               </button>
                             );
                           })}
@@ -823,16 +1017,28 @@ export function PatientRescheduleAppointmentDialog({
                                 key={s.time}
                                 type="button"
                                 disabled={isBooked}
+                                title={
+                                  isBooked
+                                    ? "This time slot is already booked"
+                                    : "Click to select slot"
+                                }
                                 onClick={() => setSelectedTimeSlot(s.time)}
-                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-colors text-center ${
+                                className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-center relative ${
                                   isSelected
-                                    ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold"
+                                    ? "bg-[#009688] text-white border-[#009688] shadow-sm font-bold scale-[1.02]"
                                     : isBooked
-                                      ? "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed line-through"
+                                      ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through opacity-65"
                                       : "bg-white text-[#111827] border-[#E5E7EB] hover:border-teal-300 hover:bg-teal-50/30"
                                 }`}
                               >
-                                {formatTime(s.time)}
+                                <span className={isBooked ? "line-through text-slate-400" : ""}>
+                                  {formatTime(s.time)}
+                                </span>
+                                {isBooked && (
+                                  <span className="block text-[9px] font-normal text-slate-400 no-underline mt-0.5">
+                                    Booked
+                                  </span>
+                                )}
                               </button>
                             );
                           })}

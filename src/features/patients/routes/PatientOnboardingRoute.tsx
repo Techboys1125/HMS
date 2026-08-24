@@ -75,7 +75,7 @@ export function PatientOnboardingRoute() {
   const handleCompleteAndNavigate = () => {
     setState("complete");
     portal?.refresh();
-    navigate(ROUTES.PATIENT_MY_PROFILE, { replace: true });
+    navigate(ROUTES.DASHBOARD, { replace: true });
   };
 
   return (

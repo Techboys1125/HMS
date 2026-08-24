@@ -13,6 +13,7 @@ import {
 import { PP, RB } from "../constants/patient.fonts";
 import { usePatient, useUpdatePatient } from "../hooks/usePatients";
 import type { Patient } from "../types/patient.types";
+import { CustomDatePicker } from "../../../components/CustomDatePicker";
 
 const BLOOD_GROUPS = [
   { value: "", label: "Select Blood Group" },
@@ -447,14 +448,13 @@ export function EditPatientScreen({
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1.5">
-                      Date of Birth
-                    </label>
-                    <input
-                      type="date"
+                    <CustomDatePicker
+                      label="Date of Birth"
+                      labelClassName="block text-xs font-medium text-slate-700 mb-1.5"
                       value={dob}
-                      onChange={(e) => setDob(e.target.value)}
-                      className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors cursor-pointer"
+                      onChange={(val) => setDob(val)}
+                      maxDate={new Date().toISOString().split("T")[0]}
+                      inputClassName="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-1 focus:ring-[#0D47A1] transition-colors"
                     />
                   </div>
                   <div>

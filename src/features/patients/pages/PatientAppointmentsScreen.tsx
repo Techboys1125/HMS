@@ -8,16 +8,15 @@ import {
   ChevronRight,
   Eye,
   X,
-  Activity,
   Calendar,
   Stethoscope,
   Clock,
   CheckCircle2,
   XCircle,
   Building2,
-  TrendingUp,
 } from "lucide-react";
 import type { PatientAppointment, ApiPatientAppointment } from "../types/patient.types";
+import type { AppointmentRecord } from "../../appointments/types/appointment.types";
 import { PP, RB } from "../constants/patient.fonts";
 import { usePatientPortal } from "../context/usePatientPortal";
 import type { FamilyMember } from "./FamilyMembersManagement";
@@ -27,9 +26,41 @@ import {
 } from "../components/PatientDialogs";
 import { BookAppointmentScreen } from "../../appointments/pages/BookAppointmentScreen";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
-import type { ApiResponse } from "../../auth/types/auth.types";
 import { Pagination } from "../../../common/components/Pagination";
+import type { ApiResponse } from "../../auth/types/auth.types";
 import { to24Hour } from "../../../lib/time-utils";
+import { downloadAppointmentSlipPdf } from "../../../utils/appointmentPdf.utils";
+
+function formatDisplayTime(timeStr?: string): string {
+  if (!timeStr) return "09:00 AM";
+  const trimmed = timeStr.trim();
+  if (trimmed.toUpperCase().includes("AM") || trimmed.toUpperCase().includes("PM")) {
+    return trimmed;
+  }
+  const match = trimmed.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return trimmed;
+  let hour = parseInt(match[1], 10);
+  const min = match[2];
+  const ampm = hour >= 12 ? "PM" : "AM";
+  if (hour > 12) hour -= 12;
+  if (hour === 0) hour = 12;
+  const hStr = hour < 10 ? `0${hour}` : `${hour}`;
+  return `${hStr}:${min} ${ampm}`;
+}
+
+function formatStatusPretty(s?: string): string {
+  if (!s) return "Booked";
+  const upper = s.toUpperCase().replace(/_/g, " ");
+  if (upper === "BOOKED") return "Booked";
+  if (upper === "SCHEDULED") return "Scheduled";
+  if (upper === "CONFIRMED") return "Confirmed";
+  if (upper === "IN CONSULTATION" || upper === "IN PROGRESS") return "In Consultation";
+  if (upper === "CHECKED IN") return "Checked-In";
+  if (upper === "WAITING FOR VITALS") return "Waiting for Vitals";
+  if (upper === "WAITING FOR DOCTOR") return "Waiting for Doctor";
+  if (upper === "COMPLETED" || upper === "CONSULTATION COMPLETED") return "Completed";
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
 
 type AppointmentListState = {
   appointments: PatientAppointment[];
@@ -239,21 +270,54 @@ export function PatientAppointmentsScreen({
                 : a.startTime || a.time || "";
 
               const doctorRaw = a.doctor;
-              let doctorName: string;
-              if (
-                doctorRaw &&
-                typeof doctorRaw === "object" &&
-                doctorRaw !== null
-              ) {
+              let doctorName = "";
+
+              if (doctorRaw && typeof doctorRaw === "object" && doctorRaw !== null) {
+                const docObj = doctorRaw as {
+                  name?: string;
+                  fullName?: string;
+                  doctorName?: string;
+                  nameEn?: string;
+                  user?: { name?: string; fullName?: string };
+                };
                 doctorName =
-                  (doctorRaw as { name?: string; fullName?: string }).name ||
-                  (doctorRaw as { name?: string; fullName?: string })
-                    .fullName ||
-                  "Doctor";
+                  docObj.fullName ||
+                  docObj.name ||
+                  docObj.doctorName ||
+                  docObj.nameEn ||
+                  docObj.user?.fullName ||
+                  docObj.user?.name ||
+                  "";
               } else if (typeof doctorRaw === "string" && doctorRaw.trim()) {
                 doctorName = doctorRaw.trim();
-              } else {
-                doctorName = String(a.doctorName || "Doctor");
+              }
+
+              if (!doctorName) {
+                const alt = a as {
+                  doctorName?: string;
+                  doctor_name?: string;
+                  doctorFullName?: string;
+                  assignedDoctor?: string;
+                  assignedDoctorName?: string;
+                  docName?: string;
+                };
+                doctorName =
+                  alt.doctorName ||
+                  alt.doctor_name ||
+                  alt.doctorFullName ||
+                  alt.assignedDoctor ||
+                  alt.assignedDoctorName ||
+                  alt.docName ||
+                  "Unassigned Doctor";
+              }
+
+              if (
+                doctorName &&
+                doctorName !== "Unassigned Doctor" &&
+                !doctorName.toLowerCase().startsWith("dr.") &&
+                !doctorName.toLowerCase().startsWith("dr ")
+              ) {
+                doctorName = `Dr. ${doctorName}`;
               }
 
               const deptRaw = a.department;
@@ -311,8 +375,51 @@ export function PatientAppointmentsScreen({
                 formattedStatus = "Waiting for Doctor";
               }
 
+              const patRaw = a.patient || a.patientName;
+              let pName = patient?.name || activePatient?.name || "";
+              if (patRaw && typeof patRaw === "object" && patRaw !== null) {
+                pName = (patRaw as { fullName?: string; name?: string }).fullName || (patRaw as { name?: string }).name || pName;
+              } else if (typeof patRaw === "string" && patRaw.trim()) {
+                pName = patRaw.trim();
+              } else if (a.patientName) {
+                pName = String(a.patientName);
+              }
+
+              const apptIdStr = String(a.appointmentId || a.id || `APT-${idx}`);
+              const storedReason = localStorage.getItem(`appt_reason_${apptIdStr}`);
+              const storedNotes = localStorage.getItem(`appt_notes_${apptIdStr}`);
+
+              const finalReason =
+                a.reason ||
+                a.chiefComplaint ||
+                a.chief_complaint ||
+                a.reasonForVisit ||
+                a.visitReason ||
+                a.appointmentReason ||
+                a.complaint ||
+                a.visitDetails?.reason ||
+                a.visitDetails?.chiefComplaint ||
+                a.details?.reason ||
+                a.description ||
+                storedReason ||
+                "General Consultation";
+
+              const finalNotes =
+                a.notes ||
+                a.symptoms ||
+                a.remarks ||
+                a.clinicalNotes ||
+                a.visitNotes ||
+                a.comments ||
+                a.visitDetails?.notes ||
+                a.visitDetails?.remarks ||
+                a.details?.notes ||
+                storedNotes ||
+                "No additional remarks";
+
               return {
-                id: String(a.appointmentId || a.id || `APT-${idx}`),
+                id: apptIdStr,
+                patientName: pName || patient?.name || activePatient?.name || "Patient",
                 date: datePart,
                 time: timePart,
                 doctorId: a.doctorId,
@@ -324,9 +431,9 @@ export function PatientAppointmentsScreen({
                   ? "Follow-up OPD"
                   : "In-Person OPD") as "Follow-up OPD" | "In-Person OPD",
                 status: formattedStatus,
-                roomLocation: a.roomLocation || "OPD Room",
-                reason: a.reason || "Consultation",
-                notes: a.symptoms || a.notes || "",
+                roomLocation: a.roomLocation || a.opdRoom || a.roomNo || "OPD Room",
+                reason: finalReason,
+                notes: finalNotes,
                 consultationStatus: rawStatus,
                 prescriptionStatus: a.prescriptionStatus || "Pending",
                 billingStatus: a.billingStatus || a.paymentStatus || "Pending",
@@ -342,7 +449,7 @@ export function PatientAppointmentsScreen({
       .catch(() => {
         dispatch({ type: "CLEAR_APPOINTMENTS" });
       });
-  }, []);
+  }, [activePatient]);
 
   useEffect(() => {
     loadAppointments(activePatient);
@@ -399,10 +506,32 @@ export function PatientAppointmentsScreen({
           (activePatient?.id ? String(activePatient.id) : undefined)
         }
         onBack={() => dispatch({ type: "SET_VIEW_MODE", viewMode: "list" })}
-        onBookSuccess={() => {
-          triggerToast("Appointment booked successfully!");
+        onBookSuccess={(createdAppt?: AppointmentRecord, openDetailsDrawer?: boolean) => {
           dispatch({ type: "SET_VIEW_MODE", viewMode: "list" });
           loadAppointments(activePatient);
+          triggerToast("Appointment booked successfully!");
+
+          if (openDetailsDrawer && createdAppt) {
+            const formatted: PatientAppointment = {
+              id: String(createdAppt.id || createdAppt.appointmentNumber || "APT-CONFIRMED"),
+              patientName: createdAppt.patientName || activePatient?.name || "Patient",
+              date: createdAppt.appointmentDate || createdAppt.date || "2026-08-25",
+              time: createdAppt.startTime || createdAppt.time || "10:30 AM",
+              doctor: createdAppt.doctorName || (typeof createdAppt.doctor === "string" ? createdAppt.doctor : (createdAppt.doctor as { fullName?: string; name?: string } | undefined)?.fullName || (createdAppt.doctor as { name?: string } | undefined)?.name || "Doctor"),
+              specialty: createdAppt.specialty || createdAppt.departmentName || "OPD",
+              department: createdAppt.departmentName || (typeof createdAppt.department === "string" ? createdAppt.department : (createdAppt.department as { departmentName?: string; name?: string } | undefined)?.departmentName || (createdAppt.department as { name?: string } | undefined)?.name || "OPD"),
+              visitType: (createdAppt.visitType === "Follow-up OPD" ? "Follow-up OPD" : "In-Person OPD"),
+              status: "Scheduled",
+              roomLocation: "Wing A, OPD Room 102",
+              reason: createdAppt.reason || "General Consultation",
+              notes: createdAppt.symptoms || createdAppt.notes || "No additional remarks",
+              consultationStatus: "Scheduled",
+              prescriptionStatus: "Pending",
+              billingStatus: "Pending",
+              billingAmount: "$65.00",
+            };
+            setSelectedDetails(formatted);
+          }
         }}
       />
     );
@@ -411,9 +540,15 @@ export function PatientAppointmentsScreen({
   // Summary counts
   const totalCount = listState.appointments.length;
   const upcomingAppointments = listState.appointments.filter((a) =>
-    ["Confirmed", "Scheduled", "In Progress", "Checked-In", "Pending"].includes(
-      a.status,
-    ),
+    [
+      "Confirmed",
+      "Scheduled",
+      "In Progress",
+      "Checked-In",
+      "Pending",
+      "Waiting for Vitals",
+      "Waiting for Doctor",
+    ].includes(a.status),
   );
   const upcomingCount = upcomingAppointments.length;
   const completedCount = listState.appointments.filter(
@@ -431,9 +566,15 @@ export function PatientAppointmentsScreen({
     // Tab Filter
     if (filterState.activeTab === "upcoming") {
       if (
-        !["Confirmed", "Scheduled", "In Progress", "Checked-In", "Pending"].includes(
-          appt.status,
-        )
+        ![
+          "Confirmed",
+          "Scheduled",
+          "In Progress",
+          "Checked-In",
+          "Pending",
+          "Waiting for Vitals",
+          "Waiting for Doctor",
+        ].includes(appt.status)
       )
         return false;
     }
@@ -445,6 +586,7 @@ export function PatientAppointmentsScreen({
       const q = filterState.searchQuery.toLowerCase();
       const match =
         appt.id.toLowerCase().includes(q) ||
+        (appt.patientName && appt.patientName.toLowerCase().includes(q)) ||
         appt.doctor.toLowerCase().includes(q) ||
         appt.department.toLowerCase().includes(q) ||
         appt.reason.toLowerCase().includes(q);
@@ -457,6 +599,27 @@ export function PatientAppointmentsScreen({
     if (filterState.statusFilter !== "All" && appt.status !== filterState.statusFilter) return false;
     if (filterState.visitTypeFilter !== "All" && appt.visitType !== filterState.visitTypeFilter)
       return false;
+
+    // Date Range Filter
+    if (filterState.dateRangeFilter !== "All") {
+      const apptDate = new Date(appt.date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (filterState.dateRangeFilter === "Today") {
+        const dateStr = today.toISOString().split("T")[0];
+        if (appt.date !== dateStr) return false;
+      } else if (filterState.dateRangeFilter === "This Week") {
+        const nextWeek = new Date(today);
+        nextWeek.setDate(today.getDate() + 7);
+        if (apptDate < today || apptDate > nextWeek) return false;
+      } else if (filterState.dateRangeFilter === "This Month") {
+        const sameMonth =
+          apptDate.getFullYear() === today.getFullYear() &&
+          apptDate.getMonth() === today.getMonth();
+        if (!sameMonth) return false;
+      }
+    }
 
     return true;
   });
@@ -565,6 +728,17 @@ export function PatientAppointmentsScreen({
       {/* ── 1. HEADER & BREADCRUMB ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
+          <div className="flex items-center gap-1.5 text-[11px] text-[#64748B] mb-1.5">
+            <span>Patient Portal</span>
+            <ChevronRight size={12} className="text-slate-400" />
+            {activePatient?.name && (
+              <>
+                <span className="text-slate-500 font-medium">{activePatient.name}</span>
+                <ChevronRight size={12} className="text-slate-400" />
+              </>
+            )}
+            <span className="font-semibold text-[#0D47A1]">Appointments</span>
+          </div>
           <h1
             className="text-xl font-bold text-[#111827]"
             style={{ fontFamily: PP }}
@@ -577,11 +751,6 @@ export function PatientAppointmentsScreen({
           >
             Manage your upcoming and previous appointments.
           </p>
-          <div className="flex items-center gap-1.5 text-[11px] text-[#64748B] mt-1.5">
-            <span>Patient Portal</span>
-            <ChevronRight size={12} className="text-slate-400" />
-            <span className="font-medium text-[#111827]">Appointments</span>
-          </div>
         </div>
 
         <div className="flex items-center gap-2.5">
@@ -897,6 +1066,7 @@ export function PatientAppointmentsScreen({
                         <th className="px-4 py-3.5 font-bold">
                           Appointment ID
                         </th>
+                        <th className="px-4 py-3.5 font-bold">Patient Name</th>
                         <th className="px-4 py-3.5 font-bold">Doctor</th>
                         <th className="px-4 py-3.5 font-bold">Department</th>
                         <th className="px-4 py-3.5 font-bold">Date</th>
@@ -916,6 +1086,8 @@ export function PatientAppointmentsScreen({
                           "In Progress",
                           "Checked-In",
                           "Pending",
+                          "Waiting for Vitals",
+                          "Waiting for Doctor",
                         ].includes(appt.status);
                         return (
                           <tr
@@ -925,6 +1097,11 @@ export function PatientAppointmentsScreen({
                             {/* Appointment ID */}
                             <td className="px-4 py-4 font-mono font-bold text-[#0D47A1]">
                               {appt.id}
+                            </td>
+
+                            {/* Patient Name */}
+                            <td className="px-4 py-4 font-bold text-[#111827]">
+                              {appt.patientName || activePatient?.name || "Patient"}
                             </td>
 
                             {/* Doctor */}
@@ -962,7 +1139,7 @@ export function PatientAppointmentsScreen({
 
                             {/* Appointment Time */}
                             <td className="px-4 py-4 text-[#0D47A1] font-semibold">
-                              {appt.time}
+                              {formatDisplayTime(appt.time)}
                             </td>
 
                             {/* Visit Type */}
@@ -1279,125 +1456,6 @@ export function PatientAppointmentsScreen({
               </div>
             )}
           </div>
-          {/* Card 2: Appointment Statistics */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2"
-              style={{ fontFamily: PP }}
-            >
-              <TrendingUp size={15} className="text-[#009688]" /> Appointment
-              Overview
-            </h3>
-
-            <div className="space-y-3">
-              {/* Upcoming Progress Bar */}
-              <div>
-                <div className="flex justify-between text-xs mb-1 font-medium">
-                  <span className="text-[#64748B]">Upcoming & Confirmed</span>
-                  <span className="font-bold text-[#0D47A1]">
-                    {upcomingCount} (
-                    {totalCount > 0
-                      ? Math.round((upcomingCount / totalCount) * 100)
-                      : 0}
-                    %)
-                  </span>
-                </div>
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div
-                    className="bg-[#0D47A1] h-full rounded-full"
-                    style={{
-                      width: `${totalCount > 0 ? (upcomingCount / totalCount) * 100 : 0}%`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Completed Progress Bar */}
-              <div>
-                <div className="flex justify-between text-xs mb-1 font-medium">
-                  <span className="text-[#64748B]">
-                    Completed Consultations
-                  </span>
-                  <span className="font-bold text-[#009688]">
-                    {completedCount} (
-                    {totalCount > 0
-                      ? Math.round((completedCount / totalCount) * 100)
-                      : 0}
-                    %)
-                  </span>
-                </div>
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div
-                    className="bg-[#009688] h-full rounded-full"
-                    style={{
-                      width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Cancelled Progress Bar */}
-              <div>
-                <div className="flex justify-between text-xs mb-1 font-medium">
-                  <span className="text-[#64748B]">Cancelled Requests</span>
-                  <span className="font-bold text-[#EF4444]">
-                    {cancelledCount} (
-                    {totalCount > 0
-                      ? Math.round((cancelledCount / totalCount) * 100)
-                      : 0}
-                    %)
-                  </span>
-                </div>
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div
-                    className="bg-[#EF4444] h-full rounded-full"
-                    style={{
-                      width: `${totalCount > 0 ? (cancelledCount / totalCount) * 100 : 0}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: Quick Actions */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-            <h3
-              className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2"
-              style={{ fontFamily: PP }}
-            >
-              <Activity size={15} className="text-[#F59E0B]" /> Quick Actions
-            </h3>
-
-            <div className="space-y-2">
-              <button
-                onClick={() =>
-                  dispatch({ type: "SET_VIEW_MODE", viewMode: "book" })
-                }
-                className="w-full p-3 rounded-xl bg-blue-50 border border-blue-100 text-[#0D47A1] text-xs font-bold hover:bg-blue-100 transition-colors flex items-center justify-between"
-                style={{ fontFamily: PP }}
-              >
-                <span className="flex items-center gap-2">
-                  <Plus size={16} /> Book New Appointment
-                </span>
-                <ChevronRight size={15} />
-              </button>
-
-              <button
-                onClick={() => {
-                  if (nextAppointment) setSelectedDetails(nextAppointment);
-                  else triggerToast("No upcoming appointment to view details.");
-                }}
-                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-100 transition-colors flex items-center justify-between"
-              >
-                <span className="flex items-center gap-2">
-                  <Eye size={16} /> View Next Appointment Details
-                </span>
-                <ChevronRight size={15} />
-              </button>
-            </div>
-          </div>
-
         </div>
       </div>
 
@@ -1715,8 +1773,16 @@ export function PatientAppointmentsScreen({
                 {/* Doctor & Location Info */}
                 <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
                   <div className="flex items-center gap-3 pb-3 border-b border-gray-50">
-                    <div className="w-11 h-11 rounded-xl bg-blue-50 text-[#0D47A1] font-bold flex items-center justify-center text-sm shrink-0">
-                      AM
+                    <div className="w-11 h-11 rounded-xl bg-blue-50 text-[#0D47A1] font-bold flex items-center justify-center text-sm shrink-0 border border-blue-100">
+                      {booking.selectedDetailsAppt.doctor
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .replace("D", "")
+                        .replace("r", "")
+                        .replace(".", "")
+                        .slice(0, 2)
+                        .toUpperCase() || "DR"}
                     </div>
                     <div>
                       <h3
@@ -1735,6 +1801,14 @@ export function PatientAppointmentsScreen({
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
                       <span className="text-[#64748B] block text-[11px]">
+                        Patient Name
+                      </span>
+                      <span className="font-bold text-[#111827]">
+                        {booking.selectedDetailsAppt.patientName || activePatient?.name || "Patient"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[#64748B] block text-[11px]">
                         Appointment Date
                       </span>
                       <span className="font-semibold text-[#111827]">
@@ -1746,7 +1820,7 @@ export function PatientAppointmentsScreen({
                         Appointment Time
                       </span>
                       <span className="font-semibold text-[#0D47A1]">
-                        {booking.selectedDetailsAppt.time}
+                        {formatDisplayTime(booking.selectedDetailsAppt.time)}
                       </span>
                     </div>
                     <div>
@@ -1790,7 +1864,7 @@ export function PatientAppointmentsScreen({
                         Consultation Status
                       </span>
                       <span className="font-bold text-[#0D47A1]">
-                        {booking.selectedDetailsAppt.consultationStatus}
+                        {formatStatusPretty(booking.selectedDetailsAppt.consultationStatus)}
                       </span>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-50 border border-gray-100">
@@ -1812,28 +1886,28 @@ export function PatientAppointmentsScreen({
                   </div>
                 </div>
 
-                {/* Visit Reason & Clinical Notes */}
+                {/* Visit Details Section */}
                 <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
                   <div
                     className="text-xs font-bold text-[#0D47A1] uppercase tracking-wider"
                     style={{ fontFamily: PP }}
                   >
-                    Reason & Notes
+                    Visit Details
                   </div>
                   <div>
                     <span className="text-[#64748B] text-[11px] block font-medium">
-                      Reason for Visit
+                      Chief Complaint / Reason for Visit
                     </span>
                     <p className="text-xs text-[#111827] mt-0.5 font-medium">
-                      {booking.selectedDetailsAppt.reason}
+                      {booking.selectedDetailsAppt.reason || "General Consultation"}
                     </p>
                   </div>
                   <div className="pt-2 border-t border-gray-50">
                     <span className="text-[#64748B] text-[11px] block font-medium">
-                      Doctor / Staff Notes
+                      Remarks & Symptoms / Notes
                     </span>
                     <p className="text-xs text-slate-600 mt-0.5">
-                      {booking.selectedDetailsAppt.notes}
+                      {booking.selectedDetailsAppt.notes || "No additional remarks"}
                     </p>
                   </div>
                 </div>
@@ -1842,11 +1916,14 @@ export function PatientAppointmentsScreen({
               {/* Drawer Footer Actions */}
               <div className="p-4 bg-white border-t border-[#E5E7EB] flex items-center gap-2">
                 <button
-                  onClick={() =>
-                    triggerToast(
-                      `Downloading slip for ${booking.selectedDetailsAppt!.id}...`,
-                    )
-                  }
+                  onClick={() => {
+                    if (booking.selectedDetailsAppt) {
+                      downloadAppointmentSlipPdf(booking.selectedDetailsAppt);
+                      triggerToast(
+                        `Downloading slip for ${booking.selectedDetailsAppt.id}...`,
+                      );
+                    }
+                  }}
                   className="flex-1 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center justify-center gap-2 shadow-sm"
                   style={{ fontFamily: PP }}
                 >
@@ -1916,8 +1993,12 @@ export function PatientAppointmentsScreen({
             triggerToast(
               `Appointment ${id} rescheduled to ${newDate} at ${newTime}!`,
             );
-          } catch {
-            triggerToast(`Failed to reschedule appointment ${id}.`);
+          } catch (err: unknown) {
+            const errorMsg =
+              (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+              (err instanceof Error ? err.message : "Requested reschedule slot is unavailable.");
+            triggerToast(`Error: ${errorMsg}`);
+            throw new Error(errorMsg, { cause: err });
           }
         }}
         onViewDetails={(appt) => {

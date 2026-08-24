@@ -68,8 +68,11 @@ export interface AuthState {
 // 1. Patient Registration
 export interface PatientRegistrationData {
   fullName: string;
-  email: string;
+  email?: string;
   mobile: string;
+  dateOfBirth?: string;
+  gender?: string;
+  photoUrl?: string;
   password: string;
   confirmPassword: string;
 }

@@ -340,7 +340,7 @@ export function AppointmentManagementCenterScreen({
   };
 
   const handleBookSuccess = async (newApt: AppointmentRecord) => {
-    setAppointments((prev) => [newApt, ...prev]);
+    await refetch();
     if (newApt.isWalkIn) {
       triggerToast(`Walk-in patient registered & checked in successfully.`);
     } else {

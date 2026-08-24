@@ -1191,6 +1191,19 @@ export function RecordPatientVitalsScreen({
               item.doctor?.departmentName ||
               item.doctor?.department ||
               "Cardiology",
+            specialty:
+              item.specialty ||
+              item.doctor?.specialty ||
+              (typeof item.department === "object"
+                ? item.department?.departmentName ||
+                  item.department?.name ||
+                  item.department?.departmentCode
+                : undefined) ||
+              (typeof item.department === "string"
+                ? item.department
+                : undefined) ||
+              item.doctor?.department ||
+              "General Medicine",
 
             appointmentDate: new Date().toISOString().split("T")[0],
             appointmentTime: item.checkInTime || "Now",

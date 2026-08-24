@@ -21,6 +21,11 @@ export const authService = {
     return await authApi.registerPatient(data);
   },
 
+  // Upload Patient Photo (POST /api/v1/upload)
+  async uploadPhoto(file: File) {
+    return await authApi.uploadPhoto(file);
+  },
+
   // Link Existing Patient (Endpoint Stub)
   async linkPatient(data: PatientLinkData) {
     return await authApi.linkPatient(data);

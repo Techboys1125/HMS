@@ -1,6 +1,8 @@
 import { getToken, setToken, removeToken } from "./cookie-token-storage";
 
-export const API_BASE_URL = "https://safe-hands-hms-backend.onrender.com";
+export const API_BASE_URL =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE_URL) ||
+  "http://192.168.1.44:8888";
 
 export interface ApiResponseData<T = unknown> {
   data: T;
@@ -117,45 +119,117 @@ async function customFetch<T = unknown>(
       isRefreshing = true;
       try {
         const refreshToken = getToken("refreshToken");
+
         if (!refreshToken) {
-          throw new Error("No refresh token available");
-        }
-
-        const refreshRes = await fetch(`${API_BASE_URL}/api/v1/auth/refresh`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refreshToken }),
-        });
-
-        if (!refreshRes.ok) {
           throw new ApiError(
-            `Refresh token request failed: ${refreshRes.status} ${refreshRes.statusText}`,
-            refreshRes.status,
+            "Your session has expired. Please log in again.",
+            401,
           );
         }
 
-        const refreshData = await refreshRes.json();
-        const newAccessToken =
-          refreshData?.data?.accessToken || refreshData?.accessToken;
-
-        if (newAccessToken) {
-          setToken("accessToken", newAccessToken);
-          processQueue(null, newAccessToken);
-          return customFetch<T>(url, {
-            ...options,
+        const refreshResponse = await fetch(
+          `${API_BASE_URL}/api/v1/auth/refresh`,
+          {
+            method: "POST",
             headers: {
-              ...headers,
-              Authorization: `Bearer ${newAccessToken}`,
+              "Content-Type": "application/json",
+              Accept: "application/json",
             },
-          });
+            body: JSON.stringify({ refreshToken }),
+          },
+        );
+
+        let refreshData: Record<string, unknown> | string | undefined;
+        const refreshContentType =
+          refreshResponse.headers.get("content-type");
+
+        if (
+          refreshContentType &&
+          refreshContentType.includes("application/json")
+        ) {
+          refreshData = await refreshResponse.json();
         } else {
-          throw new Error("Failed to retrieve new access token");
+          refreshData = await refreshResponse.text();
         }
+
+        if (!refreshResponse.ok) {
+          const refreshErrorMsg =
+            (typeof refreshData === "object" &&
+              refreshData !== null &&
+              ("message" in refreshData
+                ? String(refreshData.message)
+                : (refreshData as { data?: { message?: string } })?.data?.message)) ||
+            `Refresh token request failed: ${refreshResponse.status}`;
+
+          throw new ApiError(
+            refreshErrorMsg,
+            refreshResponse.status,
+            refreshData,
+          );
+        }
+
+        // Backend returns: { data: { accessToken: "...", refreshToken: "..." } } or { accessToken: "...", refreshToken: "..." }
+        const tokenData =
+          typeof refreshData === "object" && refreshData !== null
+            ? ((refreshData as { data?: Record<string, string> }).data ??
+              (refreshData as Record<string, string>))
+            : undefined;
+
+        const newAccessToken = tokenData?.accessToken;
+        const newRefreshToken = tokenData?.refreshToken;
+
+        if (!newAccessToken || !newRefreshToken) {
+          throw new ApiError(
+            "Invalid refresh response: accessToken or refreshToken is missing.",
+            401,
+            refreshData,
+          );
+        }
+
+        // IMPORTANT: Backend uses refresh-token rotation (RTR).
+        // Save BOTH newly issued tokens.
+        setToken("accessToken", newAccessToken);
+        setToken("refreshToken", newRefreshToken);
+
+        processQueue(null, newAccessToken);
+
+        return customFetch<T>(url, {
+          ...options,
+          headers: {
+            ...headers,
+            Authorization: `Bearer ${newAccessToken}`,
+          },
+        });
       } catch (refreshErr) {
         processQueue(refreshErr, null);
+
         removeToken("accessToken");
         removeToken("refreshToken");
-        console.error("[Auth] Session expired. Please log in again.");
+        removeToken("force_change_password");
+
+        try {
+          localStorage.removeItem("hms-auth-storage:v1");
+          localStorage.removeItem("hms-user:v1");
+        } catch {
+          // ignore
+        }
+
+        console.error(
+          "[Auth] Refresh token failed. Session expired.",
+          refreshErr,
+        );
+
+        if (
+          typeof window !== "undefined" &&
+          window.location.pathname !== "/login"
+        ) {
+          window.location.replace("/login");
+        }
+
+        if (refreshErr instanceof ApiError) {
+          throw refreshErr;
+        }
+
         throw new ApiError(
           "Session expired. Please log in again.",
           401,

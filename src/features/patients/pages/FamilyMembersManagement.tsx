@@ -1,27 +1,28 @@
-import { useReducer } from "react";
+import { useReducer, useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import {
   Users,
   UserPlus,
   Search,
   Filter,
-  ShieldCheck,
   Clock,
   Calendar,
   CreditCard,
   Pill,
   ChevronRight,
   Eye,
-  Edit3,
   UserX,
   AlertCircle,
   X,
   CheckCircle2,
-  Info,
   Stethoscope,
   ExternalLink,
   User,
+  Loader2,
 } from "lucide-react";
 import type { FamilyMember } from "../types/family.types";
+import { apiClient } from "../../../lib/axios";
+import { ROUTES } from "../../../app/routes/routes";
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
 
@@ -37,11 +38,49 @@ export type LinkActivity = {
 
 const MOCK_ACTIVITIES: LinkActivity[] = [];
 
+function calculateAge(dob?: string, ageVal?: number): number {
+  if (typeof ageVal === "number" && ageVal > 0) return ageVal;
+  if (!dob) return 0;
+  try {
+    const birthDate = new Date(dob);
+    if (isNaN(birthDate.getTime())) return 0;
+    const today = new Date();
+    let computedAge = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      computedAge--;
+    }
+    return Math.max(0, computedAge);
+  } catch {
+    return 0;
+  }
+}
+
+function normalizeRelationship(rel?: string): FamilyMember["relationship"] {
+  if (!rel) return "Other";
+  const lower = rel.toLowerCase();
+  if (lower === "self") return "Self";
+  if (lower === "spouse") return "Spouse";
+  if (lower === "mother") return "Mother";
+  if (lower === "father") return "Father";
+  if (lower === "son") return "Son";
+  if (lower === "daughter") return "Daughter";
+  if (lower === "brother") return "Brother";
+  if (lower === "sister") return "Sister";
+  if (lower === "guardian") return "Guardian";
+  if (lower === "grandparent") return "Grandparent";
+  return "Other";
+}
+
 type FilterState = {
   searchTerm: string;
   relFilter: string;
   statusFilter: string;
 };
+
 type FilterAction = {
   type: "SET_FIELD";
   field: keyof FilterState;
@@ -73,7 +112,11 @@ type DrawerAction =
   | { type: "CLOSE_VIEW_DRAWER" }
   | { type: "OPEN_EDIT_DRAWER"; member: FamilyMember }
   | { type: "CLOSE_EDIT_DRAWER" }
-  | { type: "SET_EDIT_FIELD"; field: "editFormRel"; value: FamilyMember["relationship"] }
+  | {
+      type: "SET_EDIT_FIELD";
+      field: "editFormRel";
+      value: FamilyMember["relationship"];
+    }
   | { type: "SET_EDIT_FIELD"; field: "editDisplayName"; value: string }
   | { type: "SET_EDIT_FIELD"; field: "isPrimary"; value: boolean }
   | { type: "SET_EDIT_FIELD"; field: "isEmergency"; value: boolean }
@@ -83,22 +126,27 @@ type DrawerAction =
   | { type: "SHOW_TOAST"; message: string }
   | { type: "CLEAR_TOAST" };
 
-const drawerReducer = (state: DrawerState, action: DrawerAction): DrawerState => {
+const drawerReducer = (
+  state: DrawerState,
+  action: DrawerAction,
+): DrawerState => {
   switch (action.type) {
     case "OPEN_VIEW_DRAWER":
       return { ...state, viewDrawerMember: action.member };
     case "CLOSE_VIEW_DRAWER":
       return { ...state, viewDrawerMember: null, removeFromDrawer: false };
-    case "OPEN_EDIT_DRAWER":
+    case "OPEN_EDIT_DRAWER": {
+      const norm = normalizeRelationship(action.member.relationship);
       return {
         ...state,
         editRelMember: action.member,
-        editFormRel: action.member.relationship,
-        editDisplayName: "",
-        isPrimary: action.member.relationship === "Self",
+        editFormRel: norm,
+        editDisplayName: action.member.patientName || "",
+        isPrimary: norm === "Self",
         isEmergency: false,
         relFormError: null,
       };
+    }
     case "CLOSE_EDIT_DRAWER":
       return {
         ...state,
@@ -130,7 +178,6 @@ const drawerReducer = (state: DrawerState, action: DrawerAction): DrawerState =>
   }
 };
 
-
 interface FamilyMembersManagementProps {
   familyMembers?: FamilyMember[];
   activeFamilyMember?: FamilyMember;
@@ -140,10 +187,30 @@ interface FamilyMembersManagementProps {
   onUpdateRelationship?: (
     id: string,
     relationship: FamilyMember["relationship"],
+    updatedMemberData?: Record<string, unknown>,
   ) => void;
+  onNavigateTab?: (tabId: string) => void;
 }
 
-
+const formatMemberDisplayName = (
+  member?: FamilyMember | null,
+  primaryMember?: FamilyMember | null,
+): string => {
+  if (!member) return "Patient";
+  const isSelf = String(member.relationship || "").toUpperCase() === "SELF";
+  const name = member.patientName || member.name || "Patient";
+  if (isSelf) return name;
+  const primaryName = primaryMember?.patientName || primaryMember?.name || "";
+  const normRel = normalizeRelationship(member.relationship);
+  if (name.includes(`(${normRel})`)) return name;
+  if (
+    primaryName &&
+    name.toLowerCase().trim() === primaryName.toLowerCase().trim()
+  ) {
+    return `${name} (${normRel})`;
+  }
+  return name;
+};
 
 export function FamilyMembersManagement({
   familyMembers = [],
@@ -151,8 +218,9 @@ export function FamilyMembersManagement({
   onSwitchProfile,
   onAddFamilyMember,
   onRemoveFamilyMember,
-  onUpdateRelationship,
+  onNavigateTab,
 }: FamilyMembersManagementProps = {}) {
+  const navigate = useNavigate();
   const [filters, dispatch] = useReducer(filterReducer, {
     searchTerm: "",
     relFilter: "All",
@@ -160,6 +228,47 @@ export function FamilyMembersManagement({
   });
   const setFilter = (field: keyof FilterState, value: string) =>
     dispatch({ type: "SET_FIELD", field, value });
+
+  const handleNavigateProfile = (member: FamilyMember) => {
+    onSwitchProfile?.(member);
+    drawerDispatch({ type: "CLOSE_VIEW_DRAWER" });
+    if (onNavigateTab) {
+      onNavigateTab("profile");
+    } else {
+      navigate(`/patients/profile/${member.mrn}`);
+    }
+  };
+
+  const handleNavigateAppointments = (member: FamilyMember) => {
+    onSwitchProfile?.(member);
+    drawerDispatch({ type: "CLOSE_VIEW_DRAWER" });
+    if (onNavigateTab) {
+      onNavigateTab("appointments");
+    } else {
+      navigate(ROUTES.PATIENT_APPOINTMENTS);
+    }
+  };
+
+  const handleNavigatePrescriptions = (member: FamilyMember) => {
+    onSwitchProfile?.(member);
+    drawerDispatch({ type: "CLOSE_VIEW_DRAWER" });
+    if (onNavigateTab) {
+      onNavigateTab("prescriptions");
+    } else {
+      navigate(ROUTES.PATIENT_PRESCRIPTIONS);
+    }
+  };
+
+  const handleNavigateBills = (member: FamilyMember) => {
+    onSwitchProfile?.(member);
+    drawerDispatch({ type: "CLOSE_VIEW_DRAWER" });
+    if (onNavigateTab) {
+      onNavigateTab("bills");
+    } else {
+      navigate(ROUTES.PATIENT_BILLING);
+    }
+  };
+
 
   // Drawer & Dialog states
   const [drawerState, drawerDispatch] = useReducer(drawerReducer, {
@@ -176,16 +285,109 @@ export function FamilyMembersManagement({
   });
   const {
     viewDrawerMember,
-    editRelMember,
-    editFormRel,
-    editDisplayName,
-    isPrimary,
-    isEmergency,
-    relFormError,
     toastMessage,
     removeDialogMember,
     removeFromDrawer,
   } = drawerState;
+
+  // Dynamic state for View Drawer Modal APIs
+  const [modalData, setModalData] = useState<{
+    basicInfo?: Record<string, unknown>;
+    dashboard?: Record<string, unknown>;
+    appointments?: unknown[];
+    prescriptions?: Record<string, unknown>;
+    bills?: unknown[];
+    consultations?: Record<string, unknown>;
+    loading: boolean;
+  }>({ loading: false });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadMemberModalData() {
+      if (!viewDrawerMember?.mrn) {
+        setModalData({ loading: false });
+        return;
+      }
+      setModalData((prev) => ({ ...prev, loading: true }));
+      const mrn = viewDrawerMember.mrn;
+
+      Promise.allSettled([
+        apiClient.get(`/api/v1/patients/${encodeURIComponent(mrn)}`),
+        apiClient.get(
+          `/api/v1/patients/me/dashboard?mrn=${encodeURIComponent(mrn)}`,
+        ),
+        apiClient.get(
+          `/api/v1/patients/me/appointments?mrn=${encodeURIComponent(mrn)}`,
+        ),
+        apiClient.get(
+          `/api/v1/patients/me/prescriptions/summary?mrn=${encodeURIComponent(mrn)}`,
+        ),
+        apiClient.get(`/api/v1/patients/me/bills?mrn=${encodeURIComponent(mrn)}`),
+        apiClient.get(
+          `/api/v1/patients/me/consultations/history?mrn=${encodeURIComponent(mrn)}`,
+        ),
+      ]).then(([basicRes, dashRes, aptsRes, rxRes, billsRes, historyRes]) => {
+        if (cancelled) return;
+        const basic =
+          basicRes.status === "fulfilled"
+            ? (basicRes.value.data as { data?: unknown })?.data
+            : null;
+        const dash =
+          dashRes.status === "fulfilled"
+            ? (dashRes.value.data as { data?: unknown })?.data
+            : null;
+        const apts =
+          aptsRes.status === "fulfilled"
+            ? (aptsRes.value.data as { data?: unknown })?.data
+            : null;
+        const rx =
+          rxRes.status === "fulfilled"
+            ? (rxRes.value.data as { data?: unknown })?.data
+            : null;
+        const bills =
+          billsRes.status === "fulfilled"
+            ? (billsRes.value.data as { data?: unknown })?.data
+            : null;
+        const history =
+          historyRes.status === "fulfilled"
+            ? (historyRes.value.data as { data?: unknown })?.data
+            : null;
+
+        setModalData({
+          basicInfo:
+            basic && typeof basic === "object"
+              ? (basic as Record<string, unknown>)
+              : undefined,
+          dashboard:
+            dash && typeof dash === "object"
+              ? (dash as Record<string, unknown>)
+              : undefined,
+          appointments: Array.isArray((apts as { items?: unknown[] })?.items)
+            ? (apts as { items: unknown[] }).items
+            : Array.isArray(apts)
+              ? apts
+              : undefined,
+          prescriptions:
+            rx && typeof rx === "object"
+              ? (rx as Record<string, unknown>)
+              : undefined,
+          bills: Array.isArray(bills) ? bills : undefined,
+          consultations:
+            history && typeof history === "object"
+              ? (history as Record<string, unknown>)
+              : undefined,
+          loading: false,
+        });
+      });
+    }
+
+    loadMemberModalData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [viewDrawerMember?.mrn]);
 
   // Top Summary Metrics
   const totalLinked = familyMembers.length;
@@ -201,11 +403,8 @@ export function FamilyMembersManagement({
     (acc, m) => acc + m.activePrescriptionsCount,
     0,
   );
-  const pendingVerif = familyMembers.filter(
-    (m) => m.verificationStatus === "Pending",
-  ).length;
 
-  // Filtered List
+  // Filtered List (Case-insensitive matching for relationship & status)
   const filteredMembers = familyMembers.filter((m) => {
     const matchesSearch =
       m.patientName.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
@@ -213,10 +412,11 @@ export function FamilyMembersManagement({
       m.relationship.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
       m.registeredMobile.includes(filters.searchTerm);
     const matchesRel =
-      filters.relFilter === "All" || m.relationship === filters.relFilter;
+      filters.relFilter === "All" ||
+      m.relationship.toLowerCase() === filters.relFilter.toLowerCase();
     const matchesStatus =
       filters.statusFilter === "All" ||
-      m.verificationStatus === filters.statusFilter;
+      m.verificationStatus.toLowerCase() === filters.statusFilter.toLowerCase();
     return matchesSearch && matchesRel && matchesStatus;
   });
 
@@ -230,9 +430,13 @@ export function FamilyMembersManagement({
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1"
             style={{ fontFamily: RB }}
           >
-            <span className="hover:text-[#0D47A1] cursor-pointer">
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.DASHBOARD)}
+              className="hover:text-[#0D47A1] transition-colors font-medium cursor-pointer"
+            >
               Patient Portal
-            </span>
+            </button>
             <ChevronRight size={12} />
             <span className="font-semibold text-[#111827]">Family Members</span>
           </div>
@@ -261,7 +465,7 @@ export function FamilyMembersManagement({
       </div>
 
       {/* ── TOP SUMMARY CARDS (KPIs) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1 */}
         <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
@@ -356,7 +560,7 @@ export function FamilyMembersManagement({
               className="text-xs font-semibold text-[#64748B]"
               style={{ fontFamily: PP }}
             >
-              Active Rx
+              Active Prescription
             </span>
             <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-[#66BB6A]">
               <Pill size={18} />
@@ -379,7 +583,7 @@ export function FamilyMembersManagement({
         </div>
 
         {/* Card 5 */}
-        <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm hover:shadow-md transition-shadow">
+      {/*   <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <span
               className="text-xs font-semibold text-[#64748B]"
@@ -405,7 +609,7 @@ export function FamilyMembersManagement({
               Profiles Awaiting Approval
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* ── SEARCH & FILTER BAR ── */}
@@ -534,6 +738,11 @@ export function FamilyMembersManagement({
               <tbody className="divide-y divide-[#E5E7EB]">
                 {filteredMembers.map((m) => {
                   const isCurrentActive = activeFamilyMember?.id === m.id;
+                  const computedMemberAge = m.dateOfBirth
+                    ? calculateAge(m.dateOfBirth, m.age)
+                    : m.age > 0
+                      ? m.age
+                      : 0;
                   return (
                     <tr
                       key={m.id}
@@ -564,7 +773,7 @@ export function FamilyMembersManagement({
                               className="text-sm font-bold text-[#111827] flex items-center gap-1.5"
                               style={{ fontFamily: PP }}
                             >
-                              {m.patientName}
+                              {formatMemberDisplayName(m, activeFamilyMember || familyMembers[0])}
                               {isCurrentActive && (
                                 <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-blue-100 text-[#0D47A1] rounded-md">
                                   Active Profile
@@ -615,7 +824,10 @@ export function FamilyMembersManagement({
                         className="py-3.5 px-4 text-xs text-[#111827]"
                         style={{ fontFamily: RB }}
                       >
-                        {m.age} yrs · {m.gender}
+                        {computedMemberAge > 0
+                          ? `${computedMemberAge} yrs`
+                          : "0 yrs"}{" "}
+                        · {m.gender || "Other"}
                       </td>
 
                       {/* Registered Mobile */}
@@ -652,58 +864,38 @@ export function FamilyMembersManagement({
                         className="py-3.5 px-4 text-xs text-[#64748B]"
                         style={{ fontFamily: RB }}
                       >
-                        {m.lastAppointment}
+                        {m.lastAppointment || "No visits on record"}
                       </td>
 
                       {/* Row Actions */}
                       <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          {/* View Drawer */}
-                          <button
-                            onClick={() => drawerDispatch({ type: "OPEN_VIEW_DRAWER", member: m })}
-                            className="p-1.5 rounded-lg text-[#64748B] hover:text-[#0D47A1] hover:bg-slate-100 transition-colors"
-                            title="View Profile Details"
-                          >
-                            <Eye size={15} />
-                          </button>
-
-                          {/* Edit Relationship */}
-                          <button
-                            onClick={() => {
-                              drawerDispatch({ type: "OPEN_EDIT_DRAWER", member: m });
-                            }}
-                            className="p-1.5 rounded-lg text-[#64748B] hover:text-[#009688] hover:bg-slate-100 transition-colors"
-                            title="Edit Relationship"
-                          >
-                            <Edit3 size={15} />
-                          </button>
-
-                          {/* Active Profile Badge on current member */}
+                        <div className="flex items-center justify-end gap-1.5 shrink-0">
+                          {/* Active Profile Badge / Set Active Button (Fixed width 110px) */}
                           {isCurrentActive ? (
                             <span
-                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-[#0D47A1] rounded-lg text-xs font-bold border border-[#0D47A1]"
+                              className="w-[110px] h-7 inline-flex items-center justify-center gap-1 bg-blue-50 text-[#0D47A1] rounded-lg text-xs font-bold border border-[#0D47A1] shrink-0 text-center"
                               style={{ fontFamily: PP }}
                             >
                               <CheckCircle2
                                 size={13}
-                                className="text-[#0D47A1]"
+                                className="text-[#0D47A1] shrink-0"
                               />
                               Active Profile
                             </span>
+                          ) : onSwitchProfile ? (
+                            <button
+                              onClick={() => onSwitchProfile(m)}
+                              className="w-[110px] h-7 inline-flex items-center justify-center bg-white border border-[#0D47A1] text-[#0D47A1] hover:bg-blue-50 rounded-lg text-xs font-bold transition-colors cursor-pointer shrink-0 text-center"
+                              style={{ fontFamily: PP }}
+                            >
+                              Set Active
+                            </button>
                           ) : (
-                            onSwitchProfile && (
-                              <button
-                                onClick={() => onSwitchProfile(m)}
-                                className="px-2.5 py-1 bg-white border border-[#0D47A1] text-[#0D47A1] hover:bg-blue-50 rounded-lg text-xs font-bold transition-colors"
-                                style={{ fontFamily: PP }}
-                              >
-                                Set Active
-                              </button>
-                            )
+                            <div className="w-[110px] shrink-0" />
                           )}
 
                           {/* Remove Link */}
-                          {m.relationship !== "Self" && (
+                          {m.relationship !== "Self" ? (
                             <button
                               onClick={() =>
                                 drawerDispatch({
@@ -712,12 +904,28 @@ export function FamilyMembersManagement({
                                   fromDrawer: false,
                                 })
                               }
-                              className="p-1.5 rounded-lg text-[#64748B] hover:text-[#EF4444] hover:bg-red-50 transition-colors"
+                              className="w-7 h-7 inline-flex items-center justify-center rounded-lg text-[#64748B] hover:text-[#EF4444] hover:bg-red-50 transition-colors cursor-pointer shrink-0"
                               title="Remove Link"
                             >
                               <UserX size={15} />
                             </button>
+                          ) : (
+                            <div className="w-7 h-7 shrink-0" />
                           )}
+
+                          {/* View Details (Placed Last) */}
+                          <button
+                            onClick={() =>
+                              drawerDispatch({
+                                type: "OPEN_VIEW_DRAWER",
+                                member: m,
+                              })
+                            }
+                            className="w-7 h-7 inline-flex items-center justify-center rounded-lg text-[#64748B] hover:text-[#0D47A1] hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
+                            title="View Profile Details"
+                          >
+                            <Eye size={15} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -869,7 +1077,12 @@ export function FamilyMembersManagement({
                   <div className="flex justify-between">
                     <span className="text-[#64748B]">Age / Gender:</span>
                     <span className="font-semibold text-[#111827]">
-                      {viewDrawerMember.age} yrs · {viewDrawerMember.gender}
+                      {viewDrawerMember.age > 0
+                        ? `${viewDrawerMember.age} yrs`
+                        : viewDrawerMember.dateOfBirth
+                          ? `${calculateAge(viewDrawerMember.dateOfBirth, viewDrawerMember.age)} yrs`
+                          : "0 yrs"}{" "}
+                      · {viewDrawerMember.gender || "Other"}
                     </span>
                   </div>
                   {viewDrawerMember.bloodGroup && (
@@ -911,12 +1124,20 @@ export function FamilyMembersManagement({
 
               {/* Section: Clinical Summary (KPI Cards) */}
               <div>
-                <h4
-                  className="text-xs font-bold text-[#64748B] uppercase tracking-wider mb-3"
-                  style={{ fontFamily: PP }}
-                >
-                  Clinical Summary
-                </h4>
+                <div className="flex items-center justify-between mb-3">
+                  <h4
+                    className="text-xs font-bold text-[#64748B] uppercase tracking-wider"
+                    style={{ fontFamily: PP }}
+                  >
+                    Clinical Summary
+                  </h4>
+                  {modalData.loading && (
+                    <Loader2
+                      size={12}
+                      className="animate-spin text-[#0D47A1]"
+                    />
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 bg-teal-50/50 rounded-xl border border-teal-100">
                     <div className="flex items-center gap-2 mb-1">
@@ -932,7 +1153,9 @@ export function FamilyMembersManagement({
                       className="text-lg font-bold text-[#009688]"
                       style={{ fontFamily: PP }}
                     >
-                      {viewDrawerMember.upcomingAppointmentsCount}
+                      {modalData.appointments
+                        ? modalData.appointments.length
+                        : viewDrawerMember.upcomingAppointmentsCount}
                     </div>
                   </div>
                   <div className="p-3 bg-amber-50/50 rounded-xl border border-amber-100">
@@ -966,7 +1189,9 @@ export function FamilyMembersManagement({
                       className="text-sm font-bold text-[#0D47A1]"
                       style={{ fontFamily: PP }}
                     >
-                      {viewDrawerMember.lastConsultationDate || "—"}
+                      {viewDrawerMember.lastConsultationDate ||
+                        viewDrawerMember.lastAppointment ||
+                        "—"}
                     </div>
                   </div>
                   <div className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100">
@@ -998,7 +1223,10 @@ export function FamilyMembersManagement({
                   Recent Records
                 </h4>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow">
+                  <div
+                    className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow cursor-pointer"
+                    onClick={() => handleNavigateAppointments(viewDrawerMember)}
+                  >
                     <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-[#0D47A1] shrink-0">
                       <Calendar size={15} />
                     </div>
@@ -1010,12 +1238,16 @@ export function FamilyMembersManagement({
                         Last Visit
                       </div>
                       <div className="text-[#64748B] truncate">
-                        {viewDrawerMember.lastAppointment}
+                        {viewDrawerMember.lastAppointment ||
+                          "No visits on record"}
                       </div>
                     </div>
                     <ChevronRight size={14} className="text-slate-300" />
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow">
+                  <div
+                    className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow cursor-pointer"
+                    onClick={() => handleNavigateAppointments(viewDrawerMember)}
+                  >
                     <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-[#009688] shrink-0">
                       <Stethoscope size={15} />
                     </div>
@@ -1034,7 +1266,12 @@ export function FamilyMembersManagement({
                     </div>
                     <ChevronRight size={14} className="text-slate-300" />
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow">
+                  <div
+                    className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow cursor-pointer"
+                    onClick={() =>
+                      handleNavigatePrescriptions(viewDrawerMember)
+                    }
+                  >
                     <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-[#66BB6A] shrink-0">
                       <Pill size={15} />
                     </div>
@@ -1052,7 +1289,10 @@ export function FamilyMembersManagement({
                     </div>
                     <ChevronRight size={14} className="text-slate-300" />
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow">
+                  <div
+                    className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow cursor-pointer"
+                    onClick={() => handleNavigateBills(viewDrawerMember)}
+                  >
                     <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-[#F59E0B] shrink-0">
                       <CreditCard size={15} />
                     </div>
@@ -1084,6 +1324,7 @@ export function FamilyMembersManagement({
                 </h4>
                 <div className="grid grid-cols-2 gap-2">
                   <button
+                    onClick={() => handleNavigateProfile(viewDrawerMember)}
                     className="flex items-center gap-2 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#0D47A1] hover:bg-blue-50 hover:border-blue-200 transition-colors"
                     style={{ fontFamily: PP }}
                   >
@@ -1091,6 +1332,7 @@ export function FamilyMembersManagement({
                     Open Full Profile
                   </button>
                   <button
+                    onClick={() => handleNavigateAppointments(viewDrawerMember)}
                     className="flex items-center gap-2 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#009688] hover:bg-teal-50 hover:border-teal-200 transition-colors"
                     style={{ fontFamily: PP }}
                   >
@@ -1098,6 +1340,9 @@ export function FamilyMembersManagement({
                     View Appointments
                   </button>
                   <button
+                    onClick={() =>
+                      handleNavigatePrescriptions(viewDrawerMember)
+                    }
                     className="flex items-center gap-2 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#66BB6A] hover:bg-emerald-50 hover:border-emerald-200 transition-colors"
                     style={{ fontFamily: PP }}
                   >
@@ -1105,6 +1350,7 @@ export function FamilyMembersManagement({
                     View Prescriptions
                   </button>
                   <button
+                    onClick={() => handleNavigateBills(viewDrawerMember)}
                     className="flex items-center gap-2 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#F59E0B] hover:bg-amber-50 hover:border-amber-200 transition-colors"
                     style={{ fontFamily: PP }}
                   >
@@ -1127,9 +1373,7 @@ export function FamilyMembersManagement({
                 </button>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => {
-                      drawerDispatch({ type: "CLOSE_VIEW_DRAWER" });
-                    }}
+                    onClick={() => handleNavigateProfile(viewDrawerMember)}
                     className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0D47A1] text-white rounded-xl text-xs font-semibold hover:bg-[#0c3d8a] transition-colors"
                     style={{ fontFamily: PP }}
                   >
@@ -1141,7 +1385,11 @@ export function FamilyMembersManagement({
               {viewDrawerMember.relationship !== "Self" && (
                 <button
                   onClick={() => {
-                    drawerDispatch({ type: "OPEN_REMOVE_DIALOG", member: viewDrawerMember, fromDrawer: true });
+                    drawerDispatch({
+                      type: "OPEN_REMOVE_DIALOG",
+                      member: viewDrawerMember,
+                      fromDrawer: true,
+                    });
                   }}
                   className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border border-red-200 rounded-xl text-xs font-semibold text-[#EF4444] hover:bg-red-50 transition-colors"
                   style={{ fontFamily: PP }}
@@ -1155,271 +1403,7 @@ export function FamilyMembersManagement({
         </div>
       )}
 
-      {/* ── EDIT FAMILY RELATIONSHIP DRAWER ── */}
-      {editRelMember && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
-            onClick={() => drawerDispatch({ type: "CLOSE_EDIT_DRAWER" })}
-          />
 
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white border-l border-[#E5E7EB] shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
-              {/* Drawer Header */}
-              <div className="h-16 px-6 border-b border-[#E5E7EB] flex items-center justify-between bg-white shrink-0">
-                <div>
-                  <h3
-                    className="text-base font-bold text-[#111827]"
-                    style={{ fontFamily: PP }}
-                  >
-                    Edit Family Relationship
-                  </h3>
-                  <p
-                    className="text-xs text-[#64748B]"
-                    style={{ fontFamily: RB }}
-                  >
-                    Update relationship details for this linked family member.
-                  </p>
-                </div>
-                <button
-                  onClick={() => drawerDispatch({ type: "CLOSE_EDIT_DRAWER" })}
-                  className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#64748B] flex items-center justify-center transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              {/* Drawer Body */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                {/* PROFILE SUMMARY CARD (Read Only) */}
-                <div className="p-4 bg-slate-50 border border-[#E5E7EB] rounded-2xl space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-[#0D47A1] text-white flex items-center justify-center font-bold text-base shadow-sm">
-                      {editRelMember.patientName[0]}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4
-                          className="text-sm font-bold text-[#111827] truncate"
-                          style={{ fontFamily: PP }}
-                        >
-                          {editRelMember.patientName}
-                        </h4>
-                        <span className="px-2 py-0.5 bg-blue-100 text-[#0D47A1] text-[10px] font-bold rounded-full">
-                          {editRelMember.relationship}
-                        </span>
-                      </div>
-                      <div className="text-xs font-mono text-[#64748B]">
-                        {editRelMember.mrn}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-[#E5E7EB]">
-                    <div>
-                      <span className="text-[#64748B]">Age / Gender: </span>
-                      <span className="font-semibold text-[#111827]">
-                        {editRelMember.age} Yrs / {editRelMember.gender}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[#64748B]">Mobile: </span>
-                      <span className="font-semibold text-[#111827]">
-                        {editRelMember.registeredMobile}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[#64748B]">Status: </span>
-                      <span
-                        className={`font-semibold ${editRelMember.verificationStatus === "Verified" ? "text-emerald-600" : "text-amber-600"}`}
-                      >
-                        {editRelMember.verificationStatus}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[#64748B]">Blood Group: </span>
-                      <span className="font-semibold text-[#111827]">
-                        {editRelMember.bloodGroup || "O+"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* RELATIONSHIP INFORMATION */}
-                <div className="space-y-4">
-                  <h4
-                    className="text-xs font-bold text-[#64748B] uppercase tracking-wider"
-                    style={{ fontFamily: PP }}
-                  >
-                    Relationship Information
-                  </h4>
-
-                  {/* Relationship Dropdown */}
-                  <div>
-                    <label
-                      className="block text-xs font-semibold text-[#111827] mb-1.5"
-                      style={{ fontFamily: PP }}
-                    >
-                      Relationship <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={editFormRel}
-                      onChange={(e) => {
-                        drawerDispatch({ type: "SET_EDIT_FIELD", field: "editFormRel", value: e.target.value as FamilyMember["relationship"] });
-                        drawerDispatch({ type: "SET_REL_FORM_ERROR", error: null });
-                      }}
-                      className={`w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-medium text-[#111827] outline-none transition-colors ${
-                        relFormError
-                          ? "border-red-400 bg-red-50/20"
-                          : "border-[#E5E7EB] focus:border-[#0D47A1] focus:bg-white"
-                      }`}
-                      style={{ fontFamily: RB }}
-                    >
-                      <option value="Mother">Mother</option>
-                      <option value="Father">Father</option>
-                      <option value="Spouse">Spouse</option>
-                      <option value="Son">Son</option>
-                      <option value="Daughter">Daughter</option>
-                      <option value="Brother">Brother</option>
-                      <option value="Sister">Sister</option>
-                      <option value="Guardian">Guardian</option>
-                      <option value="Grandparent">Grandparent</option>
-                      <option value="Other">Other</option>
-                    </select>
-                    {relFormError && (
-                      <p className="text-[11px] text-red-500 mt-1 font-medium">
-                        {relFormError}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Display Name (Optional Nickname) */}
-                  <div>
-                    <label
-                      className="block text-xs font-semibold text-[#111827] mb-1.5"
-                      style={{ fontFamily: PP }}
-                    >
-                      Display Name (Optional Nickname)
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Mom, Dad, Grandpa"
-                      value={editDisplayName}
-                      onChange={(e) => drawerDispatch({ type: "SET_EDIT_FIELD", field: "editDisplayName", value: e.target.value })}
-                      className="w-full p-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-                      style={{ fontFamily: RB }}
-                    />
-                  </div>
-                </div>
-
-                {/* PRIMARY & EMERGENCY CONTACT TOGGLES */}
-                <div className="space-y-4 pt-2 border-t border-[#E5E7EB]">
-                  {/* Primary Toggle */}
-                  <div className="flex items-start justify-between gap-3 p-3.5 bg-slate-50 border border-[#E5E7EB] rounded-2xl">
-                    <div className="space-y-0.5">
-                      <div
-                        className="text-xs font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Set as Primary Linked Family Member
-                      </div>
-                      <div
-                        className="text-[11px] text-[#64748B]"
-                        style={{ fontFamily: RB }}
-                      >
-                        Primary profile appears first in the Active Patient
-                        Selector.
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => drawerDispatch({ type: "SET_EDIT_FIELD", field: "isPrimary", value: !isPrimary })}
-                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        isPrimary ? "bg-[#0D47A1]" : "bg-slate-300"
-                      }`}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                          isPrimary ? "translate-x-4" : "translate-x-0"
-                        }`}
-                      />
-                    </button>
-                  </div>
-
-                  {/* Emergency Toggle */}
-                  <div className="flex items-start justify-between gap-3 p-3.5 bg-slate-50 border border-[#E5E7EB] rounded-2xl">
-                    <div className="space-y-0.5">
-                      <div
-                        className="text-xs font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Mark as Emergency Contact
-                      </div>
-                      <div
-                        className="text-[11px] text-[#64748B]"
-                        style={{ fontFamily: RB }}
-                      >
-                        Used only for quick identification inside Patient
-                        Portal.
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => drawerDispatch({ type: "SET_EDIT_FIELD", field: "isEmergency", value: !isEmergency })}
-                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        isEmergency ? "bg-[#009688]" : "bg-slate-300"
-                      }`}
-                    >
-                      <span
-                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                          isEmergency ? "translate-x-4" : "translate-x-0"
-                        }`}
-                      />
-                    </button>
-                  </div>
-                </div>
-
-                {/* INFO BOX */}
-                <div className="p-3.5 bg-blue-50/80 border border-blue-200 rounded-2xl flex items-start gap-2.5 text-xs text-[#0D47A1]">
-                  <Info size={16} className="shrink-0 mt-0.5" />
-                  <span style={{ fontFamily: RB }}>
-                    Changing the relationship will not affect the patient's
-                    medical records.
-                  </span>
-                </div>
-              </div>
-
-              {/* Drawer Footer */}
-              <div className="p-4 border-t border-[#E5E7EB] bg-slate-50 flex items-center justify-end gap-3 shrink-0">
-                <button
-                  onClick={() => drawerDispatch({ type: "CLOSE_EDIT_DRAWER" })}
-                  className="px-4 py-2 bg-white border border-[#E5E7EB] rounded-xl text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-colors"
-                  style={{ fontFamily: PP }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    if (!editFormRel) {
-                      drawerDispatch({ type: "SET_REL_FORM_ERROR", error: "Relationship is required" });
-                      return;
-                    }
-                    onUpdateRelationship?.(editRelMember.id, editFormRel);
-                    drawerDispatch({ type: "SHOW_TOAST", message: "Relationship updated successfully." });
-                    drawerDispatch({ type: "CLOSE_EDIT_DRAWER" });
-                    setTimeout(() => drawerDispatch({ type: "CLEAR_TOAST" }), 3000);
-                  }}
-                  className="px-5 py-2 bg-[#0D47A1] text-white rounded-xl text-xs font-semibold hover:bg-[#0c3d8a] transition-colors shadow-sm"
-                  style={{ fontFamily: PP }}
-                >
-                  Save Changes
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── REMOVE FAMILY MEMBER CONFIRMATION DIALOG ── */}
       {removeDialogMember && (
@@ -1510,7 +1494,9 @@ export function FamilyMembersManagement({
               <button
                 onClick={() => {
                   const name = removeDialogMember.patientName;
-                  onRemoveFamilyMember?.(removeDialogMember.id);
+                  onRemoveFamilyMember?.(
+                    removeDialogMember.mrn || removeDialogMember.id,
+                  );
                   drawerDispatch({ type: "CLOSE_REMOVE_DIALOG" });
                   if (removeFromDrawer) {
                     drawerDispatch({ type: "CLOSE_VIEW_DRAWER" });

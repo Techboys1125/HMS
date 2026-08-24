@@ -483,6 +483,7 @@ export function OPDConsultationPage({
           patientName: record.patientName,
           doctorId: 0,
           doctorName: record.doctor,
+          specialty: record.doctorSpecialty || "",
           departmentName: record.department,
           appointmentTime: record.appointmentTime,
           time: record.appointmentTime || "",
