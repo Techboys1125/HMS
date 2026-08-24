@@ -317,7 +317,7 @@ export function PatientMyBillsPage() {
                     className="hover:bg-slate-50/70 transition-colors"
                   >
                     <td className="py-3 px-4 font-mono font-bold text-[#0D47A1]">
-                      {inv.id}
+                      {inv.id ? (String(inv.id).startsWith("BL-") ? String(inv.id) : `BL-2026-${String(inv.id).padStart(6, "0")}`) : inv.id}
                     </td>
                     <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
                       {inv.invoiceDate}

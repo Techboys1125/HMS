@@ -114,9 +114,11 @@ export function PrescriptionDetailsModal({
 
   if (!isOpen || !prescriptionId) return null;
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const detObj = (details as unknown as Record<string, unknown>) || {};
+  const initObj = (initialData as unknown as Record<string, unknown>) || {};
+  const patObj = (patient as unknown as Record<string, unknown>) || {};
+  const detPatObj = (detObj?.patient as Record<string, unknown>) || {};
+  const initPatObj = (initObj?.patient as Record<string, unknown>) || {};
 
   // Safe formatting for header & metadata
   const idStr = formatField(
@@ -134,14 +136,41 @@ export function PrescriptionDetailsModal({
     details?.department || initialData?.department,
     "General Medicine",
   );
-  const dateStr = formatField(
-    details?.finalizedAt || details?.createdAt || initialData?.date,
-    new Date().toISOString().split("T")[0],
-  );
+  const issueDateRaw =
+    details?.finalizedAt ||
+    details?.createdAt ||
+    (detObj?.issueDate as string) ||
+    (detObj?.date as string) ||
+    initialData?.date;
+
+  const dateStr = issueDateRaw
+    ? new Date(issueDateRaw as string | number | Date).toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : new Date().toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
   const status = formatField(details?.status || initialData?.status, "Issued");
   const medicines = (details?.medicines || initialData?.medicines || []) as unknown as Array<Record<string, unknown>>;
-  const diagnosis = formatField(initialData?.diagnosis || details?.outcome, "");
-  const detObj = details as unknown as Record<string, unknown>;
+  const diagnosis = formatField(
+    details?.outcome ||
+      detObj?.diagnosis ||
+      detObj?.provisionalDiagnosis ||
+      detObj?.finalDiagnosis ||
+      detObj?.clinicalNotes ||
+      initObj?.diagnosis ||
+      initObj?.provisionalDiagnosis ||
+      initObj?.finalDiagnosis,
+    "",
+  );
+  const icdCode = formatField(
+    detObj?.icdCode || detObj?.icd10Code || initObj?.icdCode || initObj?.icd10Code,
+    "",
+  );
   const followUpObj = (detObj?.followUp as Record<string, unknown>) || {};
   const followUpDate = formatField(
     followUpObj.followUpDate ||
@@ -149,7 +178,171 @@ export function PrescriptionDetailsModal({
       initialData?.followUpDate,
     "",
   );
+  const bloodGroup = String(
+    patObj?.bloodGroup ||
+      patObj?.blood_group ||
+      detObj?.bloodGroup ||
+      detObj?.blood_group ||
+      detPatObj?.bloodGroup ||
+      detPatObj?.blood_group ||
+      initObj?.bloodGroup ||
+      initObj?.blood_group ||
+      initPatObj?.bloodGroup ||
+      ""
+  ).trim();
   const advice = detObj?.advice as Record<string, unknown> | undefined;
+
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+
+    const medsRows = medicines
+      .map((m: Record<string, unknown>, idx: number) => {
+        const medName = formatField(m.medicineName || m.name, `Medication #${idx + 1}`);
+        const dose = formatField(m.dosage || m.dose, "—");
+        const freq = formatField(m.frequency, "—");
+        const dur = formatField(m.duration, "—");
+        const inst = formatField(m.instructions, "As directed");
+        return `
+          <tr>
+            <td style="padding: 10px 12px; border-bottom: 1px solid #F1F5F9; font-weight: 800; color: #0F172A;">${medName}</td>
+            <td style="padding: 10px 12px; border-bottom: 1px solid #F1F5F9;">${dose}</td>
+            <td style="padding: 10px 12px; border-bottom: 1px solid #F1F5F9; color: #0D47A1; font-weight: 700;">${freq}</td>
+            <td style="padding: 10px 12px; border-bottom: 1px solid #F1F5F9;">${dur}</td>
+            <td style="padding: 10px 12px; border-bottom: 1px solid #F1F5F9; color: #64748B; font-style: italic;">${inst}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8"/>
+        <title>Prescription_${idStr}</title>
+        <style>
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 24px; color: #1E293B; background: #FFF; }
+          .container { max-width: 800px; margin: 0 auto; border: 2px solid #0D47A1; border-radius: 16px; padding: 32px; }
+          .header { border-bottom: 2px solid #E2E8F0; padding-bottom: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+          .hospital-title { font-size: 22px; font-weight: 800; color: #0D47A1; text-transform: uppercase; margin: 0; }
+          .hospital-sub { font-size: 11px; color: #64748B; margin-top: 4px; }
+          .badge { background: #0D47A1; color: #FFF; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; font-family: monospace; }
+          .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: #F8FAFC; padding: 14px; border-radius: 12px; font-size: 12px; margin-bottom: 20px; border: 1px solid #E2E8F0; }
+          .section-title { font-size: 12px; font-weight: 800; color: #0D47A1; text-transform: uppercase; border-bottom: 1px solid #E2E8F0; padding-bottom: 6px; margin: 20px 0 12px; }
+          .notes-box { background: #EFF6FF; border-left: 4px solid #0D47A1; padding: 12px 16px; border-radius: 6px; font-size: 12px; margin-bottom: 20px; color: #1E293B; }
+          table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+          th { background: #F1F5F9; color: #475569; font-weight: 700; text-transform: uppercase; font-size: 10px; padding: 8px 12px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+          @media print {
+            body { padding: 0; }
+            .container { border: none; padding: 0; max-width: 100%; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div>
+              <h1 class="hospital-title">SafeHands Hospital</h1>
+              <div class="hospital-sub">Outpatient Department (OPD) · Official Medical Prescription</div>
+            </div>
+            <div class="badge">${idStr}</div>
+          </div>
+
+          <div class="meta-grid">
+            <div>
+              <div style="font-weight: bold; font-size: 13px; color: #0F172A; margin-bottom: 4px;">${patient.fullName || patient.name || "Patient"}</div>
+              <div>MRN: <span style="font-family: monospace; color: #0D47A1; font-weight: bold;">${patient.mrn}</span></div>
+              <div>Age / Gender: ${patient.age ?? "—"} Y / ${patient.gender || "—"}</div>
+              <div>Blood Group: <strong style="color: #DC2626;">${bloodGroup || "Not Specified"}</strong></div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-weight: bold; font-size: 13px; color: #0F172A; margin-bottom: 4px;">${doctorName}</div>
+              <div style="color: #009688; font-weight: 600;">${department}</div>
+              <div style="color: #64748B;">Issue Date: ${dateStr}</div>
+              <div style="color: #16A34A; font-weight: bold; margin-top: 2px;">Status: ${status}</div>
+            </div>
+          </div>
+
+          ${
+            diagnosis || icdCode
+              ? `
+            <div class="section-title">Clinical Examination & Diagnosis</div>
+            <div class="notes-box">
+              ${diagnosis ? `<div><strong>Diagnosis / Clinical Findings:</strong> <span style="font-weight: 800; color: #0D47A1;">${diagnosis}</span></div>` : ""}
+              ${icdCode ? `<div style="margin-top: 6px; font-family: monospace;"><strong>ICD Code:</strong> <span style="background: #DBEAFE; color: #1E40AF; padding: 2px 8px; border-radius: 4px; font-weight: bold;">${icdCode}</span></div>` : ""}
+            </div>
+          `
+              : ""
+          }
+
+          <div class="section-title">Prescribed Medications (Rx)</div>
+          ${
+            medicines.length === 0
+              ? '<p style="font-size: 12px; color: #64748B; font-style: italic;">No medications listed.</p>'
+              : `
+            <table>
+              <thead>
+                <tr>
+                  <th>Medicine Name</th>
+                  <th>Dosage</th>
+                  <th>Frequency</th>
+                  <th>Duration</th>
+                  <th>Instructions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${medsRows}
+              </tbody>
+            </table>
+          `
+          }
+
+          ${
+            advice
+              ? `
+            <div class="section-title">Advice & Special Instructions</div>
+            <div style="font-size: 12px; background: #FFFBEB; padding: 12px; border-radius: 8px; border: 1px solid #FDE68A; color: #78350F;">
+              ${advice.general ? `<div style="margin-bottom: 4px;"><strong>General:</strong> ${formatField(advice.general, "")}</div>` : ""}
+              ${advice.diet ? `<div style="margin-bottom: 4px;"><strong>Diet:</strong> ${formatField(advice.diet, "")}</div>` : ""}
+              ${advice.precautions ? `<div><strong>Precautions:</strong> ${formatField(advice.precautions, "")}</div>` : ""}
+            </div>
+          `
+              : ""
+          }
+
+          ${
+            followUpDate
+              ? `
+            <div style="margin-top: 20px; padding: 12px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; font-size: 12px; color: #166534; font-weight: bold;">
+              Scheduled Follow-up Date: ${followUpDate}
+            </div>
+          `
+              : ""
+          }
+
+          <div style="margin-top: 36px; padding-top: 16px; border-top: 1px solid #E2E8F0; text-align: right; font-size: 11px; color: #64748B;">
+            <div style="width: 160px; border-bottom: 1px solid #94A3B8; margin: 0 0 4px auto;"></div>
+            <div>Authorized Medical Practitioner Signature</div>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            window.print();
+            setTimeout(function() { window.close(); }, 500);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
@@ -215,6 +408,9 @@ export function PrescriptionDetailsModal({
                   <div className="text-[11px] text-slate-500 font-mono">
                     MRN: {patient.mrn} · {patient.age ?? 0} Y /{" "}
                     {patient.gender || "Unknown"}
+                    {bloodGroup && (
+                      <> · Blood: <strong className="text-red-600 font-bold">{bloodGroup}</strong></>
+                    )}
                   </div>
                   {patient.phone && (
                     <div className="text-[11px] text-slate-500">
@@ -231,18 +427,23 @@ export function PrescriptionDetailsModal({
                   <div className="text-[11px] text-slate-500">{department}</div>
                   <div className="text-[11px] text-slate-500 flex items-center gap-1 sm:justify-end">
                     <Calendar size={11} />
-                    <span>Date: {dateStr}</span>
+                    <span>Issue Date: {dateStr}</span>
                   </div>
                 </div>
               </div>
 
               {/* Diagnosis if available */}
-              {diagnosis && (
-                <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 text-xs">
+              {(diagnosis || icdCode) && (
+                <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100 text-xs space-y-1">
                   <span className="text-[10px] font-bold text-[#0D47A1] uppercase tracking-wider block mb-1">
                     Diagnosis / Clinical Notes
                   </span>
-                  <div className="text-slate-700 font-medium">{diagnosis}</div>
+                  {diagnosis && <div className="text-slate-700 font-medium">{diagnosis}</div>}
+                  {icdCode && (
+                    <div className="text-[11px] text-slate-500 font-mono">
+                      ICD Code: <span className="font-bold text-[#0D47A1]">{icdCode}</span>
+                    </div>
+                  )}
                 </div>
               )}
 

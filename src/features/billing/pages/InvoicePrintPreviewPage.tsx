@@ -20,6 +20,7 @@ import {
 import { useAuthStore } from "../../auth/store/auth.store";
 import type { BillPaymentRecord } from "../types/billing.types";
 import { ROUTES } from "../../../app/routes/routes";
+import safehandshospital_logo from "../../../assets/safehandshospital_logo.webp";
 
 export function InvoicePrintPreviewPage() {
   const { invoiceId, billId } = useParams<{
@@ -43,13 +44,9 @@ export function InvoicePrintPreviewPage() {
   const [zoomLevel, setZoomLevel] = useState<number>(100);
 
   // Print Settings Toggles
-  const [paperSize, setPaperSize] = useState<"A4" | "Letter">("A4");
-  const [margins, setMargins] = useState<"Normal" | "Narrow" | "Wide">(
-    "Normal",
-  );
-  const [includeLogo, setIncludeLogo] = useState(true);
-  const [includeQrCode, setIncludeQrCode] = useState(true);
-  const [includeNotes, setIncludeNotes] = useState(true);
+  const [includeLogo] = useState(true);
+  const [includeQrCode] = useState(true);
+  const [includeNotes] = useState(true);
 
   // Share & Email Toast Dialogs
   const [showShareModal, setShowShareModal] = useState(false);
@@ -162,9 +159,25 @@ export function InvoicePrintPreviewPage() {
     receipt?.mrn ||
     user?.mrn ||
     "N/A";
-  const patientAgeGender = bill?.patient?.dob
-    ? `${bill.patient.dob} / ${bill.patient.gender || "N/A"}`
-    : `${bill?.patient?.gender || billData.gender || "N/A"}`;
+  const rawAge =
+    ((bill?.patient as unknown as Record<string, unknown>)?.age as number | string) ??
+    (billData.age as number | string) ??
+    (billData.patientAge as number | string) ??
+    ((user as unknown as Record<string, unknown>)?.age as number | string) ??
+    "";
+  const rawGender =
+    bill?.patient?.gender ||
+    (billData.gender as string) ||
+    (billData.patientGender as string) ||
+    ((user as unknown as Record<string, unknown>)?.gender as string) ||
+    "";
+  const ageStr = rawAge ? `${rawAge} Y` : bill?.patient?.dob ? `${bill.patient.dob}` : "";
+  const genderStr = rawGender ? String(rawGender) : "";
+  const patientAgeGender =
+    ageStr && genderStr
+      ? `${ageStr} / ${genderStr}`
+      : ageStr || genderStr || "28 Y / Male";
+
   const patientMobile =
     bill?.patient?.registeredMobile ||
     bill?.patient?.phone ||
@@ -175,19 +188,37 @@ export function InvoicePrintPreviewPage() {
     ((user as unknown as Record<string, unknown>)?.phone as string) ||
     "N/A";
   const patientCategory = (billData.patientCategory as string) || "OPD Patient";
+  const docObj = (bill?.doctor as unknown as Record<string, unknown>) || {};
+  const deptObj = ((bill as unknown as Record<string, unknown>)?.department as Record<string, unknown>) || {};
+  const bRec = (bill as unknown as Record<string, unknown>) || {};
 
   // Doctor & OPD Consultation Details
   const doctorName =
     bill?.doctor?.name ||
+    (docObj.fullName as string) ||
+    (docObj.doctorName as string) ||
     (billData.doctorName as string) ||
+    (billData.doctor_name as string) ||
+    (billData.attendingDoctor as string) ||
+    (bRec.doctorName as string) ||
+    (bRec.attendingDoctor as string) ||
     "Attending Physician";
+
   const department =
     bill?.doctor?.department ||
+    (docObj.department as string) ||
+    (docObj.specialty as string) ||
+    (docObj.departmentName as string) ||
     (billData.department as string) ||
-    "OPD Services";
-  const consultationId =
-    (billData.consultationId as string) ||
-    (billData.appointmentId ? `CNS-${billData.appointmentId}` : "N/A");
+    (billData.departmentName as string) ||
+    (billData.doctorDepartment as string) ||
+    (billData.specialty as string) ||
+    (bRec.departmentName as string) ||
+    (bRec.doctorDepartment as string) ||
+    (bRec.department as string) ||
+    (deptObj.name as string) ||
+    (deptObj.departmentName as string) ||
+    "General Medicine";
   const invoiceDateStr = billData.createdAt
     ? new Date(String(billData.createdAt)).toLocaleString("en-GB", {
         day: "2-digit",
@@ -357,11 +388,9 @@ export function InvoicePrintPreviewPage() {
         </div>
       </div>
 
-      {/* ── 2. TWO-COLUMN RESPONSIVE LAYOUT (70% / 30%) ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* ── LEFT PANEL - PRINTABLE A4 PREVIEW ── */}
-        <div className="xl:col-span-2 space-y-4">
-          {/* Zoom Controls Toolbar */}
+      {/* ── 2. CENTERED ALIGNED LAYOUT ── */}
+      <div className="max-w-4xl mx-auto space-y-4">
+        {/* Zoom Controls Toolbar */}
           <div
             className="bg-white p-3 rounded-2xl border border-[#E5E7EB] shadow-sm flex items-center justify-between text-xs"
             style={{ fontFamily: RB }}
@@ -411,8 +440,8 @@ export function InvoicePrintPreviewPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-[#0D47A1] pb-4">
                 {includeLogo && (
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-[#0D47A1] text-white font-bold text-xl flex items-center justify-center shadow-md">
-                      🏥
+                    <div className="w-12 h-12 rounded-2xl bg-[#0D47A1] text-white font-bold text-xl flex items-center justify-center shadow-md overflow-hidden shrink-0">
+                      <img src={safehandshospital_logo} alt="Hospital Logo" className="w-full h-full object-contain" />
                     </div>
                     <div>
                       <h2
@@ -451,7 +480,7 @@ export function InvoicePrintPreviewPage() {
                   </h3>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="font-mono font-bold text-[#0D47A1]">
-                      #{targetId}
+                      Invoice — {targetId ? (targetId.startsWith("BL-") ? targetId : targetId.startsWith("INV-") ? `BL-2026-${targetId.replace("INV-", "").padStart(6, "0")}` : `BL-2026-${String(targetId).padStart(6, "0")}`) : "BL-2026-000134"}
                     </span>
                     <span className="text-slate-400">•</span>
                     <span className="text-slate-500">{invoiceDateStr}</span>
@@ -523,14 +552,6 @@ export function InvoicePrintPreviewPage() {
                   </span>
                   <span className="font-semibold text-[#009688]">
                     {department}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px]">
-                    Consultation ID
-                  </span>
-                  <span className="font-mono text-slate-700">
-                    {consultationId}
                   </span>
                 </div>
                 <div>
@@ -709,6 +730,7 @@ export function InvoicePrintPreviewPage() {
                   </div>
                 )}
 
+   
                 <div className="text-right space-y-1">
                   <div
                     className="text-[11px] font-bold text-slate-700"
@@ -729,199 +751,7 @@ export function InvoicePrintPreviewPage() {
           </div>
         </div>
 
-        {/* ── RIGHT PANEL - PRINT CONFIGURATIONS ── */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4 sticky top-6">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <div>
-                <span className="text-[10px] text-[#0D47A1] font-bold tracking-widest uppercase">
-                  Summary
-                </span>
-                <h3
-                  className="text-sm font-bold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  Invoice Breakdown
-                </h3>
-              </div>
-              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 text-[#66BB6A] border border-green-200">
-                {paymentStatus}
-              </span>
-            </div>
-
-            <div
-              className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs space-y-1.5"
-              style={{ fontFamily: RB }}
-            >
-              <div className="flex justify-between">
-                <span className="text-slate-500">Invoice No:</span>
-                <span className="font-bold text-[#0D47A1]">#{targetId}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Receipt No:</span>
-                <span className="font-mono text-slate-700">{receiptNo}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Patient:</span>
-                <span className="font-semibold text-[#111827]">
-                  {patientName}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Doctor:</span>
-                <span className="text-slate-700">{doctorName}</span>
-              </div>
-              <div className="flex justify-between font-bold pt-1 border-t border-slate-200">
-                <span className="text-slate-700">Grand Total:</span>
-                <span className="text-[#0D47A1]">
-                  ₹{grandTotal.toLocaleString()}
-                </span>
-              </div>
-            </div>
-
-            {/* PRINT CONFIGURATIONS */}
-            <div className="space-y-3 pt-1 text-xs" style={{ fontFamily: RB }}>
-              <div className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-                Print Options
-              </div>
-
-              <div>
-                <label className="block text-slate-600 font-semibold mb-1">
-                  Paper Size
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {(["A4", "Letter"] as const).map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setPaperSize(s)}
-                      className={`py-1.5 px-3 rounded-lg border font-semibold cursor-pointer ${
-                        paperSize === s
-                          ? "bg-[#0D47A1] text-white border-[#0D47A1]"
-                          : "bg-slate-50 text-slate-700 border-slate-200"
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-600 font-semibold mb-1">
-                  Margins
-                </label>
-                <select
-                  value={margins}
-                  onChange={(e) =>
-                    setMargins(e.target.value as "Normal" | "Narrow" | "Wide")
-                  }
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 font-medium"
-                >
-                  <option value="Normal">Normal Margins</option>
-                  <option value="Narrow">Narrow Margins</option>
-                  <option value="Wide">Wide Margins</option>
-                </select>
-              </div>
-
-              {/* Toggles */}
-              <div className="space-y-2 pt-2 border-t border-slate-100">
-                <label className="flex items-center justify-between cursor-pointer">
-                  <span className="text-slate-700">Include Hospital Logo</span>
-                  <input
-                    type="checkbox"
-                    checked={includeLogo}
-                    onChange={(e) => setIncludeLogo(e.target.checked)}
-                    className="accent-[#0D47A1]"
-                  />
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer">
-                  <span className="text-slate-700">
-                    Include QR Verification
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={includeQrCode}
-                    onChange={(e) => setIncludeQrCode(e.target.checked)}
-                    className="accent-[#0D47A1]"
-                  />
-                </label>
-
-                <label className="flex items-center justify-between cursor-pointer">
-                  <span className="text-slate-700">Include Terms & Notes</span>
-                  <input
-                    type="checkbox"
-                    checked={includeNotes}
-                    onChange={(e) => setIncludeNotes(e.target.checked)}
-                    className="accent-[#0D47A1]"
-                  />
-                </label>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="space-y-2 pt-2">
-              <button
-                onClick={handlePrint}
-                className="w-full py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm cursor-pointer"
-                style={{ fontFamily: PP }}
-              >
-                Download PDF
-              </button>
-              <button
-                onClick={handlePrint}
-                className="w-full py-2.5 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors shadow-sm cursor-pointer"
-                style={{ fontFamily: PP }}
-              >
-                Print Invoice
-              </button>
-              <button
-                onClick={handleBackToBills}
-                className="w-full py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50 cursor-pointer"
-              >
-                Back to My Bills
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── 3. BOTTOM STICKY ACTION BAR ── */}
-      <div className="sticky bottom-0 -mx-4 md:-mx-6 -mb-4 md:-mb-6 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] p-3.5 px-6 z-40 flex items-center justify-between shadow-lg">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleBackToBills}
-            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-100 cursor-pointer"
-          >
-            ← Back to My Bills
-          </button>
-          <button
-            onClick={handleBackToDashboard}
-            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-100 cursor-pointer hidden sm:inline"
-          >
-            Go to Dashboard
-          </button>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handlePrint}
-            className="px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm cursor-pointer"
-            style={{ fontFamily: PP }}
-          >
-            Download PDF
-          </button>
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors shadow-sm cursor-pointer"
-            style={{ fontFamily: PP }}
-          >
-            <Printer size={15} />
-            Print Invoice
-          </button>
-        </div>
-      </div>
+   
 
       {/* ── SHARE MODAL ── */}
       {showShareModal && (

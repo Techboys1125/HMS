@@ -383,13 +383,31 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
     prescription.department || doctorObj.department,
     "—",
   );
-  const consultationDate = safeStr(
+  const rawConsultationDate = safeStr(
     prescription.consultationDate ||
       pRecord.visitDateTime ||
       pRecord.date ||
       pRecord.createdAt,
-    "—",
+    "",
   );
+  const consultationDate =
+    rawConsultationDate && rawConsultationDate !== "—"
+      ? (() => {
+          try {
+            const parsed = new Date(rawConsultationDate);
+            return isNaN(parsed.getTime())
+              ? rawConsultationDate
+              : parsed.toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                });
+          } catch {
+            return rawConsultationDate;
+          }
+        })()
+      : "—";
+
   const allergies = Array.isArray(pRecord.allergies)
     ? (pRecord.allergies as unknown[])
         .map((a) => safeStr(a, ""))
@@ -445,19 +463,31 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
 
   const followupRequired =
     prescription.followup || followUpObj.required ? "Yes" : "No";
-  const nextVisitDate = safeStr(
+  const rawNextVisitDate = safeStr(
     prescription.followupDate ||
       followUpObj.nextVisitDate ||
       followUpObj.followUpDate,
-    "—",
+    "",
   );
+  const nextVisitDate =
+    rawNextVisitDate && rawNextVisitDate !== "—"
+      ? (() => {
+          try {
+            const parsed = new Date(rawNextVisitDate);
+            return isNaN(parsed.getTime())
+              ? rawNextVisitDate
+              : parsed.toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                });
+          } catch {
+            return rawNextVisitDate;
+          }
+        })()
+      : "—";
   const followupNotes = safeStr(
     pRecord.followupNotes || followUpObj.notes || followUpObj.instructions,
-    "—",
-  );
-
-  const consultationId = safeStr(
-    prescription.consultationId || pRecord.encounterId || pRecord.appointmentId,
     "—",
   );
 
@@ -929,71 +959,7 @@ export const PrescriptionDetailsModal: React.FC<DetailsModalProps> = ({
             </div>
           </div>
 
-          {/* Section 05: Prescription Technical Summary */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-xs space-y-3">
-            <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-100">
-              <div className="w-6 h-6 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs">
-                05
-              </div>
-              <h3
-                className="text-sm font-bold text-[#111827]"
-                style={{ fontFamily: PP }}
-              >
-                Prescription Technical Summary
-              </h3>
-            </div>
-
-            <div
-              className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs"
-              style={{ fontFamily: RB }}
-            >
-              <div>
-                <span
-                  className="text-[10px] font-bold text-slate-400 uppercase block"
-                  style={{ fontFamily: PP }}
-                >
-                  Prescription ID
-                </span>
-                <span className="font-mono font-bold text-[#0D47A1]">
-                  {rxId}
-                </span>
-              </div>
-
-              <div>
-                <span
-                  className="text-[10px] font-bold text-slate-400 uppercase block"
-                  style={{ fontFamily: PP }}
-                >
-                  Consultation ID
-                </span>
-                <span className="font-mono font-semibold text-slate-700">
-                  {consultationId}
-                </span>
-              </div>
-
-              <div>
-                <span
-                  className="text-[10px] font-bold text-slate-400 uppercase block"
-                  style={{ fontFamily: PP }}
-                >
-                  Issued Date
-                </span>
-                <span className="text-slate-700">{consultationDate}</span>
-              </div>
-
-              <div>
-                <span
-                  className="text-[10px] font-bold text-slate-400 uppercase block"
-                  style={{ fontFamily: PP }}
-                >
-                  Total Medicines
-                </span>
-                <span className="font-bold text-[#009688]">
-                  {prescription.medicines.length} Medicines
-                </span>
-              </div>
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>

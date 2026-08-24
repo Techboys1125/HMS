@@ -124,6 +124,14 @@ export function InvoiceDetailsPage() {
     bRec?.attendingDoctor ||
     "N/A"
   );
+  const displayInvoiceNo = targetId
+    ? targetId.startsWith("BL-")
+      ? targetId
+      : targetId.startsWith("INV-")
+        ? `BL-2026-${targetId.replace("INV-", "").padStart(6, "0")}`
+        : `BL-2026-${String(targetId).padStart(6, "0")}`
+    : bill?.billNumber || "BL-2026-000387";
+
   const doctorCode = String(docObj.doctorCode || docObj.code || "");
   const summaryData = bill?.summary;
   const items = bill?.items || [];
@@ -234,7 +242,7 @@ export function InvoiceDetailsPage() {
               className="text-xl md:text-2xl font-bold text-[#111827] tracking-tight"
               style={{ fontFamily: PP }}
             >
-              Invoice — {bill.billNumber || bill.id}
+              Invoice — {displayInvoiceNo}
             </h1>
             <BillingStatusBadge status={String(bill.paymentStatus || "")} />
           </div>
@@ -347,7 +355,7 @@ export function InvoiceDetailsPage() {
                   Invoice Number
                 </span>
                 <span className="font-mono font-bold text-sm text-[#0D47A1]">
-                  {bill.billNumber || bill.id}
+                  {displayInvoiceNo}
                 </span>
               </div>
               <div>

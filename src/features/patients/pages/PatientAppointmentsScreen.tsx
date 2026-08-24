@@ -50,18 +50,53 @@ function formatDisplayTime(timeStr?: string): string {
   return `${hStr}:${min} ${ampm}`;
 }
 
+function getAppointmentStatusStyle(status?: string): {
+  label: string;
+  badgeClass: string;
+  dotClass: string;
+} {
+  const upper = String(status || "").toUpperCase().replace(/_/g, " ");
+
+  if (upper === "BOOKED") {
+    return { label: "Booked", badgeClass: "bg-blue-50 text-[#0D47A1] border-blue-100", dotClass: "bg-[#0D47A1]" };
+  }
+  if (upper === "CONFIRMED" || upper === "SCHEDULED") {
+    return { label: "Confirmed", badgeClass: "bg-emerald-50 text-[#66BB6A] border-emerald-100", dotClass: "bg-[#66BB6A]" };
+  }
+  if (upper === "CHECKED IN" || upper === "CHECKED_IN") {
+    return { label: "Checked-In", badgeClass: "bg-cyan-50 text-cyan-700 border-cyan-100", dotClass: "bg-cyan-600" };
+  }
+  if (upper === "WAITING FOR VITALS" || upper === "WAITING_FOR_VITALS") {
+    return { label: "Waiting for Vitals", badgeClass: "bg-amber-50 text-amber-700 border-amber-100", dotClass: "bg-amber-500" };
+  }
+  if (upper === "WAITING FOR DOCTOR CALL" || upper === "WAITING_FOR_DOCTOR_CALL" || upper === "WAITING FOR DOCTOR") {
+    return { label: "Waiting for Doctor", badgeClass: "bg-orange-50 text-orange-700 border-orange-100", dotClass: "bg-orange-500" };
+  }
+  if (upper === "CALLED") {
+    return { label: "Called", badgeClass: "bg-violet-50 text-violet-700 border-violet-100", dotClass: "bg-violet-600" };
+  }
+  if (upper === "IN CONSULTATION" || upper === "IN_CONSULTATION" || upper === "IN PROGRESS" || upper === "IN_PROGRESS") {
+    return { label: "In Consultation", badgeClass: "bg-purple-50 text-purple-700 border-purple-100", dotClass: "bg-purple-600" };
+  }
+  if (upper === "COMPLETED" || upper === "CONSULTATION COMPLETED") {
+    return { label: "Completed", badgeClass: "bg-teal-50 text-[#009688] border-teal-100", dotClass: "bg-[#009688]" };
+  }
+  if (upper === "CANCELLED" || upper === "CANCELED") {
+    return { label: "Cancelled", badgeClass: "bg-rose-50 text-rose-700 border-rose-100", dotClass: "bg-rose-600" };
+  }
+  if (upper === "NO SHOW" || upper === "NO_SHOW") {
+    return { label: "No Show", badgeClass: "bg-slate-100 text-slate-700 border-slate-200", dotClass: "bg-slate-500" };
+  }
+  if (upper === "RESCHEDULED") {
+    return { label: "Rescheduled", badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-100", dotClass: "bg-indigo-600" };
+  }
+
+  const pretty = status ? status.charAt(0).toUpperCase() + status.slice(1) : "Booked";
+  return { label: pretty, badgeClass: "bg-slate-100 text-slate-700 border-slate-200", dotClass: "bg-slate-500" };
+}
+
 function formatStatusPretty(s?: string): string {
-  if (!s) return "Booked";
-  const upper = s.toUpperCase().replace(/_/g, " ");
-  if (upper === "BOOKED") return "Booked";
-  if (upper === "SCHEDULED") return "Scheduled";
-  if (upper === "CONFIRMED") return "Confirmed";
-  if (upper === "IN CONSULTATION" || upper === "IN PROGRESS") return "In Consultation";
-  if (upper === "CHECKED IN") return "Checked-In";
-  if (upper === "WAITING FOR VITALS") return "Waiting for Vitals";
-  if (upper === "WAITING FOR DOCTOR") return "Waiting for Doctor";
-  if (upper === "COMPLETED" || upper === "CONSULTATION COMPLETED") return "Completed";
-  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+  return getAppointmentStatusStyle(s).label;
 }
 
 type AppointmentListState = {
@@ -1146,44 +1181,17 @@ export function PatientAppointmentsScreen({
 
                             {/* Status */}
                             <td className="px-4 py-4">
-                              <span
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                  appt.status === "Confirmed"
-                                    ? "bg-green-50 text-[#66BB6A]"
-                                    : appt.status === "Scheduled"
-                                      ? "bg-blue-50 text-[#0D47A1]"
-                                      : appt.status === "Pending"
-                                        ? "bg-amber-50 text-[#F59E0B]"
-                                        : appt.status === "Completed"
-                                          ? "bg-teal-50 text-[#009688]"
-                                          : appt.status === "In Progress"
-                                            ? "bg-purple-50 text-purple-600"
-                                            : appt.status === "Checked-In"
-                                              ? "bg-indigo-50 text-indigo-600"
-                                              : appt.status === "No Show"
-                                                ? "bg-red-50 text-red-600"
-                                                : "bg-red-50 text-[#EF4444]"
-                                }`}
-                              >
-                                <span
-                                  className={`w-1.5 h-1.5 rounded-full ${
-                                    appt.status === "Confirmed"
-                                      ? "bg-[#66BB6A]"
-                                      : appt.status === "Scheduled"
-                                        ? "bg-[#0D47A1]"
-                                        : appt.status === "Pending"
-                                          ? "bg-[#F59E0B]"
-                                          : appt.status === "Completed"
-                                            ? "bg-[#009688]"
-                                            : appt.status === "In Progress"
-                                              ? "bg-purple-500"
-                                              : appt.status === "Checked-In"
-                                                ? "bg-indigo-500"
-                                                : "bg-[#EF4444]"
-                                  }`}
-                                />
-                                {appt.status}
-                              </span>
+                              {(() => {
+                                const st = getAppointmentStatusStyle(appt.status);
+                                return (
+                                  <span
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${st.badgeClass}`}
+                                  >
+                                    <span className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`} />
+                                    {st.label}
+                                  </span>
+                                );
+                              })()}
                             </td>
 
                             {/* Actions */}
@@ -1255,23 +1263,17 @@ export function PatientAppointmentsScreen({
                               {appt.department} · {appt.specialty}
                             </div>
                           </div>
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
-                            appt.status === "Confirmed"
-                              ? "bg-green-50 text-[#66BB6A]"
-                              : appt.status === "Scheduled"
-                                ? "bg-blue-50 text-[#0D47A1]"
-                                : appt.status === "Completed"
-                                  ? "bg-teal-50 text-[#009688]"
-                                  : appt.status === "In Progress"
-                                    ? "bg-purple-50 text-purple-600"
-                                    : appt.status === "Checked-In"
-                                      ? "bg-indigo-50 text-indigo-600"
-                                      : "bg-red-50 text-[#EF4444]"
-                          }`}
-                        >
-                          {appt.status}
-                        </span>
+                        {(() => {
+                          const st = getAppointmentStatusStyle(appt.status);
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${st.badgeClass}`}
+                            >
+                              <span className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`} />
+                              {st.label}
+                            </span>
+                          );
+                        })()}
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 text-xs">

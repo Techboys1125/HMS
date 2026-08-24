@@ -58,7 +58,10 @@ export function downloadConsultationPdf(data: PrintableConsultationData): void {
   const patName = data.patientName || "Patient"
   const mrn = data.mrn || "MRN-000000"
   const ageStr = `${data.age || "—"} yrs / ${data.gender || "—"}`
-  const blood = data.bloodGroup || "O+"
+  const provDx = data.provisionalDiagnosis && data.provisionalDiagnosis !== "Recorded" ? data.provisionalDiagnosis : ""
+  const finalDx = data.finalDiagnosis && data.finalDiagnosis !== "Recorded" ? data.finalDiagnosis : (data.provisionalDiagnosis || data.assessment || "Diagnosis Recorded")
+  const icd = data.icdCode && data.icdCode !== "—" ? data.icdCode : ""
+  const blood = data.bloodGroup && data.bloodGroup !== "N/A" ? data.bloodGroup : "Not Specified"
   const docName = data.doctorName || "Doctor"
   const dept = data.department || "OPD"
   const dateStr = data.visitDate || new Date().toLocaleDateString("en-GB")
@@ -66,8 +69,6 @@ export function downloadConsultationPdf(data: PrintableConsultationData): void {
   const visitType = data.visitType || "First Visit"
   const complaint = data.chiefComplaint || "None recorded"
   const exam = data.clinicalExamination || "Normal physical and systemic examination findings."
-  const finalDx = data.finalDiagnosis || "Recorded"
-  const icd = data.icdCode || "—"
   const advice = data.advice || "Follow doctor advice and complete medication course."
   const diet = data.lifestyleRecommendations || "Maintain balanced diet and hydration."
   const nextVisit = data.nextVisitDate || "—"
@@ -208,8 +209,9 @@ export function downloadConsultationPdf(data: PrintableConsultationData): void {
     <!-- Diagnosis & Examination -->
     <div class="section-title">Clinical Examination & Diagnosis</div>
     <div class="notes-box">
-      <div style="margin-bottom: 8px;"><strong>Examination Findings:</strong> ${exam}</div>
-      <div><strong>Final Diagnosis:</strong> <span style="font-weight: 800; color: #0D47A1;">${finalDx}</span> (ICD Code: <code>${icd}</code>)</div>
+      ${provDx ? `<div style="margin-bottom: 6px;"><strong>Provisional Diagnosis:</strong> <span style="font-weight: 700; color: #475569;">${provDx}</span></div>` : ''}
+      <div style="margin-bottom: 6px;"><strong>Diagnosis / Clinical Assessment:</strong> <span style="font-weight: 800; color: #0D47A1; font-size: 13px;">${finalDx}</span> ${icd ? `<span style="background: #EFF6FF; color: #1D4ED8; font-weight: bold; font-family: monospace; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">ICD Code: ${icd}</span>` : ''}</div>
+      <div><strong>Examination Findings:</strong> ${exam}</div>
     </div>
 
     <!-- Prescribed Medications (Rx) -->
