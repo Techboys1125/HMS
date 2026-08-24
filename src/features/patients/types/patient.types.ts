@@ -273,7 +273,8 @@ export type PatientAppointment = {
     | "Pending"
     | "Checked-In"
     | "Waiting for Vitals"
-    | "Waiting for Doctor";
+    | "Waiting for Doctor"
+    | "No Show";
   roomLocation: string;
   reason: string;
   notes: string;

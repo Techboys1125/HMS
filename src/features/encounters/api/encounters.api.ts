@@ -110,18 +110,9 @@ export const encountersApi = {
     payload: FinalizeEncounterRequest,
   ): Promise<Encounter> => {
     try {
-      const idempotencyKey =
-        typeof crypto !== "undefined" && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `idemp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       const response = await apiClient.post<ApiEnvelope<Encounter> | Encounter>(
         `/api/v1/encounters/${encounterId}/finalize`,
         payload,
-        {
-          headers: {
-            "Idempotency-Key": idempotencyKey,
-          },
-        },
       );
       return unwrap<Encounter>(response.data);
     } catch (error: unknown) {
@@ -181,6 +172,23 @@ export const encountersApi = {
   },
 
   /**
+   * POST /api/v1/encounters/appointment/{appointmentId}/finalize
+   * Legacy adapter endpoint to finalize encounter by appointment ID.
+   */
+  finalizeEncounterByAppointment: async (
+    appointmentId: string | number,
+  ): Promise<Encounter | null> => {
+    try {
+      const response = await apiClient.post<ApiEnvelope<Encounter> | Encounter>(
+        `/api/v1/encounters/appointment/${appointmentId}/finalize`,
+      );
+      return unwrap<Encounter>(response.data);
+    } catch {
+      return null;
+    }
+  },
+
+  /**
    * PUT /api/v1/prescriptions/{prescriptionId}/advice
    */
   savePrescriptionAdvice: async (
@@ -198,6 +206,12 @@ export const encountersApi = {
       }>(`/api/v1/prescriptions/${prescriptionId}/advice`, payload);
       return response.data?.data || null;
     } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const data = error.response?.data as { code?: string } | undefined;
+        if (data?.code === "PRESCRIPTION_VERSION_IMMUTABLE") {
+          return null;
+        }
+      }
       return handleApiError(error);
     }
   },

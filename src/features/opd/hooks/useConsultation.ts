@@ -18,8 +18,14 @@ export const useConsultation = () => {
   const loading = useConsultationStore((s) => s.loading);
   const error = useConsultationStore((s) => s.error);
 
-  const callPatient = async (appointmentId: string | number) => {
-    const result = await consultationService.callPatient(appointmentId);
+  const callPatient = async (
+    appointmentId: string | number,
+    alternateId?: string | number,
+  ) => {
+    const result = await consultationService.callPatient(
+      appointmentId,
+      alternateId,
+    );
     // Invalidate queue so the patient moves from Waiting to Called
     await queryClient.invalidateQueries({ queryKey: QUEUE_QUERY_KEY });
     return result;

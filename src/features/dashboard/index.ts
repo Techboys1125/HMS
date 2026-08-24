@@ -1,4 +1,3 @@
-export * from "./pages/DashboardsScreen";
 export * from "./pages/SuperAdminDashboard";
 export * from "./pages/HospitalAdminDashboard";
 export * from "./pages/DoctorDashboard";

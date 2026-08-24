@@ -23,6 +23,8 @@ export interface ConsultationFiltersProps {
   placeholder?: string;
   showStatusFilter?: boolean;
   showVisitTypeFilter?: boolean;
+  showDoctorFilter?: boolean;
+  showDepartmentFilter?: boolean;
   doctorOptions?: Array<{ value: string; label: string }>;
   departmentOptions?: Array<{ value: string; label: string }>;
 }
@@ -46,6 +48,8 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
   placeholder = "Search by Patient Name, MRN, Consultation ID or Mobile Number...",
   showStatusFilter = true,
   showVisitTypeFilter = true,
+  showDoctorFilter = true,
+  showDepartmentFilter = true,
   doctorOptions = [{ value: "All", label: "All Doctors" }],
   departmentOptions = [{ value: "All", label: "All Departments" }],
 }) => {
@@ -91,47 +95,51 @@ export const ConsultationFilters: React.FC<ConsultationFiltersProps> = ({
           />
         </div>
 
-        <div>
-          <label
-            className="block text-[11px] font-semibold text-[#64748B] mb-1"
-            style={{ fontFamily: PP }}
-          >
-            Doctor
-          </label>
-          <select
-            value={filterDoctor}
-            onChange={(e) => onDoctorChange(e.target.value)}
-            className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
-            style={{ fontFamily: RB }}
-          >
-            {doctorOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        {showDoctorFilter && (
+          <div>
+            <label
+              className="block text-[11px] font-semibold text-[#64748B] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              Doctor
+            </label>
+            <select
+              value={filterDoctor}
+              onChange={(e) => onDoctorChange(e.target.value)}
+              className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
+              style={{ fontFamily: RB }}
+            >
+              {doctorOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
-        <div>
-          <label
-            className="block text-[11px] font-semibold text-[#64748B] mb-1"
-            style={{ fontFamily: PP }}
-          >
-            Department
-          </label>
-          <select
-            value={filterDepartment}
-            onChange={(e) => onDepartmentChange(e.target.value)}
-            className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
-            style={{ fontFamily: RB }}
-          >
-            {departmentOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        {showDepartmentFilter && (
+          <div>
+            <label
+              className="block text-[11px] font-semibold text-[#64748B] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              Department
+            </label>
+            <select
+              value={filterDepartment}
+              onChange={(e) => onDepartmentChange(e.target.value)}
+              className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1]"
+              style={{ fontFamily: RB }}
+            >
+              {departmentOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {showStatusFilter && (
           <div>

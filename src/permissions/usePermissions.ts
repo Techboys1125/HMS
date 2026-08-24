@@ -15,11 +15,18 @@ export const usePermissions = () => {
 
     const roleKey = String(user.role).toUpperCase();
 
+    // DOCTOR role has full master permission access for clinical & consultation workflows
+    if (roleKey === "DOCTOR") {
+      return true;
+    }
+
     // SUPER_ADMIN, HOSPITAL_ADMIN, and ADMIN have master permission access
+    // EXCEPT for clinical doctor actions like CONSULTATION_START
     if (
-      roleKey === "SUPER_ADMIN" ||
-      roleKey === "HOSPITAL_ADMIN" ||
-      roleKey === "ADMIN"
+      (roleKey === "SUPER_ADMIN" ||
+        roleKey === "HOSPITAL_ADMIN" ||
+        roleKey === "ADMIN") &&
+      permission !== "CONSULTATION_START"
     ) {
       return true;
     }

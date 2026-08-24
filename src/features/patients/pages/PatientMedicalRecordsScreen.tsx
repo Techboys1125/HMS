@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 import { appointmentsApi } from "../../appointments/api/appointments.api";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
 import type { ApiResponse } from "../../auth/types/auth.types";
@@ -25,12 +26,14 @@ import type {
 } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.fonts";
 import { Pagination } from "../../../common/components/Pagination";
+import { ROUTES } from "../../../app/routes/routes";
 
 export function PatientMedicalRecordsScreen({
   activePatient: propActivePatient,
 }: {
   activePatient?: FamilyMember;
 }) {
+  const navigate = useNavigate();
   const portal = usePatientPortal();
   const activePatient = propActivePatient ?? portal?.activePatient;
   const [activeTab, setActiveTab] = useState<"visits" | "prescriptions">(
@@ -241,7 +244,13 @@ export function PatientMedicalRecordsScreen({
             className="flex items-center gap-1.5 text-xs text-[#64748B] mt-1"
             style={{ fontFamily: RB }}
           >
-            <span>Patient Portal</span>
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.DASHBOARD)}
+              className="hover:text-[#0D47A1] transition-colors font-medium cursor-pointer"
+            >
+              Patient Portal
+            </button>
             <ChevronRight size={13} className="text-slate-300" />
             <span className="font-medium text-[#111827]">Medical Records</span>
           </div>

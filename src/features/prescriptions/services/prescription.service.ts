@@ -8,12 +8,31 @@ import type {
 } from "../types/prescription.types";
 import type { ApiPatientPrescription } from "../../patients/types/patient.types";
 
+function parseDiagnosis(diag: unknown): string {
+  if (!diag) return "";
+  if (typeof diag === "string") return diag;
+  if (typeof diag === "object" && diag !== null) {
+    const d = diag as Record<string, unknown>;
+    return (
+      (d.finalDiagnosis as string) ||
+      (d.primaryDiagnosis as string) ||
+      (d.diagnosis as string) ||
+      (d.chiefComplaint as string) ||
+      (d.clinicalFindings as string) ||
+      (d.icdCode ? `ICD: ${d.icdCode}` : "") ||
+      ""
+    );
+  }
+  return String(diag);
+}
+
 export const prescriptionService = {
   mapApiToUnified: (
-    apiRx: ApiPatientPrescription,
+    apiRx: Record<string, unknown> | ApiPatientPrescription,
     fallbackPatientName?: string,
   ): UnifiedPrescription => {
-    const statusRaw = String(apiRx.status ?? "").toUpperCase();
+    const rx = apiRx as Record<string, unknown>;
+    const statusRaw = String(rx.status ?? rx.prescriptionStatus ?? "").toUpperCase();
     let status: RxStatus = "Issued";
     if (statusRaw.startsWith("DRAFT")) {
       status = "Draft";
@@ -28,31 +47,117 @@ export const prescriptionService = {
       status = "Archived";
     }
 
-    const medicines = (apiRx.medicines || []).map((m) => ({
-      name: m.medicineName || m.name || "",
-      strength: m.strength || "",
-      route: m.route || "ORAL",
-      dosage: m.dose != null ? String(m.dose) : m.dosage || "",
-      frequency: m.frequency != null ? String(m.frequency) : "",
-      duration: m.duration != null ? String(m.duration) : "",
-      instructions: m.instructions || "",
-    }));
+    const patientObj = (rx.patient as Record<string, unknown>) || {};
+    const doctorObj = (rx.doctor as Record<string, unknown>) || {};
+    const diagObj = (rx.diagnosis as Record<string, unknown>) || {};
+    const adviceObj = (rx.advice as Record<string, unknown>) || {};
+    const followUpObj = (rx.followUp as Record<string, unknown>) || (rx.followup as Record<string, unknown>) || {};
+
+    const patientName =
+      (patientObj.fullName as string) ||
+      (rx.patientName as string) ||
+      fallbackPatientName ||
+      "Patient";
+    const mrn =
+      (patientObj.mrn as string) ||
+      (rx.mrn as string) ||
+      (rx.patientMrn as string) ||
+      "";
+    const doctorName =
+      (doctorObj.fullName as string) ||
+      (doctorObj.doctorName as string) ||
+      (rx.doctorName as string) ||
+      "";
+    const department =
+      (doctorObj.department as string) ||
+      (rx.department as string) ||
+      "";
+
+    const rawMeds = Array.isArray(rx.medicines)
+      ? rx.medicines
+      : Array.isArray(rx.medications)
+        ? rx.medications
+        : [];
+
+    const medicines = (rawMeds as Array<Record<string, unknown>>).map((m) => {
+      const doseVal = m.dose || m.dosage;
+      const freqVal = m.frequency;
+      const durVal = m.duration;
+      const qtyVal = m.quantity;
+
+      const formatComplex = (v: unknown): string => {
+        if (v == null) return "";
+        if (typeof v === "string" || typeof v === "number") return String(v);
+        if (typeof v === "object") {
+          const o = v as Record<string, unknown>;
+          if (o.label) return String(o.label);
+          if (o.display) return String(o.display);
+          if (o.value != null) {
+            const unitStr = o.unit ? ` ${o.unit}` : "";
+            return `${o.value}${unitStr}`;
+          }
+          if (o.code) return String(o.code);
+        }
+        return String(v);
+      };
+
+      return {
+        name: String(m.medicineName || m.name || m.medicine || ""),
+        strength: String(m.strength || ""),
+        route: String(m.route || "ORAL"),
+        dosage: formatComplex(doseVal),
+        frequency: formatComplex(freqVal),
+        duration: formatComplex(durVal),
+        quantity: formatComplex(qtyVal),
+        instructions: String(m.instructions || m.specialInstructions || ""),
+      };
+    });
+
+    const followupDate =
+      (followUpObj.nextVisitDate as string) ||
+      (followUpObj.followUpDate as string) ||
+      (rx.followUpDate as string) ||
+      (rx.followupDate as string) ||
+      "";
+
+    const followupRequired =
+      followUpObj.required !== undefined
+        ? Boolean(followUpObj.required)
+        : !!followupDate;
 
     return {
-      id: String(apiRx.id ?? ""),
-      patientName: fallbackPatientName || "Patient",
-      mrn: "",
-      consultationId: "",
-      department: apiRx.department || "",
-      consultationDate: apiRx.date || "",
-      medicineCount: apiRx.medicineCount || medicines.length,
-      followup: !!apiRx.followUpDate,
-      followupDate: apiRx.followUpDate || "",
+      id: String(rx.prescriptionId || rx.id || rx.prescriptionNumber || ""),
+      patientName,
+      mrn,
+      consultationId: String(rx.consultationId || rx.encounterId || rx.appointmentId || ""),
+      department,
+      consultationDate: String(rx.consultationDate || rx.date || rx.visitDateTime || rx.createdAt || ""),
+      medicineCount: (rx.medicineCount as number) || medicines.length,
+      followup: followupRequired,
+      followupDate,
       status,
-      doctorName: apiRx.doctorName || "",
-      diagnosis: apiRx.diagnosis || "",
+      doctorName,
+      diagnosis: parseDiagnosis(rx.diagnosis),
       medicines,
-    };
+      age: patientObj.age ? String(patientObj.age) : (rx.age ? String(rx.age) : undefined),
+      gender: (patientObj.gender as string) || (rx.gender as string),
+      bloodGroup: (patientObj.bloodGroup as string) || (rx.bloodGroup as string),
+      allergies: Array.isArray(patientObj.allergies)
+        ? (patientObj.allergies as string[])
+        : Array.isArray(rx.allergies)
+          ? (rx.allergies as string[])
+          : undefined,
+      chiefComplaint: (diagObj.chiefComplaint as string) || (rx.chiefComplaint as string),
+      clinicalFindings: (diagObj.clinicalFindings as string) || (rx.clinicalFindings as string),
+      finalDiagnosis: (diagObj.finalDiagnosis as string) || (rx.finalDiagnosis as string),
+      icdCode: (diagObj.icdCode as string) || (rx.icdCode as string),
+      doctorNotes: (diagObj.doctorNotes as string) || (rx.doctorNotes as string),
+      dietAdvice: (adviceObj.diet as string) || (adviceObj.dietAdvice as string) || (rx.dietAdvice as string),
+      lifestyleAdvice: (adviceObj.lifestyle as string) || (adviceObj.lifestyleAdvice as string) || (rx.lifestyleAdvice as string),
+      exerciseAdvice: (adviceObj.exercise as string) || (adviceObj.exerciseAdvice as string) || (rx.exerciseAdvice as string),
+      specialInstructions: (adviceObj.specialInstructions as string) || (adviceObj.precautions as string) || (rx.specialInstructions as string),
+      followupNotes: (followUpObj.notes as string) || (followUpObj.instructions as string) || (rx.followupNotes as string),
+    } as UnifiedPrescription;
   },
 
   mapPatientSummaryToUnified: (
@@ -81,7 +186,7 @@ export const prescriptionService = {
       followupDate: rx.followUp?.followUpDate || "",
       status,
       doctorName: rx.doctor?.doctorName || "",
-      diagnosis: rx.diagnosis?.primaryDiagnosis || "",
+      diagnosis: parseDiagnosis(rx.diagnosis),
       medicines: sampleMedicines.map((name) => ({
         name,
         strength: "",
@@ -160,9 +265,11 @@ export const prescriptionService = {
   ): Promise<UnifiedPrescription | null> => {
     prescriptionStoreActions.setLoading(true);
     try {
-      const apiRx = await prescriptionApi.getPrescriptionById(id);
+      const apiRx =
+        (await prescriptionApi.getPrescriptionById(id)) ||
+        (await prescriptionApi.getPrescriptionDetails(id));
       if (apiRx) {
-        const unified = prescriptionService.mapApiToUnified(apiRx);
+        const unified = prescriptionService.mapApiToUnified(apiRx as Record<string, unknown>);
         prescriptionStoreActions.setSelectedPrescription(unified);
         return unified;
       }

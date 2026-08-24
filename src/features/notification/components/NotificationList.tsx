@@ -139,7 +139,7 @@ export function NotificationList({
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-2 shrink-0">
+                  <div className="flex flex-row items-center gap-2 shrink-0">
                     <button
                       onClick={() => onOpenAction(item)}
                       className="rounded-lg border border-[#0D47A1]/20 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-[#0D47A1] hover:bg-blue-100"

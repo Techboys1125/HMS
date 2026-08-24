@@ -163,11 +163,16 @@ export const consultationApi = {
    */
   createEncounter: async (
     appointmentId: string | number,
+    patientId?: string | number,
   ): Promise<Encounter> => {
     try {
+      const payload: Record<string, unknown> = { appointmentId };
+      if (patientId) {
+        payload.patientId = patientId;
+      }
       const response = await apiClient.post<ApiEnvelope<Encounter> | Encounter>(
         "/api/v1/encounters",
-        { appointmentId },
+        payload,
       );
       return unwrap<Encounter>(response.data);
     } catch (error: unknown) {
@@ -429,13 +434,31 @@ export const consultationApi = {
   callPatientFromQueue: async (
     appointmentId: string | number,
   ): Promise<{ success: boolean; status: string }> => {
+    let numericId = appointmentId;
+    if (typeof appointmentId === "string" && appointmentId.includes("-")) {
+      const parsed = parseInt(appointmentId.split("-").pop() || "", 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        numericId = parsed;
+      }
+    }
     try {
       const response = await apiClient.patch<
         | ApiEnvelope<{ success: boolean; status: string }>
         | { success: boolean; status: string }
-      >(`/api/v1/queue/${appointmentId}/call`);
+      >(`/api/v1/queue/${numericId}/call`);
       return unwrap(response.data);
     } catch (error: unknown) {
+      if (numericId !== appointmentId) {
+        try {
+          const response = await apiClient.patch<
+            | ApiEnvelope<{ success: boolean; status: string }>
+            | { success: boolean; status: string }
+          >(`/api/v1/queue/${appointmentId}/call`);
+          return unwrap(response.data);
+        } catch {
+          // Handled by handleApiError below
+        }
+      }
       return handleApiError(error);
     }
   },

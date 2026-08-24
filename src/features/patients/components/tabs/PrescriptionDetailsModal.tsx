@@ -139,15 +139,17 @@ export function PrescriptionDetailsModal({
     new Date().toISOString().split("T")[0],
   );
   const status = formatField(details?.status || initialData?.status, "Issued");
-  const medicines = details?.medicines || initialData?.medicines || [];
+  const medicines = (details?.medicines || initialData?.medicines || []) as unknown as Array<Record<string, unknown>>;
   const diagnosis = formatField(initialData?.diagnosis || details?.outcome, "");
+  const detObj = details as unknown as Record<string, unknown>;
+  const followUpObj = (detObj?.followUp as Record<string, unknown>) || {};
   const followUpDate = formatField(
-    details?.followUp?.followUpDate ||
-      details?.followUp ||
+    followUpObj.followUpDate ||
+      detObj?.followUp ||
       initialData?.followUpDate,
     "",
   );
-  const advice = details?.advice;
+  const advice = detObj?.advice as Record<string, unknown> | undefined;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
@@ -273,7 +275,7 @@ export function PrescriptionDetailsModal({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {medicines.map((m, idx) => {
+                        {medicines.map((m: Record<string, unknown>, idx: number) => {
                           const medName = formatField(
                             m.medicineName || m.name,
                             `Medication #${idx + 1}`,
@@ -291,7 +293,7 @@ export function PrescriptionDetailsModal({
                           );
 
                           return (
-                            <tr key={medName || `med-${m.dosage}`} className="hover:bg-slate-50/50">
+                            <tr key={medName || `med-${m.dosage || idx}`} className="hover:bg-slate-50/50">
                               <td className="py-2.5 px-3 font-semibold text-[#111827]">
                                 {medName}
                                 {strength && (
@@ -323,25 +325,25 @@ export function PrescriptionDetailsModal({
 
               {/* Advice & Instructions */}
               {advice &&
-                (advice.general || advice.diet || advice.precautions) && (
+                Boolean(advice.general || advice.diet || advice.precautions) && (
                   <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-100 text-xs space-y-1.5">
                     <div className="flex items-center gap-1.5 text-amber-800 font-bold">
                       <AlertTriangle size={13} />
                       <span>Doctor&apos;s Advice &amp; Precautions</span>
                     </div>
-                    {advice.general && (
+                    {Boolean(advice.general) && (
                       <div className="text-amber-900">
                         <span className="font-semibold">General:</span>{" "}
                         {formatField(advice.general, "")}
                       </div>
                     )}
-                    {advice.diet && (
+                    {Boolean(advice.diet) && (
                       <div className="text-amber-900">
                         <span className="font-semibold">Diet:</span>{" "}
                         {formatField(advice.diet, "")}
                       </div>
                     )}
-                    {advice.precautions && (
+                    {Boolean(advice.precautions) && (
                       <div className="text-amber-900">
                         <span className="font-semibold">Precautions:</span>{" "}
                         {formatField(advice.precautions, "")}

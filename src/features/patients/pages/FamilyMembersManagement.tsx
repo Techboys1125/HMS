@@ -36,7 +36,7 @@ export type LinkActivity = {
   status: "Completed" | "Pending" | "Updated";
 };
 
-const MOCK_ACTIVITIES: LinkActivity[] = [];
+
 
 function calculateAge(dob?: string, ageVal?: number): number {
   if (typeof ageVal === "number" && ageVal > 0) return ageVal;
@@ -938,55 +938,7 @@ export function FamilyMembersManagement({
       )}
 
       {/* ── RECENT LINK ACTIVITY SECTION ── */}
-      <div className="bg-white p-6 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <h3
-            className="text-base font-bold text-[#111827]"
-            style={{ fontFamily: PP }}
-          >
-            Recent Link Activity
-          </h3>
-          <span className="text-xs text-[#64748B]" style={{ fontFamily: RB }}>
-            Audit log of profile switches & modifications
-          </span>
-        </div>
-
-        <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#E5E7EB]">
-          {MOCK_ACTIVITIES.map((act) => (
-            <div
-              key={act.id}
-              className="relative flex items-start justify-between gap-4 text-xs"
-            >
-              <div className="absolute -left-6 top-0.5 w-2.5 h-2.5 rounded-full bg-[#0D47A1] ring-4 ring-white" />
-              <div>
-                <div
-                  className="font-semibold text-[#111827]"
-                  style={{ fontFamily: PP }}
-                >
-                  {act.activity}
-                </div>
-                <div
-                  className="text-[#64748B] mt-0.5"
-                  style={{ fontFamily: RB }}
-                >
-                  {act.date} · {act.time}
-                </div>
-              </div>
-              <span
-                className={`px-2 py-0.5 rounded-md text-[10px] font-semibold shrink-0 ${
-                  act.status === "Completed"
-                    ? "bg-emerald-50 text-[#66BB6A]"
-                    : act.status === "Pending"
-                      ? "bg-amber-50 text-[#F59E0B]"
-                      : "bg-blue-50 text-[#0D47A1]"
-                }`}
-              >
-                {act.status}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+      
 
       {/* ══════════════════════════════════════════════════════════════════
           ── FAMILY MEMBER DETAILS DRAWER (VIEW) ──

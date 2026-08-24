@@ -96,6 +96,12 @@ export function PatientMyBillsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2.5 shrink-0">
+          {/*  <button
+          onClick={() => navigate(ROUTES.DASHBOARD)}
+          className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-100"
+        >
+          Back
+        </button> */}
           <button
             onClick={() => window.print()}
             className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm"
@@ -199,7 +205,7 @@ export function PatientMyBillsPage() {
       {/* 3. SEARCH & FILTER */}
       <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
         <div
-          className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs"
+          className="grid grid-cols- md:grid-cols-4 gap-3 text-xs"
           style={{ fontFamily: RB }}
         >
           <div className="md:col-span-2 relative">
@@ -227,8 +233,6 @@ export function PatientMyBillsPage() {
               <option value="Pending">Pending</option>
             </select>
           </div>
-        </div>
-        <div className="flex items-center justify-end gap-2">
           <button
             onClick={handleResetFilters}
             className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors text-xs"
@@ -319,7 +323,7 @@ export function PatientMyBillsPage() {
                       {inv.invoiceDate}
                     </td>
                     <td className="py-3 px-4 text-slate-700 font-medium">
-                      {inv.doctorName}
+                      {inv.doctorName || "—"}
                     </td>
                     <td className="py-3 px-4 text-right text-slate-700">
                       ₹{inv.invoiceAmount.toLocaleString()}
@@ -387,23 +391,6 @@ export function PatientMyBillsPage() {
             </table>
           </div>
         )}
-      </div>
-
-      {/* BOTTOM STICKY BAR */}
-      <div className="sticky bottom-0 -mx-4 md:-mx-6 -mb-4 md:-mb-6 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] p-3.5 px-6 z-40 flex items-center justify-between shadow-lg">
-        <button
-          onClick={() => navigate(ROUTES.DASHBOARD)}
-          className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-100"
-        >
-          Back to Dashboard
-        </button>
-        <button
-          onClick={() => window.print()}
-          className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-blue-900 transition-colors shadow-sm"
-          style={{ fontFamily: PP }}
-        >
-          <Printer size={15} /> Print Summary
-        </button>
       </div>
     </div>
   );

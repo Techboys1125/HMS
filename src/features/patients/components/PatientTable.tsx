@@ -16,6 +16,25 @@ import { extractDoctorName } from "../api/mapApiPatientToPatientRecord";
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
 
+function calculateAge(dateOfBirth?: string): number {
+  if (!dateOfBirth) return 0;
+
+  const dob = new Date(dateOfBirth);
+  if (Number.isNaN(dob.getTime())) return 0;
+
+  const today = new Date();
+
+  let age = today.getFullYear() - dob.getFullYear();
+
+  const monthDiff = today.getMonth() - dob.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+    age--;
+  }
+
+  return age >= 0 ? age : 0;
+}
+
 function Avatar({
   name,
   size = "sm",
@@ -137,8 +156,14 @@ export function PatientTable({
           valB = (b.patientName || b.name || "").toLowerCase();
           break;
         case "age_gender":
-          valA = a.age || 0;
-          valB = b.age || 0;
+          valA =
+            Number(a.age) > 0
+              ? Number(a.age)
+              : calculateAge(a.dateOfBirth || a.dob);
+          valB =
+            Number(b.age) > 0
+              ? Number(b.age)
+              : calculateAge(b.dateOfBirth || b.dob);
           break;
         case "phone":
           valA = a.phone || "";
@@ -353,9 +378,26 @@ export function PatientTable({
               {paginatedPatients.map((p) => {
                 const mrn = p.mrn || String(p.id);
                 const name = (p.patientName || p.name || "").trim();
-                const age = p.age || 0;
+                const rawP = p as unknown as Record<string, unknown>;
+                const dobStr =
+                  p.dateOfBirth ||
+                  p.dob ||
+                  (rawP.birthDate as string) ||
+                  (rawP.date_of_birth as string) ||
+                  "";
+                const calculatedAge = calculateAge(dobStr);
+                const age =
+                  p.age !== undefined && p.age !== null && Number(p.age) > 0
+                    ? Number(p.age)
+                    : rawP.patientAge !== undefined && Number(rawP.patientAge) > 0
+                      ? Number(rawP.patientAge)
+                      : calculatedAge;
                 const gender =
-                  p.gender === "FEMALE" || p.gender === "F" ? "Female" : "Male";
+                  p.gender === "FEMALE" || p.gender === "F"
+                    ? "Female"
+                    : p.gender === "MALE" || p.gender === "M"
+                      ? "Male"
+                      : "-";
                 const phone = p.phone || "-";
                 const email = p.email || "-";
                 const category = (p.patientCategory || "GENERAL")
@@ -407,7 +449,7 @@ export function PatientTable({
 
                     {columns.some((c) => c.key === "age_gender") && (
                       <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-700 font-medium">
-                        {age} Y · {gender}
+                        {age > 0 ? `${age} Y · ${gender}` : gender}
                       </td>
                     )}
 

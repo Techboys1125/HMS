@@ -12,10 +12,6 @@ import {
   Phone,
   Plus,
   FolderOpen,
-  CheckCircle2,
-  X,
-  Printer,
-  FileText,
 } from "lucide-react";
 import { usePermissions } from "../../../permissions/usePermissions";
 import { useConsultation } from "../hooks/useConsultation";
@@ -24,7 +20,6 @@ import {
   type ConsultationRecord,
   type OauthRole,
   type ConsultationStatus,
-  type MedicineItem,
   appointmentStatusMap,
   isDoctorConsultationStatus,
 } from "../types/consultation";
@@ -34,6 +29,8 @@ import { useAuthStore } from "../../auth/store/auth.store";
 import { normalizeStatus } from "../../../lib/status-utils";
 import { getTodayDateString } from "../../../lib/time-utils";
 import { EncounterPrescriptionViewModal } from "../../prescriptions/components/EncounterPrescriptionViewModal";
+import { ConsultationDetailsScreen } from "../components/ConsultationDetailsScreen";
+import { ConsultationHistoryScreen } from "../components/ConsultationHistoryScreen";
 
 import { ConsultationHeader } from "../components/ConsultationHeader";
 import { ConsultationKPICards } from "../components/ConsultationKPICards";
@@ -56,7 +53,31 @@ export interface OPDConsultationPageProps {
   onExportReport?: () => void;
 }
 
-function mapQueueItemToConsultation(item: QueueItem): ConsultationRecord {
+function calculateAge(dateOfBirth?: string): number {
+  if (!dateOfBirth) return 0;
+  const dob = new Date(dateOfBirth);
+  if (Number.isNaN(dob.getTime())) return 0;
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const monthDiff = today.getMonth() - dob.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+    age--;
+  }
+  return age >= 0 ? age : 0;
+}
+
+function normalizeGender(gender?: string): "Male" | "Female" | "Other" {
+  const g = (gender || "").toUpperCase().trim();
+  if (g === "MALE" || g === "M") return "Male";
+  if (g === "FEMALE" || g === "F") return "Female";
+  return "Other";
+}
+
+function mapQueueItemToConsultation(
+  item: QueueItem,
+  defaultDoctorName?: string,
+  defaultDepartment?: string,
+): ConsultationRecord {
   const statusMap: Record<string, ConsultationStatus> = {
     WAITING: "WAITING_FOR_DOCTOR",
     WAITING_FOR_VITALS: "WAITING_FOR_VITALS",
@@ -83,33 +104,153 @@ function mapQueueItemToConsultation(item: QueueItem): ConsultationRecord {
     "";
   const normalizedStatus = normalizeStatus(rawStatus);
 
+  const rawItem = item as unknown as Record<string, unknown>;
+  const patientObj = (item.patient || rawItem.patient || {}) as unknown as Record<
+    string,
+    unknown
+  >;
+  const doctorObj = (item.doctor || rawItem.doctor || {}) as unknown as Record<
+    string,
+    unknown
+  >;
+
+  const doctorName =
+    item.doctor?.name ||
+    (doctorObj.name as string) ||
+    (doctorObj.fullName as string) ||
+    (rawItem.doctorName as string) ||
+    (rawItem.doctorFullName as string) ||
+    (typeof rawItem.doctor === "string"
+      ? rawItem.doctor
+      : (rawItem.doctor as Record<string, unknown>)?.name as string) ||
+    defaultDoctorName ||
+    "—";
+
+  const departmentName =
+    item.doctor?.department ||
+    item.doctor?.specialty ||
+    (doctorObj.department as string) ||
+    (doctorObj.specialty as string) ||
+    (rawItem.departmentName as string) ||
+    (typeof rawItem.department === "string"
+      ? (rawItem.department as string)
+      : ((rawItem.department as Record<string, unknown>)?.departmentName as string) ||
+        ((rawItem.department as Record<string, unknown>)?.name as string)) ||
+    (rawItem.deptName as string) ||
+    (rawItem.dept as string) ||
+    (rawItem.specialty as string) ||
+    (rawItem.doctorSpecialty as string) ||
+    defaultDepartment ||
+    "OPD";
+
+  const tokenNo =
+    item.token ||
+    item.appointmentNumber ||
+    (rawItem.token as string) ||
+    (rawItem.appointmentNumber as string) ||
+    (rawItem.tokenNumber as string) ||
+    (rawItem.queueToken as string) ||
+    (rawItem.tokenNo ? String(rawItem.tokenNo) : "") ||
+    (item.queueNumber ? `T-${String(item.queueNumber).padStart(3, "0")}` : "");
+
+  const apptTime =
+    item.appointmentTime ||
+    item.checkInTime ||
+    (rawItem.appointmentTime as string) ||
+    (rawItem.checkInTime as string) ||
+    (rawItem.time as string) ||
+    (rawItem.slotTime as string) ||
+    (rawItem.scheduleTime as string) ||
+    (rawItem.scheduledTime as string) ||
+    (rawItem.visitTime as string) ||
+    (rawItem.startTime as string) ||
+    (rawItem.createdAt as string) ||
+    (rawItem.createdDate as string) ||
+    (rawItem.date as string) ||
+    "";
+
+  const patientName =
+    item.patient?.name ||
+    (patientObj.name as string) ||
+    (patientObj.fullName as string) ||
+    (rawItem.patientName as string) ||
+    "";
+
+  const mrn =
+    item.patient?.mrn ||
+    (patientObj.mrn as string) ||
+    (rawItem.mrn as string) ||
+    (rawItem.patientMrn as string) ||
+    "";
+
+  const phone =
+    item.patient?.contact ||
+    (patientObj.contact as string) ||
+    (patientObj.phone as string) ||
+    (patientObj.mobile as string) ||
+    (rawItem.patientPhone as string) ||
+    (rawItem.phone as string) ||
+    (rawItem.mobile as string) ||
+    "";
+
   return {
-    id: String(item.appointmentId),
-    appointmentId: item.appointmentId,
-    tokenNo: item.token || "",
-    patientName: item.patient?.name || "",
-    mrn: item.patient?.mrn || "",
-    age: Number(item.patient?.age || 0),
-    gender: (item.patient?.gender === "FEMALE"
-      ? "Female"
-      : item.patient?.gender === "MALE"
-        ? "Male"
-        : "Other") as "Male" | "Female" | "Other",
-    phone: item.patient?.contact || "",
-    doctor: item.doctor?.name || "",
-    department: item.doctor?.department || "",
-    appointmentTime: item.checkInTime || "",
-    visitType: "First Visit" as const,
+    id: String(
+      item.appointmentId ||
+        (rawItem.appointmentId as number) ||
+        (rawItem.appointment as Record<string, unknown>)?.id ||
+        rawItem.id ||
+        rawItem.queueId ||
+        "",
+    ),
+    appointmentId:
+      item.appointmentId ||
+      (rawItem.appointmentId as number) ||
+      ((rawItem.appointment as Record<string, unknown>)?.id as number) ||
+      (rawItem.id as number),
+    patientId:
+      (item.patient as unknown as { id?: number | string })?.id ||
+      (patientObj.id as number | string) ||
+      (rawItem.patientId as number | string) ||
+      (rawItem.patient_id as number | string),
+    tokenNo,
+    patientName,
+    mrn,
+    age:
+      item.patient?.age && item.patient.age > 0
+        ? item.patient.age
+        : calculateAge(
+            item.patient?.dateOfBirth ||
+              (patientObj.dateOfBirth as string) ||
+              (rawItem.dob as string),
+          ),
+    gender: normalizeGender(
+      item.patient?.gender ||
+        (patientObj.gender as string) ||
+        (rawItem.gender as string),
+    ),
+    phone,
+    doctor: doctorName,
+    department: departmentName,
+    appointmentTime: apptTime,
+    visitType: (item.visitType === "Follow-up"
+      ? "Follow-up"
+      : item.visitType === "Walk-In"
+        ? "Walk-In"
+        : item.visitType === "New Consultation"
+          ? "New Consultation"
+          : "First Visit") as ConsultationRecord["visitType"],
     status:
       statusMap[normalizedStatus] || (normalizedStatus as ConsultationStatus),
     chiefComplaint: "",
     opdRoom: "",
     date:
-      item.checkInTime?.split("T")[0] || new Date().toISOString().split("T")[0],
+      item.appointmentTime?.split("T")[0] ||
+      item.checkInTime?.split("T")[0] ||
+      new Date().toISOString().split("T")[0],
     vitals: undefined,
     clinicalExamination: undefined,
     advice: undefined,
-    doctorName: item.doctor?.name || "",
+    doctorName,
     completionTime: "",
     allergies: [],
     bloodGroup: "",
@@ -176,17 +317,31 @@ export function OPDConsultationPage({
   const [activeTab, setActiveTab] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(false);
 
+  const currentDoctorName = isDoctor
+    ? user?.fullName || user?.name
+      ? `Dr. ${user?.fullName || user?.name}`
+      : ""
+    : "";
+  const currentDepartment = isDoctor
+    ? String(user?.doctorProfile?.department || user?.department || "")
+    : "";
+
   const mappedConsultations = useMemo(() => {
-    return queueItems.map(mapQueueItemToConsultation);
-  }, [queueItems]);
+    return queueItems.map((item) =>
+      mapQueueItemToConsultation(item, currentDoctorName, currentDepartment),
+    );
+  }, [queueItems, currentDoctorName, currentDepartment]);
 
   // Both Admin and Doctor roles on the Consultation page show queue items across the hospital / doctor
   // that have reached the doctor consultation stage (or completed history), excluding pre-vitals statuses.
   const consultations = useMemo(() => {
+    if (resolvedRole === "admin") {
+      return mappedConsultations;
+    }
     return mappedConsultations.filter((item) =>
       isDoctorConsultationStatus(item.status),
     );
-  }, [mappedConsultations]);
+  }, [mappedConsultations, resolvedRole]);
 
   type FilterState = {
     filterDate: string;
@@ -219,7 +374,6 @@ export function OPDConsultationPage({
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [selectedPrescriptionRecord, setSelectedPrescriptionRecord] =
     useState<ConsultationRecord | null>(null);
-  const [isLoadingPrescription] = useState(false);
   const [viewPrescriptionEncounterId, setViewPrescriptionEncounterId] =
     useState<string | number | null>(null);
 
@@ -461,8 +615,9 @@ export function OPDConsultationPage({
     if (!waitingStatuses.has(statusUpper as ConsultationStatus)) {
       return;
     }
-    const aptId = record.appointmentId || record.id;
-    await apiCallPatient(aptId);
+    const primaryId = record.appointmentId || record.id;
+    const secondaryId = record.tokenNo || record.id;
+    await apiCallPatient(primaryId, secondaryId);
     await refetch();
   };
 
@@ -479,7 +634,7 @@ export function OPDConsultationPage({
       await apiStartConsultation(
         {
           id: record.id,
-          patientId: record.id,
+          patientId: record.patientId || record.id,
           patientName: record.patientName,
           doctorId: 0,
           doctorName: record.doctor,
@@ -546,6 +701,95 @@ export function OPDConsultationPage({
       count: tabCounts.COMPLETED || 0,
     },
   ];
+
+  const [viewingHistoryMrn, setViewingHistoryMrn] = useState<string | null>(null);
+
+  if (viewingHistoryMrn) {
+    return (
+      <ConsultationHistoryScreen
+        patientId={viewingHistoryMrn}
+        role={resolvedRole}
+        onBack={() => setViewingHistoryMrn(null)}
+        onStartNewConsultation={() => {
+          setViewingHistoryMrn(null);
+          onStartConsultation?.();
+        }}
+        onViewFullConsultation={(encId) => {
+          setViewingHistoryMrn(null);
+          handleViewPrescriptionDetails(encId);
+        }}
+        onPatientSelect={(mrn) => {
+          setViewingHistoryMrn(null);
+          onPatientSelect?.(mrn);
+        }}
+      />
+    );
+  }
+
+  if (selectedPrescriptionRecord) {
+    const pRec = selectedPrescriptionRecord as unknown as Record<string, unknown>;
+    const pSub = (pRec.patient as Record<string, unknown>) || {};
+    return (
+      <ConsultationDetailsScreen
+        consultationId={selectedPrescriptionRecord.id}
+        encounterId={selectedPrescriptionRecord.encounterId || selectedPrescriptionRecord.id}
+        initialRecord={{
+          id: `ENC-${selectedPrescriptionRecord.encounterId || selectedPrescriptionRecord.id}`,
+          visitDate: selectedPrescriptionRecord.date,
+          completionTime: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          patientName: selectedPrescriptionRecord.patientName,
+          mrn: selectedPrescriptionRecord.mrn,
+          age: selectedPrescriptionRecord.age,
+          gender: selectedPrescriptionRecord.gender,
+          bloodGroup: (pRec.bloodGroup as string) || (pSub.bloodGroup as string) || "—",
+          doctorName: selectedPrescriptionRecord.doctorName || selectedPrescriptionRecord.doctor,
+          department: selectedPrescriptionRecord.department,
+          visitType: selectedPrescriptionRecord.visitType,
+          chiefComplaint: selectedPrescriptionRecord.chiefComplaint || "None recorded",
+          vitals: {
+            height: selectedPrescriptionRecord.vitals?.height || "—",
+            weight: selectedPrescriptionRecord.vitals?.weight || "—",
+            bmi: selectedPrescriptionRecord.vitals?.bmi || "—",
+            temperature: selectedPrescriptionRecord.vitals?.temp || "—",
+            bp: selectedPrescriptionRecord.vitals?.bp || "—",
+            pulse: selectedPrescriptionRecord.vitals?.pulse || "—",
+            respiratoryRate: selectedPrescriptionRecord.vitals?.respiratoryRate || "—",
+            spo2: selectedPrescriptionRecord.vitals?.spo2 || "—",
+            bloodSugar: selectedPrescriptionRecord.vitals?.bloodSugar || "—",
+          },
+          clinicalExamination: selectedPrescriptionRecord.clinicalExamination || "—",
+          provisionalDiagnosis: "Recorded",
+          finalDiagnosis: selectedPrescriptionRecord.finalDiagnosis || "Recorded",
+          icdCode: selectedPrescriptionRecord.icdCode || "—",
+          medicines: (selectedPrescriptionRecord.medicines || []).map((m, idx: number) => {
+            const medObj = m as unknown as Record<string, unknown>;
+            return {
+              id: String(medObj.id || idx + 1),
+              name: String(medObj.name || "Medication"),
+              dosage: String(medObj.dosage || "1 tab"),
+              frequency: String(medObj.frequency || "Once daily"),
+              duration: String(medObj.duration || "5 days"),
+              instructions: String(medObj.instructions || "After food"),
+            };
+          }),
+          investigations: [],
+          investigationRemarks: "—",
+          symptoms: "—",
+          assessment: "—",
+          advice: "Follow doctor advice",
+          lifestyleRecommendations: "—",
+          followupRequired: "No",
+          nextVisitDate: selectedPrescriptionRecord.date || "—",
+          followupNotes: "—",
+          status: "Completed",
+          tokenNo: selectedPrescriptionRecord.tokenNo || "TK-01",
+        }}
+        onBack={() => setSelectedPrescriptionRecord(null)}
+        onViewHistory={(mrn) => setViewingHistoryMrn(mrn || selectedPrescriptionRecord.mrn)}
+        onViewPatientProfile={(mrn) => onPatientSelect?.(mrn || selectedPrescriptionRecord.mrn)}
+      />
+    );
+  }
 
   return (
     <div className="flex-1 bg-[#F1F5F9] overflow-y-auto flex flex-col font-sans">
@@ -673,6 +917,8 @@ export function OPDConsultationPage({
                 ? "Search by Patient Name, MRN, Consultation ID or Mobile Number..."
                 : "Search by Patient Name, MRN, Consultation ID or Doctor Name..."
             }
+            showDoctorFilter={resolvedRole !== "doctor"}
+            showDepartmentFilter={resolvedRole !== "doctor"}
             doctorOptions={doctorOptions}
             departmentOptions={departmentOptions}
             showStatusFilter={true}
@@ -712,7 +958,7 @@ export function OPDConsultationPage({
               void alert(`Printed Operational Summary for ${item.id}`)
             }
             onResetFilters={handleResetFilters}
-            canStartConsultation={can("CONSULTATION_START")}
+            canStartConsultation={resolvedRole === "doctor"}
             canPrint={can("CONSULTATION_PRINT")}
           />
         </div>
@@ -725,301 +971,7 @@ export function OPDConsultationPage({
         tabCounts={tabCounts}
       />
 
-      {/* ── CONSULTATION FINALIZED / PRESCRIPTION SUMMARY MODAL ── */}
-      {selectedPrescriptionRecord && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-4xl w-full shadow-2xl p-8 border border-slate-100 animate-in fade-in duration-200 my-8">
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 no-print">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-50 rounded-2xl text-emerald-600">
-                  <CheckCircle2 size={28} />
-                </div>
-                <div>
-                  <h2
-                    className="text-xl font-bold text-slate-800"
-                    style={{ fontFamily: PP }}
-                  >
-                    Consultation Finalized
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    The encounter has been completed and saved successfully.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setSelectedPrescriptionRecord(null)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
 
-            {/* Printable Content Wrapper */}
-            <div className="space-y-6 flex-1 mt-6">
-              {isLoadingPrescription && (
-                <div className="py-2 text-center text-xs text-[#0D47A1] font-semibold flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-[#0D47A1] border-t-transparent rounded-full animate-spin"></div>
-                  Loading complete consultation record...
-                </div>
-              )}
-
-              {/* Patient & Encounter Details Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Patient Details */}
-                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
-                  <h3
-                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                    style={{ fontFamily: PP }}
-                  >
-                    Patient Information
-                  </h3>
-                  <div className="grid grid-cols-2 gap-y-2 text-xs">
-                    <span className="text-slate-500">Name:</span>
-                    <span className="font-bold text-slate-800">
-                      {selectedPrescriptionRecord.patientName}
-                    </span>
-                    <span className="text-slate-500">MRN:</span>
-                    <span className="font-mono font-bold text-slate-800">
-                      {selectedPrescriptionRecord.mrn}
-                    </span>
-                    <span className="text-slate-500">Age / Gender:</span>
-                    <span className="font-bold text-slate-800">
-                      {selectedPrescriptionRecord.age} Years /{" "}
-                      {selectedPrescriptionRecord.gender}
-                    </span>
-                    <span className="text-slate-500">Phone:</span>
-                    <span className="font-bold text-slate-800">
-                      {selectedPrescriptionRecord.phone}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Encounter Details */}
-                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
-                  <h3
-                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                    style={{ fontFamily: PP }}
-                  >
-                    Encounter Details
-                  </h3>
-                  <div className="grid grid-cols-2 gap-y-2 text-xs">
-                    <span className="text-slate-500">Encounter ID:</span>
-                    <span className="font-mono font-bold text-slate-800">
-                      ENC-
-                      {selectedPrescriptionRecord.encounterId ||
-                        selectedPrescriptionRecord.id}
-                    </span>
-                    <span className="text-slate-500">Doctor Name:</span>
-                    <span className="font-bold text-slate-800">
-                      {selectedPrescriptionRecord.doctorName ||
-                        selectedPrescriptionRecord.doctor}
-                    </span>
-                    <span className="text-slate-500">Department:</span>
-                    <span className="font-bold text-slate-800">
-                      {selectedPrescriptionRecord.department}
-                    </span>
-                    <span className="text-slate-500">Visit Type:</span>
-                    <span className="font-bold text-slate-800">
-                      {selectedPrescriptionRecord.visitType}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Clinical Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                  <h3
-                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                    style={{ fontFamily: PP }}
-                  >
-                    Symptoms & SOAP Notes
-                  </h3>
-                  <div className="space-y-2 text-xs">
-                    <div>
-                      <span className="font-bold text-slate-700 block">
-                        Chief Complaint:
-                      </span>
-                      <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1">
-                        {selectedPrescriptionRecord.chiefComplaint || "None"}
-                      </span>
-                    </div>
-                    {selectedPrescriptionRecord.clinicalExamination && (
-                      <div>
-                        <span className="font-bold text-slate-700 block">
-                          Clinical Examination:
-                        </span>
-                        <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1">
-                          {selectedPrescriptionRecord.clinicalExamination}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                  <h3
-                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                    style={{ fontFamily: PP }}
-                  >
-                    Diagnosis
-                  </h3>
-                  <div className="space-y-2 text-xs">
-                    <div>
-                      <span className="font-bold text-slate-700 block">
-                        Final Diagnosis:
-                      </span>
-                      <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1 font-semibold">
-                        {selectedPrescriptionRecord.finalDiagnosis ||
-                          "Recorded"}
-                      </span>
-                    </div>
-                    {selectedPrescriptionRecord.icdCode && (
-                      <div>
-                        <span className="font-bold text-slate-700 block">
-                          ICD-10 Code:
-                        </span>
-                        <span className="font-mono text-[#0D47A1] block bg-blue-50 p-2 rounded-lg mt-1 font-semibold">
-                          {selectedPrescriptionRecord.icdCode}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Prescribed Medications */}
-              {selectedPrescriptionRecord.medicines &&
-                selectedPrescriptionRecord.medicines.length > 0 && (
-                  <div className="border border-slate-100 rounded-2xl p-5 space-y-3">
-                    <h3
-                      className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                      style={{ fontFamily: PP }}
-                    >
-                      Prescribed Medications (Rx)
-                    </h3>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs border-collapse">
-                        <thead>
-                          <tr className="border-b border-slate-100 text-slate-400 font-medium">
-                            <th className="py-2 pr-4 font-bold text-slate-500">
-                              Medicine
-                            </th>
-                            <th className="py-2 px-4 font-bold text-slate-500">
-                              Dosage
-                            </th>
-                            <th className="py-2 px-4 font-bold text-slate-500">
-                              Frequency
-                            </th>
-                            <th className="py-2 px-4 font-bold text-slate-500">
-                              Duration
-                            </th>
-                            <th className="py-2 pl-4 font-bold text-slate-500">
-                              Instructions
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                          {selectedPrescriptionRecord.medicines.map(
-                            (med: MedicineItem) => (
-                              <tr
-                                key={med.id || med.name}
-                                className="text-slate-700"
-                              >
-                                <td className="py-2.5 pr-4 font-bold text-slate-800">
-                                  {med.name}
-                                </td>
-                                <td className="py-2.5 px-4">{med.dosage}</td>
-                                <td className="py-2.5 px-4">{med.frequency}</td>
-                                <td className="py-2.5 px-4">{med.duration}</td>
-                                <td className="py-2.5 pl-4 text-slate-500 italic">
-                                  {med.instructions || "After food"}
-                                </td>
-                              </tr>
-                            ),
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-              {/* Advice & Follow-up */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                  <h3
-                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                    style={{ fontFamily: PP }}
-                  >
-                    General & Diet Advice
-                  </h3>
-                  <div className="space-y-2 text-xs">
-                    <div>
-                      <span className="font-bold text-slate-700 block">
-                        General Advice:
-                      </span>
-                      <span className="text-slate-600 block mt-1">
-                        {selectedPrescriptionRecord.chiefComplaint ||
-                          "Follow doctor advice"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                  <h3
-                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                    style={{ fontFamily: PP }}
-                  >
-                    Follow-up Instructions
-                  </h3>
-                  <div className="p-3 bg-amber-50/60 border border-amber-100 rounded-xl text-xs">
-                    <span className="font-bold text-amber-800 block">
-                      Next Recommended Visit:
-                    </span>
-                    <span className="font-mono text-amber-700 block font-bold mt-0.5">
-                      {selectedPrescriptionRecord.date}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="pt-6 mt-6 border-t border-slate-100 flex items-center justify-between no-print">
-              <button
-                onClick={() => setSelectedPrescriptionRecord(null)}
-                className="px-5 py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors"
-                style={{ fontFamily: PP }}
-              >
-                Close & Exit
-              </button>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    const encId =
-                      selectedPrescriptionRecord?.encounterId ||
-                      selectedPrescriptionRecord?.id;
-                    if (encId) setViewPrescriptionEncounterId(encId);
-                  }}
-                  className="px-6 py-2.5 bg-[#009688] hover:bg-[#00796B] text-white rounded-xl text-xs font-bold transition-colors shadow-md flex items-center gap-2"
-                  style={{ fontFamily: PP }}
-                >
-                  <FileText size={16} /> View Prescription
-                </button>
-                <button
-                  onClick={() => window.print()}
-                  className="px-6 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-colors shadow-md flex items-center gap-2"
-                  style={{ fontFamily: PP }}
-                >
-                  <Printer size={16} /> Print Summary
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* View Prescription Modal */}
       <EncounterPrescriptionViewModal

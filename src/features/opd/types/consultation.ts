@@ -74,6 +74,7 @@ export interface ConsultationRecord {
   doctorExperience?: string;
   id: string;
   appointmentId?: string | number;
+  patientId?: string | number;
   encounterId?: string | number;
   tokenNo: string;
   patientName: string;

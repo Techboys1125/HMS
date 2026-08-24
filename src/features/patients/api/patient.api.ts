@@ -1,4 +1,4 @@
-import { apiClient, axios, ApiError } from "../../../lib/axios";
+import { apiClient, axios, ApiError, API_BASE_URL } from "../../../lib/axios";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { triggerNotificationMatrix } from "../../notification/services/notificationTrigger";
 import { billingService } from "../../billing/services/billing.service";
@@ -816,9 +816,15 @@ export const patientsApi = {
     }
 
     try {
+      const baseUrl = API_BASE_URL.replace(/\/$/, "");
+      const url =
+        mrn && !mrn.includes("MRN-PATIENT") && !mrn.includes("Generating")
+          ? `${baseUrl}/api/v1/patients/me/queue?mrn=${encodeURIComponent(mrn)}`
+          : `${baseUrl}/api/v1/patients/me/queue`;
+
       const response = await apiClient.get<
         PatientApiResponse<QueueData> | QueueData
-      >("/api/v1/patients/me/queue");
+      >(url);
 
       const body = response.data;
 
@@ -1067,7 +1073,7 @@ export const patientsApi = {
 
       let rawList: Record<string, unknown>[] = [];
 
-      // 1. Primary: GET /api/v1/patients/{mrn}/prescriptions (confirmed endpoint)
+      // 1. GET /api/v1/patients/{mrn}/prescriptions (confirmed endpoint)
       try {
         const res = await apiClient.get<unknown>(
           `/api/v1/patients/${encodeURIComponent(mrn)}/prescriptions`,
@@ -1075,18 +1081,6 @@ export const patientsApi = {
         rawList = extractList(res.data);
       } catch {
         // continue
-      }
-
-      // 2. Fallback: /api/v1/prescriptions?mrn=...
-      if (rawList.length === 0) {
-        try {
-          const res = await apiClient.get<unknown>(
-            `/api/v1/prescriptions?mrn=${encodeURIComponent(mrn)}`,
-          );
-          rawList = extractList(res.data);
-        } catch {
-          // continue
-        }
       }
 
       return rawList.map((r) => {
@@ -1221,6 +1215,8 @@ export const patientsApi = {
             fullName?: string;
             gender?: string;
             age?: number;
+            dateOfBirth?: string;
+            dob?: string;
             mobileNumber?: string;
             registeredMobile?: string;
             userId?: number;
@@ -1255,7 +1251,9 @@ export const patientsApi = {
         name: String(p.fullName || p.name || p.patientName || "Patient"),
         patientName: String(p.fullName || p.name || p.patientName || "Patient"),
         gender: String(p.gender || "MALE"),
-        age: p.age ? Number(p.age) : undefined,
+        age: p.age != null ? Number(p.age) : undefined,
+        dateOfBirth: (p.dateOfBirth || p.dob) as string | undefined,
+        dob: (p.dateOfBirth || p.dob) as string | undefined,
         phone: String(p.mobileNumber || p.phone || p.mobile || ""),
         mobileNumber: String(p.mobileNumber || p.phone || p.mobile || ""),
         mobile: String(p.mobileNumber || p.phone || p.mobile || ""),

@@ -64,14 +64,6 @@ export function validatePatientRegisterForm(
   return errors;
 }
 
-export function patientRegisterSchema(
-  data: PatientRegistrationData,
-): string | null {
-  const fieldErrors = validatePatientRegisterForm(data);
-  const firstError = Object.values(fieldErrors)[0];
-  return firstError || null;
-}
-
 export function forgotPasswordSchema(data: ForgotPasswordData): string | null {
   if (!data.email || !/\S+@\S+\.\S+/.test(data.email))
     return "Valid email is required";

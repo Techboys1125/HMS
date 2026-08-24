@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 import {
   Search,
   MapPin,
@@ -14,8 +15,10 @@ import {
 import { doctorsApi } from "../../doctors/api/doctors.api";
 import type { DoctorRecord } from "../../doctors/types/doctors.types";
 import { PP, RB } from "../constants/patient.fonts";
+import { ROUTES } from "../../../app/routes/routes";
 
 export function PatientDoctorSearchScreen() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDept, setSelectedDept] = useState("All");
   const [doctors, setDoctors] = useState<DoctorRecord[]>([]);
@@ -90,7 +93,13 @@ export function PatientDoctorSearchScreen() {
             className="flex items-center gap-1.5 text-xs text-[#64748B] mt-1"
             style={{ fontFamily: RB }}
           >
-            <span>Patient Portal</span>
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.DASHBOARD)}
+              className="hover:text-[#0D47A1] transition-colors font-medium cursor-pointer"
+            >
+              Patient Portal
+            </button>
             <ChevronRight size={13} className="text-slate-300" />
             <span className="font-medium text-[#111827]">Doctors</span>
           </div>

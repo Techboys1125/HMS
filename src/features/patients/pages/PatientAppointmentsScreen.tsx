@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useReducer } from "react";
+import { useNavigate } from "react-router";
 import {
   Search,
   Plus,
@@ -30,6 +31,7 @@ import { Pagination } from "../../../common/components/Pagination";
 import type { ApiResponse } from "../../auth/types/auth.types";
 import { to24Hour } from "../../../lib/time-utils";
 import { downloadAppointmentSlipPdf } from "../../../utils/appointmentPdf.utils";
+import { ROUTES } from "../../../app/routes/routes";
 
 function formatDisplayTime(timeStr?: string): string {
   if (!timeStr) return "09:00 AM";
@@ -221,6 +223,7 @@ export function PatientAppointmentsScreen({
 }: {
   activePatient?: FamilyMember;
 }) {
+  const navigate = useNavigate();
   const portal = usePatientPortal();
   const activePatient = propActivePatient ?? portal?.activePatient;
   const [listState, dispatch] = useReducer(appointmentListReducer, {
@@ -341,10 +344,20 @@ export function PatientAppointmentsScreen({
                 a.status ||
                 "SCHEDULED"
               ).toUpperCase();
+
+              const todayStr = new Date().toISOString().split("T")[0];
+              const isPastDate = Boolean(datePart && datePart < todayStr);
+
               if (rawStatus === "COMPLETED") {
                 formattedStatus = "Completed";
-              } else if (rawStatus === "CANCELLED") {
+              } else if (rawStatus === "CANCELLED" || rawStatus === "CANCELED") {
                 formattedStatus = "Cancelled";
+              } else if (
+                rawStatus === "NO_SHOW" ||
+                rawStatus === "NOSHOW" ||
+                (isPastDate && rawStatus !== "COMPLETED" && rawStatus !== "CANCELLED")
+              ) {
+                formattedStatus = "No Show";
               } else if (
                 rawStatus === "SCHEDULED" ||
                 rawStatus === "BOOKED" ||
@@ -482,8 +495,6 @@ export function PatientAppointmentsScreen({
     currentPage: 1,
   });
 
-  const openBookDrawer = (appt?: PatientAppointment) =>
-    bookingDispatch({ type: "OPEN_BOOK_DRAWER", appt });
   const closeBookDrawer = () => bookingDispatch({ type: "CLOSE_BOOK_DRAWER" });
   const setBookingField = <K extends keyof Omit<BookingDrawerState, "showBookDrawer" | "editingAppt" | "selectedDetailsAppt">>(
     field: K,
@@ -632,10 +643,7 @@ export function PatientAppointmentsScreen({
     booking.currentPage * pageSize,
   );
 
-  // Handlers
-  const handleOpenBookDrawer = (apptToReschedule?: PatientAppointment) => {
-    openBookDrawer(apptToReschedule);
-  };
+
 
   const handleSaveAppointment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -729,11 +737,27 @@ export function PatientAppointmentsScreen({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-1.5 text-[11px] text-[#64748B] mb-1.5">
-            <span>Patient Portal</span>
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.DASHBOARD)}
+              className="hover:text-[#0D47A1] transition-colors font-medium cursor-pointer"
+            >
+              Patient Portal
+            </button>
             <ChevronRight size={12} className="text-slate-400" />
             {activePatient?.name && (
               <>
-                <span className="text-slate-500 font-medium">{activePatient.name}</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      `/patients/profile/${activePatient.mrn || activePatient.id}`,
+                    )
+                  }
+                  className="hover:text-[#0D47A1] transition-colors font-medium cursor-pointer"
+                >
+                  {activePatient.name}
+                </button>
                 <ChevronRight size={12} className="text-slate-400" />
               </>
             )}
@@ -767,7 +791,7 @@ export function PatientAppointmentsScreen({
       </div>
 
       {/* ── 2. SUMMARY KPI CARDS ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Card 01: Upcoming Appointments */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between hover:border-blue-200 transition-colors">
           <div>
@@ -830,44 +854,51 @@ export function PatientAppointmentsScreen({
             <XCircle size={22} />
           </div>
         </div>
-
-        {/* Card 04: Next Appointment */}
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm flex items-center justify-between hover:border-purple-200 transition-colors">
-          <div className="truncate pr-2">
-            <div className="text-xs text-[#64748B] font-medium">
-              Next Appointment
-            </div>
-            {nextAppointment ? (
-              <>
-                <div
-                  className="text-sm font-bold text-[#111827] mt-0.5 truncate"
-                  style={{ fontFamily: PP }}
-                >
-                  {nextAppointment.doctor}
-                </div>
-                <div className="text-[11px] text-[#0D47A1] font-semibold mt-1 truncate">
-                  {nextAppointment.date} · {nextAppointment.time}
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="text-xs font-semibold text-[#64748B] mt-1">
-                  None Scheduled
-                </div>
-                <div className="text-[11px] text-[#0D47A1] font-medium mt-0.5">
-                  Click to book
-                </div>
-              </>
-            )}
-          </div>
-          <div className="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
-            <Stethoscope size={22} />
-          </div>
-        </div>
       </div>
 
+      {/* ── HORIZONTAL NEXT APPOINTMENT CARD (BELOW KPI CARDS) ── */}
+      {nextAppointment && (
+        <div className="bg-white rounded-2xl border border-blue-100 p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-gradient-to-r from-blue-50/70 via-white to-slate-50">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#0D47A1] text-white flex items-center justify-center font-bold text-base shadow-sm shrink-0">
+              <Clock size={24} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-[#0D47A1] uppercase tracking-wider" style={{ fontFamily: PP }}>
+                  Next Upcoming Appointment
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-[#0D47A1]">
+                  {nextAppointment.status}
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-[#111827] mt-0.5" style={{ fontFamily: PP }}>
+                {nextAppointment.doctor} · <span className="text-xs font-medium text-slate-500">{nextAppointment.department}</span>
+              </h3>
+              <div className="flex items-center gap-3 text-xs text-[#64748B] mt-1" style={{ fontFamily: RB }}>
+                <span>Date: <strong className="text-[#111827]">{nextAppointment.date}</strong></span>
+                <span>•</span>
+                <span>Time: <strong className="text-[#0D47A1]">{formatDisplayTime(nextAppointment.time)}</strong></span>
+                <span>•</span>
+                <span>Location: <strong className="text-[#111827]">{nextAppointment.roomLocation}</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-stretch md:self-auto justify-end shrink-0">
+            <button
+              onClick={() => setSelectedDetails(nextAppointment)}
+              className="px-3.5 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-xs cursor-pointer"
+              style={{ fontFamily: PP }}
+            >
+              View Details
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── 3. MAIN CONTENT LAYOUT (8 COLS LEFT, 4 COLS RIGHT) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1  gap-6">
         {/* Left Column (8 cols): Search, Filters, Tabs & List */}
         <div className="lg:col-span-8 space-y-4">
           {/* Search & Filter Bar */}
@@ -918,6 +949,7 @@ export function PatientAppointmentsScreen({
                 <option value="Pending">Pending</option>
                 <option value="Completed">Completed</option>
                 <option value="Cancelled">Cancelled</option>
+                <option value="No Show">No Show</option>
               </select>
 
               {/* Department Filter */}
@@ -938,24 +970,6 @@ export function PatientAppointmentsScreen({
                 <option value="Neurology">Neurology</option>
                 <option value="Gynecology">Gynecology</option>
                 <option value="Pediatrics">Pediatrics</option>
-              </select>
-
-              {/* Visit Type Filter */}
-               <select
-                 value={filterState.visitTypeFilter}
-                 onChange={(e) =>
-                   filterDispatch({
-                     type: "SET_FILTER",
-                     field: "visitTypeFilter",
-                     value: e.target.value,
-                   })
-                 }
-                 className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-               >
-                <option value="All">All Visit Types</option>
-                <option value="In-Person OPD">In-Person OPD</option>
-                <option value="Follow-up OPD">Follow-up OPD</option>
-                <option value="Routine Checkup">Routine Checkup</option>
               </select>
 
               {/* Date Range Filter */}
@@ -1071,7 +1085,6 @@ export function PatientAppointmentsScreen({
                         <th className="px-4 py-3.5 font-bold">Department</th>
                         <th className="px-4 py-3.5 font-bold">Date</th>
                         <th className="px-4 py-3.5 font-bold">Time</th>
-                        <th className="px-4 py-3.5 font-bold">Visit Type</th>
                         <th className="px-4 py-3.5 font-bold">Status</th>
                         <th className="px-4 py-3.5 font-bold text-right">
                           Actions
@@ -1106,23 +1119,12 @@ export function PatientAppointmentsScreen({
 
                             {/* Doctor */}
                             <td className="px-4 py-4">
-                              <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-full bg-blue-50 text-[#0D47A1] font-bold flex items-center justify-center text-xs shrink-0 border border-blue-100">
-                                  {appt.doctor
-                                    .split(" ")
-                                    .map((n) => n[0])
-                                    .join("")
-                                    .replace("D", "")
-                                    .replace("r", "")
-                                    .replace(".", "") || "DR"}
+                              <div>
+                                <div className="font-bold text-[#111827]">
+                                  {appt.doctor}
                                 </div>
-                                <div>
-                                  <div className="font-bold text-[#111827]">
-                                    {appt.doctor}
-                                  </div>
-                                  <div className="text-[11px] text-[#64748B]">
-                                    {appt.specialty}
-                                  </div>
+                                <div className="text-[11px] text-[#64748B]">
+                                  {appt.specialty}
                                 </div>
                               </div>
                             </td>
@@ -1142,20 +1144,6 @@ export function PatientAppointmentsScreen({
                               {formatDisplayTime(appt.time)}
                             </td>
 
-                            {/* Visit Type */}
-                            <td className="px-4 py-4">
-                              <span
-                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold ${
-                                  appt.visitType === "Follow-up OPD"
-                                    ? "bg-teal-50 text-teal-700"
-                                    : "bg-slate-100 text-slate-700"
-                                }`}
-                              >
-                                <Building2 size={12} />
-                                {appt.visitType}
-                              </span>
-                            </td>
-
                             {/* Status */}
                             <td className="px-4 py-4">
                               <span
@@ -1172,7 +1160,9 @@ export function PatientAppointmentsScreen({
                                             ? "bg-purple-50 text-purple-600"
                                             : appt.status === "Checked-In"
                                               ? "bg-indigo-50 text-indigo-600"
-                                              : "bg-red-50 text-[#EF4444]"
+                                              : appt.status === "No Show"
+                                                ? "bg-red-50 text-red-600"
+                                                : "bg-red-50 text-[#EF4444]"
                                 }`}
                               >
                                 <span
@@ -1198,37 +1188,27 @@ export function PatientAppointmentsScreen({
 
                             {/* Actions */}
                             <td className="px-4 py-4 text-right">
-                              <div className="flex items-center justify-end gap-1">
-                                {/* View Details */}
-                                <button
-                                  onClick={() => setSelectedDetails(appt)}
-                                  className="p-1.5 text-slate-500 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
-                                  title="View Appointment Details"
-                                >
-                                  <Eye size={15} />
-                                </button>
-
-                                {/* Reschedule */}
-                                {isUpcoming && (
-                                  <button
-                                     onClick={() => filterDispatch({ type: "SET_RESCHEDULING", appointment: appt })}
-                                    className="p-1.5 text-slate-500 hover:text-[#009688] hover:bg-teal-50 rounded-lg transition-colors"
-                                    title="Reschedule Appointment"
-                                  >
-                                    <Calendar size={15} />
-                                  </button>
-                                )}
+                              <div className="flex items-center justify-end gap-1.5">
 
                                 {/* Cancel */}
-                                {isUpcoming && (
+                                {isUpcoming && appt.status !== "No Show" && (
                                   <button
                                     onClick={() => setCancellingAppt(appt)}
-                                    className="p-1.5 text-slate-400 hover:text-[#EF4444] hover:bg-red-50 rounded-lg transition-colors"
+                                    className="px-2 py-1 text-[11px] font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors flex items-center gap-1 cursor-pointer shrink-0"
                                     title="Cancel Appointment"
                                   >
-                                    <XCircle size={15} />
+                                    <XCircle size={13} /> Cancel
                                   </button>
                                 )}
+
+                                {/* View Details (LAST POSITION) */}
+                                <button
+                                  onClick={() => setSelectedDetails(appt)}
+                                  className="px-2.5 py-1 text-[11px] font-bold text-[#0D47A1] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+                                  title="View Details"
+                                >
+                                  <Eye size={13} /> View
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -1264,18 +1244,8 @@ export function PatientAppointmentsScreen({
                       className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm space-y-3"
                     >
                       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-10 h-10 rounded-full bg-blue-50 text-[#0D47A1] font-bold flex items-center justify-center text-sm border border-blue-100">
-                            {appt.doctor
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .replace("D", "")
-                              .replace("r", "")
-                              .replace(".", "") || "DR"}
-                          </div>
-                          <div>
-                            <h4
+                        <div>
+                          <h4
                               className="text-xs font-bold text-[#111827]"
                               style={{ fontFamily: PP }}
                             >
@@ -1285,7 +1255,6 @@ export function PatientAppointmentsScreen({
                               {appt.department} · {appt.specialty}
                             </div>
                           </div>
-                        </div>
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
                             appt.status === "Confirmed"
@@ -1361,102 +1330,7 @@ export function PatientAppointmentsScreen({
           )}
         </div>
 
-        {/* Right Column (4 cols - Context Panel) */}
-        <div className="lg:col-span-4 space-y-4">
-          {/* Card 1: Next Appointment Snapshot */}
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <h3
-                className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Clock size={15} className="text-[#0D47A1]" /> Next Appointment
-              </h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] bg-blue-50 text-[#0D47A1] font-bold">
-                Upcoming
-              </span>
-            </div>
-
-            {nextAppointment ? (
-              <div className="p-4 rounded-xl bg-linear-to-br from-blue-50/80 to-slate-50 border border-blue-100 space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#0D47A1] text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-sm">
-                    {nextAppointment.doctor
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .replace("D", "")
-                      .replace("r", "")
-                      .replace(".", "") || "DR"}
-                  </div>
-                  <div>
-                    <h4
-                      className="text-xs font-bold text-[#111827]"
-                      style={{ fontFamily: PP }}
-                    >
-                      {nextAppointment.doctor}
-                    </h4>
-                    <p className="text-[11px] text-[#64748B]">
-                      {nextAppointment.specialty} · {nextAppointment.department}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5 text-xs text-[#111827] pt-2 border-t border-blue-100/60">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#64748B]">Date & Time:</span>
-                    <span className="font-bold text-[#0D47A1]">
-                      {nextAppointment.date} @ {nextAppointment.time}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#64748B]">Location:</span>
-                    <span className="font-semibold text-slate-700">
-                      {nextAppointment.roomLocation}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[#64748B]">Visit Type:</span>
-                    <span className="font-medium text-[#009688]">
-                      {nextAppointment.visitType}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="pt-2 flex items-center gap-2">
-                  <button
-                    onClick={() =>
-                      setSelectedDetails(nextAppointment)
-                    }
-                    className="flex-1 py-2 rounded-xl bg-white border border-[#E5E7EB] text-[#111827] text-xs font-semibold hover:bg-slate-50 transition-colors"
-                  >
-                    View Details
-                  </button>
-                  <button
-                    onClick={() => filterDispatch({ type: "SET_RESCHEDULING", appointment: nextAppointment })}
-                    className="flex-1 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors"
-                  >
-                    Reschedule
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="p-6 text-center bg-slate-50 rounded-xl border border-slate-100 space-y-2">
-                <Calendar size={28} className="mx-auto text-slate-400" />
-                <p className="text-xs text-[#64748B]">
-                  You have no upcoming appointments scheduled.
-                </p>
-                <button
-                  onClick={() => handleOpenBookDrawer()}
-                  className="mt-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors"
-                  style={{ fontFamily: PP }}
-                >
-                  Book Appointment
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        
       </div>
 
       {/* ── 4. RIGHT DRAWER: BOOK / RESCHEDULE APPOINTMENT ── */}

@@ -33,9 +33,10 @@ export const vitalsApi = {
    */
   async getWaitingPatients(): Promise<NurseWaitingPatient[]> {
     try {
+      const today = new Date().toISOString().split("T")[0];
       const response = await apiClient.get<
         NurseVitalsApiResponse<NurseWaitingPatient[]>
-      >("/api/v1/nurse/vitals/waiting");
+      >(`/api/v1/nurse/vitals/waiting?date=${today}`);
       const data = response.data?.data;
       return Array.isArray(data) ? data : [];
     } catch (error) {

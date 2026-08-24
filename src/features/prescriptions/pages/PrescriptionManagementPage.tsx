@@ -18,7 +18,6 @@ import { PrescriptionTable } from "../components/PrescriptionTable";
 import { PrescriptionLoader } from "../components/PrescriptionLoader";
 import { PrescriptionEmptyState } from "../components/PrescriptionEmptyState";
 import {
-  PrescriptionDrawer,
   PrescriptionDetailsModal,
   PrescriptionPrintModal,
 } from "../components/PrescriptionPreview";
@@ -62,8 +61,6 @@ export const PrescriptionManagementPage: React.FC<{
     usePrescriptionActions(showToast);
 
   // Modal view states
-  const [activeDrawerRx, setActiveDrawerRx] =
-    useState<UnifiedPrescription | null>(null);
   const [fullViewRx, setFullViewRx] = useState<UnifiedPrescription | null>(
     null,
   );
@@ -77,6 +74,19 @@ export const PrescriptionManagementPage: React.FC<{
   const handleApply = () => {
     triggerRefresh();
   };
+
+  if (fullViewRx) {
+    return (
+      <PrescriptionDetailsModal
+        prescription={selectedPrescription || fullViewRx}
+        onClose={() => {
+          setFullViewRx(null);
+          closeDetails();
+        }}
+        onDownload={() => handleDownload(fullViewRx.id)}
+      />
+    );
+  }
 
   return (
     <div
@@ -133,7 +143,7 @@ export const PrescriptionManagementPage: React.FC<{
             role={role}
             prescriptions={prescriptions}
             onView={(rx) => {
-              setActiveDrawerRx(rx);
+              setFullViewRx(rx);
               loadDetails(rx.id);
             }}
             onEdit={onNewPrescription}
@@ -144,36 +154,6 @@ export const PrescriptionManagementPage: React.FC<{
           />
         )}
       </div>
-
-      {/* Slide-over Drawer Preview */}
-      {activeDrawerRx && (
-        <PrescriptionDrawer
-          role={role}
-          prescription={selectedPrescription || activeDrawerRx}
-          onClose={() => {
-            setActiveDrawerRx(null);
-            closeDetails();
-          }}
-          onViewFull={() => {
-            setFullViewRx(selectedPrescription || activeDrawerRx);
-            setActiveDrawerRx(null);
-          }}
-          onDownload={() => handleDownload(activeDrawerRx.id)}
-          onPrint={() => {
-            setPrintPreviewRx(selectedPrescription || activeDrawerRx);
-            setActiveDrawerRx(null);
-          }}
-        />
-      )}
-
-      {/* Detailed Modal view */}
-      {fullViewRx && (
-        <PrescriptionDetailsModal
-          prescription={fullViewRx}
-          onClose={() => setFullViewRx(null)}
-          onDownload={() => handleDownload(fullViewRx.id)}
-        />
-      )}
 
       {/* Print Preview Modal */}
       {printPreviewRx && (

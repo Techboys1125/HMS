@@ -42,16 +42,26 @@ export function DoctorPatientsScreen() {
 
   const processDoctorPatients = (data: { items?: Patient[] } | null) => {
     if (!data?.items) return [];
-    return data.items.map((p) => ({
-      id: String(p.id || p.mrn || ""),
-      name: p.fullName || p.name || p.patientName || "Unknown",
-      mrn: p.mrn || "",
-      gender: p.gender || "",
-      age: p.age || 0,
-      mobile: p.mobileNumber || p.phone || p.mobile || "",
-      lastVisit: p.lastVisit || p.lastVisitDate || "",
-      visits: p.totalVisits || p.visitCount || 0,
-    }));
+    return data.items.map(mapApiPatientToPatientRecord).map((p) => {
+      const rawP = p as unknown as Record<string, unknown>;
+      const ageVal =
+        p.age && Number(p.age) > 0
+          ? Number(p.age)
+          : rawP.patientAge && Number(rawP.patientAge) > 0
+            ? Number(rawP.patientAge)
+            : 0;
+
+      return {
+        id: String(p.id || p.mrn || ""),
+        name: p.fullName || p.name || p.patientName || "Unknown",
+        mrn: p.mrn || "",
+        gender: p.gender || "Unknown",
+        age: ageVal,
+        mobile: p.mobileNumber || p.phone || p.mobile || "",
+        lastVisit: p.lastVisit || p.lastVisitDate || "",
+        visits: p.totalVisits || p.visitCount || 0,
+      };
+    });
   };
 
   const fetchPatients = async () => {
@@ -243,7 +253,8 @@ export function DoctorPatientsScreen() {
                       <span className="font-mono">{patient.mrn}</span>
                       <span>|</span>
                       <span>
-                        {patient.gender} · {patient.age} yrs
+                        {patient.gender || "Gender N/A"} ·{" "}
+                        {patient.age > 0 ? `${patient.age} yrs` : "Age N/A"}
                       </span>
                       {patient.mobile && (
                         <>

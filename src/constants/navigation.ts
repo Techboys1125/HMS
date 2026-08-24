@@ -195,11 +195,6 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
         { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard" },
         { id: "family-members", Icon: Users, label: "Family Members" },
         { id: "appointments", Icon: Calendar, label: "Appointments" },
-        {
-          id: "medical-history",
-          Icon: ClipboardList,
-          label: "Medical Records",
-        },
         { id: "prescriptions", Icon: Pill, label: "Prescriptions" },
         { id: "bills-payments", Icon: Receipt, label: "Billing & Payments" },
         { id: "profile", Icon: User, label: "Profile" },

@@ -1206,12 +1206,32 @@ export function RecordPatientVitalsScreen({
               "General Medicine",
 
             appointmentDate: new Date().toISOString().split("T")[0],
-            appointmentTime: item.checkInTime || "Now",
-            time: item.checkInTime || "Now",
-            timeSlot: item.checkInTime || "Now",
+            appointmentTime:
+              item.checkInTime ||
+              item.appointmentTime ||
+              item.time ||
+              item.timeSlot ||
+              "Now",
+            time:
+              item.checkInTime ||
+              item.appointmentTime ||
+              item.time ||
+              item.timeSlot ||
+              "Now",
+            timeSlot:
+              item.checkInTime ||
+              item.appointmentTime ||
+              item.time ||
+              item.timeSlot ||
+              "Now",
             status: toDisplayStatus(item.status),
             queueStatus: item.status || "WAITING_FOR_VITALS",
-            visitType: "Regular",
+            visitType:
+              item.visitType === "First Visit"
+                ? "First Visit"
+                : item.visitType === "Follow-up"
+                  ? "Follow-up"
+                  : "Regular",
             reason: "Pre-consultation Vitals Check",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),

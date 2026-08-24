@@ -134,69 +134,78 @@ export interface PrintOutputResponse {
 
 export const prescriptionApi = {
   /**
+   * GET /api/v1/patients/me/prescriptions
+   * GET /api/v1/patients/{mrn}/prescriptions
    * GET /api/v1/patient/prescriptions
-   * GET /api/v1/patient/prescriptions?mrn=...
    */
   getPrescriptions: async (mrn?: string): Promise<ApiPatientPrescription[]> => {
-    try {
-      let url: string;
-      if (mrn) {
-        url = `/api/v1/patient/prescriptions?mrn=${mrn}`;
-      } else {
-        url = "/api/v1/patient/prescriptions";
-      }
-      const response =
-        await apiClient.get<ApiResponseBody<ApiPatientPrescription[]>>(url);
-      const body = response.data;
+    const endpoints = mrn
+      ? [
+          `/api/v1/patients/${encodeURIComponent(mrn)}/prescriptions`,
+          `/api/v1/patient/prescriptions?mrn=${encodeURIComponent(mrn)}`,
+          `/api/v1/patients/me/prescriptions`,
+        ]
+      : [
+          "/api/v1/patients/me/prescriptions",
+          "/api/v1/patient/prescriptions",
+        ];
 
-      if (Array.isArray(body)) {
-        return body;
-      }
+    for (const url of endpoints) {
+      try {
+        const response =
+          await apiClient.get<ApiResponseBody<ApiPatientPrescription[]> | ApiEnvelope<ApiPatientPrescription[]>>(url);
+        const body = response.data as Record<string, unknown>;
+        if (!body) continue;
 
-      if (body && typeof body === "object") {
-        const bodyRecord = body as {
-          data?: unknown;
-          content?: unknown;
-        };
+        if (Array.isArray(body)) {
+          return body as ApiPatientPrescription[];
+        }
 
-        if (Array.isArray(bodyRecord.data)) {
-          return bodyRecord.data as ApiPatientPrescription[];
+        const dataVal = body.data || body.content;
+        if (Array.isArray(dataVal)) {
+          return dataVal as ApiPatientPrescription[];
         }
 
         if (
-          bodyRecord.data &&
-          typeof bodyRecord.data === "object" &&
-          Array.isArray((bodyRecord.data as { content?: unknown }).content)
+          dataVal &&
+          typeof dataVal === "object" &&
+          Array.isArray((dataVal as { content?: unknown }).content)
         ) {
-          return (bodyRecord.data as { content: ApiPatientPrescription[] })
-            .content;
+          return (dataVal as { content: ApiPatientPrescription[] }).content;
         }
-
-        if (Array.isArray(bodyRecord.content)) {
-          return bodyRecord.content as ApiPatientPrescription[];
-        }
+      } catch {
+        // try next endpoint
       }
-
-      return [];
-    } catch {
-      return [];
     }
+    return [];
   },
 
   /**
    * GET /api/v1/patient/prescriptions/{id}
+   * GET /api/v1/patients/me/prescriptions/{id}
+   * GET /api/v1/prescriptions/{id}
    */
   getPrescriptionById: async (
     id: string | number,
-  ): Promise<ApiPatientPrescription | null> => {
-    try {
-      const response = await apiClient.get<ApiPatientPrescription>(
-        `/api/v1/patient/prescriptions/${id}`,
-      );
-      return response.data || null;
-    } catch {
-      return null;
+  ): Promise<ApiPatientPrescription | PrescriptionDetailResponse | null> => {
+    const endpoints = [
+      `/api/v1/patient/prescriptions/${id}`,
+      `/api/v1/patients/me/prescriptions/${id}`,
+      `/api/v1/prescriptions/${id}`,
+    ];
+
+    for (const url of endpoints) {
+      try {
+        const response = await apiClient.get<Record<string, unknown>>(url);
+        const data = response.data?.data || response.data;
+        if (data && typeof data === "object") {
+          return data as unknown as ApiPatientPrescription | PrescriptionDetailResponse;
+        }
+      } catch {
+        // try next fallback
+      }
     }
+    return null;
   },
 
   /**
@@ -204,15 +213,113 @@ export const prescriptionApi = {
    */
   getPrescriptionDetails: async (
     prescriptionId: string | number,
-  ): Promise<PrescriptionDetailResponse | null> => {
-    try {
-      const response = await apiClient.get<PrescriptionDetailResponse>(
-        `/api/v1/prescriptions/${prescriptionId}`,
-      );
-      return response.data || null;
-    } catch {
-      return null;
+  ): Promise<PrescriptionDetailResponse | Record<string, unknown> | null> => {
+    const endpoints = [
+      `/api/v1/patient/prescriptions/${prescriptionId}`,
+      `/api/v1/patients/me/prescriptions/${prescriptionId}`,
+      `/api/v1/prescriptions/${prescriptionId}`,
+    ];
+
+    for (const url of endpoints) {
+      try {
+        const response = await apiClient.get<Record<string, unknown>>(url);
+        const data = response.data?.data || response.data;
+        if (data && typeof data === "object") {
+          return data as Record<string, unknown>;
+        }
+      } catch {
+        // try next fallback
+      }
     }
+    return null;
+  },
+
+  /**
+   * GET /api/v1/patients/me/prescriptions/summary
+   */
+  getPatientSummary: async (): Promise<PrescriptionSummaryResponse | null> => {
+    const endpoints = [
+      "/api/v1/patients/me/prescriptions/summary",
+      "/api/v1/patient/prescriptions/summary",
+      "/api/v1/doctor/prescriptions/summary",
+    ];
+
+    for (const url of endpoints) {
+      try {
+        const response = await apiClient.get<Record<string, unknown>>(url);
+        const data = (response.data?.data || response.data) as PrescriptionSummaryResponse;
+        if (data) return data;
+      } catch {
+        // try next
+      }
+    }
+    return null;
+  },
+
+  /**
+   * POST /api/v1/prescriptions/{prescriptionId}/medications
+   */
+  addMedication: async (
+    prescriptionId: string | number,
+    payload: Record<string, unknown>,
+  ) => {
+    const response = await apiClient.post(
+      `/api/v1/prescriptions/${prescriptionId}/medications`,
+      payload,
+    );
+    return response.data;
+  },
+
+  /**
+   * PUT /api/v1/prescriptions/{prescriptionId}/medications/{medicationId}
+   */
+  updateMedication: async (
+    prescriptionId: string | number,
+    medicationId: string | number,
+    payload: Record<string, unknown>,
+  ) => {
+    const response = await apiClient.put(
+      `/api/v1/prescriptions/${prescriptionId}/medications/${medicationId}`,
+      payload,
+    );
+    return response.data;
+  },
+
+  /**
+   * DELETE /api/v1/prescriptions/{prescriptionId}/medications/{medicationId}
+   */
+  deleteMedication: async (
+    prescriptionId: string | number,
+    medicationId: string | number,
+  ) => {
+    const response = await apiClient.delete(
+      `/api/v1/prescriptions/${prescriptionId}/medications/${medicationId}`,
+    );
+    return response.data;
+  },
+
+  /**
+   * PUT /api/v1/prescriptions/{prescriptionId}/advice
+   */
+  updateAdvice: async (
+    prescriptionId: string | number,
+    payload: Record<string, unknown>,
+  ) => {
+    const response = await apiClient.put(
+      `/api/v1/prescriptions/${prescriptionId}/advice`,
+      payload,
+    );
+    return response.data;
+  },
+
+  /**
+   * POST /api/v1/prescriptions/{prescriptionId}/validate
+   */
+  validatePrescription: async (prescriptionId: string | number) => {
+    const response = await apiClient.post(
+      `/api/v1/prescriptions/${prescriptionId}/validate`,
+    );
+    return response.data;
   },
 
   /**
@@ -253,18 +360,9 @@ export const prescriptionApi = {
     payload?: { reason?: string },
   ) => {
     try {
-      const idempotencyKey =
-        typeof crypto !== "undefined" && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `idemp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       const response = await apiClient.post<ApiResponseBody<AmendmentResponse>>(
         `/api/v1/prescriptions/${prescriptionId}/amendments`,
         payload || {},
-        {
-          headers: {
-            "Idempotency-Key": idempotencyKey,
-          },
-        },
       );
       return unwrap<AmendmentResponse>(response.data);
     } catch (error: unknown) {
@@ -280,18 +378,9 @@ export const prescriptionApi = {
     payload?: { reason?: string },
   ) => {
     try {
-      const idempotencyKey =
-        typeof crypto !== "undefined" && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `idemp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       const response = await apiClient.post<ApiResponseBody<ReprintResponse>>(
         `/api/v1/prescriptions/${prescriptionId}/reprint`,
         payload || {},
-        {
-          headers: {
-            "Idempotency-Key": idempotencyKey,
-          },
-        },
       );
       return unwrap<ReprintResponse>(response.data);
     } catch (error: unknown) {

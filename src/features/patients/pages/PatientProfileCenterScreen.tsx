@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useNavigate } from "react-router";
 import {
   ChevronRight,
   Edit,
@@ -9,11 +10,13 @@ import {
   Lock,
   Key,
   Save,
+  Camera,
 } from "lucide-react";
 import type { Patient } from "../types/patient.types";
 import { PP, RB } from "../constants/patient.fonts";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { PatientSearchScreen } from "./PatientSearchScreen";
+import { ROUTES } from "../../../app/routes/routes";
 
 interface ActivePatientProfile extends Omit<
   Patient,
@@ -36,16 +39,16 @@ interface ActivePatientProfile extends Omit<
 export function PatientProfileCenterScreen({
   activePatient,
   onAddFamilyMember,
-  onSwitchPatient,
   onPatientSelect,
   onRegisterPatient,
 }: {
   activePatient?: ActivePatientProfile | null;
   onAddFamilyMember?: () => void;
-  onSwitchPatient?: () => void;
   onPatientSelect?: (id: number | string) => void;
   onRegisterPatient?: () => void;
 }) {
+  const navigate = useNavigate();
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const [activeTab, setActiveTab] = useState<"info" | "edit" | "password">(
     "info",
   );
@@ -85,6 +88,14 @@ export function PatientProfileCenterScreen({
       // Ignore
     }
 
+    const resolvedEmail =
+      (custom.email as string) ||
+      (activePatient?.email && activePatient.email !== "family@example.com"
+        ? activePatient.email
+        : "") ||
+      user?.email ||
+      "";
+
     return {
       name: String(
         custom.name ||
@@ -98,11 +109,12 @@ export function PatientProfileCenterScreen({
       patientId: String(
         activePatient?.mrn || activePatient?.id || user?.mrn || "Generating...",
       ),
-      email: String(
-        custom.email ||
-          activePatient?.email ||
-          user?.email ||
-          "patient@safehands.org",
+      email: resolvedEmail,
+      photoUrl: String(
+        custom.photoUrl ||
+          activePatient?.photoUrl ||
+          activePatient?.photo ||
+          "",
       ),
       phone: String(
         custom.phone ||
@@ -180,6 +192,61 @@ export function PatientProfileCenterScreen({
   const triggerToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      triggerToast("Please select a valid image file.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (!dataUrl) return;
+
+      const updated = { ...profileData, photoUrl: dataUrl };
+      setProfileData(updated);
+      setEditForm(updated);
+
+      const userState = useAuthStore.getState().user;
+      if (userState) {
+        useAuthStore.setUser({
+          ...userState,
+          photoUrl: dataUrl,
+          photo: dataUrl,
+        });
+      }
+
+      try {
+        if (patientKey) {
+          const keys = [
+            patientKey,
+            activePatient?.mrn,
+            activePatient?.id,
+            user?.mrn,
+            user?.id,
+            "me",
+          ].filter(Boolean);
+          for (const k of keys) {
+            const existing = localStorage.getItem(`patient_profile_custom_${k}`);
+            const obj = existing ? JSON.parse(existing) : {};
+            localStorage.setItem(
+              `patient_profile_custom_${k}`,
+              JSON.stringify({ ...obj, photoUrl: dataUrl }),
+            );
+          }
+        }
+      } catch {
+        // Ignore
+      }
+
+      triggerToast("Profile picture updated successfully!");
+    };
+    reader.readAsDataURL(file);
   };
 
   const getInitials = (nameStr: string) => {
@@ -285,7 +352,13 @@ export function PatientProfileCenterScreen({
             className="flex items-center gap-1.5 text-xs text-[#64748B] mt-1"
             style={{ fontFamily: RB }}
           >
-            <span>Patient Portal</span>
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.DASHBOARD)}
+              className="hover:text-[#0D47A1] transition-colors font-medium cursor-pointer"
+            >
+              Patient Portal
+            </button>
             <ChevronRight size={13} className="text-slate-300" />
             <span className="font-medium text-[#111827]">My Profile</span>
           </div>
@@ -297,18 +370,34 @@ export function PatientProfileCenterScreen({
         <div className="flex items-center gap-5">
           {/* Avatar */}
           <div className="relative">
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
             <div
-              className="w-16 h-16 rounded-2xl bg-[#0D47A1] text-white font-bold text-xl flex items-center justify-center shadow-md"
+              className="w-16 h-16 rounded-2xl bg-[#0D47A1] text-white font-bold text-xl flex items-center justify-center shadow-md overflow-hidden"
               style={{ fontFamily: PP }}
             >
-              {getInitials(profileData.name)}
+              {profileData.photoUrl ? (
+                <img
+                  src={profileData.photoUrl}
+                  alt={profileData.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                getInitials(profileData.name)
+              )}
             </div>
             <button
-              onClick={() => triggerToast("Upload avatar picture...")}
-              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#0D47A1] text-white border border-white flex items-center justify-center shadow-sm hover:bg-blue-900 transition-colors"
+              type="button"
+              onClick={() => avatarInputRef.current?.click()}
+              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#0D47A1] text-white border border-white flex items-center justify-center shadow-sm hover:bg-blue-900 transition-colors cursor-pointer"
               title="Change Avatar"
             >
-              <Edit size={12} />
+              <Camera size={12} />
             </button>
           </div>
 
@@ -343,15 +432,6 @@ export function PatientProfileCenterScreen({
               style={{ fontFamily: PP }}
             >
               + Add Family Member
-            </button>
-          )}
-          {onSwitchPatient && (
-            <button
-              onClick={onSwitchPatient}
-              className="px-4 py-2 rounded-xl border border-gray-200 bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-2 shrink-0 shadow-sm"
-              style={{ fontFamily: PP }}
-            >
-              Switch Patient
             </button>
           )}
           <button

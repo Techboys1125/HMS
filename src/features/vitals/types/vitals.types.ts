@@ -59,6 +59,9 @@ export interface NurseWaitingPatient {
   doctorName?: string;
   departmentName?: string;
   checkInTime?: string;
+  appointmentTime?: string;
+  time?: string;
+  timeSlot?: string;
   status?: string;
   phone?: string;
   contact?: string;
@@ -90,6 +93,7 @@ export interface NurseWaitingPatient {
     | string;
 
   specialty?: string;
+  visitType?: string;
 }
 
 export interface NurseVitalsApiResponse<T = unknown> {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router";
 import {
   Clock,
   MapPin,
@@ -14,6 +15,7 @@ import {
 import { patientsApi } from "../api/patient.api";
 import { PP, RB } from "../constants/patient.fonts";
 import { usePatientPortal } from "../context/usePatientPortal";
+import { ROUTES } from "../../../app/routes/routes";
 
 type QueueStatus = {
   appointmentId: number;
@@ -27,6 +29,7 @@ type QueueStatus = {
 } | null;
 
 export function PatientQueueStatusScreen() {
+  const navigate = useNavigate();
   const portal = usePatientPortal();
   const activeMrn = portal?.activeMrn;
   const [queueStatus, setQueueStatus] = useState<QueueStatus>(null);
@@ -125,7 +128,13 @@ export function PatientQueueStatusScreen() {
             className="flex items-center gap-1.5 text-xs text-[#64748B] mt-1"
             style={{ fontFamily: RB }}
           >
-            <span>Patient Portal</span>
+            <button
+              type="button"
+              onClick={() => navigate(ROUTES.DASHBOARD)}
+              className="hover:text-[#0D47A1] transition-colors font-medium cursor-pointer"
+            >
+              Patient Portal
+            </button>
             <ChevronRight size={13} className="text-slate-300" />
             <span className="font-medium text-[#111827]">Queue Status</span>
           </div>

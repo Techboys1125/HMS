@@ -23,11 +23,32 @@ export function mapApiPatientToPatientRecord(
     phone: patient.phone || patient.mobileNumber || patient.mobile || "N/A",
     mobileNumber:
       patient.mobileNumber || patient.mobile || patient.phone || "N/A",
-    dateOfBirth: patient.dateOfBirth || patient.dob || "",
-    dob: patient.dateOfBirth || patient.dob || "",
+    dateOfBirth:
+      patient.dateOfBirth ||
+      patient.dob ||
+      ((p as Record<string, unknown>).birthDate as string) ||
+      ((p as Record<string, unknown>).date_of_birth as string) ||
+      "",
+    dob:
+      patient.dateOfBirth ||
+      patient.dob ||
+      ((p as Record<string, unknown>).birthDate as string) ||
+      ((p as Record<string, unknown>).date_of_birth as string) ||
+      "",
     bloodGroup: patient.bloodGroup || patient.blood_type || "UNKNOWN",
     status: (patient.status as Patient["status"]) || "ACTIVE",
-    age: patient.age ?? calculateAge(patient.dateOfBirth || patient.dob),
+    age:
+      patient.age && Number(patient.age) > 0
+        ? Number(patient.age)
+        : ((p as Record<string, unknown>).patientAge &&
+            Number((p as Record<string, unknown>).patientAge) > 0)
+          ? Number((p as Record<string, unknown>).patientAge)
+          : calculateAge(
+              patient.dateOfBirth ||
+                patient.dob ||
+                ((p as Record<string, unknown>).birthDate as string) ||
+                ((p as Record<string, unknown>).date_of_birth as string),
+            ),
     address:
       typeof patient.address === "string"
         ? patient.address
@@ -147,12 +168,25 @@ export function extractDoctorName(
 
 function calculateAge(dob?: string): number {
   if (!dob) return 0;
-  const birth = new Date(dob);
+  const trimmed = String(dob).trim();
+  if (!trimmed) return 0;
+  let birth: Date;
+  if (trimmed.includes("/")) {
+    const parts = trimmed.split("/");
+    if (parts.length === 3 && parts[2].length === 4) {
+      birth = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+    } else {
+      birth = new Date(trimmed);
+    }
+  } else {
+    birth = new Date(trimmed);
+  }
+  if (Number.isNaN(birth.getTime())) return 0;
   const now = new Date();
   let age = now.getFullYear() - birth.getFullYear();
   const monthDiff = now.getMonth() - birth.getMonth();
   if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
     age--;
   }
-  return age;
+  return age >= 0 ? age : 0;
 }

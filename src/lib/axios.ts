@@ -53,7 +53,18 @@ async function customFetch<T = unknown>(
   options: RequestInit = {},
 ): Promise<ApiResponseData<T>> {
   const fullUrl = url.startsWith("http") ? url : `${API_BASE_URL}${url}`;
-  const token = getToken("accessToken");
+  let token = getToken("accessToken");
+  if (!token && typeof localStorage !== "undefined") {
+    try {
+      const rawStorage = localStorage.getItem("hms-auth-storage:v1");
+      if (rawStorage) {
+        const parsed = JSON.parse(rawStorage);
+        token = parsed?.tokens?.accessToken || null;
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }
 
   const isFormData =
     typeof FormData !== "undefined" && options.body instanceof FormData;

@@ -5,7 +5,6 @@ import { StatusChip } from "./StatusChip";
 import { Avatar } from "./Avatar";
 import { ConsultationActionMenu } from "./ConsultationActionMenu";
 import { Pagination } from "../../../common/components/Pagination";
-import { formatTime } from "../../../lib/time-utils";
 
 const PP = "'Poppins', system-ui, sans-serif";
 const RB = "'Roboto', system-ui, sans-serif";
@@ -55,6 +54,70 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
 
   const getVisitTypeColor = (visitType: string): string => {
     return visitTypeColors[visitType] || "bg-slate-100 text-slate-600";
+  };
+
+  const formatAppointmentTime = (time?: string): string => {
+    if (!time) return "";
+    const trimmed = String(time).trim();
+    if (!trimmed) return "";
+
+    const isoMatch = trimmed.match(
+      /(\d{4})-(\d{2})-(\d{2})[T\s](\d{1,2}):(\d{2})/,
+    );
+    if (isoMatch) {
+      const [, year, month, day, hourStr, minute] = isoMatch;
+      const hour = Number(hourStr);
+      const suffix = hour >= 12 ? "PM" : "AM";
+      const hour12 = hour % 12 || 12;
+      const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      return `${day} ${months[Number(month) - 1]} ${year}, ${hour12}:${minute} ${suffix}`;
+    }
+
+    const dateOnlyMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateOnlyMatch) {
+      const [, year, month, day] = dateOnlyMatch;
+      const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      return `${day} ${months[Number(month) - 1]} ${year}`;
+    }
+
+    if (/AM|PM/i.test(trimmed)) return trimmed;
+
+    const timeMatch = trimmed.match(/(\d{1,2}):(\d{2})/);
+    if (!timeMatch) return trimmed;
+
+    let hour = parseInt(timeMatch[1], 10);
+    const minute = timeMatch[2];
+    if (isNaN(hour)) return trimmed;
+
+    const suffix = hour >= 12 ? "PM" : "AM";
+    hour = hour % 12 || 12;
+    return `${hour}:${minute} ${suffix}`;
   };
 
   if (isLoading) {
@@ -113,20 +176,17 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
         <table className="w-full border-collapse text-left text-xs">
           <thead className="sticky top-0 bg-slate-50 border-b border-[#E5E7EB] z-10">
             <tr className="text-[#64748B] font-bold" style={{ fontFamily: PP }}>
-              <th className="py-3.5 px-4">Consultation ID</th>
+              <th className="py-3.5 px-4">Token</th>
               <th className="py-3.5 px-4">Patient</th>
               <th className="py-3.5 px-4">MRN</th>
-              {role === "doctor" && (
-                <th className="py-3.5 px-4">Age / Gender</th>
-              )}
-              <th className="py-3.5 px-4">Doctor</th>
-              <th className="py-3.5 px-4">Department</th>
+              <th className="py-3.5 px-4">Age / Gender</th>
+              {role !== "doctor" && <th className="py-3.5 px-4">Doctor</th>}
+              {role !== "doctor" && <th className="py-3.5 px-4">Department</th>}
               <th className="py-3.5 px-4">
                 {role === "doctor" ? "Appointment Time" : "Appt Time"}
               </th>
               {role === "doctor" && <th className="py-3.5 px-4">Visit Type</th>}
               <th className="py-3.5 px-4">Status</th>
-              {role === "admin" && <th className="py-3.5 px-4">Duration</th>}
               <th className="py-3.5 px-4 text-right">Actions</th>
             </tr>
           </thead>
@@ -140,12 +200,7 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
                 className="hover:bg-slate-50/80 transition-colors group"
               >
                 <td className="py-3.5 px-4 font-mono font-bold text-[#0D47A1]">
-                  <div className="flex items-center gap-1.5">
-                    <span>{item.id}</span>
-                    <span className="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded font-semibold">
-                      {item.tokenNo}
-                    </span>
-                  </div>
+                  {item.tokenNo || "—"}
                 </td>
 
                 <td className="py-3.5 px-4">
@@ -169,20 +224,22 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
                   {item.mrn}
                 </td>
 
-                {role === "doctor" && (
-                  <td className="py-3.5 px-4 text-slate-700">
-                    {item.age} yrs / {item.gender}
+                <td className="py-3.5 px-4 text-slate-700">
+                  {item.age} yrs / {item.gender}
+                </td>
+
+                {role !== "doctor" && (
+                  <td className="py-3.5 px-4 font-medium text-slate-800">
+                    {item.doctor}
                   </td>
                 )}
-
+                {role !== "doctor" && (
+                  <td className="py-3.5 px-4 text-slate-600">
+                    {item.department || item.doctorSpecialty || "—"}
+                  </td>
+                )}
                 <td className="py-3.5 px-4 font-medium text-slate-800">
-                  {item.doctor}
-                </td>
-                <td className="py-3.5 px-4 text-slate-600">
-                  {item.department}
-                </td>
-                <td className="py-3.5 px-4 font-medium text-slate-800">
-                  {formatTime(item.appointmentTime)}
+                  {formatAppointmentTime(item.appointmentTime) || "—"}
                 </td>
 
                 {role === "doctor" && (
@@ -191,7 +248,7 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
                       className={`inline-block px-2 py-0.5 text-[11px] font-semibold rounded-md ${getVisitTypeColor(item.visitType)}`}
                       style={{ fontFamily: PP }}
                     >
-                      {item.visitType}
+                      {item.visitType || "—"}
                     </span>
                   </td>
                 )}
@@ -200,12 +257,6 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
                   <StatusChip status={item.status} />
                 </td>
 
-                {role === "admin" && (
-                  <td className="py-3.5 px-4 font-medium text-slate-700">
-                    {item.duration || "N/A"}
-                  </td>
-                )}
-
                 <ConsultationActionMenu
                   item={item}
                   role={role}
@@ -213,7 +264,9 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
                   onOpenConsultation={onOpenConsultation}
                   onCallPatient={onCallPatient}
                   onViewDetails={onViewDetails}
-                  canStartConsultation={canStartConsultation}
+                  canStartConsultation={
+                    String(role).toLowerCase() === "doctor" ? true : canStartConsultation
+                  }
                 />
               </tr>
             ))}

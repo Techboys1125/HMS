@@ -411,13 +411,32 @@ export const appointmentsApi = {
     status: string,
     reason?: string,
   ): Promise<ApiResponse<AppointmentRecord>> => {
+    let numericId = appointmentId;
+    if (typeof appointmentId === "string" && appointmentId.includes("-")) {
+      const parsed = parseInt(appointmentId.split("-").pop() || "", 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        numericId = parsed;
+      }
+    }
     try {
       const response = await apiClient.patch<ApiResponse<AppointmentRecord>>(
-        `/api/v1/appointments/${appointmentId}/status`,
+        `/api/v1/appointments/${numericId}/status`,
         { status, reason },
       );
       return response.data;
     } catch (error: unknown) {
+      if (numericId !== appointmentId) {
+        try {
+          const response =
+            await apiClient.patch<ApiResponse<AppointmentRecord>>(
+              `/api/v1/appointments/${appointmentId}/status`,
+              { status, reason },
+            );
+          return response.data;
+        } catch {
+          // Handled below
+        }
+      }
       return handleApiError(error);
     }
   },
@@ -495,12 +514,30 @@ export const appointmentsApi = {
   queueCallPatient: async (
     appointmentId: string | number,
   ): Promise<ApiResponse<QueueActionResponse>> => {
+    let numericId = appointmentId;
+    if (typeof appointmentId === "string" && appointmentId.includes("-")) {
+      const parsed = parseInt(appointmentId.split("-").pop() || "", 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        numericId = parsed;
+      }
+    }
     try {
       const response = await apiClient.patch<ApiResponse<QueueActionResponse>>(
-        `/api/v1/queue/${appointmentId}/call`,
+        `/api/v1/queue/${numericId}/call`,
       );
       return response.data;
     } catch (error: unknown) {
+      if (numericId !== appointmentId) {
+        try {
+          const response =
+            await apiClient.patch<ApiResponse<QueueActionResponse>>(
+              `/api/v1/queue/${appointmentId}/call`,
+            );
+          return response.data;
+        } catch {
+          // Handled below
+        }
+      }
       return handleApiError(error);
     }
   },

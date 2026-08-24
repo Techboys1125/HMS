@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useNavigate } from "react-router";
 import {
   Calendar,
   Clock,
@@ -21,6 +22,7 @@ import {
   usePatientUnreadNotificationsCount,
 } from "../hooks/usePatientDashboard";
 import { formatTime } from "../../../lib/time-utils";
+import { ROUTES } from "../../../app/routes/routes";
 
 import {
   AreaChart,
@@ -243,9 +245,6 @@ const PAT_QUICK_ACTIONS = [
 import type { FamilyMember } from "../../patients/types/family.types";
 
 export function PatientDashboard({
-  onBookAppointmentClick,
-  onViewBillsClick,
-  onNavigateNav,
   activePatient,
   familyMembers = [],
   onSwitchPatient,
@@ -259,6 +258,7 @@ export function PatientDashboard({
   onSwitchPatient?: (member: FamilyMember) => void;
   onAddFamilyMember?: () => void;
 }) {
+  const navigate = useNavigate();
   const dashboardQuery = usePatientDashboard();
   const appointmentsQuery = usePatientAppointmentsTimeline();
   const prescriptionQuery = usePatientPrescriptionSummary();
@@ -397,22 +397,18 @@ export function PatientDashboard({
           <button
             key={label}
             onClick={() => {
-              if (action === "book" && onBookAppointmentClick)
-                onBookAppointmentClick();
-              else if (action === "bills" && onViewBillsClick)
-                onViewBillsClick();
-              else if (action === "book" && onNavigateNav)
-                onNavigateNav("appointments");
-              else if (action === "appts" && onNavigateNav)
-                onNavigateNav("appointments");
-              else if (action === "prescriptions" && onNavigateNav)
-                onNavigateNav("prescriptions");
-              else if (action === "bills" && onNavigateNav)
-                onNavigateNav("billing");
-              else if (action === "download" && onNavigateNav)
-                onNavigateNav("billing");
-              else if (action === "profile" && onNavigateNav)
-                onNavigateNav("settings");
+              if (action === "book")
+                navigate(ROUTES.PATIENT_APPOINTMENTS);
+              else if (action === "appts")
+                navigate(ROUTES.PATIENT_APPOINTMENTS);
+              else if (action === "prescriptions")
+                navigate(ROUTES.PATIENT_PRESCRIPTIONS);
+              else if (action === "bills")
+                navigate(ROUTES.PATIENT_PORTAL_BILLING);
+              else if (action === "download")
+                navigate(ROUTES.PATIENT_PORTAL_BILLING);
+              else if (action === "profile")
+                navigate(ROUTES.PATIENT_MY_PROFILE);
             }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#0D47A1]/40 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors shadow-sm"
             style={{ fontFamily: RB }}
@@ -511,7 +507,7 @@ export function PatientDashboard({
             sub="View Appointment History & Future Appointments"
             action={
               <button
-                onClick={() => onBookAppointmentClick?.()}
+                onClick={() => navigate(ROUTES.PATIENT_APPOINTMENTS)}
                 className="text-xs text-[#0D47A1] font-semibold hover:underline"
                 style={{ fontFamily: PP }}
               >
@@ -897,7 +893,7 @@ export function PatientDashboard({
             </div>
           </div>
           <button
-            onClick={() => onViewBillsClick?.()}
+            onClick={() => navigate(ROUTES.PATIENT_PORTAL_BILLING)}
             className="text-xs text-[#0D47A1] font-semibold hover:underline"
             style={{ fontFamily: RB }}
           >

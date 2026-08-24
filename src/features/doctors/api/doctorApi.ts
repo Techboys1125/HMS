@@ -6,6 +6,7 @@ import type {
   CreateDoctorPayload,
   UpdateDoctorPayload,
   DoctorDailyAvailabilityData,
+  DoctorDailySlot,
   DoctorMonthlyAvailabilityData,
   ApiScheduleExceptionItem,
   ApiWeeklyScheduleData,
@@ -267,13 +268,63 @@ export const doctorApi = {
         DoctorApiResponse<DoctorDailyAvailabilityData>
       >(`/api/v1/doctors/${doctorId}/availability?date=${date}`);
       const rawData = response.data?.data || response.data;
-      if (!rawData) return null;
-      const dailyData = rawData as DoctorDailyAvailabilityData;
+      if (rawData) {
+        const dailyData = rawData as unknown as DoctorDailyAvailabilityData;
+        const slots = Array.isArray(dailyData.slots)
+          ? dailyData.slots
+          : Array.isArray((rawData as unknown as Record<string, unknown>).content)
+            ? ((rawData as unknown as Record<string, unknown>).content as DoctorDailySlot[])
+            : [];
+        if (slots.length > 0) {
+          return {
+            doctorId: dailyData.doctorId || Number(doctorId),
+            date: dailyData.date || date,
+            scheduleStatus: dailyData.scheduleStatus || "AVAILABLE",
+            slots,
+          };
+        }
+      }
+    } catch {
+      // try fallback
+    }
+
+    try {
+      const response = await apiClient.get<
+        DoctorApiResponse<{ slots?: DoctorDailySlot[] } | DoctorDailySlot[]>
+      >(`/api/v1/doctors/${doctorId}/slots?date=${date}`);
+      const rawData = response.data?.data || response.data;
+      const slots: DoctorDailySlot[] = Array.isArray(rawData)
+        ? (rawData as DoctorDailySlot[])
+        : Array.isArray((rawData as { slots?: DoctorDailySlot[] })?.slots)
+          ? (rawData as { slots: DoctorDailySlot[] }).slots!
+          : [];
+      if (slots.length > 0) {
+        return {
+          doctorId: Number(doctorId),
+          date,
+          scheduleStatus: "AVAILABLE",
+          slots,
+        };
+      }
+    } catch {
+      // try next fallback
+    }
+
+    try {
+      const response = await apiClient.get<
+        DoctorApiResponse<{ slots?: DoctorDailySlot[] } | DoctorDailySlot[]>
+      >(`/api/v1/appointments/slots?doctorId=${doctorId}&date=${date}`);
+      const rawData = response.data?.data || response.data;
+      const slots: DoctorDailySlot[] = Array.isArray(rawData)
+        ? (rawData as DoctorDailySlot[])
+        : Array.isArray((rawData as { slots?: DoctorDailySlot[] })?.slots)
+          ? (rawData as { slots: DoctorDailySlot[] }).slots!
+          : [];
       return {
-        doctorId: dailyData.doctorId || Number(doctorId),
-        date: dailyData.date || date,
-        scheduleStatus: dailyData.scheduleStatus || "AVAILABLE",
-        slots: Array.isArray(dailyData.slots) ? dailyData.slots : [],
+        doctorId: Number(doctorId),
+        date,
+        scheduleStatus: "AVAILABLE",
+        slots,
       };
     } catch {
       return null;

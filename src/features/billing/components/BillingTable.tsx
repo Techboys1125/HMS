@@ -70,10 +70,14 @@ function InvoiceRow({
       </td>
       {/* Doctor & Department */}
       <td className="px-4 py-3.5">
-        <div className="font-medium text-[#111827]">{invoice.doctorName}</div>
-        <div className="text-[11px] text-[#009688] font-medium">
-          {invoice.department}
+        <div className="font-semibold text-[#111827]">
+          {invoice.doctorName || "—"}
         </div>
+        {invoice.department && (
+          <div className="text-[11px] text-[#009688] font-medium">
+            {invoice.department}
+          </div>
+        )}
       </td>
       {/* Amounts */}
       <td className="px-4 py-3.5 text-right font-semibold text-[#111827]">

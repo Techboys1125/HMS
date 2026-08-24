@@ -3,9 +3,6 @@ import {
   CheckCircle2,
   AlertCircle,
   ChevronDown,
-  Printer,
-  X,
-  FileText,
 } from "lucide-react";
 import { usePermissions } from "../../../permissions/usePermissions";
 import { useConsultation } from "../hooks/useConsultation";
@@ -26,6 +23,7 @@ import { InvestigationTable } from "../components/InvestigationTable";
 import { FollowupForm } from "../components/FollowupForm";
 import { ConsultationFooter } from "../components/ConsultationFooter";
 import { EncounterPrescriptionViewModal } from "../../prescriptions/components/EncounterPrescriptionViewModal";
+import { ConsultationDetailsScreen } from "../components/ConsultationDetailsScreen";
 import { useNavigate } from "react-router";
 
 const PP = "'Poppins', system-ui, sans-serif";
@@ -78,6 +76,7 @@ export function StartConsultationPage({
   onBack,
   onCompleteSuccess,
   onViewHistory,
+  onViewPatientProfile,
 }: {
   patientId?: string;
   onBack?: () => void;
@@ -289,16 +288,7 @@ export function StartConsultationPage({
     }));
   };
 
-  const handleViewPrescription = () => {
-    const encId =
-      finalizedData?.encounterId ||
-      activeEncounterId ||
-      selectedConsultation?.encounterId ||
-      selectedConsultation?.id;
-    if (encId) {
-      setViewPrescriptionEncounterId(encId);
-    }
-  };
+ 
 
   const handleFieldChange = (field: string, val: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: val }));
@@ -520,6 +510,71 @@ export function StartConsultationPage({
     selectedAppointment?.patient?.phone ||
     selectedAppointment?.patient?.mobile ||
     "";
+
+  if (showCompleteModal && finalizedData) {
+    return (
+      <ConsultationDetailsScreen
+        encounterId={finalizedData.encounterId}
+        initialRecord={{
+          id: `ENC-${finalizedData.encounterId}`,
+          visitDate: finalizedData.date,
+          completionTime: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          patientName: finalizedData.patientName,
+          mrn: finalizedData.mrn,
+          age: finalizedData.age,
+          gender: finalizedData.gender,
+          doctorName: finalizedData.doctor,
+          department: finalizedData.department,
+          visitType: finalizedData.visitType,
+          chiefComplaint: finalizedData.chiefComplaint || "None recorded",
+          vitals: {
+            height: finalizedData.vitals?.height || "—",
+            weight: finalizedData.vitals?.weight || "—",
+            bmi: finalizedData.vitals?.bmi || "—",
+            temperature: finalizedData.vitals?.temp || "—",
+            bp: finalizedData.vitals?.bp || "—",
+            pulse: finalizedData.vitals?.pulse || "—",
+            respiratoryRate: finalizedData.vitals?.respiratoryRate || "—",
+            spo2: finalizedData.vitals?.spo2 || "—",
+            bloodSugar: finalizedData.vitals?.bloodSugar || "—",
+          },
+          clinicalExamination: finalizedData.clinicalExamination || "—",
+          provisionalDiagnosis: formData.provisionalDiagnosis || "Recorded",
+          finalDiagnosis: finalizedData.finalDiagnosis || "Recorded",
+          icdCode: finalizedData.icdCode || "—",
+          medicines: (finalizedData.medicines || []).map((m, idx) => ({
+            id: String(m.id || idx + 1),
+            name: m.name,
+            dosage: m.dosage,
+            frequency: m.frequency,
+            duration: m.duration,
+            instructions: m.instructions || "After food",
+          })),
+          investigations: formData.customInvestigation
+            ? [formData.customInvestigation]
+            : [],
+          investigationRemarks: formData.investigationRemarks || "—",
+          symptoms: formData.symptoms || "—",
+          assessment: formData.assessment || "—",
+          advice: finalizedData.advice || "Follow doctor advice",
+          lifestyleRecommendations: finalizedData.dietAdvice || "—",
+          followupRequired: formData.followupRequired ? "Yes" : "No",
+          nextVisitDate: finalizedData.nextVisitDate || "—",
+          followupNotes: finalizedData.followupNotes || "—",
+          status: "Completed",
+          tokenNo: selectedAppointment?.tokenNumber
+            ? `TK-${selectedAppointment.tokenNumber}`
+            : "TK-01",
+        }}
+        onBack={handleCloseCompleteModal}
+        onViewHistory={onViewHistory}
+        onViewPatientProfile={onViewPatientProfile}
+      />
+    );
+  }
 
   return (
     <div className="flex-1 bg-[#F1F5F9] overflow-y-auto flex flex-col font-sans relative pb-24">
@@ -812,381 +867,6 @@ export function StartConsultationPage({
         isSavingDraft={isDraftSaved}
         isFinalizing={isFinalizing}
       />
-
-      {/* Render ConsultationCompleteModal if showCompleteModal is true */}
-      {showCompleteModal && finalizedData && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm overflow-y-auto flex justify-center items-start p-4 py-8">
-          {/* Modal Container */}
-          <div
-            id="printable-consultation-modal"
-            className="bg-white rounded-2xl max-w-4xl w-full p-8 shadow-2xl border border-slate-100 flex flex-col space-y-6 animate-in fade-in zoom-in-95 duration-200 my-auto"
-          >
-            {/* Stylesheet for printing */}
-            <style>{`
-              @media print {
-                body {
-                  background: white !important;
-                  color: black !important;
-                  -webkit-print-color-adjust: exact !important;
-                  print-color-adjust: exact !important;
-                }
-                body > :not(#printable-consultation-modal) {
-                  display: none !important;
-                }
-                #printable-consultation-modal {
-                  position: absolute;
-                  left: 0;
-                  top: 0;
-                  width: 100%;
-                  box-shadow: none !important;
-                  border: none !important;
-                  padding: 0 !important;
-                  margin: 0 !important;
-                }
-                .no-print {
-                  display: none !important;
-                }
-                .print-page-break {
-                  page-break-inside: avoid;
-                }
-              }
-            `}</style>
-
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4 no-print">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-50 rounded-2xl text-emerald-600">
-                  <CheckCircle2 size={28} />
-                </div>
-                <div>
-                  <h2
-                    className="text-xl font-bold text-slate-800"
-                    style={{ fontFamily: PP }}
-                  >
-                    Consultation Finalized
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    The encounter has been completed and saved successfully.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={handleCloseCompleteModal}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
-                title="Close"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Printable Content Wrapper */}
-            <div className="space-y-6 flex-1">
-              {/* Receipt Header for Print */}
-              <div className="hidden print:flex items-center justify-between border-b-2 border-[#0D47A1] pb-4 mb-4">
-                <div>
-                  <h1
-                    className="text-2xl font-black text-[#0D47A1] tracking-tight uppercase"
-                    style={{ fontFamily: PP }}
-                  >
-                    METROPOLITAN HEALTH HOSPITAL
-                  </h1>
-                  <p className="text-xs text-slate-500">
-                    123 Healthcare Boulevard, Medical District
-                  </p>
-                </div>
-                <div className="text-right">
-                  <h2 className="text-base font-bold text-slate-800">
-                    OPD VISIT SUMMARY
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Date: {finalizedData.date}
-                  </p>
-                </div>
-              </div>
-
-              {/* Patient & Encounter Details Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Patient Details */}
-                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
-                  <h3
-                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                    style={{ fontFamily: PP }}
-                  >
-                    Patient Information
-                  </h3>
-                  <div className="grid grid-cols-2 gap-y-2 text-xs">
-                    <span className="text-slate-500">Name:</span>
-                    <span className="font-bold text-slate-800">
-                      {finalizedData.patientName}
-                    </span>
-                    <span className="text-slate-500">MRN:</span>
-                    <span className="font-mono font-bold text-slate-800">
-                      {finalizedData.mrn}
-                    </span>
-                    <span className="text-slate-500">Age / Gender:</span>
-                    <span className="font-bold text-slate-800">
-                      {finalizedData.age} Years / {finalizedData.gender}
-                    </span>
-                    <span className="text-slate-500">Phone:</span>
-                    <span className="font-bold text-slate-800">
-                      {finalizedData.phone}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Encounter Details */}
-                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
-                  <h3
-                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                    style={{ fontFamily: PP }}
-                  >
-                    Encounter Details
-                  </h3>
-                  <div className="grid grid-cols-2 gap-y-2 text-xs">
-                    <span className="text-slate-500">Encounter ID:</span>
-                    <span className="font-mono font-bold text-slate-800">
-                      ENC-{finalizedData.encounterId}
-                    </span>
-                    <span className="text-slate-500">Doctor Name:</span>
-                    <span className="font-bold text-slate-800">
-                      {finalizedData.doctor}
-                    </span>
-                    <span className="text-slate-500">Department:</span>
-                    <span className="font-bold text-slate-800">
-                      {finalizedData.department}
-                    </span>
-                    <span className="text-slate-500">Visit Type:</span>
-                    <span className="font-bold text-slate-800">
-                      {finalizedData.visitType}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Clinical Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print-page-break">
-                <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                  <h3
-                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                    style={{ fontFamily: PP }}
-                  >
-                    Symptoms & SOAP Notes
-                  </h3>
-                  <div className="space-y-2 text-xs">
-                    <div>
-                      <span className="font-bold text-slate-700 block">
-                        Chief Complaint:
-                      </span>
-                      <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1">
-                        {finalizedData.chiefComplaint || "None"}
-                      </span>
-                    </div>
-                    {finalizedData.clinicalExamination && (
-                      <div>
-                        <span className="font-bold text-slate-700 block">
-                          Clinical Examination:
-                        </span>
-                        <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1">
-                          {finalizedData.clinicalExamination}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                  <h3
-                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                    style={{ fontFamily: PP }}
-                  >
-                    Diagnosis
-                  </h3>
-                  <div className="space-y-2 text-xs">
-                    <div>
-                      <span className="font-bold text-slate-700 block">
-                        Final Diagnosis:
-                      </span>
-                      <span className="text-slate-600 block bg-slate-50 p-2 rounded-lg mt-1 font-semibold">
-                        {finalizedData.finalDiagnosis}
-                      </span>
-                    </div>
-                    {finalizedData.icdCode && (
-                      <div>
-                        <span className="font-bold text-slate-700 block">
-                          ICD-10 Code:
-                        </span>
-                        <span className="font-mono text-[#0D47A1] block bg-blue-50 p-2 rounded-lg mt-1">
-                          {finalizedData.icdCode}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Prescribed Medications */}
-              {finalizedData.medicines &&
-                finalizedData.medicines.length > 0 && (
-                  <div className="border border-slate-100 rounded-2xl p-5 space-y-3 print-page-break">
-                    <h3
-                      className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                      style={{ fontFamily: PP }}
-                    >
-                      Prescribed Medications (Rx)
-                    </h3>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs border-collapse">
-                        <thead>
-                          <tr className="border-b border-slate-100 text-slate-400 font-medium">
-                            <th className="py-2 pr-4 font-bold text-slate-500">
-                              Medicine
-                            </th>
-                            <th className="py-2 px-4 font-bold text-slate-500">
-                              Dosage
-                            </th>
-                            <th className="py-2 px-4 font-bold text-slate-500">
-                              Frequency
-                            </th>
-                            <th className="py-2 px-4 font-bold text-slate-500">
-                              Duration
-                            </th>
-                            <th className="py-2 pl-4 font-bold text-slate-500">
-                              Instructions
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                          {finalizedData.medicines.map((med: MedicineItem) => (
-                            <tr
-                              key={med.id || med.name}
-                              className="text-slate-700"
-                            >
-                              <td className="py-2.5 pr-4 font-bold text-slate-800">
-                                {med.name}
-                              </td>
-                              <td className="py-2.5 px-4">{med.dosage}</td>
-                              <td className="py-2.5 px-4">{med.frequency}</td>
-                              <td className="py-2.5 px-4">{med.duration}</td>
-                              <td className="py-2.5 pl-4 text-slate-500 italic">
-                                {med.instructions || "After food"}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-              {/* Advice and follow up */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print-page-break">
-                <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                  <h3
-                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                    style={{ fontFamily: PP }}
-                  >
-                    General & Diet Advice
-                  </h3>
-                  <div className="space-y-2 text-xs">
-                    {finalizedData.advice && (
-                      <div>
-                        <span className="font-bold text-slate-700 block">
-                          General Advice:
-                        </span>
-                        <span className="text-slate-600 block mt-1">
-                          {finalizedData.advice}
-                        </span>
-                      </div>
-                    )}
-                    {finalizedData.dietAdvice && (
-                      <div>
-                        <span className="font-bold text-slate-700 block">
-                          Diet & Lifestyle:
-                        </span>
-                        <span className="text-slate-600 block mt-1">
-                          {finalizedData.dietAdvice}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="p-5 border border-slate-100 rounded-2xl space-y-3">
-                  <h3
-                    className="text-xs font-bold text-slate-400 uppercase tracking-wider"
-                    style={{ fontFamily: PP }}
-                  >
-                    Follow-up Instructions
-                  </h3>
-                  <div className="space-y-2 text-xs">
-                    {finalizedData.nextVisitDate && (
-                      <div className="p-3 bg-amber-50 rounded-xl border border-amber-100/50">
-                        <span className="font-bold text-amber-800 block">
-                          Next Recommended Visit:
-                        </span>
-                        <span className="text-amber-700 block font-semibold mt-1">
-                          {finalizedData.nextVisitDate}
-                        </span>
-                      </div>
-                    )}
-                    {finalizedData.followupNotes && (
-                      <div>
-                        <span className="font-bold text-slate-700 block">
-                          Precautions:
-                        </span>
-                        <span className="text-slate-600 block mt-1">
-                          {finalizedData.followupNotes}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Signature Line for Print */}
-              <div className="hidden print:block pt-16 border-t border-slate-100 text-right">
-                <div className="inline-block border-t border-slate-400 pt-2 w-48 text-center">
-                  <p className="text-xs font-bold text-slate-800">
-                    {finalizedData.doctor}
-                  </p>
-                  <p className="text-[10px] text-slate-500">
-                    Authorized Signature
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Actions */}
-            <div className="flex items-center justify-between border-t border-slate-100 pt-4 no-print">
-              <button
-                onClick={handleCloseCompleteModal}
-                className="px-5 py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors"
-                style={{ fontFamily: PP }}
-              >
-                Close & Exit
-              </button>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleViewPrescription}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#009688] hover:bg-[#00796B] text-white text-xs font-bold rounded-xl shadow-md transition-colors"
-                  style={{ fontFamily: PP }}
-                >
-                  <FileText size={14} />
-                  View Prescription
-                </button>
-                <button
-                  onClick={() => window.print()}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-bold rounded-xl shadow-md transition-colors"
-                  style={{ fontFamily: PP }}
-                >
-                  <Printer size={14} />
-                  Print Summary
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* View Prescription Modal */}
       <EncounterPrescriptionViewModal

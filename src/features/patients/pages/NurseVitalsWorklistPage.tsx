@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Activity, ChevronRight } from "lucide-react";
+import { Activity, ChevronRight, Clock } from "lucide-react";
 import { PP, RB } from "../../doctors/constants/doctors.constants";
 import { vitalsService } from "../../vitals/services/vitals.service";
 import { QUEUE_QUERY_KEY } from "../../opd/hooks/useQueue";
@@ -127,6 +127,17 @@ export function NurseVitalsWorklistPage() {
                     <div className="text-[11px] text-[#64748B]">
                       MRN: {patient.mrn} · {patient.gender} · {patient.age} yrs
                       · {getDepartmentName(patient)}
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 text-[10px] text-slate-500">
+                      {patient.checkInTime && (
+                        <span className="flex items-center gap-1">
+                          <Clock size={10} />
+                          {patient.checkInTime}
+                        </span>
+                      )}
+                      <span className="flex items-center gap-1">
+                        Status: {patient.status || "WAITING_FOR_VITALS"}
+                      </span>
                     </div>
                   </div>
                 </div>

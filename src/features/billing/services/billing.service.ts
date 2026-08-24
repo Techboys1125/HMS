@@ -241,7 +241,32 @@ export const billingService = {
       return rawBills.map((bill: Record<string, unknown>) => {
         const summaryObj = (bill.summary || {}) as Record<string, unknown>;
         const patientObj = (bill.patient || {}) as Record<string, unknown>;
+        const doctorObj = (bill.doctor || {}) as Record<string, unknown>;
+        const deptObj = (bill.department || {}) as Record<string, unknown>;
+
+        const doctorName = String(
+          bill.doctorName ||
+            bill.doctor_name ||
+            bill.attendingDoctorName ||
+            bill.attendingDoctor ||
+            (typeof bill.doctor === "string" ? bill.doctor : "") ||
+            doctorObj.fullName ||
+            doctorObj.doctorName ||
+            doctorObj.name ||
+            "",
+        );
+
+        const departmentName = String(
+          bill.departmentName ||
+            bill.department_name ||
+            (typeof bill.department === "string" ? bill.department : "") ||
+            deptObj.departmentName ||
+            deptObj.name ||
+            "",
+        );
+
         return mapApiBillToInvoiceRecord({
+          ...bill,
           billId: (bill.billId || bill.id) as number | undefined,
           billNumber: String(
             bill.billNumber ||
@@ -254,6 +279,7 @@ export const billingService = {
             bill.patientName ||
               responseData?.patientName ||
               patientObj.name ||
+              patientObj.fullName ||
               "",
           ),
           patientMrn: String(
@@ -262,6 +288,8 @@ export const billingService = {
           mrn: String(
             bill.patientMrn || responseData?.mrn || patientObj.mrn || mrn,
           ),
+          doctorName,
+          departmentName,
           consultationFee: 0,
           status: String(bill.billStatus || bill.status || "FINALIZED"),
           paymentStatus: String(bill.paymentStatus || "UNPAID"),

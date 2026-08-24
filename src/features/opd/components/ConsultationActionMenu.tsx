@@ -16,6 +16,7 @@ export interface ConsultationActionMenuProps {
 
 export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
   item,
+  role = "doctor",
   onStartConsultation,
   onOpenConsultation,
   onCallPatient,
@@ -45,10 +46,12 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
     statusUpper === "WAITING_FOR_DOCTOR" ||
     statusUpper === "WAITING";
 
+  const isDoctorRole = String(role).toLowerCase() === "doctor";
+
   return (
     <td className="py-3.5 px-4 text-right relative">
       <div className="flex items-center justify-end gap-1.5">
-        {canStartConsultation && isWaitingForDoctorCall && onCallPatient && (
+        {isDoctorRole && canStartConsultation && isWaitingForDoctorCall && onCallPatient && (
           <button
             onClick={() => onCallPatient(item)}
             className="px-2.5 py-1.5 text-white rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 bg-purple-600 hover:bg-purple-700"
@@ -59,7 +62,7 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
           </button>
         )}
 
-        {canStartConsultation && isCalled && onStartConsultation && (
+        {isDoctorRole && canStartConsultation && isCalled && onStartConsultation && (
           <button
             onClick={() => onStartConsultation(item.id)}
             className="px-2.5 py-1.5 bg-[#009688] hover:bg-[#00796B] text-white rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1"
@@ -69,7 +72,7 @@ export const ConsultationActionMenu: React.FC<ConsultationActionMenuProps> = ({
           </button>
         )}
 
-        {canStartConsultation && isInConsultation && (
+        {isDoctorRole && canStartConsultation && isInConsultation && (
           <button
             onClick={() =>
               onOpenConsultation

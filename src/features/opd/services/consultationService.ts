@@ -18,13 +18,57 @@ export const consultationService = {
    * PATCH /api/v1/queue/{appointmentId}/call → transitions to CALLED
    * Falls back to PATCH /api/v1/appointments/{id}/status
    */
-  callPatient: async (appointmentId: string | number) => {
-    try {
-      await consultationApi.callPatientFromQueue(appointmentId);
-    } catch {
-      await appointmentsApi.updateAppointmentStatus(appointmentId, "CALLED");
+  callPatient: async (
+    appointmentId: string | number,
+    alternateId?: string | number,
+  ) => {
+    let numericId: string | number = appointmentId;
+    if (typeof appointmentId === "string" && appointmentId.includes("-")) {
+      const parsed = parseInt(appointmentId.split("-").pop() || "", 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        numericId = parsed;
+      }
     }
-    consultationStoreActions.setStatus("CALLED");
+
+    let altNumericId: string | number | undefined = alternateId;
+    if (typeof alternateId === "string" && alternateId.includes("-")) {
+      const parsed = parseInt(alternateId.split("-").pop() || "", 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        altNumericId = parsed;
+      }
+    }
+
+    const idsToTry = Array.from(
+      new Set(
+        [numericId, appointmentId, altNumericId, alternateId].filter(
+          (id): id is string | number =>
+            id !== undefined && id !== null && id !== "" && id !== 0,
+        ),
+      ),
+    );
+
+    let lastError: unknown;
+    for (const id of idsToTry) {
+      try {
+        await consultationApi.callPatientFromQueue(id);
+        consultationStoreActions.setStatus("CALLED");
+        return;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+
+    for (const id of idsToTry) {
+      try {
+        await appointmentsApi.updateAppointmentStatus(id, "CALLED");
+        consultationStoreActions.setStatus("CALLED");
+        return;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+
+    if (lastError) throw lastError;
   },
 
   /**
@@ -48,8 +92,26 @@ export const consultationService = {
         throw new Error("Appointment ID is missing");
       }
 
-      // 1. Create Encounter
-      const encounter = await consultationApi.createEncounter(appointmentId);
+      // Transition appointment status to IN_CONSULTATION in backend
+      try {
+        await appointmentsApi.doctorStartConsultation(appointmentId);
+      } catch (startErr) {
+        console.warn(
+          "Transition appointment to IN_CONSULTATION warning:",
+          startErr,
+        );
+      }
+
+      // 1. Create Encounter with linked patient
+      const patientId =
+        appointment.patientId ||
+        (typeof (appointment as unknown as Record<string, unknown>).patient === "object"
+          ? ((appointment as unknown as Record<string, unknown>).patient as { id?: string | number })?.id
+          : undefined);
+      const encounter = await consultationApi.createEncounter(
+        appointmentId,
+        patientId,
+      );
       consultationStoreActions.setEncounter(encounter);
 
       // 2. Load patient vitals for the encounter (may fail for new encounters — non-critical)
@@ -320,6 +382,15 @@ export const consultationService = {
           // non-blocking
         }
 
+        // Ensure appointment status is IN_CONSULTATION in backend before finalization
+        if (appointmentId) {
+          try {
+            await appointmentsApi.doctorStartConsultation(appointmentId);
+          } catch {
+            // non-blocking
+          }
+        }
+
         let encounterFinalized = false;
         const MAX_RETRIES = 3;
         for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -347,14 +418,56 @@ export const consultationService = {
               errMsg.includes("STALE_ENCOUNTER") ||
               errMsg.includes("modified") ||
               errMsg.includes("409");
+            const isStateErr =
+              errMsg.includes("IN_CONSULTATION") ||
+              errMsg.includes("INVALID_STATE");
 
-            if (isStale && attempt < MAX_RETRIES - 1) {
+            if (isStateErr && appointmentId && attempt < MAX_RETRIES - 1) {
+              try {
+                await appointmentsApi.doctorStartConsultation(appointmentId);
+              } catch {
+                // non-blocking
+              }
+            }
+
+            if ((isStale || isStateErr) && attempt < MAX_RETRIES - 1) {
               // Brief delay to let any pending DB writes settle, then retry
               await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
               continue;
             }
-            // Non-stale error or max retries exhausted — throw
-            throw finalizeErr;
+
+            // Fallback to legacy adapter endpoint: POST /api/v1/encounters/appointment/{appointmentId}/finalize
+            if (appointmentId) {
+              try {
+                const legacyRes =
+                  await encountersApi.finalizeEncounterByAppointment(
+                    appointmentId,
+                  );
+                if (legacyRes) {
+                  encounterFinalized = true;
+                  break;
+                }
+              } catch {
+                // non-blocking
+              }
+            }
+
+            // Fallback to appointment status completion endpoint if encounter finalization failed due to state
+            if (!encounterFinalized && appointmentId) {
+              try {
+                const compRes = await consultationApi.completeAppointment(appointmentId);
+                if (compRes?.success) {
+                  encounterFinalized = true;
+                  break;
+                }
+              } catch (aptErr) {
+                console.warn("Appointment completion fallback warning:", aptErr);
+              }
+            }
+
+            if (!encounterFinalized) {
+              throw finalizeErr;
+            }
           }
         }
 

@@ -103,12 +103,28 @@ export function InvoiceDetailsPage() {
     }
   };
 
-  const patientName = bill?.patient?.name || "N/A";
-  const patientMrn = bill?.patient?.mrn || "N/A";
-  const patientPhone =
-    bill?.patient?.phone || bill?.patient?.registeredMobile || "";
-  const doctorName = bill?.doctor?.name || "N/A";
-  const doctorCode = bill?.doctor?.doctorCode || "";
+  const bRec = bill as unknown as Record<string, unknown>;
+  const docObj = (bRec?.doctor as Record<string, unknown>) || {};
+  const patObj = (bRec?.patient as Record<string, unknown>) || {};
+
+  const patientName =
+    (bRec?.patientName as string) || (patObj.name as string) || (patObj.fullName as string) || "N/A";
+  const patientMrn =
+    (bRec?.patientMrn as string) || (patObj.mrn as string) || (bRec?.mrn as string) || "N/A";
+  const patientPhone = String(
+    patObj.phone || patObj.registeredMobile || bRec?.mobile || ""
+  );
+  const doctorName = String(
+    bRec?.doctorName ||
+    bRec?.doctor_name ||
+    docObj.fullName ||
+    docObj.name ||
+    docObj.doctorName ||
+    bRec?.attendingDoctorName ||
+    bRec?.attendingDoctor ||
+    "N/A"
+  );
+  const doctorCode = String(docObj.doctorCode || docObj.code || "");
   const summaryData = bill?.summary;
   const items = bill?.items || [];
   const paymentRecords =
@@ -312,7 +328,7 @@ export function InvoiceDetailsPage() {
       </div>
 
       {/* 2. TWO-COLUMN LAYOUT */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1  gap-6">
         <div className="xl:col-span-2 space-y-6">
           {/* Invoice Metadata */}
           <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
@@ -604,8 +620,31 @@ export function InvoiceDetailsPage() {
         </div>
 
         {/* Right Sidebar */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4 sticky top-6">
+        <div className="space-y-6 pb-12">
+          {/* Action Buttons */}
+          {canCollect && canEdit && (
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
+              <button
+                onClick={handleCollectPayment}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors transition-transform shadow-sm active:scale-95 cursor-pointer"
+                style={{ fontFamily: PP }}
+              >
+                <DollarSign size={15} />
+                Collect Payment
+              </button>
+              <button
+                onClick={() => navigate(`/billing/invoice/${targetId}/print`)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
+                style={{ fontFamily: RB }}
+              >
+                <Printer size={14} />
+                Print Receipt
+              </button>
+            </div>
+          )}
+
+          {/* Payment Collection Summary */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-4">
             <h3
               className="text-sm font-bold text-[#111827]"
               style={{ fontFamily: PP }}
@@ -682,103 +721,57 @@ export function InvoiceDetailsPage() {
                   </span>
                 </div>
               )}
+
+              {/* Integrated Settlement Status Banners */}
+              {isCancelled && (
+                <div className="mt-3 p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+                    <Ban size={16} className="text-red-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-red-700" style={{ fontFamily: PP }}>
+                      Invoice Cancelled
+                    </h4>
+                    <p className="text-[11px] text-red-500" style={{ fontFamily: RB }}>
+                      This invoice has been cancelled.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {isVoided && (
+                <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+                    <Ban size={16} className="text-amber-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-amber-700" style={{ fontFamily: PP }}>
+                      Invoice Voided
+                    </h4>
+                    <p className="text-[11px] text-amber-500" style={{ fontFamily: RB }}>
+                      This invoice has been voided.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {!canCollect && !isCancelled && !isVoided && balanceAmount <= 0 && paidAmount > 0 && (
+                <div className="mt-3 p-3 rounded-xl bg-[#66BB6A]/10 border border-[#66BB6A]/30 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#66BB6A]/20 flex items-center justify-center shrink-0">
+                    <CheckCircle2 size={16} className="text-[#66BB6A]" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-[#66BB6A]" style={{ fontFamily: PP }}>
+                      Fully Paid
+                    </h4>
+                    <p className="text-[11px] text-slate-500" style={{ fontFamily: RB }}>
+                      This invoice is fully settled.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Action Buttons */}
-          {canCollect && canEdit && (
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
-              <button
-                onClick={handleCollectPayment}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors transition-transform shadow-sm active:scale-95 cursor-pointer"
-                style={{ fontFamily: PP }}
-              >
-                <DollarSign size={15} />
-                Collect Payment
-              </button>
-              <button
-                onClick={() => navigate(`/billing/invoice/${targetId}/print`)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
-                style={{ fontFamily: RB }}
-              >
-                <Printer size={14} />
-                Print Receipt
-              </button>
-            </div>
-          )}
-
-          {/* Status Cards */}
-          {isCancelled && (
-            <div className="bg-white rounded-2xl border border-red-200 p-5 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
-                  <Ban size={20} className="text-red-500" />
-                </div>
-                <div>
-                  <h4
-                    className="text-sm font-bold text-red-700"
-                    style={{ fontFamily: PP }}
-                  >
-                    Invoice Cancelled
-                  </h4>
-                  <p
-                    className="text-xs text-red-500"
-                    style={{ fontFamily: RB }}
-                  >
-                    This invoice has been cancelled.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {isVoided && (
-            <div className="bg-white rounded-2xl border border-amber-200 p-5 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
-                  <Ban size={20} className="text-amber-500" />
-                </div>
-                <div>
-                  <h4
-                    className="text-sm font-bold text-amber-700"
-                    style={{ fontFamily: PP }}
-                  >
-                    Invoice Voided
-                  </h4>
-                  <p
-                    className="text-xs text-amber-500"
-                    style={{ fontFamily: RB }}
-                  >
-                    This invoice has been voided.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {!canCollect && !isCancelled && !isVoided && (
-            <div className="bg-white rounded-2xl border border-[#66BB6A]/30 p-5 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#66BB6A]/10 flex items-center justify-center">
-                  <CheckCircle2 size={20} className="text-[#66BB6A]" />
-                </div>
-                <div>
-                  <h4
-                    className="text-sm font-bold text-[#66BB6A]"
-                    style={{ fontFamily: PP }}
-                  >
-                    Fully Paid
-                  </h4>
-                  <p
-                    className="text-xs text-slate-500"
-                    style={{ fontFamily: RB }}
-                  >
-                    This invoice is fully settled.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

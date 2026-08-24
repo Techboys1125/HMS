@@ -13,6 +13,7 @@ export interface QueuePatient {
   age: number;
   gender: string;
   contact: string;
+  dateOfBirth?: string;
 }
 
 export interface QueueDoctor {
@@ -34,6 +35,8 @@ export interface QueueItem {
   status: QueueStatus;
   queueStatus?: QueueStatus;
   checkInTime: string;
+  appointmentTime?: string;
+  visitType?: string;
   patient: QueuePatient;
   doctor: QueueDoctor;
 }
