@@ -25,7 +25,9 @@ import { mapApiBillToInvoiceRecord } from "../utils/billing.utils";
 
 const billIdCache = new Map<string, number>();
 
-export async function resolveBillId(rawId: number | string): Promise<number | string> {
+export async function resolveBillId(
+  rawId: number | string,
+): Promise<number | string> {
   if (rawId === null || rawId === undefined) return rawId;
   const strId = String(rawId).trim();
   if (!strId) return rawId;
@@ -39,13 +41,20 @@ export async function resolveBillId(rawId: number | string): Promise<number | st
   }
 
   try {
-    const response = await billingApi.searchBills({ search: strId, page: 0, size: 10 });
-    const content = (response.data as any)?.content || [];
+    const response = await billingApi.searchBills({
+      search: strId,
+      page: 0,
+      size: 10,
+    });
+    const content =
+      (response.data as unknown as { content?: Array<Record<string, unknown>> })
+        ?.content || [];
     const found = content.find(
-      (b: any) =>
+      (b: Record<string, unknown>) =>
         b.billNumber === strId ||
         b.invoiceId === strId ||
-        (b.billNumber && String(b.billNumber).toLowerCase() === strId.toLowerCase()),
+        (b.billNumber &&
+          String(b.billNumber).toLowerCase() === strId.toLowerCase()),
     );
     const numericId = found?.billId ?? found?.id;
     if (numericId != null && !isNaN(Number(numericId))) {

@@ -33,7 +33,8 @@ export function ResetPasswordDialog({
             <KeyRound size={16} className="text-amber-500" /> Administrative
             Password Reset
           </h3>
-          <button aria-label="Close"
+          <button
+            aria-label="Close"
             onClick={onClose}
             className="text-white/80 hover:text-white cursor-pointer"
           >

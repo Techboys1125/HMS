@@ -36,7 +36,8 @@ export function PatientFilters({
             size={16}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]"
           />
-          <input aria-label="Input field"
+          <input
+            aria-label="Input field"
             type="text"
             value={searchQuery}
             onChange={(e) => onChange({ searchQuery: e.target.value })}
@@ -45,7 +46,8 @@ export function PatientFilters({
             style={{ fontFamily: RB }}
           />
           {searchQuery && (
-            <button aria-label="Close"
+            <button
+              aria-label="Close"
               onClick={() => onChange({ searchQuery: "" })}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
@@ -59,7 +61,8 @@ export function PatientFilters({
           {/* Gender Filter */}
           <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-[#E5E7EB] bg-[#F1F5F9]/60 text-xs text-[#111827]">
             <span className="text-[#64748B]">Gender:</span>
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={genderFilter}
               onChange={(e) => onChange({ genderFilter: e.target.value })}
               className="bg-transparent font-semibold outline-none cursor-pointer text-[#0D47A1]"
@@ -74,7 +77,8 @@ export function PatientFilters({
           {/* Status Filter */}
           <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-[#E5E7EB] bg-[#F1F5F9]/60 text-xs text-[#111827]">
             <span className="text-[#64748B]">Status:</span>
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={statusFilter}
               onChange={(e) => onChange({ statusFilter: e.target.value })}
               className="bg-transparent font-semibold outline-none cursor-pointer text-[#0D47A1]"
@@ -90,7 +94,8 @@ export function PatientFilters({
           {/* Registration Type Filter */}
           <div className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-[#E5E7EB] bg-[#F1F5F9]/60 text-xs text-[#111827]">
             <span className="text-[#64748B]">Reg Type:</span>
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={registrationTypeFilter}
               onChange={(e) =>
                 onChange({ registrationTypeFilter: e.target.value })

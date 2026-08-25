@@ -108,21 +108,27 @@ export function InvoiceDetailsPage() {
   const patObj = (bRec?.patient as Record<string, unknown>) || {};
 
   const patientName =
-    (bRec?.patientName as string) || (patObj.name as string) || (patObj.fullName as string) || "N/A";
+    (bRec?.patientName as string) ||
+    (patObj.name as string) ||
+    (patObj.fullName as string) ||
+    "N/A";
   const patientMrn =
-    (bRec?.patientMrn as string) || (patObj.mrn as string) || (bRec?.mrn as string) || "N/A";
+    (bRec?.patientMrn as string) ||
+    (patObj.mrn as string) ||
+    (bRec?.mrn as string) ||
+    "N/A";
   const patientPhone = String(
-    patObj.phone || patObj.registeredMobile || bRec?.mobile || ""
+    patObj.phone || patObj.registeredMobile || bRec?.mobile || "",
   );
   const doctorName = String(
     bRec?.doctorName ||
-    bRec?.doctor_name ||
-    docObj.fullName ||
-    docObj.name ||
-    docObj.doctorName ||
-    bRec?.attendingDoctorName ||
-    bRec?.attendingDoctor ||
-    "N/A"
+      bRec?.doctor_name ||
+      docObj.fullName ||
+      docObj.name ||
+      docObj.doctorName ||
+      bRec?.attendingDoctorName ||
+      bRec?.attendingDoctor ||
+      "N/A",
   );
   const displayInvoiceNo = targetId
     ? targetId.startsWith("BL-")
@@ -219,14 +225,16 @@ export function InvoiceDetailsPage() {
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
             style={{ fontFamily: RB }}
           >
-            <button type="button"
+            <button
+              type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate(isPatient ? "/dashboard" : "/billing")}
             >
               Home
             </button>
             <ChevronRight size={12} />
-            <button type="button"
+            <button
+              type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate(backUrl)}
             >
@@ -259,7 +267,7 @@ export function InvoiceDetailsPage() {
           {canCollect && canEdit && (
             <button
               onClick={handleCollectPayment}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors transition-transform shadow-sm active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-sm active:scale-95 cursor-pointer"
               style={{ fontFamily: PP }}
             >
               <DollarSign size={15} />
@@ -277,7 +285,8 @@ export function InvoiceDetailsPage() {
           {!isPatient &&
             (canCancelAction || canVoidAction || canRefundAction) && (
               <div className="relative">
-                <button aria-label="Action"
+                <button
+                  aria-label="Action"
                   onClick={() => setShowMoreMenu(!showMoreMenu)}
                   className="p-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors shadow-sm cursor-pointer"
                 >
@@ -634,7 +643,7 @@ export function InvoiceDetailsPage() {
             <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm space-y-3">
               <button
                 onClick={handleCollectPayment}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors transition-transform shadow-sm active:scale-95 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-sm active:scale-95 cursor-pointer"
                 style={{ fontFamily: PP }}
               >
                 <DollarSign size={15} />
@@ -737,10 +746,16 @@ export function InvoiceDetailsPage() {
                     <Ban size={16} className="text-red-600" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-red-700" style={{ fontFamily: PP }}>
+                    <h4
+                      className="text-xs font-bold text-red-700"
+                      style={{ fontFamily: PP }}
+                    >
                       Invoice Cancelled
                     </h4>
-                    <p className="text-[11px] text-red-500" style={{ fontFamily: RB }}>
+                    <p
+                      className="text-[11px] text-red-500"
+                      style={{ fontFamily: RB }}
+                    >
                       This invoice has been cancelled.
                     </p>
                   </div>
@@ -753,31 +768,47 @@ export function InvoiceDetailsPage() {
                     <Ban size={16} className="text-amber-600" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-amber-700" style={{ fontFamily: PP }}>
+                    <h4
+                      className="text-xs font-bold text-amber-700"
+                      style={{ fontFamily: PP }}
+                    >
                       Invoice Voided
                     </h4>
-                    <p className="text-[11px] text-amber-500" style={{ fontFamily: RB }}>
+                    <p
+                      className="text-[11px] text-amber-500"
+                      style={{ fontFamily: RB }}
+                    >
                       This invoice has been voided.
                     </p>
                   </div>
                 </div>
               )}
 
-              {!canCollect && !isCancelled && !isVoided && balanceAmount <= 0 && paidAmount > 0 && (
-                <div className="mt-3 p-3 rounded-xl bg-[#66BB6A]/10 border border-[#66BB6A]/30 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#66BB6A]/20 flex items-center justify-center shrink-0">
-                    <CheckCircle2 size={16} className="text-[#66BB6A]" />
+              {!canCollect &&
+                !isCancelled &&
+                !isVoided &&
+                balanceAmount <= 0 &&
+                paidAmount > 0 && (
+                  <div className="mt-3 p-3 rounded-xl bg-[#66BB6A]/10 border border-[#66BB6A]/30 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-[#66BB6A]/20 flex items-center justify-center shrink-0">
+                      <CheckCircle2 size={16} className="text-[#66BB6A]" />
+                    </div>
+                    <div>
+                      <h4
+                        className="text-xs font-bold text-[#66BB6A]"
+                        style={{ fontFamily: PP }}
+                      >
+                        Fully Paid
+                      </h4>
+                      <p
+                        className="text-[11px] text-slate-500"
+                        style={{ fontFamily: RB }}
+                      >
+                        This invoice is fully settled.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-[#66BB6A]" style={{ fontFamily: PP }}>
-                      Fully Paid
-                    </h4>
-                    <p className="text-[11px] text-slate-500" style={{ fontFamily: RB }}>
-                      This invoice is fully settled.
-                    </p>
-                  </div>
-                </div>
-              )}
+                )}
             </div>
           </div>
         </div>
@@ -794,7 +825,8 @@ export function InvoiceDetailsPage() {
               >
                 Process Refund
               </h3>
-              <button aria-label="Action"
+              <button
+                aria-label="Action"
                 onClick={() => setShowRefundModal(false)}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >
@@ -819,23 +851,25 @@ export function InvoiceDetailsPage() {
               <div>
                 <span className="block text-slate-700 font-semibold mb-1">
                   Refund Amount (₹) *
-                
-                <input aria-label="Input field"
-                  type="number"
-                  value={refundAmount || ""}
-                  onChange={(e) => {
-                    const v = e.currentTarget.valueAsNumber;
-                    setRefundAmount(Number.isFinite(v) ? v : 0);
-                  }}
-                  max={paidAmount}
-                  className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-sm font-bold focus:bg-white focus:border-[#0D47A1] focus:outline-none"
-                /></span>
+                  <input
+                    aria-label="Input field"
+                    type="number"
+                    value={refundAmount || ""}
+                    onChange={(e) => {
+                      const v = e.currentTarget.valueAsNumber;
+                      setRefundAmount(Number.isFinite(v) ? v : 0);
+                    }}
+                    max={paidAmount}
+                    className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-sm font-bold focus:bg-white focus:border-[#0D47A1] focus:outline-none"
+                  />
+                </span>
               </div>
               <div>
                 <span className="block text-slate-700 font-semibold mb-1">
                   Reason *
                 </span>
-                <textarea aria-label="Text area"
+                <textarea
+                  aria-label="Text area"
                   rows={2}
                   value={refundReason}
                   onChange={(e) => setRefundReason(e.target.value)}

@@ -67,9 +67,7 @@ export function NavRail({
       if (!required) return true;
       return can(required);
     });
-    return filteredItems.length > 0
-      ? [{ ...group, items: filteredItems }]
-      : [];
+    return filteredItems.length > 0 ? [{ ...group, items: filteredItems }] : [];
   });
 
   return (

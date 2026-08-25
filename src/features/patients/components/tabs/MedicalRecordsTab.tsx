@@ -58,6 +58,16 @@ const STATUS_STYLE: Record<string, string> = {
   Active: "bg-blue-50 text-[#0D47A1] border-blue-200",
 };
 
+const ICON_MAP: Record<string, React.ElementType> = {
+  prescription: Pill,
+  billing: CreditCard,
+};
+
+const COLOR_MAP: Record<string, string> = {
+  prescription: "bg-emerald-50 text-emerald-700",
+  billing: "bg-sky-50 text-sky-700",
+};
+
 /* ─── Timeline View ─── */
 function TimelineView({
   entries,
@@ -76,21 +86,11 @@ function TimelineView({
     );
   }
 
-  const iconMap: Record<string, React.ElementType> = {
-    prescription: Pill,
-    billing: CreditCard,
-  };
-
-  const colorMap: Record<string, string> = {
-    prescription: "bg-emerald-50 text-emerald-700",
-    billing: "bg-sky-50 text-sky-700",
-  };
-
   return (
     <div className="space-y-2">
       {entries.map((entry) => {
-        const Icon = iconMap[entry.type] || FileText;
-        const colorCls = colorMap[entry.type] || "bg-slate-50 text-slate-600";
+        const Icon = ICON_MAP[entry.type] || FileText;
+        const colorCls = COLOR_MAP[entry.type] || "bg-slate-50 text-slate-600";
         const handleClick = () => {
           if (entry.type === "prescription") {
             onSelectPrescription(String(entry.id));
@@ -141,16 +141,7 @@ function TimelineView({
               </div>
             </div>
             <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity self-center">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClick();
-                }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
-                title="View Details"
-              >
-                <Eye size={14} />
-              </button>
+              <Eye size={14} className="text-slate-400" />
               <ChevronRight size={14} className="text-slate-400" />
             </div>
           </div>
@@ -182,17 +173,8 @@ function PrescriptionsView({
         const status = rx.prescriptionStatus || "FINALIZED";
         return (
           <div
-            role="button"
-            tabIndex={0}
             key={rx.prescriptionId}
-            onClick={() => onSelectPrescription(rx.prescriptionId)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onSelectPrescription(rx.prescriptionId);
-              }
-            }}
-            className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors cursor-pointer group"
+            className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors group"
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
@@ -241,11 +223,9 @@ function PrescriptionsView({
               >
                 {status}
               </span>
-              <div
-                className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => e.stopPropagation()}
-              >
+              <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                 <button
+                  type="button"
                   onClick={() => onSelectPrescription(rx.prescriptionId)}
                   className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
                   title="View Prescription"
@@ -253,6 +233,7 @@ function PrescriptionsView({
                   <Eye size={15} />
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     onSelectPrescription(rx.prescriptionId);
                     setTimeout(() => window.print(), 300);
@@ -294,17 +275,8 @@ function BillingView({
         const payStatus = bill.paymentStatus || bill.billStatus || "PENDING";
         return (
           <div
-            role="button"
-            tabIndex={0}
             key={bill.billId}
-            onClick={() => onSelectBill(bill)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onSelectBill(bill);
-              }
-            }}
-            className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors cursor-pointer group"
+            className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors group"
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
@@ -331,11 +303,9 @@ function BillingView({
               >
                 {payStatus}
               </span>
-              <div
-                className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => e.stopPropagation()}
-              >
+              <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                 <button
+                  type="button"
                   onClick={() => onSelectBill(bill)}
                   className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
                   title="View Invoice"
@@ -343,6 +313,7 @@ function BillingView({
                   <Eye size={15} />
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     onSelectBill(bill);
                     setTimeout(() => window.print(), 300);

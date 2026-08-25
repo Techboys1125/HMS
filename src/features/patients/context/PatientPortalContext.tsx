@@ -119,11 +119,7 @@ function mapApiToFamilyMember(
   ).trim();
 
   let resolvedName =
-    (customSaved.name as string) ||
-    p.patientName ||
-    p.fullName ||
-    p.name ||
-    "";
+    (customSaved.name as string) || p.patientName || p.fullName || p.name || "";
 
   if (isSelf) {
     resolvedName = resolvedName || primaryName || "Patient";

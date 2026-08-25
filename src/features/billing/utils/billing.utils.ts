@@ -18,8 +18,14 @@ export function mapApiInvoiceToInvoiceRecord(
   const status = mapApiStatusToPaymentStatus(apiInv.status || "Pending");
 
   const invAny = apiInv as unknown as Record<string, unknown>;
-  const docObj = typeof invAny.doctor === "object" && invAny.doctor !== null ? (invAny.doctor as Record<string, unknown>) : null;
-  const deptObj = typeof invAny.department === "object" && invAny.department !== null ? (invAny.department as Record<string, unknown>) : null;
+  const docObj =
+    typeof invAny.doctor === "object" && invAny.doctor !== null
+      ? (invAny.doctor as Record<string, unknown>)
+      : null;
+  const deptObj =
+    typeof invAny.department === "object" && invAny.department !== null
+      ? (invAny.department as Record<string, unknown>)
+      : null;
 
   const doctorName =
     (invAny.doctorName as string) ||
@@ -89,8 +95,14 @@ export function mapApiBillToInvoiceRecord(bill: BillListItem): InvoiceRecord {
   const paymentStatus = mapApiStatusToPaymentStatus(bill.paymentStatus);
 
   const b = bill as unknown as Record<string, unknown>;
-  const docObj = typeof b.doctor === "object" && b.doctor !== null ? (b.doctor as Record<string, unknown>) : null;
-  const deptObj = typeof b.department === "object" && b.department !== null ? (b.department as Record<string, unknown>) : null;
+  const docObj =
+    typeof b.doctor === "object" && b.doctor !== null
+      ? (b.doctor as Record<string, unknown>)
+      : null;
+  const deptObj =
+    typeof b.department === "object" && b.department !== null
+      ? (b.department as Record<string, unknown>)
+      : null;
 
   const doctorName =
     (bill.doctorName as string) ||

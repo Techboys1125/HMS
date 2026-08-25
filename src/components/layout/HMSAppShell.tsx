@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router";
-import { useAuthStore, authStoreActions } from "../../features/auth/store/auth.store";
+import {
+  useAuthStore,
+  authStoreActions,
+} from "../../features/auth/store/auth.store";
 import { Header } from "./Header";
 import { NavRail } from "./NavRail";
 import type { NavId, Role } from "../../types/app.types";
@@ -238,7 +241,6 @@ export function HMSAppShell({ onLogout }: { onLogout?: () => void }) {
   const [sidebarTheme, setSidebarTheme] = useState<"light" | "dark">("light");
   const portal = usePatientPortal();
 
-
   const familyMembers: HeaderFamilyMember[] = (portal?.familyMembers ?? []).map(
     toHeaderMember,
   );
@@ -293,5 +295,3 @@ export function HMSAppShell({ onLogout }: { onLogout?: () => void }) {
     </div>
   );
 }
-
-export default HMSAppShell;

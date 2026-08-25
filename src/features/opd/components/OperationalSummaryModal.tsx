@@ -27,7 +27,8 @@ export const OperationalSummaryModal: React.FC<
           >
             Today's Operational Summary
           </h3>
-          <button aria-label="Close"
+          <button
+            aria-label="Close"
             onClick={onClose}
             className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
           >

@@ -545,7 +545,12 @@ export interface ApiPatientAppointment {
   visitReason?: string;
   appointmentReason?: string;
   complaint?: string;
-  visitDetails?: { reason?: string; chiefComplaint?: string; notes?: string; remarks?: string };
+  visitDetails?: {
+    reason?: string;
+    chiefComplaint?: string;
+    notes?: string;
+    remarks?: string;
+  };
   details?: { reason?: string; notes?: string };
   description?: string;
   remarks?: string;

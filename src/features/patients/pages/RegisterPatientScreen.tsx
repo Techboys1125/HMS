@@ -1,5 +1,4 @@
 import { useState, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router";
 import {
   User,
   MapPin,
@@ -10,7 +9,6 @@ import {
   X,
   RotateCcw,
   Calendar,
-  ArrowLeft,
 } from "lucide-react";
 import { PP, RB } from "../constants/patient.fonts";
 import { useCreatePatient } from "../hooks/useCreatePatient";
@@ -194,6 +192,8 @@ function Toast({
       )}
       <span className="flex-1">{message}</span>
       <button
+        type="button"
+        aria-label="Close notification"
         onClick={onClose}
         className="ml-2 p-0.5 rounded-lg hover:bg-black/5 transition-colors"
       >
@@ -411,12 +411,18 @@ export function RegisterPatientScreen({
       rolePerms?.readOnlyFields.includes(field)) ??
     false;
 
+  const isAddingFamilyMember = effectiveMode === "PATIENT_FAMILY";
+
   const [form, setForm] = useState<RegistrationFormState>(() => ({
     ...INITIAL_FORM,
     relationship: initialRelationship,
-    fullName: "",
-    email: "",
-    mobileNumber: "",
+    ...(isAddingFamilyMember
+      ? {}
+      : {
+          fullName: user?.fullName || "",
+          email: user?.email || "",
+          mobileNumber: user?.mobile || "",
+        }),
   }));
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -723,21 +729,12 @@ export function RegisterPatientScreen({
     setForm({
       ...INITIAL_FORM,
       relationship: initialRelationship,
-      fullName: "",
-      email: "",
-      mobileNumber: "",
+      fullName: user?.fullName || "",
+      email: user?.email || "",
+      mobileNumber: user?.mobile || "",
     });
     setTouched({});
-  }, [initialRelationship]);
-
-  const navigate = useNavigate();
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      navigate(-1);
-    }
-  };
+  }, [initialRelationship, user]);
 
   return (
     <div className="flex-1 min-h-screen bg-[#F4F6F9] overflow-y-auto">
@@ -765,41 +762,20 @@ export function RegisterPatientScreen({
       )}
 
       <div className="max-w-350 mx-auto px-6 py-6">
-        <div className="mb-7 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
-              <button
-                type="button"
-                onClick={handleBack}
-                className="hover:text-[#0D47A1] transition-colors flex items-center gap-1 font-medium"
-              >
-                <ArrowLeft size={13} />
-                Back
-              </button>
-            </div>
-            <h1
-              className="text-2xl font-bold text-[#111827] mb-1"
-              style={{ fontFamily: PP }}
-            >
-              {effectiveMode === "PATIENT_FAMILY"
-                ? "Add Family Member"
-                : "Patient Registration"}
-            </h1>
-            <p className="text-sm text-slate-500" style={{ fontFamily: RB }}>
-              {effectiveMode === "PATIENT_FAMILY"
-                ? "Register a new family member under your patient account."
-                : "Create a new patient record for hospital services."}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleBack}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold shadow-sm self-start md:self-auto transition-colors"
+        <div className="mb-7">
+          <h1
+            className="text-2xl font-bold text-[#111827] mb-1"
             style={{ fontFamily: PP }}
           >
-            <ArrowLeft size={15} /> Back
-          </button>
+            {effectiveMode === "PATIENT_FAMILY"
+              ? "Add Family Member"
+              : "Patient Registration"}
+          </h1>
+          <p className="text-sm text-slate-500" style={{ fontFamily: RB }}>
+            {effectiveMode === "PATIENT_FAMILY"
+              ? "Register a new family member under your patient account."
+              : "Create a new patient record for hospital services."}
+          </p>
         </div>
 
         <div className="max-w-full">
@@ -818,25 +794,24 @@ export function RegisterPatientScreen({
                     <label className={labelBase}>
                       Relationship to Account Holder{" "}
                       <span className="text-red-500">*</span>
-                    
-                    <select
-                      value={form.relationship}
-                      onChange={(e) => set("relationship", e.target.value)}
-                      onBlur={() => markTouched("relationship")}
-                      className={fClass("relationship")}
-                    >
-                      {effectiveMode === "PATIENT_FAMILY" && (
-                        <option value="">Select Relationship</option>
-                      )}
-                      <option value="SELF">Self</option>
-                      <option value="FATHER">Father</option>
-                      <option value="MOTHER">Mother</option>
-                      <option value="WIFE">Spouse</option>
-                      <option value="SON">Son</option>
-                      <option value="DAUGHTER">Daughter</option>
-                      <option value="OTHER">Other</option>
-                    </select>
-</label>
+                      <select
+                        value={form.relationship}
+                        onChange={(e) => set("relationship", e.target.value)}
+                        onBlur={() => markTouched("relationship")}
+                        className={fClass("relationship")}
+                      >
+                        {effectiveMode === "PATIENT_FAMILY" && (
+                          <option value="">Select Relationship</option>
+                        )}
+                        <option value="SELF">Self</option>
+                        <option value="FATHER">Father</option>
+                        <option value="MOTHER">Mother</option>
+                        <option value="WIFE">Spouse</option>
+                        <option value="SON">Son</option>
+                        <option value="DAUGHTER">Daughter</option>
+                        <option value="OTHER">Other</option>
+                      </select>
+                    </label>
                     {fieldError("relationship")}
                   </div>
                 )}
@@ -844,51 +819,50 @@ export function RegisterPatientScreen({
                 <div className="md:col-span-2">
                   <label className={labelBase}>
                     Full Name <span className="text-red-500">*</span>
-                  
-                  <input
-                    type="text"
-                    value={form.fullName}
-                    onChange={(e) => set("fullName", e.target.value)}
-                    onBlur={() => markTouched("fullName")}
-                    placeholder="e.g. Eleanor Vance"
-                    className={fClass("fullName")}
-                  />
-</label>
+                    <input
+                      type="text"
+                      value={form.fullName}
+                      onChange={(e) => set("fullName", e.target.value)}
+                      onBlur={() => markTouched("fullName")}
+                      placeholder="e.g. Eleanor Vance"
+                      className={fClass("fullName")}
+                    />
+                  </label>
                   {fieldError("fullName")}
                 </div>
 
                 <div>
                   <label className={labelBase}>
                     Gender <span className="text-red-500">*</span>
-                  
-                  <select
-                    value={form.gender}
-                    onChange={(e) => set("gender", e.target.value)}
-                    onBlur={() => markTouched("gender")}
-                    className={fClass("gender")}
-                  >
-                    {GENDERS.map((g) => (
-                      <option key={g.value} value={g.value}>
-                        {g.label}
-                      </option>
-                    ))}
-                  </select>
-</label>
+                    <select
+                      value={form.gender}
+                      onChange={(e) => set("gender", e.target.value)}
+                      onBlur={() => markTouched("gender")}
+                      className={fClass("gender")}
+                    >
+                      {GENDERS.map((g) => (
+                        <option key={g.value} value={g.value}>
+                          {g.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   {fieldError("gender")}
                 </div>
 
                 <div>
                   <label className={labelBase}>
                     Date of Birth <span className="text-red-500">*</span>
-                  
-                  <CustomDatePicker
-                    value={form.dateOfBirth}
-                    onChange={(val) => set("dateOfBirth", val)}
-                    maxDate={todayStr}
-                    error={touched.dateOfBirth ? errors.dateOfBirth : undefined}
-                    inputClassName={fClass("dateOfBirth")}
-                  />
-</label>
+                    <CustomDatePicker
+                      value={form.dateOfBirth}
+                      onChange={(val) => set("dateOfBirth", val)}
+                      maxDate={todayStr}
+                      error={
+                        touched.dateOfBirth ? errors.dateOfBirth : undefined
+                      }
+                      inputClassName={fClass("dateOfBirth")}
+                    />
+                  </label>
                 </div>
 
                 <div>
@@ -897,98 +871,102 @@ export function RegisterPatientScreen({
                     <span className="text-slate-400 font-normal">
                       (Auto Calculated)
                     </span>
-                  
-                  <input
-                    type="text"
-                    value={
-                      calculatedAge !== null
-                        ? `${calculatedAge} year${calculatedAge !== 1 ? "s" : ""}`
-                        : "—"
-                    }
-                    disabled
-                    className={inputDisabled}
-                  />
-</label>
+                    <input
+                      type="text"
+                      value={
+                        calculatedAge !== null
+                          ? `${calculatedAge} year${calculatedAge !== 1 ? "s" : ""}`
+                          : "—"
+                      }
+                      disabled
+                      className={inputDisabled}
+                    />
+                  </label>
                 </div>
 
                 <div>
                   <label className={labelBase}>
                     Mobile Number <span className="text-red-500">*</span>
-                  
-                  <input
-                    type="tel"
-                    value={form.mobileNumber}
-                    onChange={(e) => set("mobileNumber", e.target.value)}
-                    onBlur={() => markTouched("mobileNumber")}
-                    placeholder="+91 98765 43210"
-                    className={fClass("mobileNumber")}
-                  />
-</label>
+                    <input
+                      type="tel"
+                      value={form.mobileNumber}
+                      onChange={(e) => set("mobileNumber", e.target.value)}
+                      onBlur={() => markTouched("mobileNumber")}
+                      placeholder="+91 98765 43210"
+                      className={fClass("mobileNumber")}
+                    />
+                  </label>
                   {fieldError("mobileNumber")}
                 </div>
 
                 <div>
-                  <label className={labelBase}>Email Address
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => set("email", e.target.value)}
-                    onBlur={() => markTouched("email")}
-                    placeholder="patient@example.com"
-                    className={fClass("email")}
-                  />
-</label>
+                  <label className={labelBase}>
+                    Email Address
+                    <input
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => set("email", e.target.value)}
+                      onBlur={() => markTouched("email")}
+                      placeholder="patient@example.com"
+                      className={fClass("email")}
+                    />
+                  </label>
                   {fieldError("email")}
                 </div>
 
                 <div>
-                  <label className={labelBase}>Blood Group *
-                  <select
-                    value={form.bloodGroup}
-                    onChange={(e) => set("bloodGroup", e.target.value)}
-                    disabled={readOnlyField("bloodGroup")}
-                    className={
-                      readOnlyField("bloodGroup") ? inputDisabled : inputBase
-                    }
-                  >
-                    {BLOOD_GROUPS.map((bg) => (
-                      <option key={bg.value} value={bg.value}>
-                        {bg.label}
-                      </option>
-                    ))}
-                  </select>
-</label>
+                  <label className={labelBase}>
+                    Blood Group *
+                    <select
+                      value={form.bloodGroup}
+                      onChange={(e) => set("bloodGroup", e.target.value)}
+                      disabled={readOnlyField("bloodGroup")}
+                      className={
+                        readOnlyField("bloodGroup") ? inputDisabled : inputBase
+                      }
+                    >
+                      {BLOOD_GROUPS.map((bg) => (
+                        <option key={bg.value} value={bg.value}>
+                          {bg.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
 
                 <div>
-                  <label className={labelBase}>Marital Status
-                  <select
-                    value={form.maritalStatus}
-                    onChange={(e) => set("maritalStatus", e.target.value)}
-                    disabled={readOnlyField("maritalStatus")}
-                    className={
-                      readOnlyField("maritalStatus") ? inputDisabled : inputBase
-                    }
-                  >
-                    {MARITAL_STATUSES.map((ms) => (
-                      <option key={ms.value} value={ms.value}>
-                        {ms.label}
-                      </option>
-                    ))}
-                  </select>
-</label>
+                  <label className={labelBase}>
+                    Marital Status
+                    <select
+                      value={form.maritalStatus}
+                      onChange={(e) => set("maritalStatus", e.target.value)}
+                      disabled={readOnlyField("maritalStatus")}
+                      className={
+                        readOnlyField("maritalStatus")
+                          ? inputDisabled
+                          : inputBase
+                      }
+                    >
+                      {MARITAL_STATUSES.map((ms) => (
+                        <option key={ms.value} value={ms.value}>
+                          {ms.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
 
                 <div>
-                  <label className={labelBase}>Aadhar Number
-                  <input
-                    type="text"
-                    value={form.nationalId}
-                    onChange={(e) => set("nationalId", e.target.value)}
-                    placeholder="Aadhar Number"
-                    className={inputBase}
-                  />
-</label>
+                  <label className={labelBase}>
+                    Aadhar Number
+                    <input
+                      type="text"
+                      value={form.nationalId}
+                      onChange={(e) => set("nationalId", e.target.value)}
+                      placeholder="Aadhar Number"
+                      className={inputBase}
+                    />
+                  </label>
                 </div>
               </div>
             </div>
@@ -1003,82 +981,88 @@ export function RegisterPatientScreen({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                 <div className="md:col-span-2">
-                  <label className={labelBase}>Address Line 1
-                  <input
-                    type="text"
-                    value={form.addressLine1}
-                    onChange={(e) => set("addressLine1", e.target.value)}
-                    placeholder="House / Flat No., Building, Street"
-                    className={inputBase}
-                  />
-</label>
+                  <label className={labelBase}>
+                    Address Line 1
+                    <input
+                      type="text"
+                      value={form.addressLine1}
+                      onChange={(e) => set("addressLine1", e.target.value)}
+                      placeholder="House / Flat No., Building, Street"
+                      className={inputBase}
+                    />
+                  </label>
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className={labelBase}>Address Line 2
-                  <input
-                    type="text"
-                    value={form.addressLine2}
-                    onChange={(e) => set("addressLine2", e.target.value)}
-                    placeholder="Landmark, Cross Street"
-                    className={inputBase}
-                  />
-</label>
+                  <label className={labelBase}>
+                    Address Line 2
+                    <input
+                      type="text"
+                      value={form.addressLine2}
+                      onChange={(e) => set("addressLine2", e.target.value)}
+                      placeholder="Landmark, Cross Street"
+                      className={inputBase}
+                    />
+                  </label>
                 </div>
 
                 <div>
-                  <label className={labelBase}>City
-                  <input
-                    type="text"
-                    value={form.city}
-                    onChange={(e) => set("city", e.target.value)}
-                    placeholder="City Name"
-                    className={inputBase}
-                  />
-</label>
+                  <label className={labelBase}>
+                    City
+                    <input
+                      type="text"
+                      value={form.city}
+                      onChange={(e) => set("city", e.target.value)}
+                      placeholder="City Name"
+                      className={inputBase}
+                    />
+                  </label>
                 </div>
 
                 <div>
-                  <label className={labelBase}>State
-                  <select
-                    value={form.state}
-                    onChange={(e) => set("state", e.target.value)}
-                    className={inputBase}
-                  >
-                    <option value="">Select State</option>
-                    {INDIAN_STATES.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-</label>
+                  <label className={labelBase}>
+                    State
+                    <select
+                      value={form.state}
+                      onChange={(e) => set("state", e.target.value)}
+                      className={inputBase}
+                    >
+                      <option value="">Select State</option>
+                      {INDIAN_STATES.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
 
                 <div>
-                  <label className={labelBase}>Pincode
-                  <input
-                    type="text"
-                    value={form.pincode}
-                    onChange={(e) => set("pincode", e.target.value)}
-                    onBlur={() => markTouched("pincode")}
-                    placeholder="6-digit Pincode"
-                    maxLength={6}
-                    className={fClass("pincode")}
-                  />
-</label>
+                  <label className={labelBase}>
+                    Pincode
+                    <input
+                      type="text"
+                      value={form.pincode}
+                      onChange={(e) => set("pincode", e.target.value)}
+                      onBlur={() => markTouched("pincode")}
+                      placeholder="6-digit Pincode"
+                      maxLength={6}
+                      className={fClass("pincode")}
+                    />
+                  </label>
                   {fieldError("pincode")}
                 </div>
 
                 <div>
-                  <label className={labelBase}>Country
-                  <input
-                    type="text"
-                    value={form.country}
-                    onChange={(e) => set("country", e.target.value)}
-                    className={inputBase}
-                  />
-</label>
+                  <label className={labelBase}>
+                    Country
+                    <input
+                      type="text"
+                      value={form.country}
+                      onChange={(e) => set("country", e.target.value)}
+                      className={inputBase}
+                    />
+                  </label>
                 </div>
               </div>
             </div>
@@ -1093,57 +1077,59 @@ export function RegisterPatientScreen({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                 <div>
-                  <label className={labelBase}>Emergency Contact Name
-                  <input
-                    type="text"
-                    value={form.ecName}
-                    onChange={(e) => set("ecName", e.target.value)}
-                    placeholder="Full name of emergency contact"
-                    className={inputBase}
-                  />
-</label>
+                  <label className={labelBase}>
+                    Emergency Contact Name
+                    <input
+                      type="text"
+                      value={form.ecName}
+                      onChange={(e) => set("ecName", e.target.value)}
+                      placeholder="Full name of emergency contact"
+                      className={inputBase}
+                    />
+                  </label>
                 </div>
 
                 <div>
-                  <label className={labelBase}>Relationship
-                  <select
-                    value={form.ecRelationship}
-                    onChange={(e) => set("ecRelationship", e.target.value)}
-                    className={inputBase}
-                  >
-                    {RELATIONSHIPS.map((r) => (
-                      <option key={r.value} value={r.value}>
-                        {r.label}
-                      </option>
-                    ))}
-                  </select>
-</label>
+                  <label className={labelBase}>
+                    Relationship
+                    <select
+                      value={form.ecRelationship}
+                      onChange={(e) => set("ecRelationship", e.target.value)}
+                      className={inputBase}
+                    >
+                      {RELATIONSHIPS.map((r) => (
+                        <option key={r.value} value={r.value}>
+                          {r.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
 
                 <div>
-                  <label className={labelBase}>Mobile Number
-                  <input
-                    type="tel"
-                    value={form.ecMobile}
-                    onChange={(e) => set("ecMobile", e.target.value)}
-                    placeholder="+91 98765 00000"
-                    className={inputBase}
-                  />
-</label>
+                  <label className={labelBase}>
+                    Mobile Number
+                    <input
+                      type="tel"
+                      value={form.ecMobile}
+                      onChange={(e) => set("ecMobile", e.target.value)}
+                      placeholder="+91 98765 00000"
+                      className={inputBase}
+                    />
+                  </label>
                 </div>
 
                 <div>
                   <label className={labelBase}>
                     Alternative Contact Number
-                  
-                  <input
-                    type="tel"
-                    value={form.ecAltMobile}
-                    onChange={(e) => set("ecAltMobile", e.target.value)}
-                    placeholder="Landline or Secondary Mobile"
-                    className={inputBase}
-                  />
-</label>
+                    <input
+                      type="tel"
+                      value={form.ecAltMobile}
+                      onChange={(e) => set("ecAltMobile", e.target.value)}
+                      placeholder="Landline or Secondary Mobile"
+                      className={inputBase}
+                    />
+                  </label>
                 </div>
               </div>
             </div>
@@ -1161,39 +1147,42 @@ export function RegisterPatientScreen({
 
                 <div className="grid grid-cols-1 gap-y-5">
                   <div>
-                    <label className={labelBase}>Known Allergies
-                    <input
-                      type="text"
-                      value={form.knownAllergies}
-                      onChange={(e) => set("knownAllergies", e.target.value)}
-                      placeholder="e.g. Penicillin, Peanuts, Latex"
-                      className={inputBase}
-                    />
-</label>
+                    <label className={labelBase}>
+                      Known Allergies
+                      <input
+                        type="text"
+                        value={form.knownAllergies}
+                        onChange={(e) => set("knownAllergies", e.target.value)}
+                        placeholder="e.g. Penicillin, Peanuts, Latex"
+                        className={inputBase}
+                      />
+                    </label>
                   </div>
 
                   <div>
-                    <label className={labelBase}>Chronic Diseases
-                    <input
-                      type="text"
-                      value={form.chronicDiseases}
-                      onChange={(e) => set("chronicDiseases", e.target.value)}
-                      placeholder="e.g. Type 2 Diabetes, Hypertension, Asthma"
-                      className={inputBase}
-                    />
-</label>
+                    <label className={labelBase}>
+                      Chronic Diseases
+                      <input
+                        type="text"
+                        value={form.chronicDiseases}
+                        onChange={(e) => set("chronicDiseases", e.target.value)}
+                        placeholder="e.g. Type 2 Diabetes, Hypertension, Asthma"
+                        className={inputBase}
+                      />
+                    </label>
                   </div>
 
                   <div>
-                    <label className={labelBase}>Special Notes
-                    <textarea
-                      rows={3}
-                      value={form.specialNotes}
-                      onChange={(e) => set("specialNotes", e.target.value)}
-                      placeholder="e.g. Requires wheelchair assistance, prefers afternoon slots"
-                      className={inputBase + " resize-none"}
-                    />
-</label>
+                    <label className={labelBase}>
+                      Special Notes
+                      <textarea
+                        rows={3}
+                        value={form.specialNotes}
+                        onChange={(e) => set("specialNotes", e.target.value)}
+                        placeholder="e.g. Requires wheelchair assistance, prefers afternoon slots"
+                        className={inputBase + " resize-none"}
+                      />
+                    </label>
                   </div>
                 </div>
               </div>

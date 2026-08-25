@@ -679,11 +679,15 @@ export const patientsApi = {
   ): Promise<boolean> => {
     const target = memberId || mrn;
     try {
-      await apiClient.delete(`/api/v1/patients/${encodeURIComponent(target)}/link`);
+      await apiClient.delete(
+        `/api/v1/patients/${encodeURIComponent(target)}/link`,
+      );
       return true;
     } catch {
       try {
-        await apiClient.delete(`/api/v1/patients/${encodeURIComponent(mrn)}/link`);
+        await apiClient.delete(
+          `/api/v1/patients/${encodeURIComponent(mrn)}/link`,
+        );
         return true;
       } catch {
         return false;

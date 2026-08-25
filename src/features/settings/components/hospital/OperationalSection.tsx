@@ -57,24 +57,25 @@ export function OperationalSection({
             }}
           >
             Hospital Type
-          
-          <select aria-label="Select option"
-            value={form.hospitalType}
-            onChange={(e) => onChange("hospitalType", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          >
-            <option>Multi Specialty</option>
-            <option>General Hospital</option>
-            <option>Specialty Hospital</option>
-            <option>Clinic / Outpatient Facility</option>
-          </select></span>
+            <select
+              aria-label="Select option"
+              value={form.hospitalType}
+              onChange={(e) => onChange("hospitalType", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            >
+              <option>Multi Specialty</option>
+              <option>General Hospital</option>
+              <option>Specialty Hospital</option>
+              <option>Clinic / Outpatient Facility</option>
+            </select>
+          </span>
         </div>
 
         <div>
@@ -88,24 +89,25 @@ export function OperationalSection({
             }}
           >
             Ownership Structure
-          
-          <select aria-label="Select option"
-            value={form.ownership}
-            onChange={(e) => onChange("ownership", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          >
-            <option>Private</option>
-            <option>Government / Public</option>
-            <option>Trust / Charitable</option>
-            <option>Corporate Healthcare Chain</option>
-          </select></span>
+            <select
+              aria-label="Select option"
+              value={form.ownership}
+              onChange={(e) => onChange("ownership", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            >
+              <option>Private</option>
+              <option>Government / Public</option>
+              <option>Trust / Charitable</option>
+              <option>Corporate Healthcare Chain</option>
+            </select>
+          </span>
         </div>
 
         <div>
@@ -119,20 +121,21 @@ export function OperationalSection({
             }}
           >
             Established Year
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.establishedYear}
-            onChange={(e) => onChange("establishedYear", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.establishedYear}
+              onChange={(e) => onChange("establishedYear", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -146,20 +149,21 @@ export function OperationalSection({
             }}
           >
             Active Departments
-          
-          <input aria-label="Input field"
-            type="number"
-            value={form.numDepartments}
-            onChange={(e) => onChange("numDepartments", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="number"
+              value={form.numDepartments}
+              onChange={(e) => onChange("numDepartments", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -173,20 +177,21 @@ export function OperationalSection({
             }}
           >
             Registered Doctors
-          
-          <input aria-label="Input field"
-            type="number"
-            value={form.numDoctors}
-            onChange={(e) => onChange("numDoctors", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="number"
+              value={form.numDoctors}
+              onChange={(e) => onChange("numDoctors", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -200,20 +205,21 @@ export function OperationalSection({
             }}
           >
             Consultation Rooms / OPD Units
-          
-          <input aria-label="Input field"
-            type="number"
-            value={form.numConsultationRooms}
-            onChange={(e) => onChange("numConsultationRooms", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="number"
+              value={form.numConsultationRooms}
+              onChange={(e) => onChange("numConsultationRooms", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
       </div>
     </div>

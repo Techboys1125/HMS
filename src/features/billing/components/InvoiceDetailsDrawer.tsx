@@ -30,7 +30,8 @@ export function InvoiceDetailsDrawer({
               {invoice.id}
             </h3>
           </div>
-          <button aria-label="Close"
+          <button
+            aria-label="Close"
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600 cursor-pointer"
           >

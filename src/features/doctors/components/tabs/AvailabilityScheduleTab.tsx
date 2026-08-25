@@ -143,7 +143,8 @@ export function AvailabilityScheduleTab({
               <Save size={12} /> {saving ? "Saving..." : "Save"}
             </button>
             {onClose && (
-              <button aria-label="Close"
+              <button
+                aria-label="Close"
                 type="button"
                 onClick={onClose}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600"
@@ -259,7 +260,8 @@ export function AvailabilityScheduleTab({
                 <td className="px-3.5 py-2.5">
                   {canEdit ? (
                     <span className="relative inline-flex items-center cursor-pointer">
-                      <input aria-label="Toggle option"
+                      <input
+                        aria-label="Toggle option"
                         type="checkbox"
                         checked={day.workingDay}
                         onChange={() => toggleWorkingDay(idx)}

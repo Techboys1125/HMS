@@ -62,7 +62,8 @@ export function QuickDetailsDrawer({
                 Quick Doctor Details
               </h2>
             </div>
-            <button aria-label="Close"
+            <button
+              aria-label="Close"
               onClick={onClose}
               className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
             >

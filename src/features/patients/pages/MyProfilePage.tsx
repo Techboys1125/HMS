@@ -60,12 +60,18 @@ export function MyProfilePage({ mrn }: { currentRole: Role; mrn: string }) {
     phone: user?.phone || user?.mobileNumber || user?.mobile || "",
     gender: (user?.gender || "Female").toUpperCase(),
     status: "ACTIVE",
-    dob: user?.dob || (user as any)?.dateOfBirth || "",
-    dateOfBirth: user?.dob || (user as any)?.dateOfBirth || "",
+    dob:
+      user?.dob ||
+      (user as unknown as Record<string, string>)?.dateOfBirth ||
+      "",
+    dateOfBirth:
+      user?.dob ||
+      (user as unknown as Record<string, string>)?.dateOfBirth ||
+      "",
     age: user?.age,
     photoUrl: user?.photoUrl || user?.photo || "",
     photo: user?.photoUrl || user?.photo || "",
-    bloodGroup: (user as any)?.bloodGroup || "",
+    bloodGroup: (user as unknown as Record<string, string>)?.bloodGroup || "",
     address: user?.address || "",
     emergencyContact: {
       name: "",
@@ -77,13 +83,48 @@ export function MyProfilePage({ mrn }: { currentRole: Role; mrn: string }) {
   const basePatient = patient || fallbackPatient;
   const displayPatient: Patient = mapApiPatientToPatientRecord({
     ...basePatient,
-    fullName: basePatient.fullName || basePatient.patientName || user?.name || user?.fullName || "Patient",
-    email: (basePatient.email && basePatient.email !== "-" ? basePatient.email : "") || user?.email || "",
-    phone: basePatient.phone || basePatient.registeredMobile || user?.phone || user?.mobile || "",
-    photoUrl: basePatient.photoUrl || basePatient.photo || user?.photoUrl || user?.photo || "",
-    photo: basePatient.photoUrl || basePatient.photo || user?.photoUrl || user?.photo || "",
-    dob: basePatient.dob || basePatient.dateOfBirth || user?.dob || (user as any)?.dateOfBirth || "",
-    dateOfBirth: basePatient.dateOfBirth || basePatient.dob || user?.dob || (user as any)?.dateOfBirth || "",
+    fullName:
+      basePatient.fullName ||
+      basePatient.patientName ||
+      user?.name ||
+      user?.fullName ||
+      "Patient",
+    email:
+      (basePatient.email && basePatient.email !== "-"
+        ? basePatient.email
+        : "") ||
+      user?.email ||
+      "",
+    phone:
+      basePatient.phone ||
+      basePatient.registeredMobile ||
+      user?.phone ||
+      user?.mobile ||
+      "",
+    photoUrl:
+      basePatient.photoUrl ||
+      basePatient.photo ||
+      user?.photoUrl ||
+      user?.photo ||
+      "",
+    photo:
+      basePatient.photoUrl ||
+      basePatient.photo ||
+      user?.photoUrl ||
+      user?.photo ||
+      "",
+    dob:
+      basePatient.dob ||
+      basePatient.dateOfBirth ||
+      user?.dob ||
+      (user as unknown as Record<string, string>)?.dateOfBirth ||
+      "",
+    dateOfBirth:
+      basePatient.dateOfBirth ||
+      basePatient.dob ||
+      user?.dob ||
+      (user as unknown as Record<string, string>)?.dateOfBirth ||
+      "",
   });
 
   return (

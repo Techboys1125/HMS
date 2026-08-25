@@ -16,5 +16,3 @@ export function PublicRoute({ children }: PublicRouteProps) {
 
   return children ? <>{children}</> : <Outlet />;
 }
-
-export default PublicRoute;

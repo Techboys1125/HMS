@@ -40,8 +40,8 @@ export function mapApiPatientToPatientRecord(
     age:
       patient.age && Number(patient.age) > 0
         ? Number(patient.age)
-        : ((p as Record<string, unknown>).patientAge &&
-            Number((p as Record<string, unknown>).patientAge) > 0)
+        : (p as Record<string, unknown>).patientAge &&
+            Number((p as Record<string, unknown>).patientAge) > 0
           ? Number((p as Record<string, unknown>).patientAge)
           : calculateAge(
               patient.dateOfBirth ||
@@ -174,7 +174,11 @@ function calculateAge(dob?: string): number {
   if (trimmed.includes("/")) {
     const parts = trimmed.split("/");
     if (parts.length === 3 && parts[2].length === 4) {
-      birth = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+      birth = new Date(
+        Number(parts[2]),
+        Number(parts[1]) - 1,
+        Number(parts[0]),
+      );
     } else {
       birth = new Date(trimmed);
     }

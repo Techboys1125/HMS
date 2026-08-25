@@ -16,7 +16,10 @@ import {
   XCircle,
   Building2,
 } from "lucide-react";
-import type { PatientAppointment, ApiPatientAppointment } from "../types/patient.types";
+import type {
+  PatientAppointment,
+  ApiPatientAppointment,
+} from "../types/patient.types";
 import type { AppointmentRecord } from "../../appointments/types/appointment.types";
 import { PP, RB } from "../constants/patient.fonts";
 import { usePatientPortal } from "../context/usePatientPortal";
@@ -36,7 +39,10 @@ import { ROUTES } from "../../../app/routes/routes";
 function formatDisplayTime(timeStr?: string): string {
   if (!timeStr) return "09:00 AM";
   const trimmed = timeStr.trim();
-  if (trimmed.toUpperCase().includes("AM") || trimmed.toUpperCase().includes("PM")) {
+  if (
+    trimmed.toUpperCase().includes("AM") ||
+    trimmed.toUpperCase().includes("PM")
+  ) {
     return trimmed;
   }
   const match = trimmed.match(/^(\d{1,2}):(\d{2})/);
@@ -55,44 +61,105 @@ function getAppointmentStatusStyle(status?: string): {
   badgeClass: string;
   dotClass: string;
 } {
-  const upper = String(status || "").toUpperCase().replace(/_/g, " ");
+  const upper = String(status || "")
+    .toUpperCase()
+    .replace(/_/g, " ");
 
   if (upper === "BOOKED") {
-    return { label: "Booked", badgeClass: "bg-blue-50 text-[#0D47A1] border-blue-100", dotClass: "bg-[#0D47A1]" };
+    return {
+      label: "Booked",
+      badgeClass: "bg-blue-50 text-[#0D47A1] border-blue-100",
+      dotClass: "bg-[#0D47A1]",
+    };
   }
   if (upper === "CONFIRMED" || upper === "SCHEDULED") {
-    return { label: "Confirmed", badgeClass: "bg-emerald-50 text-[#66BB6A] border-emerald-100", dotClass: "bg-[#66BB6A]" };
+    return {
+      label: "Confirmed",
+      badgeClass: "bg-emerald-50 text-[#66BB6A] border-emerald-100",
+      dotClass: "bg-[#66BB6A]",
+    };
   }
   if (upper === "CHECKED IN" || upper === "CHECKED_IN") {
-    return { label: "Checked-In", badgeClass: "bg-cyan-50 text-cyan-700 border-cyan-100", dotClass: "bg-cyan-600" };
+    return {
+      label: "Checked-In",
+      badgeClass: "bg-cyan-50 text-cyan-700 border-cyan-100",
+      dotClass: "bg-cyan-600",
+    };
   }
   if (upper === "WAITING FOR VITALS" || upper === "WAITING_FOR_VITALS") {
-    return { label: "Waiting for Vitals", badgeClass: "bg-amber-50 text-amber-700 border-amber-100", dotClass: "bg-amber-500" };
+    return {
+      label: "Waiting for Vitals",
+      badgeClass: "bg-amber-50 text-amber-700 border-amber-100",
+      dotClass: "bg-amber-500",
+    };
   }
-  if (upper === "WAITING FOR DOCTOR CALL" || upper === "WAITING_FOR_DOCTOR_CALL" || upper === "WAITING FOR DOCTOR") {
-    return { label: "Waiting for Doctor", badgeClass: "bg-orange-50 text-orange-700 border-orange-100", dotClass: "bg-orange-500" };
+  if (
+    upper === "WAITING FOR DOCTOR CALL" ||
+    upper === "WAITING_FOR_DOCTOR_CALL" ||
+    upper === "WAITING FOR DOCTOR"
+  ) {
+    return {
+      label: "Waiting for Doctor",
+      badgeClass: "bg-orange-50 text-orange-700 border-orange-100",
+      dotClass: "bg-orange-500",
+    };
   }
   if (upper === "CALLED") {
-    return { label: "Called", badgeClass: "bg-violet-50 text-violet-700 border-violet-100", dotClass: "bg-violet-600" };
+    return {
+      label: "Called",
+      badgeClass: "bg-violet-50 text-violet-700 border-violet-100",
+      dotClass: "bg-violet-600",
+    };
   }
-  if (upper === "IN CONSULTATION" || upper === "IN_CONSULTATION" || upper === "IN PROGRESS" || upper === "IN_PROGRESS") {
-    return { label: "In Consultation", badgeClass: "bg-purple-50 text-purple-700 border-purple-100", dotClass: "bg-purple-600" };
+  if (
+    upper === "IN CONSULTATION" ||
+    upper === "IN_CONSULTATION" ||
+    upper === "IN PROGRESS" ||
+    upper === "IN_PROGRESS"
+  ) {
+    return {
+      label: "In Consultation",
+      badgeClass: "bg-purple-50 text-purple-700 border-purple-100",
+      dotClass: "bg-purple-600",
+    };
   }
   if (upper === "COMPLETED" || upper === "CONSULTATION COMPLETED") {
-    return { label: "Completed", badgeClass: "bg-teal-50 text-[#009688] border-teal-100", dotClass: "bg-[#009688]" };
+    return {
+      label: "Completed",
+      badgeClass: "bg-teal-50 text-[#009688] border-teal-100",
+      dotClass: "bg-[#009688]",
+    };
   }
   if (upper === "CANCELLED" || upper === "CANCELED") {
-    return { label: "Cancelled", badgeClass: "bg-rose-50 text-rose-700 border-rose-100", dotClass: "bg-rose-600" };
+    return {
+      label: "Cancelled",
+      badgeClass: "bg-rose-50 text-rose-700 border-rose-100",
+      dotClass: "bg-rose-600",
+    };
   }
   if (upper === "NO SHOW" || upper === "NO_SHOW") {
-    return { label: "No Show", badgeClass: "bg-slate-100 text-slate-700 border-slate-200", dotClass: "bg-slate-500" };
+    return {
+      label: "No Show",
+      badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+      dotClass: "bg-slate-500",
+    };
   }
   if (upper === "RESCHEDULED") {
-    return { label: "Rescheduled", badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-100", dotClass: "bg-indigo-600" };
+    return {
+      label: "Rescheduled",
+      badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-100",
+      dotClass: "bg-indigo-600",
+    };
   }
 
-  const pretty = status ? status.charAt(0).toUpperCase() + status.slice(1) : "Booked";
-  return { label: pretty, badgeClass: "bg-slate-100 text-slate-700 border-slate-200", dotClass: "bg-slate-500" };
+  const pretty = status
+    ? status.charAt(0).toUpperCase() + status.slice(1)
+    : "Booked";
+  return {
+    label: pretty,
+    badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+    dotClass: "bg-slate-500",
+  };
 }
 
 function formatStatusPretty(s?: string): string {
@@ -135,7 +202,10 @@ type FilterState = {
 
 type FilterAction =
   | { type: "SET_RESCHEDULING"; appointment: PatientAppointment | null }
-  | { type: "SET_ACTIVE_TAB"; tab: "all" | "upcoming" | "completed" | "cancelled" }
+  | {
+      type: "SET_ACTIVE_TAB";
+      tab: "all" | "upcoming" | "completed" | "cancelled";
+    }
   | {
       type: "SET_FILTER";
       field:
@@ -199,7 +269,14 @@ type BookingDrawerState = {
 type BookingDrawerAction =
   | { type: "OPEN_BOOK_DRAWER"; appt?: PatientAppointment }
   | { type: "CLOSE_BOOK_DRAWER" }
-  | { type: "SET_BOOKING_FIELD"; field: keyof Omit<BookingDrawerState, "showBookDrawer" | "editingAppt" | "selectedDetailsAppt">; value: string | number }
+  | {
+      type: "SET_BOOKING_FIELD";
+      field: keyof Omit<
+        BookingDrawerState,
+        "showBookDrawer" | "editingAppt" | "selectedDetailsAppt"
+      >;
+      value: string | number;
+    }
   | { type: "SET_SELECTED_DETAILS"; appt: PatientAppointment | null }
   | { type: "SET_CURRENT_PAGE"; page: number };
 
@@ -278,226 +355,254 @@ export function PatientAppointmentsScreen({
     dispatch({ type: "CLEAR_APPOINTMENTS" });
   }
 
-  const loadAppointments = useCallback((patient?: FamilyMember | null) => {
-    const targetMrn = patient?.mrn || patient?.id;
-    if (!targetMrn) {
-      return;
-    }
-    appointmentsApi
-      .getPatientAppointments(targetMrn)
-      .then((res: ApiResponse<unknown>) => {
-        type ApiPatientAppointmentWithType = ApiPatientAppointment & {
-          appointmentType?: string;
-        };
-        const data = res?.data || res;
-        const list: ApiPatientAppointmentWithType[] = Array.isArray(data)
-          ? data
-          : data &&
-              typeof data === "object" &&
-              "content" in data &&
-              Array.isArray((data as { content?: unknown }).content)
-            ? ((data as { content: ApiPatientAppointmentWithType[] }).content)
-            : [];
-        if (list && list.length > 0) {
-          const mapped: PatientAppointment[] = list.map(
-            (a: ApiPatientAppointmentWithType, idx: number) => {
-              const dt = a.visitDateTime || a.appointmentDate || a.date || "";
-              const datePart = dt.includes("T") ? dt.split("T")[0] : dt;
-              const timePart = dt.includes("T")
-                ? dt.split("T")[1]?.substring(0, 5)
-                : a.startTime || a.time || "";
+  const loadAppointments = useCallback(
+    (patient?: FamilyMember | null) => {
+      const targetMrn = patient?.mrn || patient?.id;
+      if (!targetMrn) {
+        return;
+      }
+      appointmentsApi
+        .getPatientAppointments(targetMrn)
+        .then((res: ApiResponse<unknown>) => {
+          type ApiPatientAppointmentWithType = ApiPatientAppointment & {
+            appointmentType?: string;
+          };
+          const data = res?.data || res;
+          const list: ApiPatientAppointmentWithType[] = Array.isArray(data)
+            ? data
+            : data &&
+                typeof data === "object" &&
+                "content" in data &&
+                Array.isArray((data as { content?: unknown }).content)
+              ? (data as { content: ApiPatientAppointmentWithType[] }).content
+              : [];
+          if (list && list.length > 0) {
+            const mapped: PatientAppointment[] = list.map(
+              (a: ApiPatientAppointmentWithType, idx: number) => {
+                const dt = a.visitDateTime || a.appointmentDate || a.date || "";
+                const datePart = dt.includes("T") ? dt.split("T")[0] : dt;
+                const timePart = dt.includes("T")
+                  ? dt.split("T")[1]?.substring(0, 5)
+                  : a.startTime || a.time || "";
 
-              const doctorRaw = a.doctor;
-              let doctorName = "";
+                const doctorRaw = a.doctor;
+                let doctorName = "";
 
-              if (doctorRaw && typeof doctorRaw === "object" && doctorRaw !== null) {
-                const docObj = doctorRaw as {
-                  name?: string;
-                  fullName?: string;
-                  doctorName?: string;
-                  nameEn?: string;
-                  user?: { name?: string; fullName?: string };
+                if (
+                  doctorRaw &&
+                  typeof doctorRaw === "object" &&
+                  doctorRaw !== null
+                ) {
+                  const docObj = doctorRaw as {
+                    name?: string;
+                    fullName?: string;
+                    doctorName?: string;
+                    nameEn?: string;
+                    user?: { name?: string; fullName?: string };
+                  };
+                  doctorName =
+                    docObj.fullName ||
+                    docObj.name ||
+                    docObj.doctorName ||
+                    docObj.nameEn ||
+                    docObj.user?.fullName ||
+                    docObj.user?.name ||
+                    "";
+                } else if (typeof doctorRaw === "string" && doctorRaw.trim()) {
+                  doctorName = doctorRaw.trim();
+                }
+
+                if (!doctorName) {
+                  const alt = a as {
+                    doctorName?: string;
+                    doctor_name?: string;
+                    doctorFullName?: string;
+                    assignedDoctor?: string;
+                    assignedDoctorName?: string;
+                    docName?: string;
+                  };
+                  doctorName =
+                    alt.doctorName ||
+                    alt.doctor_name ||
+                    alt.doctorFullName ||
+                    alt.assignedDoctor ||
+                    alt.assignedDoctorName ||
+                    alt.docName ||
+                    "Unassigned Doctor";
+                }
+
+                if (
+                  doctorName &&
+                  doctorName !== "Unassigned Doctor" &&
+                  !doctorName.toLowerCase().startsWith("dr.") &&
+                  !doctorName.toLowerCase().startsWith("dr ")
+                ) {
+                  doctorName = `Dr. ${doctorName}`;
+                }
+
+                const deptRaw = a.department;
+                let deptName: string;
+                if (
+                  deptRaw &&
+                  typeof deptRaw === "object" &&
+                  deptRaw !== null
+                ) {
+                  deptName =
+                    (deptRaw as { departmentName?: string; name?: string })
+                      .departmentName ||
+                    (deptRaw as { departmentName?: string; name?: string })
+                      .name ||
+                    "General";
+                } else if (typeof deptRaw === "string" && deptRaw.trim()) {
+                  deptName = deptRaw.trim();
+                } else {
+                  deptName = String(a.departmentName || "General");
+                }
+
+                let formattedStatus: PatientAppointment["status"] = "Confirmed";
+                const rawStatus = (
+                  a.appointmentStatus ||
+                  a.status ||
+                  "SCHEDULED"
+                ).toUpperCase();
+
+                const todayStr = new Date().toISOString().split("T")[0];
+                const isPastDate = Boolean(datePart && datePart < todayStr);
+
+                if (rawStatus === "COMPLETED") {
+                  formattedStatus = "Completed";
+                } else if (
+                  rawStatus === "CANCELLED" ||
+                  rawStatus === "CANCELED"
+                ) {
+                  formattedStatus = "Cancelled";
+                } else if (
+                  rawStatus === "NO_SHOW" ||
+                  rawStatus === "NOSHOW" ||
+                  (isPastDate &&
+                    rawStatus !== "COMPLETED" &&
+                    rawStatus !== "CANCELLED")
+                ) {
+                  formattedStatus = "No Show";
+                } else if (
+                  rawStatus === "SCHEDULED" ||
+                  rawStatus === "BOOKED" ||
+                  rawStatus === "CONFIRMED"
+                ) {
+                  formattedStatus = "Confirmed";
+                } else if (rawStatus === "PENDING") {
+                  formattedStatus = "Pending";
+                } else if (
+                  rawStatus === "IN_PROGRESS" ||
+                  rawStatus === "IN-PROGRESS" ||
+                  rawStatus === "IN CONSULTATION"
+                ) {
+                  formattedStatus = "In Progress";
+                } else if (
+                  rawStatus === "CHECKED_IN" ||
+                  rawStatus === "CHECKED-IN"
+                ) {
+                  formattedStatus = "Checked-In";
+                } else if (rawStatus === "WAITING_FOR_VITALS") {
+                  formattedStatus = "Waiting for Vitals";
+                } else if (
+                  rawStatus === "WAITING_FOR_DOCTOR" ||
+                  rawStatus === "WAITING_FOR_DOCTOR_CALL" ||
+                  rawStatus === "WAITING_FOR_CONSULTATION" ||
+                  rawStatus === "VITALS_DONE"
+                ) {
+                  formattedStatus = "Waiting for Doctor";
+                }
+
+                const patRaw = a.patient || a.patientName;
+                let pName = patient?.name || activePatient?.name || "";
+                if (patRaw && typeof patRaw === "object" && patRaw !== null) {
+                  pName =
+                    (patRaw as { fullName?: string; name?: string }).fullName ||
+                    (patRaw as { name?: string }).name ||
+                    pName;
+                } else if (typeof patRaw === "string" && patRaw.trim()) {
+                  pName = patRaw.trim();
+                } else if (a.patientName) {
+                  pName = String(a.patientName);
+                }
+
+                const apptIdStr = String(
+                  a.appointmentId || a.id || `APT-${idx}`,
+                );
+                const storedReason = localStorage.getItem(
+                  `appt_reason_${apptIdStr}`,
+                );
+                const storedNotes = localStorage.getItem(
+                  `appt_notes_${apptIdStr}`,
+                );
+
+                const finalReason =
+                  a.reason ||
+                  a.chiefComplaint ||
+                  a.chief_complaint ||
+                  a.reasonForVisit ||
+                  a.visitReason ||
+                  a.appointmentReason ||
+                  a.complaint ||
+                  a.visitDetails?.reason ||
+                  a.visitDetails?.chiefComplaint ||
+                  a.details?.reason ||
+                  a.description ||
+                  storedReason ||
+                  "General Consultation";
+
+                const finalNotes =
+                  a.notes ||
+                  a.symptoms ||
+                  a.remarks ||
+                  a.clinicalNotes ||
+                  a.visitNotes ||
+                  a.comments ||
+                  a.visitDetails?.notes ||
+                  a.visitDetails?.remarks ||
+                  a.details?.notes ||
+                  storedNotes ||
+                  "No additional remarks";
+
+                return {
+                  id: apptIdStr,
+                  patientName:
+                    pName || patient?.name || activePatient?.name || "Patient",
+                  date: datePart,
+                  time: timePart,
+                  doctorId: a.doctorId,
+                  doctor: doctorName,
+                  specialty: a.specialty || deptName,
+                  department: deptName,
+                  visitType: (a.visitType === "Follow-up OPD" ||
+                  a.visitType === "FOLLOW_UP"
+                    ? "Follow-up OPD"
+                    : "In-Person OPD") as "Follow-up OPD" | "In-Person OPD",
+                  status: formattedStatus,
+                  roomLocation:
+                    a.roomLocation || a.opdRoom || a.roomNo || "OPD Room",
+                  reason: finalReason,
+                  notes: finalNotes,
+                  consultationStatus: rawStatus,
+                  prescriptionStatus: a.prescriptionStatus || "Pending",
+                  billingStatus:
+                    a.billingStatus || a.paymentStatus || "Pending",
+                  billingAmount: a.billingAmount || "$50.00",
                 };
-                doctorName =
-                  docObj.fullName ||
-                  docObj.name ||
-                  docObj.doctorName ||
-                  docObj.nameEn ||
-                  docObj.user?.fullName ||
-                  docObj.user?.name ||
-                  "";
-              } else if (typeof doctorRaw === "string" && doctorRaw.trim()) {
-                doctorName = doctorRaw.trim();
-              }
-
-              if (!doctorName) {
-                const alt = a as {
-                  doctorName?: string;
-                  doctor_name?: string;
-                  doctorFullName?: string;
-                  assignedDoctor?: string;
-                  assignedDoctorName?: string;
-                  docName?: string;
-                };
-                doctorName =
-                  alt.doctorName ||
-                  alt.doctor_name ||
-                  alt.doctorFullName ||
-                  alt.assignedDoctor ||
-                  alt.assignedDoctorName ||
-                  alt.docName ||
-                  "Unassigned Doctor";
-              }
-
-              if (
-                doctorName &&
-                doctorName !== "Unassigned Doctor" &&
-                !doctorName.toLowerCase().startsWith("dr.") &&
-                !doctorName.toLowerCase().startsWith("dr ")
-              ) {
-                doctorName = `Dr. ${doctorName}`;
-              }
-
-              const deptRaw = a.department;
-              let deptName: string;
-              if (deptRaw && typeof deptRaw === "object" && deptRaw !== null) {
-                deptName =
-                  (deptRaw as { departmentName?: string; name?: string })
-                    .departmentName ||
-                  (deptRaw as { departmentName?: string; name?: string })
-                    .name ||
-                  "General";
-              } else if (typeof deptRaw === "string" && deptRaw.trim()) {
-                deptName = deptRaw.trim();
-              } else {
-                deptName = String(a.departmentName || "General");
-              }
-
-              let formattedStatus: PatientAppointment["status"] = "Confirmed";
-              const rawStatus = (
-                a.appointmentStatus ||
-                a.status ||
-                "SCHEDULED"
-              ).toUpperCase();
-
-              const todayStr = new Date().toISOString().split("T")[0];
-              const isPastDate = Boolean(datePart && datePart < todayStr);
-
-              if (rawStatus === "COMPLETED") {
-                formattedStatus = "Completed";
-              } else if (rawStatus === "CANCELLED" || rawStatus === "CANCELED") {
-                formattedStatus = "Cancelled";
-              } else if (
-                rawStatus === "NO_SHOW" ||
-                rawStatus === "NOSHOW" ||
-                (isPastDate && rawStatus !== "COMPLETED" && rawStatus !== "CANCELLED")
-              ) {
-                formattedStatus = "No Show";
-              } else if (
-                rawStatus === "SCHEDULED" ||
-                rawStatus === "BOOKED" ||
-                rawStatus === "CONFIRMED"
-              ) {
-                formattedStatus = "Confirmed";
-              } else if (rawStatus === "PENDING") {
-                formattedStatus = "Pending";
-              } else if (
-                rawStatus === "IN_PROGRESS" ||
-                rawStatus === "IN-PROGRESS" ||
-                rawStatus === "IN CONSULTATION"
-              ) {
-                formattedStatus = "In Progress";
-              } else if (
-                rawStatus === "CHECKED_IN" ||
-                rawStatus === "CHECKED-IN"
-              ) {
-                formattedStatus = "Checked-In";
-              } else if (rawStatus === "WAITING_FOR_VITALS") {
-                formattedStatus = "Waiting for Vitals";
-              } else if (
-                rawStatus === "WAITING_FOR_DOCTOR" ||
-                rawStatus === "WAITING_FOR_DOCTOR_CALL" ||
-                rawStatus === "WAITING_FOR_CONSULTATION" ||
-                rawStatus === "VITALS_DONE"
-              ) {
-                formattedStatus = "Waiting for Doctor";
-              }
-
-              const patRaw = a.patient || a.patientName;
-              let pName = patient?.name || activePatient?.name || "";
-              if (patRaw && typeof patRaw === "object" && patRaw !== null) {
-                pName = (patRaw as { fullName?: string; name?: string }).fullName || (patRaw as { name?: string }).name || pName;
-              } else if (typeof patRaw === "string" && patRaw.trim()) {
-                pName = patRaw.trim();
-              } else if (a.patientName) {
-                pName = String(a.patientName);
-              }
-
-              const apptIdStr = String(a.appointmentId || a.id || `APT-${idx}`);
-              const storedReason = localStorage.getItem(`appt_reason_${apptIdStr}`);
-              const storedNotes = localStorage.getItem(`appt_notes_${apptIdStr}`);
-
-              const finalReason =
-                a.reason ||
-                a.chiefComplaint ||
-                a.chief_complaint ||
-                a.reasonForVisit ||
-                a.visitReason ||
-                a.appointmentReason ||
-                a.complaint ||
-                a.visitDetails?.reason ||
-                a.visitDetails?.chiefComplaint ||
-                a.details?.reason ||
-                a.description ||
-                storedReason ||
-                "General Consultation";
-
-              const finalNotes =
-                a.notes ||
-                a.symptoms ||
-                a.remarks ||
-                a.clinicalNotes ||
-                a.visitNotes ||
-                a.comments ||
-                a.visitDetails?.notes ||
-                a.visitDetails?.remarks ||
-                a.details?.notes ||
-                storedNotes ||
-                "No additional remarks";
-
-              return {
-                id: apptIdStr,
-                patientName: pName || patient?.name || activePatient?.name || "Patient",
-                date: datePart,
-                time: timePart,
-                doctorId: a.doctorId,
-                doctor: doctorName,
-                specialty: a.specialty || deptName,
-                department: deptName,
-                visitType: (a.visitType === "Follow-up OPD" ||
-                a.visitType === "FOLLOW_UP"
-                  ? "Follow-up OPD"
-                  : "In-Person OPD") as "Follow-up OPD" | "In-Person OPD",
-                status: formattedStatus,
-                roomLocation: a.roomLocation || a.opdRoom || a.roomNo || "OPD Room",
-                reason: finalReason,
-                notes: finalNotes,
-                consultationStatus: rawStatus,
-                prescriptionStatus: a.prescriptionStatus || "Pending",
-                billingStatus: a.billingStatus || a.paymentStatus || "Pending",
-                billingAmount: a.billingAmount || "$50.00",
-              };
-            },
-          );
-          dispatch({ type: "SET_APPOINTMENTS", appointments: mapped });
-        } else {
+              },
+            );
+            dispatch({ type: "SET_APPOINTMENTS", appointments: mapped });
+          } else {
+            dispatch({ type: "CLEAR_APPOINTMENTS" });
+          }
+        })
+        .catch(() => {
           dispatch({ type: "CLEAR_APPOINTMENTS" });
-        }
-      })
-      .catch(() => {
-        dispatch({ type: "CLEAR_APPOINTMENTS" });
-      });
-  }, [activePatient]);
+        });
+    },
+    [activePatient],
+  );
 
   useEffect(() => {
     loadAppointments(activePatient);
@@ -531,7 +636,12 @@ export function PatientAppointmentsScreen({
   });
 
   const closeBookDrawer = () => bookingDispatch({ type: "CLOSE_BOOK_DRAWER" });
-  const setBookingField = <K extends keyof Omit<BookingDrawerState, "showBookDrawer" | "editingAppt" | "selectedDetailsAppt">>(
+  const setBookingField = <
+    K extends keyof Omit<
+      BookingDrawerState,
+      "showBookDrawer" | "editingAppt" | "selectedDetailsAppt"
+    >,
+  >(
     field: K,
     value: BookingDrawerState[K],
   ) => bookingDispatch({ type: "SET_BOOKING_FIELD", field, value });
@@ -552,25 +662,61 @@ export function PatientAppointmentsScreen({
           (activePatient?.id ? String(activePatient.id) : undefined)
         }
         onBack={() => dispatch({ type: "SET_VIEW_MODE", viewMode: "list" })}
-        onBookSuccess={(createdAppt?: AppointmentRecord, openDetailsDrawer?: boolean) => {
+        onBookSuccess={(
+          createdAppt?: AppointmentRecord,
+          openDetailsDrawer?: boolean,
+        ) => {
           dispatch({ type: "SET_VIEW_MODE", viewMode: "list" });
           loadAppointments(activePatient);
           triggerToast("Appointment booked successfully!");
 
           if (openDetailsDrawer && createdAppt) {
             const formatted: PatientAppointment = {
-              id: String(createdAppt.id || createdAppt.appointmentNumber || "APT-CONFIRMED"),
-              patientName: createdAppt.patientName || activePatient?.name || "Patient",
-              date: createdAppt.appointmentDate || createdAppt.date || "2026-08-25",
+              id: String(
+                createdAppt.id ||
+                  createdAppt.appointmentNumber ||
+                  "APT-CONFIRMED",
+              ),
+              patientName:
+                createdAppt.patientName || activePatient?.name || "Patient",
+              date:
+                createdAppt.appointmentDate || createdAppt.date || "2026-08-25",
               time: createdAppt.startTime || createdAppt.time || "10:30 AM",
-              doctor: createdAppt.doctorName || (typeof createdAppt.doctor === "string" ? createdAppt.doctor : (createdAppt.doctor as { fullName?: string; name?: string } | undefined)?.fullName || (createdAppt.doctor as { name?: string } | undefined)?.name || "Doctor"),
-              specialty: createdAppt.specialty || createdAppt.departmentName || "OPD",
-              department: createdAppt.departmentName || (typeof createdAppt.department === "string" ? createdAppt.department : (createdAppt.department as { departmentName?: string; name?: string } | undefined)?.departmentName || (createdAppt.department as { name?: string } | undefined)?.name || "OPD"),
-              visitType: (createdAppt.visitType === "Follow-up OPD" ? "Follow-up OPD" : "In-Person OPD"),
+              doctor:
+                createdAppt.doctorName ||
+                (typeof createdAppt.doctor === "string"
+                  ? createdAppt.doctor
+                  : (
+                      createdAppt.doctor as
+                        { fullName?: string; name?: string } | undefined
+                    )?.fullName ||
+                    (createdAppt.doctor as { name?: string } | undefined)
+                      ?.name ||
+                    "Doctor"),
+              specialty:
+                createdAppt.specialty || createdAppt.departmentName || "OPD",
+              department:
+                createdAppt.departmentName ||
+                (typeof createdAppt.department === "string"
+                  ? createdAppt.department
+                  : (
+                      createdAppt.department as
+                        { departmentName?: string; name?: string } | undefined
+                    )?.departmentName ||
+                    (createdAppt.department as { name?: string } | undefined)
+                      ?.name ||
+                    "OPD"),
+              visitType:
+                createdAppt.visitType === "Follow-up OPD"
+                  ? "Follow-up OPD"
+                  : "In-Person OPD",
               status: "Scheduled",
               roomLocation: "Wing A, OPD Room 102",
               reason: createdAppt.reason || "General Consultation",
-              notes: createdAppt.symptoms || createdAppt.notes || "No additional remarks",
+              notes:
+                createdAppt.symptoms ||
+                createdAppt.notes ||
+                "No additional remarks",
               consultationStatus: "Scheduled",
               prescriptionStatus: "Pending",
               billingStatus: "Pending",
@@ -624,8 +770,10 @@ export function PatientAppointmentsScreen({
       )
         return false;
     }
-    if (filterState.activeTab === "completed" && appt.status !== "Completed") return false;
-    if (filterState.activeTab === "cancelled" && appt.status !== "Cancelled") return false;
+    if (filterState.activeTab === "completed" && appt.status !== "Completed")
+      return false;
+    if (filterState.activeTab === "cancelled" && appt.status !== "Cancelled")
+      return false;
 
     // Search Query
     if (filterState.searchQuery) {
@@ -640,10 +788,25 @@ export function PatientAppointmentsScreen({
     }
 
     // Dropdown Filters
-    if (filterState.deptFilter !== "All" && appt.department !== filterState.deptFilter) return false;
-    if (filterState.doctorFilter !== "All" && appt.doctor !== filterState.doctorFilter) return false;
-    if (filterState.statusFilter !== "All" && appt.status !== filterState.statusFilter) return false;
-    if (filterState.visitTypeFilter !== "All" && appt.visitType !== filterState.visitTypeFilter)
+    if (
+      filterState.deptFilter !== "All" &&
+      appt.department !== filterState.deptFilter
+    )
+      return false;
+    if (
+      filterState.doctorFilter !== "All" &&
+      appt.doctor !== filterState.doctorFilter
+    )
+      return false;
+    if (
+      filterState.statusFilter !== "All" &&
+      appt.status !== filterState.statusFilter
+    )
+      return false;
+    if (
+      filterState.visitTypeFilter !== "All" &&
+      appt.visitType !== filterState.visitTypeFilter
+    )
       return false;
 
     // Date Range Filter
@@ -678,8 +841,6 @@ export function PatientAppointmentsScreen({
     booking.currentPage * pageSize,
   );
 
-
-
   const handleSaveAppointment = (e: React.FormEvent) => {
     e.preventDefault();
     if (booking.editingAppt) {
@@ -711,7 +872,9 @@ export function PatientAppointmentsScreen({
         time: booking.formTime,
         doctor: booking.formDoctor,
         specialty:
-          booking.formDept === "Cardiology" ? "Senior Cardiologist" : "Specialist",
+          booking.formDept === "Cardiology"
+            ? "Senior Cardiologist"
+            : "Specialist",
         department: booking.formDept,
         visitType: booking.formType,
         status: "Scheduled",
@@ -761,10 +924,10 @@ export function PatientAppointmentsScreen({
       style={{ fontFamily: RB }}
     >
       {/* Toast Feedback Banner */}
-       {filterState.toastMsg && (
+      {filterState.toastMsg && (
         <div className="fixed top-5 right-5 z-50 bg-[#111827] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 transition-opacity duration-200">
           <CheckCircle2 size={16} className="text-[#66BB6A]" />
-           <span>{filterState.toastMsg}</span>
+          <span>{filterState.toastMsg}</span>
         </div>
       )}
 
@@ -893,29 +1056,56 @@ export function PatientAppointmentsScreen({
 
       {/* ── HORIZONTAL NEXT APPOINTMENT CARD (BELOW KPI CARDS) ── */}
       {nextAppointment && (
-        <div className="bg-white rounded-2xl border border-blue-100 p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-gradient-to-r from-blue-50/70 via-white to-slate-50">
+        <div className="bg-white rounded-2xl border border-blue-100 p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-linear-to-r from-blue-50/70 via-white to-slate-50">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-[#0D47A1] text-white flex items-center justify-center font-bold text-base shadow-sm shrink-0">
               <Clock size={24} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#0D47A1] uppercase tracking-wider" style={{ fontFamily: PP }}>
+                <span
+                  className="text-xs font-bold text-[#0D47A1] uppercase tracking-wider"
+                  style={{ fontFamily: PP }}
+                >
                   Next Upcoming Appointment
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-[#0D47A1]">
                   {nextAppointment.status}
                 </span>
               </div>
-              <h3 className="text-base font-bold text-[#111827] mt-0.5" style={{ fontFamily: PP }}>
-                {nextAppointment.doctor} · <span className="text-xs font-medium text-slate-500">{nextAppointment.department}</span>
+              <h3
+                className="text-base font-bold text-[#111827] mt-0.5"
+                style={{ fontFamily: PP }}
+              >
+                {nextAppointment.doctor} ·{" "}
+                <span className="text-xs font-medium text-slate-500">
+                  {nextAppointment.department}
+                </span>
               </h3>
-              <div className="flex items-center gap-3 text-xs text-[#64748B] mt-1" style={{ fontFamily: RB }}>
-                <span>Date: <strong className="text-[#111827]">{nextAppointment.date}</strong></span>
+              <div
+                className="flex items-center gap-3 text-xs text-[#64748B] mt-1"
+                style={{ fontFamily: RB }}
+              >
+                <span>
+                  Date:{" "}
+                  <strong className="text-[#111827]">
+                    {nextAppointment.date}
+                  </strong>
+                </span>
                 <span>•</span>
-                <span>Time: <strong className="text-[#0D47A1]">{formatDisplayTime(nextAppointment.time)}</strong></span>
+                <span>
+                  Time:{" "}
+                  <strong className="text-[#0D47A1]">
+                    {formatDisplayTime(nextAppointment.time)}
+                  </strong>
+                </span>
                 <span>•</span>
-                <span>Location: <strong className="text-[#111827]">{nextAppointment.roomLocation}</strong></span>
+                <span>
+                  Location:{" "}
+                  <strong className="text-[#111827]">
+                    {nextAppointment.roomLocation}
+                  </strong>
+                </span>
               </div>
             </div>
           </div>
@@ -944,19 +1134,20 @@ export function PatientAppointmentsScreen({
                 size={15}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
               />
-               <input aria-label="Input field"
-                 type="text"
-                 value={filterState.searchQuery}
-                 onChange={(e) =>
-                   filterDispatch({
-                     type: "SET_FILTER",
-                     field: "searchQuery",
-                     value: e.target.value,
-                   })
-                 }
-                 placeholder="Search by Doctor Name, Appointment ID, Department..."
-                 className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-               />
+              <input
+                aria-label="Input field"
+                type="text"
+                value={filterState.searchQuery}
+                onChange={(e) =>
+                  filterDispatch({
+                    type: "SET_FILTER",
+                    field: "searchQuery",
+                    value: e.target.value,
+                  })
+                }
+                placeholder="Search by Doctor Name, Appointment ID, Department..."
+                className="w-full pl-9 pr-3.5 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
+              />
             </div>
 
             {/* Filter Dropdowns & Controls */}
@@ -967,17 +1158,18 @@ export function PatientAppointmentsScreen({
               </div>
 
               {/* Status Filter */}
-               <select aria-label="Select option"
-                 value={filterState.statusFilter}
-                 onChange={(e) =>
-                   filterDispatch({
-                     type: "SET_FILTER",
-                     field: "statusFilter",
-                     value: e.target.value,
-                   })
-                 }
-                 className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-               >
+              <select
+                aria-label="Select option"
+                value={filterState.statusFilter}
+                onChange={(e) =>
+                  filterDispatch({
+                    type: "SET_FILTER",
+                    field: "statusFilter",
+                    value: e.target.value,
+                  })
+                }
+                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+              >
                 <option value="All">All Statuses</option>
                 <option value="Confirmed">Confirmed</option>
                 <option value="Scheduled">Scheduled</option>
@@ -988,17 +1180,18 @@ export function PatientAppointmentsScreen({
               </select>
 
               {/* Department Filter */}
-               <select aria-label="Select option"
-                 value={filterState.deptFilter}
-                 onChange={(e) =>
-                   filterDispatch({
-                     type: "SET_FILTER",
-                     field: "deptFilter",
-                     value: e.target.value,
-                   })
-                 }
-                 className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-               >
+              <select
+                aria-label="Select option"
+                value={filterState.deptFilter}
+                onChange={(e) =>
+                  filterDispatch({
+                    type: "SET_FILTER",
+                    field: "deptFilter",
+                    value: e.target.value,
+                  })
+                }
+                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+              >
                 <option value="All">All Departments</option>
                 <option value="Cardiology">Cardiology</option>
                 <option value="General Medicine">General Medicine</option>
@@ -1008,17 +1201,18 @@ export function PatientAppointmentsScreen({
               </select>
 
               {/* Date Range Filter */}
-               <select aria-label="Select option"
-                 value={filterState.dateRangeFilter}
-                 onChange={(e) =>
-                   filterDispatch({
-                     type: "SET_FILTER",
-                     field: "dateRangeFilter",
-                     value: e.target.value,
-                   })
-                 }
-                 className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-               >
+              <select
+                aria-label="Select option"
+                value={filterState.dateRangeFilter}
+                onChange={(e) =>
+                  filterDispatch({
+                    type: "SET_FILTER",
+                    field: "dateRangeFilter",
+                    value: e.target.value,
+                  })
+                }
+                className="px-2.5 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+              >
                 <option value="All">All Date Ranges</option>
                 <option value="Today">Today</option>
                 <option value="This Week">This Week</option>
@@ -1026,13 +1220,13 @@ export function PatientAppointmentsScreen({
               </select>
 
               {/* Reset Filters Action */}
-               {(filterState.deptFilter !== "All" ||
-                 filterState.doctorFilter !== "All" ||
-                 filterState.statusFilter !== "All" ||
-                 filterState.visitTypeFilter !== "All" ||
-                 filterState.dateRangeFilter !== "All" ||
-                 filterState.searchQuery ||
-                 filterState.activeTab !== "all") && (
+              {(filterState.deptFilter !== "All" ||
+                filterState.doctorFilter !== "All" ||
+                filterState.statusFilter !== "All" ||
+                filterState.visitTypeFilter !== "All" ||
+                filterState.dateRangeFilter !== "All" ||
+                filterState.searchQuery ||
+                filterState.activeTab !== "all") && (
                 <button
                   onClick={handleResetFilters}
                   className="text-xs text-[#0D47A1] font-semibold hover:underline px-2 py-1 flex items-center gap-1"
@@ -1050,17 +1244,18 @@ export function PatientAppointmentsScreen({
               { id: "upcoming", label: "Upcoming", count: upcomingCount },
               { id: "completed", label: "Completed", count: completedCount },
               { id: "cancelled", label: "Cancelled", count: cancelledCount },
-             ].map((tab) => {
-               const isActive = filterState.activeTab === tab.id;
-               return (
-                 <button
-                   key={tab.id}
-                   onClick={() =>
-                     filterDispatch({
-                       type: "SET_ACTIVE_TAB",
-                       tab: tab.id as "all" | "upcoming" | "completed" | "cancelled",
-                     })
-                   }
+            ].map((tab) => {
+              const isActive = filterState.activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() =>
+                    filterDispatch({
+                      type: "SET_ACTIVE_TAB",
+                      tab: tab.id as
+                        "all" | "upcoming" | "completed" | "cancelled",
+                    })
+                  }
                   className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold transition-colors border-b-2 -mb-0.5 whitespace-nowrap ${
                     isActive
                       ? "border-[#0D47A1] text-[#0D47A1]"
@@ -1149,7 +1344,9 @@ export function PatientAppointmentsScreen({
 
                             {/* Patient Name */}
                             <td className="px-4 py-4 font-bold text-[#111827]">
-                              {appt.patientName || activePatient?.name || "Patient"}
+                              {appt.patientName ||
+                                activePatient?.name ||
+                                "Patient"}
                             </td>
 
                             {/* Doctor */}
@@ -1182,12 +1379,16 @@ export function PatientAppointmentsScreen({
                             {/* Status */}
                             <td className="px-4 py-4">
                               {(() => {
-                                const st = getAppointmentStatusStyle(appt.status);
+                                const st = getAppointmentStatusStyle(
+                                  appt.status,
+                                );
                                 return (
                                   <span
                                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${st.badgeClass}`}
                                   >
-                                    <span className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`} />
+                                    <span
+                                      className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`}
+                                    />
                                     {st.label}
                                   </span>
                                 );
@@ -1197,7 +1398,6 @@ export function PatientAppointmentsScreen({
                             {/* Actions */}
                             <td className="px-4 py-4 text-right">
                               <div className="flex items-center justify-end gap-1.5">
-
                                 {/* Cancel */}
                                 {isUpcoming && appt.status !== "No Show" && (
                                   <button
@@ -1230,7 +1430,9 @@ export function PatientAppointmentsScreen({
                 <Pagination
                   currentPage={booking.currentPage}
                   totalPages={totalPages}
-                  onPageChange={(page) => bookingDispatch({ type: "SET_CURRENT_PAGE", page })}
+                  onPageChange={(page) =>
+                    bookingDispatch({ type: "SET_CURRENT_PAGE", page })
+                  }
                   pageSize={pageSize}
                   totalCount={filteredAppointments.length}
                 />
@@ -1254,22 +1456,24 @@ export function PatientAppointmentsScreen({
                       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div>
                           <h4
-                              className="text-xs font-bold text-[#111827]"
-                              style={{ fontFamily: PP }}
-                            >
-                              {appt.doctor}
-                            </h4>
-                            <div className="text-[11px] text-[#64748B]">
-                              {appt.department} · {appt.specialty}
-                            </div>
+                            className="text-xs font-bold text-[#111827]"
+                            style={{ fontFamily: PP }}
+                          >
+                            {appt.doctor}
+                          </h4>
+                          <div className="text-[11px] text-[#64748B]">
+                            {appt.department} · {appt.specialty}
                           </div>
+                        </div>
                         {(() => {
                           const st = getAppointmentStatusStyle(appt.status);
                           return (
                             <span
                               className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${st.badgeClass}`}
                             >
-                              <span className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`} />
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${st.dotClass}`}
+                              />
                               {st.label}
                             </span>
                           );
@@ -1309,7 +1513,12 @@ export function PatientAppointmentsScreen({
                           {isUpcoming && (
                             <>
                               <button
-                                onClick={() => filterDispatch({ type: "SET_RESCHEDULING", appointment: appt })}
+                                onClick={() =>
+                                  filterDispatch({
+                                    type: "SET_RESCHEDULING",
+                                    appointment: appt,
+                                  })
+                                }
                                 className="px-3 py-1.5 bg-blue-50 text-[#0D47A1] text-xs font-semibold rounded-xl hover:bg-blue-100"
                               >
                                 Reschedule
@@ -1331,14 +1540,13 @@ export function PatientAppointmentsScreen({
             </>
           )}
         </div>
-
-        
       </div>
 
       {/* ── 4. RIGHT DRAWER: BOOK / RESCHEDULE APPOINTMENT ── */}
       {booking.showBookDrawer && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <div role="presentation"
+          <div
+            role="presentation"
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={() => closeBookDrawer()}
           />
@@ -1359,7 +1567,8 @@ export function PatientAppointmentsScreen({
                     Select doctor, date & available slot
                   </p>
                 </div>
-                <button aria-label="Close"
+                <button
+                  aria-label="Close"
                   onClick={() => closeBookDrawer()}
                   className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10"
                 >
@@ -1380,22 +1589,31 @@ export function PatientAppointmentsScreen({
                     style={{ fontFamily: PP }}
                   >
                     1. Select Department
-                  
-                  <select aria-label="Select option"
-                    value={booking.formDept}
-                    onChange={(e) => setBookingField("formDept", e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                  >
-                    <option value="Cardiology">
-                      Cardiology (Heart & Vascular)
-                    </option>
-                    <option value="General Medicine">
-                      General Medicine (OPD)
-                    </option>
-                    <option value="Neurology">Neurology (Brain & Spine)</option>
-                    <option value="Gynecology">Gynecology & Obstetrics</option>
-                    <option value="Pediatrics">Pediatrics (Child Care)</option>
-                  </select></span>
+                    <select
+                      aria-label="Select option"
+                      value={booking.formDept}
+                      onChange={(e) =>
+                        setBookingField("formDept", e.target.value)
+                      }
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                    >
+                      <option value="Cardiology">
+                        Cardiology (Heart & Vascular)
+                      </option>
+                      <option value="General Medicine">
+                        General Medicine (OPD)
+                      </option>
+                      <option value="Neurology">
+                        Neurology (Brain & Spine)
+                      </option>
+                      <option value="Gynecology">
+                        Gynecology & Obstetrics
+                      </option>
+                      <option value="Pediatrics">
+                        Pediatrics (Child Care)
+                      </option>
+                    </select>
+                  </span>
                 </div>
 
                 {/* 2. Doctor */}
@@ -1405,25 +1623,28 @@ export function PatientAppointmentsScreen({
                     style={{ fontFamily: PP }}
                   >
                     2. Select Doctor
-                  
-                  <select aria-label="Select option"
-                    value={booking.formDoctor}
-                    onChange={(e) => setBookingField("formDoctor", e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                  >
-                    <option value="Dr. Arjun Mehta">
-                      Dr. Arjun Mehta — Senior Cardiologist (10 yrs exp)
-                    </option>
-                    <option value="Dr. Priya Sharma">
-                      Dr. Priya Sharma — Endocrinologist (8 yrs exp)
-                    </option>
-                    <option value="Dr. Rajesh Kapoor">
-                      Dr. Rajesh Kapoor — Neurologist (12 yrs exp)
-                    </option>
-                    <option value="Dr. Sunita Patel">
-                      Dr. Sunita Patel — Gynecologist (9 yrs exp)
-                    </option>
-                  </select></span>
+                    <select
+                      aria-label="Select option"
+                      value={booking.formDoctor}
+                      onChange={(e) =>
+                        setBookingField("formDoctor", e.target.value)
+                      }
+                      className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                    >
+                      <option value="Dr. Arjun Mehta">
+                        Dr. Arjun Mehta — Senior Cardiologist (10 yrs exp)
+                      </option>
+                      <option value="Dr. Priya Sharma">
+                        Dr. Priya Sharma — Endocrinologist (8 yrs exp)
+                      </option>
+                      <option value="Dr. Rajesh Kapoor">
+                        Dr. Rajesh Kapoor — Neurologist (12 yrs exp)
+                      </option>
+                      <option value="Dr. Sunita Patel">
+                        Dr. Sunita Patel — Gynecologist (9 yrs exp)
+                      </option>
+                    </select>
+                  </span>
                 </div>
 
                 {/* 3. Visit Type, Date & Time Slots */}
@@ -1439,7 +1660,9 @@ export function PatientAppointmentsScreen({
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
-                      onClick={() => setBookingField("formType", "In-Person OPD")}
+                      onClick={() =>
+                        setBookingField("formType", "In-Person OPD")
+                      }
                       className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
                         booking.formType === "In-Person OPD"
                           ? "border-[#0D47A1] bg-blue-50 text-[#0D47A1]"
@@ -1450,7 +1673,9 @@ export function PatientAppointmentsScreen({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setBookingField("formType", "Follow-up OPD")}
+                      onClick={() =>
+                        setBookingField("formType", "Follow-up OPD")
+                      }
                       className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
                         booking.formType === "Follow-up OPD"
                           ? "border-[#0D47A1] bg-blue-50 text-[#0D47A1]"
@@ -1466,10 +1691,13 @@ export function PatientAppointmentsScreen({
                     <span className="block text-[11px] text-[#64748B] mb-1 font-medium">
                       Select Preferred Date
                     </span>
-                    <input aria-label="Input field"
+                    <input
+                      aria-label="Input field"
                       type="date"
                       value={booking.formDate}
-                      onChange={(e) => setBookingField("formDate", e.target.value)}
+                      onChange={(e) =>
+                        setBookingField("formDate", e.target.value)
+                      }
                       className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
                     />
                   </div>
@@ -1518,12 +1746,15 @@ export function PatientAppointmentsScreen({
                     <span className="block text-[11px] text-[#64748B] mb-1 font-medium">
                       Reason for Visit *
                     </span>
-                    <input aria-label="e.g. Routine follow-up, BP check, Chest tightness..."
+                    <input
+                      aria-label="e.g. Routine follow-up, BP check, Chest tightness..."
                       type="text"
                       required
                       placeholder="e.g. Routine follow-up, BP check, Chest tightness..."
                       value={booking.formReason}
-                      onChange={(e) => setBookingField("formReason", e.target.value)}
+                      onChange={(e) =>
+                        setBookingField("formReason", e.target.value)
+                      }
                       className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
                     />
                   </div>
@@ -1532,11 +1763,14 @@ export function PatientAppointmentsScreen({
                     <span className="block text-[11px] text-[#64748B] mb-1 font-medium">
                       Additional Notes
                     </span>
-                    <textarea aria-label="Any symptoms, ongoing medications, or special requests..."
+                    <textarea
+                      aria-label="Any symptoms, ongoing medications, or special requests..."
                       rows={2}
                       placeholder="Any symptoms, ongoing medications, or special requests..."
                       value={booking.formNotes}
-                      onChange={(e) => setBookingField("formNotes", e.target.value)}
+                      onChange={(e) =>
+                        setBookingField("formNotes", e.target.value)
+                      }
                       className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
                     />
                   </div>
@@ -1595,7 +1829,9 @@ export function PatientAppointmentsScreen({
                     className="flex-1 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm"
                     style={{ fontFamily: PP }}
                   >
-                    {booking.editingAppt ? "Confirm Reschedule" : "Confirm Appointment"}
+                    {booking.editingAppt
+                      ? "Confirm Reschedule"
+                      : "Confirm Appointment"}
                   </button>
                   <button
                     type="button"
@@ -1614,7 +1850,8 @@ export function PatientAppointmentsScreen({
       {/* ── 5. RIGHT DRAWER: APPOINTMENT DETAILS ── */}
       {booking.selectedDetailsAppt && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <div role="presentation"
+          <div
+            role="presentation"
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={() => setSelectedDetails(null)}
           />
@@ -1633,7 +1870,8 @@ export function PatientAppointmentsScreen({
                     {booking.selectedDetailsAppt.id}
                   </span>
                 </div>
-                <button aria-label="Close"
+                <button
+                  aria-label="Close"
                   onClick={() => setSelectedDetails(null)}
                   className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10"
                 >
@@ -1680,7 +1918,9 @@ export function PatientAppointmentsScreen({
                         Patient Name
                       </span>
                       <span className="font-bold text-[#111827]">
-                        {booking.selectedDetailsAppt.patientName || activePatient?.name || "Patient"}
+                        {booking.selectedDetailsAppt.patientName ||
+                          activePatient?.name ||
+                          "Patient"}
                       </span>
                     </div>
                     <div>
@@ -1740,7 +1980,9 @@ export function PatientAppointmentsScreen({
                         Consultation Status
                       </span>
                       <span className="font-bold text-[#0D47A1]">
-                        {formatStatusPretty(booking.selectedDetailsAppt.consultationStatus)}
+                        {formatStatusPretty(
+                          booking.selectedDetailsAppt.consultationStatus,
+                        )}
                       </span>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-50 border border-gray-100">
@@ -1775,7 +2017,8 @@ export function PatientAppointmentsScreen({
                       Chief Complaint / Reason for Visit
                     </span>
                     <p className="text-xs text-[#111827] mt-0.5 font-medium">
-                      {booking.selectedDetailsAppt.reason || "General Consultation"}
+                      {booking.selectedDetailsAppt.reason ||
+                        "General Consultation"}
                     </p>
                   </div>
                   <div className="pt-2 border-t border-gray-50">
@@ -1783,7 +2026,8 @@ export function PatientAppointmentsScreen({
                       Remarks & Symptoms / Notes
                     </span>
                     <p className="text-xs text-slate-600 mt-0.5">
-                      {booking.selectedDetailsAppt.notes || "No additional remarks"}
+                      {booking.selectedDetailsAppt.notes ||
+                        "No additional remarks"}
                     </p>
                   </div>
                 </div>
@@ -1809,7 +2053,10 @@ export function PatientAppointmentsScreen({
                   onClick={() => {
                     const apptToReschedule = booking.selectedDetailsAppt;
                     setSelectedDetails(null);
-                    filterDispatch({ type: "SET_RESCHEDULING", appointment: apptToReschedule });
+                    filterDispatch({
+                      type: "SET_RESCHEDULING",
+                      appointment: apptToReschedule,
+                    });
                   }}
                   className="px-4 py-2.5 rounded-xl border border-blue-200 text-xs font-bold text-[#0D47A1] bg-blue-50 hover:bg-blue-100 transition-colors flex items-center gap-1.5"
                   style={{ fontFamily: PP }}
@@ -1833,11 +2080,11 @@ export function PatientAppointmentsScreen({
                 >
                   Close
                 </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
 
       {/* ── CANCEL APPOINTMENT CONFIRMATION DIALOG ── */}
       <PatientCancelAppointmentDialog
@@ -1854,10 +2101,12 @@ export function PatientAppointmentsScreen({
       />
 
       {/* ── RESCHEDULE APPOINTMENT DIALOG ── */}
-       <PatientRescheduleAppointmentDialog
-         appointment={filterState.reschedulingAppt}
-         isOpen={!!filterState.reschedulingAppt}
-         onClose={() => filterDispatch({ type: "SET_RESCHEDULING", appointment: null })}
+      <PatientRescheduleAppointmentDialog
+        appointment={filterState.reschedulingAppt}
+        isOpen={!!filterState.reschedulingAppt}
+        onClose={() =>
+          filterDispatch({ type: "SET_RESCHEDULING", appointment: null })
+        }
         onConfirmReschedule={async (id, newDate, newTime, reason) => {
           try {
             await appointmentsApi.rescheduleAppointment(id, {
@@ -1871,8 +2120,11 @@ export function PatientAppointmentsScreen({
             );
           } catch (err: unknown) {
             const errorMsg =
-              (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-              (err instanceof Error ? err.message : "Requested reschedule slot is unavailable.");
+              (err as { response?: { data?: { message?: string } } })?.response
+                ?.data?.message ||
+              (err instanceof Error
+                ? err.message
+                : "Requested reschedule slot is unavailable.");
             triggerToast(`Error: ${errorMsg}`);
             throw new Error(errorMsg, { cause: err });
           }
@@ -1884,4 +2136,3 @@ export function PatientAppointmentsScreen({
     </div>
   );
 }
-

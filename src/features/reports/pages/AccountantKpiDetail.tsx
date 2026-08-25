@@ -61,7 +61,11 @@ export type AccountantKpiType =
   | "Average Invoice Value";
 
 const ACCOUNTANT_KPI_TREND_DATA: Array<{ date: string; value: number }> = [];
-const ACCOUNTANT_KPI_DONUT_DATA: Array<{ name: string; value: number; color: string }> = [];
+const ACCOUNTANT_KPI_DONUT_DATA: Array<{
+  name: string;
+  value: number;
+  color: string;
+}> = [];
 
 export function AccountantDashboardKpiDetailScreen({
   onBack,
@@ -121,14 +125,16 @@ export function AccountantDashboardKpiDetailScreen({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
-                <button type="button"
+                <button
+                  type="button"
                   onClick={onBack}
                   className="hover:text-[#0D47A1] cursor-pointer"
                 >
                   Accountant
                 </button>
                 <ChevronRight className="w-3.5 h-3.5" />
-                <button type="button"
+                <button
+                  type="button"
                   onClick={onBack}
                   className="hover:text-[#0D47A1] cursor-pointer"
                 >
@@ -221,7 +227,8 @@ export function AccountantDashboardKpiDetailScreen({
               <div className="flex items-center gap-2 text-xs font-semibold text-[#64748B] mb-1">
                 <span>Select Financial KPI Metric:</span>
               </div>
-              <select aria-label="Select option"
+              <select
+                aria-label="Select option"
                 value={selectedKpi}
                 onChange={(e) =>
                   setSelectedKpi(e.target.value as AccountantKpiType)
@@ -312,7 +319,8 @@ export function AccountantDashboardKpiDetailScreen({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input aria-label="Input field"
+            <input
+              aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -349,82 +357,87 @@ export function AccountantDashboardKpiDetailScreen({
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              
-              <select aria-label="Select option"
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>Today</option>
-                <option>Yesterday</option>
-                <option>Last 7 Days</option>
-                <option>This Month</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={dateRange}
+                  onChange={(e) => setDateRange(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>Today</option>
+                  <option>Yesterday</option>
+                  <option>Last 7 Days</option>
+                  <option>This Month</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Invoice Status
-              
-              <select aria-label="Select option"
-                value={invoiceStatusFilter}
-                onChange={(e) => setInvoiceStatusFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Invoice Statuses</option>
-                <option>Issued</option>
-                <option>Cleared</option>
-                <option>Overdue</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={invoiceStatusFilter}
+                  onChange={(e) => setInvoiceStatusFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Invoice Statuses</option>
+                  <option>Issued</option>
+                  <option>Cleared</option>
+                  <option>Overdue</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Payment Status
-              
-              <select aria-label="Select option"
-                value={paymentStatusFilter}
-                onChange={(e) => setPaymentStatusFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Payment Statuses</option>
-                <option>Paid</option>
-                <option>Pending</option>
-                <option>Partially Paid</option>
-                <option>Refunded</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={paymentStatusFilter}
+                  onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Payment Statuses</option>
+                  <option>Paid</option>
+                  <option>Pending</option>
+                  <option>Partially Paid</option>
+                  <option>Refunded</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Payment Method
-              
-              <select aria-label="Select option"
-                value={paymentMethodFilter}
-                onChange={(e) => setPaymentMethodFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Payment Methods</option>
-                <option>Cash</option>
-                <option>Card</option>
-                <option>UPI</option>
-                <option>Bank Transfer</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={paymentMethodFilter}
+                  onChange={(e) => setPaymentMethodFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Payment Methods</option>
+                  <option>Cash</option>
+                  <option>Card</option>
+                  <option>UPI</option>
+                  <option>Bank Transfer</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Collected By
-              
-              <select aria-label="Select option"
-                value={collectedByFilter}
-                onChange={(e) => setCollectedByFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Collectors</option>
-                <option>Robert Vance</option>
-                <option>Elena Rostova</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={collectedByFilter}
+                  onChange={(e) => setCollectedByFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Collectors</option>
+                  <option>Robert Vance</option>
+                  <option>Elena Rostova</option>
+                </select>
+              </span>
             </div>
           </div>
 

@@ -39,7 +39,8 @@ export function TimeSelect({
   };
 
   return (
-    <select aria-label="Select option"
+    <select
+      aria-label="Select option"
       disabled={disabled}
       value={displayValue}
       onChange={handleChange}

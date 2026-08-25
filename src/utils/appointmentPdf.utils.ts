@@ -29,12 +29,15 @@ export interface PrintableAppointmentData {
   remarks?: string;
 }
 
-export function downloadAppointmentSlipPdf(appt: PrintableAppointmentData): void {
+export function downloadAppointmentSlipPdf(
+  appt: PrintableAppointmentData,
+): void {
   const aptId = String(appt.id || appt.appointmentNumber || "APT-REC");
   const patName = appt.patientName || "Patient";
   const docName = appt.doctor || appt.doctorName || "Doctor";
   const dept = appt.department || "General Medicine";
-  const dateStr = appt.date || appt.appointmentDate || new Date().toISOString().split("T")[0];
+  const dateStr =
+    appt.date || appt.appointmentDate || new Date().toISOString().split("T")[0];
   const timeStr = appt.time || appt.startTime || "09:00 AM";
   const visitType = appt.visitType || "In-Person OPD";
   const room = appt.roomLocation || appt.opdRoom || "Wing A, OPD Room 102";

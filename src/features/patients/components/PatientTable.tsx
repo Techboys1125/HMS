@@ -62,7 +62,8 @@ function Avatar({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const color = PATIENT_TABLE_COLORS[name.charCodeAt(0) % PATIENT_TABLE_COLORS.length];
+  const color =
+    PATIENT_TABLE_COLORS[name.charCodeAt(0) % PATIENT_TABLE_COLORS.length];
   return (
     <div
       className={`${PATIENT_TABLE_SIZES[size]} ${color} rounded-full flex items-center justify-center text-white font-semibold shrink-0`}
@@ -273,7 +274,8 @@ export function PatientTable({
     <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
       {/* Click-outside Backdrop for Actions Dropdown */}
       {activeActionMenuId && (
-        <div role="presentation"
+        <div
+          role="presentation"
           className="fixed inset-0 z-20 bg-transparent"
           onClick={() => onToggleActionMenu(null)}
         />
@@ -353,7 +355,14 @@ export function PatientTable({
                   const isActions = col.key === "actions";
 
                   return (
-                    <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
+                    <th
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          (e.currentTarget as HTMLElement).click();
+                        }
+                      }}
                       key={col.key}
                       onClick={() => handleSort(col.key)}
                       className={`px-4 py-3.5 ${
@@ -391,7 +400,8 @@ export function PatientTable({
                 const age =
                   p.age !== undefined && p.age !== null && Number(p.age) > 0
                     ? Number(p.age)
-                    : rawP.patientAge !== undefined && Number(rawP.patientAge) > 0
+                    : rawP.patientAge !== undefined &&
+                        Number(rawP.patientAge) > 0
                       ? Number(rawP.patientAge)
                       : calculatedAge;
                 const gender =
@@ -420,7 +430,14 @@ export function PatientTable({
                 const status = p.status || "Active";
 
                 return (
-                  <tr tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
+                  <tr
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        (e.currentTarget as HTMLElement).click();
+                      }
+                    }}
                     key={mrn}
                     className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
                     onClick={() => onSelectRow(p)}
@@ -632,7 +649,8 @@ export function PatientTable({
             </span>
             <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 pl-3">
               <span>Rows:</span>
-              <select aria-label="Select option"
+              <select
+                aria-label="Select option"
                 value={pageSize}
                 onChange={(e) => {
                   setPageSize(Number(e.target.value));

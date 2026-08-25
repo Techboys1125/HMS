@@ -130,8 +130,8 @@ export function useInvoice(billId?: number | string) {
     queryKey: billingKeys.detail(billId || ""),
     queryFn: () => billingService.getBill(billId!),
     enabled: !!billId,
-    retry: (failureCount, error: any) => {
-      if (error?.status >= 400 && error?.status < 500) return false;
+    retry: (failureCount, error: { status?: number }) => {
+      if (error?.status && error.status >= 400 && error.status < 500) return false;
       return failureCount < 2;
     },
   });
@@ -140,8 +140,8 @@ export function useInvoice(billId?: number | string) {
     queryKey: billingKeys.summary(billId || ""),
     queryFn: () => billingService.getBillSummary(billId!),
     enabled: !!billId,
-    retry: (failureCount, error: any) => {
-      if (error?.status >= 400 && error?.status < 500) return false;
+    retry: (failureCount, error: { status?: number }) => {
+      if (error?.status && error.status >= 400 && error.status < 500) return false;
       return failureCount < 2;
     },
   });
@@ -379,8 +379,8 @@ export function usePayment(billId?: number | string) {
     queryKey: billingKeys.payments(billId || ""),
     queryFn: () => billingService.getPaymentHistory(billId!),
     enabled: !!billId,
-    retry: (failureCount, error: any) => {
-      if (error?.status >= 400 && error?.status < 500) return false;
+    retry: (failureCount, error: { status?: number }) => {
+      if (error?.status && error.status >= 400 && error.status < 500) return false;
       return failureCount < 2;
     },
   });

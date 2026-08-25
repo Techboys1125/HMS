@@ -180,7 +180,8 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               size={16}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <input aria-label="Input field"
+            <input
+              aria-label="Input field"
               type="text"
               value={form.fullName}
               onChange={(e) => setFieldValue("fullName", e.target.value)}
@@ -210,7 +211,8 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               size={16}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <input aria-label="Input field"
+            <input
+              aria-label="Input field"
               type="email"
               value={form.email}
               onChange={(e) => setFieldValue("email", e.target.value)}
@@ -240,7 +242,8 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               size={16}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <input aria-label="Input field"
+            <input
+              aria-label="Input field"
               type="tel"
               value={form.phone}
               onChange={(e) => setFieldValue("phone", e.target.value)}
@@ -264,17 +267,18 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
         <div className="space-y-1">
           <span className="block text-xs font-heading font-bold text-text-body">
             Gender
-          
-          <select aria-label="Select option"
-            value={form.gender}
-            onChange={(e) => setFieldValue("gender", e.target.value)}
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body cursor-pointer"
-          >
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-            <option value="Prefer not to say">Prefer not to say</option>
-          </select></span>
+            <select
+              aria-label="Select option"
+              value={form.gender}
+              onChange={(e) => setFieldValue("gender", e.target.value)}
+              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body cursor-pointer"
+            >
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+              <option value="Prefer not to say">Prefer not to say</option>
+            </select>
+          </span>
         </div>
 
         {/* Date of Birth */}
@@ -287,7 +291,8 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               size={16}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <input aria-label="Input field"
+            <input
+              aria-label="Input field"
               type="date"
               value={form.dob}
               onChange={(e) => setFieldValue("dob", e.target.value)}
@@ -326,7 +331,8 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
                 size={16}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
               />
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 value={form.registrationNumber}
                 onChange={(e) =>
@@ -359,7 +365,8 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
                 size={16}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
               />
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 value={form.professionalIdentity}
                 onChange={(e) =>
@@ -377,16 +384,17 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
           <span className="block text-xs font-heading font-bold text-text-body">
             Residential Address{" "}
             <span className="text-slate-400 font-normal">(Optional)</span>
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.residentialAddress}
-            onChange={(e) =>
-              setFieldValue("residentialAddress", e.target.value)
-            }
-            placeholder="e.g. 123 Healthcare Avenue, Suite 400, City, Country"
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body"
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.residentialAddress}
+              onChange={(e) =>
+                setFieldValue("residentialAddress", e.target.value)
+              }
+              placeholder="e.g. 123 Healthcare Avenue, Suite 400, City, Country"
+              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body"
+            />
+          </span>
         </div>
 
         {/* Professional Bio (Doctor only) */}
@@ -396,7 +404,8 @@ export const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
               Professional Bio{" "}
               <span className="text-slate-400 font-normal">(Optional)</span>
             </span>
-            <textarea aria-label="Text area"
+            <textarea
+              aria-label="Text area"
               rows={3}
               value={form.professionalBio}
               onChange={(e) => setFieldValue("professionalBio", e.target.value)}

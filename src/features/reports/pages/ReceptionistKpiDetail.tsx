@@ -68,8 +68,16 @@ const RECEPTIONIST_KPI_META: ReceptionistKpiMeta = {
   description: "",
   unit: "",
 };
-const RECEPTIONIST_KPI_TREND_DATA: { date: string; current: number; previous: number }[] = [];
-const RECEPTIONIST_KPI_DONUT_DATA: { name: string; value: number; color: string }[] = [];
+const RECEPTIONIST_KPI_TREND_DATA: {
+  date: string;
+  current: number;
+  previous: number;
+}[] = [];
+const RECEPTIONIST_KPI_DONUT_DATA: {
+  name: string;
+  value: number;
+  color: string;
+}[] = [];
 
 export function ReceptionistDashboardKpiDetailScreen({
   onBack,
@@ -129,14 +137,16 @@ export function ReceptionistDashboardKpiDetailScreen({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
-                <button type="button"
+                <button
+                  type="button"
                   onClick={onBack}
                   className="hover:text-[#0D47A1] cursor-pointer"
                 >
                   Reception
                 </button>
                 <ChevronRight className="w-3.5 h-3.5" />
-                <button type="button"
+                <button
+                  type="button"
                   onClick={onBack}
                   className="hover:text-[#0D47A1] cursor-pointer"
                 >
@@ -220,7 +230,8 @@ export function ReceptionistDashboardKpiDetailScreen({
               <div className="flex items-center gap-2 text-xs font-semibold text-[#64748B] mb-1">
                 <span>Select Reception KPI Metric:</span>
               </div>
-              <select aria-label="Select option"
+              <select
+                aria-label="Select option"
                 value={selectedKpi}
                 onChange={(e) =>
                   setSelectedKpi(e.target.value as ReceptionistKpiType)
@@ -264,7 +275,9 @@ export function ReceptionistDashboardKpiDetailScreen({
               >
                 {RECEPTIONIST_KPI_META.title}
               </h2>
-              <p className="text-xs text-[#64748B] mt-1">{RECEPTIONIST_KPI_META.description}</p>
+              <p className="text-xs text-[#64748B] mt-1">
+                {RECEPTIONIST_KPI_META.description}
+              </p>
             </div>
 
             <div>
@@ -290,8 +303,8 @@ export function ReceptionistDashboardKpiDetailScreen({
                 {RECEPTIONIST_KPI_META.yesterdayComp}
               </div>
               <span className="text-xs text-[#66BB6A] font-semibold flex items-center gap-1 mt-0.5">
-                <TrendingUp className="w-3.5 h-3.5" /> {RECEPTIONIST_KPI_META.growthPercent}{" "}
-                growth
+                <TrendingUp className="w-3.5 h-3.5" />{" "}
+                {RECEPTIONIST_KPI_META.growthPercent} growth
               </span>
             </div>
 
@@ -313,7 +326,8 @@ export function ReceptionistDashboardKpiDetailScreen({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input aria-label="Input field"
+            <input
+              aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -350,98 +364,104 @@ export function ReceptionistDashboardKpiDetailScreen({
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              
-              <select aria-label="Select option"
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>Today</option>
-                <option>Yesterday</option>
-                <option>Last 7 Days</option>
-                <option>This Month</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={dateRange}
+                  onChange={(e) => setDateRange(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>Today</option>
+                  <option>Yesterday</option>
+                  <option>Last 7 Days</option>
+                  <option>This Month</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Registration Status
-              
-              <select aria-label="Select option"
-                value={regStatusFilter}
-                onChange={(e) => setRegStatusFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Registration Statuses</option>
-                <option>Completed</option>
-                <option>Pending</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={regStatusFilter}
+                  onChange={(e) => setRegStatusFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Registration Statuses</option>
+                  <option>Completed</option>
+                  <option>Pending</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Appointment Status
-              
-              <select aria-label="Select option"
-                value={apptStatusFilter}
-                onChange={(e) => setApptStatusFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Statuses</option>
-                <option>Booked</option>
-                <option>Checked-In</option>
-                <option>Waiting</option>
-                <option>Completed</option>
-                <option>Cancelled</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={apptStatusFilter}
+                  onChange={(e) => setApptStatusFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Statuses</option>
+                  <option>Booked</option>
+                  <option>Checked-In</option>
+                  <option>Waiting</option>
+                  <option>Completed</option>
+                  <option>Cancelled</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Check-In Status
-              
-              <select aria-label="Select option"
-                value={checkInStatusFilter}
-                onChange={(e) => setCheckInStatusFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Check-In Statuses</option>
-                <option>Checked-In</option>
-                <option>Pending Check-In</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={checkInStatusFilter}
+                  onChange={(e) => setCheckInStatusFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Check-In Statuses</option>
+                  <option>Checked-In</option>
+                  <option>Pending Check-In</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Queue Status
-              
-              <select aria-label="Select option"
-                value={queueStatusFilter}
-                onChange={(e) => setQueueStatusFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Queue Statuses</option>
-                <option>Waiting Room</option>
-                <option>In Consultation</option>
-                <option>Completed Queue</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={queueStatusFilter}
+                  onChange={(e) => setQueueStatusFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Queue Statuses</option>
+                  <option>Waiting Room</option>
+                  <option>In Consultation</option>
+                  <option>Completed Queue</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Visit Type
-              
-              <select aria-label="Select option"
-                value={visitTypeFilter}
-                onChange={(e) => setVisitTypeFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Visit Types</option>
-                <option>New Patient</option>
-                <option>Follow-up</option>
-                <option>Routine Checkup</option>
-                <option>Walk-In</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={visitTypeFilter}
+                  onChange={(e) => setVisitTypeFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Visit Types</option>
+                  <option>New Patient</option>
+                  <option>Follow-up</option>
+                  <option>Routine Checkup</option>
+                  <option>Walk-In</option>
+                </select>
+              </span>
             </div>
           </div>
 

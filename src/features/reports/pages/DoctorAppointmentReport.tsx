@@ -192,14 +192,16 @@ export function DoctorDailyAppointmentReportScreen({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
-                <button type="button"
+                <button
+                  type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
                   Doctor
                 </button>
                 <ChevronRight className="w-3.5 h-3.5" />
-                <button type="button"
+                <button
+                  type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
@@ -280,7 +282,8 @@ export function DoctorDailyAppointmentReportScreen({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input aria-label="Input field"
+            <input
+              aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -317,68 +320,72 @@ export function DoctorDailyAppointmentReportScreen({
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              
-              <select aria-label="Select option"
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>Today</option>
-                <option>Yesterday</option>
-                <option>Last 7 Days</option>
-                <option>This Month</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={dateRange}
+                  onChange={(e) => setDateRange(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>Today</option>
+                  <option>Yesterday</option>
+                  <option>Last 7 Days</option>
+                  <option>This Month</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Appointment Status
-              
-              <select aria-label="Select option"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Statuses</option>
-                <option>Completed</option>
-                <option>In Progress</option>
-                <option>Scheduled</option>
-                <option>Cancelled</option>
-                <option>No Show</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Statuses</option>
+                  <option>Completed</option>
+                  <option>In Progress</option>
+                  <option>Scheduled</option>
+                  <option>Cancelled</option>
+                  <option>No Show</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Visit Type
-              
-              <select aria-label="Select option"
-                value={visitTypeFilter}
-                onChange={(e) => setVisitTypeFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Visit Types</option>
-                <option>New Patient</option>
-                <option>Follow-up</option>
-                <option>Routine Checkup</option>
-                <option>Walk-In</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={visitTypeFilter}
+                  onChange={(e) => setVisitTypeFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Visit Types</option>
+                  <option>New Patient</option>
+                  <option>Follow-up</option>
+                  <option>Routine Checkup</option>
+                  <option>Walk-In</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Shift
-              
-              <select aria-label="Select option"
-                value={shiftFilter}
-                onChange={(e) => setShiftFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Shifts</option>
-                <option>Morning (08am-12pm)</option>
-                <option>Afternoon (01pm-04pm)</option>
-                <option>Evening (05pm-08pm)</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={shiftFilter}
+                  onChange={(e) => setShiftFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Shifts</option>
+                  <option>Morning (08am-12pm)</option>
+                  <option>Afternoon (01pm-04pm)</option>
+                  <option>Evening (05pm-08pm)</option>
+                </select>
+              </span>
             </div>
           </div>
 
@@ -407,9 +414,9 @@ export function DoctorDailyAppointmentReportScreen({
             <button
               onClick={() => {
                 startTransition(() => {
-                setShowLoadingDemo(!showLoadingDemo);
-                setHasError(false);
-              });
+                  setShowLoadingDemo(!showLoadingDemo);
+                  setHasError(false);
+                });
                 setHasError(false);
               }}
               className={`px-2.5 py-1 rounded-lg border text-xs ${isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
@@ -1076,7 +1083,8 @@ export function DoctorDailyAppointmentReportScreen({
                     {filteredAppointments.length} entries
                   </span>
                   <div className="flex items-center gap-2">
-                    <button aria-label="Previous"
+                    <button
+                      aria-label="Previous"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -1085,7 +1093,8 @@ export function DoctorDailyAppointmentReportScreen({
                     <span className="font-semibold text-[#111827]">
                       Page 1 of 1
                     </span>
-                    <button aria-label="Next"
+                    <button
+                      aria-label="Next"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >

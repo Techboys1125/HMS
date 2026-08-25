@@ -1,11 +1,4 @@
-import {
-  Clock,
-  Loader2,
-  MapPin,
-  Ticket,
-  User,
-  Users,
-} from "lucide-react";
+import { Clock, Loader2, MapPin, Ticket, User, Users } from "lucide-react";
 import { usePatientQueue } from "../hooks/usePatientQueue";
 
 export function PatientQueueCard({
@@ -13,7 +6,7 @@ export function PatientQueueCard({
 }: {
   onViewQueue?: () => void;
 }) {
-  const { queue, loading, error} = usePatientQueue();
+  const { queue, loading, error } = usePatientQueue();
 
   if (loading) {
     return (

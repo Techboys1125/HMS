@@ -1,5 +1,3 @@
-import { patientsApi } from "../api/patient.api";
-import { usersApi } from "../../users/api/users.api";
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -53,44 +51,9 @@ const getPasswordStrength = (pass: string) => {
     score += 33;
   if (/[^A-Za-z0-9]/.test(pass)) score += 34;
   if (score <= 33) return { score: 33, label: "Weak", color: "bg-[#EF4444]" };
-  if (score <= 66)
-    return { score: 66, label: "Medium", color: "bg-[#F59E0B]" };
+  if (score <= 66) return { score: 66, label: "Medium", color: "bg-[#F59E0B]" };
   return { score: 100, label: "Strong", color: "bg-[#66BB6A]" };
 };
-
-function calculateAge(dob?: string, directAge?: number | string): number {
-  if (
-    directAge !== undefined &&
-    directAge !== null &&
-    directAge !== '' &&
-    !isNaN(Number(directAge)) &&
-    Number(directAge) > 0
-  ) {
-    return Number(directAge);
-  }
-  if (!dob) return 0;
-  const trimmed = String(dob).trim();
-  if (!trimmed) return 0;
-  let birth: Date;
-  if (trimmed.includes('/')) {
-    const parts = trimmed.split('/');
-    if (parts.length === 3 && parts[2].length === 4) {
-      birth = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
-    } else {
-      birth = new Date(trimmed);
-    }
-  } else {
-    birth = new Date(trimmed);
-  }
-  if (Number.isNaN(birth.getTime())) return 0;
-  const now = new Date();
-  let age = now.getFullYear() - birth.getFullYear();
-  const monthDiff = now.getMonth() - birth.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
-    age--;
-  }
-  return age >= 0 ? age : 0;
-}
 
 export function PatientProfileCenterScreen({
   activePatient,
@@ -123,33 +86,39 @@ export function PatientProfileCenterScreen({
       )
     : "";
 
-    const buildInitialData = () => {
-    const rawEmail =
+  const buildInitialData = () => {
+    let custom: Record<string, unknown> = {};
+    try {
+      const keys = [
+        patientKey,
+        activePatient?.mrn,
+        activePatient?.id,
+        user?.mrn,
+        user?.id,
+        "me",
+      ].filter(Boolean);
+      for (const k of keys) {
+        const stored = localStorage.getItem(`patient_profile_custom_${k}`);
+        if (stored) {
+          custom = { ...custom, ...JSON.parse(stored) };
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
+    const resolvedEmail =
+      (custom.email as string) ||
       (activePatient?.email && activePatient.email !== "family@example.com"
         ? activePatient.email
         : "") ||
       user?.email ||
       "";
 
-    const rawDob =
-      activePatient?.dob ||
-      activePatient?.dateOfBirth ||
-      (activePatient as any)?.birthDate ||
-      (activePatient as any)?.date_of_birth ||
-      user?.dob ||
-      user?.dateOfBirth ||
-      "";
-
-    const directAge =
-      activePatient?.age ??
-      (activePatient as any)?.patientAge ??
-      user?.age;
-
-    const computedAge = calculateAge(rawDob, directAge);
-
     return {
       name: String(
-        activePatient?.patientName ||
+        custom.name ||
+          activePatient?.patientName ||
           activePatient?.name ||
           activePatient?.fullName ||
           user?.name ||
@@ -159,48 +128,51 @@ export function PatientProfileCenterScreen({
       patientId: String(
         activePatient?.mrn || activePatient?.id || user?.mrn || "Generating...",
       ),
-      email: rawEmail,
+      email: resolvedEmail,
       photoUrl: String(
-        activePatient?.photoUrl ||
+        custom.photoUrl ||
+          activePatient?.photoUrl ||
           activePatient?.photo ||
-          user?.photoUrl ||
-          user?.photo ||
           "",
       ),
       phone: String(
-        activePatient?.registeredMobile ||
+        custom.phone ||
+          activePatient?.registeredMobile ||
           activePatient?.phone ||
           user?.phone ||
           user?.mobile ||
           "",
       ),
-      dob: rawDob,
-      age: computedAge,
+      dob: String(
+        custom.dob || activePatient?.dob || user?.dob || "1990-06-14",
+      ),
       gender: String(
-        activePatient?.gender || user?.gender || "Female",
+        custom.gender || activePatient?.gender || user?.gender || "Female",
       ),
       bloodGroup: String(
-        activePatient?.bloodGroup || "O+",
+        custom.bloodGroup || activePatient?.bloodGroup || "O+",
       ),
       address: String(
-        typeof activePatient?.address === "string"
-          ? activePatient.address
-          : user?.address || "",
+        custom.address ||
+          (typeof activePatient?.address === "string"
+            ? activePatient.address
+            : user?.address || "Springfield"),
       ),
       emergencyName: String(
-        activePatient?.emergencyContact?.name ||
-          activePatient?.emergencyContact?.contactName ||
+        custom.emergencyName ||
+          activePatient?.emergencyContact?.name ||
           "Family Member",
       ),
       emergencyRelation: String(
-        activePatient?.relationship ||
+        custom.emergencyRelation ||
+          activePatient?.relationship ||
           activePatient?.emergencyContact?.relationship ||
           "Spouse",
       ),
       emergencyPhone: String(
-        activePatient?.emergencyContact?.mobileNumber ||
+        custom.emergencyPhone ||
+          activePatient?.emergencyContact?.mobileNumber ||
           activePatient?.emergencyContact?.phone ||
-          activePatient?.emergencyContact?.contactNumber ||
           "",
       ),
     };
@@ -241,7 +213,7 @@ export function PatientProfileCenterScreen({
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -250,46 +222,12 @@ export function PatientProfileCenterScreen({
       return;
     }
 
-    triggerToast("Uploading profile picture to backend...");
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (!dataUrl) return;
 
-    try {
-      let uploadedUrl = "";
-      try {
-        uploadedUrl = await usersApi.uploadPhoto(file);
-      } catch {
-        const dataUrl = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (evt) => resolve((evt.target?.result as string) || "");
-          reader.readAsDataURL(file);
-        });
-        uploadedUrl = dataUrl;
-      }
-
-      if (!uploadedUrl) {
-        triggerToast("Failed to upload image.");
-        return;
-      }
-
-      const mrnOrId = profileData.patientId || activePatient?.mrn || String(activePatient?.id || user?.id || "");
-      if (mrnOrId && mrnOrId !== "Generating...") {
-        try {
-          await patientsApi.updatePatient(mrnOrId, {
-            photoUrl: uploadedUrl,
-            photo: uploadedUrl,
-          });
-        } catch {
-          try {
-            await patientsApi.update(mrnOrId, {
-              photoUrl: uploadedUrl,
-              photo: uploadedUrl,
-            });
-          } catch {
-            // Ignore
-          }
-        }
-      }
-
-      const updated = { ...profileData, photoUrl: uploadedUrl };
+      const updated = { ...profileData, photoUrl: dataUrl };
       setProfileData(updated);
       setEditForm(updated);
 
@@ -297,63 +235,50 @@ export function PatientProfileCenterScreen({
       if (userState) {
         useAuthStore.setUser({
           ...userState,
-          photoUrl: uploadedUrl,
-          photo: uploadedUrl,
+          photoUrl: dataUrl,
+          photo: dataUrl,
         });
       }
 
-      triggerToast("Profile picture updated in backend successfully!");
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to update profile picture.";
-      triggerToast(msg);
-    }
+      try {
+        if (patientKey) {
+          const keys = [
+            patientKey,
+            activePatient?.mrn,
+            activePatient?.id,
+            user?.mrn,
+            user?.id,
+            "me",
+          ].filter(Boolean);
+          for (const k of keys) {
+            const existing = localStorage.getItem(
+              `patient_profile_custom_${k}`,
+            );
+            const obj = existing ? JSON.parse(existing) : {};
+            localStorage.setItem(
+              `patient_profile_custom_${k}`,
+              JSON.stringify({ ...obj, photoUrl: dataUrl }),
+            );
+          }
+        }
+      } catch {
+        // Ignore
+      }
+
+      triggerToast("Profile picture updated successfully!");
+    };
+    reader.readAsDataURL(file);
   };
 
-
-    const handleSaveProfile = async (e: React.FormEvent) => {
+  const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
+    setProfileData({ ...editForm });
 
-    const computedAge = calculateAge(editForm.dob, profileData.age);
-    const updatedForm = { ...editForm, age: computedAge };
-    setProfileData(updatedForm);
-
-    const mrnOrId = editForm.patientId || activePatient?.mrn || String(activePatient?.id || user?.id || "");
-    if (mrnOrId && mrnOrId !== "Generating...") {
-      try {
-        await patientsApi.updatePatient(mrnOrId, {
-          fullName: editForm.name,
-          name: editForm.name,
-          email: editForm.email,
-          phone: editForm.phone,
-          mobile: editForm.phone,
-          dateOfBirth: editForm.dob,
-          gender: editForm.gender,
-          bloodGroup: editForm.bloodGroup,
-          address: editForm.address,
-        });
-      } catch {
-        try {
-          await patientsApi.update(mrnOrId, {
-            fullName: editForm.name,
-            name: editForm.name,
-            email: editForm.email,
-            phone: editForm.phone,
-            mobile: editForm.phone,
-            dateOfBirth: editForm.dob,
-            gender: editForm.gender,
-            bloodGroup: editForm.bloodGroup,
-            address: editForm.address,
-          });
-        } catch {
-          // Ignore
-        }
-      }
-    }
-
-    const userState = useAuthStore.getState().user;
-    if (userState) {
+    // Sync authStore state if current user is this patient
+    const user = useAuthStore.getState().user;
+    if (user) {
       useAuthStore.setUser({
-        ...userState,
+        ...user,
         fullName: editForm.name,
         name: editForm.name,
         email: editForm.email,
@@ -362,7 +287,19 @@ export function PatientProfileCenterScreen({
       });
     }
 
-    triggerToast("Profile information saved to backend successfully!");
+    // Persist to localStorage
+    try {
+      if (patientKey) {
+        localStorage.setItem(
+          `patient_profile_custom_${patientKey}`,
+          JSON.stringify(editForm),
+        );
+      }
+    } catch {
+      // Ignore
+    }
+
+    triggerToast("Profile information updated successfully!");
     setActiveTab("info");
   };
 
@@ -482,8 +419,6 @@ export function PatientProfileCenterScreen({
                 </strong>
               </span>
               <span>•</span>
-              <span>{profileData.age > 0 ? `${profileData.age} Y` : "Age N/A"} / {profileData.gender}</span>
-              <span>•</span>
               <span>{profileData.email}</span>
               <span>•</span>
               <span>{profileData.phone}</span>
@@ -569,14 +504,6 @@ export function PatientProfileCenterScreen({
                   </span>
                   <span className="font-semibold text-[#111827]">
                     {profileData.dob}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[#64748B] text-[11px] block">
-                    Age
-                  </span>
-                  <span className="font-bold text-[#0D47A1]">
-                    {profileData.age > 0 ? `${profileData.age} Years` : "N/A"}
                   </span>
                 </div>
                 <div>
@@ -698,116 +625,116 @@ export function PatientProfileCenterScreen({
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Full Name *
-                
-                <input aria-label="Input field"
-                  type="text"
-                  required
-                  value={editForm.name}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, name: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
-</span>
+                  <input
+                    aria-label="Input field"
+                    type="text"
+                    required
+                    value={editForm.name}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, name: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Phone Number *
-                
-                <input aria-label="Input field"
-                  type="text"
-                  required
-                  value={editForm.phone}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, phone: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
-</span>
+                  <input
+                    aria-label="Input field"
+                    type="text"
+                    required
+                    value={editForm.phone}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, phone: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Email Address *
-                
-                <input aria-label="Input field"
-                  type="email"
-                  required
-                  value={editForm.email}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, email: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
-</span>
+                  <input
+                    aria-label="Input field"
+                    type="email"
+                    required
+                    value={editForm.email}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, email: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Date of Birth
-                
-                <input aria-label="Input field"
-                  type="date"
-                  value={editForm.dob}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, dob: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
-</span>
+                  <input
+                    aria-label="Input field"
+                    type="date"
+                    value={editForm.dob}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, dob: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               <div className="sm:col-span-2">
                 <span className="block text-[#111827] font-semibold mb-1">
                   Residential Address *
-                
-                <input aria-label="Input field"
-                  type="text"
-                  required
-                  value={editForm.address}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, address: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
-</span>
+                  <input
+                    aria-label="Input field"
+                    type="text"
+                    required
+                    value={editForm.address}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, address: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Emergency Contact Name
-                
-                <input aria-label="Input field"
-                  type="text"
-                  value={editForm.emergencyName}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      emergencyName: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
-</span>
+                  <input
+                    aria-label="Input field"
+                    type="text"
+                    value={editForm.emergencyName}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        emergencyName: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Emergency Contact Phone
-                
-                <input aria-label="Input field"
-                  type="text"
-                  value={editForm.emergencyPhone}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      emergencyPhone: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
-</span>
+                  <input
+                    aria-label="Input field"
+                    type="text"
+                    value={editForm.emergencyPhone}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        emergencyPhone: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
             </div>
 
@@ -848,31 +775,31 @@ export function PatientProfileCenterScreen({
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Current Password *
-                
-                <input aria-label="Enter current password"
-                  type="password"
-                  required
-                  placeholder="Enter current password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
-</span>
+                  <input
+                    aria-label="Enter current password"
+                    type="password"
+                    required
+                    placeholder="Enter current password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   New Password *
-                
-                <input aria-label="Enter new password"
-                  type="password"
-                  required
-                  placeholder="Enter new password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
-</span>
+                  <input
+                    aria-label="Enter new password"
+                    type="password"
+                    required
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               {/* Password Strength Meter */}
@@ -896,16 +823,16 @@ export function PatientProfileCenterScreen({
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Confirm New Password *
-                
-                <input aria-label="Re-enter new password"
-                  type="password"
-                  required
-                  placeholder="Re-enter new password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                />
-</span>
+                  <input
+                    aria-label="Re-enter new password"
+                    type="password"
+                    required
+                    placeholder="Re-enter new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
             </div>
 

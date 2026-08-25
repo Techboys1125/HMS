@@ -195,15 +195,22 @@ export const usersApi = {
           "/api/v1/admin/users",
         );
       } catch (e) {
-        console.warn("Primary GET /api/v1/admin/users failed, trying fallback /api/v1/users...", e);
-        response = await apiClient.get<ApiResponse<User[]> | User[]>("/api/v1/users");
+        console.warn(
+          "Primary GET /api/v1/admin/users failed, trying fallback /api/v1/users...",
+          e,
+        );
+        response = await apiClient.get<ApiResponse<User[]> | User[]>(
+          "/api/v1/users",
+        );
       }
 
       let usersList = unwrapUserCollection(response.data);
 
       if (usersList.length === 0) {
         try {
-          const fallbackRes = await apiClient.get<ApiResponse<User[]> | User[]>("/api/v1/users");
+          const fallbackRes = await apiClient.get<ApiResponse<User[]> | User[]>(
+            "/api/v1/users",
+          );
           const fallbackUsers = unwrapUserCollection(fallbackRes.data);
           if (fallbackUsers.length > 0) {
             usersList = fallbackUsers;

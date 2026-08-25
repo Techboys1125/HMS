@@ -142,7 +142,7 @@ export const ChangePasswordPage: React.FC<ChangePasswordPageProps> = ({
           disabled={
             loading || !currentPassword || !newPassword || !confirmPassword
           }
-          className="w-full py-3.5 px-6 bg-[#0D47A1] hover:bg-[#1565C0] text-white font-heading font-semibold text-sm sm:text-base rounded-xl shadow-md transition-colors transition-transform active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-3.5 px-6 bg-[#0D47A1] hover:bg-[#1565C0] text-white font-heading font-semibold text-sm sm:text-base rounded-xl shadow-md transition-transform active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {loading ? (
             <>

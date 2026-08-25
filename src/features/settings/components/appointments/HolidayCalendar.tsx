@@ -47,19 +47,22 @@ export function HolidayCalendar({
         Holiday & Closure Calendar
       </h3>
       <div className="mb-4 grid grid-cols-1 gap-2 md:grid-cols-[1fr_160px_1fr_auto]">
-        <input aria-label="Holiday name"
+        <input
+          aria-label="Holiday name"
           className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm"
           placeholder="Holiday name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <input aria-label="Input field"
+        <input
+          aria-label="Input field"
           className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm"
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
         />
-        <input aria-label="Description"
+        <input
+          aria-label="Description"
           className="rounded-lg border border-[#D1D5DB] px-3 py-2 text-sm"
           placeholder="Description"
           value={description}

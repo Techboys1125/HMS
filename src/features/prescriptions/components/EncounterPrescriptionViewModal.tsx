@@ -26,9 +26,7 @@ const getDoseString = (dose?: PrescriptionMedicationItem["dose"]) => {
   return "—";
 };
 
-const getFrequencyString = (
-  freq?: PrescriptionMedicationItem["frequency"],
-) => {
+const getFrequencyString = (freq?: PrescriptionMedicationItem["frequency"]) => {
   if (!freq) return "—";
   if (typeof freq === "string") return freq;
   if (typeof freq === "object") {
@@ -126,13 +124,6 @@ export const EncounterPrescriptionViewModal: React.FC<
   });
 
   if (!isOpen || !encounterId) return null;
-
-
-
-
-
-
-
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm overflow-y-auto flex justify-center items-start p-4 py-8">
@@ -378,17 +369,22 @@ export const EncounterPrescriptionViewModal: React.FC<
                     </span>
                     <span className="font-bold text-slate-800">
                       {prescription.patient?.fullName ||
-                        (prescription.patient as any)?.name ||
-                        (prescription.patient as any)?.patientName ||
-                        (prescription as any)?.patientName ||
+                        ((prescription.patient as Record<string, unknown>)
+                          ?.name as string) ||
+                        ((prescription.patient as Record<string, unknown>)
+                          ?.patientName as string) ||
+                        ((prescription as unknown as Record<string, unknown>)
+                          ?.patientName as string) ||
                         "N/A"}
                     </span>
 
                     <span className="text-slate-500 font-medium">MRN:</span>
                     <span className="font-mono font-bold text-[#0D47A1]">
                       {prescription.patient?.mrn ||
-                        (prescription.patient as any)?.patientMrn ||
-                        (prescription as any)?.mrn ||
+                        ((prescription.patient as Record<string, unknown>)
+                          ?.patientMrn as string) ||
+                        ((prescription as unknown as Record<string, unknown>)
+                          ?.mrn as string) ||
                         "N/A"}
                     </span>
 
@@ -396,10 +392,16 @@ export const EncounterPrescriptionViewModal: React.FC<
                       Age / Gender:
                     </span>
                     <span className="font-medium text-slate-700">
-                      {prescription.patient?.age || (prescription.patient as any)?.patientAge
-                        ? `${prescription.patient?.age || (prescription.patient as any)?.patientAge} Yrs`
+                      {prescription.patient?.age ||
+                      (prescription.patient as Record<string, unknown>)
+                        ?.patientAge
+                        ? `${prescription.patient?.age || (prescription.patient as Record<string, unknown>)?.patientAge} Yrs`
                         : "N/A"}{" "}
-                      / {prescription.patient?.gender || (prescription.patient as any)?.gender || "N/A"}
+                      /{" "}
+                      {prescription.patient?.gender ||
+                        ((prescription.patient as Record<string, unknown>)
+                          ?.gender as string) ||
+                        "N/A"}
                     </span>
                   </div>
                 </div>
@@ -717,7 +719,7 @@ export const EncounterPrescriptionViewModal: React.FC<
               type="button"
               onClick={handlePrint}
               disabled={isLoading || !prescription}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-colors transition-opacity shadow-sm cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-colors shadow-sm cursor-pointer disabled:opacity-50"
               style={{ fontFamily: PP }}
             >
               <Printer size={15} />

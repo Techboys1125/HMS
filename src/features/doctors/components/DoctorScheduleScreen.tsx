@@ -768,13 +768,15 @@ export function DoctorScheduleScreen() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button aria-label="Previous"
+                  <button
+                    aria-label="Previous"
                     onClick={() => shiftMonth(-1)}
                     className="p-2 rounded-xl border border-[#E5E7EB] text-[#64748B] hover:bg-slate-50 transition-colors"
                   >
                     <ChevronLeft size={16} />
                   </button>
-                  <button aria-label="Next"
+                  <button
+                    aria-label="Next"
                     onClick={() => shiftMonth(1)}
                     className="p-2 rounded-xl border border-[#E5E7EB] text-[#64748B] hover:bg-slate-50 transition-colors"
                   >

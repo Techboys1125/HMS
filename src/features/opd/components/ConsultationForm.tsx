@@ -71,7 +71,6 @@ export const ConsultationForm: React.FC<ConsultationFormProps> = ({
   values,
   onChange,
 }) => {
-
   return (
     <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-5">
       <div className="flex items-center gap-2 border-b border-gray-100 pb-3">

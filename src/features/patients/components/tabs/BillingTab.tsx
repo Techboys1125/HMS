@@ -93,17 +93,8 @@ export function PatientBillingTab({ patient }: BillingTabProps) {
 
             return (
               <div
-                role="button"
-                tabIndex={0}
                 key={invoice.id}
-                onClick={() => handleOpenInvoice(invoice)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    handleOpenInvoice(invoice);
-                  }
-                }}
-                className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors group"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
@@ -126,11 +117,9 @@ export function PatientBillingTab({ patient }: BillingTabProps) {
                   </div>
 
                   {/* View & Print Action Buttons */}
-                  <div
-                    className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                     <button
+                      type="button"
                       onClick={() => handleOpenInvoice(invoice)}
                       className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
                       title="View Invoice"
@@ -138,6 +127,7 @@ export function PatientBillingTab({ patient }: BillingTabProps) {
                       <Eye size={15} />
                     </button>
                     <button
+                      type="button"
                       onClick={() => {
                         handleOpenInvoice(invoice);
                         setTimeout(() => window.print(), 300);

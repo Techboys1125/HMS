@@ -25,7 +25,8 @@ export function BillingFilters({
   return (
     <div className="flex flex-wrap items-center gap-2.5">
       {/* Status Filter */}
-      <select aria-label="Select option"
+      <select
+        aria-label="Select option"
         value={statusFilter}
         onChange={(e) => onStatusChange(e.target.value)}
         className="px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs text-[#111827] font-medium focus:outline-none focus:border-[#0D47A1]"
@@ -40,7 +41,8 @@ export function BillingFilters({
       </select>
 
       {/* Payment Method Filter */}
-      <select aria-label="Select option"
+      <select
+        aria-label="Select option"
         value={methodFilter}
         onChange={(e) => onMethodChange(e.target.value)}
         className="px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs text-[#111827] font-medium focus:outline-none focus:border-[#0D47A1]"
@@ -54,7 +56,8 @@ export function BillingFilters({
       </select>
 
       {/* Department Filter */}
-      <select aria-label="Select option"
+      <select
+        aria-label="Select option"
         value={deptFilter}
         onChange={(e) => onDeptChange(e.target.value)}
         className="px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs text-[#111827] font-medium focus:outline-none focus:border-[#0D47A1]"

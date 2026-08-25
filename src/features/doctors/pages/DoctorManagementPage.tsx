@@ -100,7 +100,6 @@ export function DoctorManagementPage() {
     resetFilters,
   } = useDoctorFilters(doctors);
 
-
   useEffect(() => {
     let cancelled = false;
 
@@ -142,7 +141,7 @@ export function DoctorManagementPage() {
           console.error("Failed to load own doctor profile:", err);
       })
       .finally(() => {
-        if (!cancelled) setOwnProfileLoading(false);
+        setOwnProfileLoading(false);
       });
     return () => {
       cancelled = true;

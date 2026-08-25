@@ -160,7 +160,8 @@ export function DoctorMedicalRecordsScreen() {
                 size={16}
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
               />
-              <input aria-label="Search records..."
+              <input
+                aria-label="Search records..."
                 type="text"
                 placeholder="Search records..."
                 value={searchQuery}
@@ -229,13 +230,15 @@ export function DoctorMedicalRecordsScreen() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button aria-label="View details"
+                    <button
+                      aria-label="View details"
                       onClick={() => triggerToast("Opening record details...")}
                       className="p-2 rounded-xl hover:bg-slate-100 text-slate-500"
                     >
                       <Eye size={16} />
                     </button>
-                    <button aria-label="Download"
+                    <button
+                      aria-label="Download"
                       onClick={() => triggerToast("Downloading record...")}
                       className="p-2 rounded-xl hover:bg-slate-100 text-slate-500"
                     >

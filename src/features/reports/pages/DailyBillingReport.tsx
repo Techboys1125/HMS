@@ -130,14 +130,16 @@ export function DailyBillingReportPage() {
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
             style={{ fontFamily: RB }}
           >
-            <button type="button"
+            <button
+              type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/billing")}
             >
               Home
             </button>
             <ChevronRight size={12} />
-            <button type="button"
+            <button
+              type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/billing")}
             >
@@ -199,45 +201,48 @@ export function DailyBillingReportPage() {
           <div>
             <span className="block text-slate-600 font-semibold mb-1">
               Report Date
-            
-            <input aria-label="Input field"
-              type="date"
-              value={reportDate}
-              onChange={(e) => setReportDate(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium"
-            /></span>
+              <input
+                aria-label="Input field"
+                type="date"
+                value={reportDate}
+                onChange={(e) => setReportDate(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium"
+              />
+            </span>
           </div>
           <div>
             <span className="block text-slate-600 font-semibold mb-1">
               Payment Method
-            
-            <select aria-label="Select option"
-              value={methodFilter}
-              onChange={(e) => setMethodFilter(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium"
-            >
-              <option value="All">All Methods</option>
-              <option value="Cash">Cash</option>
-              <option value="UPI">UPI</option>
-              <option value="Card">Card</option>
-            </select></span>
+              <select
+                aria-label="Select option"
+                value={methodFilter}
+                onChange={(e) => setMethodFilter(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium"
+              >
+                <option value="All">All Methods</option>
+                <option value="Cash">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="Card">Card</option>
+              </select>
+            </span>
           </div>
           <div>
             <span className="block text-slate-600 font-semibold mb-1">
               Department
-            
-            <select aria-label="Select option"
-              value={deptFilter}
-              onChange={(e) => setDeptFilter(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium"
-            >
-              <option value="All">All Departments</option>
-              {departmentBreakdown.map((d) => (
-                <option key={d.department} value={d.department}>
-                  {d.department}
-                </option>
-              ))}
-            </select></span>
+              <select
+                aria-label="Select option"
+                value={deptFilter}
+                onChange={(e) => setDeptFilter(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium"
+              >
+                <option value="All">All Departments</option>
+                {departmentBreakdown.map((d) => (
+                  <option key={d.department} value={d.department}>
+                    {d.department}
+                  </option>
+                ))}
+              </select>
+            </span>
           </div>
           <div className="col-span-2 md:col-span-1 flex items-end justify-end gap-2">
             <button

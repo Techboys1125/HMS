@@ -111,7 +111,15 @@ export function NurseVitalsWorklistPage() {
         ) : (
           <div className="space-y-2">
             {waitingPatients.map((patient) => (
-              <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+              <div
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    (e.currentTarget as HTMLElement).click();
+                  }
+                }}
+                role="button"
                 key={String(patient.appointmentId)}
                 onClick={() => setSelectedPatient(patient)}
                 className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/50 cursor-pointer transition-colors"

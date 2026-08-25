@@ -396,7 +396,15 @@ export const GeneralSettingsContent = forwardRef<
             transition: "background-color 0.2s ease, border-color 0.2s ease",
           }}
         >
-          <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+          <div
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                (e.currentTarget as HTMLElement).click();
+              }
+            }}
+            role="button"
             onClick={() =>
               setExpandedAccordion(
                 expandedAccordion === "accordion-1" ? null : "accordion-1",
@@ -504,29 +512,30 @@ export const GeneralSettingsContent = forwardRef<
                   }}
                 >
                   Default Language
-                
-                <select aria-label="Select option"
-                  value={generalSettings.defaultLanguage}
-                  onChange={(e) =>
-                    setGeneralSettings((prev) => ({
-                      ...prev,
-                      defaultLanguage: e.target.value,
-                    }))
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "9px 12px",
-                    borderRadius: "8px",
-                    border: "1px solid #D1D5DB",
-                    fontSize: "13px",
-                    background: "#FFFFFF",
-                  }}
-                >
-                  <option value="English">English</option>
-                  <option value="Hindi">Hindi (हिंदी)</option>
-                  <option value="Spanish">Spanish (Español)</option>
-                  <option value="French">French (Français)</option>
-                </select></span>
+                  <select
+                    aria-label="Select option"
+                    value={generalSettings.defaultLanguage}
+                    onChange={(e) =>
+                      setGeneralSettings((prev) => ({
+                        ...prev,
+                        defaultLanguage: e.target.value,
+                      }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "8px",
+                      border: "1px solid #D1D5DB",
+                      fontSize: "13px",
+                      background: "#FFFFFF",
+                    }}
+                  >
+                    <option value="English">English</option>
+                    <option value="Hindi">Hindi (हिंदी)</option>
+                    <option value="Spanish">Spanish (Español)</option>
+                    <option value="French">French (Français)</option>
+                  </select>
+                </span>
               </div>
 
               <div>
@@ -540,37 +549,38 @@ export const GeneralSettingsContent = forwardRef<
                   }}
                 >
                   Timezone
-                
-                <select aria-label="Select option"
-                  value={generalSettings.timezone}
-                  onChange={(e) =>
-                    setGeneralSettings((prev) => ({
-                      ...prev,
-                      timezone: e.target.value,
-                    }))
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "9px 12px",
-                    borderRadius: "8px",
-                    border: "1px solid #D1D5DB",
-                    fontSize: "13px",
-                    background: "#FFFFFF",
-                  }}
-                >
-                  <option value="Asia/Kolkata (IST - UTC +05:30)">
-                    Asia/Kolkata (IST - UTC +05:30)
-                  </option>
-                  <option value="UTC (Greenwich Mean Time)">
-                    UTC (Greenwich Mean Time)
-                  </option>
-                  <option value="America/New_York (EST - UTC -05:00)">
-                    America/New_York (EST - UTC -05:00)
-                  </option>
-                  <option value="Europe/London (BST - UTC +01:00)">
-                    Europe/London (BST - UTC +01:00)
-                  </option>
-                </select></span>
+                  <select
+                    aria-label="Select option"
+                    value={generalSettings.timezone}
+                    onChange={(e) =>
+                      setGeneralSettings((prev) => ({
+                        ...prev,
+                        timezone: e.target.value,
+                      }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "8px",
+                      border: "1px solid #D1D5DB",
+                      fontSize: "13px",
+                      background: "#FFFFFF",
+                    }}
+                  >
+                    <option value="Asia/Kolkata (IST - UTC +05:30)">
+                      Asia/Kolkata (IST - UTC +05:30)
+                    </option>
+                    <option value="UTC (Greenwich Mean Time)">
+                      UTC (Greenwich Mean Time)
+                    </option>
+                    <option value="America/New_York (EST - UTC -05:00)">
+                      America/New_York (EST - UTC -05:00)
+                    </option>
+                    <option value="Europe/London (BST - UTC +01:00)">
+                      Europe/London (BST - UTC +01:00)
+                    </option>
+                  </select>
+                </span>
               </div>
 
               <div>
@@ -584,28 +594,29 @@ export const GeneralSettingsContent = forwardRef<
                   }}
                 >
                   Date Format
-                
-                <select aria-label="Select option"
-                  value={generalSettings.dateFormat}
-                  onChange={(e) =>
-                    setGeneralSettings((prev) => ({
-                      ...prev,
-                      dateFormat: e.target.value,
-                    }))
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "9px 12px",
-                    borderRadius: "8px",
-                    border: "1px solid #D1D5DB",
-                    fontSize: "13px",
-                    background: "#FFFFFF",
-                  }}
-                >
-                  <option value="DD/MM/YYYY">DD/MM/YYYY (31/12/2026)</option>
-                  <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2026)</option>
-                  <option value="YYYY-MM-DD">YYYY-MM-DD (2026-12-31)</option>
-                </select></span>
+                  <select
+                    aria-label="Select option"
+                    value={generalSettings.dateFormat}
+                    onChange={(e) =>
+                      setGeneralSettings((prev) => ({
+                        ...prev,
+                        dateFormat: e.target.value,
+                      }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "8px",
+                      border: "1px solid #D1D5DB",
+                      fontSize: "13px",
+                      background: "#FFFFFF",
+                    }}
+                  >
+                    <option value="DD/MM/YYYY">DD/MM/YYYY (31/12/2026)</option>
+                    <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2026)</option>
+                    <option value="YYYY-MM-DD">YYYY-MM-DD (2026-12-31)</option>
+                  </select>
+                </span>
               </div>
 
               <div>
@@ -619,27 +630,30 @@ export const GeneralSettingsContent = forwardRef<
                   }}
                 >
                   Time Format
-                
-                <select aria-label="Select option"
-                  value={generalSettings.timeFormat}
-                  onChange={(e) =>
-                    setGeneralSettings((prev) => ({
-                      ...prev,
-                      timeFormat: e.target.value,
-                    }))
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "9px 12px",
-                    borderRadius: "8px",
-                    border: "1px solid #D1D5DB",
-                    fontSize: "13px",
-                    background: "#FFFFFF",
-                  }}
-                >
-                  <option value="12 Hour">12 Hour (09:30 AM / 04:15 PM)</option>
-                  <option value="24 Hour">24 Hour (09:30 / 16:15)</option>
-                </select></span>
+                  <select
+                    aria-label="Select option"
+                    value={generalSettings.timeFormat}
+                    onChange={(e) =>
+                      setGeneralSettings((prev) => ({
+                        ...prev,
+                        timeFormat: e.target.value,
+                      }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "8px",
+                      border: "1px solid #D1D5DB",
+                      fontSize: "13px",
+                      background: "#FFFFFF",
+                    }}
+                  >
+                    <option value="12 Hour">
+                      12 Hour (09:30 AM / 04:15 PM)
+                    </option>
+                    <option value="24 Hour">24 Hour (09:30 / 16:15)</option>
+                  </select>
+                </span>
               </div>
 
               <div>
@@ -653,27 +667,28 @@ export const GeneralSettingsContent = forwardRef<
                   }}
                 >
                   Week Starts On
-                
-                <select aria-label="Select option"
-                  value={generalSettings.weekStartsOn}
-                  onChange={(e) =>
-                    setGeneralSettings((prev) => ({
-                      ...prev,
-                      weekStartsOn: e.target.value,
-                    }))
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "9px 12px",
-                    borderRadius: "8px",
-                    border: "1px solid #D1D5DB",
-                    fontSize: "13px",
-                    background: "#FFFFFF",
-                  }}
-                >
-                  <option value="Monday">Monday</option>
-                  <option value="Sunday">Sunday</option>
-                </select></span>
+                  <select
+                    aria-label="Select option"
+                    value={generalSettings.weekStartsOn}
+                    onChange={(e) =>
+                      setGeneralSettings((prev) => ({
+                        ...prev,
+                        weekStartsOn: e.target.value,
+                      }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "8px",
+                      border: "1px solid #D1D5DB",
+                      fontSize: "13px",
+                      background: "#FFFFFF",
+                    }}
+                  >
+                    <option value="Monday">Monday</option>
+                    <option value="Sunday">Sunday</option>
+                  </select>
+                </span>
               </div>
             </div>
           )}
@@ -693,7 +708,15 @@ export const GeneralSettingsContent = forwardRef<
             transition: "background-color 0.2s ease, border-color 0.2s ease",
           }}
         >
-          <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+          <div
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                (e.currentTarget as HTMLElement).click();
+              }
+            }}
+            role="button"
             onClick={() =>
               setExpandedAccordion(
                 expandedAccordion === "accordion-2" ? null : "accordion-2",
@@ -808,26 +831,27 @@ export const GeneralSettingsContent = forwardRef<
                     }}
                   >
                     Hospital Display Name *
-                  
-                  <input aria-label="Input field"
-                    type="text"
-                    value={generalSettings.hospitalDisplayName}
-                    onChange={(e) =>
-                      setGeneralSettings((prev) => ({
-                        ...prev,
-                        hospitalDisplayName: e.target.value,
-                      }))
-                    }
-                    placeholder="St. Jude Multispecialty Hospital"
-                    style={{
-                      width: "100%",
-                      padding: "9px 12px",
-                      borderRadius: "8px",
-                      border: "1px solid #D1D5DB",
-                      fontSize: "13px",
-                      boxSizing: "border-box",
-                    }}
-                  /></span>
+                    <input
+                      aria-label="Input field"
+                      type="text"
+                      value={generalSettings.hospitalDisplayName}
+                      onChange={(e) =>
+                        setGeneralSettings((prev) => ({
+                          ...prev,
+                          hospitalDisplayName: e.target.value,
+                        }))
+                      }
+                      placeholder="St. Jude Multispecialty Hospital"
+                      style={{
+                        width: "100%",
+                        padding: "9px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid #D1D5DB",
+                        fontSize: "13px",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </span>
                 </div>
 
                 <div>
@@ -841,26 +865,27 @@ export const GeneralSettingsContent = forwardRef<
                     }}
                   >
                     Hospital Short Code *
-                  
-                  <input aria-label="Input field"
-                    type="text"
-                    value={generalSettings.hospitalShortCode}
-                    onChange={(e) =>
-                      setGeneralSettings((prev) => ({
-                        ...prev,
-                        hospitalShortCode: e.target.value,
-                      }))
-                    }
-                    placeholder="SJH-01"
-                    style={{
-                      width: "100%",
-                      padding: "9px 12px",
-                      borderRadius: "8px",
-                      border: "1px solid #D1D5DB",
-                      fontSize: "13px",
-                      boxSizing: "border-box",
-                    }}
-                  /></span>
+                    <input
+                      aria-label="Input field"
+                      type="text"
+                      value={generalSettings.hospitalShortCode}
+                      onChange={(e) =>
+                        setGeneralSettings((prev) => ({
+                          ...prev,
+                          hospitalShortCode: e.target.value,
+                        }))
+                      }
+                      placeholder="SJH-01"
+                      style={{
+                        width: "100%",
+                        padding: "9px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid #D1D5DB",
+                        fontSize: "13px",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </span>
                 </div>
 
                 <div>
@@ -874,37 +899,38 @@ export const GeneralSettingsContent = forwardRef<
                     }}
                   >
                     Default Landing Dashboard
-                  
-                  <select aria-label="Select option"
-                    value={generalSettings.defaultLandingDashboard}
-                    onChange={(e) =>
-                      setGeneralSettings((prev) => ({
-                        ...prev,
-                        defaultLandingDashboard: e.target.value,
-                      }))
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "9px 12px",
-                      borderRadius: "8px",
-                      border: "1px solid #D1D5DB",
-                      fontSize: "13px",
-                      background: "#FFFFFF",
-                    }}
-                  >
-                    <option value="Super Admin Operations Center">
-                      Super Admin Operations Center
-                    </option>
-                    <option value="Hospital Executive Summary">
-                      Hospital Executive Summary
-                    </option>
-                    <option value="OPD Clinical Dashboard">
-                      OPD Clinical Dashboard
-                    </option>
-                    <option value="Reception Counter Dashboard">
-                      Reception Counter Dashboard
-                    </option>
-                  </select></span>
+                    <select
+                      aria-label="Select option"
+                      value={generalSettings.defaultLandingDashboard}
+                      onChange={(e) =>
+                        setGeneralSettings((prev) => ({
+                          ...prev,
+                          defaultLandingDashboard: e.target.value,
+                        }))
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "9px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid #D1D5DB",
+                        fontSize: "13px",
+                        background: "#FFFFFF",
+                      }}
+                    >
+                      <option value="Super Admin Operations Center">
+                        Super Admin Operations Center
+                      </option>
+                      <option value="Hospital Executive Summary">
+                        Hospital Executive Summary
+                      </option>
+                      <option value="OPD Clinical Dashboard">
+                        OPD Clinical Dashboard
+                      </option>
+                      <option value="Reception Counter Dashboard">
+                        Reception Counter Dashboard
+                      </option>
+                    </select>
+                  </span>
                 </div>
               </div>
 
@@ -926,37 +952,38 @@ export const GeneralSettingsContent = forwardRef<
                     }}
                   >
                     Default Working Shift
-                  
-                  <select aria-label="Select option"
-                    value={generalSettings.defaultWorkingShift}
-                    onChange={(e) =>
-                      setGeneralSettings((prev) => ({
-                        ...prev,
-                        defaultWorkingShift: e.target.value,
-                      }))
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "9px 12px",
-                      borderRadius: "8px",
-                      border: "1px solid #D1D5DB",
-                      fontSize: "13px",
-                      background: "#FFFFFF",
-                    }}
-                  >
-                    <option value="Morning (08:00 AM - 04:00 PM)">
-                      Morning (08:00 AM - 04:00 PM)
-                    </option>
-                    <option value="Evening (04:00 PM - 12:00 AM)">
-                      Evening (04:00 PM - 12:00 AM)
-                    </option>
-                    <option value="Night Shift (12:00 AM - 08:00 AM)">
-                      Night Shift (12:00 AM - 08:00 AM)
-                    </option>
-                    <option value="24/7 Rotational Schedule">
-                      24/7 Rotational Schedule
-                    </option>
-                  </select></span>
+                    <select
+                      aria-label="Select option"
+                      value={generalSettings.defaultWorkingShift}
+                      onChange={(e) =>
+                        setGeneralSettings((prev) => ({
+                          ...prev,
+                          defaultWorkingShift: e.target.value,
+                        }))
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "9px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid #D1D5DB",
+                        fontSize: "13px",
+                        background: "#FFFFFF",
+                      }}
+                    >
+                      <option value="Morning (08:00 AM - 04:00 PM)">
+                        Morning (08:00 AM - 04:00 PM)
+                      </option>
+                      <option value="Evening (04:00 PM - 12:00 AM)">
+                        Evening (04:00 PM - 12:00 AM)
+                      </option>
+                      <option value="Night Shift (12:00 AM - 08:00 AM)">
+                        Night Shift (12:00 AM - 08:00 AM)
+                      </option>
+                      <option value="24/7 Rotational Schedule">
+                        24/7 Rotational Schedule
+                      </option>
+                    </select>
+                  </span>
                 </div>
 
                 <div>
@@ -970,32 +997,33 @@ export const GeneralSettingsContent = forwardRef<
                     }}
                   >
                     Auto Logout Duration
-                  
-                  <select aria-label="Select option"
-                    value={generalSettings.autoLogoutDuration}
-                    onChange={(e) =>
-                      setGeneralSettings((prev) => ({
-                        ...prev,
-                        autoLogoutDuration: e.target.value,
-                      }))
-                    }
-                    disabled={!generalSettings.enableAutoLogout}
-                    style={{
-                      width: "100%",
-                      padding: "9px 12px",
-                      borderRadius: "8px",
-                      border: "1px solid #D1D5DB",
-                      fontSize: "13px",
-                      background: "#FFFFFF",
-                      opacity: generalSettings.enableAutoLogout ? 1 : 0.6,
-                    }}
-                  >
-                    <option value="15 Minutes">
-                      15 Minutes (HIPAA Standard)
-                    </option>
-                    <option value="30 Minutes">30 Minutes</option>
-                    <option value="60 Minutes">60 Minutes</option>
-                  </select></span>
+                    <select
+                      aria-label="Select option"
+                      value={generalSettings.autoLogoutDuration}
+                      onChange={(e) =>
+                        setGeneralSettings((prev) => ({
+                          ...prev,
+                          autoLogoutDuration: e.target.value,
+                        }))
+                      }
+                      disabled={!generalSettings.enableAutoLogout}
+                      style={{
+                        width: "100%",
+                        padding: "9px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid #D1D5DB",
+                        fontSize: "13px",
+                        background: "#FFFFFF",
+                        opacity: generalSettings.enableAutoLogout ? 1 : 0.6,
+                      }}
+                    >
+                      <option value="15 Minutes">
+                        15 Minutes (HIPAA Standard)
+                      </option>
+                      <option value="30 Minutes">30 Minutes</option>
+                      <option value="60 Minutes">60 Minutes</option>
+                    </select>
+                  </span>
                 </div>
               </div>
 
@@ -1025,7 +1053,8 @@ export const GeneralSettingsContent = forwardRef<
                     inactivity
                   </div>
                 </div>
-                <input aria-label="Toggle option"
+                <input
+                  aria-label="Toggle option"
                   type="checkbox"
                   checked={generalSettings.enableAutoLogout}
                   onChange={(e) =>
@@ -1060,7 +1089,15 @@ export const GeneralSettingsContent = forwardRef<
             transition: "background-color 0.2s ease, border-color 0.2s ease",
           }}
         >
-          <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+          <div
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                (e.currentTarget as HTMLElement).click();
+              }
+            }}
+            role="button"
             onClick={() =>
               setExpandedAccordion(
                 expandedAccordion === "accordion-3" ? null : "accordion-3",
@@ -1168,28 +1205,29 @@ export const GeneralSettingsContent = forwardRef<
                   }}
                 >
                   Default Theme
-                
-                <select aria-label="Select option"
-                  value={generalSettings.defaultTheme}
-                  onChange={(e) =>
-                    setGeneralSettings((prev) => ({
-                      ...prev,
-                      defaultTheme: e.target.value,
-                    }))
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "9px 12px",
-                    borderRadius: "8px",
-                    border: "1px solid #D1D5DB",
-                    fontSize: "13px",
-                    background: "#FFFFFF",
-                  }}
-                >
-                  <option value="Light">Light (Healthcare Standard)</option>
-                  <option value="Dark">Dark Mode</option>
-                  <option value="System">System Preference Match</option>
-                </select></span>
+                  <select
+                    aria-label="Select option"
+                    value={generalSettings.defaultTheme}
+                    onChange={(e) =>
+                      setGeneralSettings((prev) => ({
+                        ...prev,
+                        defaultTheme: e.target.value,
+                      }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "9px 12px",
+                      borderRadius: "8px",
+                      border: "1px solid #D1D5DB",
+                      fontSize: "13px",
+                      background: "#FFFFFF",
+                    }}
+                  >
+                    <option value="Light">Light (Healthcare Standard)</option>
+                    <option value="Dark">Dark Mode</option>
+                    <option value="System">System Preference Match</option>
+                  </select>
+                </span>
               </div>
 
               <div
@@ -1247,7 +1285,8 @@ export const GeneralSettingsContent = forwardRef<
                         {pref.sub}
                       </div>
                     </div>
-                    <input aria-label="Toggle option"
+                    <input
+                      aria-label="Toggle option"
                       type="checkbox"
                       checked={Boolean(
                         generalSettings[
@@ -1288,7 +1327,15 @@ export const GeneralSettingsContent = forwardRef<
             transition: "background-color 0.2s ease, border-color 0.2s ease",
           }}
         >
-          <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+          <div
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                (e.currentTarget as HTMLElement).click();
+              }
+            }}
+            role="button"
             onClick={() =>
               setExpandedAccordion(
                 expandedAccordion === "accordion-4" ? null : "accordion-4",
@@ -1403,29 +1450,30 @@ export const GeneralSettingsContent = forwardRef<
                     }}
                   >
                     Default Appointment Duration
-                  
-                  <select aria-label="Select option"
-                    value={generalSettings.defaultApptDuration}
-                    onChange={(e) =>
-                      setGeneralSettings((prev) => ({
-                        ...prev,
-                        defaultApptDuration: e.target.value,
-                      }))
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "9px 12px",
-                      borderRadius: "8px",
-                      border: "1px solid #D1D5DB",
-                      fontSize: "13px",
-                      background: "#FFFFFF",
-                    }}
-                  >
-                    <option value="15 Minutes">15 Minutes</option>
-                    <option value="20 Minutes">20 Minutes</option>
-                    <option value="30 Minutes">30 Minutes (Standard)</option>
-                    <option value="45 Minutes">45 Minutes</option>
-                  </select></span>
+                    <select
+                      aria-label="Select option"
+                      value={generalSettings.defaultApptDuration}
+                      onChange={(e) =>
+                        setGeneralSettings((prev) => ({
+                          ...prev,
+                          defaultApptDuration: e.target.value,
+                        }))
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "9px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid #D1D5DB",
+                        fontSize: "13px",
+                        background: "#FFFFFF",
+                      }}
+                    >
+                      <option value="15 Minutes">15 Minutes</option>
+                      <option value="20 Minutes">20 Minutes</option>
+                      <option value="30 Minutes">30 Minutes (Standard)</option>
+                      <option value="45 Minutes">45 Minutes</option>
+                    </select>
+                  </span>
                 </div>
 
                 <div>
@@ -1439,26 +1487,27 @@ export const GeneralSettingsContent = forwardRef<
                     }}
                   >
                     Queue Token Prefix
-                  
-                  <input aria-label="Input field"
-                    type="text"
-                    value={generalSettings.queueTokenPrefix}
-                    onChange={(e) =>
-                      setGeneralSettings((prev) => ({
-                        ...prev,
-                        queueTokenPrefix: e.target.value,
-                      }))
-                    }
-                    placeholder="OPD"
-                    style={{
-                      width: "100%",
-                      padding: "9px 12px",
-                      borderRadius: "8px",
-                      border: "1px solid #D1D5DB",
-                      fontSize: "13px",
-                      boxSizing: "border-box",
-                    }}
-                  /></span>
+                    <input
+                      aria-label="Input field"
+                      type="text"
+                      value={generalSettings.queueTokenPrefix}
+                      onChange={(e) =>
+                        setGeneralSettings((prev) => ({
+                          ...prev,
+                          queueTokenPrefix: e.target.value,
+                        }))
+                      }
+                      placeholder="OPD"
+                      style={{
+                        width: "100%",
+                        padding: "9px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid #D1D5DB",
+                        fontSize: "13px",
+                        boxSizing: "border-box",
+                      }}
+                    />
+                  </span>
                 </div>
 
                 <div>
@@ -1472,30 +1521,31 @@ export const GeneralSettingsContent = forwardRef<
                     }}
                   >
                     Default Patient Search Mode
-                  
-                  <select aria-label="Select option"
-                    value={generalSettings.defaultPatientSearchMode}
-                    onChange={(e) =>
-                      setGeneralSettings((prev) => ({
-                        ...prev,
-                        defaultPatientSearchMode: e.target.value,
-                      }))
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "9px 12px",
-                      borderRadius: "8px",
-                      border: "1px solid #D1D5DB",
-                      fontSize: "13px",
-                      background: "#FFFFFF",
-                    }}
-                  >
-                    <option value="MRN / Name">MRN / Name (Instant)</option>
-                    <option value="Phone Number">Phone Number</option>
-                    <option value="National Identity ID">
-                      National Identity ID
-                    </option>
-                  </select></span>
+                    <select
+                      aria-label="Select option"
+                      value={generalSettings.defaultPatientSearchMode}
+                      onChange={(e) =>
+                        setGeneralSettings((prev) => ({
+                          ...prev,
+                          defaultPatientSearchMode: e.target.value,
+                        }))
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "9px 12px",
+                        borderRadius: "8px",
+                        border: "1px solid #D1D5DB",
+                        fontSize: "13px",
+                        background: "#FFFFFF",
+                      }}
+                    >
+                      <option value="MRN / Name">MRN / Name (Instant)</option>
+                      <option value="Phone Number">Phone Number</option>
+                      <option value="National Identity ID">
+                        National Identity ID
+                      </option>
+                    </select>
+                  </span>
                 </div>
               </div>
 
@@ -1525,7 +1575,8 @@ export const GeneralSettingsContent = forwardRef<
                     changes
                   </div>
                 </div>
-                <input aria-label="Toggle option"
+                <input
+                  aria-label="Toggle option"
                   type="checkbox"
                   checked={generalSettings.enableConfirmationDialogs}
                   onChange={(e) =>

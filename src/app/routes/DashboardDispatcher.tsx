@@ -52,5 +52,3 @@ export function DashboardDispatcher() {
       return <HospitalAdminDashboard />;
   }
 }
-
-export default DashboardDispatcher;

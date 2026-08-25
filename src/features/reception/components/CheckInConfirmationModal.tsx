@@ -48,7 +48,10 @@ export const CheckInConfirmationModal: React.FC<
 
         {/* Animated Checkmark Circle */}
         <div className="w-16 h-16 rounded-full bg-emerald-50 border-4 border-emerald-100 flex items-center justify-center text-emerald-600 shadow-sm shrink-0 mt-1">
-          <CheckCircle2 size={36} className="transition-transform duration-300" />
+          <CheckCircle2
+            size={36}
+            className="transition-transform duration-300"
+          />
         </div>
 
         {/* Modal Header */}

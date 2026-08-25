@@ -102,12 +102,14 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
                 fontSize: "12px",
                 fontWeight: 600,
                 cursor: "pointer",
-                transition: "background-color 0.2s ease, border-color 0.2s ease",
+                transition:
+                  "background-color 0.2s ease, border-color 0.2s ease",
               }}
             >
               <Edit2 size={14} /> {isRoleEditMode ? "Cancel Edit" : "Edit"}
             </button>
-            <button aria-label="Close"
+            <button
+              aria-label="Close"
               onClick={onClose}
               style={{
                 border: "none",
@@ -174,7 +176,8 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
                   Role Title
                 </span>
                 {isRoleEditMode ? (
-                  <input aria-label="Input field"
+                  <input
+                    aria-label="Input field"
                     type="text"
                     defaultValue={role.name}
                     style={{
@@ -203,7 +206,8 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
                   Permission Tier
                 </span>
                 {isRoleEditMode ? (
-                  <select aria-label="Select option"
+                  <select
+                    aria-label="Select option"
                     defaultValue={role.permissionLevel}
                     style={{
                       width: "100%",
@@ -238,7 +242,8 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
                 Role Description
               </span>
               {isRoleEditMode ? (
-                <textarea aria-label="Text input"
+                <textarea
+                  aria-label="Text input"
                   rows={2}
                   defaultValue={role.description}
                   style={{
@@ -306,7 +311,8 @@ export function RoleDetailsDrawer({ role, onClose }: RoleDetailsDrawerProps) {
                   Default Dashboard
                 </span>
                 {isRoleEditMode ? (
-                  <input aria-label="Input field"
+                  <input
+                    aria-label="Input field"
                     type="text"
                     defaultValue={role.defaultDashboard}
                     style={{

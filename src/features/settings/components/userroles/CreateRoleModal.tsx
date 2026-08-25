@@ -52,7 +52,8 @@ export function CreateRoleModal({ onClose }: CreateRoleModalProps) {
           >
             Create Custom Role Definition
           </h3>
-          <button aria-label="Close"
+          <button
+            aria-label="Close"
             onClick={onClose}
             style={{
               border: "none",
@@ -77,19 +78,20 @@ export function CreateRoleModal({ onClose }: CreateRoleModalProps) {
               }}
             >
               Role Name *
-            
-            <input aria-label="e.g. Clinical Research Coordinator"
-              type="text"
-              placeholder="e.g. Clinical Research Coordinator"
-              style={{
-                width: "100%",
-                padding: "8px 12px",
-                borderRadius: "8px",
-                border: "1px solid #D1D5DB",
-                fontSize: "13px",
-                boxSizing: "border-box",
-              }}
-            /></span>
+              <input
+                aria-label="e.g. Clinical Research Coordinator"
+                type="text"
+                placeholder="e.g. Clinical Research Coordinator"
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #D1D5DB",
+                  fontSize: "13px",
+                  boxSizing: "border-box",
+                }}
+              />
+            </span>
           </div>
 
           <div>
@@ -104,7 +106,8 @@ export function CreateRoleModal({ onClose }: CreateRoleModalProps) {
             >
               Role Description *
             </span>
-            <textarea aria-label="Describe duties and permission scope..."
+            <textarea
+              aria-label="Describe duties and permission scope..."
               rows={3}
               placeholder="Describe duties and permission scope..."
               style={{
@@ -130,22 +133,23 @@ export function CreateRoleModal({ onClose }: CreateRoleModalProps) {
               }}
             >
               Default Landing Dashboard
-            
-            <select aria-label="Select option"
-              style={{
-                width: "100%",
-                padding: "8px 12px",
-                borderRadius: "8px",
-                border: "1px solid #D1D5DB",
-                fontSize: "13px",
-                boxSizing: "border-box",
-              }}
-            >
-              <option>Hospital Admin Dashboard</option>
-              <option>Doctor Clinical Dashboard</option>
-              <option>Nurse Dashboard</option>
-              <option>Reception Dashboard</option>
-            </select></span>
+              <select
+                aria-label="Select option"
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #D1D5DB",
+                  fontSize: "13px",
+                  boxSizing: "border-box",
+                }}
+              >
+                <option>Hospital Admin Dashboard</option>
+                <option>Doctor Clinical Dashboard</option>
+                <option>Nurse Dashboard</option>
+                <option>Reception Dashboard</option>
+              </select>
+            </span>
           </div>
 
           <div

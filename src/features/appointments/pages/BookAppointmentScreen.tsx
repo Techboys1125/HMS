@@ -1,8 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router";
 import {
   ChevronRight,
-  ArrowLeft,
   UserPlus,
   Search,
   CheckCircle2,
@@ -35,78 +33,36 @@ const formatSlotTime = (timeStr: string) => {
   return `${strHour}:${minute} ${ampm}`;
 };
 
- const isTimeSlotPassed = (slotTimeStr: string, targetDateStr: string) => {
-   const todayStr = new Date().toISOString().split("T")[0];
-   if (targetDateStr !== todayStr) return false;
+const isTimeSlotPassed = (slotTimeStr: string, targetDateStr: string) => {
+  const todayStr = new Date().toISOString().split("T")[0];
+  if (targetDateStr !== todayStr) return false;
 
-   let hour: number;
-   let minute: number;
+  let hour: number;
+  let minute: number;
 
-   if (slotTimeStr.includes("AM") || slotTimeStr.includes("PM")) {
-     const cleanTime = slotTimeStr.replace(/(AM|PM)/i, "").trim();
-     const parts = cleanTime.split(":");
-     hour = parseInt(parts[0] || "0", 10);
-     minute = parseInt(parts[1] || "0", 10);
-     if (slotTimeStr.toUpperCase().includes("PM") && hour < 12) {
-       hour += 12;
-     }
-     if (slotTimeStr.toUpperCase().includes("AM") && hour === 12) {
-       hour = 0;
-     }
-   } else {
-     const parts = slotTimeStr.split(":");
-     hour = parseInt(parts[0] || "0", 10);
-     minute = parseInt(parts[1] || "0", 10);
-   }
+  if (slotTimeStr.includes("AM") || slotTimeStr.includes("PM")) {
+    const cleanTime = slotTimeStr.replace(/(AM|PM)/i, "").trim();
+    const parts = cleanTime.split(":");
+    hour = parseInt(parts[0] || "0", 10);
+    minute = parseInt(parts[1] || "0", 10);
+    if (slotTimeStr.toUpperCase().includes("PM") && hour < 12) {
+      hour += 12;
+    }
+    if (slotTimeStr.toUpperCase().includes("AM") && hour === 12) {
+      hour = 0;
+    }
+  } else {
+    const parts = slotTimeStr.split(":");
+    hour = parseInt(parts[0] || "0", 10);
+    minute = parseInt(parts[1] || "0", 10);
+  }
 
-   const now = new Date();
-   const slotDateTime = new Date();
-   slotDateTime.setHours(hour, minute, 0, 0);
+  const now = new Date();
+  const slotDateTime = new Date();
+  slotDateTime.setHours(hour, minute, 0, 0);
 
-   return slotDateTime.getTime() <= now.getTime();
- };
-
-/* ─────────────────── Section Header ─────────────────── */
-function SectionHeader({
-  icon: Icon,
-  title,
-  subtitle,
-  required = false,
-}: {
-  icon: React.ElementType;
-  title: string;
-  subtitle?: string;
-  required?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-[#0D47A1]/[0.07] flex items-center justify-center">
-          <Icon size={17} className="text-[#0D47A1]" />
-        </div>
-        <div>
-          <h2
-            className="text-[14px] font-bold text-[#111827]"
-            style={{ fontFamily: PP }}
-          >
-            {title}
-          </h2>
-          {subtitle && (
-            <p
-              className="text-[11px] text-slate-400 mt-0.5"
-              style={{ fontFamily: RB }}
-            >
-              {subtitle}
-            </p>
-          )}
-        </div>
-      </div>
-      {required && (
-        <span className="text-xs text-red-500 font-semibold">* Required</span>
-      )}
-    </div>
-  );
-}
+  return slotDateTime.getTime() <= now.getTime();
+};
 
 export function BookAppointmentScreen({
   role = "receptionist",
@@ -180,7 +136,11 @@ export function BookAppointmentScreen({
   }, [doctorsList, selectedDept]);
 
   useEffect(() => {
-    const computeAge = (p: { age?: number; dateOfBirth?: string; dob?: string }) => {
+    const computeAge = (p: {
+      age?: number;
+      dateOfBirth?: string;
+      dob?: string;
+    }) => {
       if (typeof p.age === "number" && p.age > 0) return p.age;
       const dobStr = p.dateOfBirth || p.dob;
       if (dobStr) {
@@ -502,8 +462,6 @@ export function BookAppointmentScreen({
     };
   }, [currentDoctor, selectedDate]);
 
-
-
   const dynamicTimeSlotGroups = useMemo(() => {
     if (!selectedDocKey || !currentDoctor) {
       return { morning: [], afternoon: [], evening: [] };
@@ -669,16 +627,6 @@ export function BookAppointmentScreen({
     }
   };
 
-  const navigate = useNavigate();
-
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      navigate(-1);
-    }
-  };
-
   return (
     <div
       className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9]"
@@ -688,11 +636,9 @@ export function BookAppointmentScreen({
         <div>
           <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
             <button
-              type="button"
-              onClick={handleBack}
-              className="hover:text-[#0D47A1] transition-colors flex items-center gap-1 font-medium"
+              onClick={onBack}
+              className="hover:text-[#0D47A1] transition-colors"
             >
-              <ArrowLeft size={13} />
               {role === "patient" ? "Patient Portal" : "Reception Management"}
             </button>
             <ChevronRight size={12} />
@@ -713,26 +659,17 @@ export function BookAppointmentScreen({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-colors shadow-sm"
-            style={{ fontFamily: PP }}
-          >
-            <ArrowLeft size={15} /> Back
-          </button>
-          {role !== "patient" && onRegisterNewPatientClick && (
+        {role !== "patient" && (
+          <div className="flex items-center gap-2">
             <button
-              type="button"
               onClick={onRegisterNewPatientClick}
-              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-[#0D47A1] text-xs font-semibold hover:bg-blue-100 transition-colors shadow-sm"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 border border-blue-200 text-[#0D47A1] text-xs font-semibold hover:bg-blue-100 transition-colors"
               style={{ fontFamily: PP }}
             >
               <UserPlus size={14} /> Register New Patient
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
@@ -766,65 +703,78 @@ export function BookAppointmentScreen({
                   size={18}
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                 />
-                <input aria-label="Input field"
+                <input
+                  aria-label="Input field"
                   type="text"
                   value={patientQuery}
                   onChange={(e) => setPatientQuery(e.target.value)}
                   placeholder="Search patient by MRN, Patient Name, Mobile Number or Appointment ID..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-gray-200 text-[13px] text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-[#0D47A1]/10 transition-colors placeholder:text-slate-400"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-colors shadow-inner"
                 />
               </div>
             )}
 
-            {role !== "patient" && !selectedPatient && patientQuery.trim() !== "" && (
-              <div className="max-h-48 overflow-y-auto border border-[#E5E7EB] rounded-xl divide-y divide-gray-100 bg-white shadow-lg">
-                {searchedPatients.length > 0 ? (
-                  searchedPatients.map((p) => (
-                    <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
-                      key={
-                        p.id
-                          ? `pat-id-${p.id}`
-                          : p.mrn
-                            ? `pat-mrn-${p.mrn}`
-                            : `pat-name-${p.name}`
-                      }
-                      onClick={() => {
-                        setSelectedPatient(p);
-                        setPatientQuery("");
-                        if (onPatientSelect && p.mrn) onPatientSelect(p.mrn);
-                      }}
-                      className="p-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between text-xs transition-colors"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-[#0D47A1] text-white flex items-center justify-center font-bold text-[10px]">
-                          {p.name.slice(0, 2).toUpperCase()}
+            {role !== "patient" &&
+              !selectedPatient &&
+              patientQuery.trim() !== "" && (
+                <div className="max-h-48 overflow-y-auto border border-[#E5E7EB] rounded-xl divide-y divide-gray-100 bg-white shadow-lg">
+                  {searchedPatients.length > 0 ? (
+                    searchedPatients.map((p) => (
+                      <div
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            (e.currentTarget as HTMLElement).click();
+                          }
+                        }}
+                        role="button"
+                        key={
+                          p.id
+                            ? `pat-id-${p.id}`
+                            : p.mrn
+                              ? `pat-mrn-${p.mrn}`
+                              : `pat-name-${p.name}`
+                        }
+                        onClick={() => {
+                          setSelectedPatient(p);
+                          setPatientQuery("");
+                          if (onPatientSelect && p.mrn) onPatientSelect(p.mrn);
+                        }}
+                        className="p-3 hover:bg-slate-50 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-full bg-[#0D47A1] text-white flex items-center justify-center font-bold text-[10px]">
+                            {p.name.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-bold text-[#111827]">{p.name}</p>
+                            <p className="text-[11px] text-[#64748B]">
+                              {p.gender}
+                              {p.age && p.age > 0
+                                ? ` · ${p.age} yrs`
+                                : ""} · {p.phone}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-bold text-[#111827]">{p.name}</p>
-                          <p className="text-[11px] text-[#64748B]">
-                            {p.gender}
-                            {p.age && p.age > 0 ? ` · ${p.age} yrs` : ""} · {p.phone}
-                          </p>
-                        </div>
+                        <span className="font-mono font-bold text-[#0D47A1]">
+                          {p.mrn}
+                        </span>
                       </div>
-                      <span className="font-mono font-bold text-[#0D47A1]">
-                        {p.mrn}
-                      </span>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-xs text-slate-400">
+                      No matching patient records found.
+                      <button
+                        onClick={onRegisterNewPatientClick}
+                        className="ml-2 text-[#0D47A1] font-bold underline"
+                      >
+                        Register New Patient
+                      </button>
                     </div>
-                  ))
-                ) : (
-                  <div className="p-4 text-center text-xs text-slate-400">
-                    No matching patient records found.
-                    <button
-                      onClick={onRegisterNewPatientClick}
-                      className="ml-2 text-[#0D47A1] font-bold underline"
-                    >
-                      Register New Patient
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </div>
+              )}
 
             {selectedPatient ? (
               <div className="p-4 rounded-xl bg-slate-50 border border-blue-100 flex items-center justify-between gap-4">
@@ -850,14 +800,18 @@ export function BookAppointmentScreen({
                       )}
                     </div>
                     <p className="text-xs text-[#64748B] mt-0.5">
-                      {selectedPatient.gender ? `${selectedPatient.gender}` : ""}
+                      {selectedPatient.gender
+                        ? `${selectedPatient.gender}`
+                        : ""}
                       {selectedPatient.age && selectedPatient.age > 0
                         ? ` · ${selectedPatient.age} yrs`
                         : ""}
                       {selectedPatient.bloodGroup
                         ? ` · Blood Group: ${selectedPatient.bloodGroup}`
                         : ""}
-                      {selectedPatient.phone ? ` · Mobile: ${selectedPatient.phone}` : ""}
+                      {selectedPatient.phone
+                        ? ` · Mobile: ${selectedPatient.phone}`
+                        : ""}
                     </p>
                   </div>
                 </div>
@@ -891,61 +845,62 @@ export function BookAppointmentScreen({
               <div>
                 <span className="block font-semibold text-[#111827] mb-1">
                   Select Department *
-                
-                <select aria-label="Select option"
-                  value={selectedDept}
-                  onChange={(e) => handleDeptChange(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#009688] font-medium"
-                >
-                  <option value="">-- Select Department --</option>
-                  {departments.map((dept) => (
-                    <option
-                      key={dept.departmentName}
-                      value={dept.departmentName}
-                    >
-                      {dept.departmentName}
-                    </option>
-                  ))}
-                </select>
-</span>
+                  <select
+                    aria-label="Select option"
+                    value={selectedDept}
+                    onChange={(e) => handleDeptChange(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#009688] font-medium"
+                  >
+                    <option value="">-- Select Department --</option>
+                    {departments.map((dept) => (
+                      <option
+                        key={dept.departmentName}
+                        value={dept.departmentName}
+                      >
+                        {dept.departmentName}
+                      </option>
+                    ))}
+                  </select>
+                </span>
               </div>
 
               <div>
                 <span className="block font-semibold text-[#111827] mb-1">
                   Specialty
-                
-                <select aria-label="Select option"
-                  value={selectedSpecialty}
-                  disabled={!selectedDept}
-                  onChange={(e) => {
-                    const newSpec = e.target.value;
-                    setSelectedSpecialty(newSpec);
-                    setSelectedDocKey("");
-                    const specDocs = doctorsList.filter(
-                      (d) => !newSpec || d.spec === newSpec,
-                    );
-                    if (specDocs.length > 0) setSelectedDocKey(specDocs[0].key);
-                  }}
-                  className={`w-full px-3 py-2.5 rounded-xl border text-xs text-[#111827] focus:outline-none focus:border-[#009688] font-medium ${
-                    !selectedDept
-                      ? "bg-slate-100 border-[#E5E7EB] text-slate-400 cursor-not-allowed"
-                      : "bg-slate-50 border-[#E5E7EB]"
-                  }`}
-                >
-                  {!selectedDept ? (
-                    <option value="">Select Department First</option>
-                  ) : (
-                    <>
-                      <option value="">All Specialties</option>
-                      {specialties.map((spec) => (
-                        <option key={spec} value={spec}>
-                          {spec}
-                        </option>
-                      ))}
-                    </>
-                  )}
-                </select>
-</span>
+                  <select
+                    aria-label="Select option"
+                    value={selectedSpecialty}
+                    disabled={!selectedDept}
+                    onChange={(e) => {
+                      const newSpec = e.target.value;
+                      setSelectedSpecialty(newSpec);
+                      setSelectedDocKey("");
+                      const specDocs = doctorsList.filter(
+                        (d) => !newSpec || d.spec === newSpec,
+                      );
+                      if (specDocs.length > 0)
+                        setSelectedDocKey(specDocs[0].key);
+                    }}
+                    className={`w-full px-3 py-2.5 rounded-xl border text-xs text-[#111827] focus:outline-none focus:border-[#009688] font-medium ${
+                      !selectedDept
+                        ? "bg-slate-100 border-[#E5E7EB] text-slate-400 cursor-not-allowed"
+                        : "bg-slate-50 border-[#E5E7EB]"
+                    }`}
+                  >
+                    {!selectedDept ? (
+                      <option value="">Select Department First</option>
+                    ) : (
+                      <>
+                        <option value="">All Specialties</option>
+                        {specialties.map((spec) => (
+                          <option key={spec} value={spec}>
+                            {spec}
+                          </option>
+                        ))}
+                      </>
+                    )}
+                  </select>
+                </span>
               </div>
             </div>
 
@@ -980,7 +935,15 @@ export function BookAppointmentScreen({
                   filteredDoctors.map((doc) => {
                     const isSelected = selectedDocKey === doc.key;
                     return (
-                      <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+                      <div
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            (e.currentTarget as HTMLElement).click();
+                          }
+                        }}
+                        role="button"
                         key={doc.key}
                         onClick={() => setSelectedDocKey(doc.key)}
                         className={`p-3.5 rounded-xl border cursor-pointer transition-colors flex items-start gap-3 ${
@@ -989,7 +952,7 @@ export function BookAppointmentScreen({
                             : "border-[#E5E7EB] bg-white hover:border-slate-300"
                         }`}
                       >
-                        <div className="w-10 h-10 rounded-xl bg-[#0D47A1] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+                        <div className="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
                           {doc.name
                             .replace("Dr. ", "")
                             .slice(0, 2)
@@ -1090,7 +1053,8 @@ export function BookAppointmentScreen({
                 dynamicTimeSlotGroups.afternoon.length === 0 &&
                 dynamicTimeSlotGroups.evening.length === 0 ? (
                 <div className="p-4 text-center text-xs text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                  No available time slots found for this doctor on {selectedDate}.
+                  No available time slots found for this doctor on{" "}
+                  {selectedDate}.
                 </div>
               ) : (
                 <>
@@ -1112,8 +1076,8 @@ export function BookAppointmentScreen({
                                 !slot.available
                                   ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
                                   : isSelected
-                                    ? "bg-[#0D47A1] text-white border-[#0D47A1] font-bold shadow-sm"
-                                    : "bg-slate-50 text-[#111827] border-gray-200 hover:bg-blue-50 hover:border-blue-300"
+                                    ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                                    : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
                               }`}
                             >
                               {slot.time}
@@ -1142,8 +1106,8 @@ export function BookAppointmentScreen({
                                 !slot.available
                                   ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
                                   : isSelected
-                                    ? "bg-[#0D47A1] text-white border-[#0D47A1] font-bold shadow-sm"
-                                    : "bg-slate-50 text-[#111827] border-gray-200 hover:bg-blue-50 hover:border-blue-300"
+                                    ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                                    : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
                               }`}
                             >
                               {slot.time}
@@ -1172,8 +1136,8 @@ export function BookAppointmentScreen({
                                 !slot.available
                                   ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
                                   : isSelected
-                                    ? "bg-[#0D47A1] text-white border-[#0D47A1] font-bold shadow-sm"
-                                    : "bg-slate-50 text-[#111827] border-gray-200 hover:bg-blue-50 hover:border-blue-300"
+                                    ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
+                                    : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
                               }`}
                             >
                               {slot.time}
@@ -1239,7 +1203,8 @@ export function BookAppointmentScreen({
               <span className="block font-semibold text-[#111827] mb-1">
                 Chief Complaint / Symptoms *
               </span>
-              <textarea aria-label="Text area"
+              <textarea
+                aria-label="Text area"
                 rows={2}
                 value={chiefComplaint}
                 onChange={(e) => setChiefComplaint(e.target.value)}
@@ -1252,7 +1217,8 @@ export function BookAppointmentScreen({
               <span className="block font-semibold text-[#111827] mb-1">
                 Receptionist Remarks (Optional)
               </span>
-              <textarea aria-label="Text area"
+              <textarea
+                aria-label="Text area"
                 rows={2}
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
@@ -1314,7 +1280,8 @@ export function BookAppointmentScreen({
                 Appointment Booked Successfully!
               </h2>
               <p className="text-xs text-slate-500 font-medium max-w-md mx-auto">
-                Your OPD appointment has been registered with the Healthcare Operations Center.
+                Your OPD appointment has been registered with the Healthcare
+                Operations Center.
               </p>
             </div>
 
@@ -1390,7 +1357,9 @@ export function BookAppointmentScreen({
                     Consultation Fee
                   </span>
                   <span className="font-bold text-[#009688]">
-                    {currentDoctor?.fee ? `₹${currentDoctor.fee} (OPD Counter)` : "$65.00 (OPD Counter)"}
+                    {currentDoctor?.fee
+                      ? `₹${currentDoctor.fee} (OPD Counter)`
+                      : "$65.00 (OPD Counter)"}
                   </span>
                 </div>
                 <div>

@@ -1,9 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import {
-  CheckCircle2,
-  AlertCircle,
-  ChevronDown,
-} from "lucide-react";
+import { CheckCircle2, AlertCircle, ChevronDown } from "lucide-react";
 import { usePermissions } from "../../../permissions/usePermissions";
 import { useConsultation } from "../hooks/useConsultation";
 import { useEncounter } from "../hooks/useEncounter";
@@ -113,8 +109,16 @@ export function StartConsultationPage({
   onViewPatientProfile?: (mrn?: string) => void;
 }) {
   const navigate = useNavigate();
-  const { consultationId: urlConsultationId } = useParams<{ consultationId?: string }>();
-  const activeConsultationId = urlConsultationId || patientId || (typeof window !== "undefined" ? sessionStorage.getItem("hms-active-consultation-id") : null) || undefined;
+  const { consultationId: urlConsultationId } = useParams<{
+    consultationId?: string;
+  }>();
+  const activeConsultationId =
+    urlConsultationId ||
+    patientId ||
+    (typeof window !== "undefined"
+      ? sessionStorage.getItem("hms-active-consultation-id")
+      : null) ||
+    undefined;
 
   const { can } = usePermissions();
   const { selectedAppointment, selectedConsultation } = useConsultation();
@@ -142,21 +146,57 @@ export function StartConsultationPage({
     visitType?: string;
     appointmentTime?: string;
   } | null>(null);
+  const todayStr = TODAY_STR;
+  const nextVisitStr = NEXT_VISIT_STR;
+
+  const dept =
+    selectedAppointment?.departmentName ||
+    (typeof selectedAppointment?.department === "string"
+      ? selectedAppointment.department
+      : selectedAppointment?.department?.name ||
+        selectedAppointment?.department?.departmentName) ||
+    "";
+
+  const [formData, setFormData] = useState<ConsultationFormData>({
+    ...emptyFormData,
+    visitDate: todayStr,
+    nextVisitDate: nextVisitStr,
+    doctorName: selectedAppointment?.doctorName || "",
+    department: dept,
+    visitType:
+      selectedAppointment?.visitType === "Follow-up"
+        ? "Follow-up"
+        : "New Consultation",
+    chiefComplaint:
+      selectedAppointment?.chiefComplaint ||
+      selectedConsultation?.chiefComplaint ||
+      "",
+  });
 
   useEffect(() => {
     if (!activeConsultationId) return;
 
     try {
-      sessionStorage.setItem("hms-active-consultation-id", String(activeConsultationId));
+      sessionStorage.setItem(
+        "hms-active-consultation-id",
+        String(activeConsultationId),
+      );
     } catch {
       // ignore
     }
 
-    const matchApptId = String(selectedAppointment?.id || selectedAppointment?.appointmentId || "");
-    const matchCnsId = String(selectedConsultation?.id || selectedConsultation?.appointmentId || "");
+    const matchApptId = String(
+      selectedAppointment?.id || selectedAppointment?.appointmentId || "",
+    );
+    const matchCnsId = String(
+      selectedConsultation?.id || selectedConsultation?.appointmentId || "",
+    );
     const targetIdStr = String(activeConsultationId);
 
-    if ((matchApptId && matchApptId === targetIdStr) || (matchCnsId && matchCnsId === targetIdStr)) {
+    if (
+      (matchApptId && matchApptId === targetIdStr) ||
+      (matchCnsId && matchCnsId === targetIdStr)
+    ) {
       return;
     }
 
@@ -164,7 +204,9 @@ export function StartConsultationPage({
 
     const loadContext = async () => {
       try {
-        const res = await consultationService.loadFullConsultationDetails(activeConsultationId).catch(() => null);
+        const res = await consultationService
+          .loadFullConsultationDetails(activeConsultationId)
+          .catch(() => null);
         if (!isMounted) return;
 
         if (res && res.consultation) {
@@ -179,7 +221,9 @@ export function StartConsultationPage({
               gender: String(c.gender || ""),
               phone: String(c.phone || ""),
               bloodGroup: String(c.bloodGroup || ""),
-              allergies: Array.isArray(c.allergies) ? (c.allergies as string[]) : [],
+              allergies: Array.isArray(c.allergies)
+                ? (c.allergies as string[])
+                : [],
               doctor: String(c.doctor || c.doctorName || ""),
               opdRoom: String(c.opdRoom || ""),
               visitType: String(c.visitType || "New Consultation"),
@@ -191,7 +235,9 @@ export function StartConsultationPage({
               doctorName: String(c.doctor || c.doctorName || prev.doctorName),
               department: String(c.department || prev.department),
               chiefComplaint: String(c.chiefComplaint || prev.chiefComplaint),
-              visitType: (c.visitType as "New Consultation" | "Follow-up") || prev.visitType,
+              visitType:
+                (c.visitType as "New Consultation" | "Follow-up") ||
+                prev.visitType,
             }));
             return;
           }
@@ -201,12 +247,16 @@ export function StartConsultationPage({
         if (typeof activeConsultationId === "number") {
           numericId = activeConsultationId;
         } else if (typeof activeConsultationId === "string") {
-          const clean = activeConsultationId.replace(/^BL-|^APP-|^ENC-/, "").replace(/[^0-9]/g, "");
+          const clean = activeConsultationId
+            .replace(/^BL-|^APP-|^ENC-/, "")
+            .replace(/[^0-9]/g, "");
           if (clean) numericId = parseInt(clean, 10);
         }
 
         const idToTry = numericId || activeConsultationId;
-        const apptRes = await appointmentsApi.getAppointmentById(idToTry).catch(() => null);
+        const apptRes = await appointmentsApi
+          .getAppointmentById(idToTry)
+          .catch(() => null);
 
         if (!isMounted) return;
 
@@ -222,15 +272,24 @@ export function StartConsultationPage({
 
           setRestoredPatientData({
             patientName: appt.patientName || (patientObj.name as string) || "",
-            mrn: appt.mrn || appt.patientMrn || (patientObj.mrn as string) || "",
+            mrn:
+              appt.mrn || appt.patientMrn || (patientObj.mrn as string) || "",
             age: Number(appt.patientAge || appt.age || patientObj.age || 0),
-            gender: String(appt.patientGender || appt.gender || patientObj.gender || ""),
-            phone: String(appt.patientPhone || appt.mobile || patientObj.phone || ""),
+            gender: String(
+              appt.patientGender || appt.gender || patientObj.gender || "",
+            ),
+            phone: String(
+              appt.patientPhone || appt.mobile || patientObj.phone || "",
+            ),
             bloodGroup: String(patientObj.bloodGroup || ""),
-            allergies: Array.isArray(patientObj.allergies) ? (patientObj.allergies as string[]) : [],
+            allergies: Array.isArray(patientObj.allergies)
+              ? (patientObj.allergies as string[])
+              : [],
             doctor: appt.doctorName || "",
             opdRoom: String(appt.opdRoom || ""),
-            visitType: (appt.appointmentType || appt.visitType || "New Consultation") as string,
+            visitType: (appt.appointmentType ||
+              appt.visitType ||
+              "New Consultation") as string,
             appointmentTime: appt.appointmentTime || "",
           });
 
@@ -239,7 +298,10 @@ export function StartConsultationPage({
             doctorName: appt.doctorName || prev.doctorName,
             department: deptName || prev.department,
             chiefComplaint: appt.chiefComplaint || prev.chiefComplaint,
-            visitType: (appt.appointmentType === "Follow-up" ? "Follow-up" : "New Consultation"),
+            visitType:
+              appt.appointmentType === "Follow-up"
+                ? "Follow-up"
+                : "New Consultation",
           }));
         }
       } catch (err) {
@@ -279,33 +341,6 @@ export function StartConsultationPage({
   const toggleSection = (key: string) => {
     setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }));
   };
-
-  const todayStr = TODAY_STR;
-  const nextVisitStr = NEXT_VISIT_STR;
-
-  const dept =
-    selectedAppointment?.departmentName ||
-    (typeof selectedAppointment?.department === "string"
-      ? selectedAppointment.department
-      : selectedAppointment?.department?.name ||
-        selectedAppointment?.department?.departmentName) ||
-    "";
-
-  const [formData, setFormData] = useState<ConsultationFormData>({
-    ...emptyFormData,
-    visitDate: todayStr,
-    nextVisitDate: nextVisitStr,
-    doctorName: selectedAppointment?.doctorName || "",
-    department: dept,
-    visitType:
-      selectedAppointment?.visitType === "Follow-up"
-        ? "Follow-up"
-        : "New Consultation",
-    chiefComplaint:
-      selectedAppointment?.chiefComplaint ||
-      selectedConsultation?.chiefComplaint ||
-      "",
-  });
 
   useEffect(() => {
     if (!activeEncounterId) return;
@@ -444,8 +479,6 @@ export function StartConsultationPage({
     }));
   };
 
- 
-
   const handleFieldChange = (field: string, val: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: val }));
   };
@@ -457,7 +490,6 @@ export function StartConsultationPage({
     const actualField = fieldMap[field] || field;
     setFormData((prev) => ({ ...prev, [actualField]: val }));
   };
-
 
   const handleSaveDraft = async () => {
     setIsDraftSaved(true);

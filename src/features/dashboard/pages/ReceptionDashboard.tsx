@@ -10,6 +10,7 @@ import {
   UserPlus,
   CreditCard,
   Loader2,
+  Bell,
 } from "lucide-react";
 import {
   useReceptionSummary,
@@ -483,6 +484,15 @@ export function ReceptionDashboard({
             {label}
           </button>
         ))}
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            aria-label="Action"
+            className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-[#E5E7EB] text-[#64748B] hover:bg-slate-50 transition-colors shadow-sm"
+          >
+            <Bell size={14} />
+            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#EF4444]" />
+          </button>
+        </div>
       </div>
 
       {/* ── KPI Row — 5 Reception KPI Cards ── */}
@@ -868,7 +878,8 @@ export function ReceptionDashboard({
                         {q.status === "Scheduled" ? (
                           <button
                             onClick={() => {
-                              if (onCheckInClick) onCheckInClick(q.token, "MRN-REG");
+                              if (onCheckInClick)
+                                onCheckInClick(q.token, "MRN-REG");
                               else navigate(ROUTES.APPOINTMENTS);
                             }}
                             className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
@@ -884,7 +895,13 @@ export function ReceptionDashboard({
                         <button
                           onClick={() => {
                             if (onPatientSelect) onPatientSelect("MRN-892101");
-                            else navigate(ROUTES.PATIENT_PROFILE.replace(":mrn", "MRN-892101"));
+                            else
+                              navigate(
+                                ROUTES.PATIENT_PROFILE.replace(
+                                  ":mrn",
+                                  "MRN-892101",
+                                ),
+                              );
                           }}
                           className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
                         >
@@ -893,7 +910,13 @@ export function ReceptionDashboard({
                         <button
                           onClick={() => {
                             if (onEditPatient) onEditPatient("MRN-892101");
-                            else navigate(ROUTES.PATIENT_PROFILE.replace(":mrn", "MRN-892101"));
+                            else
+                              navigate(
+                                ROUTES.PATIENT_PROFILE.replace(
+                                  ":mrn",
+                                  "MRN-892101",
+                                ),
+                              );
                           }}
                           className="px-2 py-1 rounded-lg border border-[#E5E7EB] text-slate-600 text-[11px] font-medium hover:bg-slate-50 transition-colors"
                         >

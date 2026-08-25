@@ -55,25 +55,26 @@ export function DiscountConfiguration({
             }}
           >
             Maximum Concession Cap (%)
-          
-          <input aria-label="Input field"
-            type="number"
-            value={discountConfig.maxDiscountPct}
-            onChange={(e) =>
-              setDiscountConfig((prev) => ({
-                ...prev,
-                maxDiscountPct: parseFloat(e.target.value) || 0,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "9px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="number"
+              value={discountConfig.maxDiscountPct}
+              onChange={(e) =>
+                setDiscountConfig((prev) => ({
+                  ...prev,
+                  maxDiscountPct: parseFloat(e.target.value) || 0,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "9px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -87,25 +88,26 @@ export function DiscountConfiguration({
             }}
           >
             Authorized Approval Roles
-          
-          <input aria-label="Input field"
-            type="text"
-            value={discountConfig.authorizedRoles}
-            onChange={(e) =>
-              setDiscountConfig((prev) => ({
-                ...prev,
-                authorizedRoles: e.target.value,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "9px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={discountConfig.authorizedRoles}
+              onChange={(e) =>
+                setDiscountConfig((prev) => ({
+                  ...prev,
+                  authorizedRoles: e.target.value,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "9px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div
@@ -135,7 +137,8 @@ export function DiscountConfiguration({
               Require admin sign-off above 10% discount
             </div>
           </div>
-          <input aria-label="Toggle option"
+          <input
+            aria-label="Toggle option"
             type="checkbox"
             checked={discountConfig.approvalRequired}
             onChange={(e) =>

@@ -127,8 +127,6 @@ const resetFilters = () => {
 export function usePrescriptionDetails() {
   const { selectedPrescription, loading } = usePrescriptionStore();
 
-
-
   return {
     selectedPrescription,
     loading,
@@ -139,8 +137,6 @@ export function usePrescriptionDetails() {
 
 export function usePrescriptionFilters() {
   const { filters } = usePrescriptionStore();
-
-
 
   return {
     filters,

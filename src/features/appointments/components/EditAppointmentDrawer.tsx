@@ -43,6 +43,42 @@ type FormAction =
   | { type: "SET_FIELD"; field: keyof FormState; value: string }
   | { type: "LOAD_FROM_APT"; apt: AppointmentRecord };
 
+type SetFormField = (field: keyof FormState, value: string) => void;
+
+interface EditDrawerHeaderProps {
+  aptId: string | number;
+  onClose: () => void;
+}
+
+interface PatientInfo {
+  name: string;
+  id: string | number;
+  mrn?: string;
+}
+
+interface PatientSummaryReadonlyProps {
+  patientInfo: PatientInfo;
+}
+
+interface AppointmentFormFieldsProps {
+  form: FormState;
+  setField: SetFormField;
+  departments: ApiDepartmentLookupItem[];
+  doctors: DoctorSummary[];
+  handleDoctorChange: (doctorName: string) => void;
+}
+
+interface EditQuickActionsProps {
+  apt: AppointmentRecord;
+  onRescheduleClick: (apt: AppointmentRecord) => void;
+  onCancelClick: (apt: AppointmentRecord) => void;
+  onClose: () => void;
+}
+
+interface EditDrawerFooterProps {
+  onClose: () => void;
+}
+
 const formReducer = (state: FormState, action: FormAction): FormState => {
   switch (action.type) {
     case "SET_FIELD":
@@ -66,6 +102,249 @@ const formReducer = (state: FormState, action: FormAction): FormState => {
       };
   }
 };
+
+const EditDrawerHeader = ({ aptId, onClose }: EditDrawerHeaderProps) => (
+  <div className="px-6 py-4 bg-[#0D47A1] text-white flex items-center justify-between shadow-sm shrink-0">
+    <div>
+      <h2
+        className="text-base font-bold flex items-center gap-2"
+        style={{ fontFamily: PP }}
+      >
+        <Edit size={18} /> Edit Appointment — {aptId}
+      </h2>
+      <p className="text-xs text-blue-200 mt-0.5" style={{ fontFamily: RB }}>
+        Update appointment information and reception check-in state.
+      </p>
+    </div>
+    <button
+      aria-label="Close"
+      type="button"
+      onClick={onClose}
+      className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+    >
+      <X size={20} />
+    </button>
+  </div>
+);
+
+const ValidationErrorAlert = ({ show }: { show: boolean }) => {
+  if (!show) return null;
+  return (
+    <div className="bg-red-50 border border-red-200 text-[#EF4444] p-3.5 rounded-2xl flex items-start gap-2.5 shadow-xs transition-opacity duration-150">
+      <AlertCircle size={16} className="mt-0.5 shrink-0" />
+      <div className="text-xs">
+        <strong className="font-bold block" style={{ fontFamily: PP }}>
+          Validation Error
+        </strong>
+        <span>
+          Please fill in all mandatory required fields (*) before saving
+          changes.
+        </span>
+      </div>
+    </div>
+  );
+};
+
+const PatientSummaryReadonly = ({
+  patientInfo,
+}: PatientSummaryReadonlyProps) => (
+  <div className="bg-white p-4.5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
+    <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
+      <h3
+        className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2"
+        style={{ fontFamily: PP }}
+      >
+        <User size={15} className="text-[#0D47A1]" /> Patient Summary (Read
+        Only)
+      </h3>
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200">
+        <Lock size={10} /> Read Only
+      </span>
+    </div>
+
+    <div className="bg-slate-50/90 p-3.5 rounded-xl border border-slate-200/80 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Avatar name={patientInfo.name} size="md" />
+          <div>
+            <span
+              className="font-bold text-xs text-[#111827] block"
+              style={{ fontFamily: PP }}
+            >
+              {patientInfo.name}
+            </span>
+            <span className="text-[10px] font-mono text-[#0D47A1] font-bold">
+              {patientInfo.id} · {patientInfo.mrn}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const AppointmentFormFields = ({
+  form,
+  setField,
+  departments,
+  doctors,
+  handleDoctorChange,
+}: AppointmentFormFieldsProps) => (
+  <div className="bg-white p-4.5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
+    <div className="grid grid-cols-2 gap-3">
+      <div>
+        <span className="block text-xs font-bold text-[#111827] mb-1">
+          Department *
+          <select
+            aria-label="Select option"
+            value={form.department}
+            onChange={(e) => setField("department", e.target.value)}
+            className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
+          >
+            {departments.length === 0 && (
+              <option value="">Loading departments...</option>
+            )}
+            {departments.map((dept) => (
+              <option key={dept.departmentId} value={dept.departmentName}>
+                {dept.departmentName}
+              </option>
+            ))}
+          </select>
+        </span>
+      </div>
+
+      <div>
+        <span className="block text-xs font-bold text-[#111827] mb-1">
+          Doctor *
+          <select
+            aria-label="Select option"
+            value={form.doctorName}
+            onChange={(e) => handleDoctorChange(e.target.value)}
+            className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none"
+          >
+            {doctors.length === 0 && (
+              <option value="">Loading doctors...</option>
+            )}
+            {doctors.map((doc) => (
+              <option key={doc.id} value={doc.name}>
+                {doc.name} ({doc.departmentName || doc.department || ""})
+              </option>
+            ))}
+          </select>
+        </span>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-2 gap-3">
+      <div>
+        <span className="block text-xs font-bold text-[#111827] mb-1">
+          Appointment Date *
+          <input
+            aria-label="Input field"
+            type="date"
+            value={form.appointmentDate}
+            onChange={(e) => setField("appointmentDate", e.target.value)}
+            className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
+          />
+        </span>
+      </div>
+
+      <div>
+        <span className="block text-xs font-bold text-[#111827] mb-1">
+          Time Slot *
+          <input
+            aria-label="Input field"
+            type="text"
+            value={form.timeSlot}
+            onChange={(e) => setField("timeSlot", e.target.value)}
+            className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
+          />
+        </span>
+      </div>
+    </div>
+
+    <div>
+      <span className="block text-xs font-bold text-[#111827] mb-1">
+        Status Dropdown *
+        <select
+          aria-label="Select option"
+          value={form.status}
+          onChange={(e) => setField("status", e.target.value)}
+          className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1]"
+        >
+          <option value="Scheduled">Scheduled</option>
+          <option value="Checked-In">Checked-In</option>
+          <option value="Waiting">Waiting</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </span>
+    </div>
+  </div>
+);
+
+const EditQuickActions = ({
+  apt,
+  onRescheduleClick,
+  onCancelClick,
+  onClose,
+}: EditQuickActionsProps) => (
+  <div className="p-3.5 bg-slate-100 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
+    <div>
+      <span
+        className="text-xs font-bold text-[#111827] block"
+        style={{ fontFamily: PP }}
+      >
+        Quick Actions
+      </span>
+      <span className="text-[10px] text-slate-500">
+        Reschedule date/time or cancel appointment
+      </span>
+    </div>
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => {
+          onRescheduleClick(apt);
+          onClose();
+        }}
+        className="px-2.5 py-1.5 rounded-xl border border-teal-200 bg-teal-50 text-[#009688] text-[11px] font-bold hover:bg-teal-100 transition-colors flex items-center gap-1"
+      >
+        <CalendarIcon size={12} /> Reschedule
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          onCancelClick(apt);
+          onClose();
+        }}
+        className="px-2.5 py-1.5 rounded-xl border border-red-200 bg-red-50 text-[#EF4444] text-[11px] font-bold hover:bg-red-100 transition-colors flex items-center gap-1"
+      >
+        <Ban size={12} /> Cancel
+      </button>
+    </div>
+  </div>
+);
+
+const EditDrawerFooter = ({ onClose }: EditDrawerFooterProps) => (
+  <div className="pt-4 border-t border-gray-200 flex items-center gap-3">
+    <button
+      type="button"
+      onClick={onClose}
+      className="px-5 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-colors"
+    >
+      Cancel
+    </button>
+    <button
+      type="submit"
+      className="flex-1 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm"
+      style={{ fontFamily: PP }}
+    >
+      Save Changes
+    </button>
+  </div>
+);
 
 export function EditAppointmentDrawer({
   apt,
@@ -218,241 +497,33 @@ export function EditAppointmentDrawer({
 
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
         <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col border-l border-gray-100 transition-transform duration-200">
-          <div className="px-6 py-4 bg-[#0D47A1] text-white flex items-center justify-between shadow-sm shrink-0">
-            <div>
-              <h2
-                className="text-base font-bold flex items-center gap-2"
-                style={{ fontFamily: PP }}
-              >
-                <Edit size={18} /> Edit Appointment — {apt.id}
-              </h2>
-              <p
-                className="text-xs text-blue-200 mt-0.5"
-                style={{ fontFamily: RB }}
-              >
-                Update appointment information and reception check-in state.
-              </p>
-            </div>
-            <button
-              aria-label="Close"
-              type="button"
-              onClick={onClose}
-              className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
-            >
-              <X size={20} />
-            </button>
-          </div>
+          <EditDrawerHeader aptId={apt.id} onClose={onClose} />
 
           <form
             onSubmit={handleSubmit}
             className="flex-1 overflow-y-auto p-6 space-y-5 bg-[#F1F5F9]/50"
             style={{ fontFamily: RB }}
           >
-            {showErrorAlert && (
-              <div className="bg-red-50 border border-red-200 text-[#EF4444] p-3.5 rounded-2xl flex items-start gap-2.5 shadow-xs transition-opacity duration-150">
-                <AlertCircle size={16} className="mt-0.5 shrink-0" />
-                <div className="text-xs">
-                  <strong
-                    className="font-bold block"
-                    style={{ fontFamily: PP }}
-                  >
-                    Validation Error
-                  </strong>
-                  <span>
-                    Please fill in all mandatory required fields (*) before
-                    saving changes.
-                  </span>
-                </div>
-              </div>
-            )}
+            <ValidationErrorAlert show={showErrorAlert} />
 
-            <div className="bg-white p-4.5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
-                <h3
-                  className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2"
-                  style={{ fontFamily: PP }}
-                >
-                  <User size={15} className="text-[#0D47A1]" /> Patient Summary
-                  (Read Only)
-                </h3>
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full border border-slate-200">
-                  <Lock size={10} /> Read Only
-                </span>
-              </div>
+            <PatientSummaryReadonly patientInfo={patientInfo} />
 
-              <div className="bg-slate-50/90 p-3.5 rounded-xl border border-slate-200/80 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar name={patientInfo.name} size="md" />
-                    <div>
-                      <span
-                        className="font-bold text-xs text-[#111827] block"
-                        style={{ fontFamily: PP }}
-                      >
-                        {patientInfo.name}
-                      </span>
-                      <span className="text-[10px] font-mono text-[#0D47A1] font-bold">
-                        {patientInfo.id} · {patientInfo.mrn}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <AppointmentFormFields
+              form={form}
+              setField={setField}
+              departments={departments}
+              doctors={doctors}
+              handleDoctorChange={handleDoctorChange}
+            />
 
-            <div className="bg-white p-4.5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <span className="block text-xs font-bold text-[#111827] mb-1">
-                    Department *
-                    <select
-                      aria-label="Select option"
-                      value={form.department}
-                      onChange={(e) => setField("department", e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
-                    >
-                      {departments.length === 0 && (
-                        <option value="">Loading departments...</option>
-                      )}
-                      {departments.map((dept) => (
-                        <option
-                          key={dept.departmentId}
-                          value={dept.departmentName}
-                        >
-                          {dept.departmentName}
-                        </option>
-                      ))}
-                    </select>
-                  </span>
-                </div>
+            <EditQuickActions
+              apt={apt}
+              onRescheduleClick={onRescheduleClick}
+              onCancelClick={onCancelClick}
+              onClose={onClose}
+            />
 
-                <div>
-                  <span className="block text-xs font-bold text-[#111827] mb-1">
-                    Doctor *
-                    <select
-                      aria-label="Select option"
-                      value={form.doctorName}
-                      onChange={(e) => handleDoctorChange(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none"
-                    >
-                      {doctors.length === 0 && (
-                        <option value="">Loading doctors...</option>
-                      )}
-                      {doctors.map((doc) => (
-                        <option key={doc.id} value={doc.name}>
-                          {doc.name} (
-                          {doc.departmentName || doc.department || ""})
-                        </option>
-                      ))}
-                    </select>
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <span className="block text-xs font-bold text-[#111827] mb-1">
-                    Appointment Date *
-                    <input
-                      aria-label="Input field"
-                      type="date"
-                      value={form.appointmentDate}
-                      onChange={(e) =>
-                        setField("appointmentDate", e.target.value)
-                      }
-                      className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
-                    />
-                  </span>
-                </div>
-
-                <div>
-                  <span className="block text-xs font-bold text-[#111827] mb-1">
-                    Time Slot *
-                    <input
-                      aria-label="Input field"
-                      type="text"
-                      value={form.timeSlot}
-                      onChange={(e) => setField("timeSlot", e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none"
-                    />
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <span className="block text-xs font-bold text-[#111827] mb-1">
-                  Status Dropdown *
-                  <select
-                    aria-label="Select option"
-                    value={form.status}
-                    onChange={(e) =>
-                      setField("status", e.target.value as AppointmentStatus)
-                    }
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1]"
-                  >
-                    <option value="Scheduled">Scheduled</option>
-                    <option value="Checked-In">Checked-In</option>
-                    <option value="Waiting">Waiting</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
-                </span>
-              </div>
-            </div>
-
-            <div className="p-3.5 bg-slate-100 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
-              <div>
-                <span
-                  className="text-xs font-bold text-[#111827] block"
-                  style={{ fontFamily: PP }}
-                >
-                  Quick Actions
-                </span>
-                <span className="text-[10px] text-slate-500">
-                  Reschedule date/time or cancel appointment
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    onRescheduleClick(apt);
-                    onClose();
-                  }}
-                  className="px-2.5 py-1.5 rounded-xl border border-teal-200 bg-teal-50 text-[#009688] text-[11px] font-bold hover:bg-teal-100 transition-colors flex items-center gap-1"
-                >
-                  <CalendarIcon size={12} /> Reschedule
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onCancelClick(apt);
-                    onClose();
-                  }}
-                  className="px-2.5 py-1.5 rounded-xl border border-red-200 bg-red-50 text-[#EF4444] text-[11px] font-bold hover:bg-red-100 transition-colors flex items-center gap-1"
-                >
-                  <Ban size={12} /> Cancel
-                </button>
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-gray-200 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-5 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-1 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors shadow-sm"
-                style={{ fontFamily: PP }}
-              >
-                Save Changes
-              </button>
-            </div>
+            <EditDrawerFooter onClose={onClose} />
           </form>
         </div>
       </div>

@@ -42,7 +42,15 @@ export function QuickActionsCards() {
         ].map((qa) => {
           const IconC = qa.icon;
           return (
-            <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+            <div
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  (e.currentTarget as HTMLElement).click();
+                }
+              }}
+              role="button"
               key={qa.title}
               onClick={qa.action}
               style={{
@@ -54,7 +62,8 @@ export function QuickActionsCards() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                transition: "background-color 0.15s ease, border-color 0.15s ease",
+                transition:
+                  "background-color 0.15s ease, border-color 0.15s ease",
                 boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
               }}
             >

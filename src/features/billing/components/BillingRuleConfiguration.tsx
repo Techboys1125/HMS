@@ -74,7 +74,8 @@ export function BillingRuleConfiguration({
             >
               {item.label}
             </span>
-            <input aria-label="Toggle option"
+            <input
+              aria-label="Toggle option"
               type="checkbox"
               checked={
                 (billingRules as unknown as Record<string, boolean>)[item.key]
@@ -102,25 +103,26 @@ export function BillingRuleConfiguration({
           }}
         >
           Grace Period for Pending Payments (Days)
-        
-        <input aria-label="Input field"
-          type="number"
-          value={billingRules.gracePeriodDays}
-          onChange={(e) =>
-            setBillingRules((prev) => ({
-              ...prev,
-              gracePeriodDays: e.currentTarget.valueAsNumber || 0,
-            }))
-          }
-          style={{
-            width: "100%",
-            padding: "9px 12px",
-            borderRadius: "8px",
-            border: "1px solid #D1D5DB",
-            fontSize: "13px",
-            boxSizing: "border-box",
-          }}
-        /></span>
+          <input
+            aria-label="Input field"
+            type="number"
+            value={billingRules.gracePeriodDays}
+            onChange={(e) =>
+              setBillingRules((prev) => ({
+                ...prev,
+                gracePeriodDays: e.currentTarget.valueAsNumber || 0,
+              }))
+            }
+            style={{
+              width: "100%",
+              padding: "9px 12px",
+              borderRadius: "8px",
+              border: "1px solid #D1D5DB",
+              fontSize: "13px",
+              boxSizing: "border-box",
+            }}
+          />
+        </span>
       </div>
     </div>
   );

@@ -90,10 +90,9 @@ const formatVitalValue = (val: unknown, unit: string) => {
   return `${str} ${unit}`;
 };
 
-
 const handlePrint = () => {
-    window.print();
-  };
+  window.print();
+};
 
 export function ConsultationDetailsScreen({
   consultationId,
@@ -381,7 +380,6 @@ export function ConsultationDetailsScreen({
 
   const navigate = useNavigate();
 
-
   const handleDownloadPdf = () => {
     downloadConsultationPdf(record);
   };
@@ -395,7 +393,7 @@ export function ConsultationDetailsScreen({
 
   if (loading) {
     return (
-      <div className="flex-1 bg-[#F1F5F9] p-12 flex flex-col items-center justify-center min-h-[400px]">
+      <div className="flex-1 bg-[#F1F5F9] p-12 flex flex-col items-center justify-center min-h-100">
         <Loader2 size={32} className="animate-spin text-[#0D47A1] mb-3" />
         <p
           className="text-sm font-semibold text-slate-600"

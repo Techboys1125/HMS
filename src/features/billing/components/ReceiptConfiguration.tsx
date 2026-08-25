@@ -64,7 +64,8 @@ export function ReceiptConfiguration({
               textAlign: "center",
             }}
           >
-            <input aria-label="Toggle option"
+            <input
+              aria-label="Toggle option"
               type="checkbox"
               checked={
                 (receiptConfig as unknown as Record<string, boolean>)[item.key]
@@ -107,7 +108,8 @@ export function ReceiptConfiguration({
         >
           Official Receipt Footer Terms & Notes
         </span>
-        <textarea aria-label="Text input"
+        <textarea
+          aria-label="Text input"
           rows={3}
           value={receiptConfig.footerNotes}
           onChange={(e) =>

@@ -92,7 +92,10 @@ export const normalizeAppointmentRecord = (
     knownDoc?.department ||
     "General Medicine") as string;
 
-  const rawStatus = (item?.status || item?.appointmentStatus || item?.state || "SCHEDULED") as string;
+  const rawStatus = (item?.status ||
+    item?.appointmentStatus ||
+    item?.state ||
+    "SCHEDULED") as string;
   const displayStatus = toDisplayStatus(rawStatus) || "Booked";
 
   return {
@@ -111,7 +114,10 @@ export const normalizeAppointmentRecord = (
       string | undefined,
     doctorId: (item?.doctorId ?? doctor?.doctorId ?? doctor?.id ?? "") as
       string | number,
-    doctorName: (item?.doctorName || doctor?.name || doctor?.fullName || "") as string,
+    doctorName: (item?.doctorName ||
+      doctor?.name ||
+      doctor?.fullName ||
+      "") as string,
     appointmentDate,
     startTime,
     endTime: item?.endTime as string | undefined,
@@ -130,7 +136,10 @@ export const normalizeAppointmentRecord = (
           : undefined,
     departmentName: resolvedDeptName,
     department: resolvedDeptName,
-    specialty: (item?.specialty || doctor?.specialty || resolvedDeptName || "General Medicine") as string,
+    specialty: (item?.specialty ||
+      doctor?.specialty ||
+      resolvedDeptName ||
+      "General Medicine") as string,
 
     patient: patient as unknown as PatientSummary,
     doctor: doctor as unknown as DoctorSummary,
@@ -693,8 +702,10 @@ export const appointmentService = {
           d.department ??
           d.primaryDepartment?.departmentName ??
           "",
-        departmentId:
-          (d.departmentId ?? d.primaryDepartment?.departmentId ?? departmentId ?? "") as string | number,
+        departmentId: (d.departmentId ??
+          d.primaryDepartment?.departmentId ??
+          departmentId ??
+          "") as string | number,
         specialty:
           d.specialty ??
           d.primarySpecialty?.specialtyName ??

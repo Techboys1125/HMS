@@ -72,7 +72,8 @@ export function PatientMyBillsPage() {
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
             style={{ fontFamily: RB }}
           >
-            <button type="button"
+            <button
+              type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/dashboard")}
             >
@@ -213,7 +214,8 @@ export function PatientMyBillsPage() {
               className="absolute left-3.5 top-2.5 text-slate-400"
               size={16}
             />
-            <input aria-label="Input field"
+            <input
+              aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -222,7 +224,8 @@ export function PatientMyBillsPage() {
             />
           </div>
           <div>
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 font-semibold text-slate-700 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
@@ -317,7 +320,11 @@ export function PatientMyBillsPage() {
                     className="hover:bg-slate-50/70 transition-colors"
                   >
                     <td className="py-3 px-4 font-mono font-bold text-[#0D47A1]">
-                      {inv.id ? (String(inv.id).startsWith("BL-") ? String(inv.id) : `BL-2026-${String(inv.id).padStart(6, "0")}`) : inv.id}
+                      {inv.id
+                        ? String(inv.id).startsWith("BL-")
+                          ? String(inv.id)
+                          : `BL-2026-${String(inv.id).padStart(6, "0")}`
+                        : inv.id}
                     </td>
                     <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
                       {inv.invoiceDate}

@@ -103,7 +103,8 @@ export function GeneralAppointmentSettings() {
                 {item.sub}
               </div>
             </div>
-            <input aria-label="Toggle option"
+            <input
+              aria-label="Toggle option"
               type="checkbox"
               checked={
                 (generalConfig as unknown as Record<string, boolean>)[item.key]
@@ -143,25 +144,26 @@ export function GeneralAppointmentSettings() {
             }}
           >
             Maximum Advance Booking Limit (Days)
-          
-          <input aria-label="Input field"
-            type="number"
-            value={generalConfig.maxAdvanceBookingDays}
-            onChange={(e) =>
-              setGeneralConfig((prev) => ({
-                ...prev,
-                maxAdvanceBookingDays: e.currentTarget.valueAsNumber || 0,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="number"
+              value={generalConfig.maxAdvanceBookingDays}
+              onChange={(e) =>
+                setGeneralConfig((prev) => ({
+                  ...prev,
+                  maxAdvanceBookingDays: e.currentTarget.valueAsNumber || 0,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
         <div>
           <span
@@ -174,25 +176,26 @@ export function GeneralAppointmentSettings() {
             }}
           >
             Minimum Advance Booking Lead Time (Hours)
-          
-          <input aria-label="Input field"
-            type="number"
-            value={generalConfig.minAdvanceBookingHours}
-            onChange={(e) =>
-              setGeneralConfig((prev) => ({
-                ...prev,
-                minAdvanceBookingHours: e.currentTarget.valueAsNumber || 0,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="number"
+              value={generalConfig.minAdvanceBookingHours}
+              onChange={(e) =>
+                setGeneralConfig((prev) => ({
+                  ...prev,
+                  minAdvanceBookingHours: e.currentTarget.valueAsNumber || 0,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
       </div>
     </div>

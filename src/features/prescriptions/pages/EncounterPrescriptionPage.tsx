@@ -26,9 +26,7 @@ const getDoseString = (dose?: PrescriptionMedicationItem["dose"]) => {
   return "—";
 };
 
-const getFrequencyString = (
-  freq?: PrescriptionMedicationItem["frequency"],
-) => {
+const getFrequencyString = (freq?: PrescriptionMedicationItem["frequency"]) => {
   if (!freq) return "—";
   if (typeof freq === "string") return freq;
   if (typeof freq === "object") {
@@ -120,13 +118,6 @@ export const EncounterPrescriptionPage: React.FC = () => {
     enabled: Boolean(encounterId),
   });
 
-
-
-
-
-
-
-
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
       {/* Stylesheet for printing */}
@@ -173,7 +164,8 @@ export const EncounterPrescriptionPage: React.FC = () => {
                 <ArrowLeft size={13} /> Back
               </button>
               <ChevronRight size={12} />
-              <button type="button"
+              <button
+                type="button"
                 className="hover:text-[#0D47A1] cursor-pointer"
                 onClick={() => navigate("/prescriptions")}
               >
@@ -204,7 +196,7 @@ export const EncounterPrescriptionPage: React.FC = () => {
             <button
               onClick={handlePrint}
               disabled={isLoading || !prescription}
-              className="inline-flex items-center gap-2 px-5 py-2 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-colors transition-opacity shadow-sm cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-opacity shadow-sm cursor-pointer disabled:opacity-50"
               style={{ fontFamily: PP }}
             >
               <Printer size={15} />

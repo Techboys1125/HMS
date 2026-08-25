@@ -311,8 +311,6 @@ export function PatientProfileScreen({
     billingPage * billingPageSize,
   );
 
-
-
   const userRole = useAuthStore((s) => s.user?.role);
   const normalizedRole: Role =
     String(userRole || "").toUpperCase() === "RECEPTIONIST"
@@ -327,7 +325,9 @@ export function PatientProfileScreen({
               ? "DOCTOR"
               : "ADMIN";
 
-  const tabs = PATIENT_PROFILE_TABS.filter((t) => can(normalizedRole, t.action));
+  const tabs = PATIENT_PROFILE_TABS.filter((t) =>
+    can(normalizedRole, t.action),
+  );
 
   if (loading) {
     return (
@@ -374,7 +374,8 @@ export function PatientProfileScreen({
         {/* ── HEADER & BREADCRUMBS ── */}
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <button aria-label="Previous"
+            <button
+              aria-label="Previous"
               onClick={onBack}
               className="p-1.5 -ml-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
             >

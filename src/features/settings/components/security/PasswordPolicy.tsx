@@ -66,7 +66,8 @@ export function PasswordPolicy() {
               textAlign: "center",
             }}
           >
-            <input aria-label="Toggle option"
+            <input
+              aria-label="Toggle option"
               type="checkbox"
               checked={
                 passPolicy[item.key as keyof typeof passPolicy] as boolean
@@ -115,25 +116,26 @@ export function PasswordPolicy() {
             }}
           >
             Minimum Password Length
-          
-          <input aria-label="Input field"
-            type="number"
-            value={passPolicy.minLength}
-            onChange={(e) =>
-              setPassPolicy((prev) => ({
-                ...prev,
-                minLength: e.currentTarget.valueAsNumber || 8,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "9px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="number"
+              value={passPolicy.minLength}
+              onChange={(e) =>
+                setPassPolicy((prev) => ({
+                  ...prev,
+                  minLength: e.currentTarget.valueAsNumber || 8,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "9px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -147,30 +149,31 @@ export function PasswordPolicy() {
             }}
           >
             Password Expiry Duration
-          
-          <select aria-label="Select option"
-            value={passPolicy.expiryDays}
-            onChange={(e) =>
-              setPassPolicy((prev) => ({
-                ...prev,
-                expiryDays: e.target.value,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "9px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          >
-            <option>30 Days</option>
-            <option>60 Days</option>
-            <option>90 Days</option>
-            <option>180 Days</option>
-            <option>Never</option>
-          </select></span>
+            <select
+              aria-label="Select option"
+              value={passPolicy.expiryDays}
+              onChange={(e) =>
+                setPassPolicy((prev) => ({
+                  ...prev,
+                  expiryDays: e.target.value,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "9px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            >
+              <option>30 Days</option>
+              <option>60 Days</option>
+              <option>90 Days</option>
+              <option>180 Days</option>
+              <option>Never</option>
+            </select>
+          </span>
         </div>
 
         <div>
@@ -184,28 +187,29 @@ export function PasswordPolicy() {
             }}
           >
             Password History Restriction
-          
-          <select aria-label="Select option"
-            value={passPolicy.historyCount}
-            onChange={(e) =>
-              setPassPolicy((prev) => ({
-                ...prev,
-                historyCount: e.target.value,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "9px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          >
-            <option>Remember Last 3 Passwords</option>
-            <option>Remember Last 5 Passwords</option>
-            <option>Remember Last 10 Passwords</option>
-          </select></span>
+            <select
+              aria-label="Select option"
+              value={passPolicy.historyCount}
+              onChange={(e) =>
+                setPassPolicy((prev) => ({
+                  ...prev,
+                  historyCount: e.target.value,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "9px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            >
+              <option>Remember Last 3 Passwords</option>
+              <option>Remember Last 5 Passwords</option>
+              <option>Remember Last 10 Passwords</option>
+            </select>
+          </span>
         </div>
       </div>
     </div>

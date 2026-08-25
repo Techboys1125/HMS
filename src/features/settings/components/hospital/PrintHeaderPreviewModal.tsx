@@ -68,7 +68,8 @@ export function PrintHeaderPreviewModal({
             <Printer size={18} style={{ color: "#0D47A1" }} /> Official Print
             Header Template Preview
           </h3>
-          <button aria-label="Close"
+          <button
+            aria-label="Close"
             onClick={onClose}
             style={{
               border: "none",

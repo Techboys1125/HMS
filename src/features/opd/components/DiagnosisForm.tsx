@@ -57,15 +57,16 @@ export const DiagnosisForm: React.FC<DiagnosisFormProps> = ({
             style={{ fontFamily: PP }}
           >
             Provisional Diagnosis
-          
-          <input aria-label="Input field"
-            type="text"
-            value={provisionalDiagnosis}
-            onChange={(e) => onChange("provisionalDiagnosis", e.target.value)}
-            placeholder="e.g. Suspected Angina / Acute Coronary Syndrome"
-            className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-            style={{ fontFamily: RB }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={provisionalDiagnosis}
+              onChange={(e) => onChange("provisionalDiagnosis", e.target.value)}
+              placeholder="e.g. Suspected Angina / Acute Coronary Syndrome"
+              className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
+              style={{ fontFamily: RB }}
+            />
+          </span>
         </div>
 
         <div>
@@ -74,15 +75,16 @@ export const DiagnosisForm: React.FC<DiagnosisFormProps> = ({
             style={{ fontFamily: PP }}
           >
             Final Diagnosis
-          
-          <input aria-label="Input field"
-            type="text"
-            value={finalDiagnosis}
-            onChange={(e) => onChange("finalDiagnosis", e.target.value)}
-            placeholder="e.g. Angina Pectoris, unspecified"
-            className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-            style={{ fontFamily: RB }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={finalDiagnosis}
+              onChange={(e) => onChange("finalDiagnosis", e.target.value)}
+              placeholder="e.g. Angina Pectoris, unspecified"
+              className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
+              style={{ fontFamily: RB }}
+            />
+          </span>
         </div>
       </div>
 
@@ -99,7 +101,8 @@ export const DiagnosisForm: React.FC<DiagnosisFormProps> = ({
             size={16}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
           />
-          <input aria-label="Input field"
+          <input
+            aria-label="Input field"
             type="text"
             value={icdSearchQuery}
             onChange={(e) => {

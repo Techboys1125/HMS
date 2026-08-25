@@ -11,7 +11,7 @@ export type AuthScreen =
   | "success";
 
 export interface User {
-  age: any;
+  age?: number | string;
   address: string;
   dob: string;
   mobileNumber: string;

@@ -37,7 +37,6 @@ export const InvestigationTable: React.FC<InvestigationTableProps> = ({
   remarks,
   onChange,
 }) => {
-
   return (
     <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-4">
       <div className="flex items-center gap-2 border-b border-gray-100 pb-3">
@@ -82,16 +81,17 @@ export const InvestigationTable: React.FC<InvestigationTableProps> = ({
             style={{ fontFamily: PP }}
           >
             Custom Investigation Details (If 'Other' selected)
-          
-          <input aria-label="Input field"
-            type="text"
-            value={customInvestigation}
-            disabled={!values.other}
-            onChange={(e) => onChange("customInvestigation", e.target.value)}
-            placeholder="e.g. 2D Echocardiogram, Troponin-I STAT"
-            className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors disabled:bg-slate-100 disabled:text-slate-400"
-            style={{ fontFamily: RB }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={customInvestigation}
+              disabled={!values.other}
+              onChange={(e) => onChange("customInvestigation", e.target.value)}
+              placeholder="e.g. 2D Echocardiogram, Troponin-I STAT"
+              className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors disabled:bg-slate-100 disabled:text-slate-400"
+              style={{ fontFamily: RB }}
+            />
+          </span>
         </div>
         <div>
           <span
@@ -99,15 +99,16 @@ export const InvestigationTable: React.FC<InvestigationTableProps> = ({
             style={{ fontFamily: PP }}
           >
             Clinical Remarks & Instructions
-          
-          <input aria-label="Input field"
-            type="text"
-            value={remarks}
-            onChange={(e) => onChange("investigationRemarks", e.target.value)}
-            placeholder="e.g. Perform Troponin test immediately and report result."
-            className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
-            style={{ fontFamily: RB }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={remarks}
+              onChange={(e) => onChange("investigationRemarks", e.target.value)}
+              placeholder="e.g. Perform Troponin test immediately and report result."
+              className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-xl bg-slate-50 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
+              style={{ fontFamily: RB }}
+            />
+          </span>
         </div>
       </div>
     </div>
