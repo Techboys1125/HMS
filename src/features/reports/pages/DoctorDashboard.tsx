@@ -224,7 +224,8 @@ export function DoctorReportsDashboardScreen({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input aria-label="Input field"
+            <input
+              aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -261,49 +262,52 @@ export function DoctorReportsDashboardScreen({
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              
-              <select aria-label="Select option"
-                value={dateRangeFilter}
-                onChange={(e) => setDateRangeFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>Today</option>
-                <option>Yesterday</option>
-                <option>Last 7 Days</option>
-                <option>This Month</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={dateRangeFilter}
+                  onChange={(e) => setDateRangeFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>Today</option>
+                  <option>Yesterday</option>
+                  <option>Last 7 Days</option>
+                  <option>This Month</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Appointment Status
-              
-              <select aria-label="Select option"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Statuses</option>
-                <option>Completed</option>
-                <option>In Progress</option>
-                <option>Scheduled</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Statuses</option>
+                  <option>Completed</option>
+                  <option>In Progress</option>
+                  <option>Scheduled</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Visit Type
-              
-              <select aria-label="Select option"
-                value={visitTypeFilter}
-                onChange={(e) => setVisitTypeFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Visit Types</option>
-                <option>New Consultation</option>
-                <option>Follow-up Visit</option>
-                <option>Routine Checkup</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={visitTypeFilter}
+                  onChange={(e) => setVisitTypeFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Visit Types</option>
+                  <option>New Consultation</option>
+                  <option>Follow-up Visit</option>
+                  <option>Routine Checkup</option>
+                </select>
+              </span>
             </div>
           </div>
 
@@ -401,7 +405,15 @@ export function DoctorReportsDashboardScreen({
               {/* TOP 6 DOCTOR KPI CARDS */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Card 1: Today's Appointments */}
-                <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+                <div
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      (e.currentTarget as HTMLElement).click();
+                    }
+                  }}
+                  role="button"
                   onClick={() => navigate(ROUTES.DOCTOR_APPOINTMENTS)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
@@ -444,7 +456,15 @@ export function DoctorReportsDashboardScreen({
                 </div>
 
                 {/* Card 2: My Patients */}
-                <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+                <div
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      (e.currentTarget as HTMLElement).click();
+                    }
+                  }}
+                  role="button"
                   onClick={() => navigate(ROUTES.DOCTOR_PATIENTS)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
@@ -487,7 +507,15 @@ export function DoctorReportsDashboardScreen({
                 </div>
 
                 {/* Card 3: Completed Consultations */}
-                <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+                <div
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      (e.currentTarget as HTMLElement).click();
+                    }
+                  }}
+                  role="button"
                   onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
@@ -524,7 +552,15 @@ export function DoctorReportsDashboardScreen({
                 </div>
 
                 {/* Card 4: Follow-up Patients */}
-                <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+                <div
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      (e.currentTarget as HTMLElement).click();
+                    }
+                  }}
+                  role="button"
                   onClick={() => navigate(ROUTES.DOCTOR_APPOINTMENTS)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
@@ -561,7 +597,15 @@ export function DoctorReportsDashboardScreen({
                 </div>
 
                 {/* Card 5: Average Consultation Time */}
-                <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+                <div
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      (e.currentTarget as HTMLElement).click();
+                    }
+                  }}
+                  role="button"
                   onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
                 >
@@ -598,7 +642,15 @@ export function DoctorReportsDashboardScreen({
                 </div>
 
                 {/* Card 6: Patient Satisfaction */}
-                <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+                <div
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      (e.currentTarget as HTMLElement).click();
+                    }
+                  }}
+                  role="button"
                   onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
                   className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between cursor-pointer group"
                 >
@@ -643,7 +695,7 @@ export function DoctorReportsDashboardScreen({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                   {/* Report 1: Daily Appointment Report */}
-                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#0D47A1] hover:shadow-md transition-colors transition-shadow flex flex-col justify-between group bg-white">
+                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#0D47A1] hover:shadow-md transition-colors flex flex-col justify-between group bg-white">
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <div className="p-2.5 rounded-xl bg-blue-50 text-[#0D47A1]">
@@ -679,7 +731,7 @@ export function DoctorReportsDashboardScreen({
                   </div>
 
                   {/* Report 2: Patient Report */}
-                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#009688] hover:shadow-md transition-colors transition-shadow flex flex-col justify-between group bg-white">
+                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#009688] hover:shadow-md transition-colors flex flex-col justify-between group bg-white">
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <div className="p-2.5 rounded-xl bg-teal-50 text-[#009688]">
@@ -715,7 +767,7 @@ export function DoctorReportsDashboardScreen({
                   </div>
 
                   {/* Report 3: Doctor Performance Report */}
-                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#0D47A1] hover:shadow-md transition-colors transition-shadow flex flex-col justify-between group bg-white">
+                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#0D47A1] hover:shadow-md transition-colors flex flex-col justify-between group bg-white">
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <div className="p-2.5 rounded-xl bg-indigo-50 text-[#0D47A1]">
@@ -751,7 +803,7 @@ export function DoctorReportsDashboardScreen({
                   </div>
 
                   {/* Report 4: Dashboard KPI Detail */}
-                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#009688] hover:shadow-md transition-colors transition-shadow flex flex-col justify-between group bg-white">
+                  <div className="border border-[#E5E7EB] rounded-2xl p-4 hover:border-[#009688] hover:shadow-md transition-colors flex flex-col justify-between group bg-white">
                     <div>
                       <div className="flex items-center justify-between mb-3">
                         <div className="p-2.5 rounded-xl bg-emerald-50 text-[#009688]">

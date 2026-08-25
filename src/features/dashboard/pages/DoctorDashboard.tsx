@@ -62,7 +62,15 @@ function DKpi({
   onClick?: () => void;
 }) {
   return (
-    <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+    <div
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          (e.currentTarget as HTMLElement).click();
+        }
+      }}
+      role="button"
       onClick={onClick}
       className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
         onClick
@@ -153,7 +161,11 @@ function Av({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const bg = DOCTOR_AVATAR_PALETTE[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % DOCTOR_AVATAR_PALETTE.length];
+  const bg =
+    DOCTOR_AVATAR_PALETTE[
+      (safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) %
+        DOCTOR_AVATAR_PALETTE.length
+    ];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -305,7 +317,6 @@ export function DoctorDashboard() {
   const rawTimeline = todayAppointmentsQuery.data?.timeline;
   const timelineItems = useMemo(() => rawTimeline || [], [rawTimeline]);
   const consultationQueue = consultationQueueQuery.data;
-
 
   const hourlyProgress = useMemo(() => {
     const hours = Array.from(

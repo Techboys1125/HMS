@@ -337,15 +337,17 @@ export const UserManagement: React.FC = () => {
               (u: User & { userId?: number }, index: number) => {
                 const userId = u.userId ?? u.id;
                 const roleDisplay =
-                  BACKEND_TO_DISPLAY_ROLE[String(u.role).toUpperCase()] || "Doctor";
+                  BACKEND_TO_DISPLAY_ROLE[String(u.role).toUpperCase()] ||
+                  "Doctor";
                 const uid = userId ? String(userId) : `user-record-${index}`;
                 const statusDisplay =
                   localStatusOverrides[uid] ||
                   BACKEND_TO_DISPLAY_STATUS[String(u.status).toUpperCase()] ||
                   "Active";
                 const deptId =
-                  Number(u.primaryDepartmentId ?? u.departmentId ?? u.hospitalId) ||
-                  undefined;
+                  Number(
+                    u.primaryDepartmentId ?? u.departmentId ?? u.hospitalId,
+                  ) || undefined;
 
                 const uRecord = u as unknown as Record<string, unknown>;
                 const doctorProfile = uRecord.doctorProfile as
@@ -401,7 +403,9 @@ export const UserManagement: React.FC = () => {
       } catch (err: unknown) {
         if (active) {
           const errMsg =
-            err instanceof Error ? err.message : "Error fetching staff accounts";
+            err instanceof Error
+              ? err.message
+              : "Error fetching staff accounts";
           setErrorMsg(errMsg);
         }
       } finally {
@@ -759,7 +763,8 @@ export const UserManagement: React.FC = () => {
                   size={15}
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                 />
-                <input aria-label="Input field"
+                <input
+                  aria-label="Input field"
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -767,7 +772,8 @@ export const UserManagement: React.FC = () => {
                   className="w-full pl-9 pr-3.5 py-2.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
                 />
                 {searchQuery && (
-                  <button aria-label="Close"
+                  <button
+                    aria-label="Close"
                     onClick={() => setSearchQuery("")}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
@@ -782,7 +788,8 @@ export const UserManagement: React.FC = () => {
                 <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
                   <Shield size={13} className="text-slate-400" />
                   <span className="text-slate-500 font-medium">Role:</span>
-                  <select aria-label="Select option"
+                  <select
+                    aria-label="Select option"
                     value={roleFilter}
                     onChange={(e) => setRoleFilter(e.target.value)}
                     className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
@@ -802,7 +809,8 @@ export const UserManagement: React.FC = () => {
                 <div className="flex items-center gap-1.5 bg-slate-50 border border-[#E5E7EB] px-3 py-1.5 rounded-xl">
                   <Filter size={13} className="text-slate-400" />
                   <span className="text-slate-500 font-medium">Status:</span>
-                  <select aria-label="Select option"
+                  <select
+                    aria-label="Select option"
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                     className="bg-transparent font-semibold text-[#111827] outline-none cursor-pointer"
@@ -866,7 +874,14 @@ export const UserManagement: React.FC = () => {
                       className="text-[#64748B] font-bold"
                       style={{ fontFamily: PP }}
                     >
-                      <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
+                      <th
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            (e.currentTarget as HTMLElement).click();
+                          }
+                        }}
                         onClick={() => handleSort("empId")}
                         className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
                       >
@@ -875,7 +890,14 @@ export const UserManagement: React.FC = () => {
                           <ArrowUpDown size={12} className="text-slate-400" />
                         </div>
                       </th>
-                      <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
+                      <th
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            (e.currentTarget as HTMLElement).click();
+                          }
+                        }}
                         onClick={() => handleSort("fullName")}
                         className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
                       >
@@ -884,7 +906,14 @@ export const UserManagement: React.FC = () => {
                           <ArrowUpDown size={12} className="text-slate-400" />
                         </div>
                       </th>
-                      <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
+                      <th
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            (e.currentTarget as HTMLElement).click();
+                          }
+                        }}
                         onClick={() => handleSort("role")}
                         className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
                       >
@@ -896,7 +925,14 @@ export const UserManagement: React.FC = () => {
 
                       <th className="px-4 py-3.5">Email</th>
                       <th className="px-4 py-3.5">Phone</th>
-                      <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
+                      <th
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            (e.currentTarget as HTMLElement).click();
+                          }
+                        }}
                         onClick={() => handleSort("status")}
                         className="px-4 py-3.5 cursor-pointer hover:text-[#0D47A1] transition-colors"
                       >
@@ -1138,7 +1174,8 @@ export const UserManagement: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 pl-3">
                   <span>Rows:</span>
-                  <select aria-label="Select option"
+                  <select
+                    aria-label="Select option"
                     value={pageSize}
                     onChange={(e) => {
                       setPageSize(Number(e.target.value));
@@ -1206,7 +1243,8 @@ export const UserManagement: React.FC = () => {
       {/* ── 7. RIGHT DRAWER: VIEW DETAILS ── */}
       {detailsUser && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <div role="presentation"
+          <div
+            role="presentation"
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
             onClick={() => setDetailsUser(null)}
           />
@@ -1224,7 +1262,8 @@ export const UserManagement: React.FC = () => {
                     Auditing record fields for {detailsUser.empId}
                   </p>
                 </div>
-                <button aria-label="Close"
+                <button
+                  aria-label="Close"
                   onClick={() => setDetailsUser(null)}
                   className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10 cursor-pointer"
                 >
@@ -1512,7 +1551,8 @@ export const UserManagement: React.FC = () => {
                 <Key size={16} className="text-amber-500" /> Administrative
                 Password Reset
               </h3>
-              <button aria-label="Close"
+              <button
+                aria-label="Close"
                 onClick={() => setResetPassUser(null)}
                 className="text-white/80 hover:text-white cursor-pointer"
               >
@@ -1577,7 +1617,8 @@ export const UserManagement: React.FC = () => {
                 <Shield size={16} className="text-[#0D47A1]" /> Administrative
                 Account Control
               </h3>
-              <button aria-label="Close"
+              <button
+                aria-label="Close"
                 onClick={() => setStatusDialogUser(null)}
                 className="text-white/80 hover:text-white cursor-pointer"
               >

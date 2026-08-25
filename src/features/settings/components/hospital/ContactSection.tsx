@@ -58,20 +58,21 @@ export function ContactSection({
             }}
           >
             Primary Phone Number *
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.primaryPhone}
-            onChange={(e) => onChange("primaryPhone", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: `1px solid ${errors.primaryPhone ? "#EF4444" : "#D1D5DB"}`,
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.primaryPhone}
+              onChange={(e) => onChange("primaryPhone", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: `1px solid ${errors.primaryPhone ? "#EF4444" : "#D1D5DB"}`,
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
           {errors.primaryPhone && (
             <span
               style={{
@@ -97,20 +98,21 @@ export function ContactSection({
             }}
           >
             Secondary Phone Number
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.secondaryPhone}
-            onChange={(e) => onChange("secondaryPhone", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.secondaryPhone}
+              onChange={(e) => onChange("secondaryPhone", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -124,22 +126,23 @@ export function ContactSection({
             }}
           >
             Emergency Contact Hotline (24/7)
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.emergencyPhone}
-            onChange={(e) => onChange("emergencyPhone", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-              color: "#EF4444",
-              fontWeight: 600,
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.emergencyPhone}
+              onChange={(e) => onChange("emergencyPhone", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+                color: "#EF4444",
+                fontWeight: 600,
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -153,20 +156,21 @@ export function ContactSection({
             }}
           >
             Official Email Address *
-          
-          <input aria-label="Input field"
-            type="email"
-            value={form.officialEmail}
-            onChange={(e) => onChange("officialEmail", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: `1px solid ${errors.officialEmail ? "#EF4444" : "#D1D5DB"}`,
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="email"
+              value={form.officialEmail}
+              onChange={(e) => onChange("officialEmail", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: `1px solid ${errors.officialEmail ? "#EF4444" : "#D1D5DB"}`,
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
           {errors.officialEmail && (
             <span
               style={{
@@ -192,20 +196,21 @@ export function ContactSection({
             }}
           >
             Official Website URL
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.website}
-            onChange={(e) => onChange("website", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: `1px solid ${errors.website ? "#EF4444" : "#D1D5DB"}`,
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.website}
+              onChange={(e) => onChange("website", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: `1px solid ${errors.website ? "#EF4444" : "#D1D5DB"}`,
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
           {errors.website && (
             <span
               style={{
@@ -231,20 +236,21 @@ export function ContactSection({
             }}
           >
             Support / Helpdesk Email
-          
-          <input aria-label="Input field"
-            type="email"
-            value={form.supportEmail}
-            onChange={(e) => onChange("supportEmail", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="email"
+              value={form.supportEmail}
+              onChange={(e) => onChange("supportEmail", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
       </div>
 
@@ -278,20 +284,21 @@ export function ContactSection({
               }}
             >
               OPD & General Working Hours
-            
-            <input aria-label="Input field"
-              type="text"
-              value={form.workingHours}
-              onChange={(e) => onChange("workingHours", e.target.value)}
-              style={{
-                width: "100%",
-                padding: "8px 12px",
-                borderRadius: "8px",
-                border: "1px solid #D1D5DB",
-                fontSize: "13px",
-                boxSizing: "border-box",
-              }}
-            /></span>
+              <input
+                aria-label="Input field"
+                type="text"
+                value={form.workingHours}
+                onChange={(e) => onChange("workingHours", e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #D1D5DB",
+                  fontSize: "13px",
+                  boxSizing: "border-box",
+                }}
+              />
+            </span>
           </div>
         </div>
 

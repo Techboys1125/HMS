@@ -54,20 +54,21 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             Address Line 1 *
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.addressLine1}
-            onChange={(e) => onChange("addressLine1", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.addressLine1}
+              onChange={(e) => onChange("addressLine1", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div style={{ gridColumn: "span 2" }}>
@@ -81,20 +82,21 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             Address Line 2 (Building / Suite / Landmark)
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.addressLine2}
-            onChange={(e) => onChange("addressLine2", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.addressLine2}
+              onChange={(e) => onChange("addressLine2", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -108,20 +110,21 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             City
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.city}
-            onChange={(e) => onChange("city", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.city}
+              onChange={(e) => onChange("city", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -135,20 +138,21 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             District
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.district}
-            onChange={(e) => onChange("district", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.district}
+              onChange={(e) => onChange("district", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -162,20 +166,21 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             State / Province
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.state}
-            onChange={(e) => onChange("state", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.state}
+              onChange={(e) => onChange("state", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -189,20 +194,21 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             Country
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.country}
-            onChange={(e) => onChange("country", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.country}
+              onChange={(e) => onChange("country", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -216,20 +222,21 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             Postal / Zip Code
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.postalCode}
-            onChange={(e) => onChange("postalCode", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.postalCode}
+              onChange={(e) => onChange("postalCode", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -243,20 +250,21 @@ export function AddressSection({ form, onChange }: AddressSectionProps) {
             }}
           >
             Google Map Embed URL
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.mapUrl}
-            onChange={(e) => onChange("mapUrl", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.mapUrl}
+              onChange={(e) => onChange("mapUrl", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
       </div>
 

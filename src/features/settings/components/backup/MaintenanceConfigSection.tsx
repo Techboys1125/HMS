@@ -59,25 +59,26 @@ export function MaintenanceConfigSection({
             }}
           >
             Maintenance Date
-          
-          <input aria-label="Input field"
-            type="date"
-            value={maintConfig.scheduledDate}
-            onChange={(e) =>
-              setMaintConfig((prev) => ({
-                ...prev,
-                scheduledDate: e.target.value,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "9px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="date"
+              value={maintConfig.scheduledDate}
+              onChange={(e) =>
+                setMaintConfig((prev) => ({
+                  ...prev,
+                  scheduledDate: e.target.value,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "9px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -91,25 +92,26 @@ export function MaintenanceConfigSection({
             }}
           >
             Start Time
-          
-          <input aria-label="Input field"
-            type="text"
-            value={maintConfig.startTime}
-            onChange={(e) =>
-              setMaintConfig((prev) => ({
-                ...prev,
-                startTime: e.target.value,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "9px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={maintConfig.startTime}
+              onChange={(e) =>
+                setMaintConfig((prev) => ({
+                  ...prev,
+                  startTime: e.target.value,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "9px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -123,25 +125,26 @@ export function MaintenanceConfigSection({
             }}
           >
             Estimated End Time
-          
-          <input aria-label="Input field"
-            type="text"
-            value={maintConfig.endTime}
-            onChange={(e) =>
-              setMaintConfig((prev) => ({
-                ...prev,
-                endTime: e.target.value,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "9px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={maintConfig.endTime}
+              onChange={(e) =>
+                setMaintConfig((prev) => ({
+                  ...prev,
+                  endTime: e.target.value,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "9px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
       </div>
 
@@ -157,7 +160,8 @@ export function MaintenanceConfigSection({
         >
           User Broadcast Maintenance Notice
         </span>
-        <textarea aria-label="Text input"
+        <textarea
+          aria-label="Text input"
           rows={2}
           value={maintConfig.maintenanceMessage}
           onChange={(e) =>
@@ -197,7 +201,8 @@ export function MaintenanceConfigSection({
             Displays top notification banner across all active staff sessions
           </div>
         </div>
-        <input aria-label="Toggle option"
+        <input
+          aria-label="Toggle option"
           type="checkbox"
           checked={maintConfig.enableMaintenanceMode}
           onChange={(e) =>

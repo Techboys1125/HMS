@@ -106,7 +106,8 @@ export function AuthenticationSettings() {
                 {item.sub}
               </div>
             </div>
-            <input aria-label="Toggle option"
+            <input
+              aria-label="Toggle option"
               type="checkbox"
               checked={authConfig[item.key as keyof typeof authConfig]}
               onChange={(e) =>

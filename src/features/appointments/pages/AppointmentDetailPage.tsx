@@ -136,7 +136,8 @@ export function AppointmentDetailPage() {
         {/* Header */}
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <button aria-label="Previous"
+            <button
+              aria-label="Previous"
               onClick={() => navigate(ROUTES.APPOINTMENTS)}
               className="p-1.5 -ml-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
             >

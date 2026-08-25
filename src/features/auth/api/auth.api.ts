@@ -72,14 +72,15 @@ export const authApi = {
         "";
       if (!uploadedUrl && typeof resData === "string") return resData;
       if (!uploadedUrl) {
-        throw new Error("Upload succeeded but did not return a valid file URL.");
+        throw new Error(
+          "Upload succeeded but did not return a valid file URL.",
+        );
       }
       return uploadedUrl;
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const resData = error.response?.data as
-          | { message?: string }
-          | undefined;
+          { message?: string } | undefined;
         if (resData?.message) {
           throw new Error(resData.message, { cause: error });
         }

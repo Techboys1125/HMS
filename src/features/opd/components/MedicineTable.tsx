@@ -85,7 +85,8 @@ export const MedicineTable: React.FC<MedicineTableProps> = ({
                   className="hover:bg-slate-50/30 transition-colors"
                 >
                   <td className="py-2.5 px-4">
-                    <input aria-label="Input field"
+                    <input
+                      aria-label="Input field"
                       type="text"
                       value={m.name}
                       onChange={(e) => onUpdate(m.id, "name", e.target.value)}
@@ -94,7 +95,8 @@ export const MedicineTable: React.FC<MedicineTableProps> = ({
                     />
                   </td>
                   <td className="py-2.5 px-4">
-                    <input aria-label="Input field"
+                    <input
+                      aria-label="Input field"
                       type="text"
                       value={m.dosage}
                       onChange={(e) => onUpdate(m.id, "dosage", e.target.value)}
@@ -103,7 +105,8 @@ export const MedicineTable: React.FC<MedicineTableProps> = ({
                     />
                   </td>
                   <td className="py-2.5 px-4">
-                    <select aria-label="Select option"
+                    <select
+                      aria-label="Select option"
                       value={m.frequency}
                       onChange={(e) =>
                         onUpdate(m.id, "frequency", e.target.value)
@@ -119,7 +122,8 @@ export const MedicineTable: React.FC<MedicineTableProps> = ({
                     </select>
                   </td>
                   <td className="py-2.5 px-4">
-                    <input aria-label="Input field"
+                    <input
+                      aria-label="Input field"
                       type="text"
                       value={m.duration}
                       onChange={(e) =>
@@ -130,7 +134,8 @@ export const MedicineTable: React.FC<MedicineTableProps> = ({
                     />
                   </td>
                   <td className="py-2.5 px-4">
-                    <input aria-label="Input field"
+                    <input
+                      aria-label="Input field"
                       type="text"
                       value={m.instructions}
                       onChange={(e) =>
@@ -141,7 +146,8 @@ export const MedicineTable: React.FC<MedicineTableProps> = ({
                     />
                   </td>
                   <td className="py-2.5 px-4 text-center">
-                    <button aria-label="Delete"
+                    <button
+                      aria-label="Delete"
                       type="button"
                       onClick={() => onRemove(m.id)}
                       className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"

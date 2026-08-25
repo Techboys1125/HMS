@@ -489,7 +489,8 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
               </p>
             </div>
           </div>
-          <button aria-label="Close"
+          <button
+            aria-label="Close"
             onClick={onClose}
             className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
           >
@@ -667,7 +668,8 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                                     <span className="text-[10px] text-[#64748B] shrink-0">
                                       Slot duration (min)
                                     </span>
-                                    <input aria-label="Input field"
+                                    <input
+                                      aria-label="Input field"
                                       type="number"
                                       min={5}
                                       max={120}
@@ -694,7 +696,8 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                                             key={brk.startTime || bIdx}
                                             className="flex items-center gap-1.5"
                                           >
-                                            <select aria-label="Select option"
+                                            <select
+                                              aria-label="Select option"
                                               value={brk.breakType}
                                               onChange={(e) =>
                                                 setDraftBreak(pIdx, bIdx, {
@@ -993,7 +996,8 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                     ? "Edit Schedule Exception"
                     : "New Schedule Exception"}
                 </h4>
-                <button aria-label="Edit"
+                <button
+                  aria-label="Edit"
                   onClick={() => {
                     setExceptionFormOpen(false);
                     setEditingException(null);
@@ -1008,78 +1012,82 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                   <div>
                     <span className="block text-[10px] font-bold text-[#64748B] mb-1">
                       Exception Type
-                    
-                    <select aria-label="Select option"
-                      value={exceptionForm.exceptionType}
-                      onChange={(e) =>
-                        setExceptionForm((prev) => ({
-                          ...prev,
-                          exceptionType: e.target.value as ExceptionType,
-                        }))
-                      }
-                      className={inputClass}
-                    >
-                      {EXCEPTION_TYPES.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                    </select></span>
+                      <select
+                        aria-label="Select option"
+                        value={exceptionForm.exceptionType}
+                        onChange={(e) =>
+                          setExceptionForm((prev) => ({
+                            ...prev,
+                            exceptionType: e.target.value as ExceptionType,
+                          }))
+                        }
+                        className={inputClass}
+                      >
+                        {EXCEPTION_TYPES.map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </select>
+                    </span>
                   </div>
                   <div>
                     <span className="block text-[10px] font-bold text-[#64748B] mb-1">
                       Action
-                    
-                    <select aria-label="Select option"
-                      value={exceptionForm.action}
-                      onChange={(e) =>
-                        setExceptionForm((prev) => ({
-                          ...prev,
-                          action: e.target.value as ExceptionAction,
-                        }))
-                      }
-                      className={inputClass}
-                    >
-                      {EXCEPTION_ACTIONS.map((a) => (
-                        <option key={a} value={a}>
-                          {a}
-                        </option>
-                      ))}
-                    </select></span>
+                      <select
+                        aria-label="Select option"
+                        value={exceptionForm.action}
+                        onChange={(e) =>
+                          setExceptionForm((prev) => ({
+                            ...prev,
+                            action: e.target.value as ExceptionAction,
+                          }))
+                        }
+                        className={inputClass}
+                      >
+                        {EXCEPTION_ACTIONS.map((a) => (
+                          <option key={a} value={a}>
+                            {a}
+                          </option>
+                        ))}
+                      </select>
+                    </span>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <span className="block text-[10px] font-bold text-[#64748B] mb-1">
                       Start Date
-                    
-                    <input aria-label="Input field"
-                      type="date"
-                      value={exceptionForm.startDate}
-                      onChange={(e) =>
-                        setExceptionForm((prev) => ({
-                          ...prev,
-                          startDate: e.target.value,
-                        }))
-                      }
-                      className={inputClass}
-                    /></span>
+                      <input
+                        aria-label="Input field"
+                        type="date"
+                        value={exceptionForm.startDate}
+                        onChange={(e) =>
+                          setExceptionForm((prev) => ({
+                            ...prev,
+                            startDate: e.target.value,
+                          }))
+                        }
+                        className={inputClass}
+                      />
+                    </span>
                   </div>
                   <div>
                     <span className="block text-[10px] font-bold text-[#64748B] mb-1">
                       End Date
-                    
-                    <input aria-label="Input field"
-                      type="date"
-                      value={exceptionForm.endDate}
-                      onChange={(e) =>
-                        setExceptionForm((prev) => ({
-                          ...prev,
-                          endDate: e.target.value,
-                        }))
-                      }
-                      className={inputClass}
-                    /></span>
+                      <input
+                        aria-label="Input field"
+                        type="date"
+                        value={exceptionForm.endDate}
+                        onChange={(e) =>
+                          setExceptionForm((prev) => ({
+                            ...prev,
+                            endDate: e.target.value,
+                          }))
+                        }
+                        className={inputClass}
+                      />
+                    </span>
                   </div>
                 </div>
                 <div>
@@ -1140,19 +1148,20 @@ export function ScheduleModal({ isOpen, doctor, onClose }: ScheduleModalProps) {
                 <div>
                   <span className="block text-[10px] font-bold text-[#64748B] mb-1">
                     Reason
-                  
-                  <input aria-label="Input field"
-                    type="text"
-                    value={exceptionForm.reason}
-                    onChange={(e) =>
-                      setExceptionForm((prev) => ({
-                        ...prev,
-                        reason: e.target.value,
-                      }))
-                    }
-                    placeholder="e.g. Family vacation, conference, surgery..."
-                    className={inputClass}
-                  /></span>
+                    <input
+                      aria-label="Input field"
+                      type="text"
+                      value={exceptionForm.reason}
+                      onChange={(e) =>
+                        setExceptionForm((prev) => ({
+                          ...prev,
+                          reason: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g. Family vacation, conference, surgery..."
+                      className={inputClass}
+                    />
+                  </span>
                 </div>
               </div>
               <div className="p-4 border-t border-[#E5E7EB] bg-slate-50 flex items-center justify-end gap-2">

@@ -139,14 +139,16 @@ export function PaymentHistoryPage() {
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
             style={{ fontFamily: RB }}
           >
-            <button type="button"
+            <button
+              type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/billing")}
             >
               Home
             </button>
             <ChevronRight size={12} />
-            <button type="button"
+            <button
+              type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/billing")}
             >
@@ -181,7 +183,7 @@ export function PaymentHistoryPage() {
           </button>
           <button
             onClick={() => console.log("Exporting Payment History...")}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-colors transition-transform shadow-sm active:scale-95"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-colors shadow-sm active:scale-95"
             style={{ fontFamily: PP }}
           >
             <Download size={15} />
@@ -201,7 +203,8 @@ export function PaymentHistoryPage() {
               className="absolute left-3.5 top-2.5 text-slate-400"
               size={16}
             />
-            <input aria-label="Input field"
+            <input
+              aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -210,7 +213,8 @@ export function PaymentHistoryPage() {
             />
           </div>
           <div>
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 font-semibold text-slate-700 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
@@ -221,7 +225,8 @@ export function PaymentHistoryPage() {
             </select>
           </div>
           <div>
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 font-semibold text-slate-700 focus:bg-white focus:border-[#0D47A1] focus:outline-none"
@@ -238,7 +243,8 @@ export function PaymentHistoryPage() {
           style={{ fontFamily: RB }}
         >
           <div>
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={selectedMethod}
               onChange={(e) => setSelectedMethod(e.target.value)}
               className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium text-slate-700"
@@ -251,7 +257,8 @@ export function PaymentHistoryPage() {
             </select>
           </div>
           <div>
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={selectedCashier}
               onChange={(e) => setSelectedCashier(e.target.value)}
               className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium text-slate-700"
@@ -410,7 +417,8 @@ export function PaymentHistoryPage() {
                           <Printer size={14} />
                         </button>
                         <div className="relative">
-                          <button aria-label="Action"
+                          <button
+                            aria-label="Action"
                             onClick={() =>
                               setShowMoreMenuId(
                                 showMoreMenuId === p.receiptNo
@@ -469,7 +477,8 @@ export function PaymentHistoryPage() {
         >
           <div className="flex items-center gap-2">
             <span>Rows per page:</span>
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={rowsPerPage}
               onChange={(e) => {
                 const v = Number(e.currentTarget.value);
@@ -526,7 +535,8 @@ export function PaymentHistoryPage() {
                   {selectedDrawerPayment.receiptNo}
                 </h3>
               </div>
-              <button aria-label="Close"
+              <button
+                aria-label="Close"
                 onClick={() => setSelectedDrawerPayment(null)}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >

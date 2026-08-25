@@ -2,69 +2,69 @@ const getVisitTypeColor = (visitType: string): string => {
   return visitTypeColors[visitType] || "bg-slate-100 text-slate-600";
 };
 
-  const formatAppointmentTime = (time?: string): string => {
-    if (!time) return "";
-    const trimmed = String(time).trim();
-    if (!trimmed) return "";
+const formatAppointmentTime = (time?: string): string => {
+  if (!time) return "";
+  const trimmed = String(time).trim();
+  if (!trimmed) return "";
 
-    const isoMatch = trimmed.match(
-      /(\d{4})-(\d{2})-(\d{2})[T\s](\d{1,2}):(\d{2})/,
-    );
-    if (isoMatch) {
-      const [, year, month, day, hourStr, minute] = isoMatch;
-      const hour = Number(hourStr);
-      const suffix = hour >= 12 ? "PM" : "AM";
-      const hour12 = hour % 12 || 12;
-      const months = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
-      return `${day} ${months[Number(month) - 1]} ${year}, ${hour12}:${minute} ${suffix}`;
-    }
-
-    const dateOnlyMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (dateOnlyMatch) {
-      const [, year, month, day] = dateOnlyMatch;
-      const months = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
-      return `${day} ${months[Number(month) - 1]} ${year}`;
-    }
-
-    if (/AM|PM/i.test(trimmed)) return trimmed;
-
-    const timeMatch = trimmed.match(/(\d{1,2}):(\d{2})/);
-    if (!timeMatch) return trimmed;
-
-    let hour = parseInt(timeMatch[1], 10);
-    const minute = timeMatch[2];
-    if (isNaN(hour)) return trimmed;
-
+  const isoMatch = trimmed.match(
+    /(\d{4})-(\d{2})-(\d{2})[T\s](\d{1,2}):(\d{2})/,
+  );
+  if (isoMatch) {
+    const [, year, month, day, hourStr, minute] = isoMatch;
+    const hour = Number(hourStr);
     const suffix = hour >= 12 ? "PM" : "AM";
-    hour = hour % 12 || 12;
-    return `${hour}:${minute} ${suffix}`;
-  };
+    const hour12 = hour % 12 || 12;
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return `${day} ${months[Number(month) - 1]} ${year}, ${hour12}:${minute} ${suffix}`;
+  }
+
+  const dateOnlyMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateOnlyMatch) {
+    const [, year, month, day] = dateOnlyMatch;
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return `${day} ${months[Number(month) - 1]} ${year}`;
+  }
+
+  if (/AM|PM/i.test(trimmed)) return trimmed;
+
+  const timeMatch = trimmed.match(/(\d{1,2}):(\d{2})/);
+  if (!timeMatch) return trimmed;
+
+  let hour = parseInt(timeMatch[1], 10);
+  const minute = timeMatch[2];
+  if (isNaN(hour)) return trimmed;
+
+  const suffix = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12 || 12;
+  return `${hour}:${minute} ${suffix}`;
+};
 
 import React, { useState } from "react";
 import { Stethoscope } from "lucide-react";
@@ -119,8 +119,6 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
   );
-
-
 
   if (isLoading) {
     return (
@@ -267,7 +265,9 @@ export const ConsultationTable: React.FC<ConsultationTableProps> = ({
                   onCallPatient={onCallPatient}
                   onViewDetails={onViewDetails}
                   canStartConsultation={
-                    String(role).toLowerCase() === "doctor" ? true : canStartConsultation
+                    String(role).toLowerCase() === "doctor"
+                      ? true
+                      : canStartConsultation
                   }
                 />
               </tr>

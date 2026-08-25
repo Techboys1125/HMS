@@ -965,7 +965,8 @@ export function RecordPatientVitalsForm({
               <span className="text-[10px] font-bold text-[#64748B] block">
                 Chief Complaint
               </span>
-              <textarea aria-label="Text area"
+              <textarea
+                aria-label="Text area"
                 value={chiefComplaint}
                 onChange={(e) => setChiefComplaint(e.target.value)}
                 placeholder="Enter chief complaint"
@@ -978,7 +979,8 @@ export function RecordPatientVitalsForm({
               <span className="text-[10px] font-bold text-[#64748B] block">
                 Symptoms
               </span>
-              <textarea aria-label="Text area"
+              <textarea
+                aria-label="Text area"
                 value={symptoms}
                 onChange={(e) => setSymptoms(e.target.value)}
                 placeholder="Enter symptoms"
@@ -991,7 +993,8 @@ export function RecordPatientVitalsForm({
               <span className="text-[10px] font-bold text-[#64748B] block">
                 Diagnosis
               </span>
-              <textarea aria-label="Text area"
+              <textarea
+                aria-label="Text area"
                 value={diagnosis}
                 onChange={(e) => setDiagnosis(e.target.value)}
                 placeholder="Provisional diagnosis"
@@ -1004,7 +1007,8 @@ export function RecordPatientVitalsForm({
               <span className="text-[10px] font-bold text-[#64748B] block">
                 Clinical Notes
               </span>
-              <textarea aria-label="Text area"
+              <textarea
+                aria-label="Text area"
                 value={clinicalNotes}
                 onChange={(e) => setClinicalNotes(e.target.value)}
                 placeholder="Clinical observations"
@@ -1028,74 +1032,80 @@ export function RecordPatientVitalsForm({
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-[#64748B] block">
                 Height (cm)
-              
-              <input aria-label="Input field"
-                type="number"
-                value={height}
-                onChange={(e) => setHeight(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-              /></span>
+                <input
+                  aria-label="Input field"
+                  type="number"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
+                />
+              </span>
             </div>
 
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-[#64748B] block">
                 Weight (kg)
-              
-              <input aria-label="Input field"
-                type="number"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-              /></span>
+                <input
+                  aria-label="Input field"
+                  type="number"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
+                />
+              </span>
             </div>
 
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-[#64748B] block">
                 Temperature
-              
-              <input aria-label="Input field"
-                type="number"
-                step="0.1"
-                value={temperature}
-                onChange={(e) => setTemperature(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-              /></span>
+                <input
+                  aria-label="Input field"
+                  type="number"
+                  step="0.1"
+                  value={temperature}
+                  onChange={(e) => setTemperature(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
+                />
+              </span>
             </div>
 
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-[#64748B] block">
                 Blood Pressure
-              
-              <input aria-label="120/80"
-                value={bloodPressure}
-                placeholder="120/80"
-                onChange={(e) => setBloodPressure(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 font-mono"
-              /></span>
+                <input
+                  aria-label="120/80"
+                  value={bloodPressure}
+                  placeholder="120/80"
+                  onChange={(e) => setBloodPressure(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 font-mono"
+                />
+              </span>
             </div>
 
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-[#64748B] block">
                 Pulse
-              
-              <input aria-label="Input field"
-                type="number"
-                value={pulse}
-                onChange={(e) => setPulse(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-              /></span>
+                <input
+                  aria-label="Input field"
+                  type="number"
+                  value={pulse}
+                  onChange={(e) => setPulse(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
+                />
+              </span>
             </div>
 
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-[#64748B] block">
                 SpO₂
-              
-              <input aria-label="Input field"
-                type="number"
-                value={spo2}
-                onChange={(e) => setSpo2(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
-              /></span>
+                <input
+                  aria-label="Input field"
+                  type="number"
+                  value={spo2}
+                  onChange={(e) => setSpo2(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
+                />
+              </span>
             </div>
           </div>
         </div>
@@ -1130,8 +1140,7 @@ export function RecordPatientVitalsForm({
 const getVitalsStatus = (apt: AppointmentRecord) => {
   if (apt.status === "Checked-In" || apt.status === "Waiting for Vitals")
     return "Waiting for Vitals";
-  if (apt.notes?.includes("vitals in progress"))
-    return "Recording In Progress";
+  if (apt.notes?.includes("vitals in progress")) return "Recording In Progress";
   if (
     apt.status === "In Consultation" ||
     apt.status === "In Progress" ||
@@ -1542,7 +1551,8 @@ export function RecordPatientVitalsScreen({
               size={14}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <input aria-label="Input field"
+            <input
+              aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -1567,92 +1577,97 @@ export function RecordPatientVitalsScreen({
           <div>
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
               Doctor
-            
-            <select aria-label="Select option"
-              value={doctorFilter}
-              onChange={(e) => setDoctorFilter(e.target.value)}
-              className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
-            >
-              <option value="All">All Doctors</option>
-              {dynamicDoctors.map((doc) => (
-                <option key={doc} value={doc}>
-                  {doc}
-                </option>
-              ))}
-            </select></span>
+              <select
+                aria-label="Select option"
+                value={doctorFilter}
+                onChange={(e) => setDoctorFilter(e.target.value)}
+                className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
+              >
+                <option value="All">All Doctors</option>
+                {dynamicDoctors.map((doc) => (
+                  <option key={doc} value={doc}>
+                    {doc}
+                  </option>
+                ))}
+              </select>
+            </span>
           </div>
 
           {/* Department */}
           <div>
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
               Department
-            
-            <select aria-label="Select option"
-              value={deptFilter}
-              onChange={(e) => setDeptFilter(e.target.value)}
-              className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
-            >
-              <option value="All">All Depts</option>
-              <option value="Cardiology">Cardiology</option>
-              <option value="General Medicine">General Medicine</option>
-              <option value="Neurology">Neurology</option>
-              <option value="Gynecology">Gynecology</option>
-            </select></span>
+              <select
+                aria-label="Select option"
+                value={deptFilter}
+                onChange={(e) => setDeptFilter(e.target.value)}
+                className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
+              >
+                <option value="All">All Depts</option>
+                <option value="Cardiology">Cardiology</option>
+                <option value="General Medicine">General Medicine</option>
+                <option value="Neurology">Neurology</option>
+                <option value="Gynecology">Gynecology</option>
+              </select>
+            </span>
           </div>
 
           {/* Appointment Status */}
           <div>
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
               Apt Status
-            
-            <select aria-label="Select option"
-              value={aptStatusFilter}
-              onChange={(e) => setAptStatusFilter(e.target.value)}
-              className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
-            >
-              <option value="All">All Apt Status</option>
-              <option value="Waiting">Waiting</option>
-              <option value="Checked-In">Checked-In</option>
-              <option value="In Progress">In Progress</option>
-            </select></span>
+              <select
+                aria-label="Select option"
+                value={aptStatusFilter}
+                onChange={(e) => setAptStatusFilter(e.target.value)}
+                className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
+              >
+                <option value="All">All Apt Status</option>
+                <option value="Waiting">Waiting</option>
+                <option value="Checked-In">Checked-In</option>
+                <option value="In Progress">In Progress</option>
+              </select>
+            </span>
           </div>
 
           {/* Vitals Status */}
           <div>
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
               Vitals Status
-            
-            <select aria-label="Select option"
-              value={vitalsStatusFilter}
-              onChange={(e) => setVitalsStatusFilter(e.target.value)}
-              className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
-            >
-              <option value="All">All Vitals</option>
-              <option value="Waiting for Vitals">Waiting for Vitals</option>
-              <option value="Recording In Progress">
-                Recording In Progress
-              </option>
-              <option value="Vitals Recorded">Vitals Recorded</option>
-              <option value="Ready For Consultation">
-                Ready For Consultation
-              </option>
-            </select></span>
+              <select
+                aria-label="Select option"
+                value={vitalsStatusFilter}
+                onChange={(e) => setVitalsStatusFilter(e.target.value)}
+                className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
+              >
+                <option value="All">All Vitals</option>
+                <option value="Waiting for Vitals">Waiting for Vitals</option>
+                <option value="Recording In Progress">
+                  Recording In Progress
+                </option>
+                <option value="Vitals Recorded">Vitals Recorded</option>
+                <option value="Ready For Consultation">
+                  Ready For Consultation
+                </option>
+              </select>
+            </span>
           </div>
 
           {/* Visit Type */}
           <div>
             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
               Visit Type
-            
-            <select aria-label="Select option"
-              value={visitTypeFilter}
-              onChange={(e) => setVisitTypeFilter(e.target.value)}
-              className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
-            >
-              <option value="All">All Visits</option>
-              <option value="First Visit">First Visit</option>
-              <option value="Follow-up">Follow-up</option>
-            </select></span>
+              <select
+                aria-label="Select option"
+                value={visitTypeFilter}
+                onChange={(e) => setVisitTypeFilter(e.target.value)}
+                className="w-full px-2 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg outline-none text-slate-700 font-medium"
+              >
+                <option value="All">All Visits</option>
+                <option value="First Visit">First Visit</option>
+                <option value="Follow-up">Follow-up</option>
+              </select>
+            </span>
           </div>
         </div>
       </div>

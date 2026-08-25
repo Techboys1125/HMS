@@ -171,7 +171,6 @@ export function QueueManagementScreen({
 
   const [queueItems, setQueueItems] = useState<AppointmentRecord[]>([]);
 
-
   useEffect(() => {
     let cancelled = false;
 
@@ -274,7 +273,6 @@ export function QueueManagementScreen({
     setNoShowDialogApt(null);
   };
 
-
   return (
     <div
       className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9]"
@@ -354,7 +352,8 @@ export function QueueManagementScreen({
             size={18}
             className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
           />
-          <input aria-label="Input field"
+          <input
+            aria-label="Input field"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -365,7 +364,8 @@ export function QueueManagementScreen({
 
         <div className="flex items-center justify-between gap-3 flex-wrap pt-1 border-t border-slate-100">
           <div className="flex items-center gap-2 flex-wrap">
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={selectedDoctor}
               onChange={(e) => setSelectedDoctor(e.target.value)}
               className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
@@ -373,7 +373,8 @@ export function QueueManagementScreen({
               <option>All Doctors</option>
             </select>
 
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={selectedDept}
               onChange={(e) => setSelectedDept(e.target.value)}
               className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
@@ -386,7 +387,8 @@ export function QueueManagementScreen({
               ))}
             </select>
 
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"
@@ -401,7 +403,8 @@ export function QueueManagementScreen({
               <option>Cancelled</option>
             </select>
 
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
               className="px-3 py-2 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#64748B] font-medium focus:outline-none"

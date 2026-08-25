@@ -105,8 +105,13 @@ export const consultationService = {
       // 1. Create Encounter with linked patient
       const patientId =
         appointment.patientId ||
-        (typeof (appointment as unknown as Record<string, unknown>).patient === "object"
-          ? ((appointment as unknown as Record<string, unknown>).patient as { id?: string | number })?.id
+        (typeof (appointment as unknown as Record<string, unknown>).patient ===
+        "object"
+          ? (
+              (appointment as unknown as Record<string, unknown>).patient as {
+                id?: string | number;
+              }
+            )?.id
           : undefined);
       const encounter = await consultationApi.createEncounter(
         appointmentId,
@@ -455,13 +460,17 @@ export const consultationService = {
             // Fallback to appointment status completion endpoint if encounter finalization failed due to state
             if (!encounterFinalized && appointmentId) {
               try {
-                const compRes = await consultationApi.completeAppointment(appointmentId);
+                const compRes =
+                  await consultationApi.completeAppointment(appointmentId);
                 if (compRes?.success) {
                   encounterFinalized = true;
                   break;
                 }
               } catch (aptErr) {
-                console.warn("Appointment completion fallback warning:", aptErr);
+                console.warn(
+                  "Appointment completion fallback warning:",
+                  aptErr,
+                );
               }
             }
 

@@ -60,28 +60,29 @@ export function BackupConfigSection() {
             }}
           >
             Backup Frequency
-          
-          <select aria-label="Select option"
-            value={backupConfig.frequency}
-            onChange={(e) =>
-              setBackupConfig((prev) => ({
-                ...prev,
-                frequency: e.target.value,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "9px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          >
-            <option>Daily</option>
-            <option>Weekly</option>
-            <option>Monthly</option>
-          </select></span>
+            <select
+              aria-label="Select option"
+              value={backupConfig.frequency}
+              onChange={(e) =>
+                setBackupConfig((prev) => ({
+                  ...prev,
+                  frequency: e.target.value,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "9px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            >
+              <option>Daily</option>
+              <option>Weekly</option>
+              <option>Monthly</option>
+            </select>
+          </span>
         </div>
 
         <div>
@@ -95,25 +96,26 @@ export function BackupConfigSection() {
             }}
           >
             Scheduled Backup Time
-          
-          <input aria-label="Input field"
-            type="text"
-            value={backupConfig.backupTime}
-            onChange={(e) =>
-              setBackupConfig((prev) => ({
-                ...prev,
-                backupTime: e.target.value,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "9px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={backupConfig.backupTime}
+              onChange={(e) =>
+                setBackupConfig((prev) => ({
+                  ...prev,
+                  backupTime: e.target.value,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "9px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -127,30 +129,31 @@ export function BackupConfigSection() {
             }}
           >
             Retention Policy
-          
-          <select aria-label="Select option"
-            value={backupConfig.retentionPeriod}
-            onChange={(e) =>
-              setBackupConfig((prev) => ({
-                ...prev,
-                retentionPeriod: e.target.value,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "9px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          >
-            <option>7 Days</option>
-            <option>15 Days</option>
-            <option>30 Days</option>
-            <option>60 Days</option>
-            <option>90 Days</option>
-          </select></span>
+            <select
+              aria-label="Select option"
+              value={backupConfig.retentionPeriod}
+              onChange={(e) =>
+                setBackupConfig((prev) => ({
+                  ...prev,
+                  retentionPeriod: e.target.value,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "9px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            >
+              <option>7 Days</option>
+              <option>15 Days</option>
+              <option>30 Days</option>
+              <option>60 Days</option>
+              <option>90 Days</option>
+            </select>
+          </span>
         </div>
       </div>
 
@@ -204,7 +207,8 @@ export function BackupConfigSection() {
                 {item.sub}
               </div>
             </div>
-            <input aria-label="Toggle option"
+            <input
+              aria-label="Toggle option"
               type="checkbox"
               checked={
                 (backupConfig as unknown as Record<string, boolean>)[item.key]

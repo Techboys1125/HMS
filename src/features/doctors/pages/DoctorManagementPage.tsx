@@ -100,7 +100,6 @@ export function DoctorManagementPage() {
     resetFilters,
   } = useDoctorFilters(doctors);
 
-
   useEffect(() => {
     let cancelled = false;
 

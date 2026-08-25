@@ -117,13 +117,15 @@ export function TemplateDetailsDrawer({
                   fontSize: "12px",
                   fontWeight: 600,
                   cursor: "pointer",
-                  transition: "background-color 0.2s ease, border-color 0.2s ease",
+                  transition:
+                    "background-color 0.2s ease, border-color 0.2s ease",
                 }}
               >
                 <Edit2 size={14} /> {isEditMode ? "Cancel Edit" : "Edit"}
               </button>
             )}
-            <button aria-label="Close"
+            <button
+              aria-label="Close"
               onClick={onClose}
               style={{
                 border: "none",
@@ -187,7 +189,8 @@ export function TemplateDetailsDrawer({
                   Template Name
                 </span>
                 {isEditMode && serverConnected ? (
-                  <input aria-label="Input field"
+                  <input
+                    aria-label="Input field"
                     type="text"
                     value={template.name}
                     onChange={(e) => onTemplateChange({ name: e.target.value })}
@@ -217,7 +220,8 @@ export function TemplateDetailsDrawer({
                   Event Type
                 </span>
                 {isEditMode && serverConnected ? (
-                  <input aria-label="Input field"
+                  <input
+                    aria-label="Input field"
                     type="text"
                     value={template.category}
                     onChange={(e) =>
@@ -271,7 +275,8 @@ export function TemplateDetailsDrawer({
                 Delivery Channel Scope
               </span>
               {isEditMode && serverConnected ? (
-                <input aria-label="Input field"
+                <input
+                  aria-label="Input field"
                   type="text"
                   value={template.channel}
                   onChange={(e) =>
@@ -303,7 +308,8 @@ export function TemplateDetailsDrawer({
                 Message Body
               </span>
               {isEditMode && serverConnected ? (
-                <textarea aria-label="Text input"
+                <textarea
+                  aria-label="Text input"
                   rows={4}
                   value={template.body || ""}
                   onChange={(e) => onTemplateChange({ body: e.target.value })}

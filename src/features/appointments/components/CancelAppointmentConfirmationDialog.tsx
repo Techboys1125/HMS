@@ -66,7 +66,8 @@ export function CancelAppointmentConfirmationDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div role="presentation"
+      <div
+        role="presentation"
         className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
@@ -93,7 +94,8 @@ export function CancelAppointmentConfirmationDialog({
             </div>
           </div>
 
-          <button aria-label="Close"
+          <button
+            aria-label="Close"
             type="button"
             onClick={onClose}
             className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
@@ -159,25 +161,26 @@ export function CancelAppointmentConfirmationDialog({
             <div>
               <span className="block text-xs font-bold text-[#111827] mb-1">
                 Cancellation Reason *
-              
-              <select aria-label="Select option"
-                ref={dropdownRef}
-                value={cancellationReason}
-                onChange={(e) => {
-                  setCancellationReason(e.target.value);
-                  if (error) setError("");
-                }}
-                className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-medium outline-none focus:border-[#EF4444]"
-              >
-                <option value="Patient Request">Patient Request</option>
-                <option value="Doctor Unavailable">Doctor Unavailable</option>
-                <option value="Hospital Emergency">Hospital Emergency</option>
-                <option value="Duplicate Appointment">
-                  Duplicate Appointment
-                </option>
-                <option value="Incorrect Booking">Incorrect Booking</option>
-                <option value="Other">Other</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  ref={dropdownRef}
+                  value={cancellationReason}
+                  onChange={(e) => {
+                    setCancellationReason(e.target.value);
+                    if (error) setError("");
+                  }}
+                  className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-medium outline-none focus:border-[#EF4444]"
+                >
+                  <option value="Patient Request">Patient Request</option>
+                  <option value="Doctor Unavailable">Doctor Unavailable</option>
+                  <option value="Hospital Emergency">Hospital Emergency</option>
+                  <option value="Duplicate Appointment">
+                    Duplicate Appointment
+                  </option>
+                  <option value="Incorrect Booking">Incorrect Booking</option>
+                  <option value="Other">Other</option>
+                </select>
+              </span>
             </div>
 
             <div>
@@ -187,7 +190,8 @@ export function CancelAppointmentConfirmationDialog({
                   (Optional)
                 </span>
               </span>
-              <textarea aria-label="Provide additional context or reason for cancellation..."
+              <textarea
+                aria-label="Provide additional context or reason for cancellation..."
                 rows={2}
                 placeholder="Provide additional context or reason for cancellation..."
                 value={additionalRemarks}

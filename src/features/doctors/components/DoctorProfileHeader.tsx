@@ -34,31 +34,30 @@ export interface DoctorProfileHeaderProps {
   onSelectTab: (tabId: string) => void;
 }
 
-
 const getAvailStyle = (avail: DoctorAvailability) => {
-    switch (avail) {
-      case "Available Today":
-        return {
-          bg: "bg-teal-50 text-[#009688] border-teal-200",
-          dot: "bg-[#009688]",
-        };
-      case "On Duty":
-        return {
-          bg: "bg-blue-50 text-[#0D47A1] border-blue-200",
-          dot: "bg-[#0D47A1]",
-        };
-      case "On Leave":
-        return {
-          bg: "bg-amber-50 text-[#F59E0B] border-amber-200",
-          dot: "bg-[#F59E0B]",
-        };
-      default:
-        return {
-          bg: "bg-slate-100 text-slate-600 border-slate-200",
-          dot: "bg-slate-400",
-        };
-    }
-  };
+  switch (avail) {
+    case "Available Today":
+      return {
+        bg: "bg-teal-50 text-[#009688] border-teal-200",
+        dot: "bg-[#009688]",
+      };
+    case "On Duty":
+      return {
+        bg: "bg-blue-50 text-[#0D47A1] border-blue-200",
+        dot: "bg-[#0D47A1]",
+      };
+    case "On Leave":
+      return {
+        bg: "bg-amber-50 text-[#F59E0B] border-amber-200",
+        dot: "bg-[#F59E0B]",
+      };
+    default:
+      return {
+        bg: "bg-slate-100 text-slate-600 border-slate-200",
+        dot: "bg-slate-400",
+      };
+  }
+};
 
 export function DoctorProfileHeader({
   doctor,
@@ -75,7 +74,6 @@ export function DoctorProfileHeader({
   const isAdmin = role === "ADMIN";
   const isDoctor = role === "DOCTOR";
 
-
   const availStyle = getAvailStyle(doctor.availability);
 
   return (
@@ -83,7 +81,8 @@ export function DoctorProfileHeader({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <button aria-label="Previous"
+            <button
+              aria-label="Previous"
               onClick={onBack}
               className="p-1.5 -ml-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
             >

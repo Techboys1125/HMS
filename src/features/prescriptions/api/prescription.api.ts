@@ -145,15 +145,14 @@ export const prescriptionApi = {
           `/api/v1/patient/prescriptions?mrn=${encodeURIComponent(mrn)}`,
           `/api/v1/patients/me/prescriptions`,
         ]
-      : [
-          "/api/v1/patients/me/prescriptions",
-          "/api/v1/patient/prescriptions",
-        ];
+      : ["/api/v1/patients/me/prescriptions", "/api/v1/patient/prescriptions"];
 
     for (const url of endpoints) {
       try {
-        const response =
-          await apiClient.get<ApiResponseBody<ApiPatientPrescription[]> | ApiEnvelope<ApiPatientPrescription[]>>(url);
+        const response = await apiClient.get<
+          | ApiResponseBody<ApiPatientPrescription[]>
+          | ApiEnvelope<ApiPatientPrescription[]>
+        >(url);
         const body = response.data as Record<string, unknown>;
         if (!body) continue;
 
@@ -199,7 +198,8 @@ export const prescriptionApi = {
         const response = await apiClient.get<Record<string, unknown>>(url);
         const data = response.data?.data || response.data;
         if (data && typeof data === "object") {
-          return data as unknown as ApiPatientPrescription | PrescriptionDetailResponse;
+          return data as unknown as
+            ApiPatientPrescription | PrescriptionDetailResponse;
         }
       } catch {
         // try next fallback
@@ -247,7 +247,8 @@ export const prescriptionApi = {
     for (const url of endpoints) {
       try {
         const response = await apiClient.get<Record<string, unknown>>(url);
-        const data = (response.data?.data || response.data) as PrescriptionSummaryResponse;
+        const data = (response.data?.data ||
+          response.data) as PrescriptionSummaryResponse;
         if (data) return data;
       } catch {
         // try next

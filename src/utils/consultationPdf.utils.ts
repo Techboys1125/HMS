@@ -4,79 +4,94 @@
  */
 
 export interface PrintableConsultationData {
-  id: string
-  visitDate: string
-  completionTime?: string
-  patientName: string
-  mrn: string
-  age: number | string
-  gender: string
-  bloodGroup?: string
-  allergies?: string[]
-  doctorName: string
-  doctorSpecialty?: string
-  department: string
-  visitType: string
-  chiefComplaint: string
+  id: string;
+  visitDate: string;
+  completionTime?: string;
+  patientName: string;
+  mrn: string;
+  age: number | string;
+  gender: string;
+  bloodGroup?: string;
+  allergies?: string[];
+  doctorName: string;
+  doctorSpecialty?: string;
+  department: string;
+  visitType: string;
+  chiefComplaint: string;
   vitals?: {
-    height?: string
-    weight?: string
-    bmi?: string
-    temperature?: string
-    bp?: string
-    pulse?: string
-    respiratoryRate?: string
-    spo2?: string
-    bloodSugar?: string
-  }
-  clinicalExamination?: string
-  provisionalDiagnosis?: string
-  finalDiagnosis?: string
-  icdCode?: string
+    height?: string;
+    weight?: string;
+    bmi?: string;
+    temperature?: string;
+    bp?: string;
+    pulse?: string;
+    respiratoryRate?: string;
+    spo2?: string;
+    bloodSugar?: string;
+  };
+  clinicalExamination?: string;
+  provisionalDiagnosis?: string;
+  finalDiagnosis?: string;
+  icdCode?: string;
   medicines?: Array<{
-    id?: string
-    name: string
-    dosage: string
-    frequency: string
-    duration: string
-    instructions?: string
-  }>
-  investigations?: string[]
-  investigationRemarks?: string
-  symptoms?: string
-  assessment?: string
-  advice?: string
-  lifestyleRecommendations?: string
-  followupRequired?: string
-  nextVisitDate?: string
-  followupNotes?: string
-  status?: string
+    id?: string;
+    name: string;
+    dosage: string;
+    frequency: string;
+    duration: string;
+    instructions?: string;
+  }>;
+  investigations?: string[];
+  investigationRemarks?: string;
+  symptoms?: string;
+  assessment?: string;
+  advice?: string;
+  lifestyleRecommendations?: string;
+  followupRequired?: string;
+  nextVisitDate?: string;
+  followupNotes?: string;
+  status?: string;
 }
 
 export function downloadConsultationPdf(data: PrintableConsultationData): void {
-  const encId = String(data.id || "ENC-1001")
-  const patName = data.patientName || "Patient"
-  const mrn = data.mrn || "MRN-000000"
-  const ageStr = `${data.age || "—"} yrs / ${data.gender || "—"}`
-  const provDx = data.provisionalDiagnosis && data.provisionalDiagnosis !== "Recorded" ? data.provisionalDiagnosis : ""
-  const finalDx = data.finalDiagnosis && data.finalDiagnosis !== "Recorded" ? data.finalDiagnosis : (data.provisionalDiagnosis || data.assessment || "Diagnosis Recorded")
-  const icd = data.icdCode && data.icdCode !== "—" ? data.icdCode : ""
-  const blood = data.bloodGroup && data.bloodGroup !== "N/A" ? data.bloodGroup : "Not Specified"
-  const docName = data.doctorName || "Doctor"
-  const dept = data.department || "OPD"
-  const dateStr = data.visitDate || new Date().toLocaleDateString("en-GB")
-  const timeStr = data.completionTime || new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  const visitType = data.visitType || "First Visit"
-  const complaint = data.chiefComplaint || "None recorded"
-  const exam = data.clinicalExamination || "Normal physical and systemic examination findings."
-  const advice = data.advice || "Follow doctor advice and complete medication course."
-  const diet = data.lifestyleRecommendations || "Maintain balanced diet and hydration."
-  const nextVisit = data.nextVisitDate || "—"
-  const followupNotes = data.followupNotes || "—"
+  const encId = String(data.id || "ENC-1001");
+  const patName = data.patientName || "Patient";
+  const mrn = data.mrn || "MRN-000000";
+  const ageStr = `${data.age || "—"} yrs / ${data.gender || "—"}`;
+  const provDx =
+    data.provisionalDiagnosis && data.provisionalDiagnosis !== "Recorded"
+      ? data.provisionalDiagnosis
+      : "";
+  const finalDx =
+    data.finalDiagnosis && data.finalDiagnosis !== "Recorded"
+      ? data.finalDiagnosis
+      : data.provisionalDiagnosis || data.assessment || "Diagnosis Recorded";
+  const icd = data.icdCode && data.icdCode !== "—" ? data.icdCode : "";
+  const blood =
+    data.bloodGroup && data.bloodGroup !== "N/A"
+      ? data.bloodGroup
+      : "Not Specified";
+  const docName = data.doctorName || "Doctor";
+  const dept = data.department || "OPD";
+  const dateStr = data.visitDate || new Date().toLocaleDateString("en-GB");
+  const timeStr =
+    data.completionTime ||
+    new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const visitType = data.visitType || "First Visit";
+  const complaint = data.chiefComplaint || "None recorded";
+  const exam =
+    data.clinicalExamination ||
+    "Normal physical and systemic examination findings.";
+  const advice =
+    data.advice || "Follow doctor advice and complete medication course.";
+  const diet =
+    data.lifestyleRecommendations || "Maintain balanced diet and hydration.";
+  const nextVisit = data.nextVisitDate || "—";
+  const followupNotes = data.followupNotes || "—";
 
-  const meds = Array.isArray(data.medicines) ? data.medicines : []
-  const tests = Array.isArray(data.investigations) ? data.investigations : []
-  const vitals = data.vitals || {}
+  const meds = Array.isArray(data.medicines) ? data.medicines : [];
+  const tests = Array.isArray(data.investigations) ? data.investigations : [];
+  const vitals = data.vitals || {};
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -209,14 +224,17 @@ export function downloadConsultationPdf(data: PrintableConsultationData): void {
     <!-- Diagnosis & Examination -->
     <div class="section-title">Clinical Examination & Diagnosis</div>
     <div class="notes-box">
-      ${provDx ? `<div style="margin-bottom: 6px;"><strong>Provisional Diagnosis:</strong> <span style="font-weight: 700; color: #475569;">${provDx}</span></div>` : ''}
-      <div style="margin-bottom: 6px;"><strong>Diagnosis / Clinical Assessment:</strong> <span style="font-weight: 800; color: #0D47A1; font-size: 13px;">${finalDx}</span> ${icd ? `<span style="background: #EFF6FF; color: #1D4ED8; font-weight: bold; font-family: monospace; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">ICD Code: ${icd}</span>` : ''}</div>
+      ${provDx ? `<div style="margin-bottom: 6px;"><strong>Provisional Diagnosis:</strong> <span style="font-weight: 700; color: #475569;">${provDx}</span></div>` : ""}
+      <div style="margin-bottom: 6px;"><strong>Diagnosis / Clinical Assessment:</strong> <span style="font-weight: 800; color: #0D47A1; font-size: 13px;">${finalDx}</span> ${icd ? `<span style="background: #EFF6FF; color: #1D4ED8; font-weight: bold; font-family: monospace; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px;">ICD Code: ${icd}</span>` : ""}</div>
       <div><strong>Examination Findings:</strong> ${exam}</div>
     </div>
 
     <!-- Prescribed Medications (Rx) -->
     <div class="section-title">Prescribed Medications (Rx)</div>
-    ${meds.length === 0 ? '<p style="font-size: 12px; color: #64748B; italic;">No medications prescribed for this encounter.</p>' : `
+    ${
+      meds.length === 0
+        ? '<p style="font-size: 12px; color: #64748B; italic;">No medications prescribed for this encounter.</p>'
+        : `
       <table>
         <thead>
           <tr>
@@ -228,7 +246,9 @@ export function downloadConsultationPdf(data: PrintableConsultationData): void {
           </tr>
         </thead>
         <tbody>
-          ${meds.map(m => `
+          ${meds
+            .map(
+              (m) => `
             <tr>
               <td class="rx-name">${m.name}</td>
               <td>${m.dosage}</td>
@@ -236,18 +256,25 @@ export function downloadConsultationPdf(data: PrintableConsultationData): void {
               <td>${m.duration}</td>
               <td style="color: #64748B; font-style: italic;">${m.instructions || "After food"}</td>
             </tr>
-          `).join('')}
+          `,
+            )
+            .join("")}
         </tbody>
       </table>
-    `}
+    `
+    }
 
     <!-- Recommended Investigations -->
-    ${tests.length > 0 ? `
+    ${
+      tests.length > 0
+        ? `
       <div class="section-title">Recommended Diagnostic Investigations</div>
       <div>
-        ${tests.map(t => `<span class="tag">${t}</span>`).join('')}
+        ${tests.map((t) => `<span class="tag">${t}</span>`).join("")}
       </div>
-    ` : ''}
+    `
+        : ""
+    }
 
     <!-- Advice & Follow-up -->
     <div class="section-title">Clinical Advice & Follow-up Instructions</div>
@@ -267,7 +294,7 @@ export function downloadConsultationPdf(data: PrintableConsultationData): void {
     <!-- Sign-off Footer -->
     <div class="footer">
       <div>
-        <div>Generated on: ${new Date().toLocaleString('en-GB')}</div>
+        <div>Generated on: ${new Date().toLocaleString("en-GB")}</div>
         <div style="font-size: 10px; margin-top: 2px;">Official OPD Consultation Record · SafeHands HMS</div>
       </div>
       <div class="sig-box">
@@ -287,21 +314,21 @@ export function downloadConsultationPdf(data: PrintableConsultationData): void {
   </script>
 </body>
 </html>
-  `
+  `;
 
-  const printWindow = window.open("", "_blank")
+  const printWindow = window.open("", "_blank");
   if (printWindow) {
-    printWindow.document.write(htmlContent)
-    printWindow.document.close()
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
   } else {
-    const blob = new Blob([htmlContent], { type: "text/html" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
+    const blob = new Blob([htmlContent], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `Consultation_Record_${encId}.html`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    a.download = `Consultation_Record_${encId}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 }

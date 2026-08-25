@@ -398,8 +398,7 @@ export function PatientDashboard({
           <button
             key={label}
             onClick={() => {
-              if (action === "book")
-                navigate(ROUTES.PATIENT_APPOINTMENTS);
+              if (action === "book") navigate(ROUTES.PATIENT_APPOINTMENTS);
               else if (action === "appts")
                 navigate(ROUTES.PATIENT_APPOINTMENTS);
               else if (action === "prescriptions")
@@ -801,65 +800,65 @@ export function PatientDashboard({
             </thead>
             <tbody className="divide-y divide-gray-50">
               {(dashboard?.recentPrescriptions?.length ?? 0) > 0 ? (
-                ((dashboard?.recentPrescriptions || []) as DashboardRecord[]).map(
-                  (rx, idx) => (
-                    <tr
-                      key={String(
+                (
+                  (dashboard?.recentPrescriptions || []) as DashboardRecord[]
+                ).map((rx, idx) => (
+                  <tr
+                    key={String(
+                      rx.prescriptionId ||
+                        rx.id ||
+                        rx.prescriptionNumber ||
+                        rx.issuedAt ||
+                        rx.doctorName ||
+                        "rx",
+                    )}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                      {String(
                         rx.prescriptionId ||
-                          rx.id ||
                           rx.prescriptionNumber ||
-                          rx.issuedAt ||
-                          rx.doctorName ||
-                          "rx",
+                          rx.id ||
+                          `RX-${idx + 1}`,
                       )}
-                      className="hover:bg-slate-50 transition-colors"
+                    </td>
+                    <td
+                      className="px-5 py-3 text-xs font-medium text-[#111827]"
+                      style={{ fontFamily: RB }}
                     >
-                      <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                        {String(
-                          rx.prescriptionId ||
-                            rx.prescriptionNumber ||
-                            rx.id ||
-                            `RX-${idx + 1}`,
-                        )}
-                      </td>
-                      <td
-                        className="px-5 py-3 text-xs font-medium text-[#111827]"
-                        style={{ fontFamily: RB }}
+                      {String(rx.doctorName || rx.doctor || "N/A")}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs text-slate-500">
+                      {String(rx.issuedAt || rx.createdAt || rx.date || "--")}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
+                      {Number(
+                        rx.medicinesCount ??
+                          rx.medsCount ??
+                          rx.items?.length ??
+                          0,
+                      )}{" "}
+                      Medicines
+                    </td>
+                    <td className="px-5 py-3">
+                      <Chip
+                        label={String(rx.status || "Active")}
+                        variant={
+                          PAT_STATUS_CHIP[String(rx.status || "Active")] ||
+                          "success"
+                        }
+                      />
+                    </td>
+                    <td className="px-5 py-3">
+                      <button
+                        className="px-3 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-100 transition-colors"
+                        style={{ fontFamily: PP }}
                       >
-                        {String(rx.doctorName || rx.doctor || "N/A")}
-                      </td>
-                      <td className="px-5 py-3 font-mono text-xs text-slate-500">
-                        {String(rx.issuedAt || rx.createdAt || rx.date || "--")}
-                      </td>
-                      <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
-                        {Number(
-                          rx.medicinesCount ??
-                            rx.medsCount ??
-                            rx.items?.length ??
-                            0,
-                        )}{" "}
-                        Medicines
-                      </td>
-                      <td className="px-5 py-3">
-                        <Chip
-                          label={String(rx.status || "Active")}
-                          variant={
-                            PAT_STATUS_CHIP[String(rx.status || "Active")] ||
-                            "success"
-                          }
-                        />
-                      </td>
-                      <td className="px-5 py-3">
-                        <button
-                          className="px-3 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-100 transition-colors"
-                          style={{ fontFamily: PP }}
-                        >
-                          View Prescription
-                        </button>
-                      </td>
-                    </tr>
-                  ),
-                )
+                        View Prescription
+                      </button>
+                    </td>
+                  </tr>
+                ))
               ) : (
                 <tr>
                   <td
@@ -926,61 +925,57 @@ export function PatientDashboard({
               {(dashboard?.recentBills?.length ?? 0) > 0 ? (
                 (
                   (dashboard?.recentBills || []) as Record<string, unknown>[]
-                ).map(
-                  (b, idx) => (
-                    <tr
-                      key={String(
-                        b.billId ||
-                          b.billNumber ||
+                ).map((b, idx) => (
+                  <tr
+                    key={String(
+                      b.billId ||
+                        b.billNumber ||
+                        b.invoiceId ||
+                        b.id ||
+                        b.billDate ||
+                        b.date ||
+                        b.generatedAt ||
+                        "bill",
+                    )}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                      {String(
+                        b.billNumber ||
                           b.invoiceId ||
-                          b.id ||
-                          b.billDate ||
-                          b.date ||
-                          b.generatedAt ||
-                          "bill",
+                          b.invoice ||
+                          `BILL-${idx + 1}`,
                       )}
-                      className="hover:bg-slate-50 transition-colors"
-                    >
-                      <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                        {String(
-                          b.billNumber ||
-                            b.invoiceId ||
-                            b.invoice ||
-                            `BILL-${idx + 1}`,
-                        )}
-                      </td>
-                      <td className="px-5 py-3 font-mono text-xs text-slate-500">
-                        {String(b.billDate || b.generatedAt || b.date || "--")}
-                      </td>
-                      <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
-                        ₹{Number(b.netAmount ?? b.amount ?? 0).toLocaleString()}
-                      </td>
-                      <td className="px-5 py-3">
-                        <Chip
-                          label={String(
-                            b.paymentStatus || b.status || "Pending",
-                          )}
-                          variant={
-                            String(b.paymentStatus || b.status || "") === "PAID"
-                              ? "success"
-                              : String(b.paymentStatus || b.status || "") ===
-                                  "PARTIALLY_PAID"
-                                ? "info"
-                                : "warning"
-                          }
-                        />
-                      </td>
-                      <td className="px-5 py-3">
-                        <button
-                          className="px-3 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
-                          style={{ fontFamily: PP }}
-                        >
-                          View Invoice
-                        </button>
-                      </td>
-                    </tr>
-                  ),
-                )
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs text-slate-500">
+                      {String(b.billDate || b.generatedAt || b.date || "--")}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
+                      ₹{Number(b.netAmount ?? b.amount ?? 0).toLocaleString()}
+                    </td>
+                    <td className="px-5 py-3">
+                      <Chip
+                        label={String(b.paymentStatus || b.status || "Pending")}
+                        variant={
+                          String(b.paymentStatus || b.status || "") === "PAID"
+                            ? "success"
+                            : String(b.paymentStatus || b.status || "") ===
+                                "PARTIALLY_PAID"
+                              ? "info"
+                              : "warning"
+                        }
+                      />
+                    </td>
+                    <td className="px-5 py-3">
+                      <button
+                        className="px-3 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
+                        style={{ fontFamily: PP }}
+                      >
+                        View Invoice
+                      </button>
+                    </td>
+                  </tr>
+                ))
               ) : (
                 <tr>
                   <td

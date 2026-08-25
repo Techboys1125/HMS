@@ -689,8 +689,6 @@ export function DoctorProfileScreen({
     .toUpperCase()
     .slice(0, 2);
 
-
-
   const matchesDateFilter = useCallback(
     (dateStr: string) => {
       if (filterState.apptDateFilter === "Today") return dateStr === todayKey();
@@ -1263,7 +1261,8 @@ export function DoctorProfileScreen({
                   <Calendar size={15} className="text-[#0D47A1]" /> Daily Slot
                   Availability
                 </h4>
-                <input aria-label="Input field"
+                <input
+                  aria-label="Input field"
                   type="date"
                   value={availDate}
                   onChange={(e) =>
@@ -1378,7 +1377,8 @@ export function DoctorProfileScreen({
                   size={14}
                   className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                 />
-                <input aria-label="Input field"
+                <input
+                  aria-label="Input field"
                   type="text"
                   value={filterState.apptSearch}
                   onChange={(e) =>
@@ -1388,7 +1388,8 @@ export function DoctorProfileScreen({
                   className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
                 />
                 {filterState.apptSearch && (
-                  <button aria-label="Close"
+                  <button
+                    aria-label="Close"
                     onClick={() =>
                       dispatch({ type: "SET_APPT_SEARCH", query: "" })
                     }
@@ -1405,7 +1406,8 @@ export function DoctorProfileScreen({
                   <span className="text-slate-500 font-medium">
                     Filter Date:
                   </span>
-                  <select aria-label="Select option"
+                  <select
+                    aria-label="Select option"
                     value={filterState.apptDateFilter}
                     onChange={(e) =>
                       dispatch({
@@ -1536,7 +1538,8 @@ export function DoctorProfileScreen({
                 size={14}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
               />
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 value={filterState.patientSearch}
                 onChange={(e) =>
@@ -1549,7 +1552,8 @@ export function DoctorProfileScreen({
                 className="w-full pl-9 pr-8 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
               />
               {filterState.patientSearch && (
-                <button aria-label="Close"
+                <button
+                  aria-label="Close"
                   onClick={() =>
                     dispatch({ type: "SET_PATIENT_SEARCH", query: "" })
                   }
@@ -1723,7 +1727,8 @@ export function DoctorProfileScreen({
                       ? `Edit Exception #${exceptionForm.editingException.id}`
                       : "Create New Exception"}
                   </h4>
-                  <button aria-label="Close"
+                  <button
+                    aria-label="Close"
                     type="button"
                     onClick={() => {
                       exceptionFormDispatch({ type: "CLOSE" });
@@ -1738,25 +1743,26 @@ export function DoctorProfileScreen({
                   <div>
                     <span className="block font-bold text-[#111827] mb-1">
                       Exception Type
-                    
-                    <select aria-label="Select option"
-                      value={exceptionForm.type}
-                      onChange={(e) =>
-                        exceptionFormDispatch({
-                          type: "SET_FIELD",
-                          field: "type",
-                          value: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1]"
-                    >
-                      <option value="VACATION">Vacation</option>
-                      <option value="TRAINING">Training</option>
-                      <option value="CONFERENCE">Conference</option>
-                      <option value="SURGERY">Surgery Block</option>
-                      <option value="EMERGENCY">Emergency</option>
-                      <option value="OTHER">Other</option>
-                    </select></span>
+                      <select
+                        aria-label="Select option"
+                        value={exceptionForm.type}
+                        onChange={(e) =>
+                          exceptionFormDispatch({
+                            type: "SET_FIELD",
+                            field: "type",
+                            value: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] font-semibold outline-none focus:border-[#0D47A1]"
+                      >
+                        <option value="VACATION">Vacation</option>
+                        <option value="TRAINING">Training</option>
+                        <option value="CONFERENCE">Conference</option>
+                        <option value="SURGERY">Surgery Block</option>
+                        <option value="EMERGENCY">Emergency</option>
+                        <option value="OTHER">Other</option>
+                      </select>
+                    </span>
                   </div>
                   <div>
                     <span className="block font-bold text-[#111827] mb-1">
@@ -1769,38 +1775,40 @@ export function DoctorProfileScreen({
                   <div>
                     <span className="block font-bold text-[#111827] mb-1">
                       Start Date
-                    
-                    <input aria-label="Input field"
-                      type="date"
-                      value={exceptionForm.startDate}
-                      onChange={(e) =>
-                        e.target.value &&
-                        exceptionFormDispatch({
-                          type: "SET_FIELD",
-                          field: "startDate",
-                          value: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                    /></span>
+                      <input
+                        aria-label="Input field"
+                        type="date"
+                        value={exceptionForm.startDate}
+                        onChange={(e) =>
+                          e.target.value &&
+                          exceptionFormDispatch({
+                            type: "SET_FIELD",
+                            field: "startDate",
+                            value: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                      />
+                    </span>
                   </div>
                   <div>
                     <span className="block font-bold text-[#111827] mb-1">
                       End Date
-                    
-                    <input aria-label="Input field"
-                      type="date"
-                      value={exceptionForm.endDate}
-                      onChange={(e) =>
-                        e.target.value &&
-                        exceptionFormDispatch({
-                          type: "SET_FIELD",
-                          field: "endDate",
-                          value: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                    /></span>
+                      <input
+                        aria-label="Input field"
+                        type="date"
+                        value={exceptionForm.endDate}
+                        onChange={(e) =>
+                          e.target.value &&
+                          exceptionFormDispatch({
+                            type: "SET_FIELD",
+                            field: "endDate",
+                            value: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                      />
+                    </span>
                   </div>
                 </div>
 
@@ -1863,7 +1871,8 @@ export function DoctorProfileScreen({
                   <span className="block font-bold text-[#111827] mb-1 text-xs">
                     Reason
                   </span>
-                  <textarea aria-label="Text area"
+                  <textarea
+                    aria-label="Text area"
                     rows={2}
                     value={exceptionForm.reason}
                     onChange={(e) =>
@@ -2363,7 +2372,8 @@ export function DoctorProfileScreen({
                   Appointment Details
                 </h3>
               </div>
-              <button aria-label="Close"
+              <button
+                aria-label="Close"
                 onClick={() => setSelectedApptDetail(null)}
                 className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
               >

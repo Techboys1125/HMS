@@ -56,7 +56,8 @@ export function QuickConfigToolbar({
                 fontSize: "12px",
                 fontWeight: isActive ? 600 : 500,
                 cursor: "pointer",
-                transition: "background-color 0.15s ease, border-color 0.15s ease",
+                transition:
+                  "background-color 0.15s ease, border-color 0.15s ease",
                 whiteSpace: "nowrap",
                 boxShadow: isActive ? "0 1px 2px rgba(13,71,161,0.1)" : "none",
               }}

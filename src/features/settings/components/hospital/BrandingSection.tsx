@@ -84,7 +84,8 @@ export function BrandingSection({
           >
             Hospital Logo (PNG, SVG, JPEG)
           </span>
-          <div role="button"
+          <div
+            role="button"
             onClick={() => logoInputRef.current?.click()}
             style={{
               width: "100%",
@@ -179,7 +180,8 @@ export function BrandingSection({
           >
             Hospital Header Banner (Optional)
           </span>
-          <div role="button"
+          <div
+            role="button"
             onClick={() => bannerInputRef.current?.click()}
             style={{
               width: "100%",
@@ -267,19 +269,21 @@ export function BrandingSection({
               marginBottom: "6px",
             }}
           >
-          <input aria-label="Input field"
-            type="text"
-            value={form.hospitalName}
-            onChange={(e) => onChange("hospitalName", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: `1px solid ${errors.hospitalName ? "#EF4444" : "#D1D5DB"}`,
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.hospitalName}
+              onChange={(e) => onChange("hospitalName", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: `1px solid ${errors.hospitalName ? "#EF4444" : "#D1D5DB"}`,
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
           {errors.hospitalName && (
             <span
               style={{
@@ -305,20 +309,21 @@ export function BrandingSection({
             }}
           >
             Hospital Short Name / Abbreviation
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.hospitalShortName}
-            onChange={(e) => onChange("hospitalShortName", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.hospitalShortName}
+              onChange={(e) => onChange("hospitalShortName", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -332,20 +337,21 @@ export function BrandingSection({
             }}
           >
             Hospital Tagline / Motto
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.hospitalTagline}
-            onChange={(e) => onChange("hospitalTagline", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.hospitalTagline}
+              onChange={(e) => onChange("hospitalTagline", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -359,20 +365,21 @@ export function BrandingSection({
             }}
           >
             Hospital Registration Number
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.registrationNumber}
-            onChange={(e) => onChange("registrationNumber", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.registrationNumber}
+              onChange={(e) => onChange("registrationNumber", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -386,20 +393,21 @@ export function BrandingSection({
             }}
           >
             Hospital License Number *
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.licenseNumber}
-            onChange={(e) => onChange("licenseNumber", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: `1px solid ${errors.licenseNumber ? "#EF4444" : "#D1D5DB"}`,
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.licenseNumber}
+              onChange={(e) => onChange("licenseNumber", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: `1px solid ${errors.licenseNumber ? "#EF4444" : "#D1D5DB"}`,
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
           {errors.licenseNumber && (
             <span
               style={{

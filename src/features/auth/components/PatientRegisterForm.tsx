@@ -37,7 +37,8 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const { register, loading, errors, setErrors } = usePatientRegister(onSuccess);
+  const { register, loading, errors, setErrors } =
+    usePatientRegister(onSuccess);
 
   // Max DOB is today
   const todayISO = new Date().toISOString().split("T")[0];
@@ -104,7 +105,10 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
         </div>
 
         {/* Registration Form Grid */}
-        <form onSubmit={handleSubmit} className="auth-form-space space-y-2.5 sm:space-y-3 pt-0.5">
+        <form
+          onSubmit={handleSubmit}
+          className="auth-form-space space-y-2.5 sm:space-y-3 pt-0.5"
+        >
           {/* Full Name * */}
           <TextField
             label="Full Name *"
@@ -158,17 +162,18 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
             <div className="space-y-1.5 w-full">
               <span className="block text-xs font-heading font-bold text-[#1E293B] tracking-wide">
                 Gender (Optional)
-              
-              <select aria-label="Select option"
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-                className="auth-input-field w-full py-2.5 px-3.5 text-xs sm:text-sm font-body rounded-xl border border-slate-200 bg-[#F8FAFC] text-[#0F172A] hover:bg-slate-100/70 focus:bg-white focus:border-[#0D47A1] focus:ring-2 focus:ring-[#0D47A1]/15 shadow-2xs outline-none transition-colors duration-200"
-              >
-                <option value="">Select Gender</option>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-                <option value="OTHER">Other</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  className="auth-input-field w-full py-2.5 px-3.5 text-xs sm:text-sm font-body rounded-xl border border-slate-200 bg-[#F8FAFC] text-[#0F172A] hover:bg-slate-100/70 focus:bg-white focus:border-[#0D47A1] focus:ring-2 focus:ring-[#0D47A1]/15 shadow-2xs outline-none transition-colors duration-200"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </span>
             </div>
           </div>
 
@@ -229,7 +234,7 @@ export const PatientRegisterForm: React.FC<PatientRegisterFormProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="auth-submit-btn w-full py-2.5 sm:py-3 px-6 bg-[#0D47A1] hover:bg-[#1565C0] text-white font-heading font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-colors transition-transform active:scale-[0.99] disabled:opacity-70 flex items-center justify-center gap-2 mt-4 cursor-pointer"
+            className="auth-submit-btn w-full py-2.5 sm:py-3 px-6 bg-[#0D47A1] hover:bg-[#1565C0] text-white font-heading font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-transform active:scale-[0.99] disabled:opacity-70 flex items-center justify-center gap-2 mt-4 cursor-pointer"
           >
             {loading ? (
               <>

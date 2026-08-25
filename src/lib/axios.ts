@@ -151,8 +151,7 @@ async function customFetch<T = unknown>(
         );
 
         let refreshData: Record<string, unknown> | string | undefined;
-        const refreshContentType =
-          refreshResponse.headers.get("content-type");
+        const refreshContentType = refreshResponse.headers.get("content-type");
 
         if (
           refreshContentType &&
@@ -169,7 +168,8 @@ async function customFetch<T = unknown>(
               refreshData !== null &&
               ("message" in refreshData
                 ? String(refreshData.message)
-                : (refreshData as { data?: { message?: string } })?.data?.message)) ||
+                : (refreshData as { data?: { message?: string } })?.data
+                    ?.message)) ||
             `Refresh token request failed: ${refreshResponse.status}`;
 
           throw new ApiError(

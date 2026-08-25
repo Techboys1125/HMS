@@ -56,25 +56,26 @@ export function LoginProtection() {
             }}
           >
             Max Failed Login Attempts
-          
-          <input aria-label="Input field"
-            type="number"
-            value={loginProtection.maxFailedAttempts}
-            onChange={(e) =>
-              setLoginProtection((prev) => ({
-                ...prev,
-                maxFailedAttempts: e.currentTarget.valueAsNumber || 3,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "9px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="number"
+              value={loginProtection.maxFailedAttempts}
+              onChange={(e) =>
+                setLoginProtection((prev) => ({
+                  ...prev,
+                  maxFailedAttempts: e.currentTarget.valueAsNumber || 3,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "9px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -88,30 +89,31 @@ export function LoginProtection() {
             }}
           >
             Account Lock Duration
-          
-          <select aria-label="Select option"
-            value={loginProtection.lockDuration}
-            onChange={(e) =>
-              setLoginProtection((prev) => ({
-                ...prev,
-                lockDuration: e.target.value,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "9px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          >
-            <option>15 Minutes</option>
-            <option>30 Minutes</option>
-            <option>1 Hour</option>
-            <option>24 Hours</option>
-            <option>Manual Admin Unlock Only</option>
-          </select></span>
+            <select
+              aria-label="Select option"
+              value={loginProtection.lockDuration}
+              onChange={(e) =>
+                setLoginProtection((prev) => ({
+                  ...prev,
+                  lockDuration: e.target.value,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "9px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            >
+              <option>15 Minutes</option>
+              <option>30 Minutes</option>
+              <option>1 Hour</option>
+              <option>24 Hours</option>
+              <option>Manual Admin Unlock Only</option>
+            </select>
+          </span>
         </div>
 
         <div
@@ -141,7 +143,8 @@ export function LoginProtection() {
               Send instant alert email to Super Admin
             </div>
           </div>
-          <input aria-label="Toggle option"
+          <input
+            aria-label="Toggle option"
             type="checkbox"
             checked={loginProtection.notifyAdminOnLock}
             onChange={(e) =>

@@ -49,7 +49,8 @@ export function Avatar({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const color = PATIENT_AVATAR_COLORS[name.charCodeAt(0) % PATIENT_AVATAR_COLORS.length];
+  const color =
+    PATIENT_AVATAR_COLORS[name.charCodeAt(0) % PATIENT_AVATAR_COLORS.length];
   return (
     <div
       className={`${PATIENT_AVATAR_SIZES[size]} ${color} rounded-full flex items-center justify-center text-white font-semibold shrink-0`}

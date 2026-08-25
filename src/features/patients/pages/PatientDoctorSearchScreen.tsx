@@ -112,7 +112,8 @@ export function PatientDoctorSearchScreen() {
             size={16}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
           />
-          <input aria-label="Input field"
+          <input
+            aria-label="Input field"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -120,7 +121,8 @@ export function PatientDoctorSearchScreen() {
             className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"
           />
           {searchQuery && (
-            <button aria-label="Close"
+            <button
+              aria-label="Close"
               onClick={() => setSearchQuery("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
@@ -131,7 +133,8 @@ export function PatientDoctorSearchScreen() {
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="flex items-center gap-2">
             <Filter size={14} className="text-[#64748B]" />
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={selectedDept}
               onChange={(e) => setSelectedDept(e.target.value)}
               className="px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs font-medium text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -241,7 +244,8 @@ export function PatientDoctorSearchScreen() {
               >
                 Doctor Profile
               </h2>
-              <button aria-label="Close"
+              <button
+                aria-label="Close"
                 onClick={() => setSelectedDoctor(null)}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >

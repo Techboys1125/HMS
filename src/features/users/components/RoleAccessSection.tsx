@@ -58,7 +58,15 @@ export const RoleAccessSection: React.FC<RoleAccessSectionProps> = ({
             const isSelected = form.role === role.id;
 
             return (
-              <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+              <div
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    (e.currentTarget as HTMLElement).click();
+                  }
+                }}
+                role="button"
                 key={role.id}
                 onClick={() => setFieldValue("role", role.id)}
                 className={`border rounded-2xl p-4 flex flex-col justify-between items-start gap-3 cursor-pointer transition-colors duration-200 ${

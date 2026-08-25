@@ -76,7 +76,9 @@ export const queueApi = {
       if (page !== undefined) query.set("page", String(page));
       if (size !== undefined) query.set("size", String(size));
 
-      const cleanDoctorId = doctorId ? String(doctorId).replace(/^DOC-/, "") : null;
+      const cleanDoctorId = doctorId
+        ? String(doctorId).replace(/^DOC-/, "")
+        : null;
       let primaryUrl = `/api/v1/queue?${query.toString()}`;
 
       if (cleanDoctorId) {

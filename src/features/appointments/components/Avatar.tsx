@@ -28,7 +28,8 @@ export function Avatar({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const color = APPT_AVATAR_COLORS[name.charCodeAt(0) % APPT_AVATAR_COLORS.length];
+  const color =
+    APPT_AVATAR_COLORS[name.charCodeAt(0) % APPT_AVATAR_COLORS.length];
   return (
     <div
       className={`${APPT_AVATAR_SIZES[size]} ${color} rounded-full flex items-center justify-center text-white font-bold shrink-0`}

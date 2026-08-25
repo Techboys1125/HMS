@@ -124,7 +124,8 @@ export const ConsultationDetailsSection: React.FC<
               size={16}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={form.primaryDepartment}
               onChange={handlePrimaryDepartmentChange}
               className={`w-full bg-[#F8FAFC] border rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none transition-colors text-[#1E293B] cursor-pointer ${
@@ -158,7 +159,8 @@ export const ConsultationDetailsSection: React.FC<
               size={16}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={form.secondaryDepartment}
               onChange={handleSecondaryDepartmentChange}
               className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl pl-11 pr-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-[#1E293B] cursor-pointer"
@@ -187,7 +189,8 @@ export const ConsultationDetailsSection: React.FC<
               size={16}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={form.primarySpecialty}
               onChange={(e) =>
                 setFieldValue("primarySpecialty", e.target.value)
@@ -227,7 +230,8 @@ export const ConsultationDetailsSection: React.FC<
               size={16}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
-            <select aria-label="Select option"
+            <select
+              aria-label="Select option"
               value={form.secondarySpecialty}
               onChange={(e) =>
                 setFieldValue("secondarySpecialty", e.target.value)
@@ -259,7 +263,8 @@ export const ConsultationDetailsSection: React.FC<
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">
               ₹
             </span>
-            <input aria-label="Input field"
+            <input
+              aria-label="Input field"
               type="number"
               min={0}
               value={form.consultationFee}
@@ -284,14 +289,15 @@ export const ConsultationDetailsSection: React.FC<
           <span className="block text-xs font-heading font-bold text-text-body">
             Qualification{" "}
             <span className="text-slate-400 font-normal">(Optional)</span>
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.qualification}
-            onChange={(e) => setFieldValue("qualification", e.target.value)}
-            placeholder="e.g. MBBS, MD, DM (Cardiology)"
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body"
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.qualification}
+              onChange={(e) => setFieldValue("qualification", e.target.value)}
+              placeholder="e.g. MBBS, MD, DM (Cardiology)"
+              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body"
+            />
+          </span>
         </div>
 
         {/* Years of Experience */}
@@ -299,15 +305,18 @@ export const ConsultationDetailsSection: React.FC<
           <span className="block text-xs font-heading font-bold text-text-body">
             Years of Experience{" "}
             <span className="text-slate-400 font-normal">(Optional)</span>
-          
-          <input aria-label="Input field"
-            type="number"
-            min={0}
-            value={form.yearsOfExperience}
-            onChange={(e) => setFieldValue("yearsOfExperience", e.target.value)}
-            placeholder="e.g. 10"
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body"
-          /></span>
+            <input
+              aria-label="Input field"
+              type="number"
+              min={0}
+              value={form.yearsOfExperience}
+              onChange={(e) =>
+                setFieldValue("yearsOfExperience", e.target.value)
+              }
+              placeholder="e.g. 10"
+              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body"
+            />
+          </span>
         </div>
 
         {/* Doctor Code */}
@@ -315,37 +324,39 @@ export const ConsultationDetailsSection: React.FC<
           <span className="block text-xs font-heading font-bold text-text-body">
             Doctor Code{" "}
             <span className="text-slate-400 font-normal">(Optional)</span>
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.doctorCode}
-            onChange={(e) =>
-              setFieldValue("doctorCode", e.target.value.toUpperCase())
-            }
-            placeholder="e.g. DOC-CARD-01"
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body font-mono uppercase"
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.doctorCode}
+              onChange={(e) =>
+                setFieldValue("doctorCode", e.target.value.toUpperCase())
+              }
+              placeholder="e.g. DOC-CARD-01"
+              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body font-mono uppercase"
+            />
+          </span>
         </div>
 
         {/* Slot Duration Minutes */}
         <div className="space-y-1">
           <span className="block text-xs font-heading font-bold text-text-body">
             Slot Duration (Minutes)
-          
-          <select aria-label="Select option"
-            value={form.slotDurationMinutes}
-            onChange={(e) =>
-              setFieldValue("slotDurationMinutes", e.target.value)
-            }
-            className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body cursor-pointer font-medium"
-          >
-            <option value="10">10 Minutes</option>
-            <option value="15">15 Minutes (Default)</option>
-            <option value="20">20 Minutes</option>
-            <option value="30">30 Minutes</option>
-            <option value="45">45 Minutes</option>
-            <option value="60">60 Minutes</option>
-          </select></span>
+            <select
+              aria-label="Select option"
+              value={form.slotDurationMinutes}
+              onChange={(e) =>
+                setFieldValue("slotDurationMinutes", e.target.value)
+              }
+              className="w-full bg-[#F8FAFC] border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-text-body cursor-pointer font-medium"
+            >
+              <option value="10">10 Minutes</option>
+              <option value="15">15 Minutes (Default)</option>
+              <option value="20">20 Minutes</option>
+              <option value="30">30 Minutes</option>
+              <option value="45">45 Minutes</option>
+              <option value="60">60 Minutes</option>
+            </select>
+          </span>
         </div>
       </div>
     </div>

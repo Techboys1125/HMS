@@ -389,7 +389,8 @@ export function PrescriptionDetailsModal({
             >
               {status}
             </span>
-            <button aria-label="Close"
+            <button
+              aria-label="Close"
               onClick={onClose}
               className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
             >

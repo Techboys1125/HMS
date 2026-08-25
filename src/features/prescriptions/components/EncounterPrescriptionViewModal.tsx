@@ -26,9 +26,7 @@ const getDoseString = (dose?: PrescriptionMedicationItem["dose"]) => {
   return "—";
 };
 
-const getFrequencyString = (
-  freq?: PrescriptionMedicationItem["frequency"],
-) => {
+const getFrequencyString = (freq?: PrescriptionMedicationItem["frequency"]) => {
   if (!freq) return "—";
   if (typeof freq === "string") return freq;
   if (typeof freq === "object") {
@@ -126,13 +124,6 @@ export const EncounterPrescriptionViewModal: React.FC<
   });
 
   if (!isOpen || !encounterId) return null;
-
-
-
-
-
-
-
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm overflow-y-auto flex justify-center items-start p-4 py-8">
@@ -710,7 +701,7 @@ export const EncounterPrescriptionViewModal: React.FC<
               type="button"
               onClick={handlePrint}
               disabled={isLoading || !prescription}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-colors transition-opacity shadow-sm cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0D47A1] hover:bg-[#0a3880] text-white rounded-xl text-xs font-bold transition-colors shadow-sm cursor-pointer disabled:opacity-50"
               style={{ fontFamily: PP }}
             >
               <Printer size={15} />

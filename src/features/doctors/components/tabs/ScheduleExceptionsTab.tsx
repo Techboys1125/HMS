@@ -126,84 +126,92 @@ export function ScheduleExceptionsTab({
             <div>
               <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Type
-              
-              <select aria-label="Select option"
-                value={newException.exceptionType}
-                onChange={(e) =>
-                  setNewException({
-                    ...newException,
-                    exceptionType: e.target.value as ExceptionType,
-                  })
-                }
-                className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
-              >
-                <option value="VACATION">Vacation</option>
-                <option value="TRAINING">Training</option>
-                <option value="CONFERENCE">Conference</option>
-                <option value="SURGERY">Surgery</option>
-                <option value="EMERGENCY">Emergency</option>
-                <option value="OTHER">Other</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={newException.exceptionType}
+                  onChange={(e) =>
+                    setNewException({
+                      ...newException,
+                      exceptionType: e.target.value as ExceptionType,
+                    })
+                  }
+                  className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
+                >
+                  <option value="VACATION">Vacation</option>
+                  <option value="TRAINING">Training</option>
+                  <option value="CONFERENCE">Conference</option>
+                  <option value="SURGERY">Surgery</option>
+                  <option value="EMERGENCY">Emergency</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </span>
             </div>
             <div>
               <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Start Date
-              
-              <input aria-label="Input field"
-                type="date"
-                value={newException.startDate}
-                onChange={(e) =>
-                  setNewException({
-                    ...newException,
-                    startDate: e.target.value,
-                  })
-                }
-                className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
-              /></span>
+                <input
+                  aria-label="Input field"
+                  type="date"
+                  value={newException.startDate}
+                  onChange={(e) =>
+                    setNewException({
+                      ...newException,
+                      startDate: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
+                />
+              </span>
             </div>
             <div>
               <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 End Date
-              
-              <input aria-label="Input field"
-                type="date"
-                value={newException.endDate}
-                onChange={(e) =>
-                  setNewException({ ...newException, endDate: e.target.value })
-                }
-                className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
-              /></span>
+                <input
+                  aria-label="Input field"
+                  type="date"
+                  value={newException.endDate}
+                  onChange={(e) =>
+                    setNewException({
+                      ...newException,
+                      endDate: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
+                />
+              </span>
             </div>
             <div>
               <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Action
-              
-              <select aria-label="Select option"
-                value={newException.action}
-                onChange={(e) =>
-                  setNewException({
-                    ...newException,
-                    action: e.target.value as ExceptionAction,
-                  })
-                }
-                className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
-              >
-                <option value="BLOCK_APPOINTMENTS">Block Appointments</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={newException.action}
+                  onChange={(e) =>
+                    setNewException({
+                      ...newException,
+                      action: e.target.value as ExceptionAction,
+                    })
+                  }
+                  className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
+                >
+                  <option value="BLOCK_APPOINTMENTS">Block Appointments</option>
+                </select>
+              </span>
             </div>
             <div className="sm:col-span-2">
               <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Reason
-              
-              <input aria-label="Input field"
-                type="text"
-                value={newException.reason}
-                onChange={(e) =>
-                  setNewException({ ...newException, reason: e.target.value })
-                }
-                placeholder="Reason for exception"
-                className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
-              /></span>
+                <input
+                  aria-label="Input field"
+                  type="text"
+                  value={newException.reason}
+                  onChange={(e) =>
+                    setNewException({ ...newException, reason: e.target.value })
+                  }
+                  placeholder="Reason for exception"
+                  className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-lg outline-none focus:border-[#0D47A1]"
+                />
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -284,7 +292,8 @@ export function ScheduleExceptionsTab({
                 </div>
               </div>
               {canEdit && (
-                <button aria-label="Delete"
+                <button
+                  aria-label="Delete"
                   type="button"
                   onClick={() => handleDelete(exc.id!)}
                   className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"

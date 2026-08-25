@@ -33,7 +33,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const { login, loading, errors } = useLogin(onSuccess);
   const { logoUrl } = useHospitalBranding();
 
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     login({ email, password, remember });
@@ -72,7 +71,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </div>
 
         {/* Main Login Form */}
-        <form onSubmit={handleSubmit} className="auth-form-space space-y-2.5 sm:space-y-3 pt-0.5">
+        <form
+          onSubmit={handleSubmit}
+          className="auth-form-space space-y-2.5 sm:space-y-3 pt-0.5"
+        >
           {/* Email Field */}
           <TextField
             label="Email Address"
@@ -129,7 +131,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="auth-submit-btn w-full py-2.5 sm:py-3 px-6 bg-[#0D47A1] hover:bg-[#1565C0] text-white font-heading font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-colors transition-transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4 cursor-pointer"
+            className="auth-submit-btn w-full py-2.5 sm:py-3 px-6 bg-[#0D47A1] hover:bg-[#1565C0] text-white font-heading font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-colors active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4 cursor-pointer"
           >
             {loading ? (
               <>

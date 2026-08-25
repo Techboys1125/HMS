@@ -39,7 +39,8 @@ export function Avatar({
         .toUpperCase()
     : "?";
 
-  const color = AVATAR_COLORS[((name && name.charCodeAt(0)) || 0) % AVATAR_COLORS.length];
+  const color =
+    AVATAR_COLORS[((name && name.charCodeAt(0)) || 0) % AVATAR_COLORS.length];
 
   if (imageSource && !imageError) {
     return (

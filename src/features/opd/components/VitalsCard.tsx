@@ -145,7 +145,8 @@ export const VitalsCard: React.FC<VitalsCardProps> = ({
                     {computedBmi}
                   </div>
                 ) : (
-                  <input aria-label="Input field"
+                  <input
+                    aria-label="Input field"
                     type="text"
                     value={values[c.field] || ""}
                     onChange={(e) => onChange(c.field, e.target.value)}

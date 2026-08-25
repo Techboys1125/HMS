@@ -61,7 +61,15 @@ function DKpi({
   onClick?: () => void;
 }) {
   return (
-    <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+    <div
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          (e.currentTarget as HTMLElement).click();
+        }
+      }}
+      role="button"
       onClick={onClick}
       className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
         onClick
@@ -152,7 +160,11 @@ function Av({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const bg = RECEPTION_AVATAR_PALETTE[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % RECEPTION_AVATAR_PALETTE.length];
+  const bg =
+    RECEPTION_AVATAR_PALETTE[
+      (safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) %
+        RECEPTION_AVATAR_PALETTE.length
+    ];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -485,7 +497,10 @@ export function ReceptionDashboard({
           </button>
         ))}
         <div className="ml-auto flex items-center gap-2">
-          <button aria-label="Action" className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-[#E5E7EB] text-[#64748B] hover:bg-slate-50 transition-colors shadow-sm">
+          <button
+            aria-label="Action"
+            className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-[#E5E7EB] text-[#64748B] hover:bg-slate-50 transition-colors shadow-sm"
+          >
             <Bell size={14} />
             <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#EF4444]" />
           </button>

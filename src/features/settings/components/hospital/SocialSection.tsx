@@ -54,20 +54,21 @@ export function SocialSection({ form, onChange }: SocialSectionProps) {
             }}
           >
             Official WhatsApp Business Number
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.whatsapp}
-            onChange={(e) => onChange("whatsapp", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.whatsapp}
+              onChange={(e) => onChange("whatsapp", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -81,20 +82,21 @@ export function SocialSection({ form, onChange }: SocialSectionProps) {
             }}
           >
             Facebook Page URL
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.facebook}
-            onChange={(e) => onChange("facebook", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.facebook}
+              onChange={(e) => onChange("facebook", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -108,20 +110,21 @@ export function SocialSection({ form, onChange }: SocialSectionProps) {
             }}
           >
             LinkedIn Organization Page
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.linkedin}
-            onChange={(e) => onChange("linkedin", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.linkedin}
+              onChange={(e) => onChange("linkedin", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
 
         <div>
@@ -135,20 +138,21 @@ export function SocialSection({ form, onChange }: SocialSectionProps) {
             }}
           >
             Instagram Profile
-          
-          <input aria-label="Input field"
-            type="text"
-            value={form.instagram}
-            onChange={(e) => onChange("instagram", e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="text"
+              value={form.instagram}
+              onChange={(e) => onChange("instagram", e.target.value)}
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
       </div>
     </div>

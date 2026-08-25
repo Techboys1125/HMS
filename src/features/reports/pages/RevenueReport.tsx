@@ -518,7 +518,6 @@ export function DailyRevenueReportScreen({
     };
   }, [collectionRateData, revenueDetailsList]);
 
-
   // Filtered records
   const filteredData = useMemo(() => {
     return revenueTableSource.filter((item) => {
@@ -603,14 +602,16 @@ export function DailyRevenueReportScreen({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
-                <button type="button"
+                <button
+                  type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
                   Hospital
                 </button>
                 <ChevronRight className="w-3.5 h-3.5" />
-                <button type="button"
+                <button
+                  type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
@@ -690,7 +691,8 @@ export function DailyRevenueReportScreen({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input aria-label="Input field"
+            <input
+              aria-label="Input field"
               type="text"
               value={state.searchQuery}
               onChange={(e) =>
@@ -724,142 +726,148 @@ export function DailyRevenueReportScreen({
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              
-              <select aria-label="Select option"
-                value={dateRange}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_FILTER",
-                    payload: { key: "dateRange", value: e.target.value },
-                  })
-                }
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>Today</option>
-                <option>Yesterday</option>
-                <option>Last 7 Days</option>
-                <option>This Month</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={dateRange}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_FILTER",
+                      payload: { key: "dateRange", value: e.target.value },
+                    })
+                  }
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>Today</option>
+                  <option>Yesterday</option>
+                  <option>Last 7 Days</option>
+                  <option>This Month</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Department
-              
-              <select aria-label="Select option"
-                value={deptFilter}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_FILTER",
-                    payload: { key: "deptFilter", value: e.target.value },
-                  })
-                }
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Departments</option>
-                <option>General Medicine</option>
-                <option>Cardiology</option>
-                <option>Orthopedics</option>
-                <option>Neurology</option>
-                <option>ENT</option>
-                <option>Pediatrics</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={deptFilter}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_FILTER",
+                      payload: { key: "deptFilter", value: e.target.value },
+                    })
+                  }
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Departments</option>
+                  <option>General Medicine</option>
+                  <option>Cardiology</option>
+                  <option>Orthopedics</option>
+                  <option>Neurology</option>
+                  <option>ENT</option>
+                  <option>Pediatrics</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Doctor
-              
-              <select aria-label="Select option"
-                value={doctorFilter}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_FILTER",
-                    payload: { key: "doctorFilter", value: e.target.value },
-                  })
-                }
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Doctors</option>
-                <option>Dr. Sarah Jenkins</option>
-                <option>Dr. Rajesh Kapoor</option>
-                <option>Dr. Priya Sharma</option>
-                <option>Dr. Arjun Mehta</option>
-                <option>Dr. Sunita Patel</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={doctorFilter}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_FILTER",
+                      payload: { key: "doctorFilter", value: e.target.value },
+                    })
+                  }
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Doctors</option>
+                  <option>Dr. Sarah Jenkins</option>
+                  <option>Dr. Rajesh Kapoor</option>
+                  <option>Dr. Priya Sharma</option>
+                  <option>Dr. Arjun Mehta</option>
+                  <option>Dr. Sunita Patel</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Payment Status
-              
-              <select aria-label="Select option"
-                value={paymentStatusFilter}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_FILTER",
-                    payload: {
-                      key: "paymentStatusFilter",
-                      value: e.target.value,
-                    },
-                  })
-                }
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Statuses</option>
-                <option>Paid</option>
-                <option>Partially Paid</option>
-                <option>Pending</option>
-                <option>Cancelled</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={paymentStatusFilter}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_FILTER",
+                      payload: {
+                        key: "paymentStatusFilter",
+                        value: e.target.value,
+                      },
+                    })
+                  }
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Statuses</option>
+                  <option>Paid</option>
+                  <option>Partially Paid</option>
+                  <option>Pending</option>
+                  <option>Cancelled</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Payment Method
-              
-              <select aria-label="Select option"
-                value={paymentMethodFilter}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_FILTER",
-                    payload: {
-                      key: "paymentMethodFilter",
-                      value: e.target.value,
-                    },
-                  })
-                }
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Methods</option>
-                <option>Cash</option>
-                <option>Card</option>
-                <option>UPI</option>
-                <option>Bank Transfer</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={paymentMethodFilter}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_FILTER",
+                      payload: {
+                        key: "paymentMethodFilter",
+                        value: e.target.value,
+                      },
+                    })
+                  }
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Methods</option>
+                  <option>Cash</option>
+                  <option>Card</option>
+                  <option>UPI</option>
+                  <option>Bank Transfer</option>
+                </select>
+              </span>
             </div>
 
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Report Period
-              
-              <select aria-label="Select option"
-                value={reportPeriodFilter}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_FILTER",
-                    payload: {
-                      key: "reportPeriodFilter",
-                      value: e.target.value,
-                    },
-                  })
-                }
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>Daily</option>
-                <option>Weekly</option>
-                <option>Monthly</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={reportPeriodFilter}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_FILTER",
+                      payload: {
+                        key: "reportPeriodFilter",
+                        value: e.target.value,
+                      },
+                    })
+                  }
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>Daily</option>
+                  <option>Weekly</option>
+                  <option>Monthly</option>
+                </select>
+              </span>
             </div>
           </div>
 
@@ -896,7 +904,8 @@ export function DailyRevenueReportScreen({
             {appliedFilters.dateRange !== "Today" && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-[#0D47A1] border border-blue-200 font-medium">
                 Period: {appliedFilters.dateRange}
-                <button aria-label="Filter"
+                <button
+                  aria-label="Filter"
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
@@ -916,7 +925,8 @@ export function DailyRevenueReportScreen({
             {appliedFilters.dept !== "All Departments" && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-teal-50 text-[#009688] border border-teal-200 font-medium">
                 Dept: {appliedFilters.dept}
-                <button aria-label="Filter"
+                <button
+                  aria-label="Filter"
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
@@ -936,7 +946,8 @@ export function DailyRevenueReportScreen({
             {appliedFilters.doctor !== "All Doctors" && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-[#66BB6A] border border-emerald-200 font-medium">
                 Doctor: {appliedFilters.doctor}
-                <button aria-label="Filter"
+                <button
+                  aria-label="Filter"
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
@@ -956,7 +967,8 @@ export function DailyRevenueReportScreen({
             {appliedFilters.paymentStatus !== "All Statuses" && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-[#F59E0B] border border-amber-200 font-medium">
                 Status: {appliedFilters.paymentStatus}
-                <button aria-label="Filter"
+                <button
+                  aria-label="Filter"
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
@@ -979,7 +991,8 @@ export function DailyRevenueReportScreen({
             {appliedFilters.paymentMethod !== "All Methods" && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-medium">
                 Method: {appliedFilters.paymentMethod}
-                <button aria-label="Filter"
+                <button
+                  aria-label="Filter"
                   onClick={() => {
                     dispatch({
                       type: "SET_FILTER",
@@ -1002,7 +1015,8 @@ export function DailyRevenueReportScreen({
             {searchQuery && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-[#111827] border border-slate-300 font-medium">
                 Search: "{searchQuery}"
-                <button aria-label="Action"
+                <button
+                  aria-label="Action"
                   onClick={() => dispatch({ type: "SET_SEARCH", payload: "" })}
                   className="hover:text-red-500 font-bold ml-1"
                 >
@@ -1686,7 +1700,14 @@ export function DailyRevenueReportScreen({
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
-                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
+                        <th
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              (e.currentTarget as HTMLElement).click();
+                            }
+                          }}
                           className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("id")}
                         >
@@ -1694,7 +1715,14 @@ export function DailyRevenueReportScreen({
                           {sortField === "id" &&
                             (sortOrder === "asc" ? "â†‘" : "â†“")}
                         </th>
-                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
+                        <th
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              (e.currentTarget as HTMLElement).click();
+                            }
+                          }}
                           className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("patientName")}
                         >
@@ -1705,7 +1733,14 @@ export function DailyRevenueReportScreen({
                         <th className="py-3.5 px-4">MRN</th>
                         <th className="py-3.5 px-4">Doctor</th>
                         <th className="py-3.5 px-4">Department</th>
-                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
+                        <th
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              (e.currentTarget as HTMLElement).click();
+                            }
+                          }}
                           className="py-3.5 px-4 text-right cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("invoiceAmount")}
                         >
@@ -1801,7 +1836,8 @@ export function DailyRevenueReportScreen({
                     entries
                   </span>
                   <div className="flex items-center gap-2">
-                    <button aria-label="Previous"
+                    <button
+                      aria-label="Previous"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -1810,7 +1846,8 @@ export function DailyRevenueReportScreen({
                     <span className="font-semibold text-[#111827]">
                       Page 1 of 1
                     </span>
-                    <button aria-label="Next"
+                    <button
+                      aria-label="Next"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >

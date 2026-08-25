@@ -272,8 +272,11 @@ export const doctorApi = {
         const dailyData = rawData as unknown as DoctorDailyAvailabilityData;
         const slots = Array.isArray(dailyData.slots)
           ? dailyData.slots
-          : Array.isArray((rawData as unknown as Record<string, unknown>).content)
-            ? ((rawData as unknown as Record<string, unknown>).content as DoctorDailySlot[])
+          : Array.isArray(
+                (rawData as unknown as Record<string, unknown>).content,
+              )
+            ? ((rawData as unknown as Record<string, unknown>)
+                .content as DoctorDailySlot[])
             : [];
         if (slots.length > 0) {
           return {

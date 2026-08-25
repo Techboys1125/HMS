@@ -155,7 +155,8 @@ export function PatientCancelAppointmentDialog({
               Are you sure you want to cancel this appointment?
             </p>
           </div>
-          <button aria-label="Close"
+          <button
+            aria-label="Close"
             type="button"
             onClick={handleCloseAll}
             className="p-1.5 text-white/80 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
@@ -238,29 +239,30 @@ export function PatientCancelAppointmentDialog({
               style={{ fontFamily: PP }}
             >
               Cancellation Reason *
-            
-            <select aria-label="Select option"
-              value={reason}
-              onChange={(e) => {
-                setReason(e.target.value);
-                if (e.target.value) setValidationError(null);
-              }}
-              className={`w-full px-3 py-2 text-xs bg-white border rounded-xl outline-none focus:border-[#0D47A1] transition-colors ${
-                validationError
-                  ? "border-red-500 bg-red-50/20"
-                  : "border-[#E5E7EB]"
-              }`}
-            >
-              <option value="">Select Cancellation Reason</option>
-              <option value="Personal Reason">Personal Reason</option>
-              <option value="Feeling Better">Feeling Better</option>
-              <option value="Schedule Conflict">Schedule Conflict</option>
-              <option value="Booked by Mistake">Booked by Mistake</option>
-              <option value="Doctor Change Request">
-                Doctor Change Request
-              </option>
-              <option value="Other">Other</option>
-            </select></span>
+              <select
+                aria-label="Select option"
+                value={reason}
+                onChange={(e) => {
+                  setReason(e.target.value);
+                  if (e.target.value) setValidationError(null);
+                }}
+                className={`w-full px-3 py-2 text-xs bg-white border rounded-xl outline-none focus:border-[#0D47A1] transition-colors ${
+                  validationError
+                    ? "border-red-500 bg-red-50/20"
+                    : "border-[#E5E7EB]"
+                }`}
+              >
+                <option value="">Select Cancellation Reason</option>
+                <option value="Personal Reason">Personal Reason</option>
+                <option value="Feeling Better">Feeling Better</option>
+                <option value="Schedule Conflict">Schedule Conflict</option>
+                <option value="Booked by Mistake">Booked by Mistake</option>
+                <option value="Doctor Change Request">
+                  Doctor Change Request
+                </option>
+                <option value="Other">Other</option>
+              </select>
+            </span>
             {validationError && (
               <p className="text-[11px] text-[#EF4444] font-semibold mt-1 flex items-center gap-1">
                 <AlertCircle size={12} /> {validationError}
@@ -276,7 +278,8 @@ export function PatientCancelAppointmentDialog({
             >
               Additional Comments (Optional)
             </span>
-            <textarea aria-label="Text area"
+            <textarea
+              aria-label="Text area"
               rows={2}
               value={comments}
               onChange={(e) => setComments(e.target.value)}
@@ -356,8 +359,12 @@ export function PatientRescheduleAppointmentDialog({
 }: PatientRescheduleAppointmentDialogProps) {
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  const [selectedDate, setSelectedDate] = useState(appointment?.date || todayStr);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState(appointment?.time || "");
+  const [selectedDate, setSelectedDate] = useState(
+    appointment?.date || todayStr,
+  );
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(
+    appointment?.time || "",
+  );
   const [rescheduleReason, setRescheduleReason] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -447,7 +454,9 @@ export function PatientRescheduleAppointmentDialog({
   }
 
   const isCurrentApptDate = selectedDate === appointment.date;
-  const currentApptTimeFormatted = appointment.time ? formatTime(appointment.time) : "";
+  const currentApptTimeFormatted = appointment.time
+    ? formatTime(appointment.time)
+    : "";
 
   const defaultFallbackSlots = [
     { time: "09:00 AM", available: true },
@@ -514,7 +523,6 @@ export function PatientRescheduleAppointmentDialog({
   const displaySlots =
     fetchedSlots.length > 0 ? fetchedSlots : defaultFallbackSlots;
 
-
   const morningSlots = displaySlots.filter((s) => {
     const h = parseSlotHour(s.time);
     return h >= 5 && h < 12;
@@ -555,7 +563,12 @@ export function PatientRescheduleAppointmentDialog({
           rescheduleReason,
           additionalNotes,
         );
-        if (res && typeof res === "object" && "success" in res && res.success === false) {
+        if (
+          res &&
+          typeof res === "object" &&
+          "success" in res &&
+          res.success === false
+        ) {
           setIsSubmitting(false);
           setValidationError(
             res.message || "Requested reschedule slot is unavailable.",
@@ -568,9 +581,12 @@ export function PatientRescheduleAppointmentDialog({
     } catch (err: unknown) {
       setIsSubmitting(false);
       const errorMsg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ||
         (err as { message?: string })?.message ||
-        (err instanceof Error ? err.message : "Requested reschedule slot is unavailable.");
+        (err instanceof Error
+          ? err.message
+          : "Requested reschedule slot is unavailable.");
       setValidationError(errorMsg);
     }
   };
@@ -604,7 +620,8 @@ export function PatientRescheduleAppointmentDialog({
               Appointment Rescheduled Successfully!
             </h2>
             <p className="text-xs text-slate-500 font-medium max-w-md mx-auto">
-              Your OPD appointment has been registered with the Healthcare Operations Center.
+              Your OPD appointment has been registered with the Healthcare
+              Operations Center.
             </p>
           </div>
 
@@ -632,7 +649,9 @@ export function PatientRescheduleAppointmentDialog({
                     {appointment.doctor}
                   </div>
                   <div className="text-[11px] text-slate-500">
-                    {appointment.specialty || appointment.department || "Consultant"}
+                    {appointment.specialty ||
+                      appointment.department ||
+                      "Consultant"}
                   </div>
                 </div>
               </div>
@@ -647,9 +666,7 @@ export function PatientRescheduleAppointmentDialog({
                 <span className="text-[10px] text-slate-400 font-medium block">
                   Appointment Date
                 </span>
-                <span className="font-bold text-[#111827]">
-                  {selectedDate}
-                </span>
+                <span className="font-bold text-[#111827]">{selectedDate}</span>
               </div>
               <div>
                 <span className="text-[10px] text-slate-400 font-medium block">
@@ -758,7 +775,8 @@ export function PatientRescheduleAppointmentDialog({
               Choose a new appointment date and available time slot.
             </p>
           </div>
-          <button aria-label="Close"
+          <button
+            aria-label="Close"
             type="button"
             onClick={handleCloseAll}
             className="p-1.5 text-white/80 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
@@ -828,7 +846,8 @@ export function PatientRescheduleAppointmentDialog({
                     Select New Date *
                   </h3>
                   <div className="flex items-center gap-2 text-xs text-[#009688] font-bold">
-                    <button aria-label="Previous"
+                    <button
+                      aria-label="Previous"
                       type="button"
                       onClick={() =>
                         setCurrentMonth(new Date(year, month - 1, 1))
@@ -840,7 +859,8 @@ export function PatientRescheduleAppointmentDialog({
                     <span>
                       {monthName} {year}
                     </span>
-                    <button aria-label="Next"
+                    <button
+                      aria-label="Next"
                       type="button"
                       onClick={() =>
                         setCurrentMonth(new Date(year, month + 1, 1))
@@ -947,7 +967,13 @@ export function PatientRescheduleAppointmentDialog({
                                       : "bg-white text-[#111827] border-[#E5E7EB] hover:border-teal-300 hover:bg-teal-50/30"
                                 }`}
                               >
-                                <span className={isBooked ? "line-through text-slate-400" : ""}>
+                                <span
+                                  className={
+                                    isBooked
+                                      ? "line-through text-slate-400"
+                                      : ""
+                                  }
+                                >
                                   {formatTime(s.time)}
                                 </span>
                                 {isBooked && (
@@ -990,7 +1016,13 @@ export function PatientRescheduleAppointmentDialog({
                                       : "bg-white text-[#111827] border-[#E5E7EB] hover:border-teal-300 hover:bg-teal-50/30"
                                 }`}
                               >
-                                <span className={isBooked ? "line-through text-slate-400" : ""}>
+                                <span
+                                  className={
+                                    isBooked
+                                      ? "line-through text-slate-400"
+                                      : ""
+                                  }
+                                >
                                   {formatTime(s.time)}
                                 </span>
                                 {isBooked && (
@@ -1033,7 +1065,13 @@ export function PatientRescheduleAppointmentDialog({
                                       : "bg-white text-[#111827] border-[#E5E7EB] hover:border-teal-300 hover:bg-teal-50/30"
                                 }`}
                               >
-                                <span className={isBooked ? "line-through text-slate-400" : ""}>
+                                <span
+                                  className={
+                                    isBooked
+                                      ? "line-through text-slate-400"
+                                      : ""
+                                  }
+                                >
                                   {formatTime(s.time)}
                                 </span>
                                 {isBooked && (
@@ -1059,28 +1097,31 @@ export function PatientRescheduleAppointmentDialog({
                     style={{ fontFamily: PP }}
                   >
                     Reschedule Reason *
-                  
-                  <select aria-label="Select option"
-                    value={rescheduleReason}
-                    onChange={(e) => {
-                      setRescheduleReason(e.target.value);
-                      if (e.target.value) setValidationError(null);
-                    }}
-                    className={`w-full px-3.5 py-2.5 text-xs bg-slate-50 border rounded-xl outline-none focus:border-[#009688] focus:bg-white transition-colors ${
-                      validationError
-                        ? "border-red-500 bg-red-50/20"
-                        : "border-[#E5E7EB]"
-                    }`}
-                  >
-                    <option value="">Select Reason</option>
-                    <option value="Patient Request">Patient Request</option>
-                    <option value="Personal Reason">Personal Reason</option>
-                    <option value="Schedule Conflict">Schedule Conflict</option>
-                    <option value="Doctor Requested">Doctor Requested</option>
-                    <option value="Travel">Travel</option>
-                    <option value="Emergency">Emergency</option>
-                    <option value="Other">Other</option>
-                  </select></span>
+                    <select
+                      aria-label="Select option"
+                      value={rescheduleReason}
+                      onChange={(e) => {
+                        setRescheduleReason(e.target.value);
+                        if (e.target.value) setValidationError(null);
+                      }}
+                      className={`w-full px-3.5 py-2.5 text-xs bg-slate-50 border rounded-xl outline-none focus:border-[#009688] focus:bg-white transition-colors ${
+                        validationError
+                          ? "border-red-500 bg-red-50/20"
+                          : "border-[#E5E7EB]"
+                      }`}
+                    >
+                      <option value="">Select Reason</option>
+                      <option value="Patient Request">Patient Request</option>
+                      <option value="Personal Reason">Personal Reason</option>
+                      <option value="Schedule Conflict">
+                        Schedule Conflict
+                      </option>
+                      <option value="Doctor Requested">Doctor Requested</option>
+                      <option value="Travel">Travel</option>
+                      <option value="Emergency">Emergency</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </span>
                 </div>
 
                 {/* SECTION 05: Additional Remarks */}
@@ -1094,7 +1135,8 @@ export function PatientRescheduleAppointmentDialog({
                       (Optional)
                     </span>
                   </span>
-                  <textarea aria-label="Text area"
+                  <textarea
+                    aria-label="Text area"
                     rows={2}
                     value={additionalNotes}
                     onChange={(e) => setAdditionalNotes(e.target.value)}

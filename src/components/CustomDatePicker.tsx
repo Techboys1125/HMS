@@ -38,15 +38,14 @@ const MONTH_NAMES = [
 
 const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
-
 const formatDisplay = (dateStr: string) => {
-    if (!dateStr) return "";
-    const parts = dateStr.split("-");
-    if (parts.length === 3) {
-      return `${parts[2]} / ${parts[1]} / ${parts[0]}`;
-    }
-    return dateStr;
-  };
+  if (!dateStr) return "";
+  const parts = dateStr.split("-");
+  if (parts.length === 3) {
+    return `${parts[2]} / ${parts[1]} / ${parts[0]}`;
+  }
+  return dateStr;
+};
 
 export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   value,
@@ -264,7 +263,8 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
           }`}
         />
 
-        <button type="button"
+        <button
+          type="button"
           onClick={() => {
             if (!disabled) {
               setIsOpen((prev) => !prev);
@@ -280,7 +280,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
                   ? "border-[#0D47A1] bg-white ring-2 ring-[#0D47A1]/10 text-[#111827]"
                   : "border-gray-200 bg-white text-[#111827] hover:border-gray-300"
             }`
-          } ${textPaddingLeftClass} !pr-8 cursor-pointer flex items-center select-none ${
+          } ${textPaddingLeftClass} pr-8! cursor-pointer flex items-center select-none ${
             disabled ? "opacity-60 bg-slate-100 cursor-not-allowed" : ""
           }`}
         >
@@ -314,7 +314,7 @@ export const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
 
       {/* Styled Custom Calendar Popover: w-full matches input field width */}
       {isOpen && (
-        <div className="absolute left-0 top-full mt-2 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-4 sm:p-5 w-full min-w-[280px] max-w-md transition-transform duration-150">
+        <div className="absolute left-0 top-full mt-2 z-50 bg-white border border-slate-200/90 rounded-2xl shadow-2xl p-4 sm:p-5 w-full min-w-70 max-w-md transition-transform duration-150">
           {/* YEAR VIEW MODE */}
           {viewMode === "year" && (
             <div>

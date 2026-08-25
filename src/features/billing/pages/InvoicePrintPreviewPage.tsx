@@ -71,7 +71,6 @@ export function InvoicePrintPreviewPage() {
     navigate(ROUTES.DASHBOARD);
   };
 
-
   const handleEmailPatient = () => {
     setEmailSentToast(true);
     setTimeout(() => setEmailSentToast(false), 3000);
@@ -329,14 +328,16 @@ export function InvoicePrintPreviewPage() {
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
             style={{ fontFamily: RB }}
           >
-            <button type="button"
+            <button
+              type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={handleBackToDashboard}
             >
               Dashboard
             </button>
             <ChevronRight size={12} />
-            <button type="button"
+            <button
+              type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={handleBackToBills}
             >
@@ -389,7 +390,7 @@ export function InvoicePrintPreviewPage() {
           </button>
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors transition-transform shadow-sm active:scale-95 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#009688] text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-sm active:scale-95 cursor-pointer"
             style={{ fontFamily: PP }}
           >
             <Printer size={15} />
@@ -411,7 +412,8 @@ export function InvoicePrintPreviewPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button aria-label="Action"
+            <button
+              aria-label="Action"
               onClick={() => setZoomLevel((z) => Math.max(50, z - 10))}
               className="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 font-bold hover:bg-slate-100 cursor-pointer"
             >
@@ -420,7 +422,8 @@ export function InvoicePrintPreviewPage() {
             <span className="font-bold text-[#111827] min-w-11.25 text-center">
               {zoomLevel}%
             </span>
-            <button aria-label="Action"
+            <button
+              aria-label="Action"
               onClick={() => setZoomLevel((z) => Math.min(150, z + 10))}
               className="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 font-bold hover:bg-slate-100 cursor-pointer"
             >
@@ -779,7 +782,8 @@ export function InvoicePrintPreviewPage() {
               >
                 Share Invoice — #{targetId}
               </h3>
-              <button aria-label="Close"
+              <button
+                aria-label="Close"
                 onClick={() => setShowShareModal(false)}
                 className="text-slate-400 hover:text-slate-600 cursor-pointer"
               >

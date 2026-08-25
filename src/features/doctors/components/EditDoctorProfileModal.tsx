@@ -113,7 +113,6 @@ export function EditDoctorProfileModal({
     return true; // Receptionist or other role is completely disabled
   };
 
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity duration-150">
       <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-[#E5E7EB] flex flex-col max-h-[90vh] overflow-hidden transition-transform duration-150">
@@ -131,7 +130,8 @@ export function EditDoctorProfileModal({
                 : "You can update your profile photo, contact phone, email, residential address, and bio."}
             </p>
           </div>
-          <button aria-label="Close"
+          <button
+            aria-label="Close"
             onClick={onClose}
             className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
           >
@@ -160,17 +160,17 @@ export function EditDoctorProfileModal({
               <span className="block font-bold text-[#111827]">
                 Profile Photo{" "}
                 <span className="text-[#0D47A1] font-normal">(Editable)</span>
-              
-              <input
-                type="file"
-                ref={photoInputRef}
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handlePhotoUpload(file);
-                }}
-              /></span>
+                <input
+                  type="file"
+                  ref={photoInputRef}
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handlePhotoUpload(file);
+                  }}
+                />
+              </span>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -217,7 +217,8 @@ export function EditDoctorProfileModal({
                   <Lock size={11} className="text-slate-400" />
                 )}
               </label>
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 disabled={isFieldDisabled("name")}
                 value={formData.name}
@@ -235,7 +236,8 @@ export function EditDoctorProfileModal({
                   <Lock size={11} className="text-slate-400" />
                 )}
               </label>
-              <select aria-label="Select option"
+              <select
+                aria-label="Select option"
                 disabled={isFieldDisabled("gender")}
                 value={formData.gender}
                 onChange={(e) =>
@@ -256,32 +258,34 @@ export function EditDoctorProfileModal({
               <span className="block font-bold text-[#111827] mb-1">
                 Contact Phone{" "}
                 <span className="text-[#0D47A1] font-normal">(Editable)</span>
-              
-              <input aria-label="Input field"
-                type="text"
-                disabled={isFieldDisabled("phone")}
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
-                className={inputClass(isFieldDisabled("phone"))}
-              /></span>
+                <input
+                  aria-label="Input field"
+                  type="text"
+                  disabled={isFieldDisabled("phone")}
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                  className={inputClass(isFieldDisabled("phone"))}
+                />
+              </span>
             </div>
 
             <div>
               <span className="block font-bold text-[#111827] mb-1">
                 Email Address{" "}
                 <span className="text-[#0D47A1] font-normal">(Editable)</span>
-              
-              <input aria-label="Input field"
-                type="email"
-                disabled={isFieldDisabled("email")}
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className={inputClass(isFieldDisabled("email"))}
-              /></span>
+                <input
+                  aria-label="Input field"
+                  type="email"
+                  disabled={isFieldDisabled("email")}
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className={inputClass(isFieldDisabled("email"))}
+                />
+              </span>
             </div>
 
             <div>
@@ -291,7 +295,8 @@ export function EditDoctorProfileModal({
                   <Lock size={11} className="text-slate-400" />
                 )}
               </label>
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 disabled={isFieldDisabled("empId")}
                 value={formData.empId}
@@ -309,7 +314,8 @@ export function EditDoctorProfileModal({
                   <Lock size={11} className="text-slate-400" />
                 )}
               </label>
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 disabled={isFieldDisabled("regNumber")}
                 value={formData.regNumber}
@@ -327,7 +333,8 @@ export function EditDoctorProfileModal({
                   <Lock size={11} className="text-slate-400" />
                 )}
               </label>
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 disabled={isFieldDisabled("qualification")}
                 value={formData.qualification}
@@ -345,7 +352,8 @@ export function EditDoctorProfileModal({
                   <Lock size={11} className="text-slate-400" />
                 )}
               </label>
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="number"
                 min="0"
                 disabled={isFieldDisabled("experienceYrs")}
@@ -368,7 +376,8 @@ export function EditDoctorProfileModal({
                   <Lock size={11} className="text-slate-400" />
                 )}
               </label>
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 disabled={isFieldDisabled("department")}
                 value={formData.department}
@@ -386,7 +395,8 @@ export function EditDoctorProfileModal({
                   <Lock size={11} className="text-slate-400" />
                 )}
               </label>
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 disabled={isFieldDisabled("specialty")}
                 value={formData.specialty}
@@ -402,16 +412,17 @@ export function EditDoctorProfileModal({
             <span className="block font-bold text-[#111827] mb-1">
               Residential Address{" "}
               <span className="text-[#0D47A1] font-normal">(Editable)</span>
-            
-            <input aria-label="Input field"
-              type="text"
-              disabled={isFieldDisabled("address")}
-              value={formData.address}
-              onChange={(e) =>
-                setFormData({ ...formData, address: e.target.value })
-              }
-              className={inputClass(isFieldDisabled("address"))}
-            /></span>
+              <input
+                aria-label="Input field"
+                type="text"
+                disabled={isFieldDisabled("address")}
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
+                className={inputClass(isFieldDisabled("address"))}
+              />
+            </span>
           </div>
 
           <div>
@@ -419,7 +430,8 @@ export function EditDoctorProfileModal({
               Professional Bio{" "}
               <span className="text-[#0D47A1] font-normal">(Editable)</span>
             </span>
-            <textarea aria-label="Text input"
+            <textarea
+              aria-label="Text input"
               rows={3}
               disabled={isFieldDisabled("bio")}
               value={formData.bio}
@@ -441,7 +453,7 @@ export function EditDoctorProfileModal({
             <button
               type="submit"
               disabled={isSaving}
-              className="px-5 py-2 rounded-xl bg-[#0D47A1] text-white font-bold hover:bg-blue-800 transition-colors transition-opacity flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+              className="px-5 py-2 rounded-xl bg-[#0D47A1] text-white font-bold hover:bg-blue-800 transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
               style={{ fontFamily: PP }}
             >
               {isSaving ? (

@@ -410,7 +410,8 @@ export function PatientMedicalRecordsScreen({
                 size={15}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
               />
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -420,7 +421,8 @@ export function PatientMedicalRecordsScreen({
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <select aria-label="Select option"
+              <select
+                aria-label="Select option"
                 value={deptFilter}
                 onChange={(e) => setDeptFilter(e.target.value)}
                 className="px-3 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -430,7 +432,8 @@ export function PatientMedicalRecordsScreen({
                 <option value="General Medicine">General Medicine</option>
               </select>
 
-              <select aria-label="Select option"
+              <select
+                aria-label="Select option"
                 value={doctorFilter}
                 onChange={(e) => setDoctorFilter(e.target.value)}
                 className="px-3 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -538,7 +541,8 @@ export function PatientMedicalRecordsScreen({
                 size={15}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
               />
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -548,7 +552,8 @@ export function PatientMedicalRecordsScreen({
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
-              <select aria-label="Select option"
+              <select
+                aria-label="Select option"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="px-3 py-1.5 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -685,7 +690,8 @@ export function PatientMedicalRecordsScreen({
       {/* ── 5. RIGHT DRAWER: PRESCRIPTION / VISIT DETAILS ── */}
       {(selectedRx || selectedVisit) && (
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <div role="presentation"
+          <div
+            role="presentation"
             className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={() => {
               setSelectedRx(null);
@@ -709,7 +715,8 @@ export function PatientMedicalRecordsScreen({
                     Clinical details & dosage schedule
                   </p>
                 </div>
-                <button aria-label="Close"
+                <button
+                  aria-label="Close"
                   onClick={() => {
                     setSelectedRx(null);
                     setSelectedVisit(null);

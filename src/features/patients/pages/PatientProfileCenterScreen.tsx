@@ -51,8 +51,7 @@ const getPasswordStrength = (pass: string) => {
     score += 33;
   if (/[^A-Za-z0-9]/.test(pass)) score += 34;
   if (score <= 33) return { score: 33, label: "Weak", color: "bg-[#EF4444]" };
-  if (score <= 66)
-    return { score: 66, label: "Medium", color: "bg-[#F59E0B]" };
+  if (score <= 66) return { score: 66, label: "Medium", color: "bg-[#F59E0B]" };
   return { score: 100, label: "Strong", color: "bg-[#66BB6A]" };
 };
 
@@ -252,7 +251,9 @@ export function PatientProfileCenterScreen({
             "me",
           ].filter(Boolean);
           for (const k of keys) {
-            const existing = localStorage.getItem(`patient_profile_custom_${k}`);
+            const existing = localStorage.getItem(
+              `patient_profile_custom_${k}`,
+            );
             const obj = existing ? JSON.parse(existing) : {};
             localStorage.setItem(
               `patient_profile_custom_${k}`,
@@ -268,7 +269,6 @@ export function PatientProfileCenterScreen({
     };
     reader.readAsDataURL(file);
   };
-
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -625,109 +625,116 @@ export function PatientProfileCenterScreen({
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Full Name *
-                
-                <input aria-label="Input field"
-                  type="text"
-                  required
-                  value={editForm.name}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, name: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                  <input
+                    aria-label="Input field"
+                    type="text"
+                    required
+                    value={editForm.name}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, name: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Phone Number *
-                
-                <input aria-label="Input field"
-                  type="text"
-                  required
-                  value={editForm.phone}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, phone: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                  <input
+                    aria-label="Input field"
+                    type="text"
+                    required
+                    value={editForm.phone}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, phone: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Email Address *
-                
-                <input aria-label="Input field"
-                  type="email"
-                  required
-                  value={editForm.email}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, email: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                  <input
+                    aria-label="Input field"
+                    type="email"
+                    required
+                    value={editForm.email}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, email: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Date of Birth
-                
-                <input aria-label="Input field"
-                  type="date"
-                  value={editForm.dob}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, dob: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                  <input
+                    aria-label="Input field"
+                    type="date"
+                    value={editForm.dob}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, dob: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               <div className="sm:col-span-2">
                 <span className="block text-[#111827] font-semibold mb-1">
                   Residential Address *
-                
-                <input aria-label="Input field"
-                  type="text"
-                  required
-                  value={editForm.address}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, address: e.target.value })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                  <input
+                    aria-label="Input field"
+                    type="text"
+                    required
+                    value={editForm.address}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, address: e.target.value })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Emergency Contact Name
-                
-                <input aria-label="Input field"
-                  type="text"
-                  value={editForm.emergencyName}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      emergencyName: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                  <input
+                    aria-label="Input field"
+                    type="text"
+                    value={editForm.emergencyName}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        emergencyName: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Emergency Contact Phone
-                
-                <input aria-label="Input field"
-                  type="text"
-                  value={editForm.emergencyPhone}
-                  onChange={(e) =>
-                    setEditForm({
-                      ...editForm,
-                      emergencyPhone: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                  <input
+                    aria-label="Input field"
+                    type="text"
+                    value={editForm.emergencyPhone}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        emergencyPhone: e.target.value,
+                      })
+                    }
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
             </div>
 
@@ -768,29 +775,31 @@ export function PatientProfileCenterScreen({
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Current Password *
-                
-                <input aria-label="Enter current password"
-                  type="password"
-                  required
-                  placeholder="Enter current password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                  <input
+                    aria-label="Enter current password"
+                    type="password"
+                    required
+                    placeholder="Enter current password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   New Password *
-                
-                <input aria-label="Enter new password"
-                  type="password"
-                  required
-                  placeholder="Enter new password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                  <input
+                    aria-label="Enter new password"
+                    type="password"
+                    required
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
 
               {/* Password Strength Meter */}
@@ -814,15 +823,16 @@ export function PatientProfileCenterScreen({
               <div>
                 <span className="block text-[#111827] font-semibold mb-1">
                   Confirm New Password *
-                
-                <input aria-label="Re-enter new password"
-                  type="password"
-                  required
-                  placeholder="Re-enter new password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                  <input
+                    aria-label="Re-enter new password"
+                    type="password"
+                    required
+                    placeholder="Re-enter new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
+                  />
+                </span>
               </div>
             </div>
 

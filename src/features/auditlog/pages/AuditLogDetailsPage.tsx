@@ -140,14 +140,16 @@ export function AuditLogDetailsPage({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-              <button type="button"
+              <button
+                type="button"
                 className="hover:text-gray-700 cursor-pointer"
                 onClick={onBack}
               >
                 Hospital
               </button>
               <ChevronRight className="w-4 h-4 text-gray-400" />
-              <button type="button"
+              <button
+                type="button"
                 className="hover:text-gray-700 cursor-pointer"
                 onClick={onBack}
               >

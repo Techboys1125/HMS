@@ -147,7 +147,11 @@ function Av({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const bg = NURSE_AVATAR_PALETTE[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % NURSE_AVATAR_PALETTE.length];
+  const bg =
+    NURSE_AVATAR_PALETTE[
+      (safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) %
+        NURSE_AVATAR_PALETTE.length
+    ];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",

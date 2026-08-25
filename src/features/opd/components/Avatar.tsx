@@ -30,7 +30,8 @@ export const Avatar: React.FC<AvatarProps> = ({ name, size = "sm" }) => {
     .slice(0, 2)
     .toUpperCase();
 
-  const color = OPD_AVATAR_COLORS[name.charCodeAt(0) % OPD_AVATAR_COLORS.length];
+  const color =
+    OPD_AVATAR_COLORS[name.charCodeAt(0) % OPD_AVATAR_COLORS.length];
 
   return (
     <div

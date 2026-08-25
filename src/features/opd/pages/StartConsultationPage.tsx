@@ -1,9 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import {
-  CheckCircle2,
-  AlertCircle,
-  ChevronDown,
-} from "lucide-react";
+import { CheckCircle2, AlertCircle, ChevronDown } from "lucide-react";
 import { usePermissions } from "../../../permissions/usePermissions";
 import { useConsultation } from "../hooks/useConsultation";
 import { useEncounter } from "../hooks/useEncounter";
@@ -313,8 +309,6 @@ export function StartConsultationPage({
     }));
   };
 
- 
-
   const handleFieldChange = (field: string, val: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: val }));
   };
@@ -326,7 +320,6 @@ export function StartConsultationPage({
     const actualField = fieldMap[field] || field;
     setFormData((prev) => ({ ...prev, [actualField]: val }));
   };
-
 
   const handleSaveDraft = async () => {
     setIsDraftSaved(true);

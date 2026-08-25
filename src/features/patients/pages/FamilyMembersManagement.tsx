@@ -36,8 +36,6 @@ export type LinkActivity = {
   status: "Completed" | "Pending" | "Updated";
 };
 
-
-
 function calculateAge(dob?: string, ageVal?: number): number {
   if (typeof ageVal === "number" && ageVal > 0) return ageVal;
   if (!dob) return 0;
@@ -269,7 +267,6 @@ export function FamilyMembersManagement({
     }
   };
 
-
   // Drawer & Dialog states
   const [drawerState, drawerDispatch] = useReducer(drawerReducer, {
     viewDrawerMember: null,
@@ -323,7 +320,9 @@ export function FamilyMembersManagement({
         apiClient.get(
           `/api/v1/patients/me/prescriptions/summary?mrn=${encodeURIComponent(mrn)}`,
         ),
-        apiClient.get(`/api/v1/patients/me/bills?mrn=${encodeURIComponent(mrn)}`),
+        apiClient.get(
+          `/api/v1/patients/me/bills?mrn=${encodeURIComponent(mrn)}`,
+        ),
         apiClient.get(
           `/api/v1/patients/me/consultations/history?mrn=${encodeURIComponent(mrn)}`,
         ),
@@ -456,7 +455,7 @@ export function FamilyMembersManagement({
 
         <button
           onClick={() => onAddFamilyMember?.()}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-colors transition-transform shadow-sm shadow-[#0D47A1]/20 active:scale-[0.98] shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-colors shadow-sm shadow-[#0D47A1]/20 active:scale-[0.98] shrink-0"
           style={{ fontFamily: PP }}
         >
           <UserPlus size={16} />
@@ -583,7 +582,7 @@ export function FamilyMembersManagement({
         </div>
 
         {/* Card 5 */}
-      {/*   <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm hover:shadow-md transition-shadow">
+        {/*   <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <span
               className="text-xs font-semibold text-[#64748B]"
@@ -620,7 +619,8 @@ export function FamilyMembersManagement({
             size={16}
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]"
           />
-          <input aria-label="Input field"
+          <input
+            aria-label="Input field"
             type="text"
             value={filters.searchTerm}
             onChange={(e) => setFilter("searchTerm", e.target.value)}
@@ -629,7 +629,8 @@ export function FamilyMembersManagement({
             style={{ fontFamily: RB }}
           />
           {filters.searchTerm && (
-            <button aria-label="Close"
+            <button
+              aria-label="Close"
               onClick={() => setFilter("searchTerm", "")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
@@ -651,7 +652,8 @@ export function FamilyMembersManagement({
           </div>
 
           {/* Relationship Filter */}
-          <select aria-label="Select option"
+          <select
+            aria-label="Select option"
             value={filters.relFilter}
             onChange={(e) => setFilter("relFilter", e.target.value)}
             className="px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs font-medium text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -673,7 +675,8 @@ export function FamilyMembersManagement({
           </select>
 
           {/* Status Filter */}
-          <select aria-label="Select option"
+          <select
+            aria-label="Select option"
             value={filters.statusFilter}
             onChange={(e) => setFilter("statusFilter", e.target.value)}
             className="px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs font-medium text-[#111827] outline-none focus:border-[#0D47A1]"
@@ -773,7 +776,10 @@ export function FamilyMembersManagement({
                               className="text-sm font-bold text-[#111827] flex items-center gap-1.5"
                               style={{ fontFamily: PP }}
                             >
-                              {formatMemberDisplayName(m, activeFamilyMember || familyMembers[0])}
+                              {formatMemberDisplayName(
+                                m,
+                                activeFamilyMember || familyMembers[0],
+                              )}
                               {isCurrentActive && (
                                 <span className="px-1.5 py-0.5 text-[10px] font-semibold bg-blue-100 text-[#0D47A1] rounded-md">
                                   Active Profile
@@ -873,7 +879,7 @@ export function FamilyMembersManagement({
                           {/* Active Profile Badge / Set Active Button (Fixed width 110px) */}
                           {isCurrentActive ? (
                             <span
-                              className="w-[110px] h-7 inline-flex items-center justify-center gap-1 bg-blue-50 text-[#0D47A1] rounded-lg text-xs font-bold border border-[#0D47A1] shrink-0 text-center"
+                              className="w-27.5 h-7 inline-flex items-center justify-center gap-1 bg-blue-50 text-[#0D47A1] rounded-lg text-xs font-bold border border-[#0D47A1] shrink-0 text-center"
                               style={{ fontFamily: PP }}
                             >
                               <CheckCircle2
@@ -885,13 +891,13 @@ export function FamilyMembersManagement({
                           ) : onSwitchProfile ? (
                             <button
                               onClick={() => onSwitchProfile(m)}
-                              className="w-[110px] h-7 inline-flex items-center justify-center bg-white border border-[#0D47A1] text-[#0D47A1] hover:bg-blue-50 rounded-lg text-xs font-bold transition-colors cursor-pointer shrink-0 text-center"
+                              className="w-27.5 h-7 inline-flex items-center justify-center bg-white border border-[#0D47A1] text-[#0D47A1] hover:bg-blue-50 rounded-lg text-xs font-bold transition-colors cursor-pointer shrink-0 text-center"
                               style={{ fontFamily: PP }}
                             >
                               Set Active
                             </button>
                           ) : (
-                            <div className="w-[110px] shrink-0" />
+                            <div className="w-27.5 shrink-0" />
                           )}
 
                           {/* Remove Link */}
@@ -938,7 +944,6 @@ export function FamilyMembersManagement({
       )}
 
       {/* ── RECENT LINK ACTIVITY SECTION ── */}
-      
 
       {/* ══════════════════════════════════════════════════════════════════
           ── FAMILY MEMBER DETAILS DRAWER (VIEW) ──
@@ -955,7 +960,8 @@ export function FamilyMembersManagement({
                 >
                   Family Member Details
                 </h3>
-                <button aria-label="Close"
+                <button
+                  aria-label="Close"
                   onClick={() => drawerDispatch({ type: "CLOSE_VIEW_DRAWER" })}
                   className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
                 >
@@ -1175,7 +1181,15 @@ export function FamilyMembersManagement({
                   Recent Records
                 </h4>
                 <div className="space-y-2">
-                  <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+                  <div
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        (e.currentTarget as HTMLElement).click();
+                      }
+                    }}
+                    role="button"
                     className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow cursor-pointer"
                     onClick={() => handleNavigateAppointments(viewDrawerMember)}
                   >
@@ -1196,7 +1210,15 @@ export function FamilyMembersManagement({
                     </div>
                     <ChevronRight size={14} className="text-slate-300" />
                   </div>
-                  <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+                  <div
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        (e.currentTarget as HTMLElement).click();
+                      }
+                    }}
+                    role="button"
                     className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow cursor-pointer"
                     onClick={() => handleNavigateAppointments(viewDrawerMember)}
                   >
@@ -1218,7 +1240,15 @@ export function FamilyMembersManagement({
                     </div>
                     <ChevronRight size={14} className="text-slate-300" />
                   </div>
-                  <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+                  <div
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        (e.currentTarget as HTMLElement).click();
+                      }
+                    }}
+                    role="button"
                     className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow cursor-pointer"
                     onClick={() =>
                       handleNavigatePrescriptions(viewDrawerMember)
@@ -1241,7 +1271,15 @@ export function FamilyMembersManagement({
                     </div>
                     <ChevronRight size={14} className="text-slate-300" />
                   </div>
-                  <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+                  <div
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        (e.currentTarget as HTMLElement).click();
+                      }
+                    }}
+                    role="button"
                     className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-xs hover:shadow-sm transition-shadow cursor-pointer"
                     onClick={() => handleNavigateBills(viewDrawerMember)}
                   >
@@ -1354,8 +1392,6 @@ export function FamilyMembersManagement({
           </div>
         </div>
       )}
-
-
 
       {/* ── REMOVE FAMILY MEMBER CONFIRMATION DIALOG ── */}
       {removeDialogMember && (

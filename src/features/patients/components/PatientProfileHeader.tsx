@@ -44,7 +44,8 @@ export function PatientProfileHeader({
     <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-4">
       <div className="flex items-center gap-3">
         {onBack && (
-          <button aria-label="Previous"
+          <button
+            aria-label="Previous"
             onClick={onBack}
             className="p-2 rounded-lg hover:bg-slate-100 transition-colors shrink-0"
           >

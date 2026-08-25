@@ -86,95 +86,94 @@ function CircularProgress({
   );
 }
 
-
 const renderStatusChip = (status?: string) => {
-    const map: Record<string, { bg: string; text: string; dot: string }> = {
-      Completed: {
-        bg: "bg-green-50 border-green-200",
-        text: "text-[#66BB6A]",
-        dot: "bg-[#66BB6A]",
-      },
-      COMPLETED: {
-        bg: "bg-green-50 border-green-200",
-        text: "text-[#66BB6A]",
-        dot: "bg-[#66BB6A]",
-      },
-      Scheduled: {
-        bg: "bg-blue-50 border-blue-200",
-        text: "text-[#0D47A1]",
-        dot: "bg-[#0D47A1]",
-      },
-      SCHEDULED: {
-        bg: "bg-blue-50 border-blue-200",
-        text: "text-[#0D47A1]",
-        dot: "bg-[#0D47A1]",
-      },
-      BOOKED: {
-        bg: "bg-blue-50 border-blue-200",
-        text: "text-[#0D47A1]",
-        dot: "bg-[#0D47A1]",
-      },
-      CONFIRMED: {
-        bg: "bg-blue-50 border-blue-200",
-        text: "text-[#0D47A1]",
-        dot: "bg-[#0D47A1]",
-      },
-      Waiting: {
-        bg: "bg-teal-50 border-teal-200",
-        text: "text-[#009688]",
-        dot: "bg-[#009688]",
-      },
-      WAITING: {
-        bg: "bg-teal-50 border-teal-200",
-        text: "text-[#009688]",
-        dot: "bg-[#009688]",
-      },
-      CHECKED_IN: {
-        bg: "bg-teal-50 border-teal-200",
-        text: "text-[#009688]",
-        dot: "bg-[#009688]",
-      },
-      IN_CONSULTATION: {
-        bg: "bg-amber-50 border-amber-200",
-        text: "text-[#F59E0B]",
-        dot: "bg-[#F59E0B]",
-      },
-      Cancelled: {
-        bg: "bg-red-50 border-red-200",
-        text: "text-[#EF4444]",
-        dot: "bg-[#EF4444]",
-      },
-      CANCELLED: {
-        bg: "bg-red-50 border-red-200",
-        text: "text-[#EF4444]",
-        dot: "bg-[#EF4444]",
-      },
-      "No Show": {
-        bg: "bg-amber-50 border-amber-200",
-        text: "text-[#F59E0B]",
-        dot: "bg-[#F59E0B]",
-      },
-      NO_SHOW: {
-        bg: "bg-amber-50 border-amber-200",
-        text: "text-[#F59E0B]",
-        dot: "bg-[#F59E0B]",
-      },
-    };
-    const defaultStyle = {
-      bg: "bg-slate-50 border-slate-200",
-      text: "text-slate-600",
-      dot: "bg-slate-400",
-    };
-    const style = (status && map[status]) || defaultStyle;
-    return (
-      <span
-        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.bg} ${style.text}`}
-      >
-        <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-        {status || "Unknown"}
-      </span>
-    );
+  const map: Record<string, { bg: string; text: string; dot: string }> = {
+    Completed: {
+      bg: "bg-green-50 border-green-200",
+      text: "text-[#66BB6A]",
+      dot: "bg-[#66BB6A]",
+    },
+    COMPLETED: {
+      bg: "bg-green-50 border-green-200",
+      text: "text-[#66BB6A]",
+      dot: "bg-[#66BB6A]",
+    },
+    Scheduled: {
+      bg: "bg-blue-50 border-blue-200",
+      text: "text-[#0D47A1]",
+      dot: "bg-[#0D47A1]",
+    },
+    SCHEDULED: {
+      bg: "bg-blue-50 border-blue-200",
+      text: "text-[#0D47A1]",
+      dot: "bg-[#0D47A1]",
+    },
+    BOOKED: {
+      bg: "bg-blue-50 border-blue-200",
+      text: "text-[#0D47A1]",
+      dot: "bg-[#0D47A1]",
+    },
+    CONFIRMED: {
+      bg: "bg-blue-50 border-blue-200",
+      text: "text-[#0D47A1]",
+      dot: "bg-[#0D47A1]",
+    },
+    Waiting: {
+      bg: "bg-teal-50 border-teal-200",
+      text: "text-[#009688]",
+      dot: "bg-[#009688]",
+    },
+    WAITING: {
+      bg: "bg-teal-50 border-teal-200",
+      text: "text-[#009688]",
+      dot: "bg-[#009688]",
+    },
+    CHECKED_IN: {
+      bg: "bg-teal-50 border-teal-200",
+      text: "text-[#009688]",
+      dot: "bg-[#009688]",
+    },
+    IN_CONSULTATION: {
+      bg: "bg-amber-50 border-amber-200",
+      text: "text-[#F59E0B]",
+      dot: "bg-[#F59E0B]",
+    },
+    Cancelled: {
+      bg: "bg-red-50 border-red-200",
+      text: "text-[#EF4444]",
+      dot: "bg-[#EF4444]",
+    },
+    CANCELLED: {
+      bg: "bg-red-50 border-red-200",
+      text: "text-[#EF4444]",
+      dot: "bg-[#EF4444]",
+    },
+    "No Show": {
+      bg: "bg-amber-50 border-amber-200",
+      text: "text-[#F59E0B]",
+      dot: "bg-[#F59E0B]",
+    },
+    NO_SHOW: {
+      bg: "bg-amber-50 border-amber-200",
+      text: "text-[#F59E0B]",
+      dot: "bg-[#F59E0B]",
+    },
   };
+  const defaultStyle = {
+    bg: "bg-slate-50 border-slate-200",
+    text: "text-slate-600",
+    dot: "bg-slate-400",
+  };
+  const style = (status && map[status]) || defaultStyle;
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.bg} ${style.text}`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+      {status || "Unknown"}
+    </span>
+  );
+};
 
 export function DailyAppointmentReportScreen({
   onBack,
@@ -555,7 +554,6 @@ export function DailyAppointmentReportScreen({
     }
   };
 
-
   return (
     <div
       className="min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
@@ -566,14 +564,16 @@ export function DailyAppointmentReportScreen({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
-                <button type="button"
+                <button
+                  type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
                   Hospital
                 </button>
                 <ChevronRight className="w-3.5 h-3.5" />
-                <button type="button"
+                <button
+                  type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
@@ -646,7 +646,8 @@ export function DailyAppointmentReportScreen({
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-            <input aria-label="Input field"
+            <input
+              aria-label="Input field"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -676,100 +677,106 @@ export function DailyAppointmentReportScreen({
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              
-              <select aria-label="Select option"
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>Today</option>
-                <option>Yesterday</option>
-                <option>Last 7 Days</option>
-                <option>This Month</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={dateRange}
+                  onChange={(e) => setDateRange(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>Today</option>
+                  <option>Yesterday</option>
+                  <option>Last 7 Days</option>
+                  <option>This Month</option>
+                </select>
+              </span>
             </div>
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Department
-              
-              <select aria-label="Select option"
-                value={deptFilter}
-                onChange={(e) => setDeptFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Departments</option>
-                <option>General Medicine</option>
-                <option>Cardiology</option>
-                <option>Orthopedics</option>
-                <option>Neurology</option>
-                <option>ENT</option>
-                <option>Pediatrics</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={deptFilter}
+                  onChange={(e) => setDeptFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Departments</option>
+                  <option>General Medicine</option>
+                  <option>Cardiology</option>
+                  <option>Orthopedics</option>
+                  <option>Neurology</option>
+                  <option>ENT</option>
+                  <option>Pediatrics</option>
+                </select>
+              </span>
             </div>
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Doctor
-              
-              <select aria-label="Select option"
-                value={doctorFilter}
-                onChange={(e) => setDoctorFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Doctors</option>
-                <option>Dr. Sarah Jenkins</option>
-                <option>Dr. Rajesh Kapoor</option>
-                <option>Dr. Priya Sharma</option>
-                <option>Dr. Arjun Mehta</option>
-                <option>Dr. Sunita Patel</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={doctorFilter}
+                  onChange={(e) => setDoctorFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Doctors</option>
+                  <option>Dr. Sarah Jenkins</option>
+                  <option>Dr. Rajesh Kapoor</option>
+                  <option>Dr. Priya Sharma</option>
+                  <option>Dr. Arjun Mehta</option>
+                  <option>Dr. Sunita Patel</option>
+                </select>
+              </span>
             </div>
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Appointment Status
-              
-              <select aria-label="Select option"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Statuses</option>
-                <option>Completed</option>
-                <option>Scheduled</option>
-                <option>Waiting</option>
-                <option>Cancelled</option>
-                <option>No Show</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Statuses</option>
+                  <option>Completed</option>
+                  <option>Scheduled</option>
+                  <option>Waiting</option>
+                  <option>Cancelled</option>
+                  <option>No Show</option>
+                </select>
+              </span>
             </div>
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Visit Type
-              
-              <select aria-label="Select option"
-                value={visitTypeFilter}
-                onChange={(e) => setVisitTypeFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Visit Types</option>
-                <option>New Visit</option>
-                <option>Follow-up</option>
-                <option>Walk-in</option>
-                <option>Emergency</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={visitTypeFilter}
+                  onChange={(e) => setVisitTypeFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Visit Types</option>
+                  <option>New Visit</option>
+                  <option>Follow-up</option>
+                  <option>Walk-in</option>
+                  <option>Emergency</option>
+                </select>
+              </span>
             </div>
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Shift
-              
-              <select aria-label="Select option"
-                value={shiftFilter}
-                onChange={(e) => setShiftFilter(e.target.value)}
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Shifts</option>
-                <option>Morning (08 AM - 02 PM)</option>
-                <option>Evening (02 PM - 08 PM)</option>
-                <option>Night Shift</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={shiftFilter}
+                  onChange={(e) => setShiftFilter(e.target.value)}
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Shifts</option>
+                  <option>Morning (08 AM - 02 PM)</option>
+                  <option>Evening (02 PM - 08 PM)</option>
+                  <option>Night Shift</option>
+                </select>
+              </span>
             </div>
           </div>
           <div className="flex items-center justify-end gap-3 mt-4 pt-3 border-t border-[#E5E7EB]">
@@ -1340,7 +1347,14 @@ export function DailyAppointmentReportScreen({
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
-                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
+                        <th
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              (e.currentTarget as HTMLElement).click();
+                            }
+                          }}
                           className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("id")}
                         >
@@ -1348,7 +1362,14 @@ export function DailyAppointmentReportScreen({
                           {sortField === "id" &&
                             (sortOrder === "asc" ? "↑" : "↓")}
                         </th>
-                        <th tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}
+                        <th
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              (e.currentTarget as HTMLElement).click();
+                            }
+                          }}
                           className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
                           onClick={() => handleSort("patientName")}
                         >
@@ -1445,7 +1466,8 @@ export function DailyAppointmentReportScreen({
                     entries
                   </span>
                   <div className="flex items-center gap-2">
-                    <button aria-label="Previous"
+                    <button
+                      aria-label="Previous"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -1454,7 +1476,8 @@ export function DailyAppointmentReportScreen({
                     <span className="font-semibold text-[#111827]">
                       Page 1 of 1
                     </span>
-                    <button aria-label="Next"
+                    <button
+                      aria-label="Next"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -1500,7 +1523,8 @@ export function DailyAppointmentReportScreen({
               >
                 Export Daily Appointment Report
               </h3>
-              <button aria-label="Download"
+              <button
+                aria-label="Download"
                 onClick={() => setShowExportModal(false)}
                 className="p-1 rounded-lg text-[#64748B] hover:text-[#111827] hover:bg-slate-100 transition"
               >

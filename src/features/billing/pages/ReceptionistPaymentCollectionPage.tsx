@@ -568,7 +568,7 @@ export function ReceptionistPaymentCollectionPage() {
               form.amount <= 0 ||
               form.amount > selectedBill.balance
             }
-            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors transition-opacity shadow-sm disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors shadow-sm disabled:opacity-50"
             style={{ fontFamily: PP }}
           >
             <DollarSign size={15} />

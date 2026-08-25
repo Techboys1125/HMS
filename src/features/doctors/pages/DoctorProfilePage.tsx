@@ -361,7 +361,6 @@ export function DoctorProfilePage() {
     }
   };
 
-
   if (loading) {
     return (
       <div
@@ -595,7 +594,8 @@ export function DoctorProfilePage() {
                 Full Name
               </span>
               {editingPersonal ? (
-                <input aria-label="Input field"
+                <input
+                  aria-label="Input field"
                   type="text"
                   value={personalForm.fullName}
                   onChange={(e) =>
@@ -618,7 +618,8 @@ export function DoctorProfilePage() {
                 Email
               </span>
               {editingPersonal ? (
-                <input aria-label="Input field"
+                <input
+                  aria-label="Input field"
                   type="email"
                   value={personalForm.email}
                   onChange={(e) =>
@@ -638,7 +639,8 @@ export function DoctorProfilePage() {
                 Phone
               </span>
               {editingPersonal ? (
-                <input aria-label="Input field"
+                <input
+                  aria-label="Input field"
                   type="text"
                   value={personalForm.mobile}
                   onChange={(e) =>
@@ -657,7 +659,8 @@ export function DoctorProfilePage() {
                 Gender
               </span>
               {editingPersonal ? (
-                <select aria-label="Select option"
+                <select
+                  aria-label="Select option"
                   value={personalForm.gender}
                   onChange={(e) =>
                     setPersonalForm({ ...personalForm, gender: e.target.value })
@@ -682,7 +685,8 @@ export function DoctorProfilePage() {
                 Date of Birth
               </span>
               {editingPersonal ? (
-                <input aria-label="Input field"
+                <input
+                  aria-label="Input field"
                   type="date"
                   value={personalForm.dateOfBirth}
                   onChange={(e) =>
@@ -715,7 +719,8 @@ export function DoctorProfilePage() {
               Address
             </span>
             {editingPersonal ? (
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 value={personalForm.address}
                 onChange={(e) =>
@@ -735,7 +740,8 @@ export function DoctorProfilePage() {
               Professional Bio
             </span>
             {editingPersonal ? (
-              <textarea aria-label="Text input"
+              <textarea
+                aria-label="Text input"
                 rows={3}
                 value={personalForm.bio}
                 onChange={(e) =>
@@ -855,7 +861,8 @@ export function DoctorProfilePage() {
                   placeholder="Enter current password"
                   className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 pr-9 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
                 />
-                <button aria-label="View details"
+                <button
+                  aria-label="View details"
                   type="button"
                   onClick={() => setShowCurrentPw(!showCurrentPw)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
@@ -881,7 +888,8 @@ export function DoctorProfilePage() {
                   placeholder="Enter new password"
                   className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 pr-9 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
                 />
-                <button aria-label="View details"
+                <button
+                  aria-label="View details"
                   type="button"
                   onClick={() => setShowNewPw(!showNewPw)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
@@ -893,19 +901,20 @@ export function DoctorProfilePage() {
             <div>
               <span className="block text-[11px] font-bold text-[#64748B] mb-1">
                 Confirm New Password
-              
-              <input aria-label="Input field"
-                type="password"
-                value={passwordForm.confirmPassword}
-                onChange={(e) =>
-                  setPasswordForm({
-                    ...passwordForm,
-                    confirmPassword: e.target.value,
-                  })
-                }
-                placeholder="Confirm new password"
-                className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
-              /></span>
+                <input
+                  aria-label="Input field"
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) =>
+                    setPasswordForm({
+                      ...passwordForm,
+                      confirmPassword: e.target.value,
+                    })
+                  }
+                  placeholder="Confirm new password"
+                  className="w-full bg-white border border-[#E5E7EB] rounded-lg px-3 py-2 text-xs text-[#111827] outline-none focus:border-[#0D47A1]"
+                />
+              </span>
             </div>
           </div>
 

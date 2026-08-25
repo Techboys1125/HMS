@@ -137,7 +137,8 @@ export function PaymentMethodConfiguration({
                   <span style={{ color: "#64748B" }}>
                     Enable Payment Method
                   </span>
-                  <input aria-label="Toggle option"
+                  <input
+                    aria-label="Toggle option"
                     type="checkbox"
                     checked={pm.enabled}
                     onChange={() => onTogglePayment(pm.id, "enabled")}
@@ -154,7 +155,8 @@ export function PaymentMethodConfiguration({
                   <span style={{ color: "#64748B" }}>
                     Set as Default Option
                   </span>
-                  <input aria-label="defaultPayment"
+                  <input
+                    aria-label="defaultPayment"
                     type="radio"
                     name="defaultPayment"
                     checked={pm.isDefault}
@@ -172,7 +174,8 @@ export function PaymentMethodConfiguration({
                   <span style={{ color: "#64748B" }}>
                     Txn Ref / Cheque No Req.
                   </span>
-                  <input aria-label="Toggle option"
+                  <input
+                    aria-label="Toggle option"
                     type="checkbox"
                     checked={pm.reqRef}
                     onChange={() => onTogglePayment(pm.id, "reqRef")}

@@ -89,7 +89,10 @@ export function AppointmentDetailsDrawer({
             const mapped = events.map((evtItem: unknown) => {
               const e = (evtItem as Record<string, unknown>) || {};
               const title = String(
-                e.remarks || e.eventType || e.newStatus || "Queue Event Updated",
+                e.remarks ||
+                  e.eventType ||
+                  e.newStatus ||
+                  "Queue Event Updated",
               );
               const roleStr = e.role ? ` (${e.role})` : "";
               const by = `${e.performedBy || "System"}${roleStr}`;
@@ -242,7 +245,8 @@ export function AppointmentDetailsDrawer({
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      <div role="presentation"
+      <div
+        role="presentation"
         className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
@@ -281,7 +285,8 @@ export function AppointmentDetailsDrawer({
             </div>
 
             <div className="flex items-center gap-2">
-              <button aria-label="Close"
+              <button
+                aria-label="Close"
                 type="button"
                 onClick={onClose}
                 className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition-colors"

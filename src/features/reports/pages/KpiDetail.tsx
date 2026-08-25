@@ -122,69 +122,69 @@ import {
   ResponsiveContainer,
 } from "../../../common/components/recharts-lazy";
 
- const renderStatusBadge = (status: string) => {
-   const map: Record<string, { bg: string; text: string; dot: string }> = {
-     Paid: {
-       bg: "bg-emerald-50 border-teal-200",
-       text: "text-[#009688]",
-       dot: "bg-[#009688]",
-     },
-     Completed: {
-       bg: "bg-emerald-50 border-teal-200",
-       text: "text-[#009688]",
-       dot: "bg-[#009688]",
-     },
-     "Partially Paid": {
-       bg: "bg-blue-50 border-blue-200",
-       text: "text-[#0D47A1]",
-       dot: "bg-[#0D47A1]",
-     },
-     "Checked-In": {
-       bg: "bg-blue-50 border-blue-200",
-       text: "text-[#0D47A1]",
-       dot: "bg-[#0D47A1]",
-     },
-     "In-Progress": {
-       bg: "bg-blue-50 border-blue-200",
-       text: "text-[#0D47A1]",
-       dot: "bg-[#0D47A1]",
-     },
-     Pending: {
-       bg: "bg-amber-50 border-amber-200",
-       text: "text-[#F59E0B]",
-       dot: "bg-[#F59E0B]",
-     },
-     Scheduled: {
-       bg: "bg-amber-50 border-amber-200",
-       text: "text-[#F59E0B]",
-       dot: "bg-[#F59E0B]",
-     },
-     Cancelled: {
-       bg: "bg-red-50 border-red-200",
-       text: "text-[#EF4444]",
-       dot: "bg-[#EF4444]",
-     },
-     Overdue: {
-       bg: "bg-red-50 border-red-200",
-       text: "text-[#EF4444]",
-       dot: "bg-[#EF4444]",
-     },
-   };
+const renderStatusBadge = (status: string) => {
+  const map: Record<string, { bg: string; text: string; dot: string }> = {
+    Paid: {
+      bg: "bg-emerald-50 border-teal-200",
+      text: "text-[#009688]",
+      dot: "bg-[#009688]",
+    },
+    Completed: {
+      bg: "bg-emerald-50 border-teal-200",
+      text: "text-[#009688]",
+      dot: "bg-[#009688]",
+    },
+    "Partially Paid": {
+      bg: "bg-blue-50 border-blue-200",
+      text: "text-[#0D47A1]",
+      dot: "bg-[#0D47A1]",
+    },
+    "Checked-In": {
+      bg: "bg-blue-50 border-blue-200",
+      text: "text-[#0D47A1]",
+      dot: "bg-[#0D47A1]",
+    },
+    "In-Progress": {
+      bg: "bg-blue-50 border-blue-200",
+      text: "text-[#0D47A1]",
+      dot: "bg-[#0D47A1]",
+    },
+    Pending: {
+      bg: "bg-amber-50 border-amber-200",
+      text: "text-[#F59E0B]",
+      dot: "bg-[#F59E0B]",
+    },
+    Scheduled: {
+      bg: "bg-amber-50 border-amber-200",
+      text: "text-[#F59E0B]",
+      dot: "bg-[#F59E0B]",
+    },
+    Cancelled: {
+      bg: "bg-red-50 border-red-200",
+      text: "text-[#EF4444]",
+      dot: "bg-[#EF4444]",
+    },
+    Overdue: {
+      bg: "bg-red-50 border-red-200",
+      text: "text-[#EF4444]",
+      dot: "bg-[#EF4444]",
+    },
+  };
 
-   const style = map[status] || {
-     bg: "bg-slate-50 border-slate-200",
-     text: "text-[#64748B]",
-     dot: "bg-[#64748B]",
-   };
-   return (
-     <span
-       className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.bg} ${style.text}`}
-     >
-       <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-       {status}
-     </span>
-   );
- };
+  const style = map[status] || {
+    bg: "bg-slate-50 border-slate-200",
+    text: "text-[#64748B]",
+    dot: "bg-[#64748B]",
+  };
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${style.bg} ${style.text}`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+      {status}
+    </span>
+  );
+};
 
 export function DashboardKpiDetailScreen({
   onBack,
@@ -593,14 +593,16 @@ export function DashboardKpiDetailScreen({
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
-                <button type="button"
+                <button
+                  type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
                   Hospital
                 </button>
                 <ChevronRight className="w-3.5 h-3.5" />
-                <button type="button"
+                <button
+                  type="button"
                   className="hover:text-[#0D47A1] cursor-pointer"
                   onClick={onBack}
                 >
@@ -700,19 +702,20 @@ export function DashboardKpiDetailScreen({
                 style={{ fontFamily: PP }}
               >
                 Select KPI To Inspect:
-              
-              <select aria-label="Select option"
-                value={selectedKpi}
-                onChange={(e) => setSelectedKpi(e.target.value)}
-                className="bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs font-semibold px-3 py-2 text-[#0D47A1] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>Today's Revenue</option>
-                <option>Today's Appointments</option>
-                <option>Patients Registered</option>
-                <option>OPD Consultations</option>
-                <option>Completed Consultations</option>
-                <option>Pending Payments</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={selectedKpi}
+                  onChange={(e) => setSelectedKpi(e.target.value)}
+                  className="bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs font-semibold px-3 py-2 text-[#0D47A1] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>Today's Revenue</option>
+                  <option>Today's Appointments</option>
+                  <option>Patients Registered</option>
+                  <option>OPD Consultations</option>
+                  <option>Completed Consultations</option>
+                  <option>Pending Payments</option>
+                </select>
+              </span>
             </div>
           </div>
 
@@ -1048,7 +1051,8 @@ export function DashboardKpiDetailScreen({
               </span>
               <div className="relative">
                 <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
-                <input aria-label="Input field"
+                <input
+                  aria-label="Input field"
                   type="text"
                   value={searchQuery}
                   onChange={(e) =>
@@ -1064,73 +1068,76 @@ export function DashboardKpiDetailScreen({
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Date Range
-              
-              <select aria-label="Select option"
-                value={dateRange}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_FILTER",
-                    field: "dateRange",
-                    value: e.target.value,
-                  })
-                }
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>Today</option>
-                <option>Yesterday</option>
-                <option>Last 7 Days</option>
-                <option>This Month</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={dateRange}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_FILTER",
+                      field: "dateRange",
+                      value: e.target.value,
+                    })
+                  }
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>Today</option>
+                  <option>Yesterday</option>
+                  <option>Last 7 Days</option>
+                  <option>This Month</option>
+                </select>
+              </span>
             </div>
 
             {/* Department */}
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Department
-              
-              <select aria-label="Select option"
-                value={deptFilter}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_FILTER",
-                    field: "deptFilter",
-                    value: e.target.value,
-                  })
-                }
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Departments</option>
-                <option>General Medicine</option>
-                <option>Cardiology</option>
-                <option>Orthopedics</option>
-                <option>Neurology</option>
-                <option>Pediatrics</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={deptFilter}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_FILTER",
+                      field: "deptFilter",
+                      value: e.target.value,
+                    })
+                  }
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Departments</option>
+                  <option>General Medicine</option>
+                  <option>Cardiology</option>
+                  <option>Orthopedics</option>
+                  <option>Neurology</option>
+                  <option>Pediatrics</option>
+                </select>
+              </span>
             </div>
 
             {/* Doctor */}
             <div>
               <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                 Doctor
-              
-              <select aria-label="Select option"
-                value={doctorFilter}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_FILTER",
-                    field: "doctorFilter",
-                    value: e.target.value,
-                  })
-                }
-                className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-              >
-                <option>All Doctors</option>
-                <option>Dr. Sarah Jenkins</option>
-                <option>Dr. Rajesh Kapoor</option>
-                <option>Dr. Priya Sharma</option>
-                <option>Dr. Arjun Mehta</option>
-                <option>Dr. Sunita Patel</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  value={doctorFilter}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_FILTER",
+                      field: "doctorFilter",
+                      value: e.target.value,
+                    })
+                  }
+                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                >
+                  <option>All Doctors</option>
+                  <option>Dr. Sarah Jenkins</option>
+                  <option>Dr. Rajesh Kapoor</option>
+                  <option>Dr. Priya Sharma</option>
+                  <option>Dr. Arjun Mehta</option>
+                  <option>Dr. Sunita Patel</option>
+                </select>
+              </span>
             </div>
 
             {/* Dynamic Visit Type Filter */}
@@ -1139,25 +1146,26 @@ export function DashboardKpiDetailScreen({
                 className={`block text-[11px] font-medium mb-1 ${showVisitTypeFilter ? "text-[#64748B]" : "text-slate-400"}`}
               >
                 Visit Type
-              
-              <select aria-label="Select option"
-                disabled={!showVisitTypeFilter}
-                value={visitTypeFilter}
-                onChange={(e) =>
-                  dispatch({
-                    type: "SET_FILTER",
-                    field: "visitTypeFilter",
-                    value: e.target.value,
-                  })
-                }
-                className={`w-full border rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1] ${showVisitTypeFilter ? "bg-[#F1F5F9] border-[#E5E7EB]" : "bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed"}`}
-              >
-                <option>All Visit Types</option>
-                <option>New Visit</option>
-                <option>Follow-up</option>
-                <option>Walk-in</option>
-                <option>Emergency</option>
-              </select></span>
+                <select
+                  aria-label="Select option"
+                  disabled={!showVisitTypeFilter}
+                  value={visitTypeFilter}
+                  onChange={(e) =>
+                    dispatch({
+                      type: "SET_FILTER",
+                      field: "visitTypeFilter",
+                      value: e.target.value,
+                    })
+                  }
+                  className={`w-full border rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1] ${showVisitTypeFilter ? "bg-[#F1F5F9] border-[#E5E7EB]" : "bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed"}`}
+                >
+                  <option>All Visit Types</option>
+                  <option>New Visit</option>
+                  <option>Follow-up</option>
+                  <option>Walk-in</option>
+                  <option>Emergency</option>
+                </select>
+              </span>
             </div>
 
             {/* Dynamic Payment or Appointment Status Filter */}
@@ -1165,24 +1173,25 @@ export function DashboardKpiDetailScreen({
               <div>
                 <span className="block text-[11px] font-medium text-[#64748B] mb-1">
                   Appointment Status
-                
-                <select aria-label="Select option"
-                  value={aptStatusFilter}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "SET_FILTER",
-                      field: "aptStatusFilter",
-                      value: e.target.value,
-                    })
-                  }
-                  className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
-                >
-                  <option>All Appointment Statuses</option>
-                  <option>Scheduled</option>
-                  <option>Checked-In</option>
-                  <option>Completed</option>
-                  <option>Cancelled</option>
-                </select></span>
+                  <select
+                    aria-label="Select option"
+                    value={aptStatusFilter}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "SET_FILTER",
+                        field: "aptStatusFilter",
+                        value: e.target.value,
+                      })
+                    }
+                    className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
+                  >
+                    <option>All Appointment Statuses</option>
+                    <option>Scheduled</option>
+                    <option>Checked-In</option>
+                    <option>Completed</option>
+                    <option>Cancelled</option>
+                  </select>
+                </span>
               </div>
             ) : (
               <div>
@@ -1190,25 +1199,26 @@ export function DashboardKpiDetailScreen({
                   className={`block text-[11px] font-medium mb-1 ${showPayStatusFilter ? "text-[#64748B]" : "text-slate-400"}`}
                 >
                   Payment Status
-                
-                <select aria-label="Select option"
-                  disabled={!showPayStatusFilter}
-                  value={payStatusFilter}
-                  onChange={(e) =>
-                    dispatch({
-                      type: "SET_FILTER",
-                      field: "payStatusFilter",
-                      value: e.target.value,
-                    })
-                  }
-                  className={`w-full border rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1] ${showPayStatusFilter ? "bg-[#F1F5F9] border-[#E5E7EB]" : "bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed"}`}
-                >
-                  <option>All Payment Statuses</option>
-                  <option>Paid</option>
-                  <option>Partially Paid</option>
-                  <option>Pending</option>
-                  <option>Overdue</option>
-                </select></span>
+                  <select
+                    aria-label="Select option"
+                    disabled={!showPayStatusFilter}
+                    value={payStatusFilter}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "SET_FILTER",
+                        field: "payStatusFilter",
+                        value: e.target.value,
+                      })
+                    }
+                    className={`w-full border rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1] ${showPayStatusFilter ? "bg-[#F1F5F9] border-[#E5E7EB]" : "bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed"}`}
+                  >
+                    <option>All Payment Statuses</option>
+                    <option>Paid</option>
+                    <option>Partially Paid</option>
+                    <option>Pending</option>
+                    <option>Overdue</option>
+                  </select>
+                </span>
               </div>
             )}
           </div>
@@ -2005,7 +2015,8 @@ export function DashboardKpiDetailScreen({
                 entries
               </span>
               <div className="flex items-center gap-2">
-                <button aria-label="Previous"
+                <button
+                  aria-label="Previous"
                   disabled
                   className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                 >
@@ -2014,7 +2025,8 @@ export function DashboardKpiDetailScreen({
                 <span className="font-semibold text-[#111827]">
                   Page 1 of 1
                 </span>
-                <button aria-label="Next"
+                <button
+                  aria-label="Next"
                   disabled
                   className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                 >
@@ -2056,7 +2068,8 @@ export function DashboardKpiDetailScreen({
               >
                 Export {selectedKpi} Report
               </h3>
-              <button aria-label="Download"
+              <button
+                aria-label="Download"
                 onClick={() => setShowExportModal(false)}
                 className="p-1 rounded-lg text-[#64748B] hover:text-[#111827] hover:bg-slate-100 transition"
               >

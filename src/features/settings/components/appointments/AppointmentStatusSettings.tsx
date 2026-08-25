@@ -68,7 +68,8 @@ export function AppointmentStatusSettings() {
                   background: st.color,
                 }}
               />
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 value={st.label}
                 onChange={(e) => {
@@ -89,16 +90,17 @@ export function AppointmentStatusSettings() {
                 }}
               />
             </div>
-            <input aria-label="Toggle option"
+            <input
+              aria-label="Toggle option"
               type="checkbox"
               checked={st.visible}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  const next = statuses.map((st, idx) =>
-                    idx === i ? { ...st, visible: checked } : st,
-                  );
-                  setStatuses(next);
-                }}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                const next = statuses.map((st, idx) =>
+                  idx === i ? { ...st, visible: checked } : st,
+                );
+                setStatuses(next);
+              }}
               style={{ accentColor: "#009688", cursor: "pointer" }}
             />
           </div>

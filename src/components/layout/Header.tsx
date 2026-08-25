@@ -140,7 +140,8 @@ export function Header({
             size={15}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
           />
-          <input aria-label="Search patients, appointments, records…"
+          <input
+            aria-label="Search patients, appointments, records…"
             type="text"
             placeholder="Search patients, appointments, records…"
             className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-gray-100 rounded-lg text-slate-700 placeholder-slate-400 outline-none focus:border-[#0D47A1] focus:bg-white transition-colors"

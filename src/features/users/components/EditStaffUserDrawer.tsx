@@ -528,7 +528,8 @@ export function EditStaffUserDrawer({
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
-      <div role="presentation"
+      <div
+        role="presentation"
         className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
         onClick={onClose}
       />
@@ -546,7 +547,8 @@ export function EditStaffUserDrawer({
                 Modify profile info for {user.empId}
               </p>
             </div>
-            <button aria-label="Close"
+            <button
+              aria-label="Close"
               onClick={onClose}
               className="p-1.5 text-white/80 hover:text-white rounded-lg hover:bg-white/10 cursor-pointer"
             >
@@ -702,67 +704,80 @@ export function EditStaffUserDrawer({
               <div>
                 <span className="block text-xs font-bold text-[#64748B] mb-1">
                   System Access Role (Locked)
-                
-                <input aria-label="Input field"
-                  type="text"
-                  readOnly
-                  value={user.role}
-                  className="w-full px-3 py-2.5 text-xs bg-slate-100 border border-[#E5E7EB] rounded-xl text-slate-500 outline-none font-semibold cursor-not-allowed"
-                /></span>
+                  <input
+                    aria-label="Input field"
+                    type="text"
+                    readOnly
+                    value={user.role}
+                    className="w-full px-3 py-2.5 text-xs bg-slate-100 border border-[#E5E7EB] rounded-xl text-slate-500 outline-none font-semibold cursor-not-allowed"
+                  />
+                </span>
               </div>
               <div>
                 <span className="block text-xs font-bold text-[#111827] mb-1">
                   Account Status
-                
-                <select aria-label="Select option"
-                  value={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Suspended">Suspended</option>
-                </select></span>
+                  <select
+                    aria-label="Select option"
+                    value={form.status}
+                    onChange={(e) =>
+                      setForm({ ...form, status: e.target.value })
+                    }
+                    className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Suspended">Suspended</option>
+                  </select>
+                </span>
               </div>
             </div>
 
             <div>
               <span className="block text-xs font-bold text-[#111827] mb-1">
                 Full Name *
-              
-              <input aria-label="Input field"
-                type="text"
-                required
-                value={form.fullName}
-                onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-              /></span>
+                <input
+                  aria-label="Input field"
+                  type="text"
+                  required
+                  value={form.fullName}
+                  onChange={(e) =>
+                    setForm({ ...form, fullName: e.target.value })
+                  }
+                  className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
+                />
+              </span>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <span className="block text-xs font-bold text-[#111827] mb-1">
                   Email Address *
-                
-                <input aria-label="Input field"
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-                /></span>
+                  <input
+                    aria-label="Input field"
+                    type="email"
+                    required
+                    value={form.email}
+                    onChange={(e) =>
+                      setForm({ ...form, email: e.target.value })
+                    }
+                    className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
+                  />
+                </span>
               </div>
               <div>
                 <span className="block text-xs font-bold text-[#111827] mb-1">
                   Phone Number
-                
-                <input aria-label="Input field"
-                  type="text"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
-                /></span>
+                  <input
+                    aria-label="Input field"
+                    type="text"
+                    value={form.phone}
+                    onChange={(e) =>
+                      setForm({ ...form, phone: e.target.value })
+                    }
+                    className="w-full px-3 py-2.5 text-xs bg-white border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#009688]"
+                  />
+                </span>
               </div>
             </div>
 
@@ -771,7 +786,8 @@ export function EditStaffUserDrawer({
                 Department
               </span>
               {isDoctor ? (
-                <select aria-label="Select option"
+                <select
+                  aria-label="Select option"
                   value={form.department}
                   onChange={(e) =>
                     setForm({
@@ -793,7 +809,8 @@ export function EditStaffUserDrawer({
                   ))}
                 </select>
               ) : (
-                <input aria-label="Input field"
+                <input
+                  aria-label="Input field"
                   type="text"
                   value={form.department}
                   onChange={(e) =>
@@ -823,31 +840,33 @@ export function EditStaffUserDrawer({
                   <div>
                     <span className="block text-xs font-bold text-[#111827] mb-1">
                       Reg Number
-                    
-                    <input aria-label="Input field"
-                      type="text"
-                      value={form.medicalRegistrationNumber}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          medicalRegistrationNumber: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                    /></span>
+                      <input
+                        aria-label="Input field"
+                        type="text"
+                        value={form.medicalRegistrationNumber}
+                        onChange={(e) =>
+                          setForm({
+                            ...form,
+                            medicalRegistrationNumber: e.target.value,
+                          })
+                        }
+                        className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
+                      />
+                    </span>
                   </div>
                   <div>
                     <span className="block text-xs font-bold text-[#111827] mb-1">
                       Qualification
-                    
-                    <input aria-label="Input field"
-                      type="text"
-                      value={form.qualification}
-                      onChange={(e) =>
-                        setForm({ ...form, qualification: e.target.value })
-                      }
-                      className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                    /></span>
+                      <input
+                        aria-label="Input field"
+                        type="text"
+                        value={form.qualification}
+                        onChange={(e) =>
+                          setForm({ ...form, qualification: e.target.value })
+                        }
+                        className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
+                      />
+                    </span>
                   </div>
                 </div>
 
@@ -855,55 +874,58 @@ export function EditStaffUserDrawer({
                   <div>
                     <span className="block text-xs font-bold text-[#111827] mb-1">
                       Experience (Yrs)
-                    
-                    <input aria-label="Input field"
-                      type="number"
-                      value={form.yearsOfExperience}
-                      onChange={(e) => {
-                        const v = e.currentTarget.valueAsNumber;
-                        setForm({
-                          ...form,
-                          yearsOfExperience: Number.isFinite(v) ? v : 0,
-                        });
-                      }}
-                      className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                    /></span>
+                      <input
+                        aria-label="Input field"
+                        type="number"
+                        value={form.yearsOfExperience}
+                        onChange={(e) => {
+                          const v = e.currentTarget.valueAsNumber;
+                          setForm({
+                            ...form,
+                            yearsOfExperience: Number.isFinite(v) ? v : 0,
+                          });
+                        }}
+                        className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
+                      />
+                    </span>
                   </div>
                   <div>
                     <span className="block text-xs font-bold text-[#111827] mb-1">
                       Consult Fee (₹)
-                    
-                    <input aria-label="Input field"
-                      type="number"
-                      value={form.consultationFee}
-                      onChange={(e) => {
-                        const v = e.currentTarget.valueAsNumber;
-                        setForm({
-                          ...form,
-                          consultationFee: Number.isFinite(v) ? v : 0,
-                        });
-                      }}
-                      className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                    /></span>
+                      <input
+                        aria-label="Input field"
+                        type="number"
+                        value={form.consultationFee}
+                        onChange={(e) => {
+                          const v = e.currentTarget.valueAsNumber;
+                          setForm({
+                            ...form,
+                            consultationFee: Number.isFinite(v) ? v : 0,
+                          });
+                        }}
+                        className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
+                      />
+                    </span>
                   </div>
                 </div>
 
                 <div>
                   <span className="block text-xs font-bold text-[#111827] mb-1">
                     Slot Duration (Minutes)
-                  
-                  <input aria-label="Input field"
-                    type="number"
-                    value={form.slotDurationMinutes}
-                    onChange={(e) => {
-                      const v = e.currentTarget.valueAsNumber;
-                      setForm({
-                        ...form,
-                        slotDurationMinutes: Number.isFinite(v) ? v : 0,
-                      });
-                    }}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
-                  /></span>
+                    <input
+                      aria-label="Input field"
+                      type="number"
+                      value={form.slotDurationMinutes}
+                      onChange={(e) => {
+                        const v = e.currentTarget.valueAsNumber;
+                        setForm({
+                          ...form,
+                          slotDurationMinutes: Number.isFinite(v) ? v : 0,
+                        });
+                      }}
+                      className="w-full px-3 py-2 text-xs bg-white border border-[#E5E7EB] rounded-xl outline-none focus:border-[#009688]"
+                    />
+                  </span>
                 </div>
 
                 {/* Pre-populated Schedule & Availability Editor */}
@@ -974,7 +996,9 @@ export function EditStaffUserDrawer({
                   <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                     {form.availability.map((item, index) => (
                       <div
-                        key={item.dayOfWeek || item.id || `day-${item.startTime}`}
+                        key={
+                          item.dayOfWeek || item.id || `day-${item.startTime}`
+                        }
                         className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200 text-xs"
                       >
                         <span className="w-20 font-bold text-slate-700">

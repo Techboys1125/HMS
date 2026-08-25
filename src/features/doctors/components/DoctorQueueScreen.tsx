@@ -274,7 +274,7 @@ export function DoctorQueueScreen() {
           disabled={
             callingNext || waitingCount === 0 || !isDoctor || isCallNextBlocked
           }
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-colors transition-opacity shadow-sm shadow-[#0D47A1]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0D47A1] text-white rounded-xl text-sm font-semibold hover:bg-[#0c3d8a] transition-colors shadow-sm shadow-[#0D47A1]/20 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ fontFamily: PP }}
           title={
             isCallNextBlocked ? "Next patient is waiting for vitals" : undefined

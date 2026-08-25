@@ -32,7 +32,9 @@ export const prescriptionService = {
     fallbackPatientName?: string,
   ): UnifiedPrescription => {
     const rx = apiRx as Record<string, unknown>;
-    const statusRaw = String(rx.status ?? rx.prescriptionStatus ?? "").toUpperCase();
+    const statusRaw = String(
+      rx.status ?? rx.prescriptionStatus ?? "",
+    ).toUpperCase();
     let status: RxStatus = "Issued";
     if (statusRaw.startsWith("DRAFT")) {
       status = "Draft";
@@ -51,7 +53,10 @@ export const prescriptionService = {
     const doctorObj = (rx.doctor as Record<string, unknown>) || {};
     const diagObj = (rx.diagnosis as Record<string, unknown>) || {};
     const adviceObj = (rx.advice as Record<string, unknown>) || {};
-    const followUpObj = (rx.followUp as Record<string, unknown>) || (rx.followup as Record<string, unknown>) || {};
+    const followUpObj =
+      (rx.followUp as Record<string, unknown>) ||
+      (rx.followup as Record<string, unknown>) ||
+      {};
 
     const patientName =
       (patientObj.fullName as string) ||
@@ -69,9 +74,7 @@ export const prescriptionService = {
       (rx.doctorName as string) ||
       "";
     const department =
-      (doctorObj.department as string) ||
-      (rx.department as string) ||
-      "";
+      (doctorObj.department as string) || (rx.department as string) || "";
 
     const rawMeds = Array.isArray(rx.medicines)
       ? rx.medicines
@@ -129,9 +132,17 @@ export const prescriptionService = {
       id: String(rx.prescriptionId || rx.id || rx.prescriptionNumber || ""),
       patientName,
       mrn,
-      consultationId: String(rx.consultationId || rx.encounterId || rx.appointmentId || ""),
+      consultationId: String(
+        rx.consultationId || rx.encounterId || rx.appointmentId || "",
+      ),
       department,
-      consultationDate: String(rx.consultationDate || rx.date || rx.visitDateTime || rx.createdAt || ""),
+      consultationDate: String(
+        rx.consultationDate ||
+          rx.date ||
+          rx.visitDateTime ||
+          rx.createdAt ||
+          "",
+      ),
       medicineCount: (rx.medicineCount as number) || medicines.length,
       followup: followupRequired,
       followupDate,
@@ -139,24 +150,48 @@ export const prescriptionService = {
       doctorName,
       diagnosis: parseDiagnosis(rx.diagnosis),
       medicines,
-      age: patientObj.age ? String(patientObj.age) : (rx.age ? String(rx.age) : undefined),
+      age: patientObj.age
+        ? String(patientObj.age)
+        : rx.age
+          ? String(rx.age)
+          : undefined,
       gender: (patientObj.gender as string) || (rx.gender as string),
-      bloodGroup: (patientObj.bloodGroup as string) || (rx.bloodGroup as string),
+      bloodGroup:
+        (patientObj.bloodGroup as string) || (rx.bloodGroup as string),
       allergies: Array.isArray(patientObj.allergies)
         ? (patientObj.allergies as string[])
         : Array.isArray(rx.allergies)
           ? (rx.allergies as string[])
           : undefined,
-      chiefComplaint: (diagObj.chiefComplaint as string) || (rx.chiefComplaint as string),
-      clinicalFindings: (diagObj.clinicalFindings as string) || (rx.clinicalFindings as string),
-      finalDiagnosis: (diagObj.finalDiagnosis as string) || (rx.finalDiagnosis as string),
+      chiefComplaint:
+        (diagObj.chiefComplaint as string) || (rx.chiefComplaint as string),
+      clinicalFindings:
+        (diagObj.clinicalFindings as string) || (rx.clinicalFindings as string),
+      finalDiagnosis:
+        (diagObj.finalDiagnosis as string) || (rx.finalDiagnosis as string),
       icdCode: (diagObj.icdCode as string) || (rx.icdCode as string),
-      doctorNotes: (diagObj.doctorNotes as string) || (rx.doctorNotes as string),
-      dietAdvice: (adviceObj.diet as string) || (adviceObj.dietAdvice as string) || (rx.dietAdvice as string),
-      lifestyleAdvice: (adviceObj.lifestyle as string) || (adviceObj.lifestyleAdvice as string) || (rx.lifestyleAdvice as string),
-      exerciseAdvice: (adviceObj.exercise as string) || (adviceObj.exerciseAdvice as string) || (rx.exerciseAdvice as string),
-      specialInstructions: (adviceObj.specialInstructions as string) || (adviceObj.precautions as string) || (rx.specialInstructions as string),
-      followupNotes: (followUpObj.notes as string) || (followUpObj.instructions as string) || (rx.followupNotes as string),
+      doctorNotes:
+        (diagObj.doctorNotes as string) || (rx.doctorNotes as string),
+      dietAdvice:
+        (adviceObj.diet as string) ||
+        (adviceObj.dietAdvice as string) ||
+        (rx.dietAdvice as string),
+      lifestyleAdvice:
+        (adviceObj.lifestyle as string) ||
+        (adviceObj.lifestyleAdvice as string) ||
+        (rx.lifestyleAdvice as string),
+      exerciseAdvice:
+        (adviceObj.exercise as string) ||
+        (adviceObj.exerciseAdvice as string) ||
+        (rx.exerciseAdvice as string),
+      specialInstructions:
+        (adviceObj.specialInstructions as string) ||
+        (adviceObj.precautions as string) ||
+        (rx.specialInstructions as string),
+      followupNotes:
+        (followUpObj.notes as string) ||
+        (followUpObj.instructions as string) ||
+        (rx.followupNotes as string),
     } as UnifiedPrescription;
   },
 
@@ -269,7 +304,9 @@ export const prescriptionService = {
         (await prescriptionApi.getPrescriptionById(id)) ||
         (await prescriptionApi.getPrescriptionDetails(id));
       if (apiRx) {
-        const unified = prescriptionService.mapApiToUnified(apiRx as Record<string, unknown>);
+        const unified = prescriptionService.mapApiToUnified(
+          apiRx as Record<string, unknown>,
+        );
         prescriptionStoreActions.setSelectedPrescription(unified);
         return unified;
       }

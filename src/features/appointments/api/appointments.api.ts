@@ -427,11 +427,9 @@ export const appointmentsApi = {
     } catch (error: unknown) {
       if (numericId !== appointmentId) {
         try {
-          const response =
-            await apiClient.patch<ApiResponse<AppointmentRecord>>(
-              `/api/v1/appointments/${appointmentId}/status`,
-              { status, reason },
-            );
+          const response = await apiClient.patch<
+            ApiResponse<AppointmentRecord>
+          >(`/api/v1/appointments/${appointmentId}/status`, { status, reason });
           return response.data;
         } catch {
           // Handled below
@@ -529,10 +527,9 @@ export const appointmentsApi = {
     } catch (error: unknown) {
       if (numericId !== appointmentId) {
         try {
-          const response =
-            await apiClient.patch<ApiResponse<QueueActionResponse>>(
-              `/api/v1/queue/${appointmentId}/call`,
-            );
+          const response = await apiClient.patch<
+            ApiResponse<QueueActionResponse>
+          >(`/api/v1/queue/${appointmentId}/call`);
           return response.data;
         } catch {
           // Handled below

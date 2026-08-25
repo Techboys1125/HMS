@@ -319,7 +319,8 @@ export function EditPatientScreen({
         {/* Header Breadcrumbs */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
-            <button aria-label="Previous"
+            <button
+              aria-label="Previous"
               onClick={onBack}
               className="p-1.5 -ml-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
             >
@@ -383,7 +384,8 @@ export function EditPatientScreen({
                     title="Upload Photo"
                   >
                     <Upload size={14} />
-                    <input aria-label="Input field"
+                    <input
+                      aria-label="Input field"
                       id="photo-upload"
                       type="file"
                       accept="image/*"
@@ -404,7 +406,8 @@ export function EditPatientScreen({
                     PNG, max 2MB).
                   </p>
                   <div className="pt-1">
-                    <input aria-label="Input field"
+                    <input
+                      aria-label="Input field"
                       type="text"
                       value={photoUrl}
                       onChange={(e) => setPhotoUrl(e.target.value)}
@@ -714,7 +717,8 @@ export function EditPatientScreen({
                   <div className="md:col-span-3">
                     <span className="block text-xs font-medium text-slate-700 mb-1.5">
                       Known Allergies (Comma Separated)
-                      <input aria-label="Input field"
+                      <input
+                        aria-label="Input field"
                         type="text"
                         value={allergies}
                         onChange={(e) => setAllergies(e.target.value)}
@@ -726,7 +730,8 @@ export function EditPatientScreen({
                   <div className="md:col-span-3">
                     <span className="block text-xs font-medium text-slate-700 mb-1.5">
                       Existing Medical Conditions / History
-                      <textarea aria-label="Text area"
+                      <textarea
+                        aria-label="Text area"
                         rows={3}
                         value={medicalConditions}
                         onChange={(e) => setMedicalConditions(e.target.value)}

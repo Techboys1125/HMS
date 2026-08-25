@@ -91,7 +91,6 @@ export function CollectPaymentWorkspacePage() {
     }
   };
 
-
   if (billLoading) {
     return (
       <div className="p-8 text-center bg-slate-50 min-h-screen flex flex-col items-center justify-center">
@@ -135,14 +134,16 @@ export function CollectPaymentWorkspacePage() {
             className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
             style={{ fontFamily: RB }}
           >
-            <button type="button"
+            <button
+              type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/billing")}
             >
               Home
             </button>
             <ChevronRight size={12} />
-            <button type="button"
+            <button
+              type="button"
               className="hover:text-[#0D47A1] cursor-pointer"
               onClick={() => navigate("/billing")}
             >
@@ -418,18 +419,18 @@ export function CollectPaymentWorkspacePage() {
                 <div>
                   <span className="block text-slate-700 font-semibold mb-1">
                     Amount to Collect (₹) *
-                  
-                  <input
-                    type="number"
-                    value={amount || ""}
-                    onChange={(e) => {
-                      const v = e.currentTarget.valueAsNumber;
-                      setAmount(Number.isFinite(v) ? v : 0);
-                    }}
-                    max={balanceAmount}
-                    placeholder={`Max: ₹${balanceAmount.toLocaleString()}`}
-                    className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-sm font-bold text-[#111827] focus:bg-white focus:border-[#0D47A1] focus:outline-none"
-                  /></span>
+                    <input
+                      type="number"
+                      value={amount || ""}
+                      onChange={(e) => {
+                        const v = e.currentTarget.valueAsNumber;
+                        setAmount(Number.isFinite(v) ? v : 0);
+                      }}
+                      max={balanceAmount}
+                      placeholder={`Max: ₹${balanceAmount.toLocaleString()}`}
+                      className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-sm font-bold text-[#111827] focus:bg-white focus:border-[#0D47A1] focus:outline-none"
+                    />
+                  </span>
                   <div className="flex items-center gap-2 mt-1.5">
                     <button
                       type="button"
@@ -451,20 +452,22 @@ export function CollectPaymentWorkspacePage() {
                 <div>
                   <span className="block text-slate-700 font-semibold mb-1">
                     Reference / Transaction ID
-                  
-                  <input aria-label="Input field"
-                    type="text"
-                    value={referenceNumber}
-                    onChange={(e) => setReferenceNumber(e.target.value)}
-                    placeholder="e.g. UPI/890123/OKAX"
-                    className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs font-mono focus:bg-white focus:border-[#0D47A1] focus:outline-none"
-                  /></span>
+                    <input
+                      aria-label="Input field"
+                      type="text"
+                      value={referenceNumber}
+                      onChange={(e) => setReferenceNumber(e.target.value)}
+                      placeholder="e.g. UPI/890123/OKAX"
+                      className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-slate-50 text-xs font-mono focus:bg-white focus:border-[#0D47A1] focus:outline-none"
+                    />
+                  </span>
                 </div>
                 <div className="md:col-span-2">
                   <span className="block text-slate-700 font-semibold mb-1">
                     Remarks / Notes
                   </span>
-                  <textarea aria-label="Text area"
+                  <textarea
+                    aria-label="Text area"
                     rows={2}
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
@@ -626,7 +629,7 @@ export function CollectPaymentWorkspacePage() {
           <button
             onClick={handleCollectPayment}
             disabled={isReceiving || amount <= 0 || amount > balanceAmount}
-            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors transition-opacity shadow-sm disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors shadow-sm disabled:opacity-50"
             style={{ fontFamily: PP }}
           >
             <DollarSign size={15} />

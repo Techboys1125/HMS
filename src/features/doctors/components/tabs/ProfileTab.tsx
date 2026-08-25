@@ -97,7 +97,6 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
     }
   };
 
-
   const displayPhoto = photoPreviewUrl || formData.photoUrl || formData.photo;
 
   return (
@@ -206,7 +205,8 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
               Full Name
             </span>
             {editing ? (
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 value={formData.fullName || formData.name}
                 onChange={(e) =>
@@ -232,7 +232,8 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
               Phone / Mobile
             </span>
             {editing ? (
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 value={formData.phone || ""}
                 onChange={(e) =>
@@ -252,7 +253,8 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
               Email Address
             </span>
             {editing ? (
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="email"
                 value={formData.email || ""}
                 onChange={(e) =>
@@ -272,7 +274,8 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
               Gender
             </span>
             {editing ? (
-              <select aria-label="Select option"
+              <select
+                aria-label="Select option"
                 value={formData.gender || "Male"}
                 onChange={(e) =>
                   setFormData({
@@ -297,7 +300,8 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
               Date of Birth
             </span>
             {editing ? (
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="date"
                 value={formData.dob || ""}
                 onChange={(e) =>
@@ -316,7 +320,8 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
               Residential Address
             </span>
             {editing ? (
-              <input aria-label="Input field"
+              <input
+                aria-label="Input field"
                 type="text"
                 value={formData.address || ""}
                 onChange={(e) =>
@@ -336,7 +341,8 @@ export function ProfileTab({ doctor, canEdit, onSave }: ProfileTabProps) {
             Professional Bio / Summary
           </span>
           {editing ? (
-            <textarea aria-label="Text area"
+            <textarea
+              aria-label="Text area"
               rows={3}
               value={formData.bio || ""}
               onChange={(e) =>

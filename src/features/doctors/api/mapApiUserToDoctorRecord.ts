@@ -138,7 +138,10 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
     0;
 
   const followUpFee =
-    profile?.followUpFee ?? anyProfile?.followUpFee ?? fallbackRecord.followUpFee ?? 0;
+    profile?.followUpFee ??
+    anyProfile?.followUpFee ??
+    fallbackRecord.followUpFee ??
+    0;
 
   const slotDurationMinutes =
     profile?.slotDurationMinutes ??
@@ -256,7 +259,9 @@ export function mapApiUserToDoctorRecord(u: ApiUserDoctorRecord): DoctorRecord {
       u.dateOfBirth || anyProfile?.dateOfBirth || anyProfile?.dob || "",
     ),
     opdRoom: String(anyProfile?.opdRoom || fallbackRecord.opdRoom || ""),
-    joinedDate: String(anyProfile?.joinedDate || fallbackRecord.joinedDate || ""),
+    joinedDate: String(
+      anyProfile?.joinedDate || fallbackRecord.joinedDate || "",
+    ),
     shiftTimings,
     workingDays: workingDays.length > 0 ? (workingDays as string[]) : [],
     bio: String(

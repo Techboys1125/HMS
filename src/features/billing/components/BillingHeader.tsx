@@ -98,7 +98,7 @@ export function BillingHeader({
         {showGenerate && (
           <button
             onClick={onGenerateInvoice}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-colors transition-transform shadow-sm active:scale-95 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-transform shadow-sm active:scale-95 cursor-pointer"
             style={{ fontFamily: PP }}
           >
             <Plus size={15} />+ Generate Invoice
@@ -108,9 +108,10 @@ export function BillingHeader({
         {showExport && !showGenerate && (
           <button
             onClick={
-              onExportReport || (() => console.log("Exporting Billing Report..."))
+              onExportReport ||
+              (() => console.log("Exporting Billing Report..."))
             }
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-colors transition-transform shadow-sm active:scale-95 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-blue-900 transition-transform shadow-sm active:scale-95 cursor-pointer"
             style={{ fontFamily: PP }}
           >
             <Download size={15} />
@@ -145,7 +146,10 @@ export function BillingHeader({
         <div className="h-8 w-px bg-slate-200 hidden sm:block" />
 
         {/* Notification & User Profile Badge */}
-        <button aria-label="Action" className="relative w-9 h-9 rounded-xl bg-slate-50 border border-[#E5E7EB] flex items-center justify-center text-[#64748B] hover:text-[#0D47A1] hover:bg-blue-50 transition-colors cursor-pointer">
+        <button
+          aria-label="Action"
+          className="relative w-9 h-9 rounded-xl bg-slate-50 border border-[#E5E7EB] flex items-center justify-center text-[#64748B] hover:text-[#0D47A1] hover:bg-blue-50 transition-colors cursor-pointer"
+        >
           <Activity size={16} />
           <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#EF4444]" />
         </button>
@@ -168,9 +172,7 @@ export function BillingHeader({
               className="text-[10px] text-[#64748B]"
               style={{ fontFamily: RB }}
             >
-              {user?.role
-                ? String(user.role).replace("_", " ")
-                : ""}
+              {user?.role ? String(user.role).replace("_", " ") : ""}
             </div>
           </div>
         </div>

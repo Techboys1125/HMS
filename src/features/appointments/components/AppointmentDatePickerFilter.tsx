@@ -198,7 +198,8 @@ export function AppointmentDatePickerFilter({
       </span>
 
       {/* Input Box Trigger */}
-      <button type="button"
+      <button
+        type="button"
         onClick={handleToggleOpen}
         className="flex items-center justify-between gap-3 px-3.5 py-2 bg-white border border-[#E5E7EB] rounded-xl cursor-pointer hover:border-[#0D47A1] shadow-xs transition-colors w-44"
       >

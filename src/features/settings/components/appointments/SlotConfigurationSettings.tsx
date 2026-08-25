@@ -58,31 +58,32 @@ export function SlotConfigurationSettings() {
             }}
           >
             Default Consultation Duration
-          
-          <select aria-label="Select option"
-            value={slotConfig.defaultDuration}
-            onChange={(e) =>
-              setSlotConfig((prev) => ({
-                ...prev,
-                defaultDuration: e.target.value,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          >
-            <option>10 Minutes</option>
-            <option>15 Minutes</option>
-            <option>20 Minutes</option>
-            <option>30 Minutes</option>
-            <option>45 Minutes</option>
-            <option>60 Minutes</option>
-          </select></span>
+            <select
+              aria-label="Select option"
+              value={slotConfig.defaultDuration}
+              onChange={(e) =>
+                setSlotConfig((prev) => ({
+                  ...prev,
+                  defaultDuration: e.target.value,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            >
+              <option>10 Minutes</option>
+              <option>15 Minutes</option>
+              <option>20 Minutes</option>
+              <option>30 Minutes</option>
+              <option>45 Minutes</option>
+              <option>60 Minutes</option>
+            </select>
+          </span>
         </div>
 
         <div>
@@ -96,29 +97,30 @@ export function SlotConfigurationSettings() {
             }}
           >
             Buffer Time Between Patients
-          
-          <select aria-label="Select option"
-            value={slotConfig.bufferTime}
-            onChange={(e) =>
-              setSlotConfig((prev) => ({
-                ...prev,
-                bufferTime: e.target.value,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          >
-            <option>0 Minutes</option>
-            <option>5 Minutes</option>
-            <option>10 Minutes</option>
-            <option>15 Minutes</option>
-          </select></span>
+            <select
+              aria-label="Select option"
+              value={slotConfig.bufferTime}
+              onChange={(e) =>
+                setSlotConfig((prev) => ({
+                  ...prev,
+                  bufferTime: e.target.value,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            >
+              <option>0 Minutes</option>
+              <option>5 Minutes</option>
+              <option>10 Minutes</option>
+              <option>15 Minutes</option>
+            </select>
+          </span>
         </div>
 
         <div>
@@ -132,25 +134,26 @@ export function SlotConfigurationSettings() {
             }}
           >
             Maximum Patients Allowed Per Slot
-          
-          <input aria-label="Input field"
-            type="number"
-            value={slotConfig.maxPatientsPerSlot}
-            onChange={(e) =>
-              setSlotConfig((prev) => ({
-                ...prev,
-                maxPatientsPerSlot: e.currentTarget.valueAsNumber || 1,
-              }))
-            }
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              borderRadius: "8px",
-              border: "1px solid #D1D5DB",
-              fontSize: "13px",
-              boxSizing: "border-box",
-            }}
-          /></span>
+            <input
+              aria-label="Input field"
+              type="number"
+              value={slotConfig.maxPatientsPerSlot}
+              onChange={(e) =>
+                setSlotConfig((prev) => ({
+                  ...prev,
+                  maxPatientsPerSlot: e.currentTarget.valueAsNumber || 1,
+                }))
+              }
+              style={{
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: "8px",
+                border: "1px solid #D1D5DB",
+                fontSize: "13px",
+                boxSizing: "border-box",
+              }}
+            />
+          </span>
         </div>
       </div>
 
@@ -174,7 +177,8 @@ export function SlotConfigurationSettings() {
             slots
           </div>
         </div>
-        <input aria-label="Toggle option"
+        <input
+          aria-label="Toggle option"
           type="checkbox"
           checked={slotConfig.enableDoubleBooking}
           onChange={(e) =>
