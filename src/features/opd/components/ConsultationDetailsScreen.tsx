@@ -745,15 +745,15 @@ export function ConsultationDetailsScreen({
                     {record.vitals.pulse}
                   </div>
                 </div>
-                <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                <div className="p-3 bg-fuchsia-50/50 border border-fuchsia-100 rounded-xl">
                   <div
-                    className="text-[10px] text-slate-400 font-bold uppercase"
+                    className="text-[10px] text-fuchsia-700 font-bold uppercase"
                     style={{ fontFamily: PP }}
                   >
-                    Resp. Rate
+                    Blood Sugar
                   </div>
-                  <div className="font-bold text-slate-800 text-sm mt-1">
-                    {record.vitals.respiratoryRate}
+                  <div className="font-bold text-fuchsia-800 text-sm mt-1">
+                    {record.vitals.bloodSugar || "—"}
                   </div>
                 </div>
                 <div className="p-3 bg-green-50/50 border border-green-100 rounded-xl">

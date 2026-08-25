@@ -88,14 +88,6 @@ export const VitalsCard: React.FC<VitalsCardProps> = ({
       bg: "bg-teal-50",
     },
     {
-      label: "Respiratory Rate (/min)",
-      field: "respiratoryRate" as const,
-      value: values.respiratoryRate || "--",
-      icon: Activity,
-      color: "text-indigo-600",
-      bg: "bg-indigo-50",
-    },
-    {
       label: "SpO₂ (%)",
       field: "spo2" as const,
       value: values.spo2 || "--",

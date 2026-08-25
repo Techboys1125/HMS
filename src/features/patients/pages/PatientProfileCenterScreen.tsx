@@ -1,3 +1,5 @@
+import { patientsApi } from "../api/patient.api";
+import { usersApi } from "../../users/api/users.api";
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import {
@@ -56,6 +58,40 @@ const getPasswordStrength = (pass: string) => {
   return { score: 100, label: "Strong", color: "bg-[#66BB6A]" };
 };
 
+function calculateAge(dob?: string, directAge?: number | string): number {
+  if (
+    directAge !== undefined &&
+    directAge !== null &&
+    directAge !== '' &&
+    !isNaN(Number(directAge)) &&
+    Number(directAge) > 0
+  ) {
+    return Number(directAge);
+  }
+  if (!dob) return 0;
+  const trimmed = String(dob).trim();
+  if (!trimmed) return 0;
+  let birth: Date;
+  if (trimmed.includes('/')) {
+    const parts = trimmed.split('/');
+    if (parts.length === 3 && parts[2].length === 4) {
+      birth = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+    } else {
+      birth = new Date(trimmed);
+    }
+  } else {
+    birth = new Date(trimmed);
+  }
+  if (Number.isNaN(birth.getTime())) return 0;
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const monthDiff = now.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age >= 0 ? age : 0;
+}
+
 export function PatientProfileCenterScreen({
   activePatient,
   onAddFamilyMember,
@@ -87,39 +123,33 @@ export function PatientProfileCenterScreen({
       )
     : "";
 
-  const buildInitialData = () => {
-    let custom: Record<string, unknown> = {};
-    try {
-      const keys = [
-        patientKey,
-        activePatient?.mrn,
-        activePatient?.id,
-        user?.mrn,
-        user?.id,
-        "me",
-      ].filter(Boolean);
-      for (const k of keys) {
-        const stored = localStorage.getItem(`patient_profile_custom_${k}`);
-        if (stored) {
-          custom = { ...custom, ...JSON.parse(stored) };
-        }
-      }
-    } catch {
-      // Ignore
-    }
-
-    const resolvedEmail =
-      (custom.email as string) ||
+    const buildInitialData = () => {
+    const rawEmail =
       (activePatient?.email && activePatient.email !== "family@example.com"
         ? activePatient.email
         : "") ||
       user?.email ||
       "";
 
+    const rawDob =
+      activePatient?.dob ||
+      activePatient?.dateOfBirth ||
+      (activePatient as any)?.birthDate ||
+      (activePatient as any)?.date_of_birth ||
+      user?.dob ||
+      user?.dateOfBirth ||
+      "";
+
+    const directAge =
+      activePatient?.age ??
+      (activePatient as any)?.patientAge ??
+      user?.age;
+
+    const computedAge = calculateAge(rawDob, directAge);
+
     return {
       name: String(
-        custom.name ||
-          activePatient?.patientName ||
+        activePatient?.patientName ||
           activePatient?.name ||
           activePatient?.fullName ||
           user?.name ||
@@ -129,51 +159,48 @@ export function PatientProfileCenterScreen({
       patientId: String(
         activePatient?.mrn || activePatient?.id || user?.mrn || "Generating...",
       ),
-      email: resolvedEmail,
+      email: rawEmail,
       photoUrl: String(
-        custom.photoUrl ||
-          activePatient?.photoUrl ||
+        activePatient?.photoUrl ||
           activePatient?.photo ||
+          user?.photoUrl ||
+          user?.photo ||
           "",
       ),
       phone: String(
-        custom.phone ||
-          activePatient?.registeredMobile ||
+        activePatient?.registeredMobile ||
           activePatient?.phone ||
           user?.phone ||
           user?.mobile ||
           "",
       ),
-      dob: String(
-        custom.dob || activePatient?.dob || user?.dob || "1990-06-14",
-      ),
+      dob: rawDob,
+      age: computedAge,
       gender: String(
-        custom.gender || activePatient?.gender || user?.gender || "Female",
+        activePatient?.gender || user?.gender || "Female",
       ),
       bloodGroup: String(
-        custom.bloodGroup || activePatient?.bloodGroup || "O+",
+        activePatient?.bloodGroup || "O+",
       ),
       address: String(
-        custom.address ||
-          (typeof activePatient?.address === "string"
-            ? activePatient.address
-            : user?.address || "Springfield"),
+        typeof activePatient?.address === "string"
+          ? activePatient.address
+          : user?.address || "",
       ),
       emergencyName: String(
-        custom.emergencyName ||
-          activePatient?.emergencyContact?.name ||
+        activePatient?.emergencyContact?.name ||
+          activePatient?.emergencyContact?.contactName ||
           "Family Member",
       ),
       emergencyRelation: String(
-        custom.emergencyRelation ||
-          activePatient?.relationship ||
+        activePatient?.relationship ||
           activePatient?.emergencyContact?.relationship ||
           "Spouse",
       ),
       emergencyPhone: String(
-        custom.emergencyPhone ||
-          activePatient?.emergencyContact?.mobileNumber ||
+        activePatient?.emergencyContact?.mobileNumber ||
           activePatient?.emergencyContact?.phone ||
+          activePatient?.emergencyContact?.contactNumber ||
           "",
       ),
     };
@@ -214,7 +241,7 @@ export function PatientProfileCenterScreen({
     setTimeout(() => setToastMsg(null), 3000);
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -223,12 +250,46 @@ export function PatientProfileCenterScreen({
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (!dataUrl) return;
+    triggerToast("Uploading profile picture to backend...");
 
-      const updated = { ...profileData, photoUrl: dataUrl };
+    try {
+      let uploadedUrl = "";
+      try {
+        uploadedUrl = await usersApi.uploadPhoto(file);
+      } catch {
+        const dataUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (evt) => resolve((evt.target?.result as string) || "");
+          reader.readAsDataURL(file);
+        });
+        uploadedUrl = dataUrl;
+      }
+
+      if (!uploadedUrl) {
+        triggerToast("Failed to upload image.");
+        return;
+      }
+
+      const mrnOrId = profileData.patientId || activePatient?.mrn || String(activePatient?.id || user?.id || "");
+      if (mrnOrId && mrnOrId !== "Generating...") {
+        try {
+          await patientsApi.updatePatient(mrnOrId, {
+            photoUrl: uploadedUrl,
+            photo: uploadedUrl,
+          });
+        } catch {
+          try {
+            await patientsApi.update(mrnOrId, {
+              photoUrl: uploadedUrl,
+              photo: uploadedUrl,
+            });
+          } catch {
+            // Ignore
+          }
+        }
+      }
+
+      const updated = { ...profileData, photoUrl: uploadedUrl };
       setProfileData(updated);
       setEditForm(updated);
 
@@ -236,49 +297,63 @@ export function PatientProfileCenterScreen({
       if (userState) {
         useAuthStore.setUser({
           ...userState,
-          photoUrl: dataUrl,
-          photo: dataUrl,
+          photoUrl: uploadedUrl,
+          photo: uploadedUrl,
         });
       }
 
-      try {
-        if (patientKey) {
-          const keys = [
-            patientKey,
-            activePatient?.mrn,
-            activePatient?.id,
-            user?.mrn,
-            user?.id,
-            "me",
-          ].filter(Boolean);
-          for (const k of keys) {
-            const existing = localStorage.getItem(`patient_profile_custom_${k}`);
-            const obj = existing ? JSON.parse(existing) : {};
-            localStorage.setItem(
-              `patient_profile_custom_${k}`,
-              JSON.stringify({ ...obj, photoUrl: dataUrl }),
-            );
-          }
-        }
-      } catch {
-        // Ignore
-      }
-
-      triggerToast("Profile picture updated successfully!");
-    };
-    reader.readAsDataURL(file);
+      triggerToast("Profile picture updated in backend successfully!");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to update profile picture.";
+      triggerToast(msg);
+    }
   };
 
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+    const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setProfileData({ ...editForm });
 
-    // Sync authStore state if current user is this patient
-    const user = useAuthStore.getState().user;
-    if (user) {
+    const computedAge = calculateAge(editForm.dob, profileData.age);
+    const updatedForm = { ...editForm, age: computedAge };
+    setProfileData(updatedForm);
+
+    const mrnOrId = editForm.patientId || activePatient?.mrn || String(activePatient?.id || user?.id || "");
+    if (mrnOrId && mrnOrId !== "Generating...") {
+      try {
+        await patientsApi.updatePatient(mrnOrId, {
+          fullName: editForm.name,
+          name: editForm.name,
+          email: editForm.email,
+          phone: editForm.phone,
+          mobile: editForm.phone,
+          dateOfBirth: editForm.dob,
+          gender: editForm.gender,
+          bloodGroup: editForm.bloodGroup,
+          address: editForm.address,
+        });
+      } catch {
+        try {
+          await patientsApi.update(mrnOrId, {
+            fullName: editForm.name,
+            name: editForm.name,
+            email: editForm.email,
+            phone: editForm.phone,
+            mobile: editForm.phone,
+            dateOfBirth: editForm.dob,
+            gender: editForm.gender,
+            bloodGroup: editForm.bloodGroup,
+            address: editForm.address,
+          });
+        } catch {
+          // Ignore
+        }
+      }
+    }
+
+    const userState = useAuthStore.getState().user;
+    if (userState) {
       useAuthStore.setUser({
-        ...user,
+        ...userState,
         fullName: editForm.name,
         name: editForm.name,
         email: editForm.email,
@@ -287,19 +362,7 @@ export function PatientProfileCenterScreen({
       });
     }
 
-    // Persist to localStorage
-    try {
-      if (patientKey) {
-        localStorage.setItem(
-          `patient_profile_custom_${patientKey}`,
-          JSON.stringify(editForm),
-        );
-      }
-    } catch {
-      // Ignore
-    }
-
-    triggerToast("Profile information updated successfully!");
+    triggerToast("Profile information saved to backend successfully!");
     setActiveTab("info");
   };
 
@@ -419,6 +482,8 @@ export function PatientProfileCenterScreen({
                 </strong>
               </span>
               <span>•</span>
+              <span>{profileData.age > 0 ? `${profileData.age} Y` : "Age N/A"} / {profileData.gender}</span>
+              <span>•</span>
               <span>{profileData.email}</span>
               <span>•</span>
               <span>{profileData.phone}</span>
@@ -504,6 +569,14 @@ export function PatientProfileCenterScreen({
                   </span>
                   <span className="font-semibold text-[#111827]">
                     {profileData.dob}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[#64748B] text-[11px] block">
+                    Age
+                  </span>
+                  <span className="font-bold text-[#0D47A1]">
+                    {profileData.age > 0 ? `${profileData.age} Years` : "N/A"}
                   </span>
                 </div>
                 <div>
@@ -634,7 +707,8 @@ export function PatientProfileCenterScreen({
                     setEditForm({ ...editForm, name: e.target.value })
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                />
+</span>
               </div>
 
               <div>
@@ -649,7 +723,8 @@ export function PatientProfileCenterScreen({
                     setEditForm({ ...editForm, phone: e.target.value })
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                />
+</span>
               </div>
 
               <div>
@@ -664,7 +739,8 @@ export function PatientProfileCenterScreen({
                     setEditForm({ ...editForm, email: e.target.value })
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                />
+</span>
               </div>
 
               <div>
@@ -678,7 +754,8 @@ export function PatientProfileCenterScreen({
                     setEditForm({ ...editForm, dob: e.target.value })
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                />
+</span>
               </div>
 
               <div className="sm:col-span-2">
@@ -693,7 +770,8 @@ export function PatientProfileCenterScreen({
                     setEditForm({ ...editForm, address: e.target.value })
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                />
+</span>
               </div>
 
               <div>
@@ -710,7 +788,8 @@ export function PatientProfileCenterScreen({
                     })
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                />
+</span>
               </div>
 
               <div>
@@ -727,7 +806,8 @@ export function PatientProfileCenterScreen({
                     })
                   }
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                />
+</span>
               </div>
             </div>
 
@@ -776,7 +856,8 @@ export function PatientProfileCenterScreen({
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                />
+</span>
               </div>
 
               <div>
@@ -790,7 +871,8 @@ export function PatientProfileCenterScreen({
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                />
+</span>
               </div>
 
               {/* Password Strength Meter */}
@@ -822,7 +904,8 @@ export function PatientProfileCenterScreen({
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-[#E5E7EB] rounded-xl text-[#111827] outline-none focus:border-[#0D47A1]"
-                /></span>
+                />
+</span>
               </div>
             </div>
 

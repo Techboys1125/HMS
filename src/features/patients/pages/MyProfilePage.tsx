@@ -50,97 +50,41 @@ export function MyProfilePage({ mrn }: { currentRole: Role; mrn: string }) {
     );
   }
 
-  let customSaved: Record<string, unknown> = {};
-  try {
-    const keys = [mrn, user?.mrn, user?.id, "me"].filter(Boolean);
-    for (const k of keys) {
-      const stored = localStorage.getItem(`patient_profile_custom_${k}`);
-      if (stored) {
-        customSaved = { ...customSaved, ...JSON.parse(stored) };
-      }
-    }
-  } catch {
-    // Ignore
-  }
-
   const fallbackPatient: Patient = {
     id: user?.patientId || user?.id || 1,
-    mrn: mrn || user?.mrn || "MRN-2026717666",
-    fullName:
-      (customSaved.name as string) || user?.name || user?.fullName || "",
-    patientName:
-      (customSaved.name as string) || user?.name || user?.fullName || "",
-    name: (customSaved.name as string) || user?.name || user?.fullName || "",
-    email: (customSaved.email as string) || user?.email || "",
-    phone:
-      (customSaved.phone as string) ||
-      user?.phone ||
-      user?.mobileNumber ||
-      user?.mobile ||
-      "",
-    gender: (
-      (customSaved.gender as string) ||
-      user?.gender ||
-      ""
-    ).toUpperCase(),
+    mrn: mrn || user?.mrn || "",
+    fullName: user?.name || user?.fullName || "Patient",
+    patientName: user?.name || user?.fullName || "Patient",
+    name: user?.name || user?.fullName || "Patient",
+    email: user?.email || "",
+    phone: user?.phone || user?.mobileNumber || user?.mobile || "",
+    gender: (user?.gender || "Female").toUpperCase(),
     status: "ACTIVE",
-    dob: (customSaved.dob as string) || user?.dob || "",
-    bloodGroup: (customSaved.bloodGroup as string) || "",
-    address: (customSaved.address as string) || user?.address || "",
+    dob: user?.dob || (user as any)?.dateOfBirth || "",
+    dateOfBirth: user?.dob || (user as any)?.dateOfBirth || "",
+    age: user?.age,
+    photoUrl: user?.photoUrl || user?.photo || "",
+    photo: user?.photoUrl || user?.photo || "",
+    bloodGroup: (user as any)?.bloodGroup || "",
+    address: user?.address || "",
     emergencyContact: {
-      name: (customSaved.emergencyName as string) || "",
-      relationship: (customSaved.emergencyRelation as string) || "",
-      mobileNumber: (customSaved.emergencyPhone as string) || "",
+      name: "",
+      relationship: "",
+      mobileNumber: "",
     },
   } as unknown as Patient;
 
   const basePatient = patient || fallbackPatient;
-  const displayPatient: Patient = {
+  const displayPatient: Patient = mapApiPatientToPatientRecord({
     ...basePatient,
-    fullName:
-      (customSaved.name as string) ||
-      basePatient.fullName ||
-      basePatient.patientName,
-    patientName:
-      (customSaved.name as string) ||
-      basePatient.patientName ||
-      basePatient.fullName,
-    name:
-      (customSaved.name as string) || basePatient.name || basePatient.fullName,
-    email:
-      (customSaved.email as string) ||
-      (basePatient.email && basePatient.email !== "-"
-        ? basePatient.email
-        : "") ||
-      user?.email ||
-      "",
-    phone:
-      (customSaved.phone as string) ||
-      basePatient.phone ||
-      basePatient.registeredMobile,
-    registeredMobile:
-      (customSaved.phone as string) ||
-      basePatient.registeredMobile ||
-      basePatient.phone,
-    gender: (customSaved.gender as string) || basePatient.gender,
-    dob: (customSaved.dob as string) || basePatient.dob,
-    bloodGroup: (customSaved.bloodGroup as string) || basePatient.bloodGroup,
-    address: (customSaved.address as string) || basePatient.address,
-    emergencyContact: {
-      name:
-        (customSaved.emergencyName as string) ||
-        basePatient.emergencyContact?.name ||
-        "Emergency Contact",
-      relationship:
-        (customSaved.emergencyRelation as string) ||
-        basePatient.emergencyContact?.relationship ||
-        "SELF",
-      mobileNumber:
-        (customSaved.emergencyPhone as string) ||
-        basePatient.emergencyContact?.mobileNumber ||
-        "",
-    },
-  } as unknown as Patient;
+    fullName: basePatient.fullName || basePatient.patientName || user?.name || user?.fullName || "Patient",
+    email: (basePatient.email && basePatient.email !== "-" ? basePatient.email : "") || user?.email || "",
+    phone: basePatient.phone || basePatient.registeredMobile || user?.phone || user?.mobile || "",
+    photoUrl: basePatient.photoUrl || basePatient.photo || user?.photoUrl || user?.photo || "",
+    photo: basePatient.photoUrl || basePatient.photo || user?.photoUrl || user?.photo || "",
+    dob: basePatient.dob || basePatient.dateOfBirth || user?.dob || (user as any)?.dateOfBirth || "",
+    dateOfBirth: basePatient.dateOfBirth || basePatient.dob || user?.dob || (user as any)?.dateOfBirth || "",
+  });
 
   return (
     <>

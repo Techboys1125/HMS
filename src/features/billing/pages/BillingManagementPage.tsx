@@ -109,7 +109,6 @@ export function BillingManagementPage() {
   const isAdminReadOnly =
     normalizedRole === "DOCTOR" ||
     normalizedRole === "NURSE" ||
-    normalizedRole === "ACCOUNTANT" ||
     isPatient;
   const canCancelInvoice = ["SUPER_ADMIN", "HOSPITAL_ADMIN", "ADMIN"].includes(
     normalizedRole,

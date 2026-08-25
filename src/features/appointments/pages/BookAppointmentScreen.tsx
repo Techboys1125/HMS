@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router";
 import {
   ChevronRight,
+  ArrowLeft,
   UserPlus,
   Search,
   CheckCircle2,
@@ -63,6 +65,48 @@ const formatSlotTime = (timeStr: string) => {
 
    return slotDateTime.getTime() <= now.getTime();
  };
+
+/* ─────────────────── Section Header ─────────────────── */
+function SectionHeader({
+  icon: Icon,
+  title,
+  subtitle,
+  required = false,
+}: {
+  icon: React.ElementType;
+  title: string;
+  subtitle?: string;
+  required?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-[#0D47A1]/[0.07] flex items-center justify-center">
+          <Icon size={17} className="text-[#0D47A1]" />
+        </div>
+        <div>
+          <h2
+            className="text-[14px] font-bold text-[#111827]"
+            style={{ fontFamily: PP }}
+          >
+            {title}
+          </h2>
+          {subtitle && (
+            <p
+              className="text-[11px] text-slate-400 mt-0.5"
+              style={{ fontFamily: RB }}
+            >
+              {subtitle}
+            </p>
+          )}
+        </div>
+      </div>
+      {required && (
+        <span className="text-xs text-red-500 font-semibold">* Required</span>
+      )}
+    </div>
+  );
+}
 
 export function BookAppointmentScreen({
   role = "receptionist",
@@ -625,6 +669,16 @@ export function BookAppointmentScreen({
     }
   };
 
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1);
+    }
+  };
+
   return (
     <div
       className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#F1F5F9]"
@@ -634,9 +688,11 @@ export function BookAppointmentScreen({
         <div>
           <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
             <button
-              onClick={onBack}
-              className="hover:text-[#0D47A1] transition-colors"
+              type="button"
+              onClick={handleBack}
+              className="hover:text-[#0D47A1] transition-colors flex items-center gap-1 font-medium"
             >
+              <ArrowLeft size={13} />
               {role === "patient" ? "Patient Portal" : "Reception Management"}
             </button>
             <ChevronRight size={12} />
@@ -657,17 +713,26 @@ export function BookAppointmentScreen({
           </p>
         </div>
 
-        {role !== "patient" && (
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-colors shadow-sm"
+            style={{ fontFamily: PP }}
+          >
+            <ArrowLeft size={15} /> Back
+          </button>
+          {role !== "patient" && onRegisterNewPatientClick && (
             <button
+              type="button"
               onClick={onRegisterNewPatientClick}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 border border-blue-200 text-[#0D47A1] text-xs font-semibold hover:bg-blue-100 transition-colors"
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-[#0D47A1] text-xs font-semibold hover:bg-blue-100 transition-colors shadow-sm"
               style={{ fontFamily: PP }}
             >
               <UserPlus size={14} /> Register New Patient
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
@@ -706,7 +771,7 @@ export function BookAppointmentScreen({
                   value={patientQuery}
                   onChange={(e) => setPatientQuery(e.target.value)}
                   placeholder="Search patient by MRN, Patient Name, Mobile Number or Appointment ID..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-[#E5E7EB] text-xs text-[#111827] focus:outline-none focus:border-[#0D47A1] focus:bg-white transition-colors shadow-inner"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-gray-200 text-[13px] text-[#111827] outline-none focus:border-[#0D47A1] focus:ring-2 focus:ring-[#0D47A1]/10 transition-colors placeholder:text-slate-400"
                 />
               </div>
             )}
@@ -841,7 +906,8 @@ export function BookAppointmentScreen({
                       {dept.departmentName}
                     </option>
                   ))}
-                </select></span>
+                </select>
+</span>
               </div>
 
               <div>
@@ -878,7 +944,8 @@ export function BookAppointmentScreen({
                       ))}
                     </>
                   )}
-                </select></span>
+                </select>
+</span>
               </div>
             </div>
 
@@ -922,7 +989,7 @@ export function BookAppointmentScreen({
                             : "border-[#E5E7EB] bg-white hover:border-slate-300"
                         }`}
                       >
-                        <div className="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-[#0D47A1] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
                           {doc.name
                             .replace("Dr. ", "")
                             .slice(0, 2)
@@ -1045,8 +1112,8 @@ export function BookAppointmentScreen({
                                 !slot.available
                                   ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
                                   : isSelected
-                                    ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                                    : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                                    ? "bg-[#0D47A1] text-white border-[#0D47A1] font-bold shadow-sm"
+                                    : "bg-slate-50 text-[#111827] border-gray-200 hover:bg-blue-50 hover:border-blue-300"
                               }`}
                             >
                               {slot.time}
@@ -1075,8 +1142,8 @@ export function BookAppointmentScreen({
                                 !slot.available
                                   ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
                                   : isSelected
-                                    ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                                    : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                                    ? "bg-[#0D47A1] text-white border-[#0D47A1] font-bold shadow-sm"
+                                    : "bg-slate-50 text-[#111827] border-gray-200 hover:bg-blue-50 hover:border-blue-300"
                               }`}
                             >
                               {slot.time}
@@ -1105,8 +1172,8 @@ export function BookAppointmentScreen({
                                 !slot.available
                                   ? "bg-slate-100 text-slate-400 border-slate-200 line-through cursor-not-allowed"
                                   : isSelected
-                                    ? "bg-[#009688] text-white border-[#009688] font-bold shadow-sm"
-                                    : "bg-slate-50 text-[#111827] border-[#E5E7EB] hover:bg-teal-50 hover:border-teal-300"
+                                    ? "bg-[#0D47A1] text-white border-[#0D47A1] font-bold shadow-sm"
+                                    : "bg-slate-50 text-[#111827] border-gray-200 hover:bg-blue-50 hover:border-blue-300"
                               }`}
                             >
                               {slot.time}

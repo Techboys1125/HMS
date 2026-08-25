@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import {
   Stethoscope, Clock, Pill, CheckCircle2,
   AlertCircle, Calendar, ChevronRight, ChevronDown, Printer, Download, Search,
-  RotateCcw, Plus, Eye, ArrowLeft, ChevronUp, X
+  RotateCcw, Plus, FileText, ArrowLeft, ChevronUp, X
 } from 'lucide-react'
 import { consultationApi } from '../api/consultationApi'
 import { patientsApi } from '../../patients/api/patient.api'
@@ -746,7 +746,7 @@ export function ConsultationHistoryScreen({
                                   className="px-3 py-1.5 rounded-lg bg-[#0D47A1] text-white font-semibold hover:bg-[#0a3880] transition-colors flex items-center gap-1.5 text-xs"
                                   style={{ fontFamily: PP }}
                                 >
-                                  <Eye size={14} />
+                                  <FileText size={14} />
                                   View Full Consultation
                                 </button>
                               </div>

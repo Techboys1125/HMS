@@ -453,20 +453,20 @@ function VitalsDetailsScreen({
               </div>
 
               <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80 space-y-1">
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  Respiration
+                <div className="text-[10px] font-bold text-[#009688] uppercase tracking-wider">
+                  Blood Sugar
                 </div>
                 <div
-                  className="text-lg font-bold text-[#111827] font-mono"
+                  className="text-lg font-bold text-[#009688] font-mono"
                   style={{ fontFamily: PP }}
                 >
-                  {vitalsData.resp || "—"}{" "}
-                  <span className="text-xs text-slate-500 font-normal">
-                    cpm
+                  {vitalsData.bloodSugar || vitalsData.sugar || "—"}{" "}
+                  <span className="text-xs text-teal-600 font-normal">
+                    mg/dL
                   </span>
                 </div>
-                <div className="text-[10px] text-emerald-600 font-medium">
-                  Eupnea
+                <div className="text-[10px] text-teal-700 font-medium">
+                  Random / Fasting
                 </div>
               </div>
 
@@ -748,6 +748,7 @@ export function RecordPatientVitalsForm({
   const [bloodPressure, setBloodPressure] = useState("120/80");
   const [pulse, setPulse] = useState("72");
   const [spo2, setSpo2] = useState("98");
+  const [bloodSugar, setBloodSugar] = useState("110");
 
   const [toast, setToast] = useState<{
     message: string;
@@ -775,6 +776,7 @@ export function RecordPatientVitalsForm({
         bloodPressure,
         pulse: Number(pulse),
         spo2: Number(spo2),
+        bloodSugar: bloodSugar ? (isNaN(Number(bloodSugar)) ? bloodSugar : Number(bloodSugar)) : undefined,
       };
 
       const wasSaved = await vitalsService.submitVitals(
@@ -1096,6 +1098,19 @@ export function RecordPatientVitalsForm({
                 onChange={(e) => setSpo2(e.target.value)}
                 className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700"
               /></span>
+            </div>
+
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-[#64748B] block">
+                Blood Sugar (mg/dL)
+              
+              <input aria-label="Blood Sugar"
+                type="number"
+                value={bloodSugar}
+                onChange={(e) => setBloodSugar(e.target.value)}
+                placeholder="110"
+                className="w-full px-3 py-2 text-xs bg-slate-50 border border-[#E5E7EB] rounded-xl outline-none focus:border-[#0D47A1] focus:bg-white transition-colors text-slate-700 font-mono"
+              /></span>
             </div>
           </div>
         </div>

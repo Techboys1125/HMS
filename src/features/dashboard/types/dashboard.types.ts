@@ -213,6 +213,7 @@ export interface ReceptionPerformanceSummary {
 
 // ===== ACCOUNTANT DASHBOARD TYPES =====
 export interface AccountantTransaction {
+  billId?: number;
   invoiceId: string;
   patientId: string;
   patientName: string;

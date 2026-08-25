@@ -73,7 +73,10 @@ export interface BookAppointmentScreenProps {
   onViewPatientProfileClick?: (mrn: string) => void;
 
   onPatientSelect?: (mrn: string) => void;
-  onBookSuccess?: (appointment: AppointmentRecord, openDetailsDrawer?: boolean) => void;
+  onBookSuccess?: (
+    appointment: AppointmentRecord,
+    openDetailsDrawer?: boolean,
+  ) => void;
   initialMrn?: string;
 }
 

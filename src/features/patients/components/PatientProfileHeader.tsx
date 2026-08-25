@@ -30,6 +30,44 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string }> =
     DECEASED: { bg: "bg-red-50", text: "text-red-600", dot: "bg-red-500" },
   };
 
+function calculateAge(dob?: string, directAge?: number | string): number {
+  if (
+    directAge !== undefined &&
+    directAge !== null &&
+    directAge !== "" &&
+    !isNaN(Number(directAge)) &&
+    Number(directAge) > 0
+  ) {
+    return Number(directAge);
+  }
+  if (!dob) return 0;
+  const trimmed = String(dob).trim();
+  if (!trimmed) return 0;
+  let birth: Date;
+  if (trimmed.includes("/")) {
+    const parts = trimmed.split("/");
+    if (parts.length === 3 && parts[2].length === 4) {
+      birth = new Date(
+        Number(parts[2]),
+        Number(parts[1]) - 1,
+        Number(parts[0]),
+      );
+    } else {
+      birth = new Date(trimmed);
+    }
+  } else {
+    birth = new Date(trimmed);
+  }
+  if (Number.isNaN(birth.getTime())) return 0;
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const monthDiff = now.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age >= 0 ? age : 0;
+}
+
 export function PatientProfileHeader({
   patient,
   onBack,
@@ -39,12 +77,17 @@ export function PatientProfileHeader({
 }: PatientProfileHeaderProps) {
   const status = String(patient.status || "ACTIVE").toUpperCase();
   const statusStyle = STATUS_COLORS[status] || STATUS_COLORS.ACTIVE;
+  const computedAge = calculateAge(
+    patient.dateOfBirth || patient.dob,
+    patient.age,
+  );
 
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-4">
       <div className="flex items-center gap-3">
         {onBack && (
-          <button aria-label="Previous"
+          <button
+            aria-label="Previous"
             onClick={onBack}
             className="p-2 rounded-lg hover:bg-slate-100 transition-colors shrink-0"
           >
@@ -87,12 +130,8 @@ export function PatientProfileHeader({
             <span className="font-mono font-medium">MRN: {patient.mrn}</span>
             <span>·</span>
             <span>{patient.gender}</span>
-            {patient.age !== undefined && (
-              <>
-                <span>·</span>
-                <span>{patient.age} yrs</span>
-              </>
-            )}
+            <span>·</span>
+            <span>{computedAge > 0 ? `${computedAge} yrs` : "Age N/A"}</span>
             <span>·</span>
             <span
               className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${statusStyle.bg} ${statusStyle.text}`}

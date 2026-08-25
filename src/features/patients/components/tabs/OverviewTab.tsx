@@ -347,6 +347,51 @@ export function OverviewTab({ patient, onNavigateToTab }: OverviewTabProps) {
           </h3>
           <div className="space-y-2.5 text-xs">
             <div className="flex items-start">
+              <span className="w-36 shrink-0 text-[#64748B]">Age / DOB</span>
+              <span className="text-[#111827] font-medium">
+                {(() => {
+                  const directAge =
+                    patientDetail.age && Number(patientDetail.age) > 0
+                      ? Number(patientDetail.age)
+                      : 0;
+                  const dobStr =
+                    patientDetail.dateOfBirth || patientDetail.dob || "";
+                  let computedAge = directAge;
+                  if (!computedAge && dobStr) {
+                    const trimmed = String(dobStr).trim();
+                    let birth: Date;
+                    if (trimmed.includes("/")) {
+                      const parts = trimmed.split("/");
+                      if (parts.length === 3 && parts[2].length === 4) {
+                        birth = new Date(
+                          Number(parts[2]),
+                          Number(parts[1]) - 1,
+                          Number(parts[0]),
+                        );
+                      } else {
+                        birth = new Date(trimmed);
+                      }
+                    } else {
+                      birth = new Date(trimmed);
+                    }
+                    if (!Number.isNaN(birth.getTime())) {
+                      const now = new Date();
+                      let age = now.getFullYear() - birth.getFullYear();
+                      const monthDiff = now.getMonth() - birth.getMonth();
+                      if (
+                        monthDiff < 0 ||
+                        (monthDiff === 0 && now.getDate() < birth.getDate())
+                      ) {
+                        age--;
+                      }
+                      computedAge = age >= 0 ? age : 0;
+                    }
+                  }
+                  return `${computedAge > 0 ? `${computedAge} Y` : "N/A"}${dobStr ? ` (${dobStr})` : ""}`;
+                })()}
+              </span>
+            </div>
+            <div className="flex items-start">
               <span className="w-36 shrink-0 text-[#64748B]">Full Address</span>
               <span className="text-[#111827] font-medium">{address}</span>
             </div>

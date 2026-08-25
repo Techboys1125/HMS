@@ -62,7 +62,15 @@ function DKpi({
   onClick?: () => void;
 }) {
   return (
-    <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+    <div
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          (e.currentTarget as HTMLElement).click();
+        }
+      }}
+      role="button"
       onClick={onClick}
       className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
         onClick
@@ -153,7 +161,11 @@ function Av({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const bg = DOCTOR_AVATAR_PALETTE[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % DOCTOR_AVATAR_PALETTE.length];
+  const bg =
+    DOCTOR_AVATAR_PALETTE[
+      (safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) %
+        DOCTOR_AVATAR_PALETTE.length
+    ];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -265,10 +277,10 @@ const DOC_STATUS_CHIP: Record<
 };
 
 const DOC_QUICK_ACTIONS = [
-  { label: "Start Consultation", Icon: Stethoscope, color: "#009688" },
-  { label: "Open Patient Record", Icon: FileText, color: "#0D47A1" },
-  { label: "Write Prescription", Icon: Pill, color: "#0D47A1" },
-  { label: "Add Clinical Note", Icon: ClipboardList, color: "#009688" },
+  { label: "OPD Consultation", Icon: Stethoscope, color: "#009688" },
+  { label: "Appointments", Icon: FileText, color: "#0D47A1" },
+  { label: "Medical & Prescription", Icon: Pill, color: "#0D47A1" },
+  { label: "Patients", Icon: ClipboardList, color: "#009688" },
 ];
 
 const hourKey = (time: string) => {
@@ -305,7 +317,6 @@ export function DoctorDashboard() {
   const rawTimeline = todayAppointmentsQuery.data?.timeline;
   const timelineItems = useMemo(() => rawTimeline || [], [rawTimeline]);
   const consultationQueue = consultationQueueQuery.data;
-
 
   const hourlyProgress = useMemo(() => {
     const hours = Array.from(
@@ -415,6 +426,17 @@ export function DoctorDashboard() {
         {DOC_QUICK_ACTIONS.map(({ label, Icon, color }) => (
           <button
             key={label}
+            onClick={() => {
+              if (label === "OPD Consultation") {
+                navigate(ROUTES.DOCTOR_CONSULTATION);
+              } else if (label === "Appointments") {
+                navigate(ROUTES.DOCTOR_APPOINTMENTS);
+              } else if (label === "Medical & Prescription") {
+                navigate(ROUTES.DOCTOR_MEDICAL_RECORDS);
+              } else if (label === "Patients") {
+                navigate(ROUTES.DOCTOR_PATIENTS);
+              }
+            }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#009688]/40 hover:text-[#009688] hover:bg-teal-50 transition-colors shadow-sm"
             style={{ fontFamily: RB }}
           >
@@ -890,7 +912,10 @@ export function DoctorDashboard() {
                   ? "Loading appointments..."
                   : "No appointments scheduled"}
             </span>
-            <button className="text-[#0D47A1] font-semibold hover:underline">
+            <button
+              className="text-[#0D47A1] font-semibold hover:underline"
+              onClick={() => navigate(ROUTES.DOCTOR_APPOINTMENTS)}
+            >
               View Full Schedule →
             </button>
           </div>
@@ -1102,12 +1127,6 @@ export function DoctorDashboard() {
               Doctor efficiency & daily consultation statistics
             </div>
           </div>
-          <button
-            className="text-xs text-[#0D47A1] font-semibold hover:underline"
-            style={{ fontFamily: RB }}
-          >
-            Export Summary Report →
-          </button>
         </div>
         <table className="w-full">
           <thead>

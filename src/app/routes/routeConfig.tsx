@@ -460,6 +460,14 @@ export function AppRoutes() {
           }
         />
         <Route
+          path={ROUTES.DOCTOR_CONSULTATION_ID}
+          element={
+            <RouteGuard requiredPermission="OPD_VIEW">
+              <StartOpdConsultationWorkspaceScreen />
+            </RouteGuard>
+          }
+        />
+        <Route
           path={ROUTES.DOCTOR_PRESCRIPTIONS}
           element={
             <RouteGuard requiredPermission="PRESCRIPTION_VIEW">
@@ -525,6 +533,14 @@ export function AppRoutes() {
         />
         <Route
           path={ROUTES.CONSULTATION_WORKSPACE}
+          element={
+            <RouteGuard requiredPermission="OPD_VIEW">
+              <StartOpdConsultationWorkspaceScreen />
+            </RouteGuard>
+          }
+        />
+        <Route
+          path={ROUTES.CONSULTATION_WORKSPACE_ID}
           element={
             <RouteGuard requiredPermission="OPD_VIEW">
               <StartOpdConsultationWorkspaceScreen />

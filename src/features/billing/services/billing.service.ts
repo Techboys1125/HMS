@@ -23,6 +23,43 @@ import type {
 } from "../types/billing.types";
 import { mapApiBillToInvoiceRecord } from "../utils/billing.utils";
 
+const billIdCache = new Map<string, number>();
+
+export async function resolveBillId(rawId: number | string): Promise<number | string> {
+  if (rawId === null || rawId === undefined) return rawId;
+  const strId = String(rawId).trim();
+  if (!strId) return rawId;
+
+  if (/^\d+$/.test(strId)) {
+    return Number(strId);
+  }
+
+  if (billIdCache.has(strId)) {
+    return billIdCache.get(strId)!;
+  }
+
+  try {
+    const response = await billingApi.searchBills({ search: strId, page: 0, size: 10 });
+    const content = (response.data as any)?.content || [];
+    const found = content.find(
+      (b: any) =>
+        b.billNumber === strId ||
+        b.invoiceId === strId ||
+        (b.billNumber && String(b.billNumber).toLowerCase() === strId.toLowerCase()),
+    );
+    const numericId = found?.billId ?? found?.id;
+    if (numericId != null && !isNaN(Number(numericId))) {
+      const parsed = Number(numericId);
+      billIdCache.set(strId, parsed);
+      return parsed;
+    }
+  } catch (err) {
+    console.warn("Could not resolve numeric billId for string:", strId, err);
+  }
+
+  return rawId;
+}
+
 export const billingService = {
   // ── Bill CRUD ────────────────────────────────────────────────────────────
 
@@ -57,7 +94,8 @@ export const billingService = {
   },
 
   async getBill(billId: number | string): Promise<BillWorkspace> {
-    const response = await billingApi.getBill(billId);
+    const targetId = await resolveBillId(billId);
+    const response = await billingApi.getBill(targetId);
     return response.data;
   },
 
@@ -98,7 +136,8 @@ export const billingService = {
     billId: number | string,
     payload: BillItemPayload,
   ): Promise<void> {
-    await billingApi.addBillItem(billId, payload);
+    const targetId = await resolveBillId(billId);
+    await billingApi.addBillItem(targetId, payload);
   },
 
   async updateBillItem(
@@ -106,39 +145,46 @@ export const billingService = {
     itemId: number | string,
     payload: BillItemPayload,
   ): Promise<void> {
-    await billingApi.updateBillItem(billId, itemId, payload);
+    const targetId = await resolveBillId(billId);
+    await billingApi.updateBillItem(targetId, itemId, payload);
   },
 
   async deleteBillItem(
     billId: number | string,
     itemId: number | string,
   ): Promise<void> {
-    await billingApi.deleteBillItem(billId, itemId);
+    const targetId = await resolveBillId(billId);
+    await billingApi.deleteBillItem(targetId, itemId);
   },
 
   async applyDiscount(
     billId: number | string,
     payload: BillDiscountPayload,
   ): Promise<void> {
-    await billingApi.applyDiscount(billId, payload);
+    const targetId = await resolveBillId(billId);
+    await billingApi.applyDiscount(targetId, payload);
   },
 
   async getBillSummary(billId: number | string): Promise<BillSummary> {
-    const response = await billingApi.getBillSummary(billId);
+    const targetId = await resolveBillId(billId);
+    const response = await billingApi.getBillSummary(targetId);
     return response.data;
   },
 
   async finalizeBill(billId: number | string): Promise<BillFinalizeResponse> {
-    const response = await billingApi.finalizeBill(billId);
+    const targetId = await resolveBillId(billId);
+    const response = await billingApi.finalizeBill(targetId);
     return response.data;
   },
 
   async cancelBill(billId: number | string, reason?: string): Promise<void> {
-    await billingApi.cancelBill(billId, reason ? { reason } : undefined);
+    const targetId = await resolveBillId(billId);
+    await billingApi.cancelBill(targetId, reason ? { reason } : undefined);
   },
 
   async voidBill(billId: number | string, reason: string): Promise<void> {
-    await billingApi.voidBill(billId, { reason });
+    const targetId = await resolveBillId(billId);
+    await billingApi.voidBill(targetId, { reason });
   },
 
   // ── Payments ─────────────────────────────────────────────────────────────
@@ -146,7 +192,8 @@ export const billingService = {
   async getPaymentHistory(
     billId: number | string,
   ): Promise<PaymentHistoryResponse> {
-    const response = await billingApi.getPaymentHistory(billId);
+    const targetId = await resolveBillId(billId);
+    const response = await billingApi.getPaymentHistory(targetId);
     return response.data;
   },
 
@@ -154,7 +201,8 @@ export const billingService = {
     billId: number | string,
     payload: PaymentReceivePayload,
   ): Promise<PaymentReceiveResponse> {
-    const response = await billingApi.receivePayment(billId, payload);
+    const targetId = await resolveBillId(billId);
+    const response = await billingApi.receivePayment(targetId, payload);
     return response.data;
   },
 
@@ -163,18 +211,21 @@ export const billingService = {
     amount: number,
     reason: string,
   ): Promise<void> {
-    await billingApi.processRefund(billId, { amount, reason });
+    const targetId = await resolveBillId(billId);
+    await billingApi.processRefund(targetId, { amount, reason });
   },
 
   // ── Receipts ─────────────────────────────────────────────────────────────
 
   async getReceipt(billId: number | string): Promise<ReceiptData> {
-    const response = await billingApi.getReceipt(billId);
+    const targetId = await resolveBillId(billId);
+    const response = await billingApi.getReceipt(targetId);
     return response.data;
   },
 
   async reprintReceipt(billId: number | string): Promise<ReceiptData> {
-    const response = await billingApi.reprintReceipt(billId);
+    const targetId = await resolveBillId(billId);
+    const response = await billingApi.reprintReceipt(targetId);
     return response.data;
   },
 

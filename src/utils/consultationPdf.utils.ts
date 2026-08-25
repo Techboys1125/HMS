@@ -193,14 +193,10 @@ export function downloadConsultationPdf(data: PrintableConsultationData): void {
         <div class="vitals-val">${vitals.temperature || "—"}</div>
       </div>
       <div class="vitals-card">
-        <div class="field-label">Resp. Rate</div>
-        <div class="vitals-val">${vitals.respiratoryRate || "—"}</div>
-      </div>
-      <div class="vitals-card">
         <div class="field-label">SpO₂</div>
         <div class="vitals-val" style="color: #16A34A;">${vitals.spo2 || "—"}</div>
       </div>
-      <div class="vitals-card" style="grid-column: span 2;">
+      <div class="vitals-card">
         <div class="field-label">Blood Sugar</div>
         <div class="vitals-val">${vitals.bloodSugar || "—"}</div>
       </div>

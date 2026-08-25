@@ -61,63 +61,93 @@ function DKpi({
   gid: string;
   Icon: React.ElementType;
 }) {
+  const chartData =
+    !data || data.length < 2
+      ? [
+          { v: (data?.[0]?.v ?? 0) * 0.4 },
+          { v: (data?.[0]?.v ?? 0) * 0.7 },
+          { v: (data?.[0]?.v ?? 0) * 0.5 },
+          { v: (data?.[0]?.v ?? 0) * 0.9 },
+          { v: data?.[0]?.v ?? 0 },
+        ]
+      : data;
+
   return (
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm">
-      <div className="flex items-start justify-between">
-        <div>
+    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow h-full">
+      {/* Top Title & Icon */}
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="min-w-0 flex-1">
           <div
-            className="text-xs font-medium text-[#64748B] mb-1"
-            style={{ fontFamily: RB }}
+            className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider truncate mb-1"
+            title={title}
+            style={{ fontFamily: PP }}
           >
             {title}
           </div>
           <div
-            className={`${value.length > 12 ? "text-base" : value.length > 8 ? "text-lg" : "text-xl"} font-bold text-[#111827] leading-tight truncate`}
+            className={`${
+              value.length > 14
+                ? "text-sm"
+                : value.length > 10
+                  ? "text-base"
+                  : "text-xl"
+            } font-bold text-[#111827] leading-snug truncate`}
+            title={value}
             style={{ fontFamily: PP }}
           >
             {value}
           </div>
           <div
-            className="text-xs text-slate-400 mt-1 truncate"
+            className="text-xs text-[#94A3B8] font-normal truncate mt-0.5"
+            title={sub}
             style={{ fontFamily: RB }}
           >
             {sub}
           </div>
         </div>
         <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: color + "18" }}
+          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: color + "15" }}
         >
-          <Icon size={16} style={{ color }} />
+          <Icon size={15} style={{ color }} />
         </div>
       </div>
-      <ResponsiveContainer width="100%" height={40}>
-        <AreaChart
-          data={data}
-          margin={{ top: 2, right: 0, bottom: 0, left: 0 }}
+
+      {/* Sparkline & Trend Badge Footer */}
+      <div className="mt-2 pt-2 border-t border-slate-50 flex items-center justify-between gap-2">
+        <div className="w-20 h-7 shrink-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={chartData}
+              margin={{ top: 2, right: 2, bottom: 2, left: 2 }}
+            >
+              <defs>
+                <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={color} stopOpacity={0.25} />
+                  <stop offset="100%" stopColor={color} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area
+                type="monotone"
+                dataKey="v"
+                stroke={color}
+                strokeWidth={1.5}
+                fill={`url(#${gid})`}
+                dot={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div
+          className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+            up ? "text-[#009688] bg-teal-50" : "text-[#EF4444] bg-red-50"
+          }`}
+          style={{ fontFamily: RB }}
         >
-          <defs>
-            <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity={0.18} />
-              <stop offset="100%" stopColor={color} stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <Area
-            type="monotone"
-            dataKey="v"
-            stroke={color}
-            strokeWidth={1.5}
-            fill={`url(#${gid})`}
-            dot={false}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
-      <div
-        className={`flex items-center gap-1 text-xs font-medium ${up ? "text-[#66BB6A]" : "text-[#EF4444]"}`}
-        style={{ fontFamily: RB }}
-      >
-        {up ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-        {trend}
+          {up ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+          <span>{trend}</span>
+        </div>
       </div>
     </div>
   );
@@ -216,12 +246,6 @@ const PAT_STATUS_CHIP: Record<
 
 const PAT_QUICK_ACTIONS = [
   {
-    label: "Book Appointment",
-    Icon: Calendar,
-    color: "#009688",
-    action: "book",
-  },
-  {
     label: "View Appointments",
     Icon: Clock,
     color: "#0D47A1",
@@ -247,8 +271,6 @@ import type { FamilyMember } from "../../patients/types/family.types";
 
 export function PatientDashboard({
   activePatient,
-  familyMembers = [],
-  onSwitchPatient,
   onAddFamilyMember,
 }: {
   onBookAppointmentClick?: () => void;
@@ -371,14 +393,6 @@ export function PatientDashboard({
                 + Add Family Member
               </button>
             )}
-            {onSwitchPatient && familyMembers.length > 1 && (
-              <button
-                onClick={() => onSwitchPatient(familyMembers[0])}
-                className="px-3 py-1.5 rounded-xl border border-gray-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors"
-              >
-                Switch Patient
-              </button>
-            )}
           </div>
         </div>
       )}
@@ -398,8 +412,7 @@ export function PatientDashboard({
           <button
             key={label}
             onClick={() => {
-              if (action === "book")
-                navigate(ROUTES.PATIENT_APPOINTMENTS);
+              if (action === "book") navigate(ROUTES.PATIENT_APPOINTMENTS);
               else if (action === "appts")
                 navigate(ROUTES.PATIENT_APPOINTMENTS);
               else if (action === "prescriptions")
@@ -421,12 +434,12 @@ export function PatientDashboard({
       </div>
 
       {/* ── KPI Row — 5 Personal Healthcare KPI Cards ── */}
-      <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-stretch">
         <DKpi
           title="Upcoming Appointment"
           value={upcomingStr}
-          sub="--"
-          trend="--"
+          sub={upcomingApt ? "Scheduled Visit" : "No Visit Scheduled"}
+          trend={upcomingApt ? "Confirmed" : "No Schedule"}
           up={true}
           data={[{ v: upcomingApt ? 1 : 0 }]}
           color="#0D47A1"
@@ -437,13 +450,19 @@ export function PatientDashboard({
           title="Active Prescriptions"
           value={String(prescriptions?.active ?? 0)}
           sub={
-            prescriptionQuery.isLoading ? "Loading..." : "Active medications"
+            prescriptionQuery.isLoading
+              ? "Loading..."
+              : (prescriptions?.active ?? 0) > 0
+                ? `${prescriptions?.active} Active Medications`
+                : "No Active Medications"
           }
-          trend="--"
+          trend={(prescriptions?.active ?? 0) > 0 ? "Active" : "Up to Date"}
           up={true}
-          data={prescriptionSummaryData
-            .slice(0, 3)
-            .map((p) => ({ v: p.count }))}
+          data={
+            prescriptionSummaryData.length > 0
+              ? prescriptionSummaryData.slice(0, 5).map((p) => ({ v: p.count }))
+              : [{ v: prescriptions?.active ?? 0 }]
+          }
           color="#009688"
           gid="pt2"
           Icon={Pill}
@@ -458,10 +477,10 @@ export function PatientDashboard({
           sub={
             dashboardQuery.isLoading
               ? "Loading..."
-              : `${dashboard?.billingSummary?.pendingInvoiceCount ?? 0} pending`
+              : `${dashboard?.billingSummary?.pendingInvoiceCount ?? 0} Pending Invoices`
           }
           trend={
-            dashboard && dashboard.billingSummary?.pendingAmount > 0
+            dashboard && (dashboard.billingSummary?.pendingAmount ?? 0) > 0
               ? "Action Required"
               : "All Clear"
           }
@@ -478,10 +497,22 @@ export function PatientDashboard({
         <DKpi
           title="Completed Consultations"
           value={String(consultations?.totalVisits ?? 0)}
-          sub={consultationQuery.isLoading ? "Loading..." : "Total OPD visits"}
-          trend="--"
+          sub={
+            consultationQuery.isLoading
+              ? "Loading..."
+              : `${consultations?.totalVisits ?? 0} Total OPD Visits`
+          }
+          trend={
+            (consultations?.totalVisits ?? 0) > 0
+              ? "OPD History"
+              : "No OPD Visits"
+          }
           up={true}
-          data={consultationTrendData.slice(-6).map((c) => ({ v: c.visits }))}
+          data={
+            consultationTrendData.length > 0
+              ? consultationTrendData.slice(-6).map((c) => ({ v: c.visits }))
+              : [{ v: consultations?.totalVisits ?? 0 }]
+          }
           color="#66BB6A"
           gid="pt4"
           Icon={Stethoscope}
@@ -489,8 +520,14 @@ export function PatientDashboard({
         <DKpi
           title="Health Notifications"
           value={String(unreadCount)}
-          sub={unreadQuery.isLoading ? "Loading..." : "Unread alerts"}
-          trend={unreadCount > 0 ? `${unreadCount} new` : "All read"}
+          sub={
+            unreadQuery.isLoading
+              ? "Loading..."
+              : unreadCount > 0
+                ? `${unreadCount} Unread Alerts`
+                : "No Unread Alerts"
+          }
+          trend={unreadCount > 0 ? `${unreadCount} New` : "All Clear"}
           up={unreadCount === 0}
           data={[{ v: unreadCount }]}
           color="#EF4444"
@@ -801,65 +838,65 @@ export function PatientDashboard({
             </thead>
             <tbody className="divide-y divide-gray-50">
               {(dashboard?.recentPrescriptions?.length ?? 0) > 0 ? (
-                ((dashboard?.recentPrescriptions || []) as DashboardRecord[]).map(
-                  (rx, idx) => (
-                    <tr
-                      key={String(
+                (
+                  (dashboard?.recentPrescriptions || []) as DashboardRecord[]
+                ).map((rx, idx) => (
+                  <tr
+                    key={String(
+                      rx.prescriptionId ||
+                        rx.id ||
+                        rx.prescriptionNumber ||
+                        rx.issuedAt ||
+                        rx.doctorName ||
+                        "rx",
+                    )}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                      {String(
                         rx.prescriptionId ||
-                          rx.id ||
                           rx.prescriptionNumber ||
-                          rx.issuedAt ||
-                          rx.doctorName ||
-                          "rx",
+                          rx.id ||
+                          `RX-${idx + 1}`,
                       )}
-                      className="hover:bg-slate-50 transition-colors"
+                    </td>
+                    <td
+                      className="px-5 py-3 text-xs font-medium text-[#111827]"
+                      style={{ fontFamily: RB }}
                     >
-                      <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                        {String(
-                          rx.prescriptionId ||
-                            rx.prescriptionNumber ||
-                            rx.id ||
-                            `RX-${idx + 1}`,
-                        )}
-                      </td>
-                      <td
-                        className="px-5 py-3 text-xs font-medium text-[#111827]"
-                        style={{ fontFamily: RB }}
+                      {String(rx.doctorName || rx.doctor || "N/A")}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs text-slate-500">
+                      {String(rx.issuedAt || rx.createdAt || rx.date || "--")}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
+                      {Number(
+                        rx.medicinesCount ??
+                          rx.medsCount ??
+                          rx.items?.length ??
+                          0,
+                      )}{" "}
+                      Medicines
+                    </td>
+                    <td className="px-5 py-3">
+                      <Chip
+                        label={String(rx.status || "Active")}
+                        variant={
+                          PAT_STATUS_CHIP[String(rx.status || "Active")] ||
+                          "success"
+                        }
+                      />
+                    </td>
+                    <td className="px-5 py-3">
+                      <button
+                        className="px-3 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-100 transition-colors"
+                        style={{ fontFamily: PP }}
                       >
-                        {String(rx.doctorName || rx.doctor || "N/A")}
-                      </td>
-                      <td className="px-5 py-3 font-mono text-xs text-slate-500">
-                        {String(rx.issuedAt || rx.createdAt || rx.date || "--")}
-                      </td>
-                      <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
-                        {Number(
-                          rx.medicinesCount ??
-                            rx.medsCount ??
-                            rx.items?.length ??
-                            0,
-                        )}{" "}
-                        Medicines
-                      </td>
-                      <td className="px-5 py-3">
-                        <Chip
-                          label={String(rx.status || "Active")}
-                          variant={
-                            PAT_STATUS_CHIP[String(rx.status || "Active")] ||
-                            "success"
-                          }
-                        />
-                      </td>
-                      <td className="px-5 py-3">
-                        <button
-                          className="px-3 py-1 rounded-lg bg-blue-50 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-100 transition-colors"
-                          style={{ fontFamily: PP }}
-                        >
-                          View Prescription
-                        </button>
-                      </td>
-                    </tr>
-                  ),
-                )
+                        View Prescription
+                      </button>
+                    </td>
+                  </tr>
+                ))
               ) : (
                 <tr>
                   <td
@@ -926,61 +963,57 @@ export function PatientDashboard({
               {(dashboard?.recentBills?.length ?? 0) > 0 ? (
                 (
                   (dashboard?.recentBills || []) as Record<string, unknown>[]
-                ).map(
-                  (b, idx) => (
-                    <tr
-                      key={String(
-                        b.billId ||
-                          b.billNumber ||
+                ).map((b, idx) => (
+                  <tr
+                    key={String(
+                      b.billId ||
+                        b.billNumber ||
+                        b.invoiceId ||
+                        b.id ||
+                        b.billDate ||
+                        b.date ||
+                        b.generatedAt ||
+                        "bill",
+                    )}
+                    className="hover:bg-slate-50 transition-colors"
+                  >
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
+                      {String(
+                        b.billNumber ||
                           b.invoiceId ||
-                          b.id ||
-                          b.billDate ||
-                          b.date ||
-                          b.generatedAt ||
-                          "bill",
+                          b.invoice ||
+                          `BILL-${idx + 1}`,
                       )}
-                      className="hover:bg-slate-50 transition-colors"
-                    >
-                      <td className="px-5 py-3 font-mono text-xs font-bold text-[#0D47A1]">
-                        {String(
-                          b.billNumber ||
-                            b.invoiceId ||
-                            b.invoice ||
-                            `BILL-${idx + 1}`,
-                        )}
-                      </td>
-                      <td className="px-5 py-3 font-mono text-xs text-slate-500">
-                        {String(b.billDate || b.generatedAt || b.date || "--")}
-                      </td>
-                      <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
-                        ₹{Number(b.netAmount ?? b.amount ?? 0).toLocaleString()}
-                      </td>
-                      <td className="px-5 py-3">
-                        <Chip
-                          label={String(
-                            b.paymentStatus || b.status || "Pending",
-                          )}
-                          variant={
-                            String(b.paymentStatus || b.status || "") === "PAID"
-                              ? "success"
-                              : String(b.paymentStatus || b.status || "") ===
-                                  "PARTIALLY_PAID"
-                                ? "info"
-                                : "warning"
-                          }
-                        />
-                      </td>
-                      <td className="px-5 py-3">
-                        <button
-                          className="px-3 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
-                          style={{ fontFamily: PP }}
-                        >
-                          View Invoice
-                        </button>
-                      </td>
-                    </tr>
-                  ),
-                )
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs text-slate-500">
+                      {String(b.billDate || b.generatedAt || b.date || "--")}
+                    </td>
+                    <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
+                      ₹{Number(b.netAmount ?? b.amount ?? 0).toLocaleString()}
+                    </td>
+                    <td className="px-5 py-3">
+                      <Chip
+                        label={String(b.paymentStatus || b.status || "Pending")}
+                        variant={
+                          String(b.paymentStatus || b.status || "") === "PAID"
+                            ? "success"
+                            : String(b.paymentStatus || b.status || "") ===
+                                "PARTIALLY_PAID"
+                              ? "info"
+                              : "warning"
+                        }
+                      />
+                    </td>
+                    <td className="px-5 py-3">
+                      <button
+                        className="px-3 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
+                        style={{ fontFamily: PP }}
+                      >
+                        View Invoice
+                      </button>
+                    </td>
+                  </tr>
+                ))
               ) : (
                 <tr>
                   <td

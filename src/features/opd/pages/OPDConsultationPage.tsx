@@ -378,6 +378,7 @@ export function OPDConsultationPage({
     if (localRecord) {
       setSelectedPrescriptionRecord(localRecord);
     }
+    setViewPrescriptionEncounterId(id);
     if (onViewDetails) {
       onViewDetails(id);
     }
@@ -653,7 +654,7 @@ export function OPDConsultationPage({
       if (onStartConsultation) {
         onStartConsultation(record.id);
       } else {
-        navigate("/consultation/workspace");
+        navigate(`/doctor/consultation/${record.id}`);
       }
     } catch (err) {
       const msg =
@@ -669,7 +670,7 @@ export function OPDConsultationPage({
     if (onOpenConsultation) {
       onOpenConsultation(id);
     } else {
-      navigate("/consultation/workspace");
+      navigate(`/doctor/consultation/${id}`);
     }
   };
 

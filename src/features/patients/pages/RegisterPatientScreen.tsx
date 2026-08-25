@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router";
 import {
   User,
   MapPin,
@@ -9,6 +10,7 @@ import {
   X,
   RotateCcw,
   Calendar,
+  ArrowLeft,
 } from "lucide-react";
 import { PP, RB } from "../constants/patient.fonts";
 import { useCreatePatient } from "../hooks/useCreatePatient";
@@ -409,18 +411,12 @@ export function RegisterPatientScreen({
       rolePerms?.readOnlyFields.includes(field)) ??
     false;
 
-  const isAddingFamilyMember = effectiveMode === "PATIENT_FAMILY";
-
   const [form, setForm] = useState<RegistrationFormState>(() => ({
     ...INITIAL_FORM,
     relationship: initialRelationship,
-    ...(isAddingFamilyMember
-      ? {}
-      : {
-          fullName: user?.fullName || "",
-          email: user?.email || "",
-          mobileNumber: user?.mobile || "",
-        }),
+    fullName: "",
+    email: "",
+    mobileNumber: "",
   }));
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -727,12 +723,21 @@ export function RegisterPatientScreen({
     setForm({
       ...INITIAL_FORM,
       relationship: initialRelationship,
-      fullName: user?.fullName || "",
-      email: user?.email || "",
-      mobileNumber: user?.mobile || "",
+      fullName: "",
+      email: "",
+      mobileNumber: "",
     });
     setTouched({});
-  }, [initialRelationship, user]);
+  }, [initialRelationship]);
+
+  const navigate = useNavigate();
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1);
+    }
+  };
 
   return (
     <div className="flex-1 min-h-screen bg-[#F4F6F9] overflow-y-auto">
@@ -760,21 +765,41 @@ export function RegisterPatientScreen({
       )}
 
       <div className="max-w-350 mx-auto px-6 py-6">
-        <div className="mb-7">
+        <div className="mb-7 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
+              <button
+                type="button"
+                onClick={handleBack}
+                className="hover:text-[#0D47A1] transition-colors flex items-center gap-1 font-medium"
+              >
+                <ArrowLeft size={13} />
+                Back
+              </button>
+            </div>
+            <h1
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {effectiveMode === "PATIENT_FAMILY"
+                ? "Add Family Member"
+                : "Patient Registration"}
+            </h1>
+            <p className="text-sm text-slate-500" style={{ fontFamily: RB }}>
+              {effectiveMode === "PATIENT_FAMILY"
+                ? "Register a new family member under your patient account."
+                : "Create a new patient record for hospital services."}
+            </p>
+          </div>
 
-          <h1
-            className="text-2xl font-bold text-[#111827] mb-1"
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold shadow-sm self-start md:self-auto transition-colors"
             style={{ fontFamily: PP }}
           >
-            {effectiveMode === "PATIENT_FAMILY"
-              ? "Add Family Member"
-              : "Patient Registration"}
-          </h1>
-          <p className="text-sm text-slate-500" style={{ fontFamily: RB }}>
-            {effectiveMode === "PATIENT_FAMILY"
-              ? "Register a new family member under your patient account."
-              : "Create a new patient record for hospital services."}
-          </p>
+            <ArrowLeft size={15} /> Back
+          </button>
         </div>
 
         <div className="max-w-full">
@@ -810,7 +835,8 @@ export function RegisterPatientScreen({
                       <option value="SON">Son</option>
                       <option value="DAUGHTER">Daughter</option>
                       <option value="OTHER">Other</option>
-                    </select></label>
+                    </select>
+</label>
                     {fieldError("relationship")}
                   </div>
                 )}
@@ -826,7 +852,8 @@ export function RegisterPatientScreen({
                     onBlur={() => markTouched("fullName")}
                     placeholder="e.g. Eleanor Vance"
                     className={fClass("fullName")}
-                  /></label>
+                  />
+</label>
                   {fieldError("fullName")}
                 </div>
 
@@ -845,7 +872,8 @@ export function RegisterPatientScreen({
                         {g.label}
                       </option>
                     ))}
-                  </select></label>
+                  </select>
+</label>
                   {fieldError("gender")}
                 </div>
 
@@ -859,7 +887,8 @@ export function RegisterPatientScreen({
                     maxDate={todayStr}
                     error={touched.dateOfBirth ? errors.dateOfBirth : undefined}
                     inputClassName={fClass("dateOfBirth")}
-                  /></label>
+                  />
+</label>
                 </div>
 
                 <div>
@@ -878,7 +907,8 @@ export function RegisterPatientScreen({
                     }
                     disabled
                     className={inputDisabled}
-                  /></label>
+                  />
+</label>
                 </div>
 
                 <div>
@@ -892,7 +922,8 @@ export function RegisterPatientScreen({
                     onBlur={() => markTouched("mobileNumber")}
                     placeholder="+91 98765 43210"
                     className={fClass("mobileNumber")}
-                  /></label>
+                  />
+</label>
                   {fieldError("mobileNumber")}
                 </div>
 
@@ -905,7 +936,8 @@ export function RegisterPatientScreen({
                     onBlur={() => markTouched("email")}
                     placeholder="patient@example.com"
                     className={fClass("email")}
-                  /></label>
+                  />
+</label>
                   {fieldError("email")}
                 </div>
 
@@ -924,7 +956,8 @@ export function RegisterPatientScreen({
                         {bg.label}
                       </option>
                     ))}
-                  </select></label>
+                  </select>
+</label>
                 </div>
 
                 <div>
@@ -942,7 +975,8 @@ export function RegisterPatientScreen({
                         {ms.label}
                       </option>
                     ))}
-                  </select></label>
+                  </select>
+</label>
                 </div>
 
                 <div>
@@ -953,7 +987,8 @@ export function RegisterPatientScreen({
                     onChange={(e) => set("nationalId", e.target.value)}
                     placeholder="Aadhar Number"
                     className={inputBase}
-                  /></label>
+                  />
+</label>
                 </div>
               </div>
             </div>
@@ -975,7 +1010,8 @@ export function RegisterPatientScreen({
                     onChange={(e) => set("addressLine1", e.target.value)}
                     placeholder="House / Flat No., Building, Street"
                     className={inputBase}
-                  /></label>
+                  />
+</label>
                 </div>
 
                 <div className="md:col-span-2">
@@ -986,7 +1022,8 @@ export function RegisterPatientScreen({
                     onChange={(e) => set("addressLine2", e.target.value)}
                     placeholder="Landmark, Cross Street"
                     className={inputBase}
-                  /></label>
+                  />
+</label>
                 </div>
 
                 <div>
@@ -997,7 +1034,8 @@ export function RegisterPatientScreen({
                     onChange={(e) => set("city", e.target.value)}
                     placeholder="City Name"
                     className={inputBase}
-                  /></label>
+                  />
+</label>
                 </div>
 
                 <div>
@@ -1013,7 +1051,8 @@ export function RegisterPatientScreen({
                         {s}
                       </option>
                     ))}
-                  </select></label>
+                  </select>
+</label>
                 </div>
 
                 <div>
@@ -1026,7 +1065,8 @@ export function RegisterPatientScreen({
                     placeholder="6-digit Pincode"
                     maxLength={6}
                     className={fClass("pincode")}
-                  /></label>
+                  />
+</label>
                   {fieldError("pincode")}
                 </div>
 
@@ -1037,7 +1077,8 @@ export function RegisterPatientScreen({
                     value={form.country}
                     onChange={(e) => set("country", e.target.value)}
                     className={inputBase}
-                  /></label>
+                  />
+</label>
                 </div>
               </div>
             </div>
@@ -1059,7 +1100,8 @@ export function RegisterPatientScreen({
                     onChange={(e) => set("ecName", e.target.value)}
                     placeholder="Full name of emergency contact"
                     className={inputBase}
-                  /></label>
+                  />
+</label>
                 </div>
 
                 <div>
@@ -1074,7 +1116,8 @@ export function RegisterPatientScreen({
                         {r.label}
                       </option>
                     ))}
-                  </select></label>
+                  </select>
+</label>
                 </div>
 
                 <div>
@@ -1085,7 +1128,8 @@ export function RegisterPatientScreen({
                     onChange={(e) => set("ecMobile", e.target.value)}
                     placeholder="+91 98765 00000"
                     className={inputBase}
-                  /></label>
+                  />
+</label>
                 </div>
 
                 <div>
@@ -1098,7 +1142,8 @@ export function RegisterPatientScreen({
                     onChange={(e) => set("ecAltMobile", e.target.value)}
                     placeholder="Landline or Secondary Mobile"
                     className={inputBase}
-                  /></label>
+                  />
+</label>
                 </div>
               </div>
             </div>
@@ -1123,7 +1168,8 @@ export function RegisterPatientScreen({
                       onChange={(e) => set("knownAllergies", e.target.value)}
                       placeholder="e.g. Penicillin, Peanuts, Latex"
                       className={inputBase}
-                    /></label>
+                    />
+</label>
                   </div>
 
                   <div>
@@ -1134,7 +1180,8 @@ export function RegisterPatientScreen({
                       onChange={(e) => set("chronicDiseases", e.target.value)}
                       placeholder="e.g. Type 2 Diabetes, Hypertension, Asthma"
                       className={inputBase}
-                    /></label>
+                    />
+</label>
                   </div>
 
                   <div>
@@ -1145,7 +1192,8 @@ export function RegisterPatientScreen({
                       onChange={(e) => set("specialNotes", e.target.value)}
                       placeholder="e.g. Requires wheelchair assistance, prefers afternoon slots"
                       className={inputBase + " resize-none"}
-                    /></label>
+                    />
+</label>
                   </div>
                 </div>
               </div>

@@ -1,14 +1,14 @@
 import React from "react";
+import { useNavigate } from "react-router";
+import { ROUTES } from "../../../app/routes/routes";
 import {
   Activity,
   Clock,
   ClipboardList,
   TrendingDown,
   TrendingUp,
-  UserPlus,
   Users,
   Stethoscope,
-  Search,
   Loader2,
 } from "lucide-react";
 import {
@@ -147,7 +147,11 @@ function Av({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const bg = NURSE_AVATAR_PALETTE[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % NURSE_AVATAR_PALETTE.length];
+  const bg =
+    NURSE_AVATAR_PALETTE[
+      (safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) %
+        NURSE_AVATAR_PALETTE.length
+    ];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -230,42 +234,23 @@ const NURSE_QUICK_ACTIONS = [
     color: "#009688",
     action: "vitals",
   },
+
   {
-    label: "View Patient Queue",
-    Icon: Users,
-    color: "#0D47A1",
-    action: "queue",
-  },
-  {
-    label: "Prepare Patient",
-    Icon: UserPlus,
-    color: "#4DB6AC",
-    action: "prep",
-  },
-  {
-    label: "Assist Consultation",
+    label: "Appointments",
     Icon: Stethoscope,
     color: "#66BB6A",
-    action: "assist",
+    action: "Appointments",
   },
-  { label: "Search Patient", Icon: Search, color: "#64748B", action: "search" },
   {
-    label: "View Assigned Patients",
+    label: "OPD Patients",
     Icon: ClipboardList,
     color: "#F59E0B",
-    action: "assigned",
+    action: "OPD Patients",
   },
 ];
 
-export function NurseDashboard({
-  onRecordVitalsClick,
-  onViewQueueClick,
-  onNavigateNav,
-}: {
-  onRecordVitalsClick?: () => void;
-  onViewQueueClick?: () => void;
-  onNavigateNav?: (nav: string) => void;
-}) {
+export function NurseDashboard() {
+  const navigate = useNavigate();
   const summaryQuery = useNurseDashboardSummary();
   const vitalsTrendQuery = useNurseVitalsTrend();
   const prepStatusQuery = useNursePreparationStatus();
@@ -373,22 +358,13 @@ export function NurseDashboard({
           <button
             key={label}
             onClick={() => {
-              if (action === "vitals" && onRecordVitalsClick)
-                onRecordVitalsClick();
-              else if (action === "queue" && onViewQueueClick)
-                onViewQueueClick();
-              else if (action === "vitals" && onNavigateNav)
-                onNavigateNav("patient-queue");
-              else if (action === "queue" && onNavigateNav)
-                onNavigateNav("patient-queue");
-              else if (action === "prep" && onNavigateNav)
-                onNavigateNav("patient-queue");
-              else if (action === "assist" && onNavigateNav)
-                onNavigateNav("appointments");
-              else if (action === "search" && onNavigateNav)
-                onNavigateNav("patient-search");
-              else if (action === "assigned" && onNavigateNav)
-                onNavigateNav("patients");
+              if (action === "vitals") {
+                navigate(ROUTES.VITALS);
+              } else if (action === "Appointments") {
+                navigate(ROUTES.APPOINTMENTS);
+              } else if (action === "OPD Patients") {
+                navigate(ROUTES.APPOINTMENTS);
+              }
             }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#0D47A1]/40 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors shadow-sm"
             style={{ fontFamily: RB }}

@@ -65,7 +65,15 @@ function DKpi({
   onClick?: () => void;
 }) {
   return (
-    <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+    <div
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          (e.currentTarget as HTMLElement).click();
+        }
+      }}
+      role="button"
       onClick={onClick}
       className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
         onClick
@@ -156,7 +164,11 @@ function Av({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const bg = ADMIN_AVATAR_PALETTE[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % ADMIN_AVATAR_PALETTE.length];
+  const bg =
+    ADMIN_AVATAR_PALETTE[
+      (safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) %
+        ADMIN_AVATAR_PALETTE.length
+    ];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -309,8 +321,6 @@ export function HospitalAdminDashboard({
     0,
   );
 
-
-
   const currencyFormatter = useMemo(
     () =>
       new Intl.NumberFormat("en-IN", {
@@ -341,16 +351,20 @@ export function HospitalAdminDashboard({
         >
           Quick Actions
         </span>
-        {onRegisterPatient && (
-          <button
-            onClick={onRegisterPatient}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#1565C0] transition-colors shadow-sm"
-            style={{ fontFamily: PP }}
-          >
-            <UserPlus size={13} />
-            Register Patient
-          </button>
-        )}
+        <button
+          onClick={() => {
+            if (onRegisterPatient) {
+              onRegisterPatient();
+            } else {
+              navigate(ROUTES.PATIENT_REGISTER);
+            }
+          }}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] text-white text-xs font-semibold hover:bg-[#1565C0] transition-colors shadow-sm"
+          style={{ fontFamily: PP }}
+        >
+          <UserPlus size={13} />
+          Register Patient
+        </button>
         {HA_QUICK_ACTIONS.map(({ label, Icon, color, nav }) => (
           <button
             key={label}
@@ -372,12 +386,6 @@ export function HospitalAdminDashboard({
             {label}
           </button>
         ))}
-        <div className="ml-auto flex items-center gap-2">
-          <button aria-label="Action" className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-[#E5E7EB] text-[#64748B] hover:bg-slate-50 transition-colors shadow-sm">
-            <Bell size={14} />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#EF4444]" />
-          </button>
-        </div>
       </div>
 
       {/* ── KPI Row — 5 Phase 1 Operational Cards ── */}
@@ -403,9 +411,6 @@ export function HospitalAdminDashboard({
           color="#0D47A1"
           gid="ha1"
           Icon={Users}
-          onClick={() =>
-            navigate(`${ROUTES.REPORTS}?report=patient-registrations`)
-          }
         />
         <DKpi
           title="Today's Appointments"
@@ -429,9 +434,6 @@ export function HospitalAdminDashboard({
           color="#009688"
           gid="ha2"
           Icon={Calendar}
-          onClick={() =>
-            navigate(`${ROUTES.REPORTS}?report=daily-appointments`)
-          }
         />
         <DKpi
           title="Today's Revenue"
@@ -453,7 +455,6 @@ export function HospitalAdminDashboard({
           color="#66BB6A"
           gid="ha3"
           Icon={DollarSign}
-          onClick={() => navigate(`${ROUTES.REPORTS}?report=daily-revenue`)}
         />
         <DKpi
           title="Pending Appointments"
@@ -469,7 +470,6 @@ export function HospitalAdminDashboard({
           color="#F59E0B"
           gid="ha4"
           Icon={Bell}
-          onClick={() => navigate(`${ROUTES.APPOINTMENTS}`)}
         />
         <DKpi
           title="Doctors Available Today"
@@ -960,19 +960,7 @@ export function HospitalAdminDashboard({
             >
               Quick Department Summary
             </div>
-            <div
-              className="text-xs text-[#64748B] mt-0.5"
-              style={{ fontFamily: RB }}
-            >
-              Phase 1 OPD department status & staffing
-            </div>
           </div>
-          <button
-            className="text-xs text-[#0D47A1] font-semibold hover:underline"
-            style={{ fontFamily: RB }}
-          >
-            View Detailed Analytics →
-          </button>
         </div>
         <table className="w-full">
           <thead>

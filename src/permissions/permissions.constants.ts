@@ -583,6 +583,12 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
 
     "PATIENT_VIEW",
 
+    "PATIENT_CREATE",
+
+    "PATIENT_UPDATE",
+
+    "PATIENT_EDIT",
+
     "DOCTOR_VIEW",
 
     "DOCTOR_PROFILE_VIEW",
@@ -593,7 +599,23 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
 
     "DOCTOR_CONTACT_VIEW",
 
+    "APPOINTMENT_VIEW",
+
+    "APPOINTMENT_CREATE",
+
+    "APPOINTMENT_UPDATE",
+
+    "APPOINTMENT_EDIT",
+
+    "APPOINTMENT_CANCEL",
+
     "QUEUE_VIEW",
+
+    "QUEUE_CHECKIN",
+
+    "QUEUE_TOKEN",
+
+    "CHECKIN_CREATE",
 
     "CHECKIN_EDIT_LIMITED",
 
@@ -607,6 +629,10 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
 
     "OPD_VIEW",
 
+    "OPD_CREATE",
+
+    "OPD_EDIT",
+
     "PROFILE_VIEW",
 
     "PROFILE_EDIT",
@@ -618,6 +644,8 @@ export const ROLE_PERMISSIONS: Record<string, AppPermission[]> = {
     "PATIENT_MEDICAL_RECORDS_VIEW",
 
     "CONSULTATION_READ",
+
+    "CONSULTATION_VIEW_OWN",
 
     "NOTIFICATION_VIEW",
 

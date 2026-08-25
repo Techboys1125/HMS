@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect, useReducer } from "react";
+import { useNavigate } from "react-router";
+import { ROUTES } from "../../../app/routes/routes";
 import {
   CheckCircle2,
   ChevronRight,
@@ -14,12 +16,10 @@ import {
   Calendar as CalendarIcon,
   Stethoscope,
   User,
-  Users,
   UserPlus,
   Clock,
   Calendar,
   UserCheck,
-  Download,
 } from "lucide-react";
 import { PP, RB } from "../constants/appointment.constants";
 import { appointmentService } from "../services/appointment.service";
@@ -30,6 +30,7 @@ import {
   getTodayDateString,
   normalizeDateString,
 } from "../../../lib/time-utils";
+
 import type { AppointmentRecord } from "../types/appointment.types";
 import type { UserRole } from "../types/appointment-screen.types";
 import { DockableQueueWorkspace } from "../components/DockableQueueWorkspace";
@@ -43,6 +44,7 @@ import { Avatar } from "../components/Avatar";
 import { CheckInConfirmationModal } from "../../reception/components/CheckInConfirmationModal";
 import { Pagination } from "../../../common/components/Pagination";
 import { AppointmentDatePickerFilter } from "../components/AppointmentDatePickerFilter";
+import { useAuthStore } from "../../auth/store/auth.store";
 
 export interface Props {
   onPatientSelect?: (id: number | string) => void;
@@ -92,12 +94,21 @@ export function AppointmentManagementCenterScreen({
   onPatientSelect,
   onStartConsultation,
   onBookAppointmentClick,
-  onReceptionQueueClick,
-  userRole = "Receptionist",
+  userRole: userRoleProp,
   doctorId,
   onRegisterNewPatientClick,
   onRegisterPatientClick,
 }: Props) {
+  const navigate = useNavigate();
+  const authUser = useAuthStore((s) => s.user);
+  const activeRoleStr = authUser?.role
+    ? String(authUser.role).toUpperCase() === "NURSE"
+      ? "Nurse"
+      : String(authUser.role).toUpperCase() === "DOCTOR"
+        ? "Doctor"
+        : "Receptionist"
+    : "Receptionist";
+  const userRole = userRoleProp || activeRoleStr;
   const todayDateStr = getTodayDateString();
   const [dateFilter, setDateFilter] = useState<string>(todayDateStr);
   const normalizedRole = String(userRole || "").toUpperCase();
@@ -105,7 +116,7 @@ export function AppointmentManagementCenterScreen({
   const isNurse = normalizedRole === "NURSE";
 
   const { appointments, setAppointments, refetch } = useAppointments(
-    userRole,
+    userRole as UserRole,
     dateFilter || undefined,
     isDoctor && doctorId ? { doctorId } : undefined,
   );
@@ -278,59 +289,6 @@ export function AppointmentManagementCenterScreen({
     (currentPage - 1) * pageSize,
     currentPage * pageSize,
   );
-
-  const handleExportCSV = () => {
-    const headers = [
-      "ID",
-      "Patient Name",
-      "MRN",
-      "Doctor",
-      "Department",
-      "Date",
-      "Time Slot",
-      "Visit Type",
-      "Status",
-      "Phone",
-    ];
-    const rows = filteredAppointments.map((a) => [
-      a.id,
-      a.patientName,
-      a.mrn,
-      a.doctorName,
-      typeof a.department === "object" && a.department !== null
-        ? (
-            a.department as {
-              departmentName?: string;
-              name?: string;
-              departmentCode?: string;
-            }
-          ).departmentName ||
-          (
-            a.department as {
-              departmentName?: string;
-              name?: string;
-              departmentCode?: string;
-            }
-          ).name ||
-          ""
-        : a.department || a.departmentName || "",
-      a.date,
-      a.timeSlot,
-      a.visitType,
-      a.status,
-      a.patientPhone ?? "",
-    ]);
-    const csv = [headers, ...rows]
-      .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `appointments_${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
 
   const handleSort = (col: keyof AppointmentRecord) => {
     if (sortColumn === col) {
@@ -619,52 +577,22 @@ export function AppointmentManagementCenterScreen({
                   <>
                     <button
                       onClick={() => {
-                        setIsWalkInPreset(true);
-                        setShowBookDrawer(true);
+                        navigate(ROUTES.PATIENT_REGISTER);
                       }}
                       className="px-3.5 py-2.5 rounded-xl border border-teal-200 bg-teal-50 text-xs font-bold text-[#009688] hover:bg-teal-100 transition-colors flex items-center gap-1.5 shadow-xs"
                       style={{ fontFamily: PP }}
                     >
                       <UserPlus size={15} /> Register Walk-In
                     </button>
-
-                    <button
-                      onClick={() => {
-                        if (onReceptionQueueClick) onReceptionQueueClick();
-                        else setViewMode("queue");
-                      }}
-                      className="px-3.5 py-2.5 rounded-xl border border-[#009688] bg-teal-50 text-xs font-bold text-[#009688] hover:bg-teal-100 transition-colors flex items-center gap-1.5 shadow-xs"
-                      style={{ fontFamily: PP }}
-                    >
-                      <Users size={15} /> Patient Queue
-                    </button>
                   </>
                 )}
-
-                <button
-                  onClick={() => setViewMode("queue")}
-                  className="px-3.5 py-2.5 rounded-xl border border-[#0D47A1] bg-blue-50 text-xs font-bold text-[#0D47A1] hover:bg-blue-100 transition-colors flex items-center gap-1.5 shadow-xs"
-                  style={{ fontFamily: PP }}
-                >
-                  <Clock size={15} /> Today's Queue
-                </button>
-
-                <button
-                  onClick={handleExportCSV}
-                  className="px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5 shadow-xs"
-                  style={{ fontFamily: PP }}
-                  title="Export appointments to CSV"
-                >
-                  <Download size={14} /> Export CSV
-                </button>
 
                 <button
                   onClick={() => {
                     if (onBookAppointmentClick) {
                       onBookAppointmentClick();
                     } else {
-                      setIsWalkInPreset(false);
-                      setShowBookDrawer(true);
+                      navigate(ROUTES.BOOK_APPOINTMENT);
                     }
                   }}
                   className="px-4 py-2.5 rounded-xl bg-[#0D47A1] text-white text-xs font-bold hover:bg-[#0c3d8a] transition-colors flex items-center gap-2 shadow-sm"

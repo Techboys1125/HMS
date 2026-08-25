@@ -139,7 +139,6 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
       items: [
         { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard" },
         { id: "appointments", Icon: Calendar, label: "Appointments" },
-        { id: "doctors", Icon: UserCheck, label: "Doctors" },
         { id: "consultation", Icon: Stethoscope, label: "OPD Consultation" },
         { id: "vitals", Icon: Activity, label: "Vitals" },
       ],
@@ -177,7 +176,6 @@ export const ROLE_NAV_GROUPS: Record<Role, NavGroup[]> = {
       items: [
         { id: "dashboard", Icon: LayoutDashboard, label: "Dashboard" },
         { id: "billing", Icon: CreditCard, label: "Billing" },
-        { id: "doctors", Icon: UserCheck, label: "Doctors" },
         { id: "reports", Icon: BarChart2, label: "Reports" },
       ],
     },

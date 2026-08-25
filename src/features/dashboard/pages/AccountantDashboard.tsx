@@ -5,12 +5,12 @@ import {
   CheckSquare,
   Clock,
   Receipt,
+  FileText,
   TrendingDown,
   TrendingUp,
   DollarSign,
   CreditCard,
   BarChart2,
-  Search,
   Loader2,
   AlertTriangle,
 } from "lucide-react";
@@ -60,7 +60,15 @@ function DKpi({
   onClick?: () => void;
 }) {
   return (
-    <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+    <div
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          (e.currentTarget as HTMLElement).click();
+        }
+      }}
+      role="button"
       onClick={onClick}
       className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
         onClick
@@ -151,7 +159,11 @@ function Av({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const bg = ACCOUNTANT_AVATAR_PALETTE[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % ACCOUNTANT_AVATAR_PALETTE.length];
+  const bg =
+    ACCOUNTANT_AVATAR_PALETTE[
+      (safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) %
+        ACCOUNTANT_AVATAR_PALETTE.length
+    ];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -239,10 +251,16 @@ const ACC_TRANSACTION_STATUS_CHIP: Record<
 // Quick Actions strictly aligned with requirements
 const ACC_QUICK_ACTIONS = [
   {
-    label: "Create Invoice",
+    label: "Generate Invoice",
     Icon: Receipt,
     color: "#0D47A1",
     action: "create",
+  },
+  {
+    label: "Payment History Ledger",
+    Icon: FileText,
+    color: "#009688",
+    action: "history",
   },
   {
     label: "Receive Payment",
@@ -256,7 +274,6 @@ const ACC_QUICK_ACTIONS = [
     color: "#4DB6AC",
     action: "report",
   },
-  { label: "Search Invoice", Icon: Search, color: "#64748B", action: "search" },
   {
     label: "View Pending Bills",
     Icon: Clock,
@@ -271,7 +288,6 @@ const ACC_QUICK_ACTIONS = [
   },
 ];
 export function AccountantDashboard({
-  onCreateInvoiceClick,
   onCollectPaymentClick,
   onNavigateNav,
 }: {
@@ -319,6 +335,7 @@ export function AccountantDashboard({
 
   const billingTransactions =
     recentTransactions?.map((t) => ({
+      billId: t.billId,
       invoice: t.invoiceId,
       patient: t.patientName,
       type: t.billType,
@@ -490,25 +507,29 @@ export function AccountantDashboard({
           <button
             key={label}
             onClick={() => {
-              if (action === "create" && onCreateInvoiceClick)
-                onCreateInvoiceClick();
-              else if (action === "collect" && onCollectPaymentClick)
+              if (action === "create") {
+                navigate(ROUTES.BILLING_CREATE);
+              } else if (action === "history") {
+                navigate(ROUTES.BILLING_HISTORY);
+              } else if (action === "collect" && onCollectPaymentClick) {
                 onCollectPaymentClick();
-              else if (action === "create") navigate(ROUTES.BILLING_CREATE);
-              else if (action === "collect")
+              } else if (action === "collect") {
                 navigate(ROUTES.RECEPTIONIST_PAYMENT_COLLECTION);
-              else if (action === "pending") navigate(ROUTES.BILLING);
-              else if (action === "report")
+              } else if (action === "pending") {
+                navigate(ROUTES.BILLING);
+              } else if (action === "report") {
                 navigate(`${ROUTES.REPORTS}?report=billing-report`);
-              else if (action === "revenue")
+              } else if (action === "revenue") {
                 navigate(`${ROUTES.REPORTS}?report=daily-revenue`);
-              else if (action === "search") navigate(ROUTES.BILLING);
-              else if (onNavigateNav)
+              } else if (action === "search") {
+                navigate(ROUTES.BILLING);
+              } else if (onNavigateNav) {
                 onNavigateNav(
                   action === "report" || action === "revenue"
                     ? "reports"
                     : "billing",
                 );
+              }
             }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#0D47A1]/40 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors shadow-sm"
             style={{ fontFamily: RB }}
@@ -523,7 +544,7 @@ export function AccountantDashboard({
       <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
         <DKpi
           title="Today's Revenue"
-          value={`$${(dashboard?.todayRevenue ?? 0).toLocaleString()}`}
+          value={`₹${(dashboard?.todayRevenue ?? 0).toLocaleString()}`}
           sub="Total Amount Collected Today"
           trend={
             dashboard?.collectionRate
@@ -551,7 +572,7 @@ export function AccountantDashboard({
         />
         <DKpi
           title="Pending Payments"
-          value={`$${(dashboard?.pendingPayments ?? 0).toLocaleString()}`}
+          value={`₹${(dashboard?.pendingPayments ?? 0).toLocaleString()}`}
           sub="Outstanding Bills"
           trend="Outstanding Amount"
           up={false}
@@ -622,7 +643,7 @@ export function AccountantDashboard({
               className="text-[10px] font-semibold text-[#0D47A1] bg-blue-50 px-2 py-0.5 rounded-full"
               style={{ fontFamily: RB }}
             >
-              Today: ${(dashboard?.todayRevenue ?? 0).toLocaleString()}
+              Today: ₹{(dashboard?.todayRevenue ?? 0).toLocaleString()}
             </span>
           </div>
           <ResponsiveContainer width="100%" height={210}>
@@ -650,7 +671,7 @@ export function AccountantDashboard({
                 tick={{ fontSize: 10, fill: "#94A3B8" }}
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(val: unknown) => `$${Number(val) / 1000}k`}
+                tickFormatter={(val: unknown) => `₹${Number(val) / 1000}k`}
               />
               <Tooltip
                 contentStyle={{
@@ -661,7 +682,7 @@ export function AccountantDashboard({
                 }}
                 formatter={(val: unknown, name: unknown) => [
                   name === "revenue"
-                    ? `$${Number(val).toLocaleString()}.00`
+                    ? `₹${Number(val).toLocaleString()}.00`
                     : `${val} Invoices`,
                   name === "revenue"
                     ? "Revenue Collected"
@@ -724,7 +745,7 @@ export function AccountantDashboard({
                   fontSize: 12,
                 }}
                 formatter={(v: unknown) => [
-                  `$${Number(v).toLocaleString()}.00`,
+                  `₹${Number(v).toLocaleString()}.00`,
                   "Amount Collected",
                 ]}
               />
@@ -758,7 +779,7 @@ export function AccountantDashboard({
                   <span className="text-[#64748B] text-[11px]">{m.name}</span>
                 </div>
                 <span className="font-bold text-[#111827]">
-                  ${(m.value / 1000).toFixed(1)}k
+                  ₹{(m.value / 1000).toFixed(1)}k
                 </span>
               </div>
             ))}
@@ -767,7 +788,7 @@ export function AccountantDashboard({
             className="mt-2 text-[11px] text-center text-[#64748B]"
             style={{ fontFamily: RB }}
           >
-            Total Collected: ${totalPaymentValue.toLocaleString()}.00
+            Total Collected: ₹{totalPaymentValue.toLocaleString()}.00
           </div>
         </div>
       </div>
@@ -848,7 +869,7 @@ export function AccountantDashboard({
                       {t.type}
                     </td>
                     <td className="px-5 py-3 font-mono text-xs font-bold text-[#111827]">
-                      ${t.amount.toFixed(2)}
+                      ₹{t.amount.toFixed(2)}
                     </td>
                     <td
                       className="px-5 py-3 text-xs text-[#64748B]"
@@ -871,7 +892,14 @@ export function AccountantDashboard({
                       <div className="flex items-center gap-1.5">
                         {t.status === "Pending" || t.status === "Partial" ? (
                           <button
-                            onClick={() => onCollectPaymentClick?.(t.invoice)}
+                            onClick={() => {
+                              const target = t.billId ?? t.invoice;
+                              if (onCollectPaymentClick) {
+                                onCollectPaymentClick(String(target));
+                              } else {
+                                navigate(`/billing/collect-payment/${target}`);
+                              }
+                            }}
                             className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
                             style={{ fontFamily: PP }}
                           >
@@ -883,7 +911,10 @@ export function AccountantDashboard({
                           </span>
                         )}
                         <button
-                          onClick={() => onCreateInvoiceClick?.()}
+                          onClick={() => {
+                            const target = t.billId ?? t.invoice;
+                            navigate(`/billing/invoice/${target}`);
+                          }}
                           className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
                         >
                           View
@@ -942,7 +973,7 @@ export function AccountantDashboard({
                 className="text-sm font-bold text-[#EF4444]"
                 style={{ fontFamily: PP }}
               >
-                ${(dashboard?.pendingPayments ?? 0).toLocaleString()}
+                ₹{(dashboard?.pendingPayments ?? 0).toLocaleString()}
               </span>
             </div>
             <div className="flex items-center justify-between p-2.5 rounded-xl border border-gray-100 bg-slate-50">
@@ -971,7 +1002,7 @@ export function AccountantDashboard({
                 style={{ fontFamily: PP }}
               >
                 {dashboard?.avgDueAmount != null
-                  ? `$${dashboard.avgDueAmount.toLocaleString()}`
+                  ? `₹${dashboard.avgDueAmount.toLocaleString()}`
                   : "N/A"}
               </span>
             </div>
@@ -986,7 +1017,7 @@ export function AccountantDashboard({
                 className="text-sm font-bold text-[#009688]"
                 style={{ fontFamily: PP }}
               >
-                ${(dashboard?.todayRevenue ?? 0).toLocaleString()}
+                ₹{(dashboard?.todayRevenue ?? 0).toLocaleString()}
               </span>
             </div>
           </div>
@@ -1019,7 +1050,7 @@ export function AccountantDashboard({
                 tick={{ fontSize: 10, fill: "#94A3B8" }}
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(v: unknown) => `$${Number(v) / 1000}k`}
+                tickFormatter={(v: unknown) => `₹${Number(v) / 1000}k`}
               />
               <YAxis
                 dataKey="category"
@@ -1037,7 +1068,7 @@ export function AccountantDashboard({
                   fontSize: 12,
                 }}
                 formatter={(v: unknown) => [
-                  `$${Number(v).toLocaleString()}.00`,
+                  `₹${Number(v).toLocaleString()}.00`,
                   "Collected Amount",
                 ]}
               />
@@ -1055,7 +1086,7 @@ export function AccountantDashboard({
           >
             <span>Top Source: {dashboard?.topSource ?? "N/A"}</span>
             <span className="font-semibold text-[#0D47A1]">
-              ${totalPaymentValue.toLocaleString()} Total
+              ₹{totalPaymentValue.toLocaleString()} Total
             </span>
           </div>
         </div>
@@ -1145,12 +1176,6 @@ export function AccountantDashboard({
               Financial operational statistics and daily collection performance
             </div>
           </div>
-          <button
-            className="text-xs text-[#0D47A1] font-semibold hover:underline"
-            style={{ fontFamily: RB }}
-          >
-            Export Financial Summary →
-          </button>
         </div>
         <table className="w-full">
           <thead>

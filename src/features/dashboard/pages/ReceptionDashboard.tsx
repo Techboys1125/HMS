@@ -8,9 +8,7 @@ import {
   TrendingDown,
   TrendingUp,
   UserPlus,
-  Bell,
   CreditCard,
-  Search,
   Loader2,
 } from "lucide-react";
 import {
@@ -61,7 +59,15 @@ function DKpi({
   onClick?: () => void;
 }) {
   return (
-    <div tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }} role="button"
+    <div
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          (e.currentTarget as HTMLElement).click();
+        }
+      }}
+      role="button"
       onClick={onClick}
       className={`bg-white rounded-2xl border border-[#E5E7EB] p-5 flex flex-col gap-3 shadow-sm ${
         onClick
@@ -152,7 +158,11 @@ function Av({
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const bg = RECEPTION_AVATAR_PALETTE[(safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) % RECEPTION_AVATAR_PALETTE.length];
+  const bg =
+    RECEPTION_AVATAR_PALETTE[
+      (safeName?.charCodeAt(0) ?? "?".charCodeAt(0)) %
+        RECEPTION_AVATAR_PALETTE.length
+    ];
   const sz = {
     sm: "w-7 h-7 text-xs",
     md: "w-9 h-9 text-sm",
@@ -261,25 +271,19 @@ const REC_QUICK_ACTIONS = [
     color: "#4DB6AC",
     action: "checkin",
   },
-  { label: "View Queue", Icon: Clock, color: "#F59E0B", action: "queue" },
   {
     label: "Start Billing",
     Icon: CreditCard,
     color: "#0D47A1",
     action: "billing",
   },
-  { label: "Search Patient", Icon: Search, color: "#64748B", action: "search" },
 ];
 
 export function ReceptionDashboard({
-  onRegisterPatient,
-  onPatientSearch,
   onCheckInClick,
   userRole = "Receptionist",
-  onNavigateNav,
   onPatientSelect,
   onEditPatient,
-  onCreateInvoiceClick,
 }: {
   onRegisterPatient?: () => void;
   onPatientSearch?: () => void;
@@ -456,26 +460,21 @@ export function ReceptionDashboard({
           className="text-xs font-semibold text-[#64748B] uppercase tracking-wider mr-1"
           style={{ fontFamily: PP }}
         >
-          Front Desk Quick Actions ({userRole})
+          Quick Actions : {userRole}
         </span>
         {REC_QUICK_ACTIONS.map(({ label, Icon, color, action }) => (
           <button
             key={label}
             onClick={() => {
-              if (action === "register" && onRegisterPatient)
-                onRegisterPatient();
-              else if (action === "search" && onPatientSearch)
-                onPatientSearch();
-              else if (action === "billing" && onCreateInvoiceClick)
-                onCreateInvoiceClick();
-              else if (action === "billing" && onNavigateNav)
-                onNavigateNav("billing");
-              else if (action === "appointment" && onNavigateNav)
-                onNavigateNav("appointments");
-              else if (action === "queue" && onNavigateNav)
-                onNavigateNav("checkin");
-              else if (action === "checkin" && onNavigateNav)
-                onNavigateNav("checkin");
+              if (action === "register") {
+                navigate(ROUTES.PATIENT_REGISTER);
+              } else if (action === "billing") {
+                navigate(ROUTES.BILLING);
+              } else if (action === "appointment") {
+                navigate(ROUTES.BOOK_APPOINTMENT);
+              } else if (action === "checkin") {
+                navigate(ROUTES.APPOINTMENTS);
+              }
             }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-xs font-medium text-[#64748B] hover:border-[#0D47A1]/40 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors shadow-sm"
             style={{ fontFamily: RB }}
@@ -484,12 +483,6 @@ export function ReceptionDashboard({
             {label}
           </button>
         ))}
-        <div className="ml-auto flex items-center gap-2">
-          <button aria-label="Action" className="relative w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-[#E5E7EB] text-[#64748B] hover:bg-slate-50 transition-colors shadow-sm">
-            <Bell size={14} />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#EF4444]" />
-          </button>
-        </div>
       </div>
 
       {/* ── KPI Row — 5 Reception KPI Cards ── */}
@@ -508,9 +501,6 @@ export function ReceptionDashboard({
           color="#0D47A1"
           gid="rec1"
           Icon={UserPlus}
-          onClick={() =>
-            navigate(`${ROUTES.REPORTS}?report=patient-registrations`)
-          }
         />
         <DKpi
           title="Today's Appointments"
@@ -526,9 +516,6 @@ export function ReceptionDashboard({
           color="#009688"
           gid="rec2"
           Icon={Calendar}
-          onClick={() =>
-            navigate(`${ROUTES.REPORTS}?report=daily-appointments`)
-          }
         />
         <DKpi
           title="Patients Waiting"
@@ -880,7 +867,10 @@ export function ReceptionDashboard({
                       <div className="flex items-center gap-1.5">
                         {q.status === "Scheduled" ? (
                           <button
-                            onClick={() => onCheckInClick?.(q.token, "MRN-REG")}
+                            onClick={() => {
+                              if (onCheckInClick) onCheckInClick(q.token, "MRN-REG");
+                              else navigate(ROUTES.APPOINTMENTS);
+                            }}
                             className="px-2.5 py-1 rounded-lg bg-[#009688] text-white text-[11px] font-semibold hover:bg-teal-700 transition-colors"
                             style={{ fontFamily: PP }}
                           >
@@ -892,13 +882,19 @@ export function ReceptionDashboard({
                           </span>
                         )}
                         <button
-                          onClick={() => onPatientSelect?.("MRN-892101")}
+                          onClick={() => {
+                            if (onPatientSelect) onPatientSelect("MRN-892101");
+                            else navigate(ROUTES.PATIENT_PROFILE.replace(":mrn", "MRN-892101"));
+                          }}
                           className="px-2 py-1 rounded-lg bg-slate-100 text-[#0D47A1] text-[11px] font-semibold hover:bg-blue-50 transition-colors"
                         >
                           View
                         </button>
                         <button
-                          onClick={() => onEditPatient?.("MRN-892101")}
+                          onClick={() => {
+                            if (onEditPatient) onEditPatient("MRN-892101");
+                            else navigate(ROUTES.PATIENT_PROFILE.replace(":mrn", "MRN-892101"));
+                          }}
                           className="px-2 py-1 rounded-lg border border-[#E5E7EB] text-slate-600 text-[11px] font-medium hover:bg-slate-50 transition-colors"
                         >
                           Edit
@@ -1138,12 +1134,6 @@ export function ReceptionDashboard({
               Front desk operational statistics and daily efficiency metrics
             </div>
           </div>
-          <button
-            className="text-xs text-[#0D47A1] font-semibold hover:underline"
-            style={{ fontFamily: RB }}
-          >
-            Export Operational Summary →
-          </button>
         </div>
         <table className="w-full">
           <thead>

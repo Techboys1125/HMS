@@ -39,6 +39,7 @@ export interface NurseVitalsPayload {
   bloodPressure: string;
   pulse: number;
   spo2: number;
+  bloodSugar?: number | string;
 }
 
 export interface NurseWaitingPatient {

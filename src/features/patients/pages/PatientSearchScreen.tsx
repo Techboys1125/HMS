@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router";
+import { ROUTES } from "../../../app/routes/routes";
 import { doctorsApi } from "../../doctors/api/doctors.api";
 import {
   Calendar,
@@ -38,6 +40,7 @@ export function PatientSearchScreen({
   onCheckInClick?: (mrn: string) => void;
   userRole?: string;
 }) {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
   const [regTypeFilter, setRegTypeFilter] = useState("All Types");
@@ -242,7 +245,7 @@ export function PatientSearchScreen({
     if (onRegisterClick) {
       onRegisterClick();
     } else {
-      setRegistering(true);
+      navigate(ROUTES.PATIENT_REGISTER);
     }
   };
 
@@ -253,7 +256,7 @@ export function PatientSearchScreen({
     if (onBookAppointmentClick) {
       onBookAppointmentClick(targetMrn);
     } else {
-      setShowBookDrawer(true);
+      navigate(ROUTES.BOOK_APPOINTMENT);
     }
   };
 
@@ -293,7 +296,22 @@ export function PatientSearchScreen({
         onBack={() => setRegistering(false)}
         onViewProfile={(mrn) => {
           setRegistering(false);
+          setViewingPatientMrn(mrn);
           if (onPatientSelect) onPatientSelect(mrn);
+        }}
+        onSwitchToNewPatient={(mrn) => {
+          setRegistering(false);
+          setViewingPatientMrn(mrn);
+          if (onPatientSelect) onPatientSelect(mrn);
+        }}
+        onBookAppointment={(mrn) => {
+          setRegistering(false);
+          if (onBookAppointmentClick) {
+            onBookAppointmentClick(mrn);
+          } else {
+            setSelectedPatientId(mrn);
+            setShowBookDrawer(true);
+          }
         }}
       />
     );
@@ -568,20 +586,20 @@ export function PatientSearchScreen({
         onSelectRow={(p: Patient) => {
           const id = p.mrn || String(p.id);
           setSelectedPatientId(id);
-          setViewingPatientMrn(id);
           if (onPatientSelect) onPatientSelect(id);
+          else navigate(ROUTES.PATIENT_PROFILE.replace(":mrn", id));
         }}
         onToggleActionMenu={(id) => setActiveActionMenuId(id)}
         onViewProfile={(id) => {
-          setViewingPatientMrn(id);
           if (onPatientSelect) onPatientSelect(id);
+          else navigate(ROUTES.PATIENT_PROFILE.replace(":mrn", id));
         }}
         onEditPatient={(p) => {
           const id = p.mrn || String(p.id);
           if (onEditPatientClick) {
             onEditPatientClick(p);
-          } else if (onPatientSelect) {
-            onPatientSelect(id);
+          } else {
+            navigate(ROUTES.PATIENT_PROFILE.replace(":mrn", id));
           }
         }}
         onBookAppointment={
@@ -593,7 +611,7 @@ export function PatientSearchScreen({
                 if (onBookAppointmentClick) {
                   onBookAppointmentClick(id);
                 } else {
-                  setShowBookDrawer(true);
+                  navigate(ROUTES.BOOK_APPOINTMENT);
                 }
               }
         }

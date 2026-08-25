@@ -10,6 +10,7 @@ export type NavId =
   | "vitals"
   | "prescriptions"
   | "billing"
+  | "billing-create"
   | "payments"
   | "payment-history"
   | "daily-billing-report"

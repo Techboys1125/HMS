@@ -32,6 +32,8 @@ const exactPathToNavId: Record<string, NavId> = {
   [ROUTES.CONSULTATION]: "consultation",
   [ROUTES.PRESCRIPTIONS]: "prescriptions",
   [ROUTES.BILLING]: "billing",
+  [ROUTES.BILLING_CREATE]: "billing-create",
+  [ROUTES.BILLING_HISTORY]: "payment-history",
   [ROUTES.REPORTS]: "reports",
   [ROUTES.SETTINGS]: "settings",
   [ROUTES.PROFILE]: "profile",
@@ -75,9 +77,18 @@ const PATIENT_PROFILE_PREFIXES: string[] = [
   "/patients/",
 ];
 
+const CONSULTATION_PREFIXES: string[] = [
+  "/doctor/consultation",
+  "/consultation",
+];
+
 function resolvePathToNavId(pathname: string, role?: Role): NavId {
   const exact = exactPathToNavId[pathname];
   if (exact) return exact;
+
+  for (const prefix of CONSULTATION_PREFIXES) {
+    if (pathname.startsWith(prefix)) return "consultation";
+  }
 
   for (const prefix of BILLING_PREFIXES) {
     if (pathname.startsWith(prefix)) {
@@ -167,8 +178,9 @@ const navIdToPath = (role: Role, navId: NavId): string => {
     vitals: ROUTES.VITALS,
     prescriptions: ROUTES.PRESCRIPTIONS,
     billing: ROUTES.BILLING,
+    "billing-create": ROUTES.BILLING_CREATE,
     payments: ROUTES.BILLING,
-    "payment-history": ROUTES.BILLING,
+    "payment-history": ROUTES.BILLING_HISTORY,
     "daily-billing-report": ROUTES.BILLING,
     "operational-reports": ROUTES.REPORTS,
     "financial-reports": ROUTES.REPORTS,

@@ -377,22 +377,29 @@ export const EncounterPrescriptionViewModal: React.FC<
                       Full Name:
                     </span>
                     <span className="font-bold text-slate-800">
-                      {prescription.patient?.fullName || "N/A"}
+                      {prescription.patient?.fullName ||
+                        (prescription.patient as any)?.name ||
+                        (prescription.patient as any)?.patientName ||
+                        (prescription as any)?.patientName ||
+                        "N/A"}
                     </span>
 
                     <span className="text-slate-500 font-medium">MRN:</span>
                     <span className="font-mono font-bold text-[#0D47A1]">
-                      {prescription.patient?.mrn || "N/A"}
+                      {prescription.patient?.mrn ||
+                        (prescription.patient as any)?.patientMrn ||
+                        (prescription as any)?.mrn ||
+                        "N/A"}
                     </span>
 
                     <span className="text-slate-500 font-medium">
                       Age / Gender:
                     </span>
                     <span className="font-medium text-slate-700">
-                      {prescription.patient?.age
-                        ? `${prescription.patient.age} Yrs`
+                      {prescription.patient?.age || (prescription.patient as any)?.patientAge
+                        ? `${prescription.patient?.age || (prescription.patient as any)?.patientAge} Yrs`
                         : "N/A"}{" "}
-                      / {prescription.patient?.gender || "N/A"}
+                      / {prescription.patient?.gender || (prescription.patient as any)?.gender || "N/A"}
                     </span>
                   </div>
                 </div>
