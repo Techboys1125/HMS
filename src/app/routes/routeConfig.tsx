@@ -160,7 +160,7 @@ import { AdministrationRoutes } from "./AdministrationRoutes";
 export function AppRoutes() {
   return (
     <Routes>
-      <PublicAuthRoutes />
+      {PublicAuthRoutes()}
 
       {/* Protected Password Change Route */}
       <Route
@@ -187,11 +187,11 @@ export function AppRoutes() {
           <Route path={ROUTES.DASHBOARD} element={<DashboardDispatcher />} />
         </Route>
 
-        <PatientRoutes />
-        <DoctorRoutes />
-        <AppointmentRoutes />
-        <BillingRoutes />
-        <AdministrationRoutes />
+        {PatientRoutes()}
+        {DoctorRoutes()}
+        {AppointmentRoutes()}
+        {BillingRoutes()}
+        {AdministrationRoutes()}
       </Route>
 
       {/* Catch-all fallback */}
