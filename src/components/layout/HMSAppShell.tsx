@@ -283,5 +283,3 @@ export function HMSAppShell({ onLogout }: { onLogout?: () => void }) {
     </div>
   );
 }
-
-export default HMSAppShell;

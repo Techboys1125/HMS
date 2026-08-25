@@ -63,5 +63,3 @@ export function BookAppointmentDrawer({
     </div>
   );
 }
-
-export default BookAppointmentDrawer;

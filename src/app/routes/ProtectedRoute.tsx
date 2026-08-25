@@ -16,5 +16,3 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   return children ? <>{children}</> : <Outlet />;
 }
-
-export default ProtectedRoute;

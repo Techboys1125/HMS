@@ -1,11 +1,11 @@
 import { Routes, Route, Navigate } from "react-router";
 import { useState, useCallback } from "react";
 import { ROUTES } from "./routes";
-import ProtectedRoute from "./ProtectedRoute";
+import { ProtectedRoute } from "./ProtectedRoute";
 
 // Base App Shell
 import { HMSAppShell } from "../../components/layout/HMSAppShell";
-import DashboardDispatcher from "./DashboardDispatcher";
+import { DashboardDispatcher } from "./DashboardDispatcher";
 
 // Auth and Context
 import { PatientPortalProvider } from "../../features/patients/context/PatientPortalContext.tsx";
@@ -202,5 +202,3 @@ export function AppRoutes() {
     </Routes>
   );
 }
-
-export default AppRoutes;

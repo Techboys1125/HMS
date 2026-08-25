@@ -701,5 +701,3 @@ export const appointmentsApi = {
     }
   },
 };
-
-export default appointmentsApi;
