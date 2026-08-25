@@ -391,7 +391,7 @@ export function HospitalAdminDashboard({
         </div>
       </div>
 
-      {/* ── KPI Row — 5 Phase 1 Operational Cards ── */}
+      {/* ── KPI Row — 5 Operational Cards ── */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
         <DKpi
           title="Today's OPD Patients"

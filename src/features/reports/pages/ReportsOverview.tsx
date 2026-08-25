@@ -761,11 +761,11 @@ export function AdminReportsDashboardScreen({
                   Reports Dashboard
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-[#009688] border border-teal-200">
-                  Phase 1 Verified
+                  Verified
                 </span>
               </div>
               <p className="text-xs text-[#64748B] mt-0.5">
-                Monitor operational performance and generate Phase 1 hospital
+                Monitor operational performance and generate hospital
                 reports.
               </p>
             </div>
@@ -1519,7 +1519,7 @@ export function AdminReportsDashboardScreen({
         {!state.isLoading && !state.hasError && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-4 space-y-6">
-              {/* AVAILABLE REPORTS (PHASE 1 GRID) */}
+              {/* AVAILABLE REPORTS (GRID) */}
               <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <div>
@@ -2142,7 +2142,7 @@ export function AdminReportsDashboardScreen({
           <div>
             Showing{" "}
             <strong className="text-[#111827]">
-              {filteredReports.length} Available Phase 1 Reports
+              {filteredReports.length} Available Reports
             </strong>
           </div>
           <div>Hospital Management System • Reports Module v1.0</div>

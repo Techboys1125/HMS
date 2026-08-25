@@ -621,7 +621,7 @@ export function DashboardKpiDetailScreen({
                   {selectedKpi} Register
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#0D47A1] border border-blue-200">
-                  Phase 1 OPD Audit Register
+                  OPD Audit Register
                 </span>
               </div>
               <p className="text-xs text-[#64748B] mt-0.5">

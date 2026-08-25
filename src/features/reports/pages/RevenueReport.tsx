@@ -635,7 +635,7 @@ export function DailyRevenueReportScreen({
               </div>
               <p className="text-xs text-[#64748B] mt-0.5">
                 Monitor hospital revenue, collections and billing performance
-                for Phase 1 operations.
+                for operations.
               </p>
             </div>
 

@@ -29,7 +29,7 @@ export const GeneralSettingsContent = forwardRef<
     "accordion-1",
   );
 
-  // General Settings Form State (Phase 1 Compliant)
+  // General Settings Form State (Compliant)
   const [generalSettings, setGeneralSettings] = useState({
     defaultLanguage: "English",
     timezone: "Asia/Kolkata (IST - UTC +05:30)",
@@ -128,7 +128,7 @@ export const GeneralSettingsContent = forwardRef<
             }}
           >
             <span style={{ fontSize: "11px", color: "#94A3B8" }}>
-              Phase 1 Compliant
+              Compliant
             </span>
             <span
               style={{
