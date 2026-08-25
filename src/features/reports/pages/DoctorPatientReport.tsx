@@ -189,7 +189,7 @@ export function DoctorPatientReportScreen({
 
   return (
     <div
-      className="min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
+      className="w-full flex-1 min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
       style={{ fontFamily: RB }}
     >
       {/* Top Header Section */}
@@ -1068,47 +1068,7 @@ export function DoctorPatientReportScreen({
               </div>
             </div>
 
-            {/* RECENT PATIENT ACTIVITIES TIMELINE */}
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-              <h3
-                className="text-base font-bold text-[#111827] mb-4"
-                style={{ fontFamily: PP }}
-              >
-                Recent Patient Activity Timeline
-              </h3>
-              <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                {(
-                  [] as Array<{
-                    id: string;
-                    title: string;
-                    time: string;
-                    action?: string;
-                    date?: string;
-                    detail?: string;
-                  }>
-                ).map((act) => (
-                  <div
-                    key={act.id}
-                    className="flex items-start gap-4 relative z-10"
-                  >
-                    <div className="w-7 h-7 rounded-full bg-white border-2 border-[#009688] flex items-center justify-center text-[#009688] shrink-0">
-                      <Activity className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold text-[#111827]">
-                          {act.action}
-                        </span>
-                        <span className="text-[11px] text-[#64748B]">
-                          {act.date} â€¢ {act.time}
-                        </span>
-                      </div>
-                      <p className="text-[#64748B]">{act.detail}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+
           </div>
         )}
       </div>

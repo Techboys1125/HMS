@@ -122,140 +122,87 @@ export function DailyBillingReportPage() {
   };
 
   return (
-    <div className="w-full bg-[#F1F5F9] min-h-screen p-4 md:p-6 pb-28 space-y-6">
-      {/* 1. PAGE HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm">
-        <div>
-          <div
-            className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
-            style={{ fontFamily: RB }}
-          >
-            <button
-              type="button"
-              className="hover:text-[#0D47A1] cursor-pointer"
-              onClick={() => navigate("/billing")}
-            >
-              Home
-            </button>
-            <ChevronRight size={12} />
-            <button
-              type="button"
-              className="hover:text-[#0D47A1] cursor-pointer"
-              onClick={() => navigate("/billing")}
-            >
-              Billing & Payment
-            </button>
-            <ChevronRight size={12} />
-            <span className="text-[#0D47A1] font-semibold">
-              Daily Billing Report
-            </span>
-          </div>
-          <h1
-            className="text-xl md:text-2xl font-bold text-[#111827] tracking-tight"
-            style={{ fontFamily: PP }}
-          >
-            Daily Billing Report
-          </h1>
-          <p
-            className="text-xs md:text-sm text-[#64748B] mt-0.5"
-            style={{ fontFamily: RB }}
-          >
-            View today's billing collections, invoice statistics, payment
-            summaries, and cashier performance.
-          </p>
-        </div>
-        <div className="flex items-center gap-2.5 shrink-0">
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm"
-            style={{ fontFamily: RB }}
-          >
-            <Printer size={14} />
-            <span className="hidden sm:inline">Print Report</span>
-          </button>
-          <button
-            onClick={handleResetFilters}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-100 transition-colors shadow-sm"
-            style={{ fontFamily: RB }}
-          >
-            <RotateCcw size={14} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
-          <button
-            onClick={() => alert("Exporting Daily Billing Report to Excel...")}
-            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm"
-            style={{ fontFamily: RB }}
-          >
-            <Download size={14} />
-            <span className="hidden sm:inline">Export Excel</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 2. FILTER BAR */}
-      <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
-        <div
-          className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs"
-          style={{ fontFamily: RB }}
-        >
-          <div>
-            <span className="block text-slate-600 font-semibold mb-1">
-              Report Date
-              <input
-                aria-label="Input field"
-                type="date"
-                value={reportDate}
-                onChange={(e) => setReportDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium"
-              />
-            </span>
-          </div>
-          <div>
-            <span className="block text-slate-600 font-semibold mb-1">
-              Payment Method
-              <select
-                aria-label="Select option"
-                value={methodFilter}
-                onChange={(e) => setMethodFilter(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium"
+    <div
+      className="w-full flex-1 min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
+      style={{ fontFamily: RB }}
+    >
+      {/* Top Header Section */}
+      <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <div
+                className="flex items-center gap-2 text-xs text-[#64748B] mb-1 font-medium"
+                style={{ fontFamily: RB }}
               >
-                <option value="All">All Methods</option>
-                <option value="Cash">Cash</option>
-                <option value="UPI">UPI</option>
-                <option value="Card">Card</option>
-              </select>
-            </span>
-          </div>
-          <div>
-            <span className="block text-slate-600 font-semibold mb-1">
-              Department
-              <select
-                aria-label="Select option"
-                value={deptFilter}
-                onChange={(e) => setDeptFilter(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium"
+                <button
+                  type="button"
+                  className="hover:text-[#0D47A1] cursor-pointer"
+                  onClick={() => navigate("/billing")}
+                >
+                  Home
+                </button>
+                <ChevronRight size={12} />
+                <button
+                  type="button"
+                  className="hover:text-[#0D47A1] cursor-pointer"
+                  onClick={() => navigate("/billing")}
+                >
+                  Billing & Payment
+                </button>
+                <ChevronRight size={12} />
+                <span className="text-[#0D47A1] font-semibold">
+                  Daily Billing Report
+                </span>
+              </div>
+              <h1
+                className="text-xl md:text-2xl font-bold text-[#111827] tracking-tight"
+                style={{ fontFamily: PP }}
               >
-                <option value="All">All Departments</option>
-                {departmentBreakdown.map((d) => (
-                  <option key={d.department} value={d.department}>
-                    {d.department}
-                  </option>
-                ))}
-              </select>
-            </span>
-          </div>
-          <div className="col-span-2 md:col-span-1 flex items-end justify-end gap-2">
-            <button
-              onClick={handleResetFilters}
-              className="w-1/2 md:w-auto px-3 py-2 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50"
-            >
-              Reset
-            </button>
+                Daily Billing Report
+              </h1>
+              <p
+                className="text-xs md:text-sm text-[#64748B] mt-0.5"
+                style={{ fontFamily: RB }}
+              >
+                View today's billing collections, invoice statistics, payment
+                summaries, and cashier performance.
+              </p>
+            </div>
+            <div className="flex items-center gap-2.5 shrink-0">
+              <button
+                onClick={() => window.print()}
+                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm"
+                style={{ fontFamily: RB }}
+              >
+                <Printer size={14} />
+                <span className="hidden sm:inline">Print Report</span>
+              </button>
+              <button
+                onClick={handleResetFilters}
+                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-100 transition-colors shadow-sm"
+                style={{ fontFamily: RB }}
+              >
+                <RotateCcw size={14} />
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+              <button
+                onClick={() => alert("Exporting Daily Billing Report to Excel...")}
+                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors shadow-sm"
+                style={{ fontFamily: RB }}
+              >
+                <Download size={14} />
+                <span className="hidden sm:inline">Export Excel</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 3. KPI CARDS */}
+      {/* Main Container */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
+
+      {/* 2. KPI CARDS */}
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-1">
           <div className="flex items-center justify-between text-slate-400">
@@ -358,12 +305,75 @@ export function DailyBillingReportPage() {
               ₹
               {metrics.invoicesCount > 0
                 ? Math.round(
-                    metrics.todayRevenue / metrics.invoicesCount,
+                    (metrics.todayRevenue || 0) / metrics.invoicesCount,
                   ).toLocaleString()
                 : "0"}
             </div>
           )}
-          <span className="text-[10px] text-slate-400">Per Patient Bill</span>
+          <span className="text-[10px] text-slate-400">Per Bill Avg</span>
+        </div>
+      </div>
+
+      {/* 3. FILTER BAR */}
+      <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-3">
+        <div
+          className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs"
+          style={{ fontFamily: RB }}
+        >
+          <div>
+            <span className="block text-slate-600 font-semibold mb-1">
+              Report Date
+              <input
+                aria-label="Input field"
+                type="date"
+                value={reportDate}
+                onChange={(e) => setReportDate(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium"
+              />
+            </span>
+          </div>
+          <div>
+            <span className="block text-slate-600 font-semibold mb-1">
+              Payment Method
+              <select
+                aria-label="Select option"
+                value={methodFilter}
+                onChange={(e) => setMethodFilter(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium"
+              >
+                <option value="All">All Methods</option>
+                <option value="Cash">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="Card">Card</option>
+              </select>
+            </span>
+          </div>
+          <div>
+            <span className="block text-slate-600 font-semibold mb-1">
+              Department
+              <select
+                aria-label="Select option"
+                value={deptFilter}
+                onChange={(e) => setDeptFilter(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-slate-50 font-medium"
+              >
+                <option value="All">All Departments</option>
+                {departmentBreakdown.map((d) => (
+                  <option key={d.department} value={d.department}>
+                    {d.department}
+                  </option>
+                ))}
+              </select>
+            </span>
+          </div>
+          <div className="col-span-2 md:col-span-1 flex items-end justify-end gap-2">
+            <button
+              onClick={handleResetFilters}
+              className="w-1/2 md:w-auto px-3 py-2 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50"
+            >
+              Reset
+            </button>
+          </div>
         </div>
       </div>
 
@@ -681,6 +691,8 @@ export function DailyBillingReportPage() {
             </button>
           </div>
         </div>
+      </div>
+
       </div>
 
       {/* BOTTOM STICKY BAR */}

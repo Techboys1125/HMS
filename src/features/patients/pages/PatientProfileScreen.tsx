@@ -135,6 +135,7 @@ export function PatientProfileScreen({
     async function fetchAll() {
       setLoading(true);
       setError(null);
+
       try {
         const [rawPatient, appts, rxBills, bills] = await Promise.allSettled([
           patientsApi.getPatientByMrn(patientMrn),
@@ -143,30 +144,30 @@ export function PatientProfileScreen({
           patientsApi.getBilling(patientMrn),
         ]);
 
-        if (!cancelled) {
-          if (rawPatient.status === "fulfilled") {
-            setPatient(mapApiPatientToPatientRecord(rawPatient.value));
+        if (cancelled) return;
 
-            const safeArray = <T,>(val: unknown): T[] => {
-              if (Array.isArray(val)) return val as T[];
-              if (val && typeof val === "object") {
-                const obj = val as Record<string, unknown>;
-                if (Array.isArray(obj.content)) return obj.content as T[];
-                if (Array.isArray(obj.data)) return obj.data as T[];
-                if (Array.isArray(obj.items)) return obj.items as T[];
-              }
-              return [];
-            };
+        if (rawPatient.status === "fulfilled") {
+          setPatient(mapApiPatientToPatientRecord(rawPatient.value));
 
-            if (appts.status === "fulfilled")
-              setAppointments(safeArray(appts.value));
-            if (rxBills.status === "fulfilled")
-              setPrescriptions(safeArray(rxBills.value));
-            if (bills.status === "fulfilled")
-              setBilling(safeArray(bills.value));
-          } else {
-            setError("Failed to load patient profile");
-          }
+          const safeArray = <T,>(val: unknown): T[] => {
+            if (Array.isArray(val)) return val as T[];
+            if (val && typeof val === "object") {
+              const obj = val as Record<string, unknown>;
+              if (Array.isArray(obj.content)) return obj.content as T[];
+              if (Array.isArray(obj.data)) return obj.data as T[];
+              if (Array.isArray(obj.items)) return obj.items as T[];
+            }
+            return [];
+          };
+
+          if (appts.status === "fulfilled")
+            setAppointments(safeArray(appts.value));
+          if (rxBills.status === "fulfilled")
+            setPrescriptions(safeArray(rxBills.value));
+          if (bills.status === "fulfilled")
+            setBilling(safeArray(bills.value));
+        } else {
+          setError("Failed to load patient profile");
         }
       } catch {
         if (!cancelled) setError("Failed to load patient data");
@@ -176,6 +177,7 @@ export function PatientProfileScreen({
     }
 
     void fetchAll();
+
     return () => {
       cancelled = true;
     };

@@ -116,12 +116,12 @@ export function AccountantDashboardKpiDetailScreen({
 
   return (
     <div
-      className="min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
+      className="w-full flex-1 min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
       style={{ fontFamily: RB }}
     >
       {/* Top Header Section */}
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
@@ -219,7 +219,7 @@ export function AccountantDashboardKpiDetailScreen({
       </div>
 
       {/* Main Container */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         {/* SELECTED KPI LARGE HIGHLIGHT CARD & SWITCHER */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-[#E5E7EB] pb-4 mb-4">
@@ -840,47 +840,6 @@ export function AccountantDashboardKpiDetailScreen({
                 </div>
               </div>
 
-              {/* FINANCIAL ACTIVITY TIMELINE */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-                <h3
-                  className="text-base font-bold text-[#111827] mb-4"
-                  style={{ fontFamily: PP }}
-                >
-                  Recent Financial Activity Logs
-                </h3>
-                <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {(
-                    [] as Array<{
-                      id: string;
-                      title: string;
-                      time: string;
-                      action?: string;
-                      date?: string;
-                      detail?: string;
-                    }>
-                  ).map((act) => (
-                    <div
-                      key={act.id}
-                      className="flex items-start gap-4 relative z-10"
-                    >
-                      <div className="w-7 h-7 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center text-[#0D47A1] shrink-0">
-                        <DollarSign className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-bold text-[#111827]">
-                            {act.action}
-                          </span>
-                          <span className="text-[11px] text-[#64748B]">
-                            {act.date} â€¢ {act.time}
-                          </span>
-                        </div>
-                        <p className="text-[#64748B]">{act.detail}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}

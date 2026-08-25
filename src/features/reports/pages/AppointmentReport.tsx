@@ -556,7 +556,7 @@ export function DailyAppointmentReportScreen({
 
   return (
     <div
-      className="min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
+      className="w-full flex-1 min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
       style={{ fontFamily: RB }}
     >
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
@@ -662,6 +662,194 @@ export function DailyAppointmentReportScreen({
                 Clear
               </button>
             )}
+          </div>
+        </div>
+
+        {/* TOP 6 KPI CARDS SECTION */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Total Appointments
+              </span>
+              <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
+                <Calendar className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {totalAppointments}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+              <span className="text-[#64748B] font-semibold">--</span>
+            </div>
+            {appointmentTrendData.length > 0 && (
+              <div className="h-8">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={appointmentTrendData}>
+                    <Line
+                      type="monotone"
+                      dataKey="Booked"
+                      stroke="#0D47A1"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Completed Appointments
+              </span>
+              <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {completedAppointments}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+              <span className="text-[#66BB6A] font-semibold">
+                {completionRate}% Completion Rate
+              </span>
+            </div>
+            {appointmentTrendData.length > 0 && (
+              <div className="h-8">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={appointmentTrendData}>
+                    <Area
+                      type="monotone"
+                      dataKey="Completed"
+                      stroke="#66BB6A"
+                      fill="#66BB6A"
+                      fillOpacity={0.2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Cancelled Appointments
+              </span>
+              <div className="p-2 rounded-xl bg-red-50 text-[#EF4444]">
+                <XCircle className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {cancelledAppointments}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+              <span className="text-[#EF4444] font-semibold">
+                {cancellationRate}% Cancellation Rate
+              </span>
+            </div>
+            {appointmentTrendData.length > 0 && (
+              <div className="h-8">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={appointmentTrendData}>
+                    <Line
+                      type="monotone"
+                      dataKey="Cancelled"
+                      stroke="#EF4444"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                No Show Patients
+              </span>
+              <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
+                <AlertCircle className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {pendingAppointments}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B]">
+              <span className="text-[#F59E0B] font-semibold">
+                {noShowRate}% of total booked
+              </span>
+            </div>
+            <p className="text-[10px] text-[#64748B] mt-2">
+              Missed scheduled slots without cancellation
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Walk-In Patients
+              </span>
+              <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
+                <Users className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              --
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+              <span className="text-[#64748B] font-semibold">--</span>
+            </div>
+            <div className="h-8">
+              {walkInTrendData.length > 0 && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={walkInTrendData}>
+                    <Line
+                      type="monotone"
+                      dataKey="Waiting"
+                      stroke="#009688"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-[#64748B]">
+                Average Waiting Time
+              </span>
+              <div
+                className="text-2xl font-bold text-[#111827] mt-1"
+                style={{ fontFamily: PP }}
+              >
+                --
+              </div>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                Consult delay: --
+              </p>
+              <div className="mt-1 text-[11px] font-semibold text-[#64748B]">
+                --
+              </div>
+            </div>
+            <CircularProgress percentage={0} size={64} strokeWidth={7} />
           </div>
         </div>
 
@@ -836,195 +1024,7 @@ export function DailyAppointmentReportScreen({
         )}
 
         {!isLoading && !hasError && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-3 space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Total Appointments
-                    </span>
-                    <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
-                      <Calendar className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {totalAppointments}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
-                    <span className="text-[#64748B] font-semibold">--</span>
-                  </div>
-                  {appointmentTrendData.length > 0 && (
-                    <div className="h-8">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={appointmentTrendData}>
-                          <Line
-                            type="monotone"
-                            dataKey="Booked"
-                            stroke="#0D47A1"
-                            strokeWidth={2}
-                            dot={false}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
-                </div>
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Completed Appointments
-                    </span>
-                    <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {completedAppointments}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
-                    <span className="text-[#66BB6A] font-semibold">
-                      {completionRate}% Completion Rate
-                    </span>
-                  </div>
-                  {appointmentTrendData.length > 0 && (
-                    <div className="h-8">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={appointmentTrendData}>
-                          <Area
-                            type="monotone"
-                            dataKey="Completed"
-                            stroke="#66BB6A"
-                            fill="#66BB6A"
-                            fillOpacity={0.2}
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
-                </div>
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Cancelled Appointments
-                    </span>
-                    <div className="p-2 rounded-xl bg-red-50 text-[#EF4444]">
-                      <XCircle className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {cancelledAppointments}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
-                    <span className="text-[#EF4444] font-semibold">
-                      {cancellationRate}% Cancellation Rate
-                    </span>
-                  </div>
-                  {appointmentTrendData.length > 0 && (
-                    <div className="h-8">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={appointmentTrendData}>
-                          <Line
-                            type="monotone"
-                            dataKey="Cancelled"
-                            stroke="#EF4444"
-                            strokeWidth={2}
-                            dot={false}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  )}
-                </div>
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      No Show Patients
-                    </span>
-                    <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
-                      <AlertCircle className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {pendingAppointments}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B]">
-                    <span className="text-[#F59E0B] font-semibold">
-                      {noShowRate}% of total booked
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-[#64748B] mt-2">
-                    Missed scheduled slots without cancellation
-                  </p>
-                </div>
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Walk-In Patients
-                    </span>
-                    <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
-                      <Users className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    --
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
-                    <span className="text-[#64748B] font-semibold">--</span>
-                  </div>
-                  <div className="h-8">
-                    {walkInTrendData.length > 0 && (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={walkInTrendData}>
-                          <Line
-                            type="monotone"
-                            dataKey="Waiting"
-                            stroke="#009688"
-                            strokeWidth={2}
-                            dot={false}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    )}
-                  </div>
-                </div>
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Average Waiting Time
-                    </span>
-                    <div
-                      className="text-2xl font-bold text-[#111827] mt-1"
-                      style={{ fontFamily: PP }}
-                    >
-                      --
-                    </div>
-                    <p className="text-[11px] text-[#64748B] mt-1">
-                      Consult delay: --
-                    </p>
-                    <div className="mt-1 text-[11px] font-semibold text-[#64748B]">
-                      --
-                    </div>
-                  </div>
-                  <CircularProgress percentage={0} size={64} strokeWidth={7} />
-                </div>
-              </div>
-
+          <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
@@ -1455,8 +1455,7 @@ export function DailyAppointmentReportScreen({
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
         <div className="mt-8 pt-4 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between text-xs text-[#64748B] gap-2">
           <div>

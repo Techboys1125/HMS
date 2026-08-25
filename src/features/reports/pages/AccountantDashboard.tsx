@@ -17,7 +17,6 @@ import {
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   AlertCircle,
-  Shield,
   FileSpreadsheet,
   DollarSign,
   CreditCard,
@@ -112,11 +111,15 @@ export interface AccountantFinancialTransactionRecord {
 export function AccountantReportsDashboardScreen({
   onOpenDailyRevenue,
   onOpenBillingReport,
+  onOpenKpiDetail,
 }: {
   onOpenDailyRevenue?: () => void;
   onOpenBillingReport?: () => void;
   onOpenKpiDetail?: () => void;
 }) {
+  void onOpenDailyRevenue;
+  void onOpenBillingReport;
+  void onOpenKpiDetail;
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState("Today");
@@ -216,7 +219,7 @@ export function AccountantReportsDashboardScreen({
 
   return (
     <div
-      className="min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
+      className="w-full flex-1 min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
       style={{ fontFamily: RB }}
     >
       {/* Top Header Section */}
@@ -325,6 +328,282 @@ export function AccountantReportsDashboardScreen({
                 Clear
               </button>
             )}
+          </div>
+        </div>
+
+        {/* TOP 6 ACCOUNTANT KPI CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+          {/* Card 1: Today's Revenue */}
+          <div
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                (e.currentTarget as HTMLElement).click();
+              }
+            }}
+            role="button"
+            onClick={() => navigate(ROUTES.BILLING)}
+            className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
+                Today's Revenue
+              </span>
+              <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
+                <DollarSign className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {invoiceSummary?.totalBilledAmount != null
+                ? `$${invoiceSummary.totalBilledAmount.toLocaleString()}`
+                : "--"}
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#64748B] font-semibold flex items-center gap-0.5">
+                <TrendingUp className="w-3 h-3" /> Revenue
+              </span>
+              <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
+                View Detail <ChevronRight className="w-3 h-3" />
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#0D47A1] font-bold">
+                  {invoiceSummary?.totalPaidAmount != null
+                    ? `$${invoiceSummary.totalPaidAmount.toLocaleString()}`
+                    : "--"}
+                </div>
+                <div className="text-[#64748B]">Collected</div>
+              </div>
+              <div>
+                <div className="text-[#009688] font-bold">
+                  {invoiceSummary?.totalOutstandingAmount != null
+                    ? `$${invoiceSummary.totalOutstandingAmount.toLocaleString()}`
+                    : "--"}
+                </div>
+                <div className="text-[#64748B]">Pending</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Today's Invoices */}
+          <div
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                (e.currentTarget as HTMLElement).click();
+              }
+            }}
+            role="button"
+            onClick={() => navigate(ROUTES.BILLING)}
+            className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
+                Today's Invoices
+              </span>
+              <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
+                <CreditCard className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {invoiceSummary?.totalInvoices ?? "--"}
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#009688] font-semibold">
+                {invoiceSummary?.paidInvoices ?? "--"} Paid Today
+              </span>
+              <span className="text-[#009688] font-semibold flex items-center gap-0.5 group-hover:underline">
+                View Detail <ChevronRight className="w-3 h-3" />
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#0D47A1] font-bold">
+                  {invoiceSummary?.totalInvoices ?? "--"}
+                </div>
+                <div className="text-[#64748B]">Generated</div>
+              </div>
+              <div>
+                <div className="text-[#66BB6A] font-bold">
+                  {invoiceSummary?.paidInvoices ?? "--"}
+                </div>
+                <div className="text-[#64748B]">Paid</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Paid Bills */}
+          <div
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                (e.currentTarget as HTMLElement).click();
+              }
+            }}
+            role="button"
+            onClick={() => navigate(ROUTES.BILLING_HISTORY)}
+            className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition">
+                Paid Bills
+              </span>
+              <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {invoiceSummary?.paidInvoices ?? "--"}
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#66BB6A] font-semibold">
+                {invoiceSummary?.totalInvoices
+                  ? `${Math.round((invoiceSummary.paidInvoices / invoiceSummary.totalInvoices) * 100)}% Collection Rate`
+                  : "--"}
+              </span>
+              <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5 group-hover:underline">
+                View Detail <ChevronRight className="w-3 h-3" />
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#66BB6A] font-bold">
+                  {invoiceSummary?.paidInvoices ?? "--"}
+                </div>
+                <div className="text-[#64748B]">Paid Count</div>
+              </div>
+              <div>
+                <div className="text-[#0D47A1] font-bold">
+                  {invoiceSummary?.totalInvoices
+                    ? `${Math.round((invoiceSummary.paidInvoices / invoiceSummary.totalInvoices) * 100)}%`
+                    : "--"}
+                </div>
+                <div className="text-[#64748B]">Rate</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Pending Payments */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Pending Payments
+              </span>
+              <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
+                <Activity className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {invoiceSummary?.totalOutstandingAmount != null
+                ? `$${invoiceSummary.totalOutstandingAmount.toLocaleString()}`
+                : "--"}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#F59E0B] font-semibold">
+                {invoiceSummary?.unpaidInvoices ?? "--"} Pending Invoices
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#F59E0B] font-bold">
+                  {invoiceSummary?.totalOutstandingAmount != null
+                    ? `$${invoiceSummary.totalOutstandingAmount.toLocaleString()}`
+                    : "--"}
+                </div>
+                <div className="text-[#64748B]">Outstanding</div>
+              </div>
+              <div>
+                <div className="text-[#0D47A1] font-bold">
+                  {invoiceSummary?.unpaidInvoices ?? "--"}
+                </div>
+                <div className="text-[#64748B]">Pending</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 5: Refunded Bills */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Refunded Bills
+              </span>
+              <div className="p-2 rounded-xl bg-red-50 text-[#EF4444]">
+                <XCircle className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {"--"}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#EF4444] font-semibold">
+                {"--"} Refund Transactions
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#EF4444] font-bold">{"--"}</div>
+                <div className="text-[#64748B]">Count</div>
+              </div>
+              <div>
+                <div className="text-[#64748B] font-bold">{"--"}</div>
+                <div className="text-[#64748B]">Amount</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 6: Payment Collection Rate */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-[#64748B]">
+                Payment Collection Rate
+              </span>
+              <div
+                className="text-2xl font-bold text-[#111827] mt-1"
+                style={{ fontFamily: PP }}
+              >
+                {invoiceSummary?.totalInvoices
+                  ? `${Math.round((invoiceSummary.paidInvoices / invoiceSummary.totalInvoices) * 100)}%`
+                  : "--"}
+              </div>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                Avg Time: --
+              </p>
+              <div className="mt-2 text-[11px] font-semibold text-[#64748B]">
+                --
+              </div>
+            </div>
+            <CircularProgress
+              percentage={
+                invoiceSummary?.totalInvoices
+                  ? Math.round(
+                      (invoiceSummary.paidInvoices /
+                        invoiceSummary.totalInvoices) *
+                        100,
+                    )
+                  : 0
+              }
+              size={64}
+              strokeWidth={7}
+            />
           </div>
         </div>
 
@@ -487,284 +766,7 @@ export function AccountantReportsDashboardScreen({
         )}
 
         {!isLoading && !hasError && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* LEFT MAIN CONTENT AREA (3 Cols) */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* TOP 6 ACCOUNTANT KPI CARDS */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Card 1: Today's Revenue */}
-                <div
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      (e.currentTarget as HTMLElement).click();
-                    }
-                  }}
-                  role="button"
-                  onClick={() => navigate(ROUTES.BILLING)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
-                      Today's Revenue
-                    </span>
-                    <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
-                      <DollarSign className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {invoiceSummary?.totalBilledAmount != null
-                      ? `$${invoiceSummary.totalBilledAmount.toLocaleString()}`
-                      : "--"}
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#64748B] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> Revenue
-                    </span>
-                    <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">
-                        {invoiceSummary?.totalPaidAmount != null
-                          ? `$${invoiceSummary.totalPaidAmount.toLocaleString()}`
-                          : "--"}
-                      </div>
-                      <div className="text-[#64748B]">Collected</div>
-                    </div>
-                    <div>
-                      <div className="text-[#009688] font-bold">
-                        {invoiceSummary?.totalOutstandingAmount != null
-                          ? `$${invoiceSummary.totalOutstandingAmount.toLocaleString()}`
-                          : "--"}
-                      </div>
-                      <div className="text-[#64748B]">Pending</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 2: Today's Invoices */}
-                <div
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      (e.currentTarget as HTMLElement).click();
-                    }
-                  }}
-                  role="button"
-                  onClick={() => navigate(ROUTES.BILLING)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
-                      Today's Invoices
-                    </span>
-                    <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
-                      <CreditCard className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {invoiceSummary?.totalInvoices ?? "--"}
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#009688] font-semibold">
-                      {invoiceSummary?.paidInvoices ?? "--"} Paid Today
-                    </span>
-                    <span className="text-[#009688] font-semibold flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">
-                        {invoiceSummary?.totalInvoices ?? "--"}
-                      </div>
-                      <div className="text-[#64748B]">Generated</div>
-                    </div>
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">
-                        {invoiceSummary?.paidInvoices ?? "--"}
-                      </div>
-                      <div className="text-[#64748B]">Paid</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 3: Paid Bills */}
-                <div
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      (e.currentTarget as HTMLElement).click();
-                    }
-                  }}
-                  role="button"
-                  onClick={() => navigate(ROUTES.BILLING_HISTORY)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition">
-                      Paid Bills
-                    </span>
-                    <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {invoiceSummary?.paidInvoices ?? "--"}
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#66BB6A] font-semibold">
-                      {invoiceSummary?.totalInvoices
-                        ? `${Math.round((invoiceSummary.paidInvoices / invoiceSummary.totalInvoices) * 100)}% Collection Rate`
-                        : "--"}
-                    </span>
-                    <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">
-                        {invoiceSummary?.paidInvoices ?? "--"}
-                      </div>
-                      <div className="text-[#64748B]">Paid Count</div>
-                    </div>
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">
-                        {invoiceSummary?.totalInvoices
-                          ? `${Math.round((invoiceSummary.paidInvoices / invoiceSummary.totalInvoices) * 100)}%`
-                          : "--"}
-                      </div>
-                      <div className="text-[#64748B]">Rate</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 4: Pending Payments */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Pending Payments
-                    </span>
-                    <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
-                      <Activity className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {invoiceSummary?.totalOutstandingAmount != null
-                      ? `$${invoiceSummary.totalOutstandingAmount.toLocaleString()}`
-                      : "--"}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#F59E0B] font-semibold">
-                      {invoiceSummary?.unpaidInvoices ?? "--"} Pending Invoices
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#F59E0B] font-bold">
-                        {invoiceSummary?.totalOutstandingAmount != null
-                          ? `$${invoiceSummary.totalOutstandingAmount.toLocaleString()}`
-                          : "--"}
-                      </div>
-                      <div className="text-[#64748B]">Outstanding</div>
-                    </div>
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">
-                        {invoiceSummary?.unpaidInvoices ?? "--"}
-                      </div>
-                      <div className="text-[#64748B]">Pending</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 5: Refunded Bills */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Refunded Bills
-                    </span>
-                    <div className="p-2 rounded-xl bg-red-50 text-[#EF4444]">
-                      <XCircle className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {"--"}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#EF4444] font-semibold">
-                      {"--"} Refund Transactions
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#EF4444] font-bold">{"--"}</div>
-                      <div className="text-[#64748B]">Count</div>
-                    </div>
-                    <div>
-                      <div className="text-[#64748B] font-bold">{"--"}</div>
-                      <div className="text-[#64748B]">Amount</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 6: Payment Collection Rate */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Payment Collection Rate
-                    </span>
-                    <div
-                      className="text-2xl font-bold text-[#111827] mt-1"
-                      style={{ fontFamily: PP }}
-                    >
-                      {invoiceSummary?.totalInvoices
-                        ? `${Math.round((invoiceSummary.paidInvoices / invoiceSummary.totalInvoices) * 100)}%`
-                        : "--"}
-                    </div>
-                    <p className="text-[11px] text-[#64748B] mt-1">
-                      Avg Time: --
-                    </p>
-                    <div className="mt-2 text-[11px] font-semibold text-[#64748B]">
-                      --
-                    </div>
-                  </div>
-                  <CircularProgress
-                    percentage={
-                      invoiceSummary?.totalInvoices
-                        ? Math.round(
-                            (invoiceSummary.paidInvoices /
-                              invoiceSummary.totalInvoices) *
-                              100,
-                          )
-                        : 0
-                    }
-                    size={64}
-                    strokeWidth={7}
-                  />
-                </div>
-              </div>
+          <div className="space-y-6">
 
               {/* REVENUE TREND & PAYMENT STATUS DISTRIBUTION */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1211,219 +1213,11 @@ export function AccountantReportsDashboardScreen({
                   </div>
                 </div>
               </div>
-
-              {/* FINANCIAL ACTIVITY TIMELINE */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-                <h3
-                  className="text-base font-bold text-[#111827] mb-4"
-                  style={{ fontFamily: PP }}
-                >
-                  Recent Financial Activity Logs
-                </h3>
-                <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {(
-                    [] as Array<{
-                      id: string;
-                      title: string;
-                      time: string;
-                      action?: string;
-                      date?: string;
-                      detail?: string;
-                    }>
-                  ).map((act) => (
-                    <div
-                      key={act.id}
-                      className="flex items-start gap-4 relative z-10"
-                    >
-                      <div className="w-7 h-7 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center text-[#0D47A1] shrink-0">
-                        <DollarSign className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-bold text-[#111827]">
-                            {act.action}
-                          </span>
-                          <span className="text-[11px] text-[#64748B]">
-                            {act.date} â€¢ {act.time}
-                          </span>
-                        </div>
-                        <p className="text-[#64748B]">{act.detail}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
+          )}
 
-            {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm sticky top-20 space-y-6">
-                {/* Header */}
-                <div>
-                  <h3
-                    className="text-base font-bold text-[#111827] flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Shield className="w-4 h-4 text-[#0D47A1]" />
-                    <span>Financial Summary</span>
-                  </h3>
-                  <p className="text-[11px] text-[#64748B]">
-                    Live accountant financial overview
-                  </p>
-                </div>
-
-                {/* Metrics Overview */}
-                <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] text-xs space-y-2">
-                  <div className="text-[11px] font-bold text-[#64748B] uppercase">
-                    Today's Revenue Metrics
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Today's Revenue:</span>
-                    <span className="font-bold text-[#0D47A1]">
-                      {invoiceSummary?.totalBilledAmount != null
-                        ? `$${invoiceSummary.totalBilledAmount.toLocaleString()}`
-                        : "--"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Today's Invoices:</span>
-                    <span className="font-bold text-[#111827]">
-                      {invoiceSummary?.totalInvoices ?? "--"} Total
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Paid Bills:</span>
-                    <span className="font-bold text-[#66BB6A]">
-                      {invoiceSummary?.paidInvoices ?? "--"} Paid
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Pending Payments:</span>
-                    <span className="font-bold text-[#F59E0B]">
-                      {invoiceSummary?.totalOutstandingAmount != null
-                        ? `$${invoiceSummary.totalOutstandingAmount.toLocaleString()}`
-                        : "--"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Refunded Bills:</span>
-                    <span className="font-bold text-[#EF4444]">{"--"}</span>
-                  </div>
-                  <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
-                    <span className="text-[#64748B]">Collection Rate:</span>
-                    <span className="font-semibold text-[#009688]">
-                      {invoiceSummary?.totalInvoices
-                        ? `${Math.round((invoiceSummary.paidInvoices / invoiceSummary.totalInvoices) * 100)}%`
-                        : "--"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div>
-                  <h4
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    Quick Actions
-                  </h4>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => alert("Exporting PDF...")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#0D47A1]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                        <span>Export PDF Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    <button
-                      onClick={() => alert("Exporting Excel...")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#009688]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <FileSpreadsheet className="w-3.5 h-3.5 text-[#009688]" />
-                        <span>Export Excel Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    <button
-                      onClick={() => window.print()}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Printer className="w-3.5 h-3.5 text-[#64748B]" />
-                        <span>Print Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    {onOpenDailyRevenue && (
-                      <button
-                        onClick={onOpenDailyRevenue}
-                        className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#0D47A1]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="w-3.5 h-3.5 text-[#0D47A1]" />
-                          <span>Open Daily Revenue Report</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                      </button>
-                    )}
-
-                    {onOpenBillingReport && (
-                      <button
-                        onClick={onOpenBillingReport}
-                        className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#009688]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="w-3.5 h-3.5 text-[#009688]" />
-                          <span>Open Billing Report</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Compliance Note */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-[#E5E7EB] text-[11px] text-[#64748B]">
-                  <div className="flex items-center gap-1 text-[#009688] font-bold mb-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Accountant Scope Verified</span>
-                  </div>
-                  <span>
-                    Read-only financial operations data for hospital billing and
-                    collection tracking.
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* FOOTER */}
-        <div className="mt-8 pt-4 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between text-xs text-[#64748B] gap-2">
-          <div>
-            Showing{" "}
-            <strong className="text-[#111827]">
-              {filteredTransactions.length} Financial Report Results
-            </strong>
-          </div>
-          <div>
-            Hospital Management System â€¢ Accountant Financial Reports
-            Dashboard v1.0
-          </div>
-          <div>
-            Last Refreshed:{" "}
-            <strong className="text-[#111827]">2026-07-26 13:46</strong>
-          </div>
         </div>
-      </div>
-    </div>
+      </div>  
   );
 }
 

@@ -180,12 +180,12 @@ export function AccountantBillingReportScreen({
 
   return (
     <div
-      className="min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
+      className="w-full flex-1 min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
       style={{ fontFamily: RB }}
     >
       {/* Top Header Section */}
       <div className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#64748B] mb-1">
@@ -279,7 +279,7 @@ export function AccountantBillingReportScreen({
       </div>
 
       {/* Main Container */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         {/* Global Search Bar */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
           <div className="relative">
@@ -300,6 +300,190 @@ export function AccountantBillingReportScreen({
                 Clear
               </button>
             )}
+          </div>
+        </div>
+
+        {/* TOP 6 ACCOUNTANT BILLING KPI CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+          {/* Card 1: Total Invoices */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Total Invoices
+              </span>
+              <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
+                <CreditCard className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              48
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
+                <TrendingUp className="w-3 h-3" /> +12.4% Growth
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#0D47A1] font-bold">48</div>
+                <div className="text-[#64748B]">Generated</div>
+              </div>
+              <div>
+                <div className="text-[#009688] font-bold">+12.4%</div>
+                <div className="text-[#64748B]">Growth</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Paid Invoices */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Paid Invoices
+              </span>
+              <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              42
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#66BB6A] font-semibold">
+                87.5% Collection Rate
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#66BB6A] font-bold">42</div>
+                <div className="text-[#64748B]">Paid Count</div>
+              </div>
+              <div>
+                <div className="text-[#0D47A1] font-bold">87.5%</div>
+                <div className="text-[#64748B]">Rate</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Pending Payments */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Pending Payments
+              </span>
+              <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
+                <Activity className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              6
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#F59E0B] font-semibold">--</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#F59E0B] font-bold">6</div>
+                <div className="text-[#64748B]">Invoices</div>
+              </div>
+              <div>
+                <div className="text-[#0D47A1] font-bold">--</div>
+                <div className="text-[#64748B]">Amount</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Partially Paid */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Partially Paid
+              </span>
+              <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
+                <DollarSign className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              2
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#0D47A1] font-semibold">--</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#0D47A1] font-bold">2</div>
+                <div className="text-[#64748B]">Partial Count</div>
+              </div>
+              <div>
+                <div className="text-[#F59E0B] font-bold">--</div>
+                <div className="text-[#64748B]">Balance</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 5: Refunded Bills */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Refunded Bills
+              </span>
+              <div className="p-2 rounded-xl bg-red-50 text-[#EF4444]">
+                <XCircle className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              --
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#EF4444] font-semibold">
+                2 Refund Invoices
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#EF4444] font-bold">2</div>
+                <div className="text-[#64748B]">Count</div>
+              </div>
+              <div>
+                <div className="text-[#64748B] font-bold">--</div>
+                <div className="text-[#64748B]">Amount</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 6: Average Invoice Value */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-[#64748B]">
+                Average Invoice Value
+              </span>
+              <div
+                className="text-2xl font-bold text-[#111827] mt-1"
+                style={{ fontFamily: PP }}
+              >
+                --
+              </div>
+              <p className="text-[11px] text-[#64748B] mt-1">{"--"}</p>
+              <div className="mt-2 text-[11px] font-semibold text-[#64748B]">
+                {"--"}
+              </div>
+            </div>
+            <CircularProgress percentage={0} size={64} strokeWidth={7} />
           </div>
         </div>
 

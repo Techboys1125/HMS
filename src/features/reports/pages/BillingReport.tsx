@@ -410,7 +410,7 @@ export function BillingReportScreen({
 
   return (
     <div
-      className="min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
+      className="w-full flex-1 min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
       style={{ fontFamily: RB }}
     >
       {/* Top Header Section */}
@@ -531,6 +531,207 @@ export function BillingReportScreen({
                 Clear
               </button>
             )}
+          </div>
+        </div>
+
+        {/* TOP 6 KPI CARDS SECTION */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+          {/* Card 1: Total Revenue */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Total Revenue
+              </span>
+              <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
+                <DollarSign className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              ₹{totalBilled.toLocaleString()}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+              <span className="text-[#64748B] font-semibold">--</span>
+            </div>
+            <div className="h-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={[]}>
+                  <Line
+                    type="monotone"
+                    dataKey="Revenue"
+                    stroke="#0D47A1"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Card 2: Invoices Generated */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Invoices Generated
+              </span>
+              <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
+                <FileSpreadsheet className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {totalInvoices}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+              <span className="text-[#009688] font-semibold">
+                {totalInvoices.toLocaleString()} invoices
+              </span>
+            </div>
+            <div className="h-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={[]}>
+                  <Area
+                    type="monotone"
+                    dataKey="Revenue"
+                    stroke="#009688"
+                    fill="#009688"
+                    fillOpacity={0.2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Card 3: Collected Payments */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Collected Payments
+              </span>
+              <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              ₹{totalPaid.toLocaleString()}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+              <span className="text-[#66BB6A] font-semibold">
+                {collectionRate}% Collection Rate
+              </span>
+            </div>
+            <div className="h-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={[]}>
+                  <Line
+                    type="monotone"
+                    dataKey="Collections"
+                    stroke="#66BB6A"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Card 4: Outstanding Payments */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Outstanding Payments
+              </span>
+              <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
+                <AlertCircle className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              ₹{totalOutstanding.toLocaleString()}
+            </div>
+            <div className="text-[11px] text-[#64748B]">
+              {outstandingRate}% Outstanding Rate
+            </div>
+            <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden mt-3">
+              <div
+                className="bg-[#F59E0B] h-full"
+                style={{
+                  width: `${totalBilled > 0 ? (totalOutstanding / totalBilled) * 100 : 0}%`,
+                }}
+              />
+              <div
+                className="bg-[#009688] h-full"
+                style={{
+                  width: `${totalBilled > 0 ? (totalPaid / totalBilled) * 100 : 0}%`,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Card 5: Paid Invoices */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Paid Invoices
+              </span>
+              <div className="p-2 rounded-xl bg-indigo-50 text-[#0D47A1]">
+                <FileSpreadsheet className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {paidInvoices}
+            </div>
+            <div className="text-[11px] text-[#64748B] mb-2">
+              {paidRate}% Paid Rate ({unpaidInvoices} Pending)
+            </div>
+            <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
+              <div
+                className="bg-[#0D47A1] h-full"
+                style={{
+                  width: `${totalInvoices > 0 ? (paidInvoices / totalInvoices) * 100 : 0}%`,
+                }}
+              />
+              <div
+                className="bg-[#F59E0B] h-full"
+                style={{
+                  width: `${totalInvoices > 0 ? (unpaidInvoices / totalInvoices) * 100 : 0}%`,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Card 6: Average Invoice Value */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-[#64748B]">
+                Avg Invoice Value
+              </span>
+              <div
+                className="text-2xl font-bold text-[#111827] mt-1"
+                style={{ fontFamily: PP }}
+              >
+                ₹{avgInvoiceValue.toLocaleString()}
+              </div>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                Highest: -- | Min: --
+              </p>
+              <div className="mt-1 text-[11px] font-semibold text-[#0D47A1]">
+                ✓ OPD Fee Benchmark
+              </div>
+            </div>
+            <CircularProgress percentage={Number(paidRate) || 0} size={64} strokeWidth={7} />
           </div>
         </div>
 
@@ -714,221 +915,7 @@ export function BillingReportScreen({
         )}
 
         {!isLoading && !hasError && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* LEFT MAIN CONTENT AREA (3 Cols) */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* TOP 6 KPI CARDS SECTION */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Card 1: Total Revenue */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Total Revenue
-                    </span>
-                    <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
-                      <DollarSign className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    ₹{totalBilled.toLocaleString()}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
-                    <span className="text-[#64748B] font-semibold">--</span>
-                  </div>
-                  <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={[]}>
-                        <Line
-                          type="monotone"
-                          dataKey="Revenue"
-                          stroke="#0D47A1"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Card 2: Invoices Generated */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Invoices Generated
-                    </span>
-                    <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
-                      <FileSpreadsheet className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {totalInvoices}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
-                    <span className="text-[#009688] font-semibold">
-                      {totalInvoices.toLocaleString()} invoices
-                    </span>
-                  </div>
-                  <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={[]}>
-                        <Area
-                          type="monotone"
-                          dataKey="Revenue"
-                          stroke="#009688"
-                          fill="#009688"
-                          fillOpacity={0.2}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Card 3: Collected Payments */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Collected Payments
-                    </span>
-                    <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    ₹{totalPaid.toLocaleString()}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
-                    <span className="text-[#66BB6A] font-semibold">
-                      {collectionRate}% Collection Rate
-                    </span>
-                  </div>
-                  <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={[]}>
-                        <Line
-                          type="monotone"
-                          dataKey="Collections"
-                          stroke="#66BB6A"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Card 4: Outstanding Payments */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Outstanding Payments
-                    </span>
-                    <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
-                      <AlertCircle className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    ₹{totalOutstanding.toLocaleString()}
-                  </div>
-                  <div className="text-[11px] text-[#64748B]">
-                    {outstandingRate}% Outstanding Rate
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden mt-3">
-                    <div
-                      className="bg-[#F59E0B] h-full"
-                      style={{
-                        width: `${totalBilled > 0 ? (totalOutstanding / totalBilled) * 100 : 0}%`,
-                      }}
-                    />
-                    <div
-                      className="bg-[#009688] h-full"
-                      style={{
-                        width: `${totalBilled > 0 ? (totalPaid / totalBilled) * 100 : 0}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Card 5: Paid Invoices */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Paid Invoices
-                    </span>
-                    <div className="p-2 rounded-xl bg-indigo-50 text-[#0D47A1]">
-                      <FileSpreadsheet className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {paidInvoices}
-                  </div>
-                  <div className="text-[11px] text-[#64748B] mb-2">
-                    {paidRate}% Paid Rate ({unpaidInvoices} Pending)
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
-                    <div
-                      className="bg-[#0D47A1] h-full"
-                      style={{
-                        width: `${totalInvoices > 0 ? (paidInvoices / totalInvoices) * 100 : 0}%`,
-                      }}
-                    />
-                    <div
-                      className="bg-[#F59E0B] h-full"
-                      style={{
-                        width: `${totalInvoices > 0 ? (unpaidInvoices / totalInvoices) * 100 : 0}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Card 6: Average Invoice Value */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Avg Invoice Value
-                    </span>
-                    <div
-                      className="text-2xl font-bold text-[#111827] mt-1"
-                      style={{ fontFamily: PP }}
-                    >
-                      ₹{avgInvoiceValue.toLocaleString()}
-                    </div>
-                    <p className="text-[11px] text-[#64748B] mt-1">
-                      High: -- | Low: --
-                    </p>
-                    <div className="mt-1 text-[11px] font-semibold text-[#64748B]">
-                      --
-                    </div>
-                  </div>
-                  <CircularProgress
-                    percentage={
-                      totalInvoices > 0
-                        ? Math.min(
-                            100,
-                            Math.round((paidInvoices / totalInvoices) * 100),
-                          )
-                        : 0
-                    }
-                    size={64}
-                    strokeWidth={7}
-                  />
-                </div>
-              </div>
-
+          <div className="space-y-6">
               {/* REVENUE TREND AREA CHART */}
               <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -1469,7 +1456,6 @@ export function BillingReportScreen({
 
               {/* RECENT BILLING ACTIVITIES TIMELINE */}
             </div>
-          </div>
         )}
 
         {/* FOOTER */}

@@ -65,18 +65,19 @@ export function useOpdConfiguration(year = new Date().getFullYear()) {
 
   useEffect(() => {
     let cancelled = false;
-    const load = async () => {
+
+    async function load() {
       setLoading(true);
       setError(null);
+
       try {
         const [scheduleResult, holidayResult] = await Promise.all([
           fetchOpdWeeklySchedule(),
           fetchOpdHolidays(year),
         ]);
-        if (!cancelled) {
-          setSchedule(normalizeSchedule(scheduleResult));
-          setHolidays(holidayResult);
-        }
+        if (cancelled) return;
+        setSchedule(normalizeSchedule(scheduleResult));
+        setHolidays(holidayResult);
       } catch (err) {
         if (!cancelled) {
           setError(
@@ -86,8 +87,10 @@ export function useOpdConfiguration(year = new Date().getFullYear()) {
       } finally {
         setLoading(false);
       }
-    };
+    }
+
     void load();
+
     return () => {
       cancelled = true;
     };

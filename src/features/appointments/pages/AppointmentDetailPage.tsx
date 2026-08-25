@@ -308,27 +308,27 @@ export function AppointmentDetailPage() {
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
-    const load = async () => {
+
+    async function load() {
       setLoading(true);
       setError(null);
       try {
         const data = await appointmentService.getAppointment(id);
-        if (!cancelled) {
-          if (data) {
-            setApt(data);
-          } else {
-            setError("Appointment not found.");
-          }
+        if (cancelled) return;
+        if (data) {
+          setApt(data);
+        } else {
+          setError("Appointment not found.");
         }
       } catch {
         if (!cancelled) setError("Failed to load appointment details.");
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
-    };
+    }
+
     void load();
+
     return () => {
       cancelled = true;
     };

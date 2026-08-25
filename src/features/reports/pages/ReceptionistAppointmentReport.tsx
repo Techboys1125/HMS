@@ -17,7 +17,6 @@ import {
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   AlertCircle,
-  Shield,
 } from "lucide-react";
 
 import {
@@ -99,7 +98,6 @@ export interface ReceptionistDailyAppointmentRecord {
 
 export function ReceptionistDailyAppointmentReportScreen({
   onBack,
-  onOpenPatientReport,
 }: {
   onBack?: () => void;
   onOpenPatientReport?: () => void;
@@ -158,7 +156,7 @@ export function ReceptionistDailyAppointmentReportScreen({
 
   return (
     <div
-      className="min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
+      className="w-full flex-1 min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
       style={{ fontFamily: RB }}
     >
       {/* Top Header Section */}
@@ -273,6 +271,197 @@ export function ReceptionistDailyAppointmentReportScreen({
                 Clear
               </button>
             )}
+          </div>
+        </div>
+
+        {/* TOP 6 RECEPTIONIST KPI CARDS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+          {/* Card 1: Today's Appointments */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Today's Appointments
+              </span>
+              <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
+                <Calendar className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              86
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
+                <TrendingUp className="w-3 h-3" /> +8.2%
+              </span>
+              <span>vs yesterday</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#0D47A1] font-bold">86</div>
+                <div className="text-[#64748B]">Booked</div>
+              </div>
+              <div>
+                <div className="text-[#009688] font-bold">86</div>
+                <div className="text-[#64748B]">Total Today</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Checked-In Patients */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Checked-In Patients
+              </span>
+              <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
+                <UserCheck className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              72
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#009688] font-semibold">
+                83.7% Completion Rate
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#009688] font-bold">72</div>
+                <div className="text-[#64748B]">Checked-In</div>
+              </div>
+              <div>
+                <div className="text-[#0D47A1] font-bold">83.7%</div>
+                <div className="text-[#64748B]">Rate</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Patients Waiting */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Patients Waiting
+              </span>
+              <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
+                <Activity className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              14
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#F59E0B] font-semibold">
+                Current Reception Queue
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#F59E0B] font-bold">14</div>
+                <div className="text-[#64748B]">Waiting</div>
+              </div>
+              <div>
+                <div className="text-[#0D47A1] font-bold">3.2</div>
+                <div className="text-[#64748B]">Avg Queue Size</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Completed Appointments */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Completed Appointments
+              </span>
+              <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              64
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#66BB6A] font-semibold">
+                74.4% Completion %
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#66BB6A] font-bold">64</div>
+                <div className="text-[#64748B]">Done</div>
+              </div>
+              <div>
+                <div className="text-[#0D47A1] font-bold">74.4%</div>
+                <div className="text-[#64748B]">Completion</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 5: Cancelled / No Show */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Cancelled / No Show
+              </span>
+              <div className="p-2 rounded-xl bg-red-50 text-[#EF4444]">
+                <AlertCircle className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              6
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
+              <span className="text-[#EF4444] font-semibold">
+                6 Total Disruption
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
+              <div>
+                <div className="text-[#EF4444] font-bold">4</div>
+                <div className="text-[#64748B]">Cancelled</div>
+              </div>
+              <div>
+                <div className="text-[#64748B] font-bold">2</div>
+                <div className="text-[#64748B]">No Show</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 6: Average Waiting Time */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-[#64748B]">
+                Average Waiting Time
+              </span>
+              <div
+                className="text-2xl font-bold text-[#111827] mt-1"
+                style={{ fontFamily: PP }}
+              >
+                --
+              </div>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                Longest Today: --
+              </p>
+              <div className="mt-2 text-[11px] font-semibold text-[#66BB6A]">
+                ✓ Target Met
+              </div>
+            </div>
+            <CircularProgress percentage={89} size={64} strokeWidth={7} />
           </div>
         </div>
 
@@ -452,199 +641,7 @@ export function ReceptionistDailyAppointmentReportScreen({
         )}
 
         {!isLoading && !hasError && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* LEFT MAIN CONTENT AREA (3 Cols) */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* TOP 6 RECEPTIONIST KPI CARDS */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Card 1: Today's Appointments */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Today's Appointments
-                    </span>
-                    <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
-                      <Calendar className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    86
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> +8.2%
-                    </span>
-                    <span>vs yesterday</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">86</div>
-                      <div className="text-[#64748B]">Booked</div>
-                    </div>
-                    <div>
-                      <div className="text-[#009688] font-bold">86</div>
-                      <div className="text-[#64748B]">Total Today</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 2: Checked-In Patients */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Checked-In Patients
-                    </span>
-                    <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
-                      <UserCheck className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    72
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#009688] font-semibold">
-                      83.7% Completion Rate
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#009688] font-bold">72</div>
-                      <div className="text-[#64748B]">Checked-In</div>
-                    </div>
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">83.7%</div>
-                      <div className="text-[#64748B]">Rate</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 3: Patients Waiting */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Patients Waiting
-                    </span>
-                    <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
-                      <Activity className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    14
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#F59E0B] font-semibold">
-                      Current Reception Queue
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#F59E0B] font-bold">14</div>
-                      <div className="text-[#64748B]">Waiting</div>
-                    </div>
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">3.2</div>
-                      <div className="text-[#64748B]">Avg Queue Size</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 4: Completed Appointments */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Completed Appointments
-                    </span>
-                    <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    64
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#66BB6A] font-semibold">
-                      74.4% Completion %
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">64</div>
-                      <div className="text-[#64748B]">Done</div>
-                    </div>
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">74.4%</div>
-                      <div className="text-[#64748B]">Completion</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 5: Cancelled / No Show */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Cancelled / No Show
-                    </span>
-                    <div className="p-2 rounded-xl bg-red-50 text-[#EF4444]">
-                      <AlertCircle className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    6
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#EF4444] font-semibold">
-                      6 Total Disruption
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#EF4444] font-bold">4</div>
-                      <div className="text-[#64748B]">Cancelled</div>
-                    </div>
-                    <div>
-                      <div className="text-[#64748B] font-bold">2</div>
-                      <div className="text-[#64748B]">No Show</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 6: Average Waiting Time */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Average Waiting Time
-                    </span>
-                    <div
-                      className="text-2xl font-bold text-[#111827] mt-1"
-                      style={{ fontFamily: PP }}
-                    >
-                      --
-                    </div>
-                    <p className="text-[11px] text-[#64748B] mt-1">
-                      Longest Today: --
-                    </p>
-                    <div className="mt-2 text-[11px] font-semibold text-[#66BB6A]">
-                      âœ“ Target Met
-                    </div>
-                  </div>
-                  <CircularProgress percentage={89} size={64} strokeWidth={7} />
-                </div>
-              </div>
+          <div className="space-y-6">
 
               {/* APPOINTMENT TREND & STATUS DISTRIBUTION CHARTS */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1116,155 +1113,8 @@ export function ReceptionistDailyAppointmentReportScreen({
                 </div>
               </div>
             </div>
-
-            {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm sticky top-20 space-y-6">
-                {/* Header */}
-                <div>
-                  <h3
-                    className="text-base font-bold text-[#111827] flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Shield className="w-4 h-4 text-[#0D47A1]" />
-                    <span>Appointment Summary</span>
-                  </h3>
-                  <p className="text-[11px] text-[#64748B]">
-                    Daily reception appointment metrics
-                  </p>
-                </div>
-
-                {/* Metrics Overview */}
-                <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] text-xs space-y-2">
-                  <div className="text-[11px] font-bold text-[#64748B] uppercase">
-                    Today's Appointment Counters
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Booked Today:</span>
-                    <span className="font-bold text-[#0D47A1]">86 Booked</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Checked-In:</span>
-                    <span className="font-bold text-[#009688]">
-                      72 Checked In
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Waiting Queue:</span>
-                    <span className="font-bold text-[#F59E0B]">14 Waiting</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Completed:</span>
-                    <span className="font-bold text-[#66BB6A]">
-                      64 Completed
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Cancelled / No Show:</span>
-                    <span className="font-bold text-[#EF4444]">
-                      6 Disrupted
-                    </span>
-                  </div>
-                  <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
-                    <span className="text-[#64748B]">Avg Waiting Time:</span>
-                    <span className="font-semibold text-[#0D47A1]">--</span>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div>
-                  <h4
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    Quick Actions
-                  </h4>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => alert("Exporting PDF...")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#0D47A1]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                        <span>Export PDF Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    <button
-                      onClick={() => window.print()}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Printer className="w-3.5 h-3.5 text-[#64748B]" />
-                        <span>Print Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    {onOpenPatientReport && (
-                      <button
-                        onClick={onOpenPatientReport}
-                        className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#009688]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Users className="w-3.5 h-3.5 text-[#009688]" />
-                          <span>Open Patient Report</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                      </button>
-                    )}
-
-                    {onBack && (
-                      <button
-                        onClick={onBack}
-                        className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#64748B]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <ChevronLeft className="w-3.5 h-3.5 text-[#64748B]" />
-                          <span>Back to Reports Dashboard</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Compliance Note */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-[#E5E7EB] text-[11px] text-[#64748B]">
-                  <div className="flex items-center gap-1 text-[#009688] font-bold mb-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Receptionist Scope Verified</span>
-                  </div>
-                  <span>
-                    Read-only appointment operations data for reception check-in
-                    management.
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
         )}
 
-        {/* FOOTER */}
-        <div className="mt-8 pt-4 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between text-xs text-[#64748B] gap-2">
-          <div>
-            Showing{" "}
-            <strong className="text-[#111827]">
-              {filteredAppointments.length} Daily Appointment Report Results
-            </strong>
-          </div>
-          <div>
-            Hospital Management System â€¢ Receptionist Daily Appointment Report
-            v1.0
-          </div>
-          <div>
-            Last Refreshed:{" "}
-            <strong className="text-[#111827]">
-              {new Date().toLocaleString()}
-            </strong>
-          </div>
-        </div>
       </div>
     </div>
   );

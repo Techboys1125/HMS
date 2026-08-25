@@ -246,8 +246,6 @@ export function AdminReportsDashboardScreen({
     statusFilter,
     visitTypeFilter,
     appliedFilters,
-    isLoading,
-    hasError,
   } = state;
 
   const [selectedReportModal, setSelectedReportModal] =
@@ -737,7 +735,7 @@ export function AdminReportsDashboardScreen({
 
   return (
     <div
-      className="min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
+      className="w-full flex-1 min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
       style={{ fontFamily: RB }}
     >
       {/* Top Header Section */}
@@ -1475,38 +1473,6 @@ export function AdminReportsDashboardScreen({
           </div>
         )}
 
-        {/* State Banners for Demo Testing */}
-        <div className="flex items-center justify-between mb-4 bg-white p-2.5 rounded-xl border border-[#E5E7EB] text-xs">
-          <div className="flex items-center gap-3">
-            <span className="font-semibold text-[#111827]">
-              Dashboard State Controls:
-            </span>
-            <button
-              onClick={() => {
-                if (isLoading) {
-                  dispatch({ type: "LOAD_SUCCESS", payload: appliedFilters });
-                } else {
-                  dispatch({ type: "LOAD_START" });
-                }
-                dispatch({ type: "SET_ERROR", payload: false });
-              }}
-              className={`px-2.5 py-1 rounded-lg border text-xs ${state.isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
-            >
-              Toggle Loading Skeleton
-            </button>
-            <button
-              onClick={() => {
-                dispatch({ type: "SET_ERROR", payload: !hasError });
-              }}
-              className={`px-2.5 py-1 rounded-lg border text-xs ${state.hasError ? "bg-red-50 border-red-300 text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
-            >
-              Toggle Error State
-            </button>
-          </div>
-          <span className="text-[11px] text-[#64748B]">
-            Click toggles to test UI loading and error handlers
-          </span>
-        </div>
 
         {/* ERROR STATE DISPLAY */}
         {state.hasError && (

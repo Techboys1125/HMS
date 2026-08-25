@@ -81,50 +81,50 @@ type RevenueReportState = {
 type RevenueReportAction =
   | { type: "SET_SEARCH"; payload: string }
   | {
-      type: "SET_FILTER";
-      payload: {
-        key: keyof Omit<
-          RevenueReportState,
-          | "isRefreshing"
-          | "isLoading"
-          | "hasError"
-          | "showExportModal"
-          | "exportFormat"
-          | "exportScope"
-          | "includeOptions"
-          | "trendDays"
-          | "sortField"
-          | "sortOrder"
-        >;
-        value: string;
-      };
-    }
+    type: "SET_FILTER";
+    payload: {
+      key: keyof Omit<
+        RevenueReportState,
+        | "isRefreshing"
+        | "isLoading"
+        | "hasError"
+        | "showExportModal"
+        | "exportFormat"
+        | "exportScope"
+        | "includeOptions"
+        | "trendDays"
+        | "sortField"
+        | "sortOrder"
+      >;
+      value: string;
+    };
+  }
   | {
-      type: "RESET_FILTERS";
-    }
+    type: "RESET_FILTERS";
+  }
   | { type: "SET_REFRESHING"; payload: boolean }
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "SET_ERROR"; payload: boolean }
   | {
-      type: "SET_EXPORT_STATE";
-      payload: Partial<
-        Pick<
-          RevenueReportState,
-          "showExportModal" | "exportFormat" | "exportScope" | "includeOptions"
-        >
-      >;
-    }
+    type: "SET_EXPORT_STATE";
+    payload: Partial<
+      Pick<
+        RevenueReportState,
+        "showExportModal" | "exportFormat" | "exportScope" | "includeOptions"
+      >
+    >;
+  }
   | {
-      type: "SET_TREND_DAYS";
-      payload: "Today" | "7 Days" | "30 Days" | "90 Days";
-    }
+    type: "SET_TREND_DAYS";
+    payload: "Today" | "7 Days" | "30 Days" | "90 Days";
+  }
   | {
-      type: "SET_SORT";
-      payload: {
-        sortField: keyof RevenueReportRecord;
-        sortOrder: "asc" | "desc";
-      };
+    type: "SET_SORT";
+    payload: {
+      sortField: keyof RevenueReportRecord;
+      sortOrder: "asc" | "desc";
     };
+  };
 
 const DEFAULT_STATE: RevenueReportState = {
   searchQuery: "",
@@ -593,7 +593,7 @@ export function DailyRevenueReportScreen({
 
   return (
     <div
-      className="min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
+      className="w-full flex-1 min-h-screen bg-[#F1F5F9] text-[#111827] pb-12"
       style={{ fontFamily: RB }}
     >
       {/* Top Header Section */}
@@ -709,6 +709,228 @@ export function DailyRevenueReportScreen({
                 Clear
               </button>
             )}
+          </div>
+        </div>
+
+        {/* TOP 6 KPI CARDS SECTION */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+          {/* Card 1: Today's Revenue */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Today's Revenue
+              </span>
+              <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
+                <DollarSign className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {formatCurrency(computedRevenueStats.totalRev)}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+              <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
+                <TrendingUp className="w-3 h-3" /> --
+              </span>
+              <span>vs period average</span>
+            </div>
+            <div className="h-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendSource}>
+                  <Line
+                    type="monotone"
+                    dataKey="Revenue"
+                    stroke="#66BB6A"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Card 2: Collected Revenue */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Collected Revenue
+              </span>
+              <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {formatCurrency(computedRevenueStats.collectedRev)}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+              <span className="text-[#009688] font-semibold">
+                {(
+                  (computedRevenueStats.collectedRev /
+                    (computedRevenueStats.totalRev || 1)) *
+                  100
+                ).toFixed(1)}
+                % Collection Rate
+              </span>
+            </div>
+            <div className="h-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={trendSource}>
+                  <Area
+                    type="monotone"
+                    dataKey="Collections"
+                    stroke="#009688"
+                    fill="#009688"
+                    fillOpacity={0.2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Card 3: Outstanding Amount */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Outstanding Amount
+              </span>
+              <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
+                <Clock className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {formatCurrency(computedRevenueStats.outstanding)}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
+              <span className="text-[#F59E0B] font-semibold">
+                {(
+                  (computedRevenueStats.outstanding /
+                    (computedRevenueStats.totalRev || 1)) *
+                  100
+                ).toFixed(1)}
+                % Outstanding Rate
+              </span>
+            </div>
+            <div className="h-8">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendSource}>
+                  <Line
+                    type="monotone"
+                    dataKey="Outstanding"
+                    stroke="#F59E0B"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Card 4: Invoices Summary */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Invoices Generated
+              </span>
+              <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
+                <CreditCard className="w-4 h-4" />
+              </div>
+            </div>
+            <div
+              className="text-2xl font-bold text-[#111827] mb-1"
+              style={{ fontFamily: PP }}
+            >
+              {computedRevenueStats.invoicesCount}
+            </div>
+            <div className="grid grid-cols-3 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center mt-1">
+              <div>
+                <div className="text-[#66BB6A] font-bold">
+                  {computedRevenueStats.paidInvoices}
+                </div>
+                <div className="text-[#64748B]">Paid</div>
+              </div>
+              <div>
+                <div className="text-[#F59E0B] font-bold">
+                  {computedRevenueStats.pendingInvoices}
+                </div>
+                <div className="text-[#64748B]">Pending</div>
+              </div>
+              <div>
+                <div className="text-[#64748B] font-bold">
+                  {computedRevenueStats.voidInvoices}
+                </div>
+                <div className="text-[#64748B]">Void</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 5: Payment Methods Stack */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[#64748B]">
+                Payment Methods
+              </span>
+              <div className="p-2 rounded-xl bg-[#F1F5F9] text-[#0D47A1]">
+                <PieChartIcon className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-xs font-bold text-[#111827] mb-1">
+              Cash: -- | Card: --
+            </div>
+            <div className="text-[11px] text-[#64748B] mb-2">
+              UPI: -- | Bank: --
+            </div>
+            <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
+              <div
+                className="bg-[#009688] h-full"
+                style={{ width: "35%" }}
+              />
+              <div
+                className="bg-[#0D47A1] h-full"
+                style={{ width: "32%" }}
+              />
+              <div
+                className="bg-[#4DB6AC] h-full"
+                style={{ width: "26%" }}
+              />
+              <div
+                className="bg-[#66BB6A] h-full"
+                style={{ width: "7%" }}
+              />
+            </div>
+          </div>
+
+          {/* Card 6: Average Invoice Value */}
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-[#64748B]">
+                Avg Invoice Value
+              </span>
+              <div
+                className="text-2xl font-bold text-[#111827] mt-1"
+                style={{ fontFamily: PP }}
+              >
+                {formatCurrency(computedRevenueStats.avgValue)}
+              </div>
+              <p className="text-[11px] text-[#64748B] mt-1">
+                Highest: -- | Min: --
+              </p>
+              <div className="mt-1 text-[11px] font-semibold text-[#0D47A1]">
+                ✓ OPD Fee Benchmark
+              </div>
+            </div>
+            <CircularProgress
+              percentage={collectionRateData?.collectionRate ?? 0}
+              size={64}
+              strokeWidth={7}
+            />
           </div>
         </div>
 
@@ -894,144 +1116,144 @@ export function DailyRevenueReportScreen({
           appliedFilters.paymentStatus !== "All Statuses" ||
           appliedFilters.paymentMethod !== "All Methods" ||
           searchQuery) && (
-          <div className="flex items-center gap-2 flex-wrap mb-4 bg-white p-3 rounded-2xl border border-[#E5E7EB] text-xs">
-            <span
-              className="font-semibold text-[#64748B] mr-1"
-              style={{ fontFamily: PP }}
-            >
-              Applied Filters:
-            </span>
-            {appliedFilters.dateRange !== "Today" && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-[#0D47A1] border border-blue-200 font-medium">
-                Period: {appliedFilters.dateRange}
-                <button
-                  aria-label="Filter"
-                  onClick={() => {
-                    dispatch({
-                      type: "SET_FILTER",
-                      payload: { key: "dateRange", value: "Today" },
-                    });
-                    setAppliedFilters((prev) => ({
-                      ...prev,
-                      dateRange: "Today",
-                    }));
-                  }}
-                  className="hover:text-red-500 font-bold ml-1"
-                >
-                  ×
-                </button>
+            <div className="flex items-center gap-2 flex-wrap mb-4 bg-white p-3 rounded-2xl border border-[#E5E7EB] text-xs">
+              <span
+                className="font-semibold text-[#64748B] mr-1"
+                style={{ fontFamily: PP }}
+              >
+                Applied Filters:
               </span>
-            )}
-            {appliedFilters.dept !== "All Departments" && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-teal-50 text-[#009688] border border-teal-200 font-medium">
-                Dept: {appliedFilters.dept}
-                <button
-                  aria-label="Filter"
-                  onClick={() => {
-                    dispatch({
-                      type: "SET_FILTER",
-                      payload: { key: "deptFilter", value: "All Departments" },
-                    });
-                    setAppliedFilters((prev) => ({
-                      ...prev,
-                      dept: "All Departments",
-                    }));
-                  }}
-                  className="hover:text-red-500 font-bold ml-1"
-                >
-                  ×
-                </button>
-              </span>
-            )}
-            {appliedFilters.doctor !== "All Doctors" && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-[#66BB6A] border border-emerald-200 font-medium">
-                Doctor: {appliedFilters.doctor}
-                <button
-                  aria-label="Filter"
-                  onClick={() => {
-                    dispatch({
-                      type: "SET_FILTER",
-                      payload: { key: "doctorFilter", value: "All Doctors" },
-                    });
-                    setAppliedFilters((prev) => ({
-                      ...prev,
-                      doctor: "All Doctors",
-                    }));
-                  }}
-                  className="hover:text-red-500 font-bold ml-1"
-                >
-                  ×
-                </button>
-              </span>
-            )}
-            {appliedFilters.paymentStatus !== "All Statuses" && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-[#F59E0B] border border-amber-200 font-medium">
-                Status: {appliedFilters.paymentStatus}
-                <button
-                  aria-label="Filter"
-                  onClick={() => {
-                    dispatch({
-                      type: "SET_FILTER",
-                      payload: {
-                        key: "paymentStatusFilter",
-                        value: "All Statuses",
-                      },
-                    });
-                    setAppliedFilters((prev) => ({
-                      ...prev,
-                      paymentStatus: "All Statuses",
-                    }));
-                  }}
-                  className="hover:text-red-500 font-bold ml-1"
-                >
-                  ×
-                </button>
-              </span>
-            )}
-            {appliedFilters.paymentMethod !== "All Methods" && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-medium">
-                Method: {appliedFilters.paymentMethod}
-                <button
-                  aria-label="Filter"
-                  onClick={() => {
-                    dispatch({
-                      type: "SET_FILTER",
-                      payload: {
-                        key: "paymentMethodFilter",
-                        value: "All Methods",
-                      },
-                    });
-                    setAppliedFilters((prev) => ({
-                      ...prev,
-                      paymentMethod: "All Methods",
-                    }));
-                  }}
-                  className="hover:text-red-500 font-bold ml-1"
-                >
-                  ×
-                </button>
-              </span>
-            )}
-            {searchQuery && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-[#111827] border border-slate-300 font-medium">
-                Search: "{searchQuery}"
-                <button
-                  aria-label="Action"
-                  onClick={() => dispatch({ type: "SET_SEARCH", payload: "" })}
-                  className="hover:text-red-500 font-bold ml-1"
-                >
-                  ×
-                </button>
-              </span>
-            )}
-            <button
-              onClick={handleResetFilters}
-              className="text-xs text-[#EF4444] font-semibold hover:underline ml-auto"
-            >
-              Clear All Filters
-            </button>
-          </div>
-        )}
+              {appliedFilters.dateRange !== "Today" && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-[#0D47A1] border border-blue-200 font-medium">
+                  Period: {appliedFilters.dateRange}
+                  <button
+                    aria-label="Filter"
+                    onClick={() => {
+                      dispatch({
+                        type: "SET_FILTER",
+                        payload: { key: "dateRange", value: "Today" },
+                      });
+                      setAppliedFilters((prev) => ({
+                        ...prev,
+                        dateRange: "Today",
+                      }));
+                    }}
+                    className="hover:text-red-500 font-bold ml-1"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {appliedFilters.dept !== "All Departments" && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-teal-50 text-[#009688] border border-teal-200 font-medium">
+                  Dept: {appliedFilters.dept}
+                  <button
+                    aria-label="Filter"
+                    onClick={() => {
+                      dispatch({
+                        type: "SET_FILTER",
+                        payload: { key: "deptFilter", value: "All Departments" },
+                      });
+                      setAppliedFilters((prev) => ({
+                        ...prev,
+                        dept: "All Departments",
+                      }));
+                    }}
+                    className="hover:text-red-500 font-bold ml-1"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {appliedFilters.doctor !== "All Doctors" && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-[#66BB6A] border border-emerald-200 font-medium">
+                  Doctor: {appliedFilters.doctor}
+                  <button
+                    aria-label="Filter"
+                    onClick={() => {
+                      dispatch({
+                        type: "SET_FILTER",
+                        payload: { key: "doctorFilter", value: "All Doctors" },
+                      });
+                      setAppliedFilters((prev) => ({
+                        ...prev,
+                        doctor: "All Doctors",
+                      }));
+                    }}
+                    className="hover:text-red-500 font-bold ml-1"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {appliedFilters.paymentStatus !== "All Statuses" && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-[#F59E0B] border border-amber-200 font-medium">
+                  Status: {appliedFilters.paymentStatus}
+                  <button
+                    aria-label="Filter"
+                    onClick={() => {
+                      dispatch({
+                        type: "SET_FILTER",
+                        payload: {
+                          key: "paymentStatusFilter",
+                          value: "All Statuses",
+                        },
+                      });
+                      setAppliedFilters((prev) => ({
+                        ...prev,
+                        paymentStatus: "All Statuses",
+                      }));
+                    }}
+                    className="hover:text-red-500 font-bold ml-1"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {appliedFilters.paymentMethod !== "All Methods" && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-medium">
+                  Method: {appliedFilters.paymentMethod}
+                  <button
+                    aria-label="Filter"
+                    onClick={() => {
+                      dispatch({
+                        type: "SET_FILTER",
+                        payload: {
+                          key: "paymentMethodFilter",
+                          value: "All Methods",
+                        },
+                      });
+                      setAppliedFilters((prev) => ({
+                        ...prev,
+                        paymentMethod: "All Methods",
+                      }));
+                    }}
+                    className="hover:text-red-500 font-bold ml-1"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              {searchQuery && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-[#111827] border border-slate-300 font-medium">
+                  Search: "{searchQuery}"
+                  <button
+                    aria-label="Action"
+                    onClick={() => dispatch({ type: "SET_SEARCH", payload: "" })}
+                    className="hover:text-red-500 font-bold ml-1"
+                  >
+                    ×
+                  </button>
+                </span>
+              )}
+              <button
+                onClick={handleResetFilters}
+                className="text-xs text-[#EF4444] font-semibold hover:underline ml-auto"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          )}
 
         {/* ERROR STATE */}
         {hasError && (
@@ -1076,231 +1298,7 @@ export function DailyRevenueReportScreen({
         )}
 
         {!isLoading && !hasError && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* LEFT MAIN CONTENT AREA (3 Cols) */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* TOP 6 KPI CARDS SECTION */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Card 1: Today's Revenue */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Today's Revenue
-                    </span>
-                    <div className="p-2 rounded-xl bg-emerald-50 text-[#66BB6A]">
-                      <DollarSign className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {formatCurrency(computedRevenueStats.totalRev)}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
-                    <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                      <TrendingUp className="w-3 h-3" /> --
-                    </span>
-                    <span>vs period average</span>
-                  </div>
-                  <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={trendSource}>
-                        <Line
-                          type="monotone"
-                          dataKey="Revenue"
-                          stroke="#66BB6A"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Card 2: Collected Revenue */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Collected Revenue
-                    </span>
-                    <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {formatCurrency(computedRevenueStats.collectedRev)}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
-                    <span className="text-[#009688] font-semibold">
-                      {(
-                        (computedRevenueStats.collectedRev /
-                          (computedRevenueStats.totalRev || 1)) *
-                        100
-                      ).toFixed(1)}
-                      % Collection Rate
-                    </span>
-                  </div>
-                  <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={trendSource}>
-                        <Area
-                          type="monotone"
-                          dataKey="Collections"
-                          stroke="#009688"
-                          fill="#009688"
-                          fillOpacity={0.2}
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Card 3: Outstanding Amount */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Outstanding Amount
-                    </span>
-                    <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
-                      <Clock className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {formatCurrency(computedRevenueStats.outstanding)}
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] text-[#64748B] mb-2">
-                    <span className="text-[#F59E0B] font-semibold">
-                      {(
-                        (computedRevenueStats.outstanding /
-                          (computedRevenueStats.totalRev || 1)) *
-                        100
-                      ).toFixed(1)}
-                      % Outstanding Rate
-                    </span>
-                  </div>
-                  <div className="h-8">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={trendSource}>
-                        <Line
-                          type="monotone"
-                          dataKey="Outstanding"
-                          stroke="#F59E0B"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Card 4: Invoices Summary */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Invoices Generated
-                    </span>
-                    <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
-                      <CreditCard className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    {computedRevenueStats.invoicesCount}
-                  </div>
-                  <div className="grid grid-cols-3 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center mt-1">
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">
-                        {computedRevenueStats.paidInvoices}
-                      </div>
-                      <div className="text-[#64748B]">Paid</div>
-                    </div>
-                    <div>
-                      <div className="text-[#F59E0B] font-bold">
-                        {computedRevenueStats.pendingInvoices}
-                      </div>
-                      <div className="text-[#64748B]">Pending</div>
-                    </div>
-                    <div>
-                      <div className="text-[#64748B] font-bold">
-                        {computedRevenueStats.voidInvoices}
-                      </div>
-                      <div className="text-[#64748B]">Void</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 5: Payment Methods Stack */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Payment Methods
-                    </span>
-                    <div className="p-2 rounded-xl bg-[#F1F5F9] text-[#0D47A1]">
-                      <PieChartIcon className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="text-xs font-bold text-[#111827] mb-1">
-                    Cash: -- | Card: --
-                  </div>
-                  <div className="text-[11px] text-[#64748B] mb-2">
-                    UPI: -- | Bank: --
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2 flex overflow-hidden">
-                    <div
-                      className="bg-[#009688] h-full"
-                      style={{ width: "35%" }}
-                    />
-                    <div
-                      className="bg-[#0D47A1] h-full"
-                      style={{ width: "32%" }}
-                    />
-                    <div
-                      className="bg-[#4DB6AC] h-full"
-                      style={{ width: "26%" }}
-                    />
-                    <div
-                      className="bg-[#66BB6A] h-full"
-                      style={{ width: "7%" }}
-                    />
-                  </div>
-                </div>
-
-                {/* Card 6: Average Invoice Value */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-semibold text-[#64748B]">
-                      Avg Invoice Value
-                    </span>
-                    <div
-                      className="text-2xl font-bold text-[#111827] mt-1"
-                      style={{ fontFamily: PP }}
-                    >
-                      {formatCurrency(computedRevenueStats.avgValue)}
-                    </div>
-                    <p className="text-[11px] text-[#64748B] mt-1">
-                      Highest: -- | Min: --
-                    </p>
-                    <div className="mt-1 text-[11px] font-semibold text-[#0D47A1]">
-                      âœ" OPD Fee Benchmark
-                    </div>
-                  </div>
-                  <CircularProgress
-                    percentage={collectionRateData?.collectionRate ?? 0}
-                    size={64}
-                    strokeWidth={7}
-                  />
-                </div>
-              </div>
-
+          <div className="space-y-6">
               {/* REVENUE TREND AREA CHART */}
               <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -1827,8 +1825,7 @@ export function DailyRevenueReportScreen({
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* FOOTER */}
         <div className="mt-8 pt-4 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between text-xs text-[#64748B] gap-2">

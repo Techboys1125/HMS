@@ -36,21 +36,25 @@ export function ScheduleExceptionsTab({
 
   useEffect(() => {
     let cancelled = false;
-    const loadExceptions = async () => {
+
+    async function loadExceptions() {
       setLoading(true);
       try {
         const targetId = resolveDoctorId(doctor);
         const data = await doctorsService.getScheduleExceptions(targetId);
-        if (!cancelled) setExceptions(data || []);
+        if (cancelled) return;
+        setExceptions(data || []);
       } catch (err) {
-        console.log(err);
-      } finally {
         if (!cancelled) {
-          setLoading(false);
+          console.log(err);
         }
+      } finally {
+        setLoading(false);
       }
-    };
+    }
+
     void loadExceptions();
+
     return () => {
       cancelled = true;
     };

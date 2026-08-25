@@ -192,9 +192,9 @@ function VitalsDetailsScreen({
                 {typeof activeApt.department === "string"
                   ? activeApt.department
                   : activeApt.department?.departmentName ||
-                    activeApt.department?.name ||
-                    activeApt.department?.departmentCode ||
-                    ""}
+                  activeApt.department?.name ||
+                  activeApt.department?.departmentCode ||
+                  ""}
               </strong>
             </div>
           </div>
@@ -314,9 +314,9 @@ function VitalsDetailsScreen({
                     {typeof activeApt.department === "string"
                       ? activeApt.department
                       : activeApt.department?.departmentName ||
-                        activeApt.department?.name ||
-                        activeApt.department?.departmentCode ||
-                        ""}
+                      activeApt.department?.name ||
+                      activeApt.department?.departmentCode ||
+                      ""}
                   </strong>
                 </div>
                 <div className="flex justify-between">
@@ -807,13 +807,12 @@ export function RecordPatientVitalsForm({
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 transition-opacity duration-200 ${
-            toast.type === "success"
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 transition-opacity duration-200 ${toast.type === "success"
               ? "bg-[#66BB6A] border-green-300"
               : toast.type === "error"
                 ? "bg-[#EF4444] border-red-300"
                 : "bg-[#0D47A1] border-blue-300"
-          }`}
+            }`}
         >
           <AlertCircle size={16} />
           {toast.message}
@@ -873,9 +872,9 @@ export function RecordPatientVitalsForm({
                 {typeof activeApt.department === "string"
                   ? activeApt.department
                   : activeApt.department?.departmentName ||
-                    activeApt.department?.name ||
-                    activeApt.department?.departmentCode ||
-                    ""}
+                  activeApt.department?.name ||
+                  activeApt.department?.departmentCode ||
+                  ""}
               </strong>
             </div>
           </div>
@@ -942,9 +941,9 @@ export function RecordPatientVitalsForm({
                 {typeof activeApt.department === "string"
                   ? activeApt.department
                   : activeApt.department?.departmentName ||
-                    activeApt.department?.name ||
-                    activeApt.department?.departmentCode ||
-                    ""}
+                  activeApt.department?.name ||
+                  activeApt.department?.departmentCode ||
+                  ""}
               </strong>
             </div>
             <div>
@@ -1216,8 +1215,8 @@ export function RecordPatientVitalsScreen({
               item.departmentName ||
               (typeof item.department === "object"
                 ? item.department?.departmentName ||
-                  item.department?.name ||
-                  item.department?.departmentCode
+                item.department?.name ||
+                item.department?.departmentCode
                 : undefined) ||
               (typeof item.department === "string"
                 ? item.department
@@ -1229,8 +1228,8 @@ export function RecordPatientVitalsScreen({
               item.departmentName ||
               (typeof item.department === "object"
                 ? item.department?.departmentName ||
-                  item.department?.name ||
-                  item.department?.departmentCode
+                item.department?.name ||
+                item.department?.departmentCode
                 : undefined) ||
               (typeof item.department === "string"
                 ? item.department
@@ -1243,8 +1242,8 @@ export function RecordPatientVitalsScreen({
               item.doctor?.specialty ||
               (typeof item.department === "object"
                 ? item.department?.departmentName ||
-                  item.department?.name ||
-                  item.department?.departmentCode
+                item.department?.name ||
+                item.department?.departmentCode
                 : undefined) ||
               (typeof item.department === "string"
                 ? item.department
@@ -1519,13 +1518,12 @@ export function RecordPatientVitalsScreen({
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 transition-opacity duration-200 ${
-            toast.type === "success"
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg border text-white text-xs font-semibold flex items-center gap-2 transition-opacity duration-200 ${toast.type === "success"
               ? "bg-[#66BB6A] border-green-300"
               : toast.type === "error"
                 ? "bg-[#EF4444] border-red-300"
                 : "bg-[#0D47A1] border-blue-300"
-          }`}
+            }`}
         >
           <AlertCircle size={16} />
           {toast.message}
@@ -1722,20 +1720,18 @@ export function RecordPatientVitalsScreen({
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap flex items-center gap-2 border ${
-              activeTab === tab.id
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors whitespace-nowrap flex items-center gap-2 border ${activeTab === tab.id
                 ? "bg-[#0D47A1] text-white border-[#0D47A1] shadow-xs"
                 : "bg-white text-slate-600 border-[#E5E7EB] hover:bg-slate-50"
-            }`}
+              }`}
             style={{ fontFamily: PP }}
           >
             <span>{tab.label}</span>
             <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                activeTab === tab.id
+              className={`px-1.5 py-0.2 rounded-full text-[10px] ${activeTab === tab.id
                   ? "bg-white/20 text-white"
                   : "bg-slate-100 text-slate-600"
-              }`}
+                }`}
             >
               {tab.count}
             </span>
@@ -1944,10 +1940,10 @@ export function RecordPatientVitalsScreen({
                           {typeof apt.department === "string"
                             ? apt.department
                             : apt.departmentName ||
-                              apt.department?.departmentName ||
-                              apt.department?.name ||
-                              apt.department?.departmentCode ||
-                              "Cardiology"}
+                            apt.department?.departmentName ||
+                            apt.department?.name ||
+                            apt.department?.departmentCode ||
+                            "Cardiology"}
                         </td>
                         <td className="px-4 py-3.5 font-mono text-[#0D47A1] font-bold">
                           {apt.timeSlot}
