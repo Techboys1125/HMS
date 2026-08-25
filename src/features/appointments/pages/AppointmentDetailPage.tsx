@@ -20,6 +20,281 @@ import { StatusBadge } from "../components/StatusBadge";
 import { Avatar } from "../components/Avatar";
 import type { AppointmentRecord } from "../types/appointment.types";
 
+type DoctorInfo = {
+  id: string | number;
+  name: string;
+  department?: string;
+  specialty?: string;
+  opdRoom?: string;
+};
+
+type TimelineStep = {
+  title: string;
+  timestamp: string;
+  by: string;
+  status: "completed" | "active" | "upcoming";
+};
+
+const AppointmentDetailHeader = ({
+  navigate,
+  apt,
+}: {
+  navigate: ReturnType<typeof useNavigate>;
+  apt: AppointmentRecord;
+}) => (
+  <div>
+    <div className="flex items-center gap-2 mb-1">
+      <button
+        aria-label="Previous"
+        onClick={() => navigate(ROUTES.APPOINTMENTS)}
+        className="p-1.5 -ml-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
+      >
+        <ChevronLeft size={20} />
+      </button>
+      <h1
+        className="text-xl font-bold text-[#111827]"
+        style={{ fontFamily: PP }}
+      >
+        Appointment Details
+      </h1>
+    </div>
+    <div
+      className="flex items-center gap-1.5 text-xs text-slate-500 pl-8"
+      style={{ fontFamily: RB }}
+    >
+      <span>Appointments</span>
+      <ChevronRight size={13} className="text-slate-300" />
+      <span className="font-semibold text-[#111827]">{apt.id}</span>
+    </div>
+  </div>
+);
+
+const AppointmentSummary = ({ apt }: { apt: AppointmentRecord }) => (
+  <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-2.5">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-sm font-bold text-[#0D47A1]">
+          {apt.id}
+        </span>
+        <span className="text-xs text-slate-400 font-mono">
+          ({apt.tokenNo})
+        </span>
+      </div>
+      <StatusBadge status={apt.status} />
+    </div>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+      <div className="bg-slate-50 p-2 rounded-xl border border-slate-200/80">
+        <span className="text-[10px] text-slate-400 block font-medium">
+          Date
+        </span>
+        <strong className="text-[#111827]">{apt.appointmentDate}</strong>
+      </div>
+      <div className="bg-slate-50 p-2 rounded-xl border border-slate-200/80">
+        <span className="text-[10px] text-slate-400 block font-medium">
+          Time Slot
+        </span>
+        <strong className="text-[#0D47A1] font-mono">{apt.timeSlot}</strong>
+      </div>
+      <div className="bg-slate-50 p-2 rounded-xl border border-slate-200/80">
+        <span className="text-[10px] text-slate-400 block font-medium">
+          Visit Type
+        </span>
+        <span className="font-bold text-[#009688]">{apt.visitType}</span>
+      </div>
+      <div className="bg-slate-50 p-2 rounded-xl border border-slate-200/80">
+        <span className="text-[10px] text-slate-400 block font-medium">
+          Token No
+        </span>
+        <span className="font-mono font-bold text-[#0D47A1]">
+          {apt.tokenNo}
+        </span>
+      </div>
+    </div>
+  </div>
+);
+
+const AppointmentPatientSection = ({
+  navigate,
+  patientInfo,
+}: {
+  navigate: ReturnType<typeof useNavigate>;
+  patientInfo: ReturnType<typeof appointmentToPatientSummary>;
+}) => (
+  <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
+    <div className="flex items-center justify-between border-b border-gray-100 pb-3 flex-wrap gap-2">
+      <h3
+        className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2"
+        style={{ fontFamily: PP }}
+      >
+        <User size={15} className="text-[#0D47A1]" /> Patient Information
+      </h3>
+      <button
+        onClick={() => navigate(`/patients/profile/${patientInfo.mrn}`)}
+        className="px-3 py-1.5 rounded-xl bg-blue-50 text-[#0D47A1] border border-blue-100 text-xs font-bold hover:bg-blue-100 transition-colors flex items-center gap-1.5"
+        style={{ fontFamily: PP }}
+      >
+        <User size={13} /> View Patient Profile
+      </button>
+    </div>
+    <div className="flex items-start gap-4">
+      <Avatar name={patientInfo.name} size="lg" />
+      <div className="flex-1 min-w-0">
+        <h4
+          className="text-base font-bold text-[#111827]"
+          style={{ fontFamily: PP }}
+        >
+          {patientInfo.name}
+        </h4>
+        <div className="text-xs text-slate-500 font-mono mt-0.5">
+          <span className="text-[#0D47A1] font-bold">{patientInfo.mrn}</span> ·
+          ID: {patientInfo.id}
+        </div>
+      </div>
+    </div>
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+        <span className="text-slate-400 text-[10px] block font-medium">
+          Age & Gender
+        </span>
+        <strong className="text-[#111827]">
+          {patientInfo.age} yrs / {patientInfo.gender}
+        </strong>
+      </div>
+      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+        <span className="text-slate-400 text-[10px] block font-medium">
+          Blood Group
+        </span>
+        <strong className="text-[#0D47A1]">{patientInfo.bloodGroup}</strong>
+      </div>
+      <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+        <span className="text-slate-400 text-[10px] block font-medium">
+          Mobile Number
+        </span>
+        <strong className="text-[#111827]">{patientInfo.phone}</strong>
+      </div>
+    </div>
+  </div>
+);
+
+const AppointmentDoctorSection = ({
+  doctorInfo,
+}: {
+  doctorInfo: DoctorInfo;
+}) => (
+  <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
+    <h3
+      className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2"
+      style={{ fontFamily: PP }}
+    >
+      <Stethoscope size={15} className="text-[#0D47A1]" /> Doctor Information
+    </h3>
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+      <div className="col-span-2 sm:col-span-1">
+        <span className="text-slate-400 text-[10px] block font-medium">
+          Attending Doctor
+        </span>
+        <strong className="text-[#111827] text-sm">{doctorInfo.name}</strong>
+      </div>
+      <div>
+        <span className="text-slate-400 text-[10px] block font-medium">
+          Department
+        </span>
+        <strong className="text-[#0D47A1]">{doctorInfo.department}</strong>
+      </div>
+      <div>
+        <span className="text-slate-400 text-[10px] block font-medium">
+          Room Number
+        </span>
+        <strong className="text-[#009688]">{doctorInfo.opdRoom}</strong>
+      </div>
+    </div>
+  </div>
+);
+
+const AppointmentClinicalSection = ({ apt }: { apt: AppointmentRecord }) => (
+  <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
+    <h3
+      className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2"
+      style={{ fontFamily: PP }}
+    >
+      <FileText size={15} className="text-[#009688]" /> Clinical Preparation
+    </h3>
+    <div className="space-y-2 text-xs">
+      <div>
+        <span className="text-slate-400 text-[10px] block font-medium mb-1">
+          Chief Complaint
+        </span>
+        <div className="p-3 bg-amber-50/80 border border-amber-100 rounded-xl text-amber-950 font-medium">
+          {apt.chiefComplaint || "No chief complaint recorded."}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const AppointmentTimeline = ({
+  timelineSteps,
+}: {
+  timelineSteps: TimelineStep[];
+}) => (
+  <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
+    <h3
+      className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2"
+      style={{ fontFamily: PP }}
+    >
+      <Clock size={15} className="text-[#0D47A1]" /> Appointment Timeline
+    </h3>
+    <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+      {timelineSteps.map((step) => (
+        <div key={step.title} className="relative">
+          <div
+            className={`absolute -left-6 top-0.5 w-4 h-4 rounded-full border-2 bg-white flex items-center justify-center ${step.status === "completed" ? "border-[#66BB6A] text-[#66BB6A]" : step.status === "active" ? "border-[#0D47A1] text-[#0D47A1]" : "border-slate-300"}`}
+          >
+            {step.status === "completed" && <Check size={10} />}
+            {step.status === "active" && (
+              <div className="w-1.5 h-1.5 rounded-full bg-[#0D47A1]" />
+            )}
+          </div>
+          <div>
+            <div
+              className="text-xs font-bold text-[#111827]"
+              style={{ fontFamily: PP }}
+            >
+              {step.title}
+            </div>
+            <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+              {step.timestamp} · {step.by}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const AppointmentDetailActions = ({
+  navigate,
+}: {
+  navigate: ReturnType<typeof useNavigate>;
+}) => (
+  <div className="flex items-center justify-between">
+    <button
+      onClick={() => navigate(ROUTES.APPOINTMENTS)}
+      className="px-5 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-colors"
+      style={{ fontFamily: RB }}
+    >
+      Back to Appointments
+    </button>
+    <button
+      onClick={() => window.print()}
+      className="px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-1.5"
+      style={{ fontFamily: PP }}
+    >
+      <Printer size={14} /> Print Summary
+    </button>
+  </div>
+);
+
 export function AppointmentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -100,7 +375,7 @@ export function AppointmentDetailPage() {
     opdRoom: apt.opdRoom || "Room 104 - Wing A",
   };
 
-  const timelineSteps = [
+  const timelineSteps: TimelineStep[] = [
     {
       title: "Appointment Booked",
       timestamp: `${apt.createdDate} 09:15 AM`,
@@ -133,77 +408,8 @@ export function AppointmentDetailPage() {
       style={{ fontFamily: RB }}
     >
       <div className="w-full space-y-6">
-        {/* Header */}
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <button
-              aria-label="Previous"
-              onClick={() => navigate(ROUTES.APPOINTMENTS)}
-              className="p-1.5 -ml-1.5 text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 rounded-lg transition-colors"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <h1
-              className="text-xl font-bold text-[#111827]"
-              style={{ fontFamily: PP }}
-            >
-              Appointment Details
-            </h1>
-          </div>
-          <div
-            className="flex items-center gap-1.5 text-xs text-slate-500 pl-8"
-            style={{ fontFamily: RB }}
-          >
-            <span>Appointments</span>
-            <ChevronRight size={13} className="text-slate-300" />
-            <span className="font-semibold text-[#111827]">{apt.id}</span>
-          </div>
-        </div>
-
-        {/* Quick Summary Strip */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-2.5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-sm font-bold text-[#0D47A1]">
-                {apt.id}
-              </span>
-              <span className="text-xs text-slate-400 font-mono">
-                ({apt.tokenNo})
-              </span>
-            </div>
-            <StatusBadge status={apt.status} />
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-            <div className="bg-slate-50 p-2 rounded-xl border border-slate-200/80">
-              <span className="text-[10px] text-slate-400 block font-medium">
-                Date
-              </span>
-              <strong className="text-[#111827]">{apt.appointmentDate}</strong>
-            </div>
-            <div className="bg-slate-50 p-2 rounded-xl border border-slate-200/80">
-              <span className="text-[10px] text-slate-400 block font-medium">
-                Time Slot
-              </span>
-              <strong className="text-[#0D47A1] font-mono">
-                {apt.timeSlot}
-              </strong>
-            </div>
-            <div className="bg-slate-50 p-2 rounded-xl border border-slate-200/80">
-              <span className="text-[10px] text-slate-400 block font-medium">
-                Visit Type
-              </span>
-              <span className="font-bold text-[#009688]">{apt.visitType}</span>
-            </div>
-            <div className="bg-slate-50 p-2 rounded-xl border border-slate-200/80">
-              <span className="text-[10px] text-slate-400 block font-medium">
-                Token No
-              </span>
-              <span className="font-mono font-bold text-[#0D47A1]">
-                {apt.tokenNo}
-              </span>
-            </div>
-          </div>
-        </div>
+        <AppointmentDetailHeader navigate={navigate} apt={apt} />
+        <AppointmentSummary apt={apt} />
 
         {/* Navigation Tabs */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -234,74 +440,13 @@ export function AppointmentDetailPage() {
           </div>
 
           <div className="p-6 space-y-5">
-            {/* Patient Information */}
             {(activeTab === "all" || activeTab === "patient") && (
-              <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
-                <div className="flex items-center justify-between border-b border-gray-100 pb-3 flex-wrap gap-2">
-                  <h3
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <User size={15} className="text-[#0D47A1]" /> Patient
-                    Information
-                  </h3>
-                  <button
-                    onClick={() =>
-                      navigate(`/patients/profile/${patientInfo.mrn}`)
-                    }
-                    className="px-3 py-1.5 rounded-xl bg-blue-50 text-[#0D47A1] border border-blue-100 text-xs font-bold hover:bg-blue-100 transition-colors flex items-center gap-1.5"
-                    style={{ fontFamily: PP }}
-                  >
-                    <User size={13} /> View Patient Profile
-                  </button>
-                </div>
-                <div className="flex items-start gap-4">
-                  <Avatar name={patientInfo.name} size="lg" />
-                  <div className="flex-1 min-w-0">
-                    <h4
-                      className="text-base font-bold text-[#111827]"
-                      style={{ fontFamily: PP }}
-                    >
-                      {patientInfo.name}
-                    </h4>
-                    <div className="text-xs text-slate-500 font-mono mt-0.5">
-                      <span className="text-[#0D47A1] font-bold">
-                        {patientInfo.mrn}
-                      </span>{" "}
-                      · ID: {patientInfo.id}
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                    <span className="text-slate-400 text-[10px] block font-medium">
-                      Age & Gender
-                    </span>
-                    <strong className="text-[#111827]">
-                      {patientInfo.age} yrs / {patientInfo.gender}
-                    </strong>
-                  </div>
-                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                    <span className="text-slate-400 text-[10px] block font-medium">
-                      Blood Group
-                    </span>
-                    <strong className="text-[#0D47A1]">
-                      {patientInfo.bloodGroup}
-                    </strong>
-                  </div>
-                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                    <span className="text-slate-400 text-[10px] block font-medium">
-                      Mobile Number
-                    </span>
-                    <strong className="text-[#111827]">
-                      {patientInfo.phone}
-                    </strong>
-                  </div>
-                </div>
-              </div>
+              <AppointmentPatientSection
+                navigate={navigate}
+                patientInfo={patientInfo}
+              />
             )}
 
-            {/* Appointment Information */}
             {(activeTab === "all" || activeTab === "appointment") && (
               <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
                 <h3
@@ -346,69 +491,14 @@ export function AppointmentDetailPage() {
               </div>
             )}
 
-            {/* Doctor Information */}
             {(activeTab === "all" || activeTab === "appointment") && (
-              <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
-                <h3
-                  className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2"
-                  style={{ fontFamily: PP }}
-                >
-                  <Stethoscope size={15} className="text-[#0D47A1]" /> Doctor
-                  Information
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-                  <div className="col-span-2 sm:col-span-1">
-                    <span className="text-slate-400 text-[10px] block font-medium">
-                      Attending Doctor
-                    </span>
-                    <strong className="text-[#111827] text-sm">
-                      {doctorInfo.name}
-                    </strong>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 text-[10px] block font-medium">
-                      Department
-                    </span>
-                    <strong className="text-[#0D47A1]">
-                      {doctorInfo.department}
-                    </strong>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 text-[10px] block font-medium">
-                      Room Number
-                    </span>
-                    <strong className="text-[#009688]">
-                      {doctorInfo.opdRoom}
-                    </strong>
-                  </div>
-                </div>
-              </div>
+              <AppointmentDoctorSection doctorInfo={doctorInfo} />
             )}
 
-            {/* Clinical Preparation */}
             {(activeTab === "all" || activeTab === "clinical") && (
-              <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
-                <h3
-                  className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2"
-                  style={{ fontFamily: PP }}
-                >
-                  <FileText size={15} className="text-[#009688]" /> Clinical
-                  Preparation
-                </h3>
-                <div className="space-y-2 text-xs">
-                  <div>
-                    <span className="text-slate-400 text-[10px] block font-medium mb-1">
-                      Chief Complaint
-                    </span>
-                    <div className="p-3 bg-amber-50/80 border border-amber-100 rounded-xl text-amber-950 font-medium">
-                      {apt.chiefComplaint || "No chief complaint recorded."}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <AppointmentClinicalSection apt={apt} />
             )}
 
-            {/* Patient Alerts */}
             {(activeTab === "all" || activeTab === "alerts") && (
               <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
                 <h3
@@ -439,63 +529,13 @@ export function AppointmentDetailPage() {
               </div>
             )}
 
-            {/* Appointment Timeline */}
             {(activeTab === "all" || activeTab === "timeline") && (
-              <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-sm space-y-4">
-                <h3
-                  className="text-xs font-bold text-[#111827] uppercase tracking-wider border-b border-gray-100 pb-3 flex items-center gap-2"
-                  style={{ fontFamily: PP }}
-                >
-                  <Clock size={15} className="text-[#0D47A1]" /> Appointment
-                  Timeline
-                </h3>
-                <div className="relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
-                  {timelineSteps.map((step) => (
-                    <div key={step.title} className="relative">
-                      <div
-                        className={`absolute -left-6 top-0.5 w-4 h-4 rounded-full border-2 bg-white flex items-center justify-center ${step.status === "completed" ? "border-[#66BB6A] text-[#66BB6A]" : step.status === "active" ? "border-[#0D47A1] text-[#0D47A1]" : "border-slate-300"}`}
-                      >
-                        {step.status === "completed" && <Check size={10} />}
-                        {step.status === "active" && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#0D47A1]" />
-                        )}
-                      </div>
-                      <div>
-                        <div
-                          className="text-xs font-bold text-[#111827]"
-                          style={{ fontFamily: PP }}
-                        >
-                          {step.title}
-                        </div>
-                        <div className="text-[11px] text-slate-500 font-mono mt-0.5">
-                          {step.timestamp} · {step.by}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <AppointmentTimeline timelineSteps={timelineSteps} />
             )}
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => navigate(ROUTES.APPOINTMENTS)}
-            className="px-5 py-2.5 rounded-xl border border-[#E5E7EB] text-xs font-semibold text-[#64748B] hover:bg-slate-100 transition-colors"
-            style={{ fontFamily: RB }}
-          >
-            Back to Appointments
-          </button>
-          <button
-            onClick={() => window.print()}
-            className="px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors flex items-center gap-1.5"
-            style={{ fontFamily: PP }}
-          >
-            <Printer size={14} /> Print Summary
-          </button>
-        </div>
+        <AppointmentDetailActions navigate={navigate} />
       </div>
     </div>
   );

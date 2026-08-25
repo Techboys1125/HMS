@@ -35,7 +35,9 @@ function calculateAge(dobStr: string): number {
     return 34;
   }
 }
-
+function handlePrintHistory() {
+  window.print();
+}
 export interface TimelineConsultationItem {
   id: string;
   date: string;
@@ -348,10 +350,6 @@ export function ConsultationHistoryScreen({
     setFilterStatus("All");
   };
 
-  const handlePrintHistory = () => {
-    window.print();
-  };
-
   // Breadcrumb label based on role
   const breadcrumbRoleLabel =
     role === "admin" ? "Hospital Admin" : role === "nurse" ? "Nurse" : "Doctor";
@@ -406,7 +404,7 @@ export function ConsultationHistoryScreen({
             {onBack && (
               <button
                 onClick={onBack}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-all shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#111827] hover:bg-slate-50 text-xs font-semibold transition-colors shadow-sm"
                 style={{ fontFamily: PP }}
               >
                 <ArrowLeft size={14} />
@@ -418,7 +416,7 @@ export function ConsultationHistoryScreen({
               <>
                 <button
                   onClick={handlePrintHistory}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#0D47A1] hover:bg-blue-50 text-xs font-semibold transition-all shadow-sm"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#E5E7EB] bg-white text-[#0D47A1] hover:bg-blue-50 text-xs font-semibold transition-colors shadow-sm"
                   style={{ fontFamily: PP }}
                 >
                   <Printer size={15} />
@@ -426,7 +424,7 @@ export function ConsultationHistoryScreen({
                 </button>
                 <button
                   onClick={handlePrintHistory}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold transition-all shadow-sm"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold transition-colors shadow-sm"
                   style={{ fontFamily: PP }}
                 >
                   <Download size={15} />
@@ -436,7 +434,7 @@ export function ConsultationHistoryScreen({
             ) : (
               <button
                 onClick={() => onStartNewConsultation?.()}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold transition-all shadow-sm"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0D47A1] hover:bg-[#0a3880] text-white text-xs font-semibold transition-colors shadow-sm"
                 style={{ fontFamily: PP }}
               >
                 <Plus size={15} />
@@ -703,38 +701,52 @@ export function ConsultationHistoryScreen({
 
             {/* SEARCH AND FILTER BAR */}
             <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-sm space-y-4">
-              <div className="relative">
-                <Search
-                  size={18}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-                />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by Consultation ID, Diagnosis, Doctor or Date..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/20 focus:border-[#0D47A1]"
-                  style={{ fontFamily: RB }}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    <X size={16} />
-                  </button>
-                )}
+              <div>
+                <label
+                  htmlFor="consultation-history-search"
+                  className="block text-[11px] font-semibold text-[#64748B] mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  Search Consultations
+                </label>
+                <div className="relative">
+                  <Search
+                    size={18}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
+                  <input
+                    id="consultation-history-search"
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by Consultation ID, Diagnosis, Doctor or Date..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-[#E5E7EB] rounded-xl text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/20 focus:border-[#0D47A1]"
+                    style={{ fontFamily: RB }}
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      aria-label="Clear search"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-gray-100">
                 <div>
                   <label
+                    htmlFor="filter-doctor"
                     className="block text-[11px] font-semibold text-[#64748B] mb-1"
                     style={{ fontFamily: PP }}
                   >
                     Doctor
                   </label>
                   <select
+                    id="filter-doctor"
                     value={filterDoctor}
                     onChange={(e) => setFilterDoctor(e.target.value)}
                     className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827]"
@@ -751,12 +763,14 @@ export function ConsultationHistoryScreen({
 
                 <div>
                   <label
+                    htmlFor="filter-department"
                     className="block text-[11px] font-semibold text-[#64748B] mb-1"
                     style={{ fontFamily: PP }}
                   >
                     Department
                   </label>
                   <select
+                    id="filter-department"
                     value={filterDepartment}
                     onChange={(e) => setFilterDepartment(e.target.value)}
                     className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827]"
@@ -773,12 +787,14 @@ export function ConsultationHistoryScreen({
 
                 <div>
                   <label
+                    htmlFor="filter-visit-type"
                     className="block text-[11px] font-semibold text-[#64748B] mb-1"
                     style={{ fontFamily: PP }}
                   >
                     Visit Type
                   </label>
                   <select
+                    id="filter-visit-type"
                     value={filterVisitType}
                     onChange={(e) => setFilterVisitType(e.target.value)}
                     className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827]"
@@ -793,12 +809,14 @@ export function ConsultationHistoryScreen({
 
                 <div>
                   <label
+                    htmlFor="filter-status"
                     className="block text-[11px] font-semibold text-[#64748B] mb-1"
                     style={{ fontFamily: PP }}
                   >
                     Status
                   </label>
                   <select
+                    id="filter-status"
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
                     className="w-full px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] rounded-lg text-xs text-[#111827]"
@@ -873,7 +891,7 @@ export function ConsultationHistoryScreen({
                         </div>
 
                         {/* Expandable Timeline Card */}
-                        <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden transition-all">
+                        <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
                           {/* Card Header Bar */}
                           <div
                             role="button"
@@ -949,13 +967,13 @@ export function ConsultationHistoryScreen({
                                 </div>
                               </div>
 
-                              <button className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 bg-white border border-gray-200">
+                              <div className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 bg-white border border-gray-200">
                                 {isExpanded ? (
                                   <ChevronUp size={18} />
                                 ) : (
                                   <ChevronDown size={18} />
                                 )}
-                              </button>
+                              </div>
                             </div>
                           </div>
 

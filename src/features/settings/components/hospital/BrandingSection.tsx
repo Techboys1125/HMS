@@ -86,6 +86,7 @@ export function BrandingSection({
           </span>
           <div
             role="button"
+            tabIndex={0}
             onClick={() => logoInputRef.current?.click()}
             style={{
               width: "100%",
@@ -182,6 +183,7 @@ export function BrandingSection({
           </span>
           <div
             role="button"
+            tabIndex={0}
             onClick={() => bannerInputRef.current?.click()}
             style={{
               width: "100%",

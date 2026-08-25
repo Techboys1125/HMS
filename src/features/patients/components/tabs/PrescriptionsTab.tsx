@@ -84,17 +84,8 @@ export function PatientPrescriptionsTab({
         <div className="space-y-2">
           {filtered.map((rx) => (
             <div
-              role="button"
-              tabIndex={0}
               key={rx.id}
-              onClick={() => setSelectedPrescription(rx)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setSelectedPrescription(rx);
-                }
-              }}
-              className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors cursor-pointer group"
+              className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl p-3 hover:bg-slate-50/80 transition-colors group"
             >
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
@@ -126,11 +117,9 @@ export function PatientPrescriptionsTab({
                 </span>
 
                 {/* View & Print Action Buttons */}
-                <div
-                  className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                   <button
+                    type="button"
                     onClick={() => setSelectedPrescription(rx)}
                     className="p-1.5 rounded-lg text-slate-400 hover:text-[#0D47A1] hover:bg-blue-50 transition-colors"
                     title="View Prescription"
@@ -138,6 +127,7 @@ export function PatientPrescriptionsTab({
                     <Eye size={15} />
                   </button>
                   <button
+                    type="button"
                     onClick={() => {
                       setSelectedPrescription(rx);
                       setTimeout(() => window.print(), 300);

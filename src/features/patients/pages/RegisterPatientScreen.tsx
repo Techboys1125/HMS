@@ -192,6 +192,8 @@ function Toast({
       )}
       <span className="flex-1">{message}</span>
       <button
+        type="button"
+        aria-label="Close notification"
         onClick={onClose}
         className="ml-2 p-0.5 rounded-lg hover:bg-black/5 transition-colors"
       >

@@ -304,9 +304,16 @@ export function ReceptionistReportsDashboardScreen({
       <div className="w-full px-4 sm:px-6 lg:px-8 mt-6">
         {/* Global Search Bar */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-4">
+          <label
+            htmlFor="reception-report-search"
+            className="block text-[11px] font-medium text-[#64748B] mb-1"
+          >
+            Search Reception Records
+          </label>
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B]" />
             <input
+              id="reception-report-search"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -341,10 +348,14 @@ export function ReceptionistReportsDashboardScreen({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <label
+                htmlFor="date-range"
+                className="block text-[11px] font-medium text-[#64748B] mb-1"
+              >
                 Date Range
               </label>
               <select
+                id="date-range"
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -357,10 +368,14 @@ export function ReceptionistReportsDashboardScreen({
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <label
+                htmlFor="appointment-status"
+                className="block text-[11px] font-medium text-[#64748B] mb-1"
+              >
                 Appointment Status
               </label>
               <select
+                id="appointment-status"
                 value={apptStatusFilter}
                 onChange={(e) => setApptStatusFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -375,10 +390,14 @@ export function ReceptionistReportsDashboardScreen({
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <label
+                htmlFor="check-in-status"
+                className="block text-[11px] font-medium text-[#64748B] mb-1"
+              >
                 Check-In Status
               </label>
               <select
+                id="check-in-status"
                 value={checkInStatusFilter}
                 onChange={(e) => setCheckInStatusFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -390,10 +409,14 @@ export function ReceptionistReportsDashboardScreen({
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <label
+                htmlFor="queue-status"
+                className="block text-[11px] font-medium text-[#64748B] mb-1"
+              >
                 Queue Status
               </label>
               <select
+                id="queue-status"
                 value={queueStatusFilter}
                 onChange={(e) => setQueueStatusFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -406,10 +429,14 @@ export function ReceptionistReportsDashboardScreen({
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#64748B] mb-1">
+              <label
+                htmlFor="visit-type"
+                className="block text-[11px] font-medium text-[#64748B] mb-1"
+              >
                 Visit Type
               </label>
               <select
+                id="visit-type"
                 value={visitTypeFilter}
                 onChange={(e) => setVisitTypeFilter(e.target.value)}
                 className="w-full bg-[#F1F5F9] border border-[#E5E7EB] rounded-xl text-xs px-2.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]"
@@ -1157,6 +1184,8 @@ export function ReceptionistReportsDashboardScreen({
                   </span>
                   <div className="flex items-center gap-2">
                     <button
+                      type="button"
+                      aria-label="Previous page"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
@@ -1166,6 +1195,8 @@ export function ReceptionistReportsDashboardScreen({
                       Page 1 of 1
                     </span>
                     <button
+                      type="button"
+                      aria-label="Next page"
                       disabled
                       className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
                     >
