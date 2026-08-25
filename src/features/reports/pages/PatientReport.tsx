@@ -902,35 +902,6 @@ export function PatientReportScreen({
           </div>
         )}
 
-        {/* Demo State Controls */}
-        <div className="flex items-center justify-between mb-4 bg-white p-2.5 rounded-xl border border-[#E5E7EB] text-xs">
-          <div className="flex items-center gap-3">
-            <span className="font-semibold text-[#111827]">
-              Demo State Toggles:
-            </span>
-            <button
-              onClick={() => {
-                dispatch({ type: "LOAD_START" });
-                dispatch({ type: "SET_ERROR", payload: false });
-              }}
-              className={`px-2.5 py-1 rounded-lg border text-xs ${isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
-            >
-              Toggle Loading Skeleton
-            </button>
-            <button
-              onClick={() => {
-                dispatch({ type: "SET_ERROR", payload: !hasError });
-              }}
-              className={`px-2.5 py-1 rounded-lg border text-xs ${hasError ? "bg-red-50 border-red-300 text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
-            >
-              Toggle Error State
-            </button>
-          </div>
-          <span className="text-[11px] text-[#64748B]">
-            Simulate real-time patient register states
-          </span>
-        </div>
-
         {/* ERROR STATE */}
         {hasError && (
           <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-6 text-center">

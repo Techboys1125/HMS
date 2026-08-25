@@ -190,8 +190,8 @@ export function DailyAppointmentReportScreen({
   const [visitTypeFilter, setVisitTypeFilter] = useState("All Visit Types");
   const [shiftFilter, setShiftFilter] = useState("All Shifts");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isPending, startTransition] = useTransition();
-  const [showLoadingDemo, setShowLoadingDemo] = useState(false);
+  const [isPending, ] = useTransition();
+  const [showLoadingDemo, ] = useState(false);
   const isLoading = isPending || showLoadingDemo;
   const [hasError, setHasError] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -793,38 +793,6 @@ export function DailyAppointmentReportScreen({
               Apply Filters
             </button>
           </div>
-        </div>
-
-        <div className="flex items-center justify-between mb-4 bg-white p-2.5 rounded-xl border border-[#E5E7EB] text-xs">
-          <div className="flex items-center gap-3">
-            <span className="font-semibold text-[#111827]">
-              Demo State Toggles:
-            </span>
-            <button
-              onClick={() => {
-                startTransition(() => {
-                  setShowLoadingDemo(!showLoadingDemo);
-                  setHasError(false);
-                });
-                setHasError(false);
-              }}
-              className={`px-2.5 py-1 rounded-lg border text-xs ${isLoading ? "bg-amber-50 border-amber-300 text-[#F59E0B]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
-            >
-              Toggle Loading Skeleton
-            </button>
-            <button
-              onClick={() => {
-                setHasError(!hasError);
-                setShowLoadingDemo(false);
-              }}
-              className={`px-2.5 py-1 rounded-lg border text-xs ${hasError ? "bg-red-50 border-red-300 text-[#EF4444]" : "bg-slate-50 border-[#E5E7EB] text-[#64748B]"}`}
-            >
-              Toggle Error State
-            </button>
-          </div>
-          <span className="text-[11px] text-[#64748B]">
-            Simulate real-time state handlers
-          </span>
         </div>
 
         {hasError && (
