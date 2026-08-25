@@ -1,6 +1,5 @@
-import React, { useState, useMemo, useTransition } from "react";
+import { useState, useMemo, useTransition } from "react";
 import {
-  Calendar,
   Download,
   RefreshCw,
   Filter,
@@ -10,7 +9,6 @@ import {
   PieChart as PieChartIcon,
   CheckCircle2,
   AlertCircle,
-  Users,
   UserCheck,
   TrendingUp,
   Building2,
@@ -20,7 +18,6 @@ import {
   Activity,
   FileSpreadsheet,
   Eye,
-  Shield,
 } from "lucide-react";
 import { PP, RB } from "../constants/reports.constants";
 import type {
@@ -86,8 +83,6 @@ function CircularProgress({
 
 export function DoctorReportScreen({
   onBack,
-  onOpenAppointmentReport,
-  onOpenPatientReport,
 }: {
   onBack?: () => void;
   onOpenAppointmentReport?: () => void;
@@ -113,12 +108,9 @@ export function DoctorReportScreen({
     });
     return `${day}, ${time}`;
   });
-  const [lastRefreshed] = useState(() => {
-    const now = new Date();
-    return now.toISOString().slice(0, 16).replace("T", " ");
-  });
-  const [isPending, ] = useTransition();
-  const [showLoadingDemo, ] = useState(false);
+
+  const [isPending] = useTransition();
+  const [showLoadingDemo] = useState(false);
   const isLoading = isPending || showLoadingDemo;
   const [hasError, setHasError] = useState(false);
   const [trendDays, setTrendDays] = useState<"7 Days" | "30 Days" | "90 Days">(
@@ -454,7 +446,8 @@ export function DoctorReportScreen({
                 </div>
               </div>
               <div className="text-[10px] text-[#64748B] pt-1.5 border-t border-[#E5E7EB] truncate">
-                {doctorPerformanceData?.summary?.activeDoctors ?? 0} Active | {doctorPerformanceData?.summary?.onLeaveDoctors ?? 0} Leave
+                {doctorPerformanceData?.summary?.activeDoctors ?? 0} Active |{" "}
+                {doctorPerformanceData?.summary?.onLeaveDoctors ?? 0} Leave
               </div>
             </div>
 
@@ -477,12 +470,16 @@ export function DoctorReportScreen({
                 </div>
                 <div className="flex items-center gap-1 text-[10px] text-[#64748B] mb-2">
                   <span className="text-[#009688] font-semibold truncate">
-                    {doctorPerformanceData?.summary?.completedConsultations ?? 0} Completed
+                    {doctorPerformanceData?.summary?.completedConsultations ??
+                      0}{" "}
+                    Completed
                   </span>
                 </div>
               </div>
               <div className="text-[10px] text-[#64748B] pt-1.5 border-t border-[#E5E7EB] truncate">
-                {doctorPerformanceData?.summary?.pendingConsultations ?? 0} Pend | {doctorPerformanceData?.summary?.cancelledConsultations ?? 0} Canc
+                {doctorPerformanceData?.summary?.pendingConsultations ?? 0} Pend
+                | {doctorPerformanceData?.summary?.cancelledConsultations ?? 0}{" "}
+                Canc
               </div>
             </div>
 
@@ -501,7 +498,9 @@ export function DoctorReportScreen({
                   className="text-xl font-bold text-[#111827] mb-1"
                   style={{ fontFamily: PP }}
                 >
-                  {doctorPerformanceData?.summary?.averageConsultationDurationMinutes ?? 0} m
+                  {doctorPerformanceData?.summary
+                    ?.averageConsultationDurationMinutes ?? 0}{" "}
+                  m
                 </div>
                 <div className="flex items-center gap-1 text-[10px] text-[#64748B] mb-2">
                   <span className="text-[#66BB6A] font-semibold">
@@ -534,11 +533,13 @@ export function DoctorReportScreen({
                 <div className="text-[10px] text-[#64748B] mb-2 truncate">
                   {doctorPerformanceData?.summary?.totalConsultations
                     ? Math.round(
-                        ((doctorPerformanceData?.summary?.followUpConsultations ?? 0) /
+                        ((doctorPerformanceData?.summary
+                          ?.followUpConsultations ?? 0) /
                           doctorPerformanceData.summary.totalConsultations) *
                           100,
                       )
-                    : 0}% of Total
+                    : 0}
+                  % of Total
                 </div>
               </div>
               <div className="w-full bg-slate-100 rounded-full h-1.5 flex overflow-hidden mt-1">
@@ -562,7 +563,9 @@ export function DoctorReportScreen({
                   className="text-xl font-bold text-[#111827] mb-1"
                   style={{ fontFamily: PP }}
                 >
-                  {doctorPerformanceData?.summary?.doctorUtilizationPercentage ?? 0}%
+                  {doctorPerformanceData?.summary
+                    ?.doctorUtilizationPercentage ?? 0}
+                  %
                 </div>
                 <div className="text-[10px] text-[#64748B] mb-2 truncate">
                   Capacity Load
@@ -583,7 +586,8 @@ export function DoctorReportScreen({
                   className="text-xl font-bold text-[#111827] mt-1"
                   style={{ fontFamily: PP }}
                 >
-                  {doctorPerformanceData?.summary?.patientSatisfaction ?? "--"} / 5
+                  {doctorPerformanceData?.summary?.patientSatisfaction ?? "--"}{" "}
+                  / 5
                 </div>
                 <div className="mt-2 text-[10px] font-semibold text-[#66BB6A]">
                   ★ Top Rated
@@ -592,7 +596,8 @@ export function DoctorReportScreen({
               <CircularProgress
                 percentage={
                   doctorPerformanceData?.summary?.patientSatisfaction
-                    ? (doctorPerformanceData.summary.patientSatisfaction / 5) * 100
+                    ? (doctorPerformanceData.summary.patientSatisfaction / 5) *
+                      100
                     : 98
                 }
                 size={48}
@@ -783,84 +788,213 @@ export function DoctorReportScreen({
         {!isLoading && !hasError && (
           <div className="w-full space-y-6">
             {/* CONSULTATION TREND AREA CHART */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                  <div>
-                    <h3
-                      className="text-base font-bold text-[#111827]"
-                      style={{ fontFamily: PP }}
-                    >
-                      Consultation Trend
-                    </h3>
-                    <p className="text-xs text-[#64748B]">
-                      Daily volume tracking of completed vs pending OPD
-                      consultations
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E5E7EB] text-xs">
-                    {(["7 Days", "30 Days", "90 Days"] as const).map((t) => (
-                      <button
-                        key={t}
-                        onClick={() => setTrendDays(t)}
-                        className={`px-3 py-1 rounded-lg font-medium transition ${trendDays === t ? "bg-white text-[#0D47A1] shadow-sm" : "text-[#64748B]"}`}
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                  <h3
+                    className="text-base font-bold text-[#111827]"
+                    style={{ fontFamily: PP }}
+                  >
+                    Consultation Trend
+                  </h3>
+                  <p className="text-xs text-[#64748B]">
+                    Daily volume tracking of completed vs pending OPD
+                    consultations
+                  </p>
                 </div>
 
-                <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={[]}
-                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E5E7EB] text-xs">
+                  {(["7 Days", "30 Days", "90 Days"] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setTrendDays(t)}
+                      className={`px-3 py-1 rounded-lg font-medium transition ${trendDays === t ? "bg-white text-[#0D47A1] shadow-sm" : "text-[#64748B]"}`}
                     >
-                      <defs>
-                        <linearGradient
-                          id="colorCompGrad"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="#009688"
-                            stopOpacity={0.4}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="#009688"
-                            stopOpacity={0}
-                          />
-                        </linearGradient>
-                        <linearGradient
-                          id="colorPendGrad"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="#F59E0B"
-                            stopOpacity={0.4}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="#F59E0B"
-                            stopOpacity={0}
-                          />
-                        </linearGradient>
-                      </defs>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={[]}
+                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient
+                        id="colorCompGrad"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#009688"
+                          stopOpacity={0.4}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#009688"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                      <linearGradient
+                        id="colorPendGrad"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#F59E0B"
+                          stopOpacity={0.4}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#F59E0B"
+                          stopOpacity={0}
+                        />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 11, fill: "#64748B" }}
+                    />
+                    <YAxis tick={{ fontSize: 11, fill: "#64748B" }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#FFFFFF",
+                        borderRadius: "12px",
+                        borderColor: "#E5E7EB",
+                        fontSize: "11px",
+                      }}
+                    />
+                    <Legend
+                      verticalAlign="top"
+                      height={36}
+                      wrapperStyle={{ fontSize: "11px" }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="Completed"
+                      name="Completed Consultations"
+                      stroke="#009688"
+                      fillOpacity={1}
+                      fill="url(#colorCompGrad)"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="Pending"
+                      name="Pending Consultations"
+                      stroke="#F59E0B"
+                      fillOpacity={1}
+                      fill="url(#colorPendGrad)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* DOCTOR WORKLOAD & CONSULTATION STATUS DISTRIBUTION */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Doctor Workload Horizontal Bar */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      Doctor Workload Analysis
+                    </h3>
+                    <p className="text-[11px] text-[#64748B]">
+                      Completed vs appointments per physician
+                    </p>
+                  </div>
+                  <UserCheck className="w-4 h-4 text-[#0D47A1]" />
+                </div>
+                <div className="h-60">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      layout="vertical"
+                      data={[]}
+                      margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                       <XAxis
-                        dataKey="date"
-                        tick={{ fontSize: 11, fill: "#64748B" }}
+                        type="number"
+                        tick={{ fontSize: 10, fill: "#64748B" }}
                       />
-                      <YAxis tick={{ fontSize: 11, fill: "#64748B" }} />
+                      <YAxis
+                        type="category"
+                        dataKey="doctor"
+                        tick={{ fontSize: 10, fill: "#111827" }}
+                        width={80}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#FFFFFF",
+                          borderRadius: "12px",
+                          borderColor: "#E5E7EB",
+                          fontSize: "11px",
+                        }}
+                      />
+                      <Bar
+                        dataKey="completed"
+                        name="Completed"
+                        fill="#009688"
+                        radius={[0, 4, 4, 0]}
+                      />
+                      <Bar
+                        dataKey="appointments"
+                        name="Total Appointments"
+                        fill="#0D47A1"
+                        radius={[0, 4, 4, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Consultation Status Distribution Donut */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      Consultation Status Share
+                    </h3>
+                    <p className="text-[11px] text-[#64748B]">
+                      Distribution of completed, pending, follow-up & cancelled
+                    </p>
+                  </div>
+                  <PieChartIcon className="w-4 h-4 text-[#009688]" />
+                </div>
+                <div className="h-60">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsPie>
+                      <Pie
+                        data={[]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={45}
+                        outerRadius={75}
+                        paddingAngle={3}
+                        dataKey="value"
+                      >
+                        {([] as Array<{ name?: string; color: string }>).map(
+                          (entry) => (
+                            <Cell key={entry.name} fill={entry.color} />
+                          ),
+                        )}
+                      </Pie>
                       <Tooltip
                         contentStyle={{
                           backgroundColor: "#FFFFFF",
@@ -870,498 +1004,362 @@ export function DoctorReportScreen({
                         }}
                       />
                       <Legend
-                        verticalAlign="top"
-                        height={36}
-                        wrapperStyle={{ fontSize: "11px" }}
+                        layout="horizontal"
+                        verticalAlign="bottom"
+                        align="center"
+                        wrapperStyle={{
+                          fontSize: "10px",
+                          paddingTop: "10px",
+                        }}
                       />
-                      <Area
-                        type="monotone"
-                        dataKey="Completed"
-                        name="Completed Consultations"
-                        stroke="#009688"
-                        fillOpacity={1}
-                        fill="url(#colorCompGrad)"
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="Pending"
-                        name="Pending Consultations"
-                        stroke="#F59E0B"
-                        fillOpacity={1}
-                        fill="url(#colorPendGrad)"
-                      />
-                    </AreaChart>
+                    </RechartsPie>
                   </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* DOCTOR WORKLOAD & CONSULTATION STATUS DISTRIBUTION */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Doctor Workload Horizontal Bar */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Doctor Workload Analysis
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Completed vs appointments per physician
-                      </p>
-                    </div>
-                    <UserCheck className="w-4 h-4 text-[#0D47A1]" />
-                  </div>
-                  <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        layout="vertical"
-                        data={[]}
-                        margin={{ top: 5, right: 10, left: 20, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          type="number"
-                          tick={{ fontSize: 10, fill: "#64748B" }}
-                        />
-                        <YAxis
-                          type="category"
-                          dataKey="doctor"
-                          tick={{ fontSize: 10, fill: "#111827" }}
-                          width={80}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Bar
-                          dataKey="completed"
-                          name="Completed"
-                          fill="#009688"
-                          radius={[0, 4, 4, 0]}
-                        />
-                        <Bar
-                          dataKey="appointments"
-                          name="Total Appointments"
-                          fill="#0D47A1"
-                          radius={[0, 4, 4, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Consultation Status Distribution Donut */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Consultation Status Share
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Distribution of completed, pending, follow-up &
-                        cancelled
-                      </p>
-                    </div>
-                    <PieChartIcon className="w-4 h-4 text-[#009688]" />
-                  </div>
-                  <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPie>
-                        <Pie
-                          data={[]}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={45}
-                          outerRadius={75}
-                          paddingAngle={3}
-                          dataKey="value"
-                        >
-                          {([] as Array<{ name?: string; color: string }>).map(
-                            (entry) => (
-                              <Cell key={entry.name} fill={entry.color} />
-                            ),
-                          )}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Legend
-                          layout="horizontal"
-                          verticalAlign="bottom"
-                          align="center"
-                          wrapperStyle={{
-                            fontSize: "10px",
-                            paddingTop: "10px",
-                          }}
-                        />
-                      </RechartsPie>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-
-              {/* DEPARTMENT PERFORMANCE & AVERAGE CONSULTATION TIME CHARTS */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Department Performance Vertical Bar */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Department Consultation Volume
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Total OPD consultations by specialty department
-                      </p>
-                    </div>
-                    <Building2 className="w-4 h-4 text-[#009688]" />
-                  </div>
-                  <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={[]}
-                        margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          dataKey="department"
-                          tick={{ fontSize: 9, fill: "#64748B" }}
-                        />
-                        <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Bar
-                          dataKey="consultations"
-                          name="Consultations"
-                          fill="#0D47A1"
-                          radius={[4, 4, 0, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Average Consultation Duration Line Chart */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Avg Consultation Duration
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Average consultation duration (minutes) by day
-                      </p>
-                    </div>
-                    <Clock className="w-4 h-4 text-[#0D47A1]" />
-                  </div>
-                  <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={[]}
-                        margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          dataKey="date"
-                          tick={{ fontSize: 10, fill: "#64748B" }}
-                        />
-                        <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="minutes"
-                          name="Duration (min)"
-                          stroke="#009688"
-                          strokeWidth={2.5}
-                          dot={{ fill: "#009688" }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-
-              {/* DOCTOR PERFORMANCE TABLE */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div>
-                    <h3
-                      className="text-base font-bold text-[#111827]"
-                      style={{ fontFamily: PP }}
-                    >
-                      Doctor Performance Register
-                    </h3>
-                    <p className="text-xs text-[#64748B]">
-                      Detailed OPD consultation and patient rating register
-                    </p>
-                  </div>
-                  <button
-                    onClick={() =>
-                      alert("Exporting Doctor Performance Register (CSV)...")
-                    }
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] text-xs font-semibold text-[#111827] rounded-xl hover:bg-slate-100 transition"
-                  >
-                    <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                    <span>Export Register</span>
-                  </button>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
-                        <th
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              (e.currentTarget as HTMLElement).click();
-                            }
-                          }}
-                          className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
-                          onClick={() => handleSort("doctorId")}
-                        >
-                          Doctor ID{" "}
-                          {sortField === "doctorId" &&
-                            (sortOrder === "asc" ? "â†‘" : "â†“")}
-                        </th>
-                        <th
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              (e.currentTarget as HTMLElement).click();
-                            }
-                          }}
-                          className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
-                          onClick={() => handleSort("doctorName")}
-                        >
-                          Doctor Name{" "}
-                          {sortField === "doctorName" &&
-                            (sortOrder === "asc" ? "â†‘" : "â†“")}
-                        </th>
-                        <th className="py-3.5 px-4">Department</th>
-                        <th className="py-3.5 px-4 text-center">
-                          Appointments
-                        </th>
-                        <th
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              (e.currentTarget as HTMLElement).click();
-                            }
-                          }}
-                          className="py-3.5 px-4 text-center cursor-pointer hover:text-[#0D47A1]"
-                          onClick={() => handleSort("completed")}
-                        >
-                          Completed{" "}
-                          {sortField === "completed" &&
-                            (sortOrder === "asc" ? "â†‘" : "â†“")}
-                        </th>
-                        <th className="py-3.5 px-4 text-center">Pending</th>
-                        <th className="py-3.5 px-4 text-center">Cancelled</th>
-                        <th className="py-3.5 px-4 text-center">Follow-up</th>
-                        <th className="py-3.5 px-4 text-center">
-                          Avg Duration
-                        </th>
-                        <th className="py-3.5 px-4 text-center">Rating</th>
-                        <th className="py-3.5 px-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E5E7EB] text-xs">
-                      {sortedData.length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan={11}
-                            className="py-8 text-center text-[#64748B]"
-                          >
-                            No doctor performance records match the selected
-                            filter criteria.
-                          </td>
-                        </tr>
-                      ) : (
-                        sortedData.map((item) => (
-                          <tr
-                            key={item.doctorId}
-                            className="hover:bg-slate-50 transition-colors"
-                          >
-                            <td className="py-3.5 px-4 font-bold text-[#0D47A1]">
-                              {item.doctorId}
-                            </td>
-                            <td className="py-3.5 px-4 font-semibold text-[#111827]">
-                              {item.doctorName}
-                            </td>
-                            <td className="py-3.5 px-4 font-medium text-[#111827]">
-                              {item.department}
-                            </td>
-                            <td className="py-3.5 px-4 text-center font-semibold text-[#111827]">
-                              {item.appointments}
-                            </td>
-                            <td className="py-3.5 px-4 text-center font-bold text-[#009688]">
-                              {item.completed}
-                            </td>
-                            <td className="py-3.5 px-4 text-center font-semibold text-[#F59E0B]">
-                              {item.pending}
-                            </td>
-                            <td className="py-3.5 px-4 text-center font-semibold text-[#EF4444]">
-                              {item.cancelled}
-                            </td>
-                            <td className="py-3.5 px-4 text-center font-semibold text-[#66BB6A]">
-                              {item.followup}
-                            </td>
-                            <td className="py-3.5 px-4 text-center text-[#64748B]">
-                              {item.avgTimeMinutes} min
-                            </td>
-                            <td className="py-3.5 px-4 text-center font-bold text-[#0D47A1]">
-                              â˜… {item.patientRating}
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <div className="flex items-center justify-end gap-1">
-                                <button
-                                  onClick={() =>
-                                    alert(
-                                      `Viewing performance details for ${item.doctorName}`,
-                                    )
-                                  }
-                                  className="p-1.5 text-[#0D47A1] hover:bg-blue-50 rounded-lg transition"
-                                  title="View Details"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    alert(
-                                      `Printing performance summary for ${item.doctorId}`,
-                                    )
-                                  }
-                                  className="p-1.5 text-[#64748B] hover:bg-slate-100 rounded-lg transition"
-                                  title="Print Summary"
-                                >
-                                  <Printer className="w-4 h-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Table Pagination */}
-                <div className="p-4 bg-[#F1F5F9] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
-                  <span>
-                    Showing 1 to {sortedData.length} of {sortedData.length}{" "}
-                    entries
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      aria-label="Previous"
-                      disabled
-                      className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className="font-semibold text-[#111827]">
-                      Page 1 of 1
-                    </span>
-                    <button
-                      aria-label="Next"
-                      disabled
-                      className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
-                    >
-                      <ChevronRightIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* RECENT DOCTOR ACTIVITIES TIMELINE */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-                <h3
-                  className="text-base font-bold text-[#111827] mb-4"
-                  style={{ fontFamily: PP }}
-                >
-                  Recent Doctor OPD Activities & Logs
-                </h3>
-                <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {(
-                    [] as {
-                      id: string;
-                      doctor: string;
-                      department: string;
-                      time: string;
-                      type: string;
-                      patient: string;
-                    }[]
-                  ).map((act) => (
-                    <div
-                      key={act.id}
-                      className="flex items-start gap-4 relative z-10"
-                    >
-                      <div className="w-7 h-7 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center text-[#0D47A1] shrink-0">
-                        <UserCheck className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-bold text-[#111827]">
-                            {act.doctor} ({act.department})
-                          </span>
-                          <span className="text-[11px] text-[#64748B]">
-                            {act.time}
-                          </span>
-                        </div>
-                        <p className="text-[#64748B]">
-                          Action:{" "}
-                          <strong className="text-[#0D47A1]">{act.type}</strong>{" "}
-                          for patient{" "}
-                          <span className="font-semibold text-[#111827]">
-                            {act.patient}
-                          </span>
-                          .
-                        </p>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>
 
-        )}
+            {/* DEPARTMENT PERFORMANCE & AVERAGE CONSULTATION TIME CHARTS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Department Performance Vertical Bar */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      Department Consultation Volume
+                    </h3>
+                    <p className="text-[11px] text-[#64748B]">
+                      Total OPD consultations by specialty department
+                    </p>
+                  </div>
+                  <Building2 className="w-4 h-4 text-[#009688]" />
+                </div>
+                <div className="h-60">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={[]}
+                      margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                      <XAxis
+                        dataKey="department"
+                        tick={{ fontSize: 9, fill: "#64748B" }}
+                      />
+                      <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#FFFFFF",
+                          borderRadius: "12px",
+                          borderColor: "#E5E7EB",
+                          fontSize: "11px",
+                        }}
+                      />
+                      <Bar
+                        dataKey="consultations"
+                        name="Consultations"
+                        fill="#0D47A1"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
 
+              {/* Average Consultation Duration Line Chart */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      Avg Consultation Duration
+                    </h3>
+                    <p className="text-[11px] text-[#64748B]">
+                      Average consultation duration (minutes) by day
+                    </p>
+                  </div>
+                  <Clock className="w-4 h-4 text-[#0D47A1]" />
+                </div>
+                <div className="h-60">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={[]}
+                      margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 10, fill: "#64748B" }}
+                      />
+                      <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#FFFFFF",
+                          borderRadius: "12px",
+                          borderColor: "#E5E7EB",
+                          fontSize: "11px",
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="minutes"
+                        name="Duration (min)"
+                        stroke="#009688"
+                        strokeWidth={2.5}
+                        dot={{ fill: "#009688" }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* DOCTOR PERFORMANCE TABLE */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+              <div className="p-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h3
+                    className="text-base font-bold text-[#111827]"
+                    style={{ fontFamily: PP }}
+                  >
+                    Doctor Performance Register
+                  </h3>
+                  <p className="text-xs text-[#64748B]">
+                    Detailed OPD consultation and patient rating register
+                  </p>
+                </div>
+                <button
+                  onClick={() =>
+                    alert("Exporting Doctor Performance Register (CSV)...")
+                  }
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] text-xs font-semibold text-[#111827] rounded-xl hover:bg-slate-100 transition"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
+                  <span>Export Register</span>
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
+                      <th
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            (e.currentTarget as HTMLElement).click();
+                          }
+                        }}
+                        className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
+                        onClick={() => handleSort("doctorId")}
+                      >
+                        Doctor ID{" "}
+                        {sortField === "doctorId" &&
+                          (sortOrder === "asc" ? "â†‘" : "â†“")}
+                      </th>
+                      <th
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            (e.currentTarget as HTMLElement).click();
+                          }
+                        }}
+                        className="py-3.5 px-4 cursor-pointer hover:text-[#0D47A1]"
+                        onClick={() => handleSort("doctorName")}
+                      >
+                        Doctor Name{" "}
+                        {sortField === "doctorName" &&
+                          (sortOrder === "asc" ? "â†‘" : "â†“")}
+                      </th>
+                      <th className="py-3.5 px-4">Department</th>
+                      <th className="py-3.5 px-4 text-center">Appointments</th>
+                      <th
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            (e.currentTarget as HTMLElement).click();
+                          }
+                        }}
+                        className="py-3.5 px-4 text-center cursor-pointer hover:text-[#0D47A1]"
+                        onClick={() => handleSort("completed")}
+                      >
+                        Completed{" "}
+                        {sortField === "completed" &&
+                          (sortOrder === "asc" ? "â†‘" : "â†“")}
+                      </th>
+                      <th className="py-3.5 px-4 text-center">Pending</th>
+                      <th className="py-3.5 px-4 text-center">Cancelled</th>
+                      <th className="py-3.5 px-4 text-center">Follow-up</th>
+                      <th className="py-3.5 px-4 text-center">Avg Duration</th>
+                      <th className="py-3.5 px-4 text-center">Rating</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E5E7EB] text-xs">
+                    {sortedData.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={11}
+                          className="py-8 text-center text-[#64748B]"
+                        >
+                          No doctor performance records match the selected
+                          filter criteria.
+                        </td>
+                      </tr>
+                    ) : (
+                      sortedData.map((item) => (
+                        <tr
+                          key={item.doctorId}
+                          className="hover:bg-slate-50 transition-colors"
+                        >
+                          <td className="py-3.5 px-4 font-bold text-[#0D47A1]">
+                            {item.doctorId}
+                          </td>
+                          <td className="py-3.5 px-4 font-semibold text-[#111827]">
+                            {item.doctorName}
+                          </td>
+                          <td className="py-3.5 px-4 font-medium text-[#111827]">
+                            {item.department}
+                          </td>
+                          <td className="py-3.5 px-4 text-center font-semibold text-[#111827]">
+                            {item.appointments}
+                          </td>
+                          <td className="py-3.5 px-4 text-center font-bold text-[#009688]">
+                            {item.completed}
+                          </td>
+                          <td className="py-3.5 px-4 text-center font-semibold text-[#F59E0B]">
+                            {item.pending}
+                          </td>
+                          <td className="py-3.5 px-4 text-center font-semibold text-[#EF4444]">
+                            {item.cancelled}
+                          </td>
+                          <td className="py-3.5 px-4 text-center font-semibold text-[#66BB6A]">
+                            {item.followup}
+                          </td>
+                          <td className="py-3.5 px-4 text-center text-[#64748B]">
+                            {item.avgTimeMinutes} min
+                          </td>
+                          <td className="py-3.5 px-4 text-center font-bold text-[#0D47A1]">
+                            â˜… {item.patientRating}
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() =>
+                                  alert(
+                                    `Viewing performance details for ${item.doctorName}`,
+                                  )
+                                }
+                                className="p-1.5 text-[#0D47A1] hover:bg-blue-50 rounded-lg transition"
+                                title="View Details"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  alert(
+                                    `Printing performance summary for ${item.doctorId}`,
+                                  )
+                                }
+                                className="p-1.5 text-[#64748B] hover:bg-slate-100 rounded-lg transition"
+                                title="Print Summary"
+                              >
+                                <Printer className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Table Pagination */}
+              <div className="p-4 bg-[#F1F5F9] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
+                <span>
+                  Showing 1 to {sortedData.length} of {sortedData.length}{" "}
+                  entries
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    aria-label="Previous"
+                    disabled
+                    className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="font-semibold text-[#111827]">
+                    Page 1 of 1
+                  </span>
+                  <button
+                    aria-label="Next"
+                    disabled
+                    className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
+                  >
+                    <ChevronRightIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* RECENT DOCTOR ACTIVITIES TIMELINE */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
+              <h3
+                className="text-base font-bold text-[#111827] mb-4"
+                style={{ fontFamily: PP }}
+              >
+                Recent Doctor OPD Activities & Logs
+              </h3>
+              <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
+                {(
+                  [] as {
+                    id: string;
+                    doctor: string;
+                    department: string;
+                    time: string;
+                    type: string;
+                    patient: string;
+                  }[]
+                ).map((act) => (
+                  <div
+                    key={act.id}
+                    className="flex items-start gap-4 relative z-10"
+                  >
+                    <div className="w-7 h-7 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center text-[#0D47A1] shrink-0">
+                      <UserCheck className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-[#111827]">
+                          {act.doctor} ({act.department})
+                        </span>
+                        <span className="text-[11px] text-[#64748B]">
+                          {act.time}
+                        </span>
+                      </div>
+                      <p className="text-[#64748B]">
+                        Action:{" "}
+                        <strong className="text-[#0D47A1]">{act.type}</strong>{" "}
+                        for patient{" "}
+                        <span className="font-semibold text-[#111827]">
+                          {act.patient}
+                        </span>
+                        .
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,5 @@
-import React, { useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import {
-  Calendar,
   Download,
   RefreshCw,
   Filter,
@@ -9,7 +8,6 @@ import {
   UserCheck,
   Activity,
   TrendingUp,
-  CheckCircle2,
   Clock,
   PieChart as PieChartIcon,
   Eye,
@@ -17,7 +15,6 @@ import {
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   AlertCircle,
-  Shield,
 } from "lucide-react";
 
 import {
@@ -71,7 +68,6 @@ const DOCTOR_KPI_DONUT_DATA: { name: string; value: number; color: string }[] =
 export function DoctorDashboardKpiDetailScreen({
   initialKpiKey = "today-appointments",
   onBack,
-  onOpenReport,
 }: {
   initialKpiKey?: DoctorKpiKey;
   onBack?: () => void;
@@ -94,7 +90,7 @@ export function DoctorDashboardKpiDetailScreen({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isPending] = useTransition();
-  const [showLoadingDemo, ] = useState(false);
+  const [showLoadingDemo] = useState(false);
   const isLoading = isPending || showLoadingDemo;
 
   const meta: DoctorKpiMeta = {
@@ -465,26 +461,25 @@ export function DoctorDashboardKpiDetailScreen({
         {!isLoading && !hasError && (
           <div className="w-full space-y-6">
             {/* KPI PERFORMANCE TREND & PERIOD COMPARISON */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* KPI Performance Trend Area Chart */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        KPI Performance Trend
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        {meta.title} performance over time
-                      </p>
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* KPI Performance Trend Area Chart */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                  <div>
+                    <h3
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      KPI Performance Trend
+                    </h3>
+                    <p className="text-[11px] text-[#64748B]">
+                      {meta.title} performance over time
+                    </p>
+                  </div>
 
-                    <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E5E7EB] text-[10px]">
-                      {(
-                        ["7 Days", "30 Days", "90 Days", "1 Year"] as const
-                      ).map((t) => (
+                  <div className="flex items-center gap-1 bg-[#F1F5F9] p-1 rounded-xl border border-[#E5E7EB] text-[10px]">
+                    {(["7 Days", "30 Days", "90 Days", "1 Year"] as const).map(
+                      (t) => (
                         <button
                           key={t}
                           onClick={() => setTrendDays(t)}
@@ -492,478 +487,478 @@ export function DoctorDashboardKpiDetailScreen({
                         >
                           {t}
                         </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart
-                        data={DOCTOR_KPI_TREND_DATA}
-                        margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                      >
-                        <defs>
-                          <linearGradient
-                            id="docKpiTrendGrad"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="5%"
-                              stopColor="#0D47A1"
-                              stopOpacity={0.4}
-                            />
-                            <stop
-                              offset="95%"
-                              stopColor="#0D47A1"
-                              stopOpacity={0}
-                            />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          dataKey="date"
-                          tick={{ fontSize: 10, fill: "#64748B" }}
-                        />
-                        <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="current"
-                          name="Current Value"
-                          stroke="#0D47A1"
-                          fillOpacity={1}
-                          fill="url(#docKpiTrendGrad)"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                      ),
+                    )}
                   </div>
                 </div>
 
-                {/* Period Comparison Grouped Bar Chart */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Period Comparison
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Current vs previous period performance
-                      </p>
-                    </div>
-                    <Activity className="w-4 h-4 text-[#009688]" />
-                  </div>
-                  <div className="h-60">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={DOCTOR_KPI_TREND_DATA}
-                        margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          dataKey="date"
-                          tick={{ fontSize: 10, fill: "#64748B" }}
-                        />
-                        <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Bar
-                          dataKey="current"
-                          name="Current Period"
-                          fill="#0D47A1"
-                          radius={[4, 4, 0, 0]}
-                        />
-                        <Bar
-                          dataKey="previous"
-                          name="Previous Period"
-                          fill="#4DB6AC"
-                          radius={[4, 4, 0, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-
-              {/* KPI DISTRIBUTION DONUT & TOP CONTRIBUTORS HORIZONTAL BAR */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* KPI Distribution Donut Chart */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        KPI Category Breakdown
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Distribution for {meta.title}
-                      </p>
-                    </div>
-                    <PieChartIcon className="w-4 h-4 text-[#009688]" />
-                  </div>
-                  <div className="h-56">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPie>
-                        <Pie
-                          data={DOCTOR_KPI_DONUT_DATA}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={45}
-                          outerRadius={75}
-                          paddingAngle={3}
-                          dataKey="value"
+                <div className="h-60">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={DOCTOR_KPI_TREND_DATA}
+                      margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient
+                          id="docKpiTrendGrad"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
                         >
-                          {DOCTOR_KPI_DONUT_DATA.map((entry) => (
-                            <Cell key={entry.name} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Legend
-                          layout="horizontal"
-                          verticalAlign="bottom"
-                          align="center"
-                          wrapperStyle={{
-                            fontSize: "10px",
-                            paddingTop: "10px",
-                          }}
-                        />
-                      </RechartsPie>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Top Contributors Horizontal Bar Chart */}
-                <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3
-                        className="text-sm font-bold text-[#111827]"
-                        style={{ fontFamily: PP }}
-                      >
-                        Shift Workload Contributors
-                      </h3>
-                      <p className="text-[11px] text-[#64748B]">
-                        Volume contributed per shift slot
-                      </p>
-                    </div>
-                    <UserCheck className="w-4 h-4 text-[#0D47A1]" />
-                  </div>
-                  <div className="h-56">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        layout="vertical"
-                        data={[]}
-                        margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                        <XAxis
-                          type="number"
-                          tick={{ fontSize: 10, fill: "#64748B" }}
-                        />
-                        <YAxis
-                          type="category"
-                          dataKey="category"
-                          tick={{ fontSize: 9, fill: "#111827" }}
-                          width={130}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#FFFFFF",
-                            borderRadius: "12px",
-                            borderColor: "#E5E7EB",
-                            fontSize: "11px",
-                          }}
-                        />
-                        <Bar
-                          dataKey="volume"
-                          name="Volume"
-                          fill="#009688"
-                          radius={[0, 4, 4, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+                          <stop
+                            offset="5%"
+                            stopColor="#0D47A1"
+                            stopOpacity={0.4}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#0D47A1"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 10, fill: "#64748B" }}
+                      />
+                      <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#FFFFFF",
+                          borderRadius: "12px",
+                          borderColor: "#E5E7EB",
+                          fontSize: "11px",
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="current"
+                        name="Current Value"
+                        stroke="#0D47A1"
+                        fillOpacity={1}
+                        fill="url(#docKpiTrendGrad)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* DYNAMIC KPI DETAILS TABLE */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              {/* Period Comparison Grouped Bar Chart */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3
-                      className="text-base font-bold text-[#111827]"
+                      className="text-sm font-bold text-[#111827]"
                       style={{ fontFamily: PP }}
                     >
-                      {meta.title} Register
+                      Period Comparison
                     </h3>
-                    <p className="text-xs text-[#64748B]">
-                      Detailed records contributing to selected KPI
+                    <p className="text-[11px] text-[#64748B]">
+                      Current vs previous period performance
                     </p>
                   </div>
-                  <button
-                    onClick={() =>
-                      alert(`Exporting ${meta.title} Register (CSV)...`)
-                    }
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] text-xs font-semibold text-[#111827] rounded-xl hover:bg-slate-100 transition"
-                  >
-                    <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                    <span>Export Register</span>
-                  </button>
+                  <Activity className="w-4 h-4 text-[#009688]" />
                 </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
-                        <th className="py-3.5 px-4">Record ID / MRN</th>
-                        <th className="py-3.5 px-4">Patient Name</th>
-                        <th className="py-3.5 px-4">Date & Time</th>
-                        <th className="py-3.5 px-4">Visit Type / Diagnosis</th>
-                        <th className="py-3.5 px-4 text-center">
-                          Status / Rating
-                        </th>
-                        <th className="py-3.5 px-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E5E7EB] text-xs">
-                      {[
-                        {
-                          id: "APT-901",
-                          patient: "Sarah Mitchell",
-                          date: "2026-07-26 09:00 AM",
-                          detail: "New Patient â€¢ Hypertension",
-                          status: "Completed",
-                        },
-                        {
-                          id: "APT-902",
-                          patient: "James Thornton",
-                          date: "2026-07-26 09:30 AM",
-                          detail: "Follow-up â€¢ Bronchitis",
-                          status: "Completed",
-                        },
-                        {
-                          id: "APT-903",
-                          patient: "Emma Reyes",
-                          date: "2026-07-26 10:00 AM",
-                          detail: "Routine Checkup â€¢ Diabetes",
-                          status: "Completed",
-                        },
-                        {
-                          id: "APT-904",
-                          patient: "Aisha Kumar",
-                          date: "2026-07-26 10:30 AM",
-                          detail: "Follow-up â€¢ Migraine",
-                          status: "In Progress",
-                        },
-                        {
-                          id: "APT-905",
-                          patient: "Michael Chang",
-                          date: "2026-07-26 11:00 AM",
-                          detail: "New Patient â€¢ Osteoarthritis",
-                          status: "Scheduled",
-                        },
-                      ].map((item) => (
-                        <tr
-                          key={item.id}
-                          className="hover:bg-slate-50 transition-colors"
-                        >
-                          <td className="py-3.5 px-4 font-bold text-[#0D47A1]">
-                            {item.id}
-                          </td>
-                          <td className="py-3.5 px-4 font-bold text-[#111827]">
-                            {item.patient}
-                          </td>
-                          <td className="py-3.5 px-4 text-[#64748B]">
-                            {item.date}
-                          </td>
-                          <td className="py-3.5 px-4 font-semibold text-[#111827]">
-                            {item.detail}
-                          </td>
-                          <td className="py-3.5 px-4 text-center">
-                            <span
-                              className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${item.status === "Completed" ? "bg-teal-50 text-[#009688] border border-teal-200" : item.status === "In Progress" ? "bg-amber-50 text-[#F59E0B] border border-amber-200" : "bg-slate-100 text-[#64748B]"}`}
-                            >
-                              {item.status}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={() =>
-                                  alert(`Viewing details for ${item.patient}`)
-                                }
-                                className="p-1.5 text-[#0D47A1] hover:bg-blue-50 rounded-lg transition"
-                                title="View Details"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() =>
-                                  alert(`Printing record for ${item.id}`)
-                                }
-                                className="p-1.5 text-[#64748B] hover:bg-slate-100 rounded-lg transition"
-                                title="Print Record"
-                              >
-                                <Printer className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="h-60">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={DOCTOR_KPI_TREND_DATA}
+                      margin={{ top: 10, right: 10, left: -15, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 10, fill: "#64748B" }}
+                      />
+                      <YAxis tick={{ fontSize: 10, fill: "#64748B" }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#FFFFFF",
+                          borderRadius: "12px",
+                          borderColor: "#E5E7EB",
+                          fontSize: "11px",
+                        }}
+                      />
+                      <Bar
+                        dataKey="current"
+                        name="Current Period"
+                        fill="#0D47A1"
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="previous"
+                        name="Previous Period"
+                        fill="#4DB6AC"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
+              </div>
+            </div>
 
-                {/* Table Pagination */}
-                <div className="p-4 bg-[#F1F5F9] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
-                  <span>Showing 1 to 5 of 5 entries</span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      aria-label="Previous"
-                      disabled
-                      className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
+            {/* KPI DISTRIBUTION DONUT & TOP CONTRIBUTORS HORIZONTAL BAR */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* KPI Distribution Donut Chart */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
                     >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <span className="font-semibold text-[#111827]">
-                      Page 1 of 1
-                    </span>
-                    <button
-                      aria-label="Next"
-                      disabled
-                      className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
-                    >
-                      <ChevronRightIcon className="w-4 h-4" />
-                    </button>
+                      KPI Category Breakdown
+                    </h3>
+                    <p className="text-[11px] text-[#64748B]">
+                      Distribution for {meta.title}
+                    </p>
                   </div>
+                  <PieChartIcon className="w-4 h-4 text-[#009688]" />
+                </div>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsPie>
+                      <Pie
+                        data={DOCTOR_KPI_DONUT_DATA}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={45}
+                        outerRadius={75}
+                        paddingAngle={3}
+                        dataKey="value"
+                      >
+                        {DOCTOR_KPI_DONUT_DATA.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#FFFFFF",
+                          borderRadius: "12px",
+                          borderColor: "#E5E7EB",
+                          fontSize: "11px",
+                        }}
+                      />
+                      <Legend
+                        layout="horizontal"
+                        verticalAlign="bottom"
+                        align="center"
+                        wrapperStyle={{
+                          fontSize: "10px",
+                          paddingTop: "10px",
+                        }}
+                      />
+                    </RechartsPie>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* PERSONAL INSIGHTS PANEL (OBSERVATIONAL RULES) */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-4">
-                  <TrendingUp className="w-5 h-5 text-[#009688]" />
+              {/* Top Contributors Horizontal Bar Chart */}
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3
+                      className="text-sm font-bold text-[#111827]"
+                      style={{ fontFamily: PP }}
+                    >
+                      Shift Workload Contributors
+                    </h3>
+                    <p className="text-[11px] text-[#64748B]">
+                      Volume contributed per shift slot
+                    </p>
+                  </div>
+                  <UserCheck className="w-4 h-4 text-[#0D47A1]" />
+                </div>
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      layout="vertical"
+                      data={[]}
+                      margin={{ top: 5, right: 10, left: 45, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
+                      <XAxis
+                        type="number"
+                        tick={{ fontSize: 10, fill: "#64748B" }}
+                      />
+                      <YAxis
+                        type="category"
+                        dataKey="category"
+                        tick={{ fontSize: 9, fill: "#111827" }}
+                        width={130}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#FFFFFF",
+                          borderRadius: "12px",
+                          borderColor: "#E5E7EB",
+                          fontSize: "11px",
+                        }}
+                      />
+                      <Bar
+                        dataKey="volume"
+                        name="Volume"
+                        fill="#009688"
+                        radius={[0, 4, 4, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* DYNAMIC KPI DETAILS TABLE */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+              <div className="p-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
                   <h3
                     className="text-base font-bold text-[#111827]"
                     style={{ fontFamily: PP }}
                   >
-                    Personal Observational Insights
+                    {meta.title} Register
                   </h3>
-                  <span className="ml-auto text-[11px] font-semibold text-[#64748B] bg-slate-100 px-2.5 py-0.5 rounded-full">
-                    Informational Only
-                  </span>
+                  <p className="text-xs text-[#64748B]">
+                    Detailed records contributing to selected KPI
+                  </p>
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 bg-teal-50 rounded-xl border border-teal-200">
-                    <div className="font-bold text-[#009688] mb-1">
-                      Consultation Efficiency +12%
-                    </div>
-                    <p className="text-[#64748B]">
-                      Completed consultations increased by 12% compared to last
-                      week.
-                    </p>
-                  </div>
-                  <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
-                    <div className="font-bold text-[#0D47A1] mb-1">
-                      Follow-up Compliance +9%
-                    </div>
-                    <p className="text-[#64748B]">
-                      Scheduled follow-up completion improved by 9% across
-                      morning slots.
-                    </p>
-                  </div>
-                  <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-                    <div className="font-bold text-[#66BB6A] mb-1">
-                      Avg Consult Time -3.0 min
-                    </div>
-                    <p className="text-[#64748B]">
-                      Average consultation duration reduced from 17.2m to 14.2m.
-                    </p>
-                  </div>
-                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-                    <div className="font-bold text-[#F59E0B] mb-1">
-                      Satisfaction Rating 4.9â˜…
-                    </div>
-                    <p className="text-[#64748B]">
-                      98% of patients provided 5-star feedback for your care
-                      quality.
-                    </p>
-                  </div>
-                </div>
+                <button
+                  onClick={() =>
+                    alert(`Exporting ${meta.title} Register (CSV)...`)
+                  }
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-[#E5E7EB] text-xs font-semibold text-[#111827] rounded-xl hover:bg-slate-100 transition"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
+                  <span>Export Register</span>
+                </button>
               </div>
 
-              {/* RECENT KPI ACTIVITIES TIMELINE */}
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
-                <h3
-                  className="text-base font-bold text-[#111827] mb-4"
-                  style={{ fontFamily: PP }}
-                >
-                  Recent KPI Activity Logs
-                </h3>
-                <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
-                  {(
-                    [] as Array<{
-                      id: string;
-                      title: string;
-                      time: string;
-                      action?: string;
-                      date?: string;
-                      detail?: string;
-                    }>
-                  ).map((act) => (
-                    <div
-                      key={act.id}
-                      className="flex items-start gap-4 relative z-10"
-                    >
-                      <div className="w-7 h-7 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center text-[#0D47A1] shrink-0">
-                        <Activity className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-bold text-[#111827]">
-                            {act.action}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-[#F1F5F9] text-[11px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#E5E7EB]">
+                      <th className="py-3.5 px-4">Record ID / MRN</th>
+                      <th className="py-3.5 px-4">Patient Name</th>
+                      <th className="py-3.5 px-4">Date & Time</th>
+                      <th className="py-3.5 px-4">Visit Type / Diagnosis</th>
+                      <th className="py-3.5 px-4 text-center">
+                        Status / Rating
+                      </th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E5E7EB] text-xs">
+                    {[
+                      {
+                        id: "APT-901",
+                        patient: "Sarah Mitchell",
+                        date: "2026-07-26 09:00 AM",
+                        detail: "New Patient â€¢ Hypertension",
+                        status: "Completed",
+                      },
+                      {
+                        id: "APT-902",
+                        patient: "James Thornton",
+                        date: "2026-07-26 09:30 AM",
+                        detail: "Follow-up â€¢ Bronchitis",
+                        status: "Completed",
+                      },
+                      {
+                        id: "APT-903",
+                        patient: "Emma Reyes",
+                        date: "2026-07-26 10:00 AM",
+                        detail: "Routine Checkup â€¢ Diabetes",
+                        status: "Completed",
+                      },
+                      {
+                        id: "APT-904",
+                        patient: "Aisha Kumar",
+                        date: "2026-07-26 10:30 AM",
+                        detail: "Follow-up â€¢ Migraine",
+                        status: "In Progress",
+                      },
+                      {
+                        id: "APT-905",
+                        patient: "Michael Chang",
+                        date: "2026-07-26 11:00 AM",
+                        detail: "New Patient â€¢ Osteoarthritis",
+                        status: "Scheduled",
+                      },
+                    ].map((item) => (
+                      <tr
+                        key={item.id}
+                        className="hover:bg-slate-50 transition-colors"
+                      >
+                        <td className="py-3.5 px-4 font-bold text-[#0D47A1]">
+                          {item.id}
+                        </td>
+                        <td className="py-3.5 px-4 font-bold text-[#111827]">
+                          {item.patient}
+                        </td>
+                        <td className="py-3.5 px-4 text-[#64748B]">
+                          {item.date}
+                        </td>
+                        <td className="py-3.5 px-4 font-semibold text-[#111827]">
+                          {item.detail}
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${item.status === "Completed" ? "bg-teal-50 text-[#009688] border border-teal-200" : item.status === "In Progress" ? "bg-amber-50 text-[#F59E0B] border border-amber-200" : "bg-slate-100 text-[#64748B]"}`}
+                          >
+                            {item.status}
                           </span>
-                          <span className="text-[11px] text-[#64748B]">
-                            {act.date} â€¢ {act.time}
-                          </span>
-                        </div>
-                        <p className="text-[#64748B]">{act.detail}</p>
-                      </div>
-                    </div>
-                  ))}
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() =>
+                                alert(`Viewing details for ${item.patient}`)
+                              }
+                              className="p-1.5 text-[#0D47A1] hover:bg-blue-50 rounded-lg transition"
+                              title="View Details"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() =>
+                                alert(`Printing record for ${item.id}`)
+                              }
+                              className="p-1.5 text-[#64748B] hover:bg-slate-100 rounded-lg transition"
+                              title="Print Record"
+                            >
+                              <Printer className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Table Pagination */}
+              <div className="p-4 bg-[#F1F5F9] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
+                <span>Showing 1 to 5 of 5 entries</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    aria-label="Previous"
+                    disabled
+                    className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="font-semibold text-[#111827]">
+                    Page 1 of 1
+                  </span>
+                  <button
+                    aria-label="Next"
+                    disabled
+                    className="p-1 rounded-lg border border-[#E5E7EB] opacity-50 cursor-not-allowed"
+                  >
+                    <ChevronRightIcon className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </div>
-        )}
 
+            {/* PERSONAL INSIGHTS PANEL (OBSERVATIONAL RULES) */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="w-5 h-5 text-[#009688]" />
+                <h3
+                  className="text-base font-bold text-[#111827]"
+                  style={{ fontFamily: PP }}
+                >
+                  Personal Observational Insights
+                </h3>
+                <span className="ml-auto text-[11px] font-semibold text-[#64748B] bg-slate-100 px-2.5 py-0.5 rounded-full">
+                  Informational Only
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3 bg-teal-50 rounded-xl border border-teal-200">
+                  <div className="font-bold text-[#009688] mb-1">
+                    Consultation Efficiency +12%
+                  </div>
+                  <p className="text-[#64748B]">
+                    Completed consultations increased by 12% compared to last
+                    week.
+                  </p>
+                </div>
+                <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
+                  <div className="font-bold text-[#0D47A1] mb-1">
+                    Follow-up Compliance +9%
+                  </div>
+                  <p className="text-[#64748B]">
+                    Scheduled follow-up completion improved by 9% across morning
+                    slots.
+                  </p>
+                </div>
+                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                  <div className="font-bold text-[#66BB6A] mb-1">
+                    Avg Consult Time -3.0 min
+                  </div>
+                  <p className="text-[#64748B]">
+                    Average consultation duration reduced from 17.2m to 14.2m.
+                  </p>
+                </div>
+                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
+                  <div className="font-bold text-[#F59E0B] mb-1">
+                    Satisfaction Rating 4.9â˜…
+                  </div>
+                  <p className="text-[#64748B]">
+                    98% of patients provided 5-star feedback for your care
+                    quality.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* RECENT KPI ACTIVITIES TIMELINE */}
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
+              <h3
+                className="text-base font-bold text-[#111827] mb-4"
+                style={{ fontFamily: PP }}
+              >
+                Recent KPI Activity Logs
+              </h3>
+              <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-[#E5E7EB]">
+                {(
+                  [] as Array<{
+                    id: string;
+                    title: string;
+                    time: string;
+                    action?: string;
+                    date?: string;
+                    detail?: string;
+                  }>
+                ).map((act) => (
+                  <div
+                    key={act.id}
+                    className="flex items-start gap-4 relative z-10"
+                  >
+                    <div className="w-7 h-7 rounded-full bg-white border-2 border-[#0D47A1] flex items-center justify-center text-[#0D47A1] shrink-0">
+                      <Activity className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] flex-1 text-xs">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-[#111827]">
+                          {act.action}
+                        </span>
+                        <span className="text-[11px] text-[#64748B]">
+                          {act.date} â€¢ {act.time}
+                        </span>
+                      </div>
+                      <p className="text-[#64748B]">{act.detail}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

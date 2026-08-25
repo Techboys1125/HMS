@@ -10,7 +10,6 @@ import {
   UserCheck,
   Activity,
   TrendingUp,
-  CheckCircle2,
   XCircle,
   Clock,
   PieChart as PieChartIcon,
@@ -19,7 +18,6 @@ import {
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   AlertCircle,
-  Shield,
 } from "lucide-react";
 import {
   useDoctorSelfDailyAppointmentsAnalytics,
@@ -106,8 +104,6 @@ export interface DoctorDailyAppointmentRecord {
 
 export function DoctorDailyAppointmentReportScreen({
   onBack,
-  onOpenPatientReport,
-  onOpenDoctorReport,
 }: {
   onBack?: () => void;
   onOpenPatientReport?: () => void;
@@ -123,8 +119,8 @@ export function DoctorDailyAppointmentReportScreen({
     "Today" | "7 Days" | "30 Days" | "90 Days"
   >("Today");
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isPending, ] = useTransition();
-  const [showLoadingDemo, ] = useState(false);
+  const [isPending] = useTransition();
+  const [showLoadingDemo] = useState(false);
   const isLoading = isPending || showLoadingDemo;
   const [hasError, setHasError] = useState(false);
 
@@ -971,8 +967,7 @@ export function DoctorDailyAppointmentReportScreen({
                           colSpan={9}
                           className="py-8 text-center text-[#64748B]"
                         >
-                          No appointments match your search or filter
-                          criteria.
+                          No appointments match your search or filter criteria.
                         </td>
                       </tr>
                     ) : (
@@ -1076,11 +1071,8 @@ export function DoctorDailyAppointmentReportScreen({
                 </div>
               </div>
             </div>
-
           </div>
-
         )}
-
       </div>
     </div>
   );

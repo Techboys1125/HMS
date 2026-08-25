@@ -1,6 +1,5 @@
-import React, { useState, useMemo, useTransition } from "react";
+import { useState, useMemo, useTransition } from "react";
 import {
-  Calendar,
   Download,
   RefreshCw,
   Filter,
@@ -17,7 +16,6 @@ import {
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   AlertCircle,
-  Shield,
 } from "lucide-react";
 import { useDoctorSelfPatientRegister } from "../hooks/useReports";
 
@@ -101,8 +99,6 @@ export interface DoctorPatientRecord {
 
 export function DoctorPatientReportScreen({
   onBack,
-  onOpenAppointmentReport,
-  onOpenDoctorReport,
 }: {
   onBack?: () => void;
   onOpenAppointmentReport?: () => void;
@@ -120,8 +116,8 @@ export function DoctorPatientReportScreen({
   const [trendDays, setTrendDays] = useState<"7 Days" | "30 Days" | "90 Days">(
     "7 Days",
   );
-  const [isPending, ] = useTransition();
-  const [showLoadingDemo, ] = useState(false);
+  const [isPending] = useTransition();
+  const [showLoadingDemo] = useState(false);
   const isLoading = isPending || showLoadingDemo;
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -331,9 +327,7 @@ export function DoctorPatientReportScreen({
                   58
                 </div>
                 <div className="flex items-center gap-1 text-[10px] text-[#64748B] mb-2">
-                  <span className="text-[#0D47A1] font-semibold">
-                    Assigned
-                  </span>
+                  <span className="text-[#0D47A1] font-semibold">Assigned</span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-1 pt-1.5 border-t border-[#E5E7EB] text-[10px] text-center">
@@ -436,9 +430,7 @@ export function DoctorPatientReportScreen({
                   28
                 </div>
                 <div className="flex items-center gap-1 text-[10px] text-[#64748B] mb-2">
-                  <span className="text-[#66BB6A] font-semibold">
-                    Today
-                  </span>
+                  <span className="text-[#66BB6A] font-semibold">Today</span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-1 pt-1.5 border-t border-[#E5E7EB] text-[10px] text-center">
@@ -1118,11 +1110,7 @@ export function DoctorPatientReportScreen({
               </div>
             </div>
           </div>
-
-
         )}
-
-
       </div>
     </div>
   );
