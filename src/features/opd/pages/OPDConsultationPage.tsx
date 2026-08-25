@@ -940,12 +940,13 @@ export function OPDConsultationPage({
                 ? "Search by Patient Name, MRN, Consultation ID or Mobile Number..."
                 : "Search by Patient Name, MRN, Consultation ID or Doctor Name..."
             }
-            showDoctorFilter={resolvedRole !== "doctor"}
-            showDepartmentFilter={resolvedRole !== "doctor"}
+            visibleFilters={
+              resolvedRole !== "doctor"
+                ? ["status", "visitType", "doctor", "department"]
+                : ["status", "visitType"]
+            }
             doctorOptions={doctorOptions}
             departmentOptions={departmentOptions}
-            showStatusFilter={true}
-            showVisitTypeFilter={true}
           />
 
           {/* CONSULTATION STATUS TABS */}
