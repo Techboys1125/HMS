@@ -243,6 +243,284 @@ export function DoctorReportsDashboardScreen({
           </div>
         </div>
 
+        {/* TOP 6 DOCTOR KPI CARDS (Single Line Grid Above Filter Bar) */}
+        {!isLoading && !hasError && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
+            {/* Card 1: Today's Appointments */}
+            <div
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  (e.currentTarget as HTMLElement).click();
+                }
+              }}
+              role="button"
+              onClick={() => navigate(ROUTES.DOCTOR_APPOINTMENTS)}
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-3.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition truncate">
+                    Today's Appts
+                  </span>
+                  <div className="p-1.5 rounded-lg bg-blue-50 text-[#0D47A1] shrink-0">
+                    <Calendar className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div
+                  className="text-xl font-bold text-[#111827] mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  0
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-[#64748B] mb-2">
+                  <span className="text-[#66BB6A] font-semibold">--</span>
+                  <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
+                    View <ChevronRight className="w-3 h-3" />
+                  </span>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-1 pt-1.5 border-t border-[#E5E7EB] text-[10px] text-center">
+                <div>
+                  <div className="text-[#66BB6A] font-bold">0</div>
+                  <div className="text-[#64748B]">Done</div>
+                </div>
+                <div>
+                  <div className="text-[#EF4444] font-bold">0</div>
+                  <div className="text-[#64748B]">Cancel</div>
+                </div>
+                <div>
+                  <div className="text-[#F59E0B] font-bold">0</div>
+                  <div className="text-[#64748B]">Pend</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2: My Patients */}
+            <div
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  (e.currentTarget as HTMLElement).click();
+                }
+              }}
+              role="button"
+              onClick={() => navigate(ROUTES.DOCTOR_PATIENTS)}
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-3.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition truncate">
+                    My Patients
+                  </span>
+                  <div className="p-1.5 rounded-lg bg-teal-50 text-[#009688] shrink-0">
+                    <Users className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div
+                  className="text-xl font-bold text-[#111827] mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  0
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-[#64748B] mb-2">
+                  <span className="text-[#009688] font-semibold">--</span>
+                  <span className="text-[#009688] font-semibold flex items-center gap-0.5 group-hover:underline">
+                    View <ChevronRight className="w-3 h-3" />
+                  </span>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-1 pt-1.5 border-t border-[#E5E7EB] text-[10px] text-center">
+                <div>
+                  <div className="text-[#009688] font-bold">0</div>
+                  <div className="text-[#64748B]">New</div>
+                </div>
+                <div>
+                  <div className="text-[#0D47A1] font-bold">0</div>
+                  <div className="text-[#64748B]">Return</div>
+                </div>
+                <div>
+                  <div className="text-[#4DB6AC] font-bold">0</div>
+                  <div className="text-[#64748B]">Walk-in</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Completed Consultations */}
+            <div
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  (e.currentTarget as HTMLElement).click();
+                }
+              }}
+              role="button"
+              onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-3.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition truncate">
+                    Completed Consults
+                  </span>
+                  <div className="p-1.5 rounded-lg bg-indigo-50 text-[#0D47A1] shrink-0">
+                    <UserCheck className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div
+                  className="text-xl font-bold text-[#111827] mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  0
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-[#64748B] mb-2">
+                  <span className="text-[#0D47A1] font-semibold">--</span>
+                  <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
+                    View <ChevronRight className="w-3 h-3" />
+                  </span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-1 pt-1.5 border-t border-[#E5E7EB] text-[10px] text-center">
+                <div>
+                  <div className="text-[#0D47A1] font-bold">0</div>
+                  <div className="text-[#64748B]">Today</div>
+                </div>
+                <div>
+                  <div className="text-[#66BB6A] font-bold">0</div>
+                  <div className="text-[#64748B]">Monthly</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4: Follow-up Patients */}
+            <div
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  (e.currentTarget as HTMLElement).click();
+                }
+              }}
+              role="button"
+              onClick={() => navigate(ROUTES.DOCTOR_APPOINTMENTS)}
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-3.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#F59E0B] transition truncate">
+                    Follow-up Patients
+                  </span>
+                  <div className="p-1.5 rounded-lg bg-amber-50 text-[#F59E0B] shrink-0">
+                    <Activity className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div
+                  className="text-xl font-bold text-[#111827] mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  0
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-[#64748B] mb-2">
+                  <span className="text-[#F59E0B] font-semibold">--</span>
+                  <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
+                    View <ChevronRight className="w-3 h-3" />
+                  </span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-1 pt-1.5 border-t border-[#E5E7EB] text-[10px] text-center">
+                <div>
+                  <div className="text-[#F59E0B] font-bold">0</div>
+                  <div className="text-[#64748B]">Today</div>
+                </div>
+                <div>
+                  <div className="text-[#009688] font-bold">0</div>
+                  <div className="text-[#64748B]">Upcoming</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 5: Average Consultation Time */}
+            <div
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  (e.currentTarget as HTMLElement).click();
+                }
+              }}
+              role="button"
+              onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-3.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition truncate">
+                    Avg Consult Time
+                  </span>
+                  <div className="p-1.5 rounded-lg bg-teal-50 text-[#009688] shrink-0">
+                    <Clock className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <div
+                  className="text-xl font-bold text-[#111827] mb-1"
+                  style={{ fontFamily: PP }}
+                >
+                  --
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-[#64748B] mb-2">
+                  <span className="text-[#009688] font-semibold">--</span>
+                  <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
+                    View <ChevronRight className="w-3 h-3" />
+                  </span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-1 pt-1.5 border-t border-[#E5E7EB] text-[10px] text-center">
+                <div>
+                  <div className="text-[#009688] font-bold">--</div>
+                  <div className="text-[#64748B]">My Avg</div>
+                </div>
+                <div>
+                  <div className="text-[#64748B] font-bold">--</div>
+                  <div className="text-[#64748B]">Dept Avg</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 6: Patient Satisfaction */}
+            <div
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  (e.currentTarget as HTMLElement).click();
+                }
+              }}
+              role="button"
+              onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
+              className="bg-white rounded-2xl border border-[#E5E7EB] p-3.5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between cursor-pointer group"
+            >
+              <div>
+                <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition block leading-tight truncate">
+                  Patient Satisfaction
+                </span>
+                <div
+                  className="text-xl font-bold text-[#111827] mt-1"
+                  style={{ fontFamily: PP }}
+                >
+                  --
+                </div>
+                <div className="mt-2 text-[10px] font-semibold text-[#66BB6A] flex items-center gap-0.5 group-hover:underline">
+                  View <ChevronRight className="w-3 h-3" />
+                </div>
+              </div>
+              <CircularProgress percentage={98} size={48} strokeWidth={5} />
+            </div>
+          </div>
+        )}
+
         {/* Doctor Filter Bar */}
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm mb-6">
           <div className="flex items-center justify-between mb-3">
@@ -399,281 +677,8 @@ export function DoctorReportsDashboardScreen({
         )}
 
         {!isLoading && !hasError && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* LEFT MAIN CONTENT AREA (3 Cols) */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* TOP 6 DOCTOR KPI CARDS */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Card 1: Today's Appointments */}
-                <div
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      (e.currentTarget as HTMLElement).click();
-                    }
-                  }}
-                  role="button"
-                  onClick={() => navigate(ROUTES.DOCTOR_APPOINTMENTS)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
-                      Today's Appointments
-                    </span>
-                    <div className="p-2 rounded-xl bg-blue-50 text-[#0D47A1]">
-                      <Calendar className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    0
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#66BB6A] font-semibold flex items-center gap-0.5">
-                      --
-                    </span>
-                    <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">0</div>
-                      <div className="text-[#64748B]">Done</div>
-                    </div>
-                    <div>
-                      <div className="text-[#EF4444] font-bold">0</div>
-                      <div className="text-[#64748B]">Cancel</div>
-                    </div>
-                    <div>
-                      <div className="text-[#F59E0B] font-bold">0</div>
-                      <div className="text-[#64748B]">Pending</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 2: My Patients */}
-                <div
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      (e.currentTarget as HTMLElement).click();
-                    }
-                  }}
-                  role="button"
-                  onClick={() => navigate(ROUTES.DOCTOR_PATIENTS)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
-                      My Patients
-                    </span>
-                    <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
-                      <Users className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    0
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#009688] font-semibold flex items-center gap-0.5">
-                      --
-                    </span>
-                    <span className="text-[#009688] font-semibold flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#009688] font-bold">0</div>
-                      <div className="text-[#64748B]">New</div>
-                    </div>
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">0</div>
-                      <div className="text-[#64748B]">Return</div>
-                    </div>
-                    <div>
-                      <div className="text-[#4DB6AC] font-bold">0</div>
-                      <div className="text-[#64748B]">Walk-in</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 3: Completed Consultations */}
-                <div
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      (e.currentTarget as HTMLElement).click();
-                    }
-                  }}
-                  role="button"
-                  onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#0D47A1] transition">
-                      Completed Consultations
-                    </span>
-                    <div className="p-2 rounded-xl bg-indigo-50 text-[#0D47A1]">
-                      <UserCheck className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    0
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#0D47A1] font-semibold">--</span>
-                    <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#0D47A1] font-bold">0</div>
-                      <div className="text-[#64748B]">Today</div>
-                    </div>
-                    <div>
-                      <div className="text-[#66BB6A] font-bold">0</div>
-                      <div className="text-[#64748B]">Monthly</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 4: Follow-up Patients */}
-                <div
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      (e.currentTarget as HTMLElement).click();
-                    }
-                  }}
-                  role="button"
-                  onClick={() => navigate(ROUTES.DOCTOR_APPOINTMENTS)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#F59E0B] transition">
-                      Follow-up Patients
-                    </span>
-                    <div className="p-2 rounded-xl bg-amber-50 text-[#F59E0B]">
-                      <Activity className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    0
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#F59E0B] font-semibold">--</span>
-                    <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#F59E0B] font-bold">0</div>
-                      <div className="text-[#64748B]">Today</div>
-                    </div>
-                    <div>
-                      <div className="text-[#009688] font-bold">0</div>
-                      <div className="text-[#64748B]">Upcoming</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 5: Average Consultation Time */}
-                <div
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      (e.currentTarget as HTMLElement).click();
-                    }
-                  }}
-                  role="button"
-                  onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#009688] transition">
-                      Avg Consultation Time
-                    </span>
-                    <div className="p-2 rounded-xl bg-teal-50 text-[#009688]">
-                      <Clock className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div
-                    className="text-2xl font-bold text-[#111827] mb-1"
-                    style={{ fontFamily: PP }}
-                  >
-                    --
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mb-3">
-                    <span className="text-[#009688] font-semibold">--</span>
-                    <span className="text-[#0D47A1] font-semibold flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 pt-2 border-t border-[#E5E7EB] text-[11px] text-center">
-                    <div>
-                      <div className="text-[#009688] font-bold">--</div>
-                      <div className="text-[#64748B]">My Avg</div>
-                    </div>
-                    <div>
-                      <div className="text-[#64748B] font-bold">--</div>
-                      <div className="text-[#64748B]">Dept Avg</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 6: Patient Satisfaction */}
-                <div
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      (e.currentTarget as HTMLElement).click();
-                    }
-                  }}
-                  role="button"
-                  onClick={() => navigate(ROUTES.DOCTOR_MY_SCHEDULE)}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between cursor-pointer group"
-                >
-                  <div>
-                    <span className="text-xs font-semibold text-[#64748B] group-hover:text-[#66BB6A] transition">
-                      Patient Satisfaction
-                    </span>
-                    <div
-                      className="text-2xl font-bold text-[#111827] mt-1"
-                      style={{ fontFamily: PP }}
-                    >
-                      --
-                    </div>
-                    <p className="text-[11px] text-[#64748B] mt-1">--</p>
-                    <div className="mt-2 text-[11px] font-semibold text-[#66BB6A] flex items-center gap-0.5 group-hover:underline">
-                      View Detail <ChevronRight className="w-3 h-3" />
-                    </div>
-                  </div>
-                  <CircularProgress percentage={98} size={64} strokeWidth={7} />
-                </div>
-              </div>
-
-              {/* AVAILABLE DOCTOR REPORTS */}
+          <div className="w-full space-y-6">
+            {/* AVAILABLE DOCTOR REPORTS */}
               <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <div>
@@ -1234,9 +1239,6 @@ export function DoctorReportsDashboardScreen({
               </div>
 
               {/* RECENT ACTIVITIES TIMELINE */}
-            </div>
-
-            {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
           </div>
         )}
 

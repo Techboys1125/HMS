@@ -496,10 +496,8 @@ export function DoctorDashboardKpiDetailScreen({
         )}
 
         {!isLoading && !hasError && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* LEFT MAIN CONTENT AREA (3 Cols) */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* KPI PERFORMANCE TREND & PERIOD COMPARISON */}
+          <div className="w-full space-y-6">
+            {/* KPI PERFORMANCE TREND & PERIOD COMPARISON */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* KPI Performance Trend Area Chart */}
                 <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm">
@@ -997,154 +995,8 @@ export function DoctorDashboardKpiDetailScreen({
                 </div>
               </div>
             </div>
-
-            {/* RIGHT STICKY SUMMARY PANEL (1 Col) */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 shadow-sm sticky top-20 space-y-6">
-                {/* Header */}
-                <div>
-                  <h3
-                    className="text-base font-bold text-[#111827] flex items-center gap-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    <Shield className="w-4 h-4 text-[#0D47A1]" />
-                    <span>KPI Summary</span>
-                  </h3>
-                  <p className="text-[11px] text-[#64748B]">
-                    Live selected KPI overview
-                  </p>
-                </div>
-
-                {/* Metrics Overview */}
-                <div className="bg-[#F1F5F9] rounded-xl p-3 border border-[#E5E7EB] text-xs space-y-2">
-                  <div className="text-[11px] font-bold text-[#64748B] uppercase">
-                    Selected Focus
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Selected KPI:</span>
-                    <span className="font-bold text-[#111827]">
-                      {meta.title}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Current Value:</span>
-                    <span className="font-bold text-[#0D47A1]">
-                      {meta.value}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Growth %:</span>
-                    <span className="font-bold text-[#66BB6A]">
-                      {meta.growth}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[#64748B]">Applied Filters:</span>
-                    <span className="font-bold text-[#111827]">
-                      {dateRange}
-                    </span>
-                  </div>
-                  <div className="border-t border-[#E5E7EB] pt-2 flex justify-between">
-                    <span className="text-[#64748B]">Last Updated:</span>
-                    <span className="font-semibold text-[#111827]">
-                      11:45 AM
-                    </span>
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div>
-                  <h4
-                    className="text-xs font-bold text-[#111827] uppercase tracking-wider mb-2"
-                    style={{ fontFamily: PP }}
-                  >
-                    Quick Actions
-                  </h4>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => alert("Exporting PDF...")}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-[#0D47A1]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Download className="w-3.5 h-3.5 text-[#0D47A1]" />
-                        <span>Export PDF Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    <button
-                      onClick={() => window.print()}
-                      className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#111827]"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Printer className="w-3.5 h-3.5 text-[#64748B]" />
-                        <span>Print Report</span>
-                      </div>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                    </button>
-
-                    {onBack && (
-                      <button
-                        onClick={onBack}
-                        className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#009688]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <ChevronLeft className="w-3.5 h-3.5 text-[#009688]" />
-                          <span>Back to Reports Dashboard</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                      </button>
-                    )}
-
-                    {onOpenReport && (
-                      <button
-                        onClick={() => onOpenReport("daily-appointments")}
-                        className="w-full text-left px-3 py-2 rounded-xl border border-[#E5E7EB] hover:bg-slate-50 transition flex items-center justify-between text-xs font-medium text-[#0D47A1]"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-3.5 h-3.5 text-[#0D47A1]" />
-                          <span>Open Related Report</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-[#64748B]" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Compliance Note */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-[#E5E7EB] text-[11px] text-[#64748B]">
-                  <div className="flex items-center gap-1 text-[#009688] font-bold mb-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Doctor KPI Scope Verified</span>
-                  </div>
-                  <span>
-                    Read-only KPI drill-down analytics for logged-in doctor
-                    performance.
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
         )}
 
-        {/* FOOTER */}
-        <div className="mt-8 pt-4 border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between text-xs text-[#64748B] gap-2">
-          <div>
-            Showing{" "}
-            <strong className="text-[#111827]">
-              Doctor KPI Analytics ({meta.title})
-            </strong>
-          </div>
-          <div>
-            Hospital Management System â€¢ Doctor Dashboard KPI Detail v1.0
-          </div>
-          <div>
-            Last Refreshed:{" "}
-            <strong className="text-[#111827]">
-              {new Date().toLocaleString()}
-            </strong>
-          </div>
-        </div>
       </div>
     </div>
   );
