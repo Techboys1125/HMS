@@ -369,10 +369,18 @@ export const EncounterPrescriptionViewModal: React.FC<
                     </span>
                     <span className="font-bold text-slate-800">
                       {prescription.patient?.fullName ||
-                        ((prescription.patient as Record<string, unknown>)
-                          ?.name as string) ||
-                        ((prescription.patient as Record<string, unknown>)
-                          ?.patientName as string) ||
+                        ((
+                          prescription.patient as unknown as Record<
+                            string,
+                            unknown
+                          >
+                        )?.name as string) ||
+                        ((
+                          prescription.patient as unknown as Record<
+                            string,
+                            unknown
+                          >
+                        )?.patientName as string) ||
                         ((prescription as unknown as Record<string, unknown>)
                           ?.patientName as string) ||
                         "N/A"}
@@ -381,8 +389,12 @@ export const EncounterPrescriptionViewModal: React.FC<
                     <span className="text-slate-500 font-medium">MRN:</span>
                     <span className="font-mono font-bold text-[#0D47A1]">
                       {prescription.patient?.mrn ||
-                        ((prescription.patient as Record<string, unknown>)
-                          ?.patientMrn as string) ||
+                        ((
+                          prescription.patient as unknown as Record<
+                            string,
+                            unknown
+                          >
+                        )?.patientMrn as string) ||
                         ((prescription as unknown as Record<string, unknown>)
                           ?.mrn as string) ||
                         "N/A"}
@@ -393,14 +405,22 @@ export const EncounterPrescriptionViewModal: React.FC<
                     </span>
                     <span className="font-medium text-slate-700">
                       {prescription.patient?.age ||
-                      (prescription.patient as Record<string, unknown>)
-                        ?.patientAge
-                        ? `${prescription.patient?.age || (prescription.patient as Record<string, unknown>)?.patientAge} Yrs`
+                      (
+                        prescription.patient as unknown as Record<
+                          string,
+                          unknown
+                        >
+                      )?.patientAge
+                        ? `${prescription.patient?.age || (prescription.patient as unknown as Record<string, unknown>)?.patientAge} Yrs`
                         : "N/A"}{" "}
                       /{" "}
                       {prescription.patient?.gender ||
-                        ((prescription.patient as Record<string, unknown>)
-                          ?.gender as string) ||
+                        ((
+                          prescription.patient as unknown as Record<
+                            string,
+                            unknown
+                          >
+                        )?.gender as string) ||
                         "N/A"}
                     </span>
                   </div>
