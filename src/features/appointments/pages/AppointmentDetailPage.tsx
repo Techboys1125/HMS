@@ -323,7 +323,9 @@ export function AppointmentDetailPage() {
       } catch {
         if (!cancelled) setError("Failed to load appointment details.");
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
     void load();

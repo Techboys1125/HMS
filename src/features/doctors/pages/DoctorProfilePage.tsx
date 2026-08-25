@@ -30,7 +30,7 @@ import type {
   DoctorApiResponse,
 } from "../types/doctors.types";
 import { PP, RB } from "../constants/doctors.constants";
-import UserAvatar from "../../../common/components/UserAvatar";
+import { UserAvatar } from "../../../common/components/UserAvatar";
 
 const GENDER_OPTIONS = ["MALE", "FEMALE", "OTHER"];
 

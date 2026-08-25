@@ -47,15 +47,15 @@ type DrawerDoctorInfo = {
   opdRoom: string;
 };
 
+type DrawerFooterAction = "nurse" | "doctor" | "check-in" | "edit";
+
 type DrawerFooterProps = {
   onClose: () => void;
   onPrintClick: (apt: AppointmentRecord) => void;
   apt: AppointmentRecord;
-  isNurse: boolean;
+  action: DrawerFooterAction;
   onPatientSelect?: (id: number | string) => void;
-  isDoctor: boolean;
   onStartConsultation?: (aptId?: string | number) => void;
-  showCheckInButton: boolean;
   handleCheckIn: () => Promise<void>;
   isCheckingIn: boolean;
   onEditClick: (apt: AppointmentRecord) => void;
@@ -503,11 +503,9 @@ const DrawerFooter = ({
   onClose,
   onPrintClick,
   apt,
-  isNurse,
+  action,
   onPatientSelect,
-  isDoctor,
   onStartConsultation,
-  showCheckInButton,
   handleCheckIn,
   isCheckingIn,
   onEditClick,
@@ -532,7 +530,7 @@ const DrawerFooter = ({
         <Printer size={14} /> Print Summary
       </button>
 
-      {isNurse ? (
+      {action === "nurse" ? (
         <button
           type="button"
           onClick={() => {
@@ -544,7 +542,7 @@ const DrawerFooter = ({
         >
           <User size={14} /> View Patient Profile
         </button>
-      ) : isDoctor ? (
+      ) : action === "doctor" ? (
         <button
           type="button"
           onClick={() => {
@@ -556,7 +554,7 @@ const DrawerFooter = ({
         >
           <Stethoscope size={16} /> Start Consultation
         </button>
-      ) : showCheckInButton ? (
+      ) : action === "check-in" ? (
         <button
           type="button"
           onClick={handleCheckIn}
@@ -564,7 +562,7 @@ const DrawerFooter = ({
           className="py-2.5 px-4 rounded-xl bg-[#009688] text-white text-xs font-bold hover:bg-teal-700 transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
           style={{ fontFamily: PP }}
         >
-          <CheckCircle2 size={14} />{" "}
+          <CheckCircle2 size={14} />
           {isCheckingIn ? "Checking In..." : "Check-In Patient"}
         </button>
       ) : (
@@ -582,6 +580,92 @@ const DrawerFooter = ({
       )}
     </div>
   </div>
+);
+
+type DrawerContentProps = {
+  activeTab: "all" | "patient" | "appointment" | "clinical" | "timeline";
+  setActiveTab: (
+    tab: "all" | "patient" | "appointment" | "clinical" | "timeline",
+  ) => void;
+  patientInfo: ReturnType<typeof appointmentToPatientSummary>;
+  rawPatientInfo: Record<string, unknown>;
+  apt: AppointmentRecord;
+  doctorInfo: DrawerDoctorInfo;
+  timelineSteps: TimelineEventItem[];
+  isLoadingTimeline: boolean;
+  onPatientSelect?: (id: number | string) => void;
+};
+
+const DrawerContent = ({
+  activeTab,
+  setActiveTab,
+  patientInfo,
+  rawPatientInfo,
+  apt,
+  doctorInfo,
+  timelineSteps,
+  isLoadingTimeline,
+  onPatientSelect,
+}: DrawerContentProps) => (
+  <>
+    <div className="bg-white border-b border-[#E5E7EB] px-6 flex items-center gap-4 sm:gap-6 shrink-0 text-xs font-semibold overflow-x-auto">
+      {(
+        [
+          { id: "all", label: "All Sections" },
+          { id: "patient", label: "Patient Info" },
+          { id: "appointment", label: "Appointment" },
+          { id: "clinical", label: "Clinical Prep" },
+          { id: "timeline", label: "Timeline" },
+        ] as const
+      ).map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => setActiveTab(tab.id)}
+          className={`py-3 border-b-2 transition-colors whitespace-nowrap ${
+            activeTab === tab.id
+              ? "border-[#0D47A1] text-[#0D47A1]"
+              : "border-transparent text-slate-500 hover:text-slate-700"
+          }`}
+          style={{ fontFamily: PP }}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+
+    <div
+      className="flex-1 overflow-y-auto p-6 space-y-5 bg-[#F1F5F9]/50"
+      style={{ fontFamily: RB }}
+    >
+      {(activeTab === "all" || activeTab === "patient") && (
+        <DrawerPatientSection
+          patientInfo={patientInfo}
+          rawPatientInfo={rawPatientInfo}
+          apt={apt}
+          onPatientSelect={onPatientSelect}
+        />
+      )}
+
+      {(activeTab === "all" || activeTab === "appointment") && (
+        <DrawerAppointmentSection apt={apt} />
+      )}
+
+      {(activeTab === "all" || activeTab === "appointment") && (
+        <DrawerDoctorSection doctorInfo={doctorInfo} />
+      )}
+
+      {(activeTab === "all" || activeTab === "clinical") && (
+        <DrawerClinicalSection apt={apt} />
+      )}
+
+      {(activeTab === "all" || activeTab === "timeline") && (
+        <DrawerTimelineSection
+          timelineSteps={timelineSteps}
+          isLoadingTimeline={isLoadingTimeline}
+        />
+      )}
+    </div>
+  </>
 );
 
 export function AppointmentDetailsDrawer({
@@ -669,9 +753,13 @@ export function AppointmentDetailsDrawer({
           }
         }
       } catch {
-        if (!cancelled) setApiTimelineEvents([]);
+        if (!cancelled) {
+          setApiTimelineEvents([]);
+        }
       } finally {
-        setIsLoadingTimeline(false);
+        if (!cancelled) {
+          setIsLoadingTimeline(false);
+        }
       }
     }
 
@@ -698,6 +786,14 @@ export function AppointmentDetailsDrawer({
     (apt.status === "Booked" ||
       apt.status === "Scheduled" ||
       apt.status === "BOOKED");
+
+  const footerAction: DrawerFooterAction = isNurse
+    ? "nurse"
+    : isDoctor
+      ? "doctor"
+      : showCheckInButton
+        ? "check-in"
+        : "edit";
 
   const handleCheckIn = async () => {
     if (!apt) return;
@@ -814,75 +910,25 @@ export function AppointmentDetailsDrawer({
 
           <DrawerSummary apt={apt} />
 
-          {/* NAVIGATION TABS */}
-          <div className="bg-white border-b border-[#E5E7EB] px-6 flex items-center gap-4 sm:gap-6 shrink-0 text-xs font-semibold overflow-x-auto">
-            {(
-              [
-                { id: "all", label: "All Sections" },
-                { id: "patient", label: "Patient Info" },
-                { id: "appointment", label: "Appointment" },
-                { id: "clinical", label: "Clinical Prep" },
-                { id: "timeline", label: "Timeline" },
-              ] as const
-            ).map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-3 border-b-2 transition-colors whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? "border-[#0D47A1] text-[#0D47A1]"
-                    : "border-transparent text-slate-500 hover:text-slate-700"
-                }`}
-                style={{ fontFamily: PP }}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* SCROLLABLE CONTENT */}
-          <div
-            className="flex-1 overflow-y-auto p-6 space-y-5 bg-[#F1F5F9]/50"
-            style={{ fontFamily: RB }}
-          >
-            {(activeTab === "all" || activeTab === "patient") && (
-              <DrawerPatientSection
-                patientInfo={patientInfo}
-                rawPatientInfo={rawPatientInfo}
-                apt={apt}
-                onPatientSelect={onPatientSelect}
-              />
-            )}
-
-            {(activeTab === "all" || activeTab === "appointment") && (
-              <DrawerAppointmentSection apt={apt} />
-            )}
-
-            {(activeTab === "all" || activeTab === "appointment") && (
-              <DrawerDoctorSection doctorInfo={doctorInfo} />
-            )}
-
-            {(activeTab === "all" || activeTab === "clinical") && (
-              <DrawerClinicalSection apt={apt} />
-            )}
-
-            {(activeTab === "all" || activeTab === "timeline") && (
-              <DrawerTimelineSection
-                timelineSteps={timelineSteps}
-                isLoadingTimeline={isLoadingTimeline}
-              />
-            )}
-          </div>
+          <DrawerContent
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            patientInfo={patientInfo}
+            rawPatientInfo={rawPatientInfo}
+            apt={apt}
+            doctorInfo={doctorInfo}
+            timelineSteps={timelineSteps}
+            isLoadingTimeline={isLoadingTimeline}
+            onPatientSelect={onPatientSelect}
+          />
 
           <DrawerFooter
             onClose={onClose}
             onPrintClick={onPrintClick}
             apt={apt}
-            isNurse={isNurse}
+            action={footerAction}
             onPatientSelect={onPatientSelect}
-            isDoctor={isDoctor}
             onStartConsultation={onStartConsultation}
-            showCheckInButton={showCheckInButton}
             handleCheckIn={handleCheckIn}
             isCheckingIn={isCheckingIn}
             onEditClick={onEditClick}

@@ -117,7 +117,9 @@ export function DoctorManagementPage() {
       } catch (err) {
         console.error("Failed to load doctor management data:", err);
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
